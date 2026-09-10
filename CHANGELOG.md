@@ -1,5 +1,11 @@
 # MIR — changelog
 
+## 1.0.1 — 2026-09-10
+
+- `knob`: a base and a painted value are two things. `show(x)` paints a modulated value over the base (the
+  needle dances), `set(x)` writes the base, and a drag starts from the base — so a hand on a routed knob moves
+  its range by the drag and never teleports it to where the modulator was.
+
 ## 1.0.0 — 2026-09-10 · extracted from λWAVES
 
 - Tokens, widgets and window chrome (`mir/css/base.css`, `mir/kit.js`) and the material language
