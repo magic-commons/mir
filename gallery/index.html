@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MIR · gallery</title>
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<style>
+  /* the gallery's own three rules: a scrolling page (the kit's ground is a fixed stage), a grid, a swatch */
+  html, body { height: auto; overflow: auto; background: #070a0f; }
+  .g-page { max-width: 1100px; margin: 0 auto; padding: 24px 16px 80px; display: flex; flex-direction: column; gap: 18px; }
+  .g-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+  .g-tokens { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .g-sw { display: flex; align-items: center; gap: 8px; font-size: var(--fs-tiny); color: var(--ink-key); }
+  .g-sw i { display: inline-block; width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--glass-hairline); }
+  .g-rail { display: grid; grid-template-columns: repeat(2, 140px); gap: 4px 8px; }
+  .g-tile .m2slotrow { display: grid; grid-template-columns: 44px 44px 18px; align-items: center; height: 44px; }
+  .g-tile .m2val, .g-tile .m2slotx, .g-tile .m2namerow { display: none; }
+  .g-note { font-size: var(--fs-small); color: var(--ink-faint); line-height: 1.5; max-width: 70ch; }
+</style>
+</head>
+<body class="disconnected" data-card="tinted">
+<div class="g-page" id="page"></div>
+<script type="module">
+import { el, knob, seg, sw, trig, fader, readout, formula, device, group, gripDots } from '../mir/kit.js';
+import { installControlHelp } from '../mir/control-help.js';
+import { planeModel } from '../mir/plane-model.js';
+import { buildMacroSlot } from '../mir/modulation/modwindow/modwindow.js';
+const page = document.getElementById('page');
+const card = (id, eyebrow, status) => { const d = device({ id, eyebrow, status: status || '' }); page.appendChild(d.root); return d; };
+
+/* 1 · THE SWITCHES: theme, card style, frost — the same three seats every app ships */
+const s0 = card('settings', 'MIR · SETTINGS', 'theme, card style, frost');
+const r0 = el('div', 'row tight', group(s0.body, 'the three seats'));
+r0.appendChild(seg({ label: 'THEME', value: 'dark', options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], onChange: (v) => { document.body.dataset.theme = v; } }).root);
+r0.appendChild(seg({ label: 'CARD STYLE', value: 'tinted', options: [{ id: 'tinted', label: 'TINTED', title: 'a pane, no filter' }, { id: 'refractive', label: 'REFRACTIVE', title: 'blur only' }], onChange: (v) => { document.body.dataset.card = v; } }).root);
+r0.appendChild(sw({ label: 'FROST', value: false, title: 'the frost policy over both card styles', onChange: (v) => document.body.classList.toggle('frost', v) }).root);
+r0.appendChild(sw({ label: 'DISCONNECTED', value: true, title: 'the window as a constellation: bar-chip, body-card, air between', onChange: (v) => document.body.classList.toggle('disconnected', v) }).root);
+el('div', 'g-note', s0.body, 'Every window on this page is kit chrome: header, grip, fold, power, close. Change the seats above and watch all of them follow — that is the material language.');
+
+/* 2 · TOKENS */
+const t = card('tokens', 'MIR · TOKENS', 'read from :root at runtime');
+const tk = el('div', 'g-tokens', group(t.body, 'colour'));
+for (const name of ['--fg', '--fg-soft', '--ink-key', '--ink-faint', '--dim', '--acc', '--acc2', '--acc-soft', '--ok', '--warn', '--bad', '--glass-well', '--glass-raise', '--glass-hairline', '--line']) {
+  const w = el('div', 'g-sw', tk); const i = el('i', null, w); i.style.background = `var(${name})`; el('span', null, w, name);
+}
+el('div', 'g-note', t.body, 'Type: LW Title for the mark, Roboto for the interface, STIX Two Math for mathematics — all subsets, all in fonts/. Spacing --sp-1…--sp-5, type --fs-micro…--fs-lead, radii --r-sm…--r-lg.');
+
+/* 3 · WIDGETS */
+const w = card('widgets', 'MIR · WIDGETS', 'every builder in kit.js');
+const g1 = group(w.body, 'knobs — drag, wheel, arrows, Shift for fine, double-tap resets');
+const r1 = el('div', 'row tight', g1);
+r1.appendChild(knob({ label: 'LEVEL', min: 0, max: 1, value: .6, fmt: (v) => (v * 100).toFixed(0) + '%' }).root);
+r1.appendChild(knob({ label: 'RATE', min: 0.1, max: 3000, value: 60, log: true, fmt: (v) => v.toFixed(1) }).root);
+r1.appendChild(knob({ label: 'HUE', min: 0, max: 1, value: 0, wrap: true, fmt: (v) => (v * 360).toFixed(0) + '°' }).root);
+const g2 = group(w.body, 'segments, switches, triggers');
+const r2 = el('div', 'row tight', g2);
+r2.appendChild(seg({ label: 'STYLE', value: 'cloud', options: [{ id: 'cloud', label: 'CLOUD' }, { id: 'solid', label: 'SOLID' }, { id: 'grain', label: 'GRAIN' }] }).root);
+r2.appendChild(sw({ label: 'AUTO', value: true }).root);
+r2.appendChild(trig({ label: 'RESET', title: 'a momentary action', onFire: () => {} }).root);
+const g3 = group(w.body, 'faders and readouts');
+const r3 = el('div', 'row tight', g3);
+r3.appendChild(fader({ label: 'SCRUB', min: 0, max: 1, value: .3, fmt: (v) => v.toFixed(2) }).root);
+r3.appendChild(readout({ label: 'NORM', value: '1.000', sub: 'a live number', cls: '' }).root);
+r3.appendChild(formula({ lines: [['<m>c(t) = e^{−iE t} c(0)</m>'], ['<m>E = </m>', { s: 'E', v: '−0.500' }]] }).root);
+const g4 = group(w.body, 'the plane model');
+{ let n = [0.3, 0.2, 0.93]; planeModel(g4, { getNormal: () => n, onTurn: (v) => { n = v; } }); }
+
+/* 4 · GESTURE MARKS */
+const m = card('marks', 'MIR · MARKS', 'one mark per meaning');
+const gm = group(m.body, 'drag me · route me');
+const rm = el('div', 'row tight', gm);
+const dot = el('button', 'trig', rm); dot.type = 'button'; gripDots(dot); el('span', 'trig-l', dot, ' the dot grip — drag / reorder');
+el('div', 'g-note', m.body, 'The 3 × 3 dot grip means DRAG ME: window headers, rail rows, tiles. The four-way cross means ROUTE ME: it belongs to the modulation grip only.');
+
+/* 5 · MODULATION ROWS, built by the window\'s own builder */
+const mm = card('modrows', 'MIR · MODULATION', 'buildMacroSlot — the same rows the window builds');
+const rail = el('div', 'g-rail', group(mm.body, 'macro tiles'));
+for (let i = 1; i <= 4; i++) { const rec = buildMacroSlot(rail, { id: 'm' + i, name: 'MACRO ' + i, kind: 'knob', value: .3, masterDepth: 1 }, i); rec.root.classList.add('g-tile', 'tempo-tile'); rec.reorder.replaceChildren(gripDots()); rec.depthArc.style.strokeDasharray = (0.25 * i).toFixed(2) + ' 1'; }
+el('div', 'g-note', mm.body, 'In an app these rows are wired through the modulation host API (wireGrip, wireDepth, paintDepth, moveMacro). Here they are only built, to show the look is the builder\'s, not a copy.');
+
+installControlHelp();
+</script>
+</body>
+</html>

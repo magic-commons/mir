@@ -1,0 +1,12 @@
+{
+  "name": "mir",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MIR — Magic Commons' interface kit: tokens, materials, widgets, gestures, window chrome and the modulation system, as vanilla ES modules and CSS.",
+  "license": "GPL-3.0-only",
+  "scripts": {
+    "gallery": "python3 -m http.server 8790 --bind 127.0.0.1",
+    "adopt": "node tools/adopt.mjs",
+    "check": "node tools/adopt.mjs --check"
+  }
+}

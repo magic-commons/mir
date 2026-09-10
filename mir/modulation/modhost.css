@@ -1,0 +1,1927 @@
+/* modhost.css — WHAT THE HOST OWES THE MODULATION MIR PLUGIN, AND NOTHING ELSE.
+ *
+ * ⟪ THE SKIN SEAT ⟫  Everything between the two ⟪ ⟫ markers below is ONE UNIT and it is
+ * DELIBERATELY SWAPPABLE: a host that wants the plugin to wear its own material replaces the
+ * whole block and changes nothing else, because the plugin's LAYOUT, DIMENSIONS and STRUCTURE
+ * are `lab/mir/modwindow/` and are not here, and no value is copied into a rule anywhere in
+ * this file where a token would do.  A SKIN THAT CHANGES A SIZE IS A SKIN THAT GOT SOMETHING
+ * WRONG, which is why the acceptance table was proved against BASINS' own shipping numbers
+ * FIRST — unskinned, in wave 64 — so a later change is detectable.
+ *
+ * ⟡ WAVE 66 TOOK THE SEAT.  It carries λWAVES GLASS rather than BASINS' shipping block.
+ * BASINS' values remain in git and in `host-contract.md` PART 2.  Later user-approved revisions
+ * also changed the portable macro rail structure; those changes live in its builder and sheet,
+ * while this host file owns selection paint, dial spacing, and compact geometry.  B129 gates the
+ * resulting integration rather than an immutable vendor checksum.
+ *
+ * AND ONE THING A LATER SKIN MUST KNOW, MEASURED HERE RATHER THAN DISCOVERED LATER: the
+ * plugin's stylesheet carries **170 literal colour values in 91 distinct strings**, and 158 of
+ * them are WHITE AT AN ALPHA (the other 12 are black at an alpha; not one is a hue).  Its whole
+ * relief and ink ladder is "white over a dark ground", written as literals with no token to
+ * turn — so inverting the plugin's brightness against a light host is not a matter of replacing
+ * this block.  There is also exactly ONE literal font family in the sheet, and it is on the chip
+ * rail: `.crail…crail-chip { font: 700 var(--fs-small)/1 ui-monospace, SFMono-Regular, Menlo,
+ * monospace }` — the size reads a token and the family does not.  Every one of the other 75 font
+ * declarations reads `--font-sans` or `--font-num`.  See REPORT.md, wave 64.
+ *
+ * `lab/mir/modwindow/host-contract.md` PART 2 says: paste its 67-token block into the host's
+ * own `:root`.  **This host cannot, and the reason is a measurement.**  λWAVES already
+ * declares TWENTY-FOUR of those names on `:root` with its own meanings — `--glass-blur: 18px`
+ * against BASINS' 8, `--glass-filter: none` against a blur+saturate stack, a completely
+ * different `--glass-shadow`, `--font-num: var(--font-ui)` where the artifact wants a
+ * monospace, and its own `--acc*` ladder.  Pasting BASINS' values onto `:root` would restyle
+ * the WHOLE INSTRUMENT and break the token law in docs/ui/STYLE-LOCK.md.
+ *
+ * So the block is SCOPED instead.  Nothing in the artifact changes — the host decides where
+ * its own tokens live, which is exactly what "the host supplies these" means — and the scope
+ * covers the three places the window's material actually reaches:
+ *
+ *   `.mir-modwindow`   the window itself (every one of its 661 rules is inside it)
+ *   `.kwin-chiprail`   the floating chip rail, which is a SIBLING of the window
+ *   `.m2ghost`         the routing pill, which lives on `document.body`
+ *
+ * THE FIFTEEN GEOMETRY NAMES THAT MATTER AGREE ALREADY, and that is why the acceptance table
+ * measures the same numbers here as it did on the staging rig: `--ui-scale: 1`, `--touch:
+ * 44px`, `--r-sm/md/lg: 5/8/12px`, `--sp-1…5: 3/5/7/10/14px`, `--fs-small: 10px`,
+ * `--w-bold: 650`.  λWAVES and BASINS chose the same ladder independently.
+ *
+ * THE MATERIAL LADDER WAS NOT HERE, AND NOW IT IS (wave 66).  `modwindow.css` declares the
+ * twenty `--m2-mat-*` tokens on `:root` itself, deriving them from `--m2-blend` — which falls
+ * back to 0.26 with neither `--m2-separation` nor `--glass-canvas-scrim` declared, so there was
+ * nothing to supply — and from `--m2-mat-hue: var(--glass-hue, 212)`.  Wave 64 could only reach
+ * that one INPUT, and it did, at `:root:root`: a custom property is substituted where it is
+ * DECLARED, so BASINS' ladder resolved against the ROOT's `--glass-hue`, which STYLE-LOCK locks
+ * at 214 for the house.  Measured, the difference was one eight-bit channel on the darkest of
+ * the four surfaces — `rgba(10, 12, 15)` where the source reads `rgba(10, 13, 15)`.
+ *
+ * WAVE 66 SUPPLIES THE DERIVED NAMES INSTEAD, in the seat's own three-selector scope rather than
+ * at `:root`, and the reason is the light theme.  λWAVES carries its theme on `body`, so
+ * `body[data-theme="light"] :root:root` matches NOTHING — `:root` is <html> and can never be a
+ * descendant of <body> — and a light override written on `.mir-modwindow` cannot reach a
+ * `--m2-mat-pane` that was already substituted up at the root.  Declared in the scope, every
+ * token substitutes on the element that declares it, the theme prefix works, and all 24 rules in
+ * the artifact that consume the ladder match inside one of the three selectors.  Supplying the
+ * DERIVED names also means the result no longer depends on BASINS' derivation surviving — which
+ * makes `:root.fr-light` inert, and that is the intended answer, not an oversight: it was built
+ * for BASINS' own light skin and composites to 3.59 : 1 for `#fff` over λWAVES' light stage.
+ *
+ * THE TWO ACCENT HUES ARE THE PARAMETER, and they are the one thing the PORTED-WINDOW
+ * EXCEPTION says a host may set.  The four numbers below are λWAVES' own boot angles;
+ * `lab/modwindow.js`'s `setAccent()` overwrites them inline on the window and the rail every
+ * time the palette wheel turns, so the window's 57 derived tints follow the house accents.
+ * `--acc`, `--acc2`, `--acc-soft`, `--acc2-soft`, `--acc-ink` and `--acc-glow` are NOT
+ * redeclared here: they inherit λWAVES' live values, which is the whole point.
+ *
+ * This sheet is loaded BEFORE `modwindow.css`, which stays last.  It used to contain no rule
+ * that painted anything inside the plugin; wave 66 gave it fifteen, named and counted in the
+ * REACH LIST below, for the surfaces whose colour the artifact writes as a literal, or whose
+ * material the HOUSE was overriding.  ⚠ WAVE 105 · THE COUNT WAS NEVER MAINTAINED.  It stood at
+ * "fifteen" for forty waves while the list grew to 112 numbered entries; an audit then found 32 of
+ * them dead, superseded or matching nothing, and they are marked RETIRED in place rather than
+ * deleted silently, so the archaeology that made the audit possible survives.  Do not trust a
+ * count written in prose here — count the numbered end-of-rule tags instead (103 live, 2026-09-07).
+ */
+
+
+.mir-modwindow,
+.kwin-chiprail,
+.m2ghost {
+  /* ── the two parameters (host-contract PART 1 §3) — UNCHANGED ───────────────────── */
+  --ui-scale: 1;
+  --hue-acc: 172;  --sat-acc: 62%;
+  --hue-acc2: 288; --sat-acc2: 70%;
+  --hue-bad: 4;
+
+  /* ── T1 · THE ONE PLATE, and the five tiers.  L1 is a colour; L2–L5 are SHADES. ─── */
+
+
+  --m2-scrim: var(--glass-opacity);              /* the house's own .84 — and 1 under reduced transparency */
+  --m2-mat-pane:        hsl(var(--glass-tint) / var(--m2-scrim));
+  /* THE WINDOW'S OWN FILL, and the one token in this sheet that CARD STYLE writes.  Default is the
+     pane (TINTED); `body[data-card="refractive"]` — what ships — makes it transparent, exactly as it
+     makes `.dev` and `.glass` transparent.  The two picker SHEETS are deliberately NOT on this token:
+     they are menus over a card, and the house's own menus (`.mb-list` at .97) are near-opaque for the
+     same reason a transparent popover over a transparent window cannot be read. */
+/* RETIRED wave 105 — --m2-pane / --m2-pane-wash: zero readers once 15a went. */
+  --m2-mat-chassis:     transparent;
+
+
+  --m2-mat-control:     transparent;             /* L3 button · chip · seat · field.  WAVE 71: "remove any
+                                                    shading or tinting off everything" — a control is now
+                                                    its hairline and its label, nothing more. */
+  --m2-mat-recess:      hsl(0 0% 0% / 0.08);     /* L4 knob well · track.  Kept, barely: a well with no shade
+                                                    at all stops reading as a place a value can sit. */
+  --m2-mat-recess-deep: hsl(0 0% 0% / 0.12);     /* L4 deep, the plot box */
+  --m2-mat-status:      transparent;             /* L5 was the one near-opaque surface; it goes with the rest. */
+
+  /* ── T2 · THE LIGHT.  This is what replaces the deleted paint. ─────────────────── */
+  --m2-mat-inner:  transparent;                  /* WAVE 71: the inner light was depth painted ON a fill; with no
+                                                    fill there is nothing for it to sit on. */
+  /* ⚠ THE HOUSE VALUE IS QUOTED, NOT REFERENCED, AND THAT IS FORCED.  This window RE-DECLARES the
+     house names onto itself 20 lines above (`--glass-border-color: var(--m2-mat-edge)`) so that the
+     artifact's own `.glass` internals wear plugin material.  Pointing the ladder back at the house
+     name therefore closes a CYCLE, and a cyclic custom property is guaranteed-invalid: measured in
+     the browser, --m2-mat-edge AND --glass-border-color both computed to the empty string, which is
+     why the first cut of this wave had no edges and no shadow at all.  So skin.css's two literals are
+     copied here per theme.  If skin.css's card edge moves, this moves with it. */
+  --m2-mat-edge:   hsl(0 0% 100% / .14);         /* = skin.css:12 --glass-border-color (dark) */
+  --m2-mat-frost:  hsl(0 0% 100% / 0.13);        /* the chip rail's ON face */
+  --m2-mat-shadow: inset 0 1px 0 hsl(0 0% 100% / .06), 0 -2px 6px hsl(0 0% 0% / .20), 0 1px 2px hsl(0 0% 0% / .16);   /* = skin.css:15 (dark), wave 80 */
+  /* the signal glow is BASINS' own value, restated here for one reason: at `:root` it substitutes
+     where --hue-acc2 is not declared, so it froze at the 288 fallback and never followed the wheel.
+     Declared in this scope it reads the live accent setAccent() writes inline on the window. */
+  --m2-signal-glow: 0 0 4px hsl(var(--hue-acc2) var(--sat-acc2) 68% / 0.20);
+
+  /* ── T3 · THE INK — five rungs, sized on L2, the thinnest ground ────────────────── */
+  /* the solved floors on L2 over the worst sampled ground, both themes:
+     7:1 → .81 · 4.5:1 → .58 · 3:1 → .40.  Do NOT interpolate a sixth rung between these. */
+  /* WAVE 91 · THE DARK LADDER IS THE LAB'S OWN FIVE, exactly as the light one became in wave 78.
+     Pure white was BASINS'; ours is #f2f5f7 and the four greys under it (skin.css:26). */
+  /* ⚠ WAVE 91 · THIS LIVES IN THE BASE SEAT, and wave 86 put it in the LIGHT block by mistake —
+     two lines above the light value, which then overwrote it, so the DARK theme had no `--m2-rule` at
+     all and every plot rule computed `stroke: none`.  Measured: the mid line read `none` on dark and
+     the correct grey on light, which is exactly what a token declared in one theme's block looks
+     like.  A default belongs in the base block; only the override belongs in the theme's. */
+  --m2-rule: hsl(214 10% 52% / 0.30);            /* the dark ground's own subtle grey */
+  --m2-ink-hi:    #f2f5f7;                       /* = skin.css:26 --fg        */
+  --m2-ink:       hsl(0 0% 88%);                 /* = skin.css:26 --fg-soft   */
+  --m2-ink-soft:  hsl(0 0% 74%);                 /* = skin.css:26 --ink-key   */
+  --m2-ink-faint: hsl(0 0% 72%);                 /* = skin.css:26 --dim       */
+  /* RETIRED wave 105 — --m2-ink-ghost: its one reader was entry 5, whose `.m2empty` class no JS ever adds. */
+  --fg:      var(--m2-ink-hi);
+  --fg-soft: var(--m2-ink);
+  --dim:     var(--m2-ink-soft);
+  --bad:     hsl(var(--hue-bad) 62% 74%);
+  /* THE HALO IS PART OF THE INK.  `.glass` sets text-shadow on itself and every descendant inherits
+     it, because "every descendant of a glass surface is text over an unpredictable picture"
+     (modwindow.css:85).  With 12–18 points more field showing through it earns a third term, and one
+     token strengthened here helps all 52 of the artifact's white-alpha ink rungs at once. */
+  --ink-shadow: 0 1px 2px hsl(0 0% 0% / 0.62), 0 0 5px hsl(0 0% 0% / 0.38), 0 0 1px hsl(0 0% 0% / 0.55);
+  --mark-under: hsl(0 0% 0% / 0.38);
+
+  /* ── T4 · THE STATE RAMP — Material's mechanism, our numbers ────────────────────── */
+  /* ONE opacity ramp over ANY surface colour, so it scales to both themes for free.  Material ships
+     hover .08 / focus .12 / pressed .12 / dragged .16; ours are lower because our grounds are
+     translucent and a .12 white wash costs real contrast. */
+  /* RETIRED wave 105 — --m2-st-hover / --m2-st-focus: declared by the T4 state ramp, read by nothing. */
+  --m2-st-press:   hsl(0 0% 0%   / 0.16);        /* PRESS IS A SHADE, NOT A WASH — it moves INWARD */
+  /* RETIRED wave 105 — --m2-st-drag: its one reader was entry 10, which the ink-flip out-specified in both themes. */
+  /* RETIRED wave 105 — --m2-st-select / --m2-st-disable: same — of T4's six rungs only --m2-st-press was ever read. */
+
+  /* ── T5 · THE GLASS, as the artifact names it ───────────────────────────────────── */
+  /* WAVE 69: --glass-hue / --glass-sat-tint / --glass-lum / --glass-tint / --glass-opacity USED TO BE
+     RE-DECLARED HERE, four numbers a hair off the house's and one opacity that pinned the window
+     opaque.  They are gone: the window inherits the house's, so a change to lab.css:15 or skin.css:10
+     moves the plugin with every other card and cannot drift from it. */
+  /* MEASURED −26 fps over the live canvas (lab.css:21) and it is STRUCTURAL, not a tuning problem:
+     backdrop-filter re-captures its backdrop into a texture whenever the backdrop changes, and ours
+     is a 60 fps WebGPU canvas — so a CONSTANT radius is still a per-frame cost.  LOCKED OFF.  Every
+     glassmorphism recipe that asks for blur(12–20px) assumes a static background; this is why our
+     tint is 0.80 where that field says 0.08–0.25. */
+
+
+  --glass-border: 0.6px;
+  --glass-border-color: var(--m2-mat-edge);
+  --glass-hairline:     hsl(0 0% 100% / 0.09);   /* dark; the light host overrides below */
+  --glass-sheen:        var(--m2-mat-inner);     /* `.glass` reads this as `inset 0 .6px 0 <sheen>` — the Fresnel top */
+  --glass-shadow:       var(--m2-mat-shadow);
+  --glass-raise:  hsl(0 0% 0% / 0.06);           /* the NON-officiated buttons match L3 */
+  --bar-raise:    var(--glass-raise);
+  --glass-press:  var(--m2-st-press);
+  --glass-groove-hot: hsl(0 0% 100% / 0.18);
+  --glass-well:   hsl(0 0% 0% / 0.22);
+
+  /* ── T6 · THE BEVEL — eight tokens the artifact declares and shipped INERT.  ON. ── */
+  /* modwindow.css:46-54 builds --glass-bevel from these and wires it to `.glass`, `.kwin`, the two
+     pickers and the work bars.  The light source is ABOVE: top brightest, sides half and a quarter,
+     and the bottom lip DARK rather than white — that asymmetry is the whole effect. */
+  --gl-w: 1.6px;
+
+
+  --gl-t: transparent;                           /* TOP    — was hsl(0 0% 100% / 0.20) */
+  --gl-l: transparent;                           /* LEFT   — was 0.11 */
+  --gl-r: transparent;                           /* RIGHT  — was 0.07 */
+  --gl-b: transparent;                           /* BOTTOM — was hsl(0 0% 0% / 0.22) */
+  --gl-glow: transparent;                        /* was the 14 px Accent-B outer spill — wave 71: no spill. Kept text:
+                                                    THE PRISM IS SPENT HERE AND NOT TWICE — no chromatic border
+                                                    on top, because it would compete with the Accent-B
+                                                    modulation ring, which is load-bearing information. */
+  /* RETIRED wave 105 — --gl-fill: zero readers; the artifact reads --gl-fill-a / -b, never this. */
+  --gl-fill-a: transparent;                      /* THE TWO-STOP WASH — off: a wash needs a surface */
+  --gl-fill-b: transparent;
+
+
+  /* the artifact reads --font-sans and --font-num in 75 of its 76 font declarations, so pointing the
+     two names at the house face is the whole change; the 76th is a literal on the chip rail and it is
+     item 14 of the reach list below.  --font-num follows lab.css:8, which already says the house
+     numeral face IS the house UI face, and tabular figures are turned on for the whole window because
+     STYLE-LOCK requires a numeral column that does not dance.  SIZES ARE UNTOUCHED: every --fs-* below
+     is BASINS' own number, because a type SCALE is geometry and the acceptance table measures it. */
+  --font-sans: var(--font-ui, -apple-system, system-ui, sans-serif);
+  --font-num:  var(--font-ui, ui-monospace, Menlo, monospace);
+  --fs-lead:  calc(13px * var(--ui-scale));
+  --fs-small: calc(10px * var(--ui-scale));
+  --fs-tiny:  calc(9px  * var(--ui-scale));
+  --tr-wide: 0.12em;  --tr-wider: 0.14em;  --w-bold: 650;
+  /* the five elements that paint with `font: inherit` — .m2zoom, .m2audgrip, .m2audmac, .modxport,
+     .modtempo — take the window's AMBIENT family, so it is stated once here. */
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+
+  /* ── the grid.  UNCHANGED, restated so the window cannot be moved by a later edit
+        to the house ladder.  A SKIN THAT CHANGES A SIZE IS A SKIN THAT GOT SOMETHING WRONG. ── */
+  --touch:    calc(44px * var(--ui-scale));   /* THE 44 px LAW's unit */
+  --grip-hit: var(--touch);
+  --r-sm: calc(5px  * var(--ui-scale));
+  --r-md: calc(8px  * var(--ui-scale));
+  --r-lg: calc(12px * var(--ui-scale));
+  --sp-1: calc(3px  * var(--ui-scale));
+  --sp-2: calc(5px  * var(--ui-scale));
+  --sp-3: calc(7px  * var(--ui-scale));
+  --sp-4: calc(10px * var(--ui-scale));
+  --sp-5: calc(14px * var(--ui-scale));
+  --z-win: 12;
+  --kwin-bar-h:          calc(26px * var(--ui-scale));
+  --chrome-chip-disc:    calc(48px * var(--ui-scale));
+  --chrome-chip-target:  max(44px, calc(62px * var(--ui-scale)));
+}
+
+/* BASINS' 212, not the house's 214.  With the ladder re-pointed above this reaches exactly one
+   surviving artifact rule — the `.m2rail` composition at modwindow.css:1908 — and reach-list item 13
+   overrides that one, so the line is kept as the floor it always was rather than as a lever. */
+:root:root { --m2-mat-hue: 212; }
+
+
+body[data-theme="light"] .mir-modwindow,
+body[data-theme="light"] .kwin-chiprail,
+body[data-theme="light"] .m2ghost {
+
+
+  --m2-scrim:           0.62;
+  --m2-mat-pane:        hsl(214 16% 13% / var(--m2-scrim));
+
+
+  --m2-mat-chassis:     transparent;
+  --m2-mat-control:     transparent;
+  --m2-mat-recess:      hsl(214 30% 40% / 0.07);
+  --m2-mat-recess-deep: hsl(214 30% 40% / 0.10);
+  --m2-mat-status:      transparent;
+  /* ⚠ WAVE 77 · THE T3 INK LADDER FLIPS HERE, AND THIS IS THE FIX FOR A WHOLE CLASS OF BUG.
+     Line 210 aliases the HOUSE names onto this ladder — `--fg: var(--m2-ink-hi)`, `--fg-soft:
+     var(--m2-ink)`, `--dim: var(--m2-ink-soft)` — so inside this window `var(--fg-soft)` is not the
+     house's themed ink at all, it is BASINS' WHITE.  Measured: two rules written this wave in house
+     names read back `rgba(255, 255, 255, 0.62)` on the LIGHT theme, i.e. white text on a pale card.
+     Wave 71 flipped the artifact's 55 literal white inks and left the ladder itself white, because
+     nothing consumed it — line 210 does, and that was missed.
+       Flipping the five rungs here fixes the aliases, every rule this file has written in house
+     names, and every one it writes later.  Same alphas, same hue as wave 71's generated flip
+     (hsl(214 30% 12%)), so the artifact's five-rung hierarchy is preserved exactly. */
+
+
+  --m2-env-ink: hsl(calc(var(--hue-acc) - 52) calc(var(--sat-acc) + 3%) 66%);   /* the artifact declares this
+                                                    on `.m2dev.env` only; the macro rail's indicator needs
+                                                    it too (wave 79), so it is raised to the seat. */
+  --m2-rule: hsl(214 12% 72% / 0.34);
+  --m2-ink-hi:    hsl(214 30% 10%);              /* = skin.css:269 --fg        */
+  --m2-ink:       hsl(214 20% 18%);              /* = skin.css:269 --fg-soft   */
+  --m2-ink-soft:  hsl(214 12% 30%);              /* = skin.css:269 --ink-key   */
+  --m2-ink-faint: hsl(214 12% 36%);              /* = skin.css:269 --dim       */
+  /* RETIRED wave 105 — --m2-ink-ghost (light): see the dark seat. */
+  --m2-mat-edge:   hsl(214 30% 40% / .22);       /* = skin.css:270 --glass-border-color (light) */
+  --glass-hairline: hsl(214 30% 30% / .16);      /* = skin.css:270 — the INNER rules go dark on a pale card too */
+  --m2-mat-inner:  transparent;
+  --m2-mat-shadow: inset 0 1px 0 hsl(0 0% 100% / .8), 0 -2px 6px hsl(214 40% 20% / .11), 0 1px 2px hsl(214 40% 20% / .09);   /* = skin.css:273 (light), wave 80 */
+  /* THE RIM INVERTS, and it is physics rather than taste: a glass edge on a PALE ground reads as a
+     DARK line, because what the edge refracts is darker than what surrounds it.  Keeping a white rim
+     here is the commonest way a glass system looks fake in light mode.  The TOP light survives —
+     that one is the specular, not the refraction. */
+  /* WAVE 71 · the directional rim and the two-stop wash were the "pretty texture" of a surface that
+     HAD a surface.  The ABOUT card has neither — it is a hairline and a shadow — so both go inert
+     again, which is the state they shipped in before wave 66 lit them. */
+  --gl-t: transparent; --gl-l: transparent; --gl-r: transparent; --gl-b: transparent;
+  --gl-glow: transparent; --gl-fill-a: transparent; --gl-fill-b: transparent;
+  --ink-shadow: 0 1px 2px hsl(0 0% 0% / 0.70), 0 0 5px hsl(0 0% 0% / 0.42), 0 0 1px hsl(0 0% 0% / 0.60);
+}
+
+/* ── THE REACH LIST — FIFTEEN surfaces a token cannot reach, named and COUNTED ────────────────────
+   Fourteen carry a literal in the artifact and are not in its officiation block, so a token has no
+   way to them; the fifteenth undoes the HOUSE reaching in.  This is the ONE place this sheet paints
+   inside the plugin, and the count is written down so a later wave can see whether it grew.  Every
+   one of them is a MATERIAL swap — a shade, a light, an ink
+   rung or a family — and not one touches a size.  Nothing here is deleted from modwindow.css: the
+   literals are made IRRELEVANT instead, which is why this wave costs the artifact zero forced edits.
+   `:root:root:root` buys the specificity to beat rules that are LATER in the cascade (modwindow.css
+   loads after this sheet), including the officiated `.m2rail` at (1,4,0).
+   FIFTEEN, and the two that are NOT here on purpose:
+     · `.kctl.ctl-frozen` already ships a 135° hatch at a 6 px pitch (modwindow.css:1382), which is
+       exactly what the design asked for — and 6 px is deliberate, because a 4 or 8 px pitch would
+       beat with the field's 8 px Bayer dither lattice.  Do not "tidy" it.
+     · the eight SIGNAL literals — `.m2signal::before`, `.m2vfill`, `.m2meter`, `.m2statuslamp`,
+       `.m2envprogress`, `.m2envminprog`, `.m2audiolife .m2statuslamp`, `.m2audminleds i` — are
+       readouts, not chrome.  Restyling a meter is restyling the data.  Left exactly as they are. */
+:root:root:root #modwin.mir-modwindow .m2deadrow                        { background: var(--m2-mat-chassis); }              /*  1 */
+:root:root:root #modwin.mir-modwindow .m2slots::-webkit-scrollbar-thumb { background: hsl(0 0% 100% / 0.18); }              /*  2 */
+/* RETIRED wave 105 — 3: entry 53 re-declares this exact selector list with `transparent`, later. */
+:root:root:root #modwin.mir-modwindow .m2val:active                     { background: var(--m2-st-press); }                 /*  4 */
+/* RETIRED wave 105 — 5: `m2empty` is added by no JS in the tree — it exists only in the artifact's sheet. */
+/* RETIRED wave 105 — 6: dressGlass() runs inside rebuild() before any paint, so no frame ever sees an undressed card. */
+/* RETIRED wave 105 — 7: every .m2pickb is inside .m2pick/.m2ppick, which entry 21 paints at (1,6,0). */
+:root:root:root #modwin.mir-modwindow .modtempoin                       { background: var(--m2-mat-control); }              /*  8 */
+:root:root:root #modwin.mir-modwindow .m2prowdel                        { background: var(--m2-mat-control); }              /*  9 */
+/* RETIRED wave 105 — 10: the ink-flip's theme arms carry `background-color: transparent` at (1,7,1) and win in both themes. */
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcmd     { background: var(--m2-mat-control); }              /* 11 */
+:root:root:root #modwin.mir-modwindow .m2audsx,
+:root:root:root #modwin.mir-modwindow .m2audsbtn                        { background: var(--m2-mat-control); }              /* 12 */
+/* 13 · the sources rail composes its own colour from --m2-mat-chassis-lum and --m2-blend, so the
+   ladder cannot reach it.  It WAS "a REGION and not an object: the lightest shade in the window" —
+   true while there was a pane for a region to be a region OF.  WAVE 70 took the pane away, and a 7 %
+   black wash floating on the bare stage is not a lighter region, it is a smear.  MEASURED in the
+   browser after the pane went: `rgba(0, 0, 0, 0.07)`, which is why the macro rail stayed pale while
+   the devices beside it went dark.  So the rail becomes what it now is — the third OBJECT, beside
+   the device card and the work bar — and takes the same card the other two take. */
+:root:root:root:not(.skin-frost) #modwin.mir-modwindow .m2rail {
+  background-color: var(--m2-mat-chassis);
+  box-shadow: inset 0 1px 0 var(--m2-mat-inner), var(--m2-mat-shadow); }                              /* 13 */
+/* 14 · the artifact's ONE literal font family, on the chip rail.  Family only — the size still reads
+   --fs-small, and the 48 px disc in its 62 px target is untouched. */
+:root:root:root .kwin-chiprail[aria-label="MODULATION window controls"] .crail-chip { font-family: var(--font-ui); }  /* 14 */
+/* 15 · THE HOUSE'S CARD-STYLE SWITCH REACHES INTO THE PLUGIN, AND MEASURING IT IS HOW THE WASH WAS
+   FOUND TO BE DEAD.  `body[data-card="refractive"] .glass { background: transparent }` (skin.css:279)
+   is (0,2,1) and the artifact's own `.glass.mir-modwindow` recipe is (0,2,0), so the HOUSE wins on
+   every `.glass` surface inside the plugin — and because it is the `background` SHORTHAND it takes
+   the background-IMAGE down with the colour.  #modwin only kept its pane because the officiation
+   rule sets the COLOUR longhand at (1,4,0); the two picker sheets kept nothing and have been
+   painting transparent since the port.  A ported artifact wears its own material, so the recipe is
+   restored here at a specificity the card switch cannot reach, and the two-stop wash — the thing
+   that says "the light behind this surface is not uniform" — paints for the first time. */
+/* ══ RETIRED wave 105 · 15a AND THE WHOLE PANE CHAIN ══════════════════════════════════════════
+   Entry 25 (wave 73) made `#modwin` itself `visibility: hidden` + `background: transparent` at
+   (1,5,0) and handed painting to the six subtrees in entry 27.  This rule is (1,5,0) and EARLIER,
+   so it has painted nothing since.  Not deduced — MEASURED in Chromium 2026-09-07 with the window
+   open and five house states walked (light/dark × refractive/tinted × frost):
+       visibility: hidden · background-color: rgba(0,0,0,0) · background-image: none
+   With 15a gone, `--m2-pane` and `--m2-pane-wash` have no reader anywhere in the tree and their
+   declarations go with it.  `--m2-mat-pane` and `--m2-scrim` STAY: the artifact still names them
+   (modwindow.css:1903, :1945, :1950) and a token the ported sheet reads is not ours to delete,
+   even where our own rules out-specify all three. */
+
+/* SUPERSEDED BY 21 (wave 70): both picker sheets wear the house glass. */                          /* 15b */
+
+
+/* RETIRED wave 105 — 15c: CARD STYLE wrote --m2-pane, whose only reader was 15a. */
+
+/* THE THREE INSIDE THE OFFICIATION BLOCK.  Already correct in KIND — a wash, a wash, a shade — and
+   they only need their alphas moved in step with --m2-mat-inner and the state ramp. */
+:root:root:root #modwin.mir-modwindow .m2dev .m2head {
+  background-image: linear-gradient(180deg, hsl(0 0% 100% / 0.06), transparent);
+  box-shadow: inset 0 -1px 0 hsl(0 0% 100% / 0.09); }
+/* RETIRED wave 105 — the officiation .m2hero wash: the plot box is ONE element carrying `m2edit m2hero`
+   (modwindow.js:824) and entry 72 sets `background-image: none` on `.m2edit, .m2hero`, later. */
+:root:root:root #modwin.mir-modwindow button:active:not(:disabled),
+:root:root:root #modwin.mir-modwindow [role="slider"].drag {
+  background-color: var(--m2-st-press); }
+
+
+/* 16 · D1 · `.m2pick`, the ADD LFO / ADD ENV / ADD AUDIO sheet, and the macro sheet beside it.  Both
+   are appended to the WINDOW root — a sibling subtree of `.m2root`, where the alias is declared — so
+   `var(--m2-plate)` was invalid and the sheet painted transparent over the cards.  The fallback names
+   the ladder's own chassis, which IS declared in this file's seat block and IS themed, so the sheet
+   now wears exactly the plate it was written for.  A `.m2pick` inside `.m2root` would be unchanged. */
+/* SUPERSEDED BY 21 (wave 70): the sheet now wears the house glass, not the ladder's chassis. */
+/* 17 · D2 · `.m2clr`, the CLEAR button on a routed control.  `m2ensureClear()` appends it INTO the
+   control, which for a host-registered control is outside `.m2root` AND outside `.mir-modwindow`, so
+   no seat of ours can reach it by inheritance either.  The fallback is therefore the HOUSE recess —
+   which is the right answer twice over: it is themed, and a button that lands on a λWAVES dial should
+   wear the λWAVES well rather than the plugin's.  Inside the window the alias resolves and wins, so
+   the artifact's own recess is untouched.  Nothing in this build BUILDS one (PORT-NOTES: `.m2clr`
+   does not travel — the arc's double-tap and the popover's REMOVE are its job here), so this is a fix
+   for the port BACK and for any host that does route the artifact's own overlay. */
+:root:root:root .m2clr { background-color: var(--m2-recess-deep, var(--glass-well)); }                        /* 17 */
+/* 18 · D3 · the ◂ ▸ reorder arrows, built by `buildDevice()` and wired by `lab/modwindow.js` to
+   `M.moveSource`, have never painted a pixel: `.m2dev.m2cmp .m2move` (776) hides them in COMPACT,
+   `.m2dev.m2min .m2move` (813) in the folded strip, and `.m2dev:not(.m2min) .m2move` (1303) in
+   everything else — three rules that between them cover every mode the window has.  Only the third is
+   the accident; the other two are the artifact's own stated reasoning ("Compact spends header room on
+   identity and status, not clipboard/reorder") and they STAY.  So the arrows come back in FULL mode
+   only, beside the `.m2ab` clipboard pair they were drawn to sit with, and the run order that IS the
+   fire order becomes something a hand can change without a drag. */
+/* ⚠ RETIRED BY WAVE 78, AND TURNED OFF HERE RATHER THAN OUT-SPECIFIED.  This rule's two `:not()`
+   pseudo-classes give it (3,6,0) and a plainer `.m2dev .m2move` cannot beat it — measured: the first
+   cut of reach 47 read back `display: flex`.  Wave 69's reasoning ("the run order IS the fire order
+   and a hand should be able to change it") is satisfied by the GRIP now, not by arrows: `wireGrab`
+   in lab/modwindow.js drags a device by the handle at its top-left and reorders the rack live under
+   the pointer.  The arrows were a second road to one place. */
+:root:root:root #modwin.mir-modwindow .m2dev:not(.m2min):not(.m2cmp) .m2move { display: none; }               /* 18 */
+/* 18b · AND THE ROOM THEY TAKE COMES OUT OF THE MIDDLE COLUMN, NOT OUT OF A 44-px SEAT.  MEASURED, and
+   found by the gate rather than by eye: with the arrows painting, `.m2headc` (display:flex,
+   overflow:hidden) shrank `.m2bank` from 46 px to 25 — `flex: 0 1 auto` on a control the artifact's own
+   44-px table lists.  The head's middle track is `minmax(0, 1fr)` precisely so that it is the thing that
+   gives room up, so the bank is told not to shrink and the name beside it absorbs the 68 px instead.
+   This is the one layout consequence of un-hiding a control that had never painted, and it is the
+   reason the acceptance table is measured on every mount. */
+:root:root:root #modwin.mir-modwindow .m2dev:not(.m2min) .m2bank { flex: 0 0 auto; }                          /* 18b */
+
+/* ── THE ACCESSIBILITY ARM.  Fluent disables acrylic outright in Battery Saver and on low-end
+      hardware; Apple's Reduce Transparency is the same instrument.  Ours is the scrim. ─────────── */
+@media (prefers-reduced-transparency: reduce) {
+  /* the LIGHT selectors are repeated because a media query adds no specificity and the theme block
+     above is (0,2,1): without them `--m2-scrim: 1` here would lose to the light pane's own 0.62 */
+  .mir-modwindow, .kwin-chiprail, .m2ghost,
+  body[data-theme="light"] .mir-modwindow, body[data-theme="light"] .kwin-chiprail, body[data-theme="light"] .m2ghost {
+    --m2-scrim: 1;
+    --m2-mat-chassis: hsl(0 0% 0% / 0.16);
+    --m2-mat-control: hsl(0 0% 0% / 0.10);
+    --gl-glow: transparent;
+    --ink-shadow: none;
+  }
+  /* WAVE 69 · A TRANSPARENCY PREFERENCE OUTRANKS A CARD STYLE, and it has to say so at (4,0,0):
+     reach-list 15c writes --m2-pane at :root:root:root body[data-card] #modwin, which is (3,3,1),
+     so the seat above could not reach it.  A fourth :root is the cheapest thing that beats it. */
+  /* RETIRED wave 105 — the reduced-transparency pane override: --m2-pane has no reader. */
+}
+@media (prefers-contrast: more) {
+  /* the LIGHT selectors are repeated because a media query adds no specificity and the theme block
+     above is (0,2,1): without them `--m2-scrim: 1` here would lose to the light pane's own 0.62 */
+  .mir-modwindow, .kwin-chiprail, .m2ghost,
+  body[data-theme="light"] .mir-modwindow, body[data-theme="light"] .kwin-chiprail, body[data-theme="light"] .m2ghost {
+    --m2-scrim: 1;
+    --m2-mat-edge:   hsl(0 0% 100% / 0.38);
+    --m2-mat-inner:  hsl(0 0% 100% / 0.20);
+    --m2-ink-faint:  hsl(0 0% 100% / 0.62);
+    /* RETIRED wave 105 — --m2-ink-ghost (prefers-contrast): see the dark seat. */
+  }
+  /* RETIRED wave 105 — the prefers-contrast pane override: byte-identical to the reduced-transparency one, and equally unread. */
+}
+
+
+/* 19 · the device card FLOATS, now that there is nothing behind it to sit on.  The artifact gives
+   `.m2dev` a radius and a hairline but no shadow — it never needed one, because it sat on a plate.
+   Off the plate it needs the house's own card float, which is what --m2-mat-shadow already is
+   (a key + an ambient, themed, declared in the seat block above). */
+:root:root:root #modwin.mir-modwindow .m2dev:not(.m2min) { box-shadow: var(--m2-mat-shadow); }        /* 19 */
+
+
+:root:root:root #modwin.mir-modwindow .m2add { display: none; }                                        /* 20 */
+
+
+:root:root:root .kwin-chiprail[aria-label$="window controls"] .m2addchip .crail-ink {
+  transform: rotate(45deg); transform-origin: 50% 50%; }                                              /* 20b */
+
+
+:root:root:root #modwin.mir-modwindow .m2pick,
+:root:root:root #modwin.mir-modwindow .m2ppick.glass,
+:root:root:root #modwin.mir-modwindow .m2deadpick.glass {
+  background-color: hsl(var(--glass-tint) / 0.97);
+  background-image: none;
+  border: var(--glass-border) solid var(--glass-border-color);
+  box-shadow: var(--glass-shadow);
+  color: var(--fg); }                                                                                 /* 21 */
+:root:root:root #modwin.mir-modwindow .m2pick .m2pickb,
+:root:root:root #modwin.mir-modwindow .m2ppick .m2pickb,
+:root:root:root #modwin.mir-modwindow .m2deadpick .m2pickb {
+  background-color: var(--glass-raise); color: var(--fg); }
+:root:root:root #modwin.mir-modwindow .m2pick .m2pickb:hover,
+:root:root:root #modwin.mir-modwindow .m2ppick .m2pickb:hover,
+:root:root:root #modwin.mir-modwindow .m2deadpick .m2pickb:hover {
+  background-color: var(--glass-press); }
+:root:root:root #modwin.mir-modwindow .m2pick .m2prowtag,
+:root:root:root #modwin.mir-modwindow .m2ppick .m2prowtag,
+:root:root:root #modwin.mir-modwindow .m2deadpick .m2prowtag { color: var(--fg-soft); }
+
+
+/* ── LIGHT ───────────────────────────────────────────────────────────── */
+:root:root:root body[data-theme="light"] .mir-modwindow .m2prenav:active:not(:disabled),
+:root:root:root body[data-theme="light"] .mir-modwindow .m2presave:active:not(:disabled),
+:root:root:root body[data-theme="light"] .mir-modwindow .m2predel:active:not(:disabled),
+:root:root:root body[data-theme="light"] .mir-modwindow .m2macdel:active:not(:disabled),
+:root:root:root body[data-theme="light"] .mir-modwindow .m2mclr:active:not(:disabled),
+:root:root:root body[data-theme="light"] .mir-modwindow .m2move:active,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2trig:active,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2x:active,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2swb.on,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2chk.on,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2pickb,
+:root:root:root body[data-theme="light"] .m2clr:active,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2prowdel:active,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2audsx { color: var(--m2-ink); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2prename,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2prename::placeholder,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2vname,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2name { color: hsl(214 20% 18% / 0.94); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2mac { color: hsl(214 20% 18% / 0.92); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2num { color: hsl(214 20% 18% / 0.9); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2vnum { color: hsl(214 20% 18% / 0.88); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2trig,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2grab:active i { color: hsl(214 20% 18% / 0.85); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2zoom { color: hsl(214 20% 18% / 0.82); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2sw .m2flipb,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2audsbtn { color: hsl(214 20% 18% / 0.78); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2prenav,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2presave,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2predel,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2predead,
+:root:root:root body[data-theme="light"] #modwin.mir-modwindow .m2dev .m2dial .m2kcap,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2audsrc { color: hsl(214 20% 18% / 0.72); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2pow { color: hsl(214 20% 18% / 0.7); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2route.m2one,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2dev.audio.m2min .m2minname { color: hsl(214 20% 18% / 0.68); }
+:root:root:root body[data-theme="light"] .m2clr,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2audshead { color: hsl(214 20% 18% / 0.66); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2macdel,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2mclr,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2dev.m2min .m2minname,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2swb,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2chk,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2prowdel,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcmd,
+:root:root:root body[data-theme="light"] .modwin.mir-modwindow .m2hold,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2audslab { color: hsl(214 20% 18% / 0.62); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2ab,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2kcap { color: hsl(214 20% 18% / 0.6); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2lfostatus,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2envstatus,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2audname { color: hsl(214 20% 18% / 0.58); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2audout { color: hsl(214 20% 18% / 0.56); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2chev,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2move,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2x { color: hsl(214 20% 18% / 0.55); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2audgrip { color: hsl(214 20% 18% / 0.54); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2audiostatus { color: hsl(214 20% 18% / 0.52); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2note,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2hint { color: hsl(214 20% 18% / 0.5); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2colhead,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2dev.env .m2envstage { color: hsl(214 20% 18% / 0.48); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2dev.m2min .m2minstatus,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2audioheadstate,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2dev.audio .m2note,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2audsleg { color: hsl(214 20% 18% / 0.46); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2maccap,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2dev.audio.m2min .m2audminout { color: hsl(214 20% 18% / 0.44); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2grab i { color: hsl(214 20% 18% / 0.42); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2dev.lfo .m2macbox::before { color: hsl(214 20% 18% / 0.4); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2modelabel,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2kends,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcap,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2dev.env .m2mac::before { color: hsl(214 20% 18% / 0.38); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2dev.m2min .m2minnum.m2nomac { color: hsl(214 20% 18% / 0.34); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2drive { color: hsl(214 20% 18% / 0.32); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2bank span,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2bank .m2bslash,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2audslot { color: hsl(214 20% 18% / 0.3); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2route { color: hsl(214 20% 18% / 0.28); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2vfill { background-color: hsl(214 20% 18% / 0.44); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2pad.m2empty .m2padin { background-color: hsl(214 20% 18% / 0.42); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2slots::-webkit-scrollbar-thumb { background-color: hsl(214 20% 18% / 0.3); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2statuslamp { background-color: hsl(214 20% 18% / 0.25); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2audiolife:not(.on):not(.bad) .m2statuslamp { background-color: hsl(214 20% 18% / 0.24); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2signal::before { background-color: hsl(214 20% 18% / 0.2); }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2dev.m2min .m2meter { background-color: transparent; }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2envprogress,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2dev.audio.m2min .m2audminleds i { background-color: transparent; }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2prename:focus,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2name:focus,
+:root:root:root body[data-theme="light"] .modwin.mir-modwindow .modtempoin,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2dev.m2min.env .m2envminprog { background-color: transparent; }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2zoom,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2swb,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2pickb,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2prowdel,
+:root:root:root body[data-theme="light"] #modwin.mir-modwindow .m2val.drag,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2audsx,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2audsbtn { background-color: transparent; }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2prename,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2name { background-color: transparent; }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2val:active { background-color: transparent; }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2numseat:active,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2numseat.drag,
+:root:root:root body[data-theme="light"] .modwin.mir-modwindow .modtempo { background-color: transparent; }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2dev:not(.glass) { background-color: transparent; }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2deadrow { background-color: transparent; }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2slot,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2dev .m2seat44,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcmd,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2dev.lfo .m2mac,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2dev.env:not(.m2min) .m2trig,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2dev.env .m2mac,
+:root:root:root body[data-theme="light"] .mir-modwindow .m2audsrc { background-color: transparent; }
+:root:root:root body[data-theme="light"] .mir-modwindow .m2audout { background-color: transparent; }
+
+/* ── DARK ───────────────────────────────────────────────────────────── */
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2prenav:active:not(:disabled),
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2presave:active:not(:disabled),
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2predel:active:not(:disabled),
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2macdel:active:not(:disabled),
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2mclr:active:not(:disabled),
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2move:active,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2trig:active,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2x:active,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2swb.on,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2chk.on,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2pickb,
+:root:root:root body[data-theme="dark"] .m2clr:active,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2prowdel:active,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2audsx { color: var(--m2-ink); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2prename,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2prename::placeholder,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2vname,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2name { color: hsl(0 0% 88% / 0.94); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2mac { color: hsl(0 0% 88% / 0.92); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2num { color: hsl(0 0% 88% / 0.9); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2vnum { color: hsl(0 0% 88% / 0.88); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2trig,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2grab:active i { color: hsl(0 0% 88% / 0.85); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2zoom { color: hsl(0 0% 88% / 0.82); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2sw .m2flipb,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2audsbtn { color: hsl(0 0% 88% / 0.78); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2prenav,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2presave,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2predel,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2predead,
+:root:root:root body[data-theme="dark"] #modwin.mir-modwindow .m2dev .m2dial .m2kcap,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2audsrc { color: hsl(0 0% 88% / 0.72); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2pow { color: hsl(0 0% 88% / 0.7); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2route.m2one,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2dev.audio.m2min .m2minname { color: hsl(0 0% 88% / 0.68); }
+:root:root:root body[data-theme="dark"] .m2clr,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2audshead { color: hsl(0 0% 88% / 0.66); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2macdel,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2mclr,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2dev.m2min .m2minname,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2swb,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2chk,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2prowdel,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcmd,
+:root:root:root body[data-theme="dark"] .modwin.mir-modwindow .m2hold,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2audslab { color: hsl(0 0% 88% / 0.62); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2ab,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2kcap { color: hsl(0 0% 88% / 0.6); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2lfostatus,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2envstatus,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2audname { color: hsl(0 0% 88% / 0.58); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2audout { color: hsl(0 0% 88% / 0.56); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2chev,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2move,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2x { color: hsl(0 0% 88% / 0.55); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2audgrip { color: hsl(0 0% 88% / 0.54); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2audiostatus { color: hsl(0 0% 88% / 0.52); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2note,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2hint { color: hsl(0 0% 88% / 0.5); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2colhead,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2dev.env .m2envstage { color: hsl(0 0% 88% / 0.48); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2dev.m2min .m2minstatus,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2audioheadstate,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2dev.audio .m2note,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2audsleg { color: hsl(0 0% 88% / 0.46); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2maccap,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2dev.audio.m2min .m2audminout { color: hsl(0 0% 88% / 0.44); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2grab i { color: hsl(0 0% 88% / 0.42); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2dev.lfo .m2macbox::before { color: hsl(0 0% 88% / 0.4); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2modelabel,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2kends,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcap,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2dev.env .m2mac::before { color: hsl(0 0% 88% / 0.38); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2dev.m2min .m2minnum.m2nomac { color: hsl(0 0% 88% / 0.34); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2drive { color: hsl(0 0% 88% / 0.32); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2bank span,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2bank .m2bslash,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2audslot { color: hsl(0 0% 88% / 0.3); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2route { color: hsl(0 0% 88% / 0.28); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2vfill { background-color: hsl(0 0% 88% / 0.44); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2pad.m2empty .m2padin { background-color: hsl(0 0% 88% / 0.42); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2slots::-webkit-scrollbar-thumb { background-color: hsl(0 0% 88% / 0.3); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2statuslamp { background-color: hsl(0 0% 88% / 0.25); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2audiolife:not(.on):not(.bad) .m2statuslamp { background-color: hsl(0 0% 88% / 0.24); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2signal::before { background-color: hsl(0 0% 88% / 0.2); }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2dev.m2min .m2meter { background-color: transparent; }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2envprogress,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2dev.audio.m2min .m2audminleds i { background-color: transparent; }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2prename:focus,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2name:focus,
+:root:root:root body[data-theme="dark"] .modwin.mir-modwindow .modtempoin,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2dev.m2min.env .m2envminprog { background-color: transparent; }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2zoom,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2swb,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2pickb,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2prowdel,
+:root:root:root body[data-theme="dark"] #modwin.mir-modwindow .m2val.drag,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2audsx,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2audsbtn { background-color: transparent; }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2prename,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2name { background-color: transparent; }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2val:active { background-color: transparent; }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2numseat:active,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2numseat.drag,
+:root:root:root body[data-theme="dark"] .modwin.mir-modwindow .modtempo { background-color: transparent; }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2dev:not(.glass) { background-color: transparent; }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2deadrow { background-color: transparent; }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2slot,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2dev .m2seat44,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcmd,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2dev.lfo .m2mac,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2dev.env:not(.m2min) .m2trig,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2dev.env .m2mac,
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2audsrc { background-color: transparent; }
+:root:root:root body[data-theme="dark"] .mir-modwindow .m2audout { background-color: transparent; }
+
+
+:root:root:root #modwin.mir-modwindow .m2hint { display: none; }                                      /* 22 */
+
+
+:root:root:root #modwin.mir-modwindow .m2dev .m2bus.m2bushit { color: var(--acc2); }                   /* 113 */
+
+
+:root:root:root #modwin.mir-modwindow .m2hint.m2say {
+  display: flex; align-items: center; visibility: visible; pointer-events: none;
+  position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%);
+  z-index: calc(var(--z-win) + 4);
+  max-width: min(560px, 92%); padding: 7px 14px;
+  border: var(--glass-border) solid var(--glass-border-color); border-radius: var(--r-pill);
+  background-color: hsl(var(--glass-tint) / 0.97); box-shadow: var(--glass-shadow);
+  color: var(--fg); font: 500 10.5px/1.35 var(--font-sans); letter-spacing: 0.02em;
+  text-align: center; white-space: normal;
+  animation: m2-say-in var(--t-fast, .12s) ease both; }
+/* a refusal is the one message that may wear a hue, and it is the artifact's own `--bad` */
+:root:root:root #modwin.mir-modwindow .m2hint.m2say.m2dead { color: var(--bad); }
+@keyframes m2-say-in { from { opacity: 0; transform: translate(-50%, 4px); }
+                       to   { opacity: 1; transform: translate(-50%, 0); } }
+@media (prefers-reduced-motion: reduce) {
+  @keyframes m2-say-in { from { opacity: 0; } to { opacity: 1; } }
+}                                                                                                     /* 112 */
+
+
+/* RETIRED wave 105 — 23: all five arms superseded — arms 1/4 by entry 25, arms 2/3/5 by entry 26, which repeats them verbatim. */
+/* 23b · the float host, in its OWN rule.  `:has()` is a live selector and an unsupported one
+   invalidates the whole comma group it sits in — alone here, it can only fail alone. */
+/* RETIRED wave 105 — 23b: the window is appended straight to #floats as a .kwin (rack.js:2326) and is never wrapped in a .dev. */
+
+
+/* RETIRED wave 105 — 24: entry 25 sets border-radius:0 at (1,5,0) on an element it also makes visibility:hidden. MEASURED 2026-09-07: computed border-radius is 0px. */
+
+
+:root:root:root #modwin.mir-modwindow:not(.phone) {
+  background: transparent; border-color: transparent; box-shadow: none;
+  border-radius: 0; contain: layout; isolation: auto;
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+  visibility: visible; pointer-events: none; }                                                        /* 25 */
+/* the layout boxes: seen through, pressed through */
+:root:root:root #modwin.mir-modwindow > .kwin-body,
+:root:root:root #modwin.mir-modwindow .kwin-panel,
+:root:root:root #modwin.mir-modwindow .m2root,
+:root:root:root #modwin.mir-modwindow .m2run,
+:root:root:root #modwin.mir-modwindow .m2foot {
+  background: transparent; border-color: transparent; box-shadow: none;
+  pointer-events: none; }                                                                             /* 26 */
+/* THE SURFACES.  Same edge, same corner, same shadow — BASINS' own finding about their bar and card
+   was that the ONLY difference between the two is the FILL.  These are the objects; they paint, they
+   float, and they are the only things a finger can land on. */
+:root:root:root #modwin.mir-modwindow .m2workbar,
+:root:root:root #modwin.mir-modwindow .m2rail,
+:root:root:root #modwin.mir-modwindow .m2dev,
+:root:root:root #modwin.mir-modwindow .m2pick,
+:root:root:root #modwin.mir-modwindow .m2ppick,
+:root:root:root #modwin.mir-modwindow .m2deadpick {
+  visibility: visible; pointer-events: auto;
+  border: var(--glass-border) solid var(--glass-border-color);
+  border-radius: var(--disc-r); box-shadow: var(--glass-shadow); }                                    /* 27 */
+
+
+:root:root:root #modwin.mir-modwindow .m2rail { border-right: 0; }                                    /* 28 */
+:root:root:root #modwin.mir-modwindow .m2root { gap: var(--disc-gap); }                               /* 28b */
+
+
+/* RETIRED wave 105 — 29: entry 39 re-declares it with --m2-mat-chassis; its comment ('the raise comes off') was the retraction. */
+
+/* ══ WAVE 74 · THE SETTINGS REACH THE FILL, BY THE HOUSE'S OWN SWITCHES ═══════════════════════
+   Dressing the surfaces in `.glass` (lab/modwindow.js) hands them every house rule for free — the
+   border, the sheen, the shadow, the backdrop filter.  It does NOT hand them the FILL, and the reason
+   is specificity, measured rather than assumed: the artifact's own `#modwin.mir-modwindow .m2dev`
+   (modwindow.css:1911) is (1,2,0) and the house's `body[data-card="refractive"] .glass` is (0,2,1),
+   so an ID beats the switch and the device would keep painting --m2-mat-chassis whatever CARD STYLE
+   said.  Rather than fight that with more specificity, the TOKEN is put on the house's switches, so
+   the artifact's own rule computes the house's own answer:
+     REFRACTIVE (what ships) → no fill, the field straight through, exactly like #sheet.
+     TINTED                  → the house tint at the house opacity, exactly like #sheet.
+     FROST                   → skin.css:325's own `hsl(0 0% 100% / .10)`, the whisper of white that
+                               keeps ink legible under the blur — its value, quoted, not invented.
+   FROST supplies the REFRACTIVE veil only; TINTED keeps its pane, matching skin.css. The filter answers the frost policy independently of that choice. */
+:root:root:root body[data-card="refractive"] .mir-modwindow,
+:root:root:root body[data-card="refractive"] #modwin.mir-modwindow { --m2-mat-chassis: transparent; }
+:root:root:root body[data-card="tinted"] .mir-modwindow,
+:root:root:root body[data-card="tinted"] #modwin.mir-modwindow {
+  --m2-mat-chassis: hsl(var(--glass-tint) / var(--glass-opacity)); }
+:root:root:root body.frost[data-card="refractive"] .mir-modwindow,
+:root:root:root body.frost[data-card="refractive"] #modwin.mir-modwindow { --m2-mat-chassis: hsl(0 0% 100% / .10); }
+/* AND FROST'S WHISPER INVERTS ON DARK — skin.css:326, which the first cut of this wave missed and the
+   acceptance run caught: 6/8 settings matched the ABOUT card and the two that did not were both
+   dark+frost, the sheet computing rgba(0,0,0,.1) against our rgba(255,255,255,.1).  The house's own
+   line, quoted: `body.frost[data-theme="dark"] .dev, … .glass { background: hsl(0 0% 0% / .10) }`. */
+:root:root:root body.frost[data-card="refractive"][data-theme="dark"] .mir-modwindow,
+:root:root:root body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --m2-mat-chassis: hsl(0 0% 0% / .10); }
+/* and the window's own pane follows the same three, so a TINTED window is a tinted window */
+/* RETIRED wave 105 — the two FROST pane fills: --m2-pane has no reader. */
+
+/* 30 · THE PICKER, OPENED FROM THE RAIL.  The artifact anchors `.m2pick` to the WINDOW —
+   `position: absolute; left: 50%; transform: translateX(-50%)` — which is right for a button in the
+   device run and wrong for a chip on a rail that is a DOM SIBLING of the window: the sheet would
+   open half a window away from the press.  This class is what `lab/modwindow.js` switches on; the
+   two coordinates are inline because only the script can know where the chip is this frame.
+   Everything else about the sheet — its glass, its border, its shadow, its ink — is reach-list 21's
+   and is not repeated here. */
+:root:root:root #modwin.mir-modwindow .m2pick.m2pick-at-chip {
+  position: fixed; right: auto; bottom: auto; transform: none; z-index: calc(var(--z-banner) + 6); }   /* 30 */
+
+
+:root:root:root .kwin-chiprail[aria-label$="window controls"] .crail-chip::before {
+  background-color: transparent;
+  background-image: none;
+  border-color: var(--glass-border-color);
+  box-shadow: var(--glass-shadow); }                                                                  /* 31 */
+
+
+:root:root:root .kwin-chiprail[aria-label$="window controls"] .crail-chip:active::before {
+  background-color: var(--glass-press); border-color: var(--glass-border-color); }                     /* 31b */
+
+
+:root:root:root .kwin-chiprail[aria-label$="window controls"] .crail-chip .crail-ink,
+:root:root:root .kwin-chiprail[aria-label$="window controls"] .kwin-grip-dots {
+  color: var(--ink-key);
+  filter: drop-shadow(0 1px 0 var(--glass-raise)); }                                                   /* 32 */
+:root:root:root .kwin-chiprail[aria-label$="window controls"] .crail-chip:active .crail-ink { color: var(--fg); }
+
+
+:root:root:root #modwin.mir-modwindow .m2k { flex-direction: column; }
+:root:root:root #modwin.mir-modwindow .m2kval { order: 1; }
+:root:root:root #modwin.mir-modwindow .m2kd   { order: 2; }
+:root:root:root #modwin.mir-modwindow .m2kcap { order: 3; }
+:root:root:root #modwin.mir-modwindow .m2dialink .ckval { display: none; }                             /* 33 */
+
+
+:root:root:root #modwin.mir-modwindow .m2dev .m2swb,
+:root:root:root #modwin.mir-modwindow .m2dev .m2chk,
+:root:root:root #modwin.mir-modwindow .m2dev .m2flipb,
+:root:root:root #modwin.mir-modwindow .m2dev .m2sw .m2trig {
+  background: transparent; border-color: transparent; box-shadow: none; }                              /* 34 */
+:root:root:root #modwin.mir-modwindow .m2dev .m2swb:active,
+:root:root:root #modwin.mir-modwindow .m2dev .m2chk:active,
+:root:root:root #modwin.mir-modwindow .m2dev .m2flipb:active,
+:root:root:root #modwin.mir-modwindow .m2dev .m2sw .m2trig:active {
+  background: transparent; box-shadow: none; }
+:root:root:root #modwin.mir-modwindow .m2dev .m2swb.on,
+:root:root:root #modwin.mir-modwindow .m2dev .m2chk.on { background: transparent; box-shadow: none; }
+/* THE LAMP.  Off is the window's own recess; on is Accent A and it glows, which is the one place in
+   this row a colour is allowed to mean something. */
+:root:root:root #modwin.mir-modwindow .m2dev .m2dot {
+  background: var(--m2-mat-recess); border-color: transparent;
+  transition: background var(--m2-motion-micro, .12s), box-shadow var(--m2-motion-micro, .12s); }
+:root:root:root #modwin.mir-modwindow .m2dev .m2chk.on .m2dot,
+:root:root:root #modwin.mir-modwindow .m2dev .m2swb.on .m2dot {
+  background: var(--acc); border-color: var(--acc);
+  box-shadow: 0 0 6px var(--acc), 0 0 2px var(--acc); }                                                 /* 34b */
+
+
+:root:root:root #modwin.mir-modwindow .m2note { display: none; }                                       /* 35 */
+
+/* 42 · THE CARD'S FLOAT GETS SOMEWHERE TO LAND.  MEASURED, and it is not a clip to fight but an
+   absence of room: `.m2run`'s content box is 368 px and `.m2dev` is 368 px — exactly equal — so the
+   `0 5px 12px` float had nowhere below the card to paint and stopped at its own bottom edge.  The
+   artifact's `setViewHeight` CANNOT give it room (it clamps to `CARD_FULL.h`), so the ROOT takes the
+   extra instead of the view: the row grows by the float's reach, the run spends it as bottom padding,
+   and the card and the macro rail both keep their exact height.  (⚠ that height was 368 when this
+   was written and is 336 since reach 96 — the argument is unchanged, the number is not.)  `place()` adds the same number to the
+   window so nothing is clipped one level up. */
+
+
+:root:root:root #modwin.mir-modwindow .m2root { height: calc(var(--m2-view-h) + 6px); }
+:root:root:root #modwin.mir-modwindow .m2run { padding-bottom: 6px; }                                  /* 42 */
+
+/* ══ WAVE 77 · THE CURVE TAKES ITS BAND BACK · THE LAMPS · THE LANE'S MATERIAL ════════════════
+
+   36 · THE PLOT FILLS THE BOX.  `.m2svg` is `height: calc(100% - 14px)` and those 14 px are the
+   caption band `.m2note` sat in — wave 76 removed the sentence and left the gap it was reserving,
+   which is why the curve still stopped short of the bottom rule.  The band is the note's, the note is
+   gone, so the height is the box's. */
+:root:root:root #modwin.mir-modwindow .m2svg { height: 100%; }                                         /* 36 */
+
+
+:root:root:root #modwin.mir-modwindow .m2dev .m2swb,
+:root:root:root #modwin.mir-modwindow .m2dev .m2flipb {
+  display: flex; align-items: center; justify-content: flex-start; gap: 5px; padding: 0 3px; }
+:root:root:root #modwin.mir-modwindow .m2dev .m2swb::before,
+:root:root:root #modwin.mir-modwindow .m2dev .m2flipb::before {
+  content: ""; flex: 0 0 auto; width: 9px; height: 9px; border-radius: 50%;
+  background: var(--m2-mat-recess); border: 0;
+  transition: background var(--m2-motion-micro, .12s), box-shadow var(--m2-motion-micro, .12s); }
+:root:root:root #modwin.mir-modwindow .m2dev .m2swb.on::before,
+:root:root:root #modwin.mir-modwindow .m2dev .m2flipb.on::before {
+  background: var(--acc); box-shadow: 0 0 6px var(--acc), 0 0 2px var(--acc); }                        /* 37 */
+
+
+:root:root:root #modwin.mir-modwindow .m2dev .m2swb,
+:root:root:root #modwin.mir-modwindow .m2dev .m2chk,
+:root:root:root #modwin.mir-modwindow .m2dev .m2flipb,
+:root:root:root #modwin.mir-modwindow .m2dev .m2swb.on,
+:root:root:root #modwin.mir-modwindow .m2dev .m2chk.on,
+:root:root:root #modwin.mir-modwindow .m2dev .m2flipb.on,
+:root:root:root #modwin.mir-modwindow .m2dev .m2swb:active,
+:root:root:root #modwin.mir-modwindow .m2dev .m2chk:active,
+:root:root:root #modwin.mir-modwindow .m2dev .m2flipb:active { color: var(--m2-ink-soft); }
+@media (hover: hover) {
+  :root:root:root #modwin.mir-modwindow .m2dev .m2swb:hover,
+  :root:root:root #modwin.mir-modwindow .m2dev .m2chk:hover,
+  :root:root:root #modwin.mir-modwindow .m2dev .m2flipb:hover { color: var(--fg); }
+}                                                                                                      /* 38 */
+
+
+:root:root:root #modwin.mir-modwindow .m2workbar { background: var(--m2-mat-chassis); }                /* 39 */
+
+/* 40 · NO SHADOW UNDER ANY TEXT.  The artifact inherits `text-shadow: var(--ink-shadow)` from its
+   own `.glass` recipe, which is BASINS' answer to white ink over an unpredictable picture.  Ours is
+   dark ink on a light card and the halo only smears it. */
+:root:root:root #modwin.mir-modwindow,
+:root:root:root #modwin.mir-modwindow *,
+:root:root:root .kwin-chiprail[aria-label$="window controls"] * { text-shadow: none; }                 /* 40 */
+
+
+:root:root:root #modwin.mir-modwindow .m2workbar,
+:root:root:root #modwin.mir-modwindow .m2workbar * { color: var(--fg-soft); }
+:root:root:root #modwin.mir-modwindow .m2workbar svg { fill: currentColor; stroke: currentColor; }
+:root:root:root #modwin.mir-modwindow .m2workbar .m2bank span.on,
+:root:root:root #modwin.mir-modwindow .m2workbar .m2prenav,
+:root:root:root #modwin.mir-modwindow .m2workbar .m2presave { color: var(--fg-soft); }
+:root:root:root #modwin.mir-modwindow .m2workbar .on,
+:root:root:root #modwin.mir-modwindow .m2workbar *:active { color: var(--fg); }                        /* 41 */
+
+
+:root:root:root #modwin.mir-modwindow .m2lfoout,
+:root:root:root #modwin.mir-modwindow .m2envout,
+:root:root:root #modwin.mir-modwindow .m2audioout,
+:root:root:root #modwin.mir-modwindow .m2route,
+:root:root:root #modwin.mir-modwindow .m2status {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em; }                                                                            /* 43 */
+
+
+:root:root:root #modwin.mir-modwindow .m2dev .m2kd,
+:root:root:root #modwin.mir-modwindow .m2dev.lfo .m2k[data-knob="rate"] .m2kd,
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2k[data-knob="a"] .m2kd,
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2k[data-knob="d"] .m2kd,
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2k[data-knob="r"] .m2kd,
+
+
+:root:root:root #modwin.mir-modwindow .m2dev.audio .m2k[data-knob="sens"] .m2kd { width: 48px; height: 48px; }  /* 44 */
+
+/* 45 · THE KNOB CAPTION TAKES THE THEME.  It was white-at-alpha in the artifact and wave 71 flipped
+   the literal, but the caption is the one label under every dial and it should read as the lab's own
+   secondary ink in both themes — which is exactly what the ladder above now is. */
+/* RETIRED wave 105 — 45: every .m2kcap sits inside .m2dev .m2dial, which the ink-flip colours at (1,8,1) — this (1,5,0) rule never applied. */
+
+
+:root:root:root #modwin.mir-modwindow .m2preset .m2gl {
+  stroke: var(--ink-key);
+  filter: drop-shadow(0 1px 0 var(--glass-raise)); }
+:root:root:root #modwin.mir-modwindow .m2preset.on .m2gl { stroke: var(--acc); filter: none; }
+@media (hover: hover) {
+  :root:root:root #modwin.mir-modwindow .m2preset:hover .m2gl { stroke: var(--fg); }
+}                                                                                                      /* 46 */
+
+/* 47 · THE REORDER ARROWS GO — the switch is reach-list 18 itself, turned off at source (see there).
+   18b STAYS: the head's middle track still needs the bank told not to shrink. */
+
+
+:root:root:root #modwin.mir-modwindow .m2modelabel { display: none; }                                  /* 48 */
+
+
+:root:root:root #modwin.mir-modwindow .m2mac,
+:root:root:root #modwin.mir-modwindow .m2maccap {
+  border-color: transparent; background: transparent; color: var(--ink-key);
+  filter: drop-shadow(0 1px 0 var(--glass-raise)); }
+@media (hover: hover) {
+  :root:root:root #modwin.mir-modwindow .m2mac:hover {
+    filter: drop-shadow(0 1px 0 var(--glass-raise)) drop-shadow(0 2px 6px hsl(214 40% 20% / .22));
+    color: var(--fg); }
+}
+:root:root:root #modwin.mir-modwindow .m2mac.on { border-color: transparent; }      /* 49 */
+
+
+:root:root:root #modwin.mir-modwindow *,
+:root:root:root .kwin-chiprail[aria-label$="window controls"] * { outline: none; }
+:root:root:root #modwin.mir-modwindow *:focus-visible,
+:root:root:root .kwin-chiprail[aria-label$="window controls"] *:focus-visible {
+  outline: none;
+  /* ⚠ NOT `--acc-soft`: this window redeclares the house glass names onto its own ladder, and that
+     token computed to `color(srgb 0 0 0 / 0)` here — a fully transparent halo, i.e. no ring at all.
+     Measured, then written as the accent's own hue at an alpha, which cannot be re-pointed. */
+  box-shadow: 0 0 0 3px hsl(var(--hue-acc) var(--sat-acc) 66% / 0.30),
+              0 0 0 1px hsl(var(--hue-acc) var(--sat-acc) 52%); }                                      /* 50 */
+
+
+:root:root:root #modwin.mir-modwindow .m2kval {
+  opacity: 0; transition: opacity var(--t-soft, .35s) ease var(--t-linger, .7s); }
+:root:root:root #modwin.mir-modwindow .m2k:hover .m2kval,
+:root:root:root #modwin.mir-modwindow .m2k:focus-within .m2kval,
+:root:root:root #modwin.mir-modwindow .m2k .m2dialink.drag ~ .m2kval,
+:root:root:root #modwin.mir-modwindow .m2kd.drag ~ .m2kval {
+  opacity: 1; transition: opacity var(--t-fast, .12s); }
+
+
+                              /* 51 */
+
+
+/* RETIRED wave 105 — 52: entry 65 sets 200px on the same selector, later, and says so. */
+
+
+:root:root:root #modwin.mir-modwindow .m2numseat:active,
+:root:root:root #modwin.mir-modwindow .m2numseat.drag { background: transparent; }
+
+
+:root:root:root #modwin.mir-modwindow .m2num { color: var(--acc2); border: 0; }
+:root:root:root #modwin.mir-modwindow .m2deptharc { stroke: var(--acc); }                              /* 53 */
+
+
+/* ⚠ AND THE TOP EDGE IS NOT `--glass-raise`.  Inside this window that token is `hsl(0 0% 0% / 0.06)`
+   — a DARK wash, because the seat re-points it for the buttons — so the first cut read back dark on
+   top AND dark on the lip, which is a smudge and not a bevel.  Measured; written as two explicit
+   lights instead, and the light theme gets the stronger one because its face is pale. */
+:root:root:root #modwin.mir-modwindow .m2dialink::before {
+  box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.28), inset 0 -1px 0 hsl(214 30% 20% / 0.20); }
+:root:root:root body[data-theme="light"] #modwin.mir-modwindow .m2dialink::before {
+  box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.85), inset 0 -1px 0 hsl(214 30% 40% / 0.26); }            /* 54 */
+
+
+:root:root:root #modwin.mir-modwindow .m2dialink .m2kn {
+  width: 1.5px; margin-left: -0.75px; height: 34%; border-radius: 1px;
+  background: var(--m2-ink-hi); box-shadow: 0 0 0 0.5px hsl(0 0% 0% / 0.38); }
+
+
+:root:root:root #modwin.mir-modwindow .m2dialink.drag .m2kn { background: var(--acc); }                 /* 55 */
+
+
+:root:root:root #modwin.mir-modwindow .m2dialink .ckarc-trk,
+:root:root:root #modwin.mir-modwindow .m2dialink:hover .ckarc-trk { stroke: transparent; }              /* 56 */
+
+
+:root:root:root #modwin.mir-modwindow .modtempo {
+  display: grid; grid-template-rows: auto auto;
+  align-items: center; justify-items: start; row-gap: 0; }
+:root:root:root #modwin.mir-modwindow .modtempo b { grid-area: 1 / 1 / 3 / 2; align-self: center; }
+:root:root:root #modwin.mir-modwindow .modtempo span { grid-area: 1 / 2 / 2 / 3; }
+:root:root:root #modwin.mir-modwindow .modtempo .modhz { grid-area: 2 / 2 / 3 / 3; }
+/* the artifact drops the Hz first and the unit second when the lane is tight; stacked, the Hz costs
+   no width at all, so only the `.tighter` rung still has anything to give up */
+:root:root:root #modwin.mir-modwindow .modtempo.tight .modhz { display: block; }                        /* 57 */
+
+/* 58 · AND THE BAR IS AS WIDE AS ITS CONTENTS.  `GEOM.TIMING_W` is a fixed 450 and the row inside it
+   no longer needs that, so the box sizes to what it holds; `place()` measures the result and puts its
+   right edge on the last device, which is where wave 76 locked it.  `min-width: 0` because a fixed
+   width was the only thing stopping this box from shrinking. */
+:root:root:root #modwin.mir-modwindow .m2pre { width: fit-content; min-width: 0; }                      /* 58 */
+
+
+:root:root:root #modwin.mir-modwindow .m2dialink::before {
+  background:
+    repeating-conic-gradient(var(--glass-groove) 0deg 1.6deg, transparent 1.6deg 30deg),
+    radial-gradient(circle at 35% 30%, hsl(0 0% 100% / .07), transparent 62%),
+    hsl(var(--glass-tint) / 1); }                                                                      /* 59 */
+
+
+:root:root:root #modwin.mir-modwindow .m2pt,
+:root:root:root #modwin.mir-modwindow .m2tn,
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2pt,
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2tn {
+  fill: transparent; pointer-events: all; stroke-width: 2; }
+/* RETIRED wave 105 — 60: entry 71 (wave 82) re-declares this whole block — the same four selectors, the same
+   `pointer-events`/`stroke-width`, the same two strokes — and changes only the fill. */
+
+
+:root:root:root #modwin.mir-modwindow .m2pow {
+  border: 0; background: transparent; border-radius: 0;
+  color: var(--acc); filter: none; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2off .m2pow,
+:root:root:root #modwin.mir-modwindow .m2pow[aria-pressed="false"] {
+  color: var(--m2-ink-faint); filter: none; }                                                          /* 61 */
+
+
+:root:root:root #modwin.mir-modwindow .m2ab { border: 0; background: transparent; }                    /* 62 */
+/* RETIRED wave 105 — 62 arms 2-4: .m2clip/.m2copy/.m2paste occur nowhere else in the tree; the pair is built as two .m2ab buttons. */
+
+
+/* RETIRED wave 105 — 63, all four arms: seatCurveName() re-parents .m2lfowave into .m2presets on every rebuild, so the
+   two arms naming it under .m2headc / .m2edit match nothing and entry 104 dresses it at its real home;
+   `position: static` is the initial value; and the `.m2edit { position: relative }` arm restates the
+   artifact's own modwindow.css:935. */
+
+
+:root:root:root #modwin.mir-modwindow .m2statusmain { font-size: 0; gap: 0; }
+:root:root:root #modwin.mir-modwindow .m2statusmain .m2statuslamp { font-size: 0; }                     /* 64 */
+
+
+:root:root:root #modwin.mir-modwindow .m2vname { flex: 1 1 auto; min-width: 0; }
+:root:root:root #modwin.mir-modwindow .m2vnum { flex: 0 0 auto; }                                       /* 65 */
+
+
+:root:root:root #modwin.mir-modwindow .m2dev:not(.m2min) .m2headl { padding-left: 18px; }               /* 66 */
+
+
+:root:root:root #modwin.mir-modwindow .modtempo {
+  border: 0; background: transparent;
+  height: calc(36px * var(--ui-scale)); min-height: calc(36px * var(--ui-scale));
+  column-gap: calc(6px * var(--ui-scale)); }
+:root:root:root #modwin.mir-modwindow .modtempo b {
+  font: 700 calc(22px * var(--ui-scale)) var(--font-num); line-height: 1;
+
+
+  color: var(--m2-ink); font-variant-numeric: tabular-nums; }
+:root:root:root #modwin.mir-modwindow .modtempo span {
+  font: 700 calc(9px * var(--ui-scale)) var(--font-sans); letter-spacing: 0.12em;
+  color: var(--m2-ink-soft); opacity: 1; }
+:root:root:root #modwin.mir-modwindow .modtempo .modhz {
+  font: 500 calc(9px * var(--ui-scale)) var(--font-num); letter-spacing: 0.04em;
+  color: var(--m2-ink-faint); opacity: 1; }
+:root:root:root #modwin.mir-modwindow .modtempo.on { border: 0; color: var(--acc); }                    /* 67 */
+
+
+:root:root:root #modwin.mir-modwindow .m2bank { border: 0; background: transparent; }
+:root:root:root #modwin.mir-modwindow .m2bank span { color: var(--m2-ink-faint); }
+:root:root:root #modwin.mir-modwindow .m2bank span.on { color: var(--acc); }                           /* 68 */
+
+
+:root:root:root #modwin.mir-modwindow .m2prename:focus,
+:root:root:root #modwin.mir-modwindow .m2prename:focus-visible,
+:root:root:root #modwin.mir-modwindow .m2name:focus,
+:root:root:root #modwin.mir-modwindow .m2name:focus-visible {
+  outline: none;
+  border-color: var(--glass-border-color);
+  background: transparent;
+  box-shadow: var(--neu-inset); }                                                                      /* 69 */
+
+
+:root:root:root #modwin.mir-modwindow .m2macadd,
+:root:root:root #modwin.mir-modwindow .m2macdel {
+  border: 0; background: hsl(0 0% 100% / 0.06); }
+:root:root:root body[data-theme="light"] #modwin.mir-modwindow .m2macadd,
+:root:root:root body[data-theme="light"] #modwin.mir-modwindow .m2macdel {
+  border: 0; background: hsl(214 30% 40% / 0.09); }
+:root:root:root #modwin.mir-modwindow .m2macadd:active:not(:disabled) { background: var(--acc2-soft); }
+:root:root:root #modwin.mir-modwindow .m2macdel:active:not(:disabled) { background: var(--glass-press); }  /* 70 */
+
+
+:root:root:root #modwin.mir-modwindow .m2pt,
+:root:root:root #modwin.mir-modwindow .m2tn,
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2pt,
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2tn {
+  fill: hsl(var(--glass-tint) / 1); pointer-events: all; stroke-width: 2; }
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2pt,
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2tn { stroke: var(--m2-env-ink); }
+/* the SELECTED node is the one place a joint fills, because "this is the handle you are editing" is
+   worth a solid mark — the artifact's own rule, kept */
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2pt.sel,
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2tn.sel { fill: var(--acc); }                       /* 71 */
+
+
+:root:root:root #modwin.mir-modwindow .m2edit,
+:root:root:root #modwin.mir-modwindow .m2hero {
+  background-color: transparent; background-image: none;
+
+
+  border-color: transparent;
+  box-shadow: inset 0 1px 2px hsl(0 0% 0% / 0.045); }                                                  /* 72 */
+
+
+:root:root:root #modwin.mir-modwindow .m2mid,
+:root:root:root #modwin.mir-modwindow .m2gridline,
+:root:root:root #modwin.mir-modwindow .m2dev.lfo .m2mid,
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2mid,
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2gridline { stroke: var(--m2-rule); }                /* 73 */
+
+
+:root:root:root #modwin.mir-modwindow .m2gridtxt { display: none; }                                     /* 74 */
+/* RETIRED wave 105 — 74 arm 2: .cv-tlbl is a calculus-view class defined in lab.css and built by no JS. */
+
+
+:root:root:root #modwin.mir-modwindow .m2vedge { background: var(--m2-slot-ink, var(--fg)); }           /* 75 */
+
+
+:root:root:root #modwin.mir-modwindow .m2depthtrack { stroke: transparent; }                            /* 76 */
+
+
+/* ⚠ AND ITS MARGIN GOES WITH ITS ORDER.  modwindow.css:1189 gives the foot `margin-bottom: 8px` in
+   this state — correct for the artifact's version, where the foot really does move to the TOP and
+   needs air under it.  Here the foot never moves, so that margin was pure error: measured, the bar
+   travelled 480 px against a 472 px lift, and 8 is the whole of the difference. */
+/* MEASURED TWICE.  modwindow.css:1188 gives the foot `margin-top: 8px` and :1189 takes it away in
+   this state (`margin-top: 0; margin-bottom: 8px`) — correct for the artifact, where the foot really
+   does move to the top and the margin swaps ends with it.  Here the foot never moves, so the swap
+   just LIFTS it 8 px: the foot read 574 below and 566 above, and the bar inherited the error on top
+   of its own 472-px translate for a travel of 480.  The margins are pinned to the default's, so the
+   foot is byte-identical in both states and the translate is the only thing that moves. */
+:root:root:root #modwin.mir-modwindow .m2bars-top .m2foot { order: 2; margin-top: 2px; margin-bottom: 0; }
+:root:root:root #modwin.mir-modwindow .m2bars-top .m2workbar {
+  transform: translateY(calc(-1 * var(--m2-lane-lift, 438px))); }                                       /* 77 */
+:root:root:root #modwin.mir-modwindow .m2bars-hidden .m2foot { display: none; }
+
+
+body.frost :root:root:root .kwin-chiprail[aria-label$="window controls"] .crail-chip::before,
+:root:root:root body.frost .kwin-chiprail[aria-label$="window controls"] .crail-chip::before {
+  -webkit-backdrop-filter: var(--frost-filter); backdrop-filter: var(--frost-filter);
+  background-color: hsl(0 0% 100% / .10); }
+:root:root:root body.frost[data-theme="dark"] .kwin-chiprail[aria-label$="window controls"] .crail-chip::before {
+  background-color: hsl(0 0% 0% / .10); }
+:root:root:root body.frost.frost-hold .kwin-chiprail[aria-label$="window controls"] .crail-chip::before {
+  -webkit-backdrop-filter: none; backdrop-filter: none; }                                              /* 78 */
+
+/* 78b · AND THE TWO BARS FROST WITH THEM.  Measured after 78: the chip took the filter and the bar
+   read `backdrop-filter: none` — `body.frost .glass` is (0,2,1) and something in this seat's own
+   ladder was outranking it on that element.  Rather than hunt the winner, the bars are given the
+   house's three declarations at this file's own specificity, exactly as the chips were: same token,
+   same fill, same `frost-hold` release.  One material, stated once per surface that cannot inherit it. */
+:root:root:root body.frost #modwin.mir-modwindow .m2workbar {
+  -webkit-backdrop-filter: var(--frost-filter); backdrop-filter: var(--frost-filter); }
+:root:root:root body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
+  -webkit-backdrop-filter: none; backdrop-filter: none; }                                              /* 78b */
+
+
+:root:root:root #modwin.mir-modwindow .m2presave,
+:root:root:root #modwin.mir-modwindow .m2predel,
+:root:root:root #modwin.mir-modwindow .m2prenav { border: 0; background: transparent; }                 /* 79 */
+
+
+:root:root:root #modwin.mir-modwindow .m2predead { border: 0; background: transparent; }
+
+
+:root:root:root #modwin.mir-modwindow .m2workbar .m2predead.off { display: none; }                     /* 101 */
+
+
+:root:root:root .kwin-chiprail[aria-label$="window controls"] .crail-chip[data-rail="ribbon"] { display: none; }                      /* 80 */
+
+
+:root:root:root #modwin.mir-modwindow .m2railhead {
+  display: flex; align-items: center; gap: 4px; padding: 2px 5px 2px 18px;
+  cursor: pointer; user-select: none; }
+:root:root:root #modwin.mir-modwindow .m2railhead .m2chev { flex: 0 0 auto; }
+:root:root:root #modwin.mir-modwindow .m2rail.m2railmin .m2slots,
+:root:root:root #modwin.mir-modwindow .m2rail.m2railmin .m2macrow { display: none; }
+/* RETIRED wave 105 — 81: entry 88 sets 40px on this exact selector, later. */
+:root:root:root #modwin.mir-modwindow .m2rail.m2railmin .m2railhead .m2chev { transform: rotate(-90deg); }
+@media (hover: hover) {
+  :root:root:root #modwin.mir-modwindow .m2railhead:hover { color: var(--m2-ink-hi); }
+}                                                                                                      /* 81 */
+
+
+:root:root:root #modwin.mir-modwindow .m2gridline,
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2gridline,
+:root:root:root #modwin.mir-modwindow .m2dev.lfo .m2gridline { stroke: transparent; }
+
+
+:root:root:root #modwin.mir-modwindow .m2dev.lfo .m2mid,
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2mid { opacity: 0; transition: opacity var(--t-fast, .12s); }
+@media (hover: hover) {
+  :root:root:root #modwin.mir-modwindow .m2dev.lfo .m2edit:hover .m2mid,
+  :root:root:root #modwin.mir-modwindow .m2dev.env .m2edit:hover .m2mid { opacity: 1; }
+}
+@media (hover: none) {
+  :root:root:root #modwin.mir-modwindow .m2dev.lfo .m2mid,
+  :root:root:root #modwin.mir-modwindow .m2dev.env .m2mid { opacity: 1; }
+}                                                                                                      /* 83 */
+
+
+:root:root:root #modwin.mir-modwindow .m2pt { fill: var(--acc); stroke: none; }
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2pt { fill: var(--m2-env-ink); stroke: none; }
+/* RETIRED wave 105 — 84's two .m2playdot arms: entry 95 (wave 108's playhead recipe) sets --m2-rule on all three, later. */
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2pt.sel { fill: var(--acc); }                        /* 84 */
+
+
+:root:root:root #modwin.mir-modwindow .m2edit .m2status { display: none; }                              /* 85 */
+/* RETIRED wave 105 — 85 arm 1: .m2lfowave is no longer a child of .m2edit (seatCurveName), and entry 104 deliberately shows it. */
+
+
+:root:root:root #modwin.mir-modwindow .m2vfill { background: var(--m2-slot-ink, var(--m2-ink-soft)); }  /* 86 */
+
+
+:root:root:root #modwin.mir-modwindow .m2slot { border-color: transparent; background: transparent; }
+:root:root:root #modwin.mir-modwindow .m2slot .m2armed { background: var(--acc2-soft); }                 /* 87 */
+
+
+/* ⚠ WAVE 97 · `:not(.m2min)`, AND ITS ABSENCE WAS A REAL BUG FOR SIX WAVES.  This rule is about the
+   EXPANDED card — it takes 8 px off the head and gives them to the plot — but it was written unscoped,
+   at (3,2,0), and the artifact's own folded-strip head is `.mir-modwindow .m2dev.m2min .m2head
+   { display: flex; flex-direction: column; height: 100% }` at (0,3,0).  The ID and the three `:root`s
+   beat it, so EVERY MINIMISED STRIP HAS BEEN 40 px TALL INSIDE A 336-px CARD since wave 91: measured
+   here, `.m2headl`, `.m2headc` and `.m2headr` all read height 0, which is why the bay had nothing to
+   give its meter, its name or its shape, and why the folded mode looked like it was missing rather
+   than small.  A folded device has no picture to give height TO, so this rule never had business
+   reaching it. */
+:root:root:root #modwin.mir-modwindow .m2dev:not(.m2min) .m2head { height: 40px; min-height: 40px; }
+:root:root:root #modwin.mir-modwindow .m2railhead { height: 40px; min-height: 40px; }
+:root:root:root #modwin.mir-modwindow .m2grab,
+:root:root:root #modwin.mir-modwindow .m2fold,
+:root:root:root #modwin.mir-modwindow .m2ab,
+:root:root:root #modwin.mir-modwindow .m2pow,
+:root:root:root #modwin.mir-modwindow .m2x,
+:root:root:root #modwin.mir-modwindow .m2bank { height: 34px; min-height: 34px; }
+:root:root:root #modwin.mir-modwindow .m2dev.lfo:not(.m2cmp):not(.m2min) .m2body {
+  grid-template: 128px 44px 44px / minmax(0, 1fr); }
+:root:root:root #modwin.mir-modwindow .m2dev.env:not(.m2cmp):not(.m2min) .m2body {
+  grid-template: 172px 44px / minmax(0, 1fr) 90px; }                                                    /* 88 */
+
+
+:root:root:root #modwin.mir-modwindow .m2workbar { height: 46px; }
+:root:root:root #modwin.mir-modwindow .m2foot { margin-top: 2px; }                                      /* 89 */
+
+
+:root:root:root #modwin.mir-modwindow .m2dialink:active,
+:root:root:root #modwin.mir-modwindow .m2dialink.drag,
+:root:root:root #modwin.mir-modwindow .m2kd:active,
+:root:root:root #modwin.mir-modwindow .m2kd.drag { background-color: transparent; }
+:root:root:root #modwin.mir-modwindow .m2dialink::before {
+  transition: box-shadow var(--t-fast, .12s) ease; }
+:root:root:root #modwin.mir-modwindow .m2dialink.drag::before,
+:root:root:root #modwin.mir-modwindow .m2kd.drag .m2dialink::before {
+  box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.28), inset 0 -1px 0 hsl(214 30% 20% / 0.20),
+              0 0 0 1px var(--acc); }
+:root:root:root body[data-theme="light"] #modwin.mir-modwindow .m2dialink.drag::before,
+:root:root:root body[data-theme="light"] #modwin.mir-modwindow .m2kd.drag .m2dialink::before {
+  box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.85), inset 0 -1px 0 hsl(214 30% 40% / 0.26),
+              0 0 0 1px var(--acc); }                                                                  /* 90 */
+
+
+:root:root:root #modwin.mir-modwindow .m2grab i {
+  width: 14px; height: 14px;
+  background-image: radial-gradient(circle at 50% 50%, currentColor 1px, transparent 1.1px);
+  background-size: 4.667px 4.667px; }                                                                  /* 91 */
+
+
+:root:root:root #modwin.mir-modwindow .m2workbar .modxport,
+:root:root:root #modwin.mir-modwindow .m2workbar .modxport.on,
+:root:root:root #modwin.mir-modwindow .m2workbar .modxport:active {
+
+
+  background: transparent; color: var(--m2-ink-faint);
+  border: 0; border-radius: var(--r-sm);
+  filter: none; box-shadow: none; text-shadow: none; }
+:root:root:root #modwin.mir-modwindow .m2workbar .modxport.on {
+  color: var(--acc); background: transparent; }
+:root:root:root #modwin.mir-modwindow .m2workbar .modxport svg {
+  fill: currentColor; stroke: currentColor; }                                                          /* 92 */
+
+
+:root:root:root #modwin.mir-modwindow .modtempo {
+  grid-template-columns: calc(62px * var(--ui-scale)) calc(52px * var(--ui-scale)); }
+:root:root:root #modwin.mir-modwindow .modtempo b {
+  justify-self: start; text-align: left; width: 100%; }
+:root:root:root #modwin.mir-modwindow .modtempo span,
+:root:root:root #modwin.mir-modwindow .modtempo .modhz {
+  justify-self: start; text-align: left; width: 100%; white-space: nowrap; }                           /* 93 */
+
+/* 94 · AND THE OUT SEAT HOLDS ONE CHARACTER, in Accent B, like the rail's own indicator.  The seat
+   was sized for a name; `lab/modwindow.js` now writes the macro's NUMBER into it, so it reads as the
+   same object the macro rail numbers and the minimised device shows. */
+:root:root:root #modwin.mir-modwindow .m2mac {
+  color: var(--acc2); font: 700 13px var(--font-num); font-variant-numeric: tabular-nums; }
+:root:root:root #modwin.mir-modwindow .m2mac.on { color: var(--acc2); }                                /* 94 */
+
+
+:root:root:root #modwin.mir-modwindow .m2play,
+:root:root:root #modwin.mir-modwindow .m2dev.lfo .m2play,
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2play { stroke: var(--m2-rule); opacity: 1; }
+:root:root:root #modwin.mir-modwindow .m2playdot,
+:root:root:root #modwin.mir-modwindow .m2dev.lfo .m2playdot,
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2playdot { fill: var(--m2-rule); stroke: none; }    /* 95 */
+
+
+:root:root:root #modwin.mir-modwindow .m2root { --m2-device-h: 336px; }
+:root:root:root #modwin.mir-modwindow .m2dev { height: 336px; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp { height: 336px; }
+:root:root:root #modwin.mir-modwindow .m2rail,
+:root:root:root #modwin.mir-modwindow .m2rail:not(.m2railmin) { height: 336px; max-height: 336px; }     /* 96 */
+
+
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpzone {
+  grid-template-rows: repeat(4, minmax(0, 1fr)); top: 176px; bottom: 2px; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcmd {
+  height: auto; min-height: 0; }
+
+
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle {
+  display: flex; align-items: center; justify-content: flex-start; gap: 5px; padding: 0 4px;
+  background: transparent; border-color: transparent; box-shadow: none; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle::before {
+  content: ""; flex: 0 0 auto; width: 9px; height: 9px; border-radius: 50%;
+  background: var(--m2-mat-recess); border: 0;
+  transition: background var(--m2-motion-micro, .12s), box-shadow var(--m2-motion-micro, .12s); }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle.on::before {
+  background: var(--acc); box-shadow: 0 0 6px var(--acc), 0 0 2px var(--acc); }
+/* the artifact's own ON treatment stands down — the lamp is the state now, as it is in FULL */
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle.on,
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle:active {
+  background: transparent; border-color: transparent; box-shadow: none; }
+/* AND THE LABEL NEVER CHANGES COLOUR — reach 38's law, which was written for FULL and is the same
+   law here: the lamp says on or off, and hover is the only other thing that moves. */
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle,
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle.on,
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle:active,
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle .m2lfocmplabel {
+  color: var(--m2-ink-soft); }
+@media (hover: hover) {
+  :root:root:root #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle:hover,
+  :root:root:root #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle:hover .m2lfocmplabel {
+    color: var(--fg); }
+}                                                                                                     /* 102 */
+
+
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.env .m2body {
+  flex: 0 0 136px; height: 136px; min-height: 136px; box-sizing: border-box;
+  display: grid; grid-template-columns: 190px minmax(0, 1fr);
+  grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 4px 5px; padding: 0 5px 4px; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.env .m2edit {
+  grid-area: 1 / 1 / 3 / 2; min-height: 0; width: auto; height: auto; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.env .m2col {
+  grid-area: 1 / 2 / 2 / 3; width: auto; min-width: 0; display: block; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.env .m2rt {
+  grid-area: 2 / 2 / 3 / 3; width: auto; min-width: 0; display: block; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.env .m2macbox {
+  height: 100%; margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.env .m2chks {
+  height: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; }
+/* the seats give up the artifact's fixed 44 and fill the cell they are in — the 44-px TARGET is
+   unaffected, because every one of these already carries the artifact's own `::before` band */
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.env .m2mac,
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.env .m2chk {
+  height: 100%; min-height: 0; }                                                                      /* 103 */
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp .m2body { flex: 0 0 auto; min-height: 0; }           /* 97 */
+
+
+:root:root:root #modwin.mir-modwindow .m2prename { border-color: transparent; }
+:root:root:root #modwin.mir-modwindow .m2prename:focus,
+:root:root:root #modwin.mir-modwindow .m2prename:focus-visible { border-color: transparent; }          /* 98 */
+
+
+:root:root:root #modwin.mir-modwindow .m2workbar button:not(.modtempo),
+:root:root:root #modwin.mir-modwindow .m2workbar .m2prename {
+  height: 34px; min-height: 34px; margin-top: 0; margin-bottom: 0; }
+/* the 44-px band, restored where the height used to be */
+:root:root:root #modwin.mir-modwindow .m2workbar button:not(.modtempo) { position: relative; }
+:root:root:root #modwin.mir-modwindow .m2workbar button:not(.modtempo)::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 50%;
+  height: 44px; margin-top: -22px; }
+
+
+:root:root:root #modwin.mir-modwindow .m2workbar .m2presave { width: 34px; min-width: 34px; }
+/* AND THE PRESET BAR'S OWN FLEX ROW COMES DOWN WITH ITS CHILDREN.  `.m2precore` states `height: 44px`,
+   so leaving it would keep a 44-px box inside the 41-px lane whatever the buttons in it did. */
+:root:root:root #modwin.mir-modwindow .m2precore { height: 34px; }                                     /* 99 */
+
+
+:root:root:root #modwin.mir-modwindow .m2dev.m2min .m2meter,
+:root:root:root #modwin.mir-modwindow .m2dev.m2min.lfo .m2lfominshape,
+:root:root:root #modwin.mir-modwindow .m2dev.m2min.env .m2envminprog,
+:root:root:root #modwin.mir-modwindow .m2dev.audio.m2min .m2audminleds { display: none; }
+/* it exists on every card and paints only on a strip — the expanded card has its own plot */
+:root:root:root #modwin.mir-modwindow .m2mintrace { display: none; }
+/* ⚠ `align-self: stretch`, NOT `height: 100%` — MEASURED, and the first cut of this wave read back a
+   box 30 px wide and ZERO tall.  A percentage height resolves against the PARENT'S height, and the bay
+   is `flex: 1 1 auto` in a column with no definite size of its own, so `100%` of an indefinite height
+   is nothing.  Stretch is the cross-axis rule that actually fills a flex line, and the bay is already
+   `align-items: stretch` — this only stops `height` overriding it. */
+:root:root:root #modwin.mir-modwindow .m2dev.m2min .m2mintrace {
+  display: block; position: relative; order: 0; flex: 1 1 auto;
+  min-width: 0; max-width: 30px; height: auto; align-self: stretch; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2min .m2minname { order: 1; }
+:root:root:root #modwin.mir-modwindow .m2mintsvg {
+  position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+/* THE REST LINE IS THE PLOT'S OWN MEDIAN, in the plot's own grey (reach 73/83) — so the strip and the
+   card are drawing the same furniture and not two greys that happen to be near each other. */
+:root:root:root #modwin.mir-modwindow .m2mintrest { stroke: var(--m2-rule); stroke-width: 1;
+  vector-effect: non-scaling-stroke; }
+/* ⚠ `vector-effect: non-scaling-stroke` IS LOAD-BEARING HERE, not a nicety.  The svg is
+   `preserveAspectRatio: none` over a box roughly 26 × 200, so the user-space X and Y scales differ by
+   about 8× — a plain 2-px stroke would paint 2 px along one axis and a quarter of that along the
+   other, i.e. a line whose weight changed with its direction.  Every stroked mark in here carries it. */
+:root:root:root #modwin.mir-modwindow .m2mintpath {
+  fill: none; stroke: var(--acc); stroke-width: 2;
+  stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+:root:root:root #modwin.mir-modwindow .m2mintfill { fill: var(--acc); opacity: 0.10; stroke: none; }
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2mintpath { stroke: var(--m2-env-ink); }
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2mintfill { fill: var(--m2-env-ink); }
+:root:root:root #modwin.mir-modwindow .m2dev.audio .m2mintpath { stroke: var(--acc2); }
+:root:root:root #modwin.mir-modwindow .m2dev.audio .m2mintfill { fill: var(--acc2); }
+/* THE DOT IS AN ELEMENT AND NOT A CIRCLE IN THE SVG, and that is forced by the line above: under
+   `preserveAspectRatio: none` an SVG circle is stretched into an ellipse by exactly the box's aspect.
+   Two custom properties place it; it is round at every height.  Same idiom as the artifact's own
+   `.m2vedge`, which rides the macro bar the same way. */
+:root:root:root #modwin.mir-modwindow .m2mintdot {
+  position: absolute; left: calc(var(--tx, 50) * 1%); top: calc(var(--ty, 50) * 1%);
+  width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; border-radius: 50%;
+  background: var(--acc); box-shadow: 0 0 0 1px hsl(0 0% 0% / 0.38); pointer-events: none; }
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2mintdot { background: var(--m2-env-ink); }
+:root:root:root #modwin.mir-modwindow .m2dev.audio .m2mintdot { background: var(--acc2); }
+/* a bypassed device keeps its shape and stops claiming to be running */
+:root:root:root #modwin.mir-modwindow .m2dev.m2off .m2mintdot { opacity: 0.32; }                      /* 100 */
+
+
+:root:root:root #modwin.mir-modwindow .m2dev.lfo .m2preset[data-preset="msaw"] { display: none; }
+:root:root:root #modwin.mir-modwindow .m2dev.lfo .m2presets .m2lfowave {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 44px; min-height: 44px; min-width: 0; max-width: none;
+  padding: 0 2px; border: 1px solid transparent; border-radius: 5px;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: center;
+  cursor: pointer; color: var(--m2-ink-soft);
+  font: 700 7px var(--font-sans); letter-spacing: 0.06em; }
+@media (hover: hover) {
+  :root:root:root #modwin.mir-modwindow .m2dev.lfo .m2presets .m2lfowave:hover { color: var(--fg); }
+}
+/* a DRAWN curve is not one of the six analytic waves, and the cycler says so by standing down to the
+   faint rung rather than naming a wave the engine is not running */
+:root:root:root #modwin.mir-modwindow .m2dev.lfo .m2presets .m2lfowave:active { color: var(--acc); }  /* 104 */
+
+
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2envstage { display: none; }
+:root:root:root #modwin.mir-modwindow .m2dev:not(.m2min) .m2fold { margin-left: 7px; }                /* 105 */
+
+
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .m2body {
+  flex: 0 0 136px; height: 136px; min-height: 136px; box-sizing: border-box;
+  display: grid; grid-template-columns: 190px minmax(0, 1fr);
+  grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 4px 5px; padding: 0 5px 4px; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .m2edit {
+  grid-area: 1 / 1 / 3 / 2; min-height: 0; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .m2col {
+  grid-area: 1 / 2 / 2 / 3; width: auto; min-width: 0; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .m2rt {
+  grid-area: 2 / 2 / 3 / 3; width: auto; min-width: 0; }
+/* the five outputs are the one bank that cannot go two-across in a compact column, so they stay a
+   single scrolling stack rather than being squeezed into an unreadable grid */
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .m2chks {
+  width: 100%; height: 100%; display: flex; flex-direction: column; gap: 2px;
+  min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .m2audout {
+  flex: 0 0 auto; min-height: 30px; grid-area: auto; }                                                /* 106 */
+
+/* 107 · THE CONDITIONING SHEET WEARS THE HOUSE MENU, exactly as the two pickers do (reach 21) — the
+   same tint at the same .97, the same edge, the same float, and `--fg` with it so the sheet's ink is
+   readable on both themes.  Its rows and its ± seats already read the plugin's ink through the flip. */
+:root:root:root #modwin.mir-modwindow .m2audsheet {
+  background-color: hsl(var(--glass-tint) / 0.97);
+  background-image: none;
+  border: var(--glass-border) solid var(--glass-border-color);
+  box-shadow: var(--glass-shadow);
+  color: var(--fg); }
+:root:root:root #modwin.mir-modwindow .m2audinput {
+  background-color: var(--m2-mat-control); border-color: var(--glass-border-color); color: var(--fg); }
+/* the HIT lamp is an EVENT, so it keeps the artifact's square-turned-45° mark; the four level lamps
+   take Accent B, which is what the rest of this window already spends on a live signal */
+:root:root:root #modwin.mir-modwindow .m2audout.on .m2audled { background: var(--acc2); }             /* 107 */
+
+
+:root:root:root #modwin.mir-modwindow .m2workbar button:not(.modtempo),
+:root:root:root .kwin-chiprail[aria-label$="window controls"] .crail-chip {
+  color: var(--ink-key);
+  transition: color var(--t-fast, .12s) ease, background-color var(--t-fast, .12s) ease; }
+:root:root:root #modwin.mir-modwindow .m2workbar button:not(.modtempo) svg,
+:root:root:root #modwin.mir-modwindow .m2preset .m2gl,
+:root:root:root .kwin-chiprail[aria-label$="window controls"] .crail-chip .crail-ink,
+:root:root:root .kwin-chiprail[aria-label$="window controls"] .kwin-grip-dots {
+  filter: drop-shadow(0 1px 0 var(--glass-raise)); }
+@media (hover: hover) {
+  :root:root:root #modwin.mir-modwindow .m2workbar button:not(.modtempo):hover,
+  :root:root:root .kwin-chiprail[aria-label$="window controls"] .crail-chip:hover,
+  /* ⟡ WAVE 105 · THE GLYPH HAD TO BE NAMED, not left to inherit.  `.crail-ink` carries its own
+     `color: var(--ink-key)` from entry 32 at (0,7,0); the chip's hover above is (0,6,1) and sets the
+     colour on the PARENT, so the chip's own text lit and the drawing inside it did not.  A descendant
+     with its own colour never inherits one.  Named here, the whole chip moves as one object. */
+  :root:root:root .kwin-chiprail[aria-label$="window controls"] .crail-chip:hover .crail-ink { color: var(--fg); }
+}
+:root:root:root #modwin.mir-modwindow .m2workbar button:not(.modtempo):active {
+  background-color: var(--glass-press); }
+
+
+:root:root:root #modwin.mir-modwindow .m2kind,
+:root:root:root #modwin.mir-modwindow .m2railhead,
+:root:root:root #modwin.mir-modwindow .modtempo b {
+  text-shadow: 0 1px 0 var(--glass-raise); }                                                          /* 108 */
+
+
+:root:root:root .kwin-chiprail[aria-label$="window controls"] .crail-chip.on,
+:root:root:root .kwin-chiprail[aria-label$="window controls"] .kwin-tab.on {
+  box-shadow: none; background: transparent; }                                                        /* 109 */
+
+
+:root:root:root #modwin.mir-modwindow,
+:root:root:root #modwin.mir-modwindow .m2dev.env { --m2-env-ink: var(--acc); }                        /* 110 */
+
+/* The follow-up restores the colored value arc; retain the clean needle without a second dot. */
+:root:root:root #modwin.mir-modwindow .m2dialink .m2kn::before { display: none; }                     /* 111 */
+
+/* The ENV quantizer is a real sixth control. Its caption was inherited as
+   display:none from the source artifact even though every other ENV dial is named. */
+:root:root:root #modwin.mir-modwindow .m2dev.env .m2k[data-knob="steps"] .m2kcap { display: block; }
+
+/* The third work-lane state keeps the same glyph and crosses it out. */
+:root:root:root .kwin-chiprail[aria-label$="window controls"] .crail-chip[data-work-lane="hidden"]::after {
+  content:"";position:absolute;z-index:2;width:21px;height:1.5px;border-radius:2px;
+  background:currentColor;transform:rotate(-42deg);pointer-events:none; }
+
+/* ⟪ END THE SKIN SEAT ⟫ */
+
+/* THE HOUSE'S `* { box-sizing: border-box }` (lab.css:33) DOES REACH INSIDE THIS WINDOW, AND IT
+   IS LEFT ALONE — because it was MEASURED both ways and undoing it is worse.
+   BASINS has no such rule (MANIFEST.md §7: "the only bare `*` rule in index.html sets
+   transition-duration"), so the artifact declares `box-sizing: border-box` twenty-two times,
+   exactly where it wants it.  Under the house rule those twenty-two are unchanged and every
+   OTHER padded box in the window loses its padding from the outside.  Measured across the whole
+   acceptance table, that changes exactly one number: `.m2head`'s BORDER box is 48 here and 52 in
+   the source.  MANIFEST §7 anticipated the ambiguity and named the measurement that settles it —
+   "measure getComputedStyle(...).height, not the rect" — and that reads `48px` in both.
+   Forcing `content-box` back on the subtree was tried and REVERTED: it fixed the head and broke
+   five other rows of the table (`.m2seat44` 42 → 48, `.m2preset` 44 → 50 × 52, `.m2bank`
+   46 × 44 → 48 × 46, `.m2hold` 56 → 58, `.m2add` 46 → 50), because the artifact's twenty-two
+   declarations are written against a document that is already border-box for everything they do
+   not name.  One row off by 4 px beats six rows off by 2 to 8. */
+
+/* REQUIRED, and it is one line — host-contract.md, quoted verbatim.  `--fill`, `--hit`,
+   `--signal` and `--needle` are written INLINE on elements by the paint, and they are four
+   very generic names: λWAVES declares `--fill` on its own faders, so without this a value
+   could inherit INTO these elements and be used before the first paint writes the inline
+   one — the fallback never fires and the first frame is wrong. */
+.m2root { --fill: 0; --hit: 0; --signal: 0; --needle: -150deg; }
+
+/* THE FLOAT LAYER TAKES ITS POINTER EVENTS BACK.  `#floats` is `pointer-events: none` so the
+   stage under it stays draggable, and each floating card takes its own back (`#floats > .dev`
+   in lab.css).  The ported window is not a `.dev`; it says so here.  Nothing else about it is
+   the host layer's business — it is `position: fixed` and carries its own `--z-win`. */
+/* RETIRED wave 105 — the `.kwin.mir-modwindow` arm: (1,2,0) against entry 25's `pointer-events: none`
+   at (1,5,0).  MEASURED: the window root computes `pointer-events: none`, deliberately — entry 27
+   hands events to the six painted subtrees instead.  The CHIPRAIL arm is live and stays. */
+#floats > .kwin-chiprail { pointer-events: auto; }
+
+/* Final II: fixed-height macro rail, compacted sideways. */
+:root:root:root #modwin .m2-native-rate { width:44px; min-width:44px; height:44px; flex:0 0 44px; align-self:center; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0; }
+:root:root:root #modwin .m2-native-rate .k-lbl { display:none; }
+:root:root:root #modwin .m2-native-rate .dial { transform:scale(.75); }
+:root:root:root #modwin .m2-native-rate .k-dial { width:24px; height:24px; flex:0 0 24px; aspect-ratio:1; }
+:root:root:root #modwin .m2-native-rate .k-val { font:600 8.5px var(--font-num, monospace); line-height:1; color:var(--acc); margin-top:2px; }
+:root:root:root #modwin .m2-native-rate.drag .k-val { color:var(--fg); font-weight:800; }
+
+.mod-matrix { width:min(1100px,calc(100vw - 24px)); height:calc(100dvh - 32px); box-sizing:border-box; border:1px solid var(--line); border-radius:14px; color:var(--fg); padding:16px; }
+.mod-matrix::backdrop { background:#0008; backdrop-filter:blur(8px); }
+.mod-matrix-head,.mod-matrix-add,.mod-matrix-bars { display:flex; align-items:center; gap:12px; }
+.mod-matrix-head { justify-content:space-between; height:44px; }
+.mod-matrix-bars { min-height:60px; position:relative; }
+.mod-matrix-bars > * { position:relative!important; inset:auto!important; transform:none!important; flex-shrink:0; }
+.mod-matrix-body { overflow:auto; max-height:calc(100% - 110px); }
+.mod-matrix table { width:100%; table-layout:fixed; border-collapse:collapse; }
+.mod-matrix th,.mod-matrix td { padding:8px 4px; height:44px; border-bottom:1px solid var(--line); overflow:hidden; text-overflow:ellipsis; }
+.mod-matrix input,.mod-matrix select { max-width:100%; box-sizing:border-box; }
+.mod-matrix th:first-child { width:36px; }
+.mod-matrix input[type=number] { width:80px; }
+.mod-matrix button,.mod-matrix select { min-height:32px; }
+.mod-matrix-add { margin-top:16px; }
+.k-route-depth { position:absolute; bottom:-6px; right:0; width:22px; height:22px; accent-color:var(--acc2); }
+:root:root:root #modwin .m2-matrix-open { flex:0 0 auto; padding:2px; }
+.ro.wide .ro-val { height:2.6em; overflow:auto; }
+
+.k-route-depth.k { position:absolute; bottom:0; right:0; width:24px; min-width:24px; height:24px; padding:0; z-index:3; }
+.k-route-depth .k-dial { width:22px; height:22px; }
+.k-route-depth .k-lbl, .k-route-depth .k-val { display:none; }
+.mod-matrix { background:var(--pane, #171b22); }
+
+
+:root:root:root #modwin .mod-matrix { position:fixed; margin:auto; inset:0; background:hsl(var(--glass-tint) / 1); color:var(--fg); border-color:var(--glass-hairline); font-size:12px; }
+:root:root:root #modwin .mod-matrix-bars { position:relative; inset:auto; height:64px; display:flex; gap:12px; margin:8px 0; overflow:auto; }
+:root:root:root #modwin .mod-matrix-bars .m2pre { display:flex; flex:0 0 auto; position:relative; height:48px; }
+:root:root:root #modwin .mod-matrix-bars .m2prebar { position:relative; height:48px; flex:0 0 auto; }
+:root:root:root #modwin .mod-matrix input,:root:root:root #modwin .mod-matrix select,:root:root:root #modwin .mod-matrix button { color:var(--fg); background:hsl(var(--glass-tint) / 1); border:1px solid var(--glass-hairline); border-radius:5px; }
+
+/* Audio response editing stays inside the existing plot; card geometry does not grow. */
+:root:root:root #modwin .audio-ranges .m2edit > svg { visibility:hidden; }
+:root:root:root #modwin .aud-ranges { position:absolute; inset:4px; overflow:auto; overscroll-behavior:contain; scrollbar-width:thin; display:flex; flex-direction:column; gap:2px; color:var(--fg); }
+:root:root:root #modwin .aud-range-row { position:relative; flex:0 0 22px; min-width:0; padding:0 7px; }
+:root:root:root #modwin .aud-range-name { position:absolute; inset:0 7px; z-index:2; pointer-events:none; display:flex; justify-content:space-between; align-items:center; gap:4px; width:calc(100% - 14px); height:22px; padding:0; border:0; background:transparent; color:var(--dim); font-size:9px; cursor:pointer; }
+:root:root:root #modwin .aud-range-name[aria-pressed=true] { color:var(--acc2); }
+:root:root:root #modwin .aud-range-value { padding-right:8px; font-size:8px; color:var(--fg); font-variant-numeric:tabular-nums; white-space:nowrap; }
+:root:root:root #modwin .aud-range-track { position:relative; margin-left:34px; height:22px; border-radius:4px; background:var(--glass-well); box-shadow:inset 0 0 0 1px var(--glass-hairline); touch-action:none; cursor:ew-resize; }
+:root:root:root #modwin .aud-range-output { position:absolute; inset:0 auto 0 0; background:var(--acc2-soft); border-radius:4px; pointer-events:none; }
+:root:root:root #modwin .aud-range-zone { position:absolute; top:3px; bottom:3px; border-block:1px solid var(--acc2); background:var(--acc2-soft); pointer-events:none; }
+:root:root:root #modwin .aud-range-input { position:absolute; top:5px; bottom:5px; width:2px; background:var(--fg); pointer-events:none; }
+:root:root:root #modwin .aud-range-handle { position:absolute; z-index:3; top:0; bottom:0; width:14px; padding:0; transform:translateX(-50%); border:0; background:transparent; color:var(--acc2); cursor:ew-resize; touch-action:none; }
+:root:root:root #modwin .aud-range-handle::after { content:''; position:absolute; top:2px; bottom:2px; left:6px; width:2px; border-radius:2px; background:currentColor; }
+:root:root:root #modwin .aud-range-handle:focus-visible { outline:1px solid var(--acc2); border-radius:3px; }
+:root:root:root #modwin .aud-range-hint { flex:0 0 12px; font-size:8px; color:var(--dim); white-space:nowrap; text-align:center; }
+:root:root:root #modwin .audio-ranges .m2audsheet { overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; }
+:root:root:root #modwin .aud-setting-input { width:100%; min-width:0; border:0; color:var(--fg); background:transparent; text-align:center; font:inherit; font-variant-numeric:tabular-nums; }
+:root:root:root #modwin .audio-ranges .m2audsheet { bottom:6px; }
+:root:root:root #modwin .audio-ranges .m2audshead { flex-shrink:0; position:sticky; top:0; background:hsl(var(--glass-tint) / 1); z-index:1; }
+:root:root:root #modwin .audio-ranges .m2audsleg { flex-shrink:0; }
+:root:root:root #modwin .aud-range-name b { pointer-events:auto; cursor:pointer; }
+
+/* The shared rate puck is centered independently of its transient value label. */
+:root:root:root #modwin .m2-native-rate { position:relative;overflow:visible; }
+:root:root:root #modwin .m2-native-rate .k-val { position:absolute;top:100%;left:50%;transform:translate(-50%,2px);margin:0;padding:2px 6px;white-space:nowrap;z-index:10;background:hsl(var(--glass-tint) / .96);border-radius:var(--r-pill);box-shadow:var(--neu-flat);pointer-events:none; }
+:root:root:root #modwin .m2-native-rate:hover .k-val,
+:root:root:root #modwin .m2-native-rate:focus-within .k-val,
+:root:root:root #modwin .m2-native-rate.drag .k-val { transform:translate(-50%,0); }
+:root:root:root #modwin.mir-modwindow .m2pre { overflow:visible; }
+
+/* Park unfinished macro relocation/matrix UI; keep routes and restored layouts intact. */
+:root:root:root #modwin .m2-side-grip,:root:root:root #modwin .m2-matrix-open { display:none !important; }
+:root:root:root #modwin .m2dev.env .m2kind { color:var(--acc); }
+:root:root:root #modwin .modtempoin { box-sizing:border-box;min-width:0;max-width:none;margin:0; }
+
+/* Audio finishing pass: the four performance controls use one row at full
+   size and the same 2×2 dial bank as the other compact instruments. */
+:root:root:root #modwin.mir-modwindow .m2dev.audio .m2knobs {
+  grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; padding: 5px 7px 4px; }
+:root:root:root #modwin.mir-modwindow .m2dev.audio .m2kd,
+:root:root:root #modwin.mir-modwindow .m2dev.audio .m2k[data-knob="sens"] .m2kd {
+  width: 48px; height: 48px; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .m2knobs {
+  width: 190px; align-self: flex-start; grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 2px; padding: 3px 4px 4px; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .m2kd,
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .m2k[data-knob="sens"] .m2kd {
+  width: 40px; height: 40px; }
+
+/* Compact Audio exposes one response band at a time. Its label is the band
+   switch, leaving the range itself broad enough for touch editing. */
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .aud-range-row:not([data-selected="true"]) { display: none; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .aud-ranges { justify-content: center; gap: 8px; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .aud-range-row { flex-basis: 42px; padding: 0 9px; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .aud-range-name {
+  inset: 0 9px; width: calc(100% - 18px); height: 42px; font-size: 10px; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .aud-range-track {
+  margin-left: 42px; height: 42px; border-radius: 7px; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .aud-range-zone { top: 7px; bottom: 7px; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .aud-range-input { top: 9px; bottom: 9px; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .aud-range-handle::after { top: 5px; bottom: 5px; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .m2audout:not([data-route-selected="true"]) { display: none; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .m2audout[data-route-selected="true"] {
+  display: grid; flex: 1 1 auto; min-height: 0; grid-template: 1fr / 44px minmax(0, 1fr); }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .m2audout[data-route-selected="true"] .m2audgrip { width: 44px; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .m2audout[data-route-selected="true"] .m2audmac { width: auto; align-items: center; text-align: center; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2cmp.audio .m2audout[data-route-selected="true"] .m2audname { cursor: pointer; }
+
+/* The conditioning sheet uses continuous sliders with stable value seats.
+   BAND and NOISE GATE retain their discrete minus/plus switchers. */
+:root:root:root #modwin.mir-modwindow .m2audsheet { gap: 2px; padding: 8px; border-radius: 12px; }
+:root:root:root #modwin.mir-modwindow .m2audshead { min-height: 36px; padding-left: 5px; }
+:root:root:root #modwin.mir-modwindow .m2audsrow { min-height: 40px; border-radius: 7px; padding: 0 3px; }
+:root:root:root #modwin.mir-modwindow .m2audsrow:nth-of-type(even) { background: hsl(var(--glass-tint) / .18); }
+:root:root:root #modwin.mir-modwindow .m2audscontinuous .m2audsbtn { display: none; }
+:root:root:root #modwin.mir-modwindow .m2audscontinuous .m2audsval {
+  display: grid; grid-template-columns: minmax(72px, 1fr) 58px; align-items: center; gap: 8px; }
+:root:root:root #modwin.mir-modwindow .aud-setting-input {
+  width: 100%; height: 28px; margin: 0; padding: 0; appearance: none; -webkit-appearance: none;
+  background: transparent; cursor: ew-resize; touch-action: pan-y; }
+:root:root:root #modwin.mir-modwindow .aud-setting-input::-webkit-slider-runnable-track {
+  height: 3px; border-radius: 3px; background: var(--m2-rule); }
+:root:root:root #modwin.mir-modwindow .aud-setting-input::-webkit-slider-thumb {
+  width: 15px; height: 15px; margin-top: -6px; border: 0; border-radius: 50%;
+  appearance: none; -webkit-appearance: none; background: var(--acc2); box-shadow: none; }
+:root:root:root #modwin.mir-modwindow .aud-setting-input::-moz-range-track {
+  height: 3px; border: 0; border-radius: 3px; background: var(--m2-rule); }
+:root:root:root #modwin.mir-modwindow .aud-setting-input::-moz-range-thumb {
+  width: 15px; height: 15px; border: 0; border-radius: 50%; background: var(--acc2); box-shadow: none; }
+:root:root:root #modwin.mir-modwindow .m2audsreadout {
+  color: var(--acc2); text-align: right; font: 650 9px var(--font-num); font-variant-numeric: tabular-nums; }
+:root:root:root #modwin.mir-modwindow .m2audsleg:empty { display: none; }
+
+/* One minimized anatomy for LFO, ENV and AUDIO. Removing the duplicate state
+   word gives the live curve the vertical room and fixes every shared seat. */
+:root:root:root #modwin.mir-modwindow .m2dev.m2min .m2headc,
+:root:root:root #modwin.mir-modwindow .m2dev.audio.m2min .m2headc,
+:root:root:root #modwin.mir-modwindow .m2dev.m2min .m2minstatus { display: none; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2min .m2grab { order: 1; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2min .m2fold { order: 2; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2min .m2minbay { order: 3; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2min .m2pow { order: 4; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2min .m2minnum,
+:root:root:root #modwin.mir-modwindow .m2dev.audio.m2min .m2minnum {
+  display: flex; order: 5; color: var(--acc2); }
+:root:root:root #modwin.mir-modwindow .m2dev.m2min .m2minnum.m2nomac { color: var(--acc2); }
+:root:root:root #modwin.mir-modwindow .m2dev.m2min .m2x { order: 6; }
+
+/* Macro output is Accent B: both the travelled line and its unoutlined live dot. */
+:root:root:root #modwin.mir-modwindow .m2slot .m2vfill,
+:root:root:root #modwin.mir-modwindow .m2slot .m2vedge { background: var(--acc2); }
+:root:root:root #modwin.mir-modwindow .m2slot .m2vedge { box-shadow: none; }
+
+/* Compact macros retain the real routing grip and value knob, not empty arc fragments. */
+:root:root:root #modwin.mir-modwindow .m2rail.m2railmin { height:336px;max-height:336px; }
+:root:root:root #modwin.mir-modwindow .m2rail.m2railmin .m2numseat { display:flex; }
+:root:root:root #modwin.mir-modwindow .m2rail.m2railmin .m2num { display:flex; }
+:root:root:root #modwin.mir-modwindow .m2rail.m2railmin .m2namerow,
+:root:root:root #modwin.mir-modwindow .m2rail.m2railmin .m2erow { display:none; }
+
+/* Macro selection is visible at the controls it reaches. Routed controls rest
+   in Accent A; choosing their macro or source, or touching the control itself,
+   promotes the dial and complete range drawing to Accent B. */
+:root:root:root .k.has-ring > .k-dial {
+  box-shadow:var(--neu-raise),0 0 0 1px color-mix(in srgb,var(--acc) 65%,transparent); }
+:root:root:root .k.has-ring > .k-dial > .k-needle { background:var(--acc);box-shadow:none; }
+:root:root:root .k.has-ring.mod-selected > .k-dial {
+  box-shadow:var(--neu-raise),0 0 0 1px color-mix(in srgb,var(--acc2) 75%,transparent); }
+:root:root:root .k.has-ring.mod-selected > .k-dial > .k-needle { background:var(--acc2);box-shadow:none; }
+:root:root:root .k.mod-selected .k-ring-edit,
+:root:root:root .k.mod-selected .k-ring-stack,
+:root:root:root .k.mod-selected .k-ring-tick,
+:root:root:root .k.mod-selected .k-ring-spur { stroke:var(--acc2); }
+
+/* The range dial gets its own seat beside the parameter dial. Its fixed top
+   dot marks bipolar zero, while its needle edits range only. */
+:root:root:root .k.has-ring > .k-dial { transform:translateX(-10px); }
+:root:root:root .k-route-depth.k {
+  top:50%;right:0;bottom:auto;width:24px;min-width:24px;height:24px;
+  transform:translateY(-50%);z-index:3; }
+:root:root:root .k-route-depth .k-dial { width:22px;height:22px; }
+:root:root:root .k-route-depth .k-dial::before { inset:-3px; }
+:root:root:root .k-route-depth .k-dial::after {
+  content:"";position:absolute;left:50%;top:-4px;width:4px;height:4px;
+  margin-left:-2px;border-radius:50%;background:var(--acc2);pointer-events:none; }
+
+/* The macro rail has two explicit add verbs. Macro value, route, depth,
+   reorder and delete each keep one job and one stable seat. */
+:root:root:root #modwin.mir-modwindow .m2rail { width:224px; }
+:root:root:root #modwin.mir-modwindow .m2slots { padding-left:4px;padding-right:4px; }
+:root:root:root #modwin.mir-modwindow .m2slotrow {
+  grid-template-columns:44px 44px minmax(0,1fr) 44px;gap:0; }
+:root:root:root #modwin.mir-modwindow .m2grip svg { width:18px;height:18px; }
+:root:root:root #modwin.mir-modwindow .m2depthring { width:30px;height:30px;left:7px;margin-top:-15px; }
+:root:root:root #modwin.mir-modwindow .m2val { cursor:ew-resize; }
+:root:root:root #modwin.mir-modwindow .m2slot.m2reorder {
+  background:var(--acc2-soft);box-shadow:inset 0 0 0 1px var(--acc2);z-index:2; }
+:root:root:root #modwin.mir-modwindow .m2slottools {
+  width:44px;min-width:44px;height:44px;align-self:center;display:grid;
+  grid-template-rows:22px 22px;overflow:hidden;border-radius:8px; }
+:root:root:root #modwin.mir-modwindow .m2rowgrip,
+:root:root:root #modwin.mir-modwindow .m2slotx {
+  width:44px;min-width:44px;height:22px;min-height:0;align-self:stretch;
+  display:flex;align-items:center;justify-content:center;padding:0;border:0;
+  border-radius:0;background:transparent;color:var(--m2-ink-faint); }
+:root:root:root #modwin.mir-modwindow .m2rowgrip {
+  touch-action:none;cursor:ns-resize; }                              /* 2026-09-10: no divider — the two tools are told apart by ink, not by a rule */
+:root:root:root #modwin.mir-modwindow .m2rowgrip { color:var(--acc2); }
+:root:root:root #modwin.mir-modwindow .m2slotx { color:var(--m2-ink-faint); opacity:.75; }
+:root:root:root #modwin.mir-modwindow .m2slottools { grid-template-rows:21px 21px; row-gap:2px; }
+:root:root:root #modwin.mir-modwindow .m2rowgrip svg { width:13px;height:13px;pointer-events:none; }
+:root:root:root #modwin.mir-modwindow .m2slotx svg { width:13px;height:13px;pointer-events:none; }
+:root:root:root #modwin.mir-modwindow .m2rowgrip:active,
+:root:root:root #modwin.mir-modwindow .m2slotx:active {
+  background:var(--glass-press);color:var(--m2-ink); }
+:root:root:root #modwin.mir-modwindow .m2vinfo {
+  left:3px;right:3px;grid-template-columns:minmax(0,1fr) 22px;gap:2px; }
+:root:root:root #modwin.mir-modwindow .m2vname { font-size:9px; }
+:root:root:root #modwin.mir-modwindow .m2vmeta { right:3px; }
+:root:root:root #modwin.mir-modwindow .m2macrow { gap:4px;padding:4px 5px 6px; }
+:root:root:root #modwin.mir-modwindow .m2macadd,
+:root:root:root #modwin.mir-modwindow .m2devadd {
+  flex:1 1 0;min-width:0;height:44px;min-height:44px;padding:0 5px;border:0;
+  border-radius:7px;background:hsl(0 0% 100% / .06);color:var(--acc2);
+  font:700 8px/1 var(--font-sans);letter-spacing:.08em;white-space:nowrap;
+  transition:transform .1s ease,background-color .12s ease,box-shadow .12s ease; }
+:root:root:root body[data-theme="light"] #modwin.mir-modwindow .m2macadd,
+:root:root:root body[data-theme="light"] #modwin.mir-modwindow .m2devadd {
+  background:hsl(214 30% 40% / .09); }
+:root:root:root #modwin.mir-modwindow .m2macadd:hover:not(:disabled),
+:root:root:root #modwin.mir-modwindow .m2devadd:hover:not(:disabled) {
+  background:var(--glass-raise);box-shadow:inset 0 0 0 1px var(--glass-hairline); }
+:root:root:root #modwin.mir-modwindow .m2macadd:active:not(:disabled),
+:root:root:root #modwin.mir-modwindow .m2devadd:active:not(:disabled) {
+  transform:translateY(1px) scale(.985);background:var(--glass-press);
+  box-shadow:inset 1px 1px 3px hsl(0 0% 0% / .18); }
+:root:root:root #modwin.mir-modwindow .m2devadd.on {
+  background:var(--glass-well);box-shadow:var(--neu-inset); }
+
+/* Minimized macros remove only the value face. Route and depth stay at the
+   same coordinates, and the right tool seat still offers reorder, rename and
+   delete. Row height is unchanged, preventing the rail from reformatting. */
+:root:root:root #modwin.mir-modwindow .m2rail.m2railmin { width:144px; overflow:hidden; }
+/* 2026-09-10 (Josh): COMPACT SHOWS THREE THINGS PER ROW — the routing grip, the depth seat with its number,
+   and the tool seat (reorder above, delete below). The name face is hidden, not clipped. Row height, slot
+   spacing and the rail head keep the full rail's metrics so nothing above or below a row moves. */
+:root:root:root #modwin.mir-modwindow .m2rail.m2railmin .m2slots { display:block; padding:0 5px 4px; }
+:root:root:root #modwin.mir-modwindow .m2rail.m2railmin .m2slotrow { grid-template-columns:44px 44px 44px; }
+:root:root:root #modwin.mir-modwindow .m2rail.m2railmin .m2val,
+:root:root:root #modwin.mir-modwindow .m2rail.m2railmin .m2pad { display:none; }
+:root:root:root #modwin.mir-modwindow .m2rail.m2railmin .m2slottools { grid-column:3; }
+:root:root:root #modwin.mir-modwindow .m2rail.m2railmin .m2macrow { display:flex; }
+:root:root:root #modwin.mir-modwindow .m2rail.m2railmin .m2macadd,
+:root:root:root #modwin.mir-modwindow .m2rail.m2railmin .m2devadd {
+  font-size:0;letter-spacing:0; }
+:root:root:root #modwin.mir-modwindow .m2rail.m2railmin .m2macadd::after {
+  content:"+ MACRO";font:700 8px/1 var(--font-sans);letter-spacing:.04em; }
+:root:root:root #modwin.mir-modwindow .m2rail.m2railmin .m2devadd::after {
+  content:"+ DEVICE";font:700 8px/1 var(--font-sans);letter-spacing:.04em; }
+:root:root:root #modwin.mir-modwindow .m2rail.m2railmin .m2namerow:not([hidden]) {
+  display:flex;left:4px;right:4px;top:9px; }
+
+/* ── 2026-09-10 · THE DOT GRIP ON EVERY DEVICE CARD (Josh) ─────────────────────────────────────────────
+   The card's header is its drag surface and had no mark. It wears the kit's 3 × 3 dot grip — the same mark as
+   the rack windows' headers, the rail's reorder handle and the transport's tiles — at the left of the head in
+   COMPACT and FULL, and at the top of the rotated MINIMISED bar. */
+:root:root:root #modwin.mir-modwindow .m2head { position: relative; }
+:root:root:root #modwin.mir-modwindow .m2head::before { content: ""; position: absolute; left: 5px; top: 50%; width: 13px; height: 13px; margin-top: -6.5px;
+  color: var(--m2-ink-faint); pointer-events: none; opacity: .9;
+  background-image: radial-gradient(circle at 50% 50%, currentColor 1.1px, transparent 1.3px); background-size: 4.333px 4.333px; background-position: 0 0; }
+:root:root:root #modwin.mir-modwindow .m2dev:not(.m2min) .m2headl { padding-left: 22px; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2min .m2head::before { left: 50%; top: 4px; margin: 0 0 0 -6.5px; }
+:root:root:root #modwin.mir-modwindow .m2dev.m2min .m2headl { padding-top: 18px; }
+
