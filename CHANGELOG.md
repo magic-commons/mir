@@ -1,5 +1,10 @@
 # MIR — changelog
 
+## 1.1.1 — 2026-09-11
+
+- `knob`: a modulated knob keeps its base visible — a short accent tick at the rim marks the hand's number
+  under the dancing needle (Bitwig's convention: modulation shows over the setting, it does not hide it).
+
 ## 1.1.0 — 2026-09-11
 
 - The modulation window's AUDIO device is redesigned (a minimised meter, separate full and compact layouts,

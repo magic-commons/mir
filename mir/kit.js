@@ -153,6 +153,11 @@ export function knob(o) {
     const p = o.wrap ? (norm(shownV) % 1 + 1) % 1 : clamp01(norm(shownV));
     needle.style.setProperty('--turn', (o.wrap ? p * 360 : -135 + p * 270) + 'deg');
     val.textContent = fmt(shownV);
+    /* THE BASE STAYS VISIBLE UNDER A MODULATOR (Bitwig's convention): while a painted value dances the needle, a
+       small tick at the rim marks the base the hand owns — where a drag starts and what the file saves. */
+    const mod = shown !== null && !dragging;
+    root.classList.toggle('k-mod', mod);
+    if (mod) { const pb = o.wrap ? (norm(v) % 1 + 1) % 1 : clamp01(norm(v)); dial.style.setProperty('--base-turn', (o.wrap ? pb * 360 : -135 + pb * 270) + 'deg'); }
     announce(fromUser);
   }
   /** WAVE 68 · ONE QUANTISER, ONE FOLD, ONE CLAMP — and BOTH ROADS TAKE IT.  The fold lived in the
