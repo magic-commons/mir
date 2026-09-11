@@ -1,5 +1,16 @@
 # MIR — changelog
 
+## 1.1.0 — 2026-09-11
+
+- The modulation window's AUDIO device is redesigned (a minimised meter, separate full and compact layouts,
+  routing controls aligned) and SPECTRUM/AUDIO labels tightened — work that arrived in λWAVES from the GPT
+  team on 2026-09-10/11 and is taken back into the kit here (`modulation/modwindow/*`, `modhost.css`,
+  `mod.js`). With this the "byte-frozen port" law is retired: MIR is the source of the window now, and
+  λWAVES' `tests/mir.test.mjs` provenance patch (`docs/mir-matrix-patch.json`) records the delta from
+  BASINS.
+- `--card-opacity` .76 → .88: the tinted pane keeps a faint breath of the field, no more.
+- `control-help.js`: the ⓘ panel's copy edits from the same pass.
+
 ## 1.0.1 — 2026-09-10
 
 - `knob`: a base and a painted value are two things. `show(x)` paints a modulated value over the base (the
