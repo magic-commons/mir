@@ -1,5 +1,11 @@
 # MIR — changelog
 
+## 1.1.2 — 2026-09-11
+
+- `fader`: the fine (Shift) drag reads its rect once per drag, not once per move.
+- `modhost.css`: two dead rules from the audio device's old cycling design removed (a trace rule for a device
+  that never builds one; a selected/unselected split carrying one declaration).
+
 ## 1.1.1 — 2026-09-11
 
 - `knob`: a modulated knob keeps its base visible — a short accent tick at the rim marks the hand's number
