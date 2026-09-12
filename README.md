@@ -56,6 +56,14 @@ starting a new app.
 `npm run gallery` serves `gallery/index.html` on http://127.0.0.1:8790/gallery/ — every token, material and
 widget on one page, built from the kit itself, with the card-style, frost and theme switches live.
 
+## Made with
+
+MIR was extracted from λWAVES by AI coding agents (Claude Code with Anthropic's Claude models; parts of the
+modulation window by OpenAI's Codex; design reviews by Google's Gemini) under Joshua Hosain's direction. He
+is not a programmer and says so; the [λWAVES README](https://github.com/magic-commons/lambdawaves#who-made-this-honestly)
+carries the full disclosure — what was decided by hand, what was verified, what was not — and the same terms
+apply here. Contributions made the same way are welcome under λWAVES' `AI_POLICY.md`.
+
 ## Licence
 
 GNU GPL v3.0 only — © 2026 Joshua Hosain, Magic Commons. Third-party notices ride with the fonts and the
