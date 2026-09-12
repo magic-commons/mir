@@ -1,5 +1,10 @@
 # MIR — changelog
 
+## 1.1.3 — 2026-09-11
+
+- The tinted pane wears the glass opacity again (.84 dark / .86 light). While FROST is in force it thins to
+  .58 so the blur can be seen through it; when the policy lifts (frost-hold) it is a full pane again.
+
 ## 1.1.2 — 2026-09-11
 
 - `fader`: the fine (Shift) drag reads its rect once per drag, not once per move.
