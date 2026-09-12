@@ -96,8 +96,8 @@ export function tapWatcher(fn) {
 /* THE DRAG LAW, as defaults an app may retune (BASINS asked for Shift = 1/8): travel = px for a full scale,
    fine = the Shift divisor on a drag, keyFine = the Shift factor on an arrow step. A knob or fader may
    carry its own `travel` / `fine`; the shipped defaults are the numbers the lab has always used. */
-const KNOB_LAW = { travel: 220, fine: 900 / 220, keyFine: 0.25 };
-export function setKnobLaw(o) { if (o && o.travel > 0) KNOB_LAW.travel = o.travel; if (o && o.fine > 0) { KNOB_LAW.fine = o.fine; KNOB_LAW.keyFine = 1 / o.fine; } return { ...KNOB_LAW }; }
+const KNOB_LAW = { travel: 220, fine: 900 / 220, keyFine: 0.25, faderFine: 5 };   // the fader's Shift has always been a fifth
+export function setKnobLaw(o) { if (o && o.travel > 0) KNOB_LAW.travel = o.travel; if (o && o.fine > 0) { KNOB_LAW.fine = o.fine; KNOB_LAW.faderFine = o.fine; KNOB_LAW.keyFine = 1 / o.fine; } return { ...KNOB_LAW }; }
 export function knob(o) {
   const root = el('div', 'k' + (o.size === 'lg' ? ' k-lg' : '') + (o.cls ? ' ' + o.cls : ''));
   if (o.label) el('div', 'k-lbl', root, o.label);
@@ -381,7 +381,7 @@ export function fader(o) {
   const log = !!o.log && lo > 0 && hi > lo;   // a log fader: FREQ-shaped ranges on a slider
   const norm = (x) => (log ? clamp01(Math.log(x / lo) / Math.log(hi / lo)) : clamp01((x - lo) / (hi - lo)));
   const denorm = (u) => (log ? lo * Math.pow(hi / lo, clamp01(u)) : lo + clamp01(u) * (hi - lo));
-  const fine = o.fine || KNOB_LAW.fine;
+  const fine = o.fine || KNOB_LAW.faderFine;
   let shown = null;                 // a value PAINTED over the base by a modulator (show()); v is the hand's
   /* WAVE 62 · the same slider as knob(), and all seven are linear: no log, no wrap, no step.  The
      chatter guard is what keeps a FOCUSED scrub silent while the transport writes it every frame. */
