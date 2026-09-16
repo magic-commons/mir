@@ -1,13 +1,22 @@
-# REFERENCES — annotated by MECHANISM
+# MIR · REFERENCES — annotated by MECHANISM
 *The discipline (from Meng To's method): a reference is mined for how it WORKS, never for how it LOOKS. Every
 entry names what to steal and what not to. A reference to Ableton must never produce "Ableton with a wavefunction
 in the background."*
 
-**Referenced ≠ vendored.** Three MANDELBROT files are literally in this tree, under `lab/mir/`: `mod.js`,
-`curve.js` and `glyph.js`. They are taken by sha256, carry a provenance header, and are **maintained by diff
-against their source, never rewritten** — read `lab/mir/PORT-NOTES.md` before touching one. (`registry.js` and
+**Provenance.** Written for λWAVES as its `docs/ui/REFERENCES.md`; "here", "ours" and the wave numbers below are
+λWAVES'. Adopted as MIR's law on 2026-09-10 and corrected for the kit on 2026-09-16: a path names the kit's file
+where the kit has one, a file only λWAVES has is marked "(λWAVES)", and so are its gates (`mir.test.mjs`, `B71`).
+A heading marked **(λWAVES ruling)** is a reference mined for λWAVES' own app — its camera, its warning pane, its
+orbitals — kept for its reasoning; it is not a law of the kit.
+
+**Referenced ≠ vendored.** Three MANDELBROT files are literally in this tree: `mir/modulation/mod.js`,
+`mir/modulation/curve.js` and `mir/glyph.js`. They are taken by sha256, carry a provenance header, and are **maintained by diff
+against their source, never rewritten** — read `mir/modulation/PORT-NOTES.md` before touching one. (`registry.js` and
 `host.js` beside them are **ours**; do not route around a defect in one of those because it "looks vendored" —
-ANTI-PATTERNS 13.) Everything else below is a reference: mined, then built here.
+ANTI-PATTERNS 13.) Everything else below is a reference: mined, then built here. *(2026-09-16: that law and its
+counts describe the port as of 2026-09-05…09-07. `mod.js` has changed beyond its marked edits since — MIR 1.1.0
+took back λWAVES' audio work — and `mir/glyph.js` has lost its provenance
+header (see the glyph entry below, and PORT-NOTES).)*
 
 **THE VENDORED LAW IS NOT "NEVER EDIT" — IT IS "MARKED, LISTED, AND REVERSIBLE BY A TEST", and wave 61 is the
 worked example.** CENTRE (*"clicking can choose 'center of dial' or 'highest dial'"*) was a mode the model could
@@ -20,10 +29,11 @@ the whole pattern:
   patch ever saved with it* — silently, and only on the second open.
 - **Every hunk carries `λWAVES: forced edit n/N` on the line above it** and a row in PORT-NOTES' table with its
   reason. Those four touches are five of `mod.js`'s six marked hunks; the sixth is older (`PRESET_LS`, the
-  storage namespace, which is an exported `const` and the one thing in the file the host cannot inject). The
+  storage namespace, which is an exported `const` and the one thing in the file the host cannot inject, still, by
+  choice: injecting it is a `mod.js` edit that waits for λWAVES' §16 gate to retire). The
   count is in the file, in the table, and in the `diff -u` line the notes tell you to run: two hunks became
   **seven** (the provenance header plus six), *measured*, and an upstream fix is still a patch.
-- **The gate is what makes it a law.** `mir.test.mjs §16` undoes all six by their **exact text** and re-proves
+- **The gate is what makes it a law.** `mir.test.mjs §16` (λWAVES) undoes all six by their **exact text** and re-proves
   byte-identity to the source — a far stronger claim than counting lines or hunks, and it is why the next
   upstream merge will not be archaeology.
 - **What was refused, and why that matters as much:** per-route BYPASS would have been a fifth touch bought for
@@ -37,7 +47,8 @@ compact rail's mini curve (no window here publishes a one-line summary of itself
 a design decision, not a port).
 TAKEN AS FILES: `mod.js` (the model) and `curve.js` (its breakpoint mathematics). **NOT taken:** `anim.js` (their
 modulation window), `window.js` (their WindowKit) and `audio.js` — our rack is our window kit, and wave 52 wrote
-our own face against the model.
+our own face against the model. *(Overtaken on 2026-09-06: the window itself was then ported from `anim.js` as an
+artifact, and is the kit's `mir/modulation/modwindow/` — see REFERENCE vs ARTIFACT at the foot.)*
 WHAT REPLACED THE MACRO SURFACE (wave 52, so a later wave does not re-import the bug): the structural fault is
 that a macro is two things at once, a hand knob and a socket for a source. So DRIVE is **one** control whose
 choice decides what the value row *is* — a fader or a meter with nothing to grab; DEPTH is on its own line, never
@@ -72,13 +83,18 @@ control* which route the outer arc is editing; our press-and-hold popover does, 
 And **nothing red**: `--bad` is spoken for and ACCENT B is a colour the user can move, so the geometry carries
 the warning and only the clipped number takes `--warn`.
 
-## Josh's glyph library (MANDELBROT, `app/glyph.js` → `lab/mir/glyph.js`)
-STEAL: nothing — it is vendored whole, 453 lines, not one path, viewBox, stroke weight or name touched.
-DO NOT STEAL: its 20-px default sizing. Sizing is the caller's by the module's own design, so `lab.css §55b`
-owns it and no call site passes a pixel count. `north` is the one solid mark among hairline outlines and its box
+## Josh's glyph library (MANDELBROT, `app/glyph.js` → `mir/glyph.js`)
+STEAL: nothing — it was vendored whole, 453 lines, not one path, viewBox, stroke weight or name touched.
+*(2026-09-16: `mir/glyph.js` is 399 lines. On 2026-09-09, before the extraction, a λWAVES pass removed its
+provenance header, the source's 40-line header comment and the comments on three glyphs (`render`, `compact`,
+`save`), so the file no longer says where it came from and is no longer "the source plus two marked lines". The
+two marked edits still comment out `publishM4`, and a diff against the source still shows not one path, viewBox,
+stroke weight or name changed.)*
+DO NOT STEAL: its 20-px default sizing. Sizing is the caller's by the module's own design, so `mir/css/base.css`
+(λWAVES' `lab.css §55b`) owns it and no call site passes a pixel count. `north` is the one solid mark among hairline outlines and its box
 is two pixels smaller *at source* so its optical mass matches — redrawing it is not ours to do.
 
-## NEBULA's motion (MANDELBROT, `app/nebula2/`)
+## NEBULA's motion (MANDELBROT, `app/nebula2/`) (λWAVES ruling)
 STEAL: the behaviours its own gates name — a clutch that clears the fling history, one coalesced strongest
 request when ambient and user motion coexist, every wheel modifier zooming and adding no rotation, camera
 ownership that survives device on/off and reset; and the FREE camera's mechanism — one unit quaternion with the
@@ -89,7 +105,7 @@ z-up, so at yaw = pitch = 0 our basis is the cyclic permutation x → y → z �
 q₀ = ½(1 + i + j + k) and a sign a transplanted formula has no reason to have. It was derived and judged against
 `cameraBasis` over 400 poses (wave 54). Copying would have looked almost right.
 
-## The MANDELBROT photosensitivity pane
+## The MANDELBROT photosensitivity pane (λWAVES ruling)
 STEAL: the structure — full-glass pane over the running app, image-filled caution triangle with the mark cut out,
 a title, a short body, an outlined CONTINUE, remembered once accepted, reachable again from SETTINGS.
 DO NOT STEAL: its black page and its type. Ours is theme-aware and wears our tokens. (Shipped, wave 48; the mark
@@ -108,7 +124,7 @@ arms too: *a rule with one arm reachable from a public URL is not one rule*), an
 an explicit override that `location.search` cannot reach. `?sw=0/1` stays public, because a service worker is
 not a photosensitivity notice. Before you wear this shape, ask what the query can do to a stranger.
 
-## Brian Johnson's Electron Orbitals (Josh's usability reference for phones)
+## Brian Johnson's Electron Orbitals (Josh's usability reference for phones) (λWAVES ruling)
 STEAL: what a one-hand, low-PPI orbital viewer makes reachable and what it refuses to show at that size.
 DO NOT STEAL: its visual identity — we are an instrument, not an app-store viewer.
 
@@ -120,8 +136,9 @@ DO NOT STEAL: skeuomorphic knob skins, brand palettes, or the assumption that ev
 
 ## How to add an entry
 When Josh sends a screenshot or a video: write the entry FIRST (steal / do not steal / why), then build. The
-screenshot itself belongs in `docs/ui/refs/` if it is worth keeping; the entry is what agents read. If a file is
-taken rather than mined, it goes in `lab/mir/` with its sha256 and a line in PORT-NOTES.md — not into `lab/`.
+screenshot itself belongs in `docs/ui/refs/` (λWAVES) if it is worth keeping; the entry is what agents read. If a file is
+taken rather than mined, it goes in the kit's `mir/` with its sha256 and a line in `mir/modulation/PORT-NOTES.md`,
+and reaches an app by adoption — not straight into an app's `lab/`.
 
 ## REFERENCE vs ARTIFACT — the distinction this file previously blurred (2026-09-06)
 Everything above is about REFERENCES: things we looked at, mined for mechanism, and did not copy. "A reference to
@@ -131,3 +148,7 @@ his, built over weeks in BASINS, and it is meant to travel to every app in the l
 same material, same dimensions, same chips. For an artifact the rule inverts — copy verbatim, namespace it, and
 parameterise only the accents. See STYLE-LOCK's "THE PORTED-WINDOW EXCEPTION" for the acceptance test, which is
 geometric rather than aesthetic precisely because prose could not hold this line through three attempts.
+**In MIR (2026-09-16):** the copy was made once. Since MIR 1.1.0 the kit is the window's source, the byte-frozen
+law is retired, and an app does not copy the artifact — it adopts it and mounts it unchanged, which is the kit's
+ONE RULE (`README.md`): *"Reuse the nodes, the gestures and the CSS. Do not copy their look."* A change to the
+window is made in MIR.

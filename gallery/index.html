@@ -2,86 +2,154 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
 <title>MIR · gallery</title>
+<!-- EVERYTHING ON THIS PAGE IS THE KIT'S: every window is device(), every control a kit builder, every look from the
+     kit's sheets.  The page's own rules only lay the page out (a grid, the grounds, the wordmark and the modulation
+     window pinned in place) — no control or material is restyled here, because a gallery that restyles the kit
+     proves nothing about it. -->
 <link rel="stylesheet" href="../mir/css/base.css">
 <link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/shell/shell.css">
+<link rel="stylesheet" href="../mir/modulation/modhost.css">
+<link rel="stylesheet" href="../mir/modulation/modwindow/modwindow.css">
 <style>
-  /* the gallery's own three rules: a scrolling page (the kit's ground is a fixed stage), a grid, a swatch */
-  html, body { height: auto; overflow: auto; background: #070a0f; }
-  .g-page { max-width: 1100px; margin: 0 auto; padding: 24px 16px 80px; display: flex; flex-direction: column; gap: 18px; }
+  /* the gallery's own rules: a scrolling page, the three grounds, a grid, a swatch, a note */
+  html, body { height: auto; min-height: 100%; overflow: auto; margin: 0; background: #070a0f; }
+  body[data-theme="light"] { background: #eef1f6; }
+  /* THE FIELD GROUND — glass must look designed over a busy, coloured picture as well as over a flat one (Sol) */
+  body.g-field { background: radial-gradient(circle at 22% 30%, #ff5e3a 0 6%, transparent 22%), radial-gradient(circle at 70% 18%, #2dc9e8 0 5%, transparent 20%),
+    radial-gradient(circle at 55% 72%, #b031a3 0 7%, transparent 26%), conic-gradient(from 40deg at 45% 45%, #1b2a6b, #46fcbf, #ffce3e, #d7386e, #2b3f7a, #1b2a6b); background-attachment: fixed; }
+  .g-page { max-width: 1100px; margin: 0 auto; padding: 64px 16px 80px; display: flex; flex-direction: column; gap: 18px; }
+  .g-page #title { position: fixed; left: 16px; top: 10px; z-index: 50; }
   .g-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
   .g-tokens { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
   .g-sw { display: flex; align-items: center; gap: 8px; font-size: var(--fs-tiny); color: var(--ink-key); }
-  .g-sw i { display: inline-block; width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--glass-hairline); }
-  .g-rail { display: grid; grid-template-columns: repeat(2, 140px); gap: 4px 8px; }
-  .g-tile .m2slotrow { display: grid; grid-template-columns: 44px 44px 18px; align-items: center; height: 44px; }
-  .g-tile .m2val, .g-tile .m2slotx, .g-tile .m2namerow { display: none; }
-  .g-page .segw, .g-page .sw, .g-page .trig { max-width: 320px; }   /* the kit sizes a seg to its window; the gallery's cards are wide */
+  .g-sw i { display: inline-block; width: 22px; height: 22px; border-radius: var(--r-sm); border: 1px solid var(--glass-hairline); flex: 0 0 auto; }
   .g-note { font-size: var(--fs-small); color: var(--ink-faint); line-height: 1.5; max-width: 70ch; }
+  .g-note a { color: var(--acc); }
+  .g-glyphs { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; }
+  .g-glyph { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: var(--fs-micro); letter-spacing: var(--tr-wide); color: var(--fg-soft); }
+  .g-faders { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+  .g-modhost { position: relative; min-height: 520px; }
+  .g-modhost #modwin { position: relative !important; left: auto !important; top: auto !important; }
 </style>
 </head>
-<body class="disconnected" data-card="tinted">
+<body class="disconnected" data-card="tinted" data-theme="dark">
 <div class="g-page" id="page"></div>
 <script type="module">
-import { el, knob, seg, sw, trig, fader, readout, formula, device, group, gripDots } from '../mir/kit.js';
-import { installControlHelp } from '../mir/control-help.js';
+import { el, knob, seg, sw, trig, fader, readout, formula, device, group, gripDots, chip, setKnobLaw } from '../mir/kit.js';
+import { glyphNames, glyphEl } from '../mir/glyph.js';
+import { installControlHelp, consolidateWindowHelp, infoPanel } from '../mir/control-help.js';
 import { planeModel } from '../mir/plane-model.js';
-import { buildMacroSlot } from '../mir/modulation/modwindow/modwindow.js';
-const page = document.getElementById('page');
-const card = (id, eyebrow, status) => { const d = device({ id, eyebrow, status: status || '' }); page.appendChild(d.root); return d; };
+import { bindSliderKeys } from '../mir/slider-keys.js';
+import { wordmark } from '../mir/shell/wordmark.js';
+import { createAccent } from '../mir/shell/accent.js';
+import { createModWindow } from '../mir/modulation/modwindow/modwindow.js';
 
-/* 1 · THE SWITCHES: theme, card style, frost — the same three seats every app ships */
-const s0 = card('settings', 'MIR · SETTINGS', 'theme, card style, frost');
-const r0 = el('div', 'row tight', group(s0.body, 'the three seats'));
-r0.appendChild(seg({ label: 'THEME', value: 'dark', options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], onChange: (v) => { document.body.dataset.theme = v; } }).root);
+const page = document.getElementById('page');
+const title = wordmark(page, { word: 'MIR', sub: 'GALLERY' });
+const accent = createAccent();
+const card = (id, eyebrow, status, parent = page) => { const d = device({ id, eyebrow, status: status || '' }); parent.appendChild(d.root); return d; };
+const note = (parent, text) => el('div', 'g-note', parent, text);
+
+/* ── 1 · THE SEATS ─────────────────────────────────────────────────────────────────────────────────────────── */
+const s0 = card('settings', 'MIR · SETTINGS', 'theme, card style, frost, ground, accents');
+const r0 = el('div', 'row tight', group(s0.body, 'the material seats'));
+const setTheme = (v) => { document.body.dataset.theme = v; accent.apply(); };
+r0.appendChild(seg({ label: 'THEME', value: 'dark', options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], onChange: setTheme }).root);
 r0.appendChild(seg({ label: 'CARD STYLE', value: 'tinted', options: [{ id: 'tinted', label: 'TINTED', title: 'a pane, no filter' }, { id: 'refractive', label: 'REFRACTIVE', title: 'blur only' }], onChange: (v) => { document.body.dataset.card = v; } }).root);
 r0.appendChild(sw({ label: 'FROST', value: false, title: 'the frost policy over both card styles', onChange: (v) => document.body.classList.toggle('frost', v) }).root);
 r0.appendChild(sw({ label: 'DISCONNECTED', value: true, title: 'the window as a constellation: bar-chip, body-card, air between', onChange: (v) => document.body.classList.toggle('disconnected', v) }).root);
-el('div', 'g-note', s0.body, 'Every window on this page is kit chrome: header, grip, fold, power, close. Change the seats above and watch all of them follow — that is the material language.');
-{ const n = el('div', 'g-note', s0.body, 'The SHELL — the wordmark, its menus and the notebook with ABOUT — is a page of its own: '); const a = el('a', '', n, 'shell.html'); a.href = './shell.html'; a.style.color = 'var(--acc)'; }
+r0.appendChild(seg({ label: 'GROUND', value: 'plain', options: [{ id: 'plain', label: 'PLAIN', title: 'the flat stage: black or white' }, { id: 'field', label: 'FIELD', title: 'a busy coloured picture under the glass' }], onChange: (v) => document.body.classList.toggle('g-field', v === 'field') }).root);
+const ra = el('div', 'row tight', group(s0.body, 'the accents — two angles on a palette (mir/shell/accent.js)'));
+ra.appendChild(knob({ label: 'ACCENT A', min: 0, max: 360, value: accent.a, wrap: true, fmt: (v) => v.toFixed(0) + '°', title: 'the first accent: an angle on the palette', onInput: (v) => accent.set({ a: v }) }).root);
+ra.appendChild(knob({ label: 'ACCENT B', min: 0, max: 360, value: accent.b, wrap: true, fmt: (v) => v.toFixed(0) + '°', title: 'the second accent: modulation and relationships', onInput: (v) => accent.set({ b: v }) }).root);
+ra.appendChild(knob({ label: 'VIVID', min: 0, max: 1, value: accent.vivid, fmt: (v) => (v * 100).toFixed(0) + '%', title: 'push the accents toward neon', onInput: (v) => accent.set({ vivid: v }) }).root);
+note(s0.body, 'Every window here is kit chrome — header, grip, fold, power, close — and every seat above re-dresses all of them at once: that is the material language, FROST. Hover a control for its hint; Tab reaches every one.');
+{ const n = note(s0.body, 'The shell — the wordmark in the corner, its menus and the notebook with ABOUT — is a page of its own: '); const a = el('a', '', n, 'shell.html'); a.href = './shell.html'; }
 
-/* 2 · TOKENS */
-const t = card('tokens', 'MIR · TOKENS', 'read from :root at runtime');
+/* ── 2 · TOKENS ────────────────────────────────────────────────────────────────────────────────────────────── */
+const t = card('tokens', 'MIR · TOKENS', 'read from the page at runtime');
 const tk = el('div', 'g-tokens', group(t.body, 'colour'));
-for (const name of ['--fg', '--fg-soft', '--ink-key', '--ink-faint', '--dim', '--acc', '--acc2', '--acc-soft', '--ok', '--warn', '--bad', '--glass-well', '--glass-raise', '--glass-hairline', '--line']) {
+for (const name of ['--fg', '--fg-soft', '--ink-key', '--dim', '--ink-faint', '--acc', '--acc-soft', '--acc2', '--acc2-soft', '--ok', '--warn', '--bad', '--n1', '--n2', '--n3', '--n4', '--n5', '--n6', '--glass-well', '--glass-raise', '--glass-press', '--glass-hairline', '--glass-border-color']) {
   const w = el('div', 'g-sw', tk); const i = el('i', null, w); i.style.background = `var(${name})`; el('span', null, w, name);
 }
-el('div', 'g-note', t.body, 'Type: LW Title for the mark, Roboto for the interface, STIX Two Math for mathematics — all subsets, all in fonts/. Spacing --sp-1…--sp-5, type --fs-micro…--fs-lead, radii --r-sm…--r-lg.');
+const ty = group(t.body, 'type — Roboto for the interface, STIX Two Math for mathematics, LW Title for the name');
+for (const fs of ['--fs-micro', '--fs-tiny', '--fs-small', '--fs-base', '--fs-lead']) { const l = el('div', null, ty, fs + ' · the quick brown fox · 0123456789'); l.style.cssText = `font-size: var(${fs}); color: var(--fg-soft); font-family: var(--font-ui); letter-spacing: var(--tr-tight);`; }
+{ const m = el('div', null, ty); m.style.cssText = 'font-family: var(--font-math); color: var(--fg); font-size: var(--fs-lead);'; m.textContent = 'ψ(r, t) = Σ cₙ e^(−iEₙt) φₙ(r)'; }
+const sp = el('div', 'g-row', group(t.body, 'spacing --sp-1…5 · radii --r-xs…lg, --card-r · touch --touch'));
+for (const s of ['--sp-1', '--sp-2', '--sp-3', '--sp-4', '--sp-5']) { const b = el('div', 'g-sw', sp); const i = el('i', null, b); i.style.cssText = `width: var(${s}); height: 22px; background: var(--acc); border: 0; border-radius: 0;`; el('span', null, b, s); }
+for (const r of ['--r-xs', '--r-sm', '--r-md', '--r-lg', '--card-r']) { const b = el('div', 'g-sw', sp); const i = el('i', null, b); i.style.cssText = `width: 28px; height: 28px; border-radius: var(${r}); background: var(--glass-raise); border: 1px solid var(--glass-border-color);`; el('span', null, b, r); }
+note(t.body, 'Motion: --t-fast .12s · --t-soft .35s · --t-linger .7s · --logo-turn 1.2s. Tokens an app may re-point, and the ones it must supply, are listed in docs/CONTRACT.md.');
 
-/* 3 · WIDGETS */
-const w = card('widgets', 'MIR · WIDGETS', 'every builder in kit.js');
-const g1 = group(w.body, 'knobs — drag, wheel, arrows, Shift for fine, double-tap resets');
+/* ── 3 · CONTROLS ──────────────────────────────────────────────────────────────────────────────────────────── */
+const w = card('widgets', 'MIR · CONTROLS', 'every builder in kit.js');
+const g1 = group(w.body, 'knobs — drag up or right, Shift for fine, arrows and Page keys, Home/End, Delete or a double-tap resets');
 const r1 = el('div', 'row tight', g1);
-r1.appendChild(knob({ label: 'LEVEL', min: 0, max: 1, value: .6, fmt: (v) => (v * 100).toFixed(0) + '%' }).root);
-r1.appendChild(knob({ label: 'RATE', min: 0.1, max: 3000, value: 60, log: true, fmt: (v) => v.toFixed(1) }).root);
-r1.appendChild(knob({ label: 'HUE', min: 0, max: 1, value: 0, wrap: true, fmt: (v) => (v * 360).toFixed(0) + '°' }).root);
+r1.appendChild(knob({ label: 'LEVEL', min: 0, max: 1, value: .6, fmt: (v) => (v * 100).toFixed(0) + '%', title: 'a linear knob' }).root);
+r1.appendChild(knob({ label: 'RATE', min: 0.1, max: 3000, value: 60, log: true, fmt: (v) => v.toFixed(1), title: 'a log knob' }).root);
+r1.appendChild(knob({ label: 'HUE', min: 0, max: 1, value: 0, wrap: true, fmt: (v) => (v * 360).toFixed(0) + '°', title: 'a wrap knob: phase, no ends' }).root);
+r1.appendChild(knob({ label: 'COUNT', min: 0, max: 200, value: 160, step: 10, fmt: (v) => v.toFixed(0), title: 'a stepped knob' }).root);
+{ const k = knob({ label: 'ROUTED', min: 0, max: 1, value: .3, title: 'a modulated knob: the needle dances, the tick marks the base the hand owns' }); r1.appendChild(k.root); let ph = 0; const tick = () => { ph += 0.02; k.show(.3 + .25 * Math.sin(ph)); requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
+{ const k = knob({ label: 'OFF', min: 0, max: 1, value: .5, title: 'a disabled knob' }); k.setDisabled(true); r1.appendChild(k.root); }
+r1.appendChild(knob({ label: 'LARGE', min: 0, max: 1, value: .42, size: 'lg', title: 'size: lg' }).root);
 const g2 = group(w.body, 'segments, switches, triggers');
 const r2 = el('div', 'row tight', g2);
 r2.appendChild(seg({ label: 'STYLE', value: 'cloud', options: [{ id: 'cloud', label: 'CLOUD' }, { id: 'solid', label: 'SOLID' }, { id: 'grain', label: 'GRAIN' }] }).root);
 r2.appendChild(sw({ label: 'AUTO', value: true }).root);
+r2.appendChild(sw({ label: 'MANUAL', value: false }).root);
 r2.appendChild(trig({ label: 'RESET', title: 'a momentary action', onFire: () => {} }).root);
-const g3 = group(w.body, 'faders and readouts');
-const r3 = el('div', 'row tight', g3);
+{ const tr = trig({ label: 'LATCHED', title: 'a trigger used as a state' }); tr.on = true; r2.appendChild(tr.root); }
+{ const b = el('button', 'trig', r2); b.type = 'button'; chip(b, 'plus', 'a glyph chip'); }
+const g3 = group(w.body, 'faders, readouts, the formula, badges');
+const r3 = el('div', 'g-faders', g3);
 r3.appendChild(fader({ label: 'SCRUB', min: 0, max: 1, value: .3, fmt: (v) => v.toFixed(2) }).root);
-r3.appendChild(readout({ label: 'NORM', value: '1.000', sub: 'a live number', cls: '' }).root);
-r3.appendChild(formula({ lines: [['<m>c(t) = e^{−iE t} c(0)</m>'], ['<m>E = </m>', { s: 'E', v: '−0.500' }]] }).root);
-const g4 = group(w.body, 'the plane model');
+r3.appendChild(fader({ label: 'FREQ', min: 0.02, max: 50, value: 1, log: true, fmt: (v) => v.toFixed(2) + '×' }).root);
+{ const f = fader({ label: 'DRIVEN', min: 0, max: 1, value: .5, fmt: (v) => v.toFixed(2) }); r3.appendChild(f.root); let ph = 0; const tick = () => { ph += 0.015; f.show(.5 + .3 * Math.sin(ph)); requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
+{ const f = fader({ label: 'DISABLED', min: 0, max: 1, value: .7 }); f.setDisabled(true); r3.appendChild(f.root); }
+const r3b = el('div', 'row tight', g3);
+for (const [label, value, cls] of [['NORM', '1.000', ''], ['LIVE', '0.998', 'live'], ['OK', 'converged', 'ok'], ['WARN', '12 iterations', 'warn']]) { const ro = readout({ label, value }); if (cls) ro.set(value, cls); r3b.appendChild(ro.root); }
+{ const ro = readout({ label: 'WITH A SUB', value: '−0.500' }); ro.setSub('hartree'); r3b.appendChild(ro.root); }
+el('div', 'row tight', g3).appendChild(formula({ lines: [['<m>c(t) = e</m>', '<m>−iEt</m>', ' c(0)'], ['<m>E</m> = ', { s: 'E', v: '−0.500' }, ' hartree']] }).root);
+const r3c = el('div', 'row tight', g3);
+for (const cls of ['exact', 'numerical', 'warn', 'bad']) el('span', 'badge ' + cls, r3c, cls.toUpperCase());
+el('div', 'note', g3, 'A .note carries the explanation a window owns; consolidateWindowHelp() gathers every one of them into the window\'s ⓘ panel.');
+const g4 = group(w.body, 'the plane model — drag or arrow keys; Home resets');
 { let n = [0.3, 0.2, 0.93]; planeModel(g4, { getNormal: () => n, onTurn: (v) => { n = v; } }); }
+const g5 = group(w.body, 'slider keys — bindSliderKeys(): arrows 0.01, Shift 0.001, Home/End');
+{ let v = .5; const box = el('div', 'ro', g5); el('div', 'ro-lbl', box, 'FOCUS ME'); const val = el('div', 'ro-val', box, v.toFixed(3)); bindSliderKeys(box, { get: () => v, set: (x) => { v = x; val.textContent = v.toFixed(3); } }); }
 
-/* 4 · GESTURE MARKS */
-const m = card('marks', 'MIR · MARKS', 'one mark per meaning');
-const gm = group(m.body, 'drag me · route me');
-const rm = el('div', 'row tight', gm);
-const dot = el('button', 'trig', rm); dot.type = 'button'; gripDots(dot); el('span', 'trig-l', dot, ' the dot grip — drag / reorder');
-el('div', 'g-note', m.body, 'The 3 × 3 dot grip means DRAG ME: window headers, rail rows, tiles. The four-way cross means ROUTE ME: it belongs to the modulation grip only.');
+/* ── 4 · WINDOW STATES ─────────────────────────────────────────────────────────────────────────────────────── */
+const states = el('div', 'g-row');
+page.appendChild(states);
+{ const d = card('w-live', 'LIVE', 'status in the hint', states); el('div', 'g-note', d.body, 'A live status rides in the header\'s hover hint, so a narrow header never hides it.'); d.setStatus('rendering · 60 fps', 'live'); }
+{ const d = card('w-off', 'POWERED OFF', '', states); d.setOff(true); el('div', 'g-note', d.body, 'Power off: the window stays, its work stops (mir/window-activity.js).'); }
+{ const d = card('w-busy', 'CALCULATING', '', states); const n = el('div', 'g-note', d.body, 'setLoading(true): the mark turns, the body is inert.'); n.style.minHeight = '96px'; d.setLoading(true); }
+{ const d = card('w-fold', 'FOLDED', '', states); el('div', 'g-note', d.body, 'Folded to its header.'); d.foldBtn.click(); }
 
-/* 5 · MODULATION ROWS, built by the window\'s own builder */
-const mm = card('modrows', 'MIR · MODULATION', 'buildMacroSlot — the same rows the window builds');
-const rail = el('div', 'g-rail', group(mm.body, 'macro tiles'));
-for (let i = 1; i <= 4; i++) { const rec = buildMacroSlot(rail, { id: 'm' + i, name: 'MACRO ' + i, kind: 'knob', value: .3, masterDepth: 1 }, i); rec.root.classList.add('g-tile', 'tempo-tile'); rec.reorder.replaceChildren(gripDots()); rec.depthArc.style.strokeDasharray = (0.25 * i).toFixed(2) + ' 1'; }
-el('div', 'g-note', mm.body, 'In an app these rows are wired through the modulation host API (wireGrip, wireDepth, paintDepth, moveMacro). Here they are only built, to show the look is the builder\'s, not a copy.');
+/* ── 5 · GLYPHS ────────────────────────────────────────────────────────────────────────────────────────────── */
+const gl = card('glyphs', 'MIR · GLYPHS', 'glyph.js — drawn, never a font character');
+const gg = el('div', 'g-glyphs', gl.body);
+for (const name of glyphNames()) { const c = el('div', 'g-glyph', gg); const e = glyphEl(name, null, 22); if (e) c.appendChild(e); el('span', null, c, name); }
+const gm = el('div', 'row tight', group(gl.body, 'one mark per meaning: the dot grip is DRAG ME (every window header, rail row and tile); the four-way cross is ROUTE ME and belongs to the modulation window alone — see its macro rows below'));
+{ const b = el('button', 'trig', gm); b.type = 'button'; gripDots(b); el('span', 'trig-l', b, ' drag · reorder'); }
 
+/* ── 6 · THE MODULATION WINDOW ─────────────────────────────────────────────────────────────────────────────── */
+const mw = card('modwin-card', 'MIR · MODULATION', 'the window, built by its own builder');
+const mh = el('div', 'g-modhost', mw.body);
+{
+  const win = createModWindow({});
+  win.hidden = false; mh.appendChild(win);
+  for (let i = 1; i <= 4; i++) win.modwindow.addMacro({ id: 'm' + i, name: 'MACRO ' + i, kind: 'knob', value: .2 * i, masterDepth: 1 }, i);
+  win.modwindow.setViewHeight(420);
+}
+note(mw.body, 'This is mir/modulation/modwindow built and styled by the kit — not wired. Its foot (BPM, preset name, tap) stays blank and overlaps until a host fills it, and the rack does not size itself. The controller that wires it to a host (routes, rings, clock, presets) still lives in λWAVES\' lab/modwindow.js, which BASINS and NEBULA copied; it comes into the kit with the shell harvest.');
+
+accent.apply();
+consolidateWindowHelp(page);
 installControlHelp();
+window.__GALLERY = { accent, setTheme, setKnobLaw };
 </script>
 </body>
 </html>

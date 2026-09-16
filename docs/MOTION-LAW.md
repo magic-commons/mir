@@ -1,6 +1,12 @@
-# λWAVES MOTION LAW
+# MIR · MOTION LAW
 *Load this ONLY for a polish/motion pass. A structure or behaviour wave does not need it and should not spend the
 context. Method adapted from Emil Kowalski's `animate` skill (mechanism, not aesthetics); the tiers are ours.*
+
+**Provenance.** Written for λWAVES as its `docs/ui/MOTION-LAW.md`; the wave numbers below are λWAVES' own, and so
+are the interactions it names (the field, the bow, the camera, the transport). Adopted as MIR's law on 2026-09-10
+and corrected for the kit on 2026-09-16: a path names the kit's file where the kit has one, a file only λWAVES has
+is marked "(λWAVES)", and so are its gates (`B71`, `B149`). The motion tokens (`--t-fast`, `--t-soft`,
+`--t-linger`, `--logo-turn`) are declared in `mir/css/base.css` since MIR 1.4.0.
 
 ## Gate 1 — frequency decides whether a thing may animate at all
 | How often the user does it | Our interactions | Rule |
@@ -10,7 +16,7 @@ context. Method adapted from Emil Kowalski's `animate` skill (mechanism, not aes
 | occasional | window open/close, pop out / dock back, preset load, rack reorder, theme switch | standard animation |
 | rare / first time | boot, the photosensitivity pane, first preset of a session | **delight budget** |
 
-**A keyboard-initiated action is never animated.** Space, H, B, T, N, TAB, C, V, P, ?, Ctrl+R, Ctrl+Z — the key is
+**A keyboard-initiated action is never animated.** Space, H, B, T, N, TAB, C, V, P, ?, Ctrl+R, Ctrl+Z (λWAVES' keys) — the key is
 the user asking for the result, not the journey. (TAB raises a window to the top of its rack or the front of the
 stack; it does not travel there.)
 
@@ -25,7 +31,9 @@ the accent colours that mean signal (A) or routing (B). When in doubt the instru
 
 **The modulation window's picture and the knob rings are SIGNAL, and signal has a repaint law (waves 60–61).**
 `mod.js` is a module singleton and that window already paints the whole target list at **30 Hz** (a `33 ms`
-guard, not a rAF — 30 Hz is plenty for a number to be read at). So:
+guard, not a rAF — 30 Hz is plenty for a number to be read at). (That painter, its `'modulated'` filter and its
+ResizeObserver are λWAVES' host controller, `lab/modwindow.js` (λWAVES), which BASINS and NEBULA copied; the kit's
+`mod.js` and `registry.js` are what it reads. The law binds any host that paints the window.) So:
 - **Rebuild only on a SIGNATURE** — `width | shape hash | steps | which cycles`. The per-frame paint then moves
   **exactly four attributes**: the playhead's `x1`/`x2` and the dot's `cx`/`cy`. A card with no width (closed,
   folded, not yet laid out) renders nothing and says so by clearing its signature; the first paint is triggered
@@ -47,6 +55,9 @@ one iteration for BOOT (rare tier, the delight budget) and infinite for BUSY, pl
 linear, alternate, **opacity only**. It is CSS and not JS, and it is rebuilt only when a turn STARTS: a HUE drag
 would otherwise rewrite eight kilobytes of stylesheet sixty times a second and restart the animation with it.
 The price, accepted: a palette changed mid-turn keeps the old keyframes until the turn restarts.
+*(In the kit the same mechanism is `mir/shell/accent.js`: `turn()` and `busy()` inject `<style id="mirTurn">` with
+keyframes `mir-turn-0` … `mir-turn-8`, rebuilt only when a turn starts after the palette changed;
+`lw-busy-breathe` is in `mir/css/base.css`. `lwTurn` is λWAVES' own `rack.js`.)*
 
 ## Numbers
 - Press / toggle: **100–160 ms** (`--t-fast .12s` is exactly this rung).
@@ -107,7 +118,11 @@ The price, accepted: a palette changed mid-turn keeps the old keyframes until th
   SELECTORS against the elements that carry the transforms. That is the only shape of test that could have
   caught the specificity bug, and it is the shape to copy. **Add a transform to the lab and name it here in
   the same edit** — the list grew by one in wave 60 without anyone noticing, which is how it grew before.
-- **The lab's ONE entrance (wave 69).** `layout.reopen()` only: 220 ms, `cubic-bezier(.23, 1, .32, 1)`,
+  *(Where it lives now: the kit's half — `.dev.dragging`, `.trig:active`, the value tooltips and the entrance — is
+  the reduced-motion block in `mir/css/base.css`; the shell and the modulation host carry their own
+  (`mir/shell/shell.css`, `mir/modulation/modhost.css`); the window's fold chevron joined the kit's block in 1.4.0; the rack's slide, the modulation window's fold
+  chevron and the `--m2-motion-*` line are still only in λWAVES' `lab.css` (λWAVES).)*
+- **The lab's ONE entrance (wave 69).** `layout.reopen()` (λWAVES) only: 220 ms, `cubic-bezier(.23, 1, .32, 1)`,
   opacity + a 7-px slide, one iteration, `lw-dev-enter` (and `lw-dev-enter-quiet`, opacity alone, under the
   preference). **`raise()` deliberately does not fire it**, because TAB reaches `raise()` and a
   keyboard-initiated action is never animated. A fold animation, a rack-reorder FLIP and a preset-load bridge

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MIR · widget fixture</title>
+<link rel="stylesheet" href="../../mir/css/base.css">
+<link rel="stylesheet" href="../../mir/css/skin.css">
+<style>html, body { margin: 0; background: #070a0f; } #host { position: absolute; left: 20px; top: 20px; width: 360px; }</style>
+</head>
+<body data-theme="dark" data-card="tinted">
+<div id="title"><span class="word">FIX</span><svg class="mark" viewBox="0 0 10 10"><rect width="4" height="4"/></svg></div>
+<div id="host"></div>
+<script type="module">
+import * as kit from '../../mir/kit.js';
+import { installControlHelp, setHelpClasses, HELP_CLASSES, infoPanel } from '../../mir/control-help.js';
+import { createWindowActivity } from '../../mir/window-activity.js';
+import { bindSliderKeys } from '../../mir/slider-keys.js';
+import { planeModel } from '../../mir/plane-model.js';
+const host = document.getElementById('host');
+const log = [];
+const d = kit.device({ id: 'fx', eyebrow: 'FIXTURE', status: 'ready', loadingMark: false });
+host.appendChild(d.root);
+const d2 = kit.device({ id: 'fx2', eyebrow: 'DEFAULT MARK' }); host.appendChild(d2.root);   // the default: the wordmark's mark
+const row = kit.el('div', 'row', d.body);
+const k = kit.knob({ label: 'LIN', min: 0, max: 1, value: 0, onInput: (v) => log.push(['k', v]) }); row.appendChild(k.root);
+const kw = kit.knob({ label: 'WRAP', min: 0, max: 1, value: 0, wrap: true }); row.appendChild(kw.root);
+const ks = kit.knob({ label: 'STEP', min: 0, max: 100, value: 50, step: 10 }); row.appendChild(ks.root);
+const f = kit.fader({ label: 'FADE', min: 0, max: 1, value: 0.5, onChange: (v) => log.push(['f', v]) }); d.body.appendChild(f.root);
+const warns = []; const cw = console.warn; console.warn = (...a) => { warns.push(a.join(' ')); cw(...a); };
+const fl = kit.fader({ label: 'BADLOG', min: 0, max: 10, value: 1, log: true }); d.body.appendChild(fl.root);
+console.warn = cw;
+const s = kit.seg({ label: 'MODE', options: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B', title: 'the second mode' }], value: 'a', onChange: (v) => log.push(['s', v]) }); d.body.appendChild(s.root);
+const w = kit.sw({ label: 'ON', value: false, onChange: (v) => log.push(['w', v]) }); d.body.appendChild(w.root);
+const t = kit.trig({ label: 'FIRE', onFire: () => log.push(['t', 1]) }); d.body.appendChild(t.root);
+const ro = kit.readout({ label: 'READ', value: '1.0' }); d.body.appendChild(ro.root);
+const fx = kit.formula({ lines: [['E = ', { s: 'e', v: '1.0' }]] }); d.body.appendChild(fx.root);
+const help = kit.el('div', 'note', null, 'A note that becomes the window help.');
+const info = infoPanel(help, 'fixture help'); d.body.appendChild(info);
+const sk = kit.el('div', 'sk', d.body, 'slider keys'); let skv = 0.5; bindSliderKeys(sk, { get: () => skv, set: (v) => { skv = v; } });
+const pm = planeModel(d.body, { getNormal: () => [0, 0, 1], onTurn: () => {} });
+installControlHelp(document);
+const wa = createWindowActivity({ classes: { uiHidden: 'my-hidden' } });
+wa.track(d);
+window.__T = { kit, d, d2, k, kw, ks, f, fl, s, w, t, ro, fx, info, sk, get skv() { return skv; }, pm, wa, log, warns, setHelpClasses, HELP_CLASSES };
+window.__ready = true;
+</script>
+</body>
+</html>

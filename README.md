@@ -15,20 +15,23 @@ MIR is the source; the apps are readers.
 | **Tokens** | `mir/css/base.css` (`:root`, theme blocks) | Colour, spacing, type scale, radii, the accent pair A/B, light and dark. Nothing else names a colour. |
 | **Widgets** | `mir/css/base.css` + `mir/kit.js` | `knob`, `seg`, `sw`, `trig`, `fader`, `readout`, `formula`, `device` (window chrome), `group`, `chip`, `gripDots`, `el`. Each builds its own DOM and returns handles (`set`, `get`, `setDisabled`, `setStatus`…). |
 | **Materials** | `mir/css/skin.css` | The three card styles — *tinted* (a pane, no filter), *refractive* (blur only), *frost* (a policy over both) — the neumorphic seats, the hairlines, the three faces of a window. |
-| **Gestures** | `mir/slider-keys.js`, `kit.js`, `mir/control-help.js` | One slider ladder for every drag surface (arrows step, Shift is fine, Home/End, double-tap resets); hints that step aside for a hand on a control; the dot grip means *drag me*, the four-way cross means *route me*. |
+| **Gestures** | `mir/kit.js`, `mir/slider-keys.js`, `mir/control-help.js` | The drag law — 220 px for a full scale, Shift for fine, 320 under a finger — as defaults an app may retune (`setKnobLaw`, `dragTravel`); arrows, Page, Home/End and Delete on every slider; hints that step aside for a hand on a control and show for the keyboard; the dot grip means *drag me*, the four-way cross means *route me*. |
 | **Scheduling** | `mir/window-activity.js` | Idle is zero work: a window that is closed, folded, powered off or off-screen does not compute. |
 | **Controls** | `mir/plane-model.js` | The sphere-and-plane orientation control. More belong here as they are built. |
 | **Palette** | `mir/palette.js` | OKLab, the WCAG contrast floor, the 256-entry palette LUT and the 23-palette catalogue the accents read. |
 | **Shell** | `mir/shell/` | What every app begins with, taken node for node from λWAVES: the **wordmark** (`wordmark.js`), the **menubar** it opens — FILE · EDIT · VIEW · WINDOW · ABOUT as data (`menubar.js`), the **notebook** glass with NOTES and **ABOUT** faces (`notebook.js`, `about.js` — the GPL notice and the font licences by default), the **accent engine** that colours A, B and the mark from a palette (`accent.js`), their sheet (`shell.css`) and an optional ground (`stage.css`). NOTES previews markdown and maths with marked and KaTeX from `vendor/`, loaded on the first preview. See `gallery/shell.js` for the whole assembly. |
-| **Modulation** | `mir/modulation/` | The modulation window (BASINS' port, byte-frozen: `modwindow/`), its host (`host.js`, `modhost.css`), model (`mod.js`), registry, curves. See `modulation/modwindow/host-contract.md`. |
+| **Modulation** | `mir/modulation/` | The kit's first plugin: the modulation window's builders (`modwindow/`, BASINS' window, the source since 1.1.0), its host (`host.js`, `modhost.css`), model (`mod.js`), registry, curves. The controller that wires the window to a host is still λWAVES' (`lab/modwindow.js`). See `modulation/modwindow/host-contract.md` and `docs/PLUGIN-CONTRACT.md`. |
 | **Type** | `fonts/` | LW Title (a renamed Spinwerad subset), Roboto (UI), STIX Two Math (the maths), with their licences. |
-| **Laws** | `docs/` | STYLE-LOCK, MOTION-LAW, ANTI-PATTERNS, REFERENCES — the reasoning, kept with the code. |
+| **Laws** | `docs/` | [API](docs/API.md) (every export) · [CONTRACT](docs/CONTRACT.md) (load order, what the kit reads on `<body>`, the tokens an app may re-point, ids, storage) · [PLUGIN-CONTRACT](docs/PLUGIN-CONTRACT.md) (the socket TIMELINE plugs into) · STYLE-LOCK, MOTION-LAW, ANTI-PATTERNS, REFERENCES — the reasoning, kept with the code. |
+| **Proofs** | `tests/`, `tools/` | `npm test`: the token lint, node tests of the model and the adopt tool, browser tests of the controls and the shell. `tools/stylehash.mjs` proves a kit change neutral in an app; `tools/shell-parity.mjs` proves the shell is λWAVES'. |
 
 ## Adopt it
 
 ```bash
-node tools/adopt.mjs ../my-app          # copies mir/ → my-app/lab/mir/, fonts/ → my-app/lab/fonts/, writes MIR-MANIFEST.json
-node tools/adopt.mjs ../my-app --check  # lists every kit file the app has changed (CI-friendly, exit 1 on drift)
+node tools/adopt.mjs ../my-app            # copies mir/ → my-app/lab/mir/, fonts/ → my-app/lab/fonts/, removes what the kit no longer has, writes MIR-MANIFEST.json
+node tools/adopt.mjs ../my-app --check    # changes nothing; exit 1 on a changed, missing or extra kit file, or a manifest that lies
+node tools/adopt.mjs ../my-app --dry-run  # what an adopt would add, update and remove
+# --prefix <dir> puts the kit somewhere other than lab/; --allow-dirty adopts from uncommitted kit changes (the manifest says so)
 ```
 
 In the app's `index.html`, in this order, before any sheet of the app's own:
@@ -84,13 +87,34 @@ that the split is real.
 
 ## See it
 
-`npm run gallery` serves `gallery/index.html` on http://127.0.0.1:8790/gallery/ — every token, material and
-widget on one page, built from the kit itself, with the card-style, frost and theme switches live.
+`npm run gallery` serves http://127.0.0.1:8790/gallery/ — every token, control, window state, glyph and the
+modulation window on one page, built from the kit itself and restyled by nothing, with the theme, card style,
+frost, ground (plain or a busy coloured field) and accent seats live.
 `gallery/shell.html` is a fresh app on the kit: hover the wordmark for the menus, press J for the notebook, ⓘ for ABOUT.
 
 ## Prove it
 
-`tools/shell-parity.mjs` proves the shell is λWAVES' shell: serve λWAVES' `lab/` and this repository, then
+```bash
+npm test                                   # token lint · node tests (adopt, registry, curve, host, model) · browser tests (controls, shell)
+node tools/lint-tokens.mjs --unused        # every token read has a writer; and what is written but never read
+```
+
+**Neutrality** — does a kit change change what an app draws?  Adopt the working kit into a *copy* of the app
+(never the app itself), serve both, then:
+
+```bash
+node tools/stylehash.mjs capture before  http://127.0.0.1:8811/index.html out   # the app as it ships (twice: the second is the noise)
+node tools/stylehash.mjs capture before2 http://127.0.0.1:8811/index.html out
+node tools/stylehash.mjs capture after   http://127.0.0.1:8812/index.html out   # the copy on the new kit
+node tools/stylehash.mjs compare out before after --noise before2             # every visible element × 8 states; exit 1 on a difference
+```
+
+(`--theme`, `--card`, `--frost`, `--ready`, `--setup` tell it how to drive the app; `--gpu 1` for an app that needs WebGPU.
+Measure an app FULLY booted: λWAVES builds its help and native controls only once the GPU is up, so drive it with
+`--gpu 1 --ready "__LW.ready && !!document.getElementById('controlHelp')" --theme "__LW.setTheme(%s)" --card "__LW.setCardStyle(%s)" --frost "__LW.setFrost(%s ? 'always' : 'off')"` —
+a half-booted page is a half proof.)
+
+**The shell is λWAVES' shell** — serve λWAVES' `lab/` and this repository, then
 
 ```bash
 node tools/shell-parity.mjs capture lambdawaves http://127.0.0.1:8779/index.html /tmp/parity

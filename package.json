@@ -1,13 +1,17 @@
 {
   "name": "mir",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "private": true,
-  "description": "MIR \u2014 Magic Commons' interface kit: tokens, materials, widgets, gestures, window chrome, the shell (wordmark, menubar, notebook, ABOUT) and the modulation system, as vanilla ES modules and CSS.",
+  "type": "module",
+  "description": "MIR — Magic Commons' interface kit: tokens, materials, widgets, gestures, window chrome, the shell (wordmark, menubar, notebook, ABOUT) and the modulation system, as vanilla ES modules and CSS.",
   "license": "GPL-3.0-only",
   "scripts": {
-    "gallery": "python3 -m http.server 8790 --bind 127.0.0.1",
+    "test": "node tests/run.mjs",
+    "gallery": "node tools/serve.mjs 8790",
+    "lint:tokens": "node tools/lint-tokens.mjs",
     "adopt": "node tools/adopt.mjs",
     "check": "node tools/adopt.mjs --check",
-    "parity:shell": "node tools/shell-parity.mjs"
+    "parity:shell": "node tools/shell-parity.mjs",
+    "stylehash": "node tools/stylehash.mjs"
   }
 }

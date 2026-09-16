@@ -1,6 +1,12 @@
-# λWAVES STYLE LOCK
+# MIR · STYLE LOCK
 *Established choices an agent must PRESERVE, not rediscover. Read this instead of inferring the house style from
-lab/rack.js. If you want to change something in here, say so in your report and let Josh decide — do not drift.*
+`lab/rack.js` (λWAVES). If you want to change something in here, say so in your report and let Josh decide — do not drift.*
+
+**Provenance.** Written for λWAVES as its `docs/ui/STYLE-LOCK.md`; the wave numbers and dates below are λWAVES'
+own. Adopted as MIR's law on 2026-09-10, when the kit was extracted from λWAVES, and corrected for the kit on
+2026-09-16: a path names the kit's file where the kit has one, and a file only λWAVES has is marked "(λWAVES)", as
+are its gates (`B70`, `§16`, `tests/*.mjs`). A heading marked **(λWAVES ruling)** is a ruling for λWAVES' own app
+— its racks, transport, physics and particular windows — kept for its reasoning; it is not a law of the kit.
 
 ## The one law
 λWAVES is an **instrument**, not a page. CANVAS = the world · WINDOWS = instruments · RACK = the workspace ·
@@ -8,21 +14,25 @@ CONTROLS = parameters · TRANSPORT = time · NOTES = the physics. Nothing here i
 is deliberate. Freedom outside (the rack rearranges, a window comes off it, the theme and accents are the user's);
 discipline inside (a window's interior stays spatially stable so muscle memory survives).
 
-## Tokens — the source of truth is `lab/skin.css :root`; these are locked
-*(`lab/lab.css :root` is the base ladder underneath it and owns `--font-ui`, `--touch`, `--acc2`, `--rail-w` and
-the `--fs-*` / `--sp-*` / `--r-*` scales; skin.css re-points what it re-dresses. Both are `:root` — see Theme law.)*
+## Tokens — the source of truth is `mir/css/skin.css :root`; these are locked
+*(`mir/css/base.css :root` — λWAVES' `lab.css` ladder, extracted — is the base ladder underneath it and owns
+`--font-ui`, `--touch`, `--acc2`, `--rail-w`, the `--fs-*` / `--sp-*` / `--r-*` scales and, since MIR 1.4.0, the
+motion tokens; skin.css re-points what it re-dresses. Both are `:root` — see Theme law.)*
 - Geometry: `--rack-w: 300px` · `--card-gap: 10px` · `--card-r: 14px` · `--touch: 44px` · `--rail-w: 46px`
   (a COMPACT window's strip). The layout reads the rack width from that one variable — never hard-code it. A
   floating window's width is `--float-w`, **measured from the rack's own content box** when it pops out, so the
-  card is pixel-identical on the stage and in the rack.
+  card is pixel-identical on the stage and in the rack (λWAVES: `rack.js` writes it and `lab.css` reads it; the
+  kit has no float layer of its own).
 - Glass: `--glass-hue/sat-tint/lum` (hsl(214 16% 13%)), `--glass-opacity: .84` — chosen so the field underneath
-  can never pull text below 4.5:1. **That guarantee covers the TINTED pane, NOT the shipped desktop default**:
-  REFRACTIVE is `background: transparent`, so on the surface most users see there is no pane between the ink and
+  can never pull text below 4.5:1. **That guarantee covers the TINTED pane, NOT REFRACTIVE**:
+  REFRACTIVE is `background: transparent`, so on that surface there is no pane between the ink and
   the live field, and the ink ladder's own ≥ 4.5 : 1 below is measured against the tinted card. Wave 59 audited
   the surfaces and changed nothing here, so it still stands. `skin.css` forces `--glass-opacity: 1` on phones,
   but REFRACTIVE has no pane for opacity to act on, so the contrast guarantee still describes TINTED only.
-  REFRACTIVE is the official default on every layout; know which surface a contrast number describes before
-  you quote it.
+  When this was written REFRACTIVE was the official default on every layout, so the guarantee did not cover the
+  surface most users saw. **Since 2026-09-10 λWAVES ships TINTED** (λWAVES `rack.js` `defaultCard()`, and the
+  comment on the tinted rule in `mir/css/skin.css`), so it now covers the default, and still not a browser that
+  chose REFRACTIVE. Know which surface a contrast number describes before you quote it.
   `--glass-border-color` .14 edge, `--glass-hairline` .08 inner, `--glass-sheen` (a 160° highlight that
   REPLACES blur), `--glass-shadow` "tight and quiet" (Josh's words).
 - Relief: `--neu-raise` (stands proud) · `--neu-inset` (a well cut into the card) · `--neu-flat` (a resting seat).
@@ -30,13 +40,20 @@ the `--fs-*` / `--sp-*` / `--r-*` scales; skin.css re-points what it re-dresses.
 - Ink: `--fg #f2f5f7` · `--fg-soft` · `--dim` · `--ink-key` · `--ink-faint` — every one is ≥ 4.5:1 on the card.
   Never invent a new grey; pick the existing rung.
 - Accent: `--acc #78e1f0` (the house cyan) with `--acc-soft` and `--acc-glow`; ACCENT B is `--acc2` / `--acc2-soft`.
+  **Both are derived (MIR 1.4.0):** `--acc` is `hsl(var(--hue-acc) var(--sat-acc) var(--lum-acc))` — the house cyan
+  is `hsl(188 80% 70.6%)`, #78e1f0 to within one level of green — and `--acc2` is
+  `hsl(var(--hue-acc2) var(--sat-acc2) var(--lum-acc2))`. `mir/css/skin.css` declares both again on `<body>` with
+  `--acc-soft`, `--acc2-soft` and `--acc-glow`, so the soft tints follow whatever accent an app writes there.
   ACCENT A carries instrument emphasis and state; ACCENT B carries relationships — macros, modulation, routing,
   the solo marks. Both are angles on the live palette wheel and recolour the whole UI, so never hard-code a hex
-  where an accent belongs.
+  where an accent belongs. The angles are `createAccent()`'s (`mir/shell/accent.js`), and its defaults are
+  λWAVES': A 30°, B 300°, VIVID 0.1. Josh's own law is *"From center, Accent 1 will be 60 degrees and Accent 2
+  will be 300 degrees"* — `createAccent({ a: 60, b: 300 })`.
 - **THE ACCENT'S CONTRAST IS A RULING, NOT A DEFECT (Josh, 2026-09-05).** An audit measured every angle of all
-  23 palettes on both themes: the LIGHT theme cannot reach 4.5 : 1 anywhere, because `legible()` uses one
-  constant (OKLab L = 0.62) as both the dark floor and the light ceiling, and a neutral at that lightness on
-  the light card is 3.22 : 1 by arithmetic. Josh has read it and ruled: *"the legibility is fine to me, you can
+  23 palettes on both themes: the LIGHT theme cannot reach 4.5 : 1 anywhere, because `legible()` (λWAVES
+  `rack.js`; the kit's copy is in `mir/shell/accent.js`) uses one constant (OKLab L = 0.62) as both the dark
+  floor and the light ceiling, and a neutral at that lightness on the light card is 3.22 : 1 by arithmetic.
+  Josh has read it and ruled: *"the legibility is fine to me, you can
   customize vividness as I like all of that. That can stay."* **Do not change the clamp, do not touch VIVID, do
   not chase a contrast threshold for any accent.** If it is ever revisited it is his call, not a wave's.
 - The number ladder `--n1 … --n6` has a LIGHT variant (`N_RGB_LIGHT` in kit.js). Colour for data goes through
@@ -44,7 +61,7 @@ the `--fs-*` / `--sp-*` / `--r-*` scales; skin.css re-points what it re-dresses.
   in kit.js** — `cssRGB()` / `parseCssColor()`, which knows hex, `rgb()` and `color()` including display-p3 —
   and the two accents come from `accentRGB()`, which the wheel PUBLISHES (`setAccentRGB`) rather than the DOM
   being re-parsed. Never write a private colour reader, and never a hex fallback that is a past accent.
-- **THE LOGO IS TWO OBJECTS.** The λ is TYPE and goes through `visibleInk()` (palette.js) at a stated floor of
+- **THE LOGO IS TWO OBJECTS.** The λ is TYPE and goes through `visibleInk()` (`mir/palette.js`) at a stated floor of
   **3 : 1** — hue and chroma handed through, only lightness moves, a no-op wherever the colour already clears.
   **It has TWO GROUNDS and only one of them is a constant (wave 59).** The notebook's `.nb-logo .lam` really is
   on a card and takes `MARK_GROUND`; the header's `#title .lam` is `background: none` over `#field`, whose clear
@@ -54,12 +71,15 @@ the `--fs-*` / `--sp-*` / `--r-*` scales; skin.css re-points what it re-dresses.
   at **√0.0525 − 0.05 = 0.1791287847**, the *ratio's* break-even and not the *scale's* midpoint (0.5 left 7 416
   of 91 080 swept samples under the floor, worst 1.686 : 1; the break-even leaves 0, worst 3.000 : 1), and the
   floor is checked on the **8-bit colour the browser draws**, not on the float.
+  *(In the kit, `mir/shell/accent.js`: the card ground is `CARD_GROUND`, and the header's live read is the
+  `stageGround` option — whose default is λWAVES' two fixed stage grounds, `STAGE_GROUND`. An app whose stage
+  the user can move passes its own, or it has wave 57's bug.)*
   The nine mark squares are the PALETTE showing itself and take the wheel's colours
   **verbatim**: a swatch corrected for its ground lies about the colour it is a swatch of. If they ever need to
   be seeable on a pale palette the answer is a hairline EDGE, not a recolour.
-- Time: `--t-fast .12s` · `--t-soft .35s` · `--t-linger .7s` · `--logo-turn 1.2s`. See MOTION-LAW.md before using
-  any of them.
-- The phone breakpoint is written ONCE, in skin.css, and raises the sentinel `--phone: 1`; script reads that back
+- Time: `--t-fast .12s` · `--t-soft .35s` · `--t-linger .7s` · `--logo-turn 1.2s` — declared in `mir/css/base.css`
+  since MIR 1.4.0 (they were skin.css's). See MOTION-LAW.md before using any of them.
+- The phone breakpoint is written ONCE, in `mir/css/skin.css`, and raises the sentinel `--phone: 1`; script reads that back
   out of the computed style rather than carrying a second copy of the query (wave 51).
 
 ## Material semantics (colour is information, material is furniture)
@@ -67,18 +87,20 @@ idle = neutral glass · hover/focus = frostier, brighter · press/latched = dark
 `--neu-inset`) · signal = restrained ACCENT A · relationship/modulation = ACCENT B. Moving AWAY from large
 saturated rectangles used as generic selection furniture: if a state can be said with material, do not spend colour.
 
-## The widget vocabulary — `lab/kit.js`
+## The widget vocabulary — `mir/kit.js`
 `knob` · `sw` · `seg` · `trig` · `fader` · `readout` · `device` (a window) · `group` (a labelled block inside one)
 · `chip` (a header button's drawing). **A new widget is a design decision, not a convenience.** Compose from these
 first; if you genuinely need a new one, name it in the REPORT with the reason. `graphHover` + `#graphTip` is the
-one hover-information mechanism — do not build a second tooltip.
+one hover-information mechanism — do not build a second tooltip. *(Since MIR 1.4.0 `fader` has the knob's
+`setBase` and `setDisabled`: a driven fader speaks its base, and a dead one gives up its seat.)*
 
 **Header marks are DRAWN, not typed** (wave 55). `chip(btn, name, label)` is the single call site; it sets the
 SVG, the `data-gly` name a gate can read, and the accessible name together, because a button whose only content
-is an aria-hidden drawing has no name. The drawings come from `lab/mir/glyph.js` — **Josh's own library, vendored
-from MANDELBROT by sha256 and maintained by diff, not rewritten** (`lab/mir/PORT-NOTES.md`, alongside `mod.js`
-and `curve.js`). Sizing is ours and lives in `lab.css §55b`; no call site passes a pixel count. Which marks became
-drawings and which did not is listed in REPORT.md's wave-55 block — ⏻ POWER, ⧉ COPY, ◧, ☆ and the notebook's
+is an aria-hidden drawing has no name. The drawings come from `mir/glyph.js` — **Josh's own library, vendored
+from MANDELBROT by sha256 and maintained by diff, not rewritten** (`mir/modulation/PORT-NOTES.md`, which also
+covers `mod.js` and `curve.js`). Sizing is ours and lives in `mir/css/base.css` (λWAVES' `lab.css §55b`); no call
+site passes a pixel count. Which marks became drawings and which did not is listed in REPORT.md's wave-55 block
+(λWAVES) — ⏻ POWER, ⧉ COPY, ◧, ☆ and the notebook's
 ◐ ▤ are still not drawings, because the library offers no equivalent. Do not invent one to close the gap.
 **Know what those leftovers cost (wave 59, found and deliberately not fixed):** ◧ ▶ ☆ ▾ ⇄ ⓘ ⏻ ⧉ ◐ ▤ are in
 **neither shipped face** and never were — the original Roboto has none of them either, so the subset dropped
@@ -89,7 +111,8 @@ and if a mark must be reliable, it has to be a drawing.
 ## Windows: docked, floating, folded, compact
 - **Any window can come off the rack** (wave 55) and it is the transport's own dock mechanism widened, not a
   second one beside it. `#floats` is one absolutely-positioned, pointer-transparent layer above both racks and
-  **below the notebook and the menus**, so a menu can always be opened over a window.
+  **below the notebook and the menus**, so a menu can always be opened over a window. (The float layer, `#floats`
+  and `popOut()`, is λWAVES' own `rack.js` and `lab.css`; the kit's `device()` builds the chips.)
 - **Dragging is by the HEADER alone** — not one pixel of the body, and not all of the header either, since the
   chips keep their own clicks. Pointer events throughout, so mouse, pen and touch are one code path.
 - **A floating window is deliberately NOT resizable.** A corner grip is exactly the control the one law forbids:
@@ -98,7 +121,7 @@ and if a mark must be reliable, it has to be a drawing.
 - **COMPACT is not FOLD.** FOLD is a *height* act (the body goes, the rack's width is kept, a title bar is left)
   and works anywhere. COMPACT is a *width* act a rack card cannot perform: a 46-px vertical rail carrying the
   name, POWER, CLOSE and the way back. Both are available on a floating window; keep them apart.
-- **TAB order, stated:** the mirror rack top to bottom, then the right rack top to bottom, then whatever is
+- *(λWAVES ruling)* **TAB order, stated:** the mirror rack top to bottom, then the right rack top to bottom, then whatever is
   floating, back-most first. Frozen at the first TAB of the session; the cycle holds the *elements*, so a window
   keeps its seat when it pops out or docks back. **This is a WINDOW-RAISE cycle and it was never a focus order**
   — and since wave 57 it fires **only while the stage has focus**. Tab was an application key everywhere, which
@@ -106,13 +129,16 @@ and if a mark must be reliable, it has to be a drawing.
   target (`tabIndex = -1`, focused on `pointerdown`) and **Escape** lets go of it, so from `<body>` Tab walks
   into the interface, from a control Tab walks on, and from the world it still cycles windows. The rule is
   deliberately narrower than "body or canvas": a rule that eats the press on `<body>` leaves the trap at the door.
-  **The rest of keyboard operability is NOT built** — focusable knobs, arrow-key values, the menubar, segmented
-  state, and the bare printable keys that still fire while a control has focus. That is a project and it is
-  Josh's call; REPORT.md's wave-57 block lists what remains.
+  **The rest of keyboard operability was NOT built at wave 57** — focusable knobs, arrow-key values, the menubar,
+  segmented state, and the bare printable keys that still fire while a control has focus; REPORT.md's wave-57
+  block (λWAVES) listed what remained. **It has been built since (wave 62 on):** `knob` and `fader` are focusable
+  sliders with arrows, Page Up/Down, Home/End and Delete (`mir/kit.js`), `seg` is a roving radiogroup, and the
+  menubar opens from the keyboard and Escape gives the focus back (`mir/shell/menubar.js`). What a bare printable
+  key does while a control has focus is the app's to decide (λWAVES: `rack.js`'s single-key law and OWNED guard).
 - **The phone has no floating at all.** The chip stands down in CSS and `popOut()` refuses in script — control
   and act agree. Crossing the breakpoint docks every floating window first, and remembers, because wave 51's law
   is that the crossing is reversible in both directions.
-- **On a phone the rack starts HIDDEN, so the field is what a visitor meets (wave 59).** At 390 px the rack is
+- *(λWAVES ruling)* **On a phone the rack starts HIDDEN, so the field is what a visitor meets (wave 59).** At 390 px the rack is
   300 of them and opaque, and nothing hid it: the volume rendered centred *behind* it and the 90-px strip left
   over showed the far corner of an empty domain box. It is a **DEFAULT, not a rule** — `phoneRack` is the same
   kind of settings key as `card` and `phoneTr`, and pressing ◧ *is* this browser saying which it wants. Two
@@ -121,7 +147,7 @@ and if a mark must be reliable, it has to be a drawing.
   dodge the rack, because **moving the camera to dodge furniture lies about where the origin is** — and a 90-px
   picture is not the cure for a 90-px picture. The phone gets the legend instead.
 
-## A window may ABSORB another — and the ID does not follow the TITLE (wave 56)
+## A window may ABSORB another — and the ID does not follow the TITLE (wave 56) (λWAVES ruling)
 DRAW STYLE is no longer a window. SPACE and DRAW are **one card titled WAVE**: a SPACE group (the two exact
 pictures, the observable grid, EXPOSURE · SOFT · HUE) over a DRAW group (everything the `style` window was),
 with **INVERT · FRAME · AXIS in a bare row at the foot, in neither group** — the three of them are one thought,
@@ -132,7 +158,7 @@ key's `closed[]` names, what a saved LAYOUT names, and what four gate blocks mea
 device.
 - **A saved LAYOUT is a list of window ids and nothing else**, so retiring an id silently drops a seat out of
   every layout ever saved: `applyLayout` simply `continue`d past a card it could not find, which *loads* and
-  loses the window with no error. The law is `RETIRED_WINDOWS = { style: 'observer' }` in `rack.js` —
+  loses the window with no error. The law is `RETIRED_WINDOWS = { style: 'observer' }` in `rack.js` (λWAVES) —
   a retired id resolves to its heir, and **the heir's own record wins when both are named**, because it is one
   window now and one window can only be in one rack. Nothing bumps the layout version: v1 and v2 records read
   exactly as they always did.
@@ -140,7 +166,7 @@ device.
   loads an old layout naming both ids. Do not instead invent a second migration road, and do not leave the old
   id to rot.
 
-## The modulation window is an OUTLIER, by ruling — and its CONTROLS stay in it (amended, wave 61)
+## The modulation window is an OUTLIER, by ruling — and its CONTROLS stay in it (amended, wave 61) (λWAVES ruling)
 Josh, 2026-09-05: *"Modulation related stuff stays with modulation. It must be treated like the outlier and it's
 okay. It's an organization thing."* The permission is conditional on the containment, so the containment is a law:
 **modulation's own controls — sources, macros, the transport, the routing pickers — live in the modulation window
@@ -184,6 +210,10 @@ appear outside the window. **The arc is anchored to the registry's BASE, never t
 why turning a knob under a running LFO slides the arc with the needle and keeps its width: that is the synth law
 made visible, and it is the single best argument for the whole feature.
 
+*(The ring is the kit's in its CSS — `.k-ring-*` in `mir/css/base.css` and `mir/modulation/modhost.css`, read
+against `registry.isWrap()` and `baseNorm()` — but the code that draws and drags it is λWAVES' own host controller,
+`lab/modwindow.js` (λWAVES), which BASINS and NEBULA copied. The laws below bind any host that draws it.)*
+
 **The ring's own laws — settled against four references and two measurements, so do not re-decide them:**
 - **Every drop fills exactly the room the knob has left, in the direction it has room.** We know `baseNorm` at
   the instant of the drop, so nothing clips on the first frame at any base — where Serum assigns full scale and
@@ -223,16 +253,18 @@ is legal as long as hit areas do not overlap and controls stay visually distinct
   padding on top. So six 44-px seats in one row need 279 and do **not** fit: they go three to a row at 74 px,
   and four 62-px knobs wrap to 3 + 1 rather than being shrunk into each other's hit areas. Budget against 226
   and the layout never has to be checked again at any width the window can take.
-- **A control must be able to reach its own default.** Linear over 0 … 8 s on kit.js's 220-px travel is 36.4 ms
+- **A control must be able to reach its own default.** Linear over 0 … 8 s on kit.js's 220-px travel (the default:
+  since MIR 1.4.0 `setKnobLaw({ travel, fine })` retunes it and round-trips, and `dragTravel()` hands the same law
+  to a drag surface the kit did not build) is 36.4 ms
   per pixel against a default attack of **10 ms** — the smallest adjustment the knob could make was nearly four
   times the value it started on. A square law (`get √(v/8)`, `set p²·8`) makes one pixel 0.165 ms at the bottom
   and 72.6 ms at the top. Divide the range by the travel before you ship the range, and measure it with a real
   3-pixel drag rather than reasoning about it.
 
 ## Typography
-Three subset faces ship, all SIL OFL, all `@font-face` in skin.css: **Roboto** (`--font-ui`), **`LW Title`** (the
+Three subset faces ship, all SIL OFL, all `@font-face` in `mir/css/skin.css`: **Roboto** (`--font-ui`), **`LW Title`** (the
 title word — `#title .word` and `.nb-title`) and **STIX Two Math** (`--font-math`). The math face is a
-**40 KB / 194-codepoint** subset of STIX Two Math v2.0.2. **`lab/fonts/STIXTwoMath-SOURCE.txt` is the
+**40 KB / 194-codepoint** subset of STIX Two Math v2.0.2. **`fonts/STIXTwoMath-SOURCE.txt` is the
 contract**: it holds the subsetting command and the rule that matters — *a glyph outside the list falls back
 SILENTLY to a serif and looks almost right, which is worse than wrong* — and since wave 69 **the list is a
 FILE, `STIXTwoMath-glyphs.txt`, which IS the subsetter's `--text-file`**, because the prose list had already
@@ -248,7 +280,7 @@ window title, a note's innerHTML and a live formula's fixed parts alike.
 - Every plain-text call site goes through `kit.js`'s `mathText()`, which SPLITS the string and builds nodes —
   **never innerHTML**, so the marker opens no injection road — and `mathPlain()` strips it for `title` and
   `aria-label`. A marker must never reach an attribute; B146 asserts none does.
-- **`tests/pwa.test.mjs §G` is the gate**: it reads the face's own cmap out of the WOFF2 and fails on any
+- **`tests/pwa.test.mjs §G` (λWAVES) is the gate**: it reads the face's own cmap out of the WOFF2 and fails on any
   marked character the subset does not carry. Run it when you mark new mathematics.
 - **DIGITS.** The subset's ten figures are 495/1000 em — measured, tabular — so a formula keeps its own
   numbers. `--font-num` does **not** move: every value field, knob readout, fader value and the transport
@@ -271,7 +303,7 @@ So the derivative was renamed: nameID 1 / 3 / 4 / 6 rewritten, gluk's nameID 0 /
 what it derives from — and **the same string changed in the binary AND in the stylesheet**, because a CSS
 `font-family` is exactly "the name presented to the users" and a rename in one of the two places is not a
 rename. Not one outline moved. The rules that follow:
-- **`tests/pwa.test.mjs §F` is the gate.** It decodes every shipped WOFF2's own `name` table by hand, gathers
+- **`tests/pwa.test.mjs §F` (λWAVES) is the gate.** It decodes every shipped WOFF2's own `name` table by hand, gathers
   every Reserved Font Name declared anywhere in the tree (13, across the licence texts and the faces
   themselves), refuses any subset face that uses one in a user-facing name, and asserts that skin.css's three
   `@font-face` families are those same three strings. Renaming the CSS family back to `spinwerad` was tried and
@@ -281,10 +313,10 @@ rename. Not one outline moved. The rules that follow:
   contain. `Roboto-SOURCE.txt` and `Spinwerad-SOURCE.txt` say this in the files a future wave would read before
   "fixing" the asymmetry.
 - **A licence must SHIP with the thing it licenses.** OFL §2 says each copy must *contain* the licence, so the
-  six licence texts are precached (22 217 bytes) — an app that makes zero network requests on its second launch
+  six licence texts are precached by λWAVES' service worker (22 217 bytes) — an app that makes zero network requests on its second launch
   was otherwise holding twenty-three font files it could not show one for.
 
-## Defaults that are rulings, not accidents
+## Defaults that are rulings, not accidents (λWAVES ruling)
 - **PRISM is the default palette** (board #51, Josh's ruling): a fresh profile boots with `--acc` at prism's own
   0°. λWAVES is one click away. 23 palettes, grouped in the menu by **stop count** from `PRESET_GROUPS`, which is
   the catalogue's own grouping — a palette added to `palette.js` arrives in the right group with no edit in the
@@ -314,14 +346,15 @@ rename. Not one outline moved. The rules that follow:
   The picture ceiling is the adapter's own `maxTextureDimension2D` asked for at `requestDevice()` (16384 here,
   via the rack's `canvasCap`) and not WebGPU's default 8192 — the largest picture the build could take used to
   be a line of `field.js` rather than the GPU.
-- **CARD STYLE** (REFRACTIVE default / TINTED) is Josh's choice and stays.
+- **CARD STYLE** (TINTED / REFRACTIVE) is Josh's choice and stays. The default was REFRACTIVE; **since 2026-09-10
+  λWAVES ships TINTED** (`rack.js` `defaultCard()`), the look of frost with no backdrop filter.
 - **Rendering defaults:** FROST **OFF**, GLASS BLUR **22px**, PERFORMANCE **120 Hz**, GRID **64³**, and KEEP
   FRAMES **OFF**. These are first-run settings; an existing browser's explicit choices still win.
 - **Tablet motion material:** while the field, camera, rotation, or modulation moves on a tablet, nested
   control shadows stand down. Card silhouettes, borders, fills, and state colours remain; relief returns
   on the first still frame. Unrouted modulation sources request frames only while their editor is open.
 
-## The state is a LINK (wave 56)
+## The state is a LINK (wave 56) (λWAVES ruling)
 The whole state rides in the URL **fragment** (`#s=…`, base64url, ~300 characters), never the query; COPY LINK
 sits beside SAVE · LOAD · COPY JSON and in the FILE menu. A link is read at boot **after** `applySettings()`,
 deliberately — a link is somebody else's picture and the browser's preferences are the reader's furniture — it
@@ -333,7 +366,8 @@ live address. Three laws follow from what the codec IS:
   long to survive a paste says so (`fits: false`), and a `LinkError` gets its own sentence in the interface. But
   `notCarried` is a hand-kept whitelist and not a diff of what `serialize()` emits: **add a presentation key and
   add it there in the same edit**, or it is dropped *and* unreported.
-- **`lab/palette.js` IS FROZEN.** An unedited catalogue palette travels by NAME — the reader rebuilds the stops
+- **`lab/palette.js` IS FROZEN** — and so is the kit's verbatim copy, `mir/palette.js` (MIR 1.3.0): an app that
+  adopts it and mints links inherits the same promise. An unedited catalogue palette travels by NAME — the reader rebuilds the stops
   from its own build — so moving one stop of a shipped palette re-colours every link ever minted against it, in
   silence, for ever. Add palettes; do not edit one. (Edited stops travel in full, which is the escape hatch, and
   a name this build does not have keeps the link's own stops and says so.)
@@ -343,8 +377,8 @@ live address. Three laws follow from what the codec IS:
   A contract asking for "the same state digest" on the first trip is asking the wrong question of a
   float-quantising codec. State what is true at the strength it is true.
 
-## The install layer is LIVE (wave 56)
-`lab/manifest.webmanifest`, the icons and `lab/sw.js` are registered from `main.js` at a **relative** scope
+## The install layer is LIVE (wave 56) (λWAVES ruling)
+`lab/manifest.webmanifest`, the icons and `lab/sw.js` (λWAVES) are registered from `main.js` at a **relative** scope
 (`register('./sw.js', { scope: './' })`; an absolute `/sw.js` is exactly how a root-scoped worker sneaks onto a
 visitor's machine over the rest of the library, and this lab deploys under a path). The law **as built**, which
 is not the law as first prescribed: the worker never takes itself — no `skipWaiting()` on install, no
@@ -374,6 +408,14 @@ the ink path for anything drawn on a canvas.
 A reviewer or builder working in one column must not casually restyle another's. Say what you touched.
 
 ## THE PORTED-WINDOW EXCEPTION — read this before you "adapt" anything (2026-09-06, Josh)
+**STATUS IN MIR (2026-09-16).** This section was written while the MODULATION window was a byte-frozen copy of
+BASINS' inside λWAVES, and it is kept as the history of why. **MIR 1.1.0 retired the byte-frozen law**: MIR is now
+the source of the window (`mir/modulation/modwindow/`, with its host seat `mir/modulation/modhost.css`), and a
+change to it is made in MIR, with its reason, and adopted. What survives is the purpose, and it is the kit's ONE
+RULE (`README.md`): *"Reuse the nodes, the gestures and the CSS. Do not copy their look."* So where this section says
+"copy the DOM structure and the CSS verbatim", read: an app mounts the kit's window as adopted and never rebuilds
+it in its own idiom. The geometric acceptance test (`mir/modulation/modwindow/ACCEPTANCE.md`) still stands.
+
 Everything above tells you to build in the house idiom. **There is one exception and it is deliberate: a window
 that is a PORTED ARTIFACT keeps its own identity, verbatim.** The MODULATION window is one. Josh: "It's supposed
 to be portable and a layout and use that works for every app… I don't even care if it has to be rebuilt from
@@ -397,7 +439,7 @@ asserted in a gate, plus a screenshot beside the source. A re-implementation can
 
 **What may be parameterised**: the two accent colours, and anything naming another app. That list is short by
 design. Everything else — the glass, the spacing, the chrome, the chip vocabulary, the fold and rail behaviour —
-travels unchanged. `docs/ui/REFERENCES.md`'s "steal the mechanism, not the look" governs a REFERENCE (something we
+travels unchanged. `docs/REFERENCES.md`'s "steal the mechanism, not the look" governs a REFERENCE (something we
 looked at). It does NOT govern an ARTIFACT (something we are moving). Know which one you are holding.
 
 **THREE MEASURED DEFECTS THE PORT INHERITS, and it must prove they do not survive it (wave 63).** The third
@@ -419,10 +461,10 @@ and a port that reproduces the window's geometry can very easily reproduce these
    the printed duration is **2.94× stale** for ever. (Beside them: a stage clamped to `t = 1` loses **6 s of
    release to a 2-px twitch**, because `envMove`'s inverse cannot write a stage longer than the window.)
 
-Full report: `REVIEW-3-2026-09-06.md` §1.1, §2.1, §1.2–§1.4. **The port's acceptance gate should drive each of
+Full report: `REVIEW-3-2026-09-06.md` (λWAVES) §1.1, §2.1, §1.2–§1.4. **The port's acceptance gate should drive each of
 these three gestures and fail on them**, exactly as wave 63's B70, B119 and B128 do for the four it built.
 
-## Native window rework — 2026-09-08, explicit user supersession
+## Native window rework — 2026-09-08, explicit user supersession (λWAVES ruling)
 
 Josh requested a full redesign of Spectrum, State, Palette, Wave, Camera, Slice,
 Settings and native transport, with judgment delegated on older layout laws.
@@ -452,7 +494,7 @@ stand down for shapes without surface lighting. Glass is a stylized translucent 
 not a claim of physically refractive optics. New presentation parameters are saved in
 projects, undo and an optional backward-compatible share-link section.
 
-### Native control relief and natural window sizing — follow-up
+### Native control relief and natural window sizing — follow-up (λWAVES ruling)
 
 User ruling supersedes the flat-control treatment and fixed Settings viewport above.
 Exclusive choices use a recessed track and raised selected segment; action buttons
@@ -466,10 +508,17 @@ Changing live values must still leave geometry stable. Explicit tab changes and 
 expansion may resize contents. Horizontal knob-row sizing must never apply inside
 Spectrum's vertical phase/rate stacks; each lane owns its grid and touch dimensions.
 
-### Follow-up: accent arcs, basins and compact tools
+### Follow-up: accent arcs, basins and compact tools (λWAVES ruling)
 
 WINDOW INFO is the fourth DISPLAY status switch, beside STAGE CAPTIONS; it starts
-off. Accent defaults are A=300°, B=30°, Vivid=10%, without replacing saved choices.
+on (corrected 2026-09-16 against λWAVES `native-ui.js`, where the switch is labelled HELP
+and shows the ⓘ unless this browser stored `off`; this line said it starts off). In the kit,
+`body.window-info-off` hides every ⓘ — the class is `HELP_CLASSES.infoOff` in
+`mir/control-help.js`, retunable with `setHelpClasses()` — and since MIR 1.4.0 the CSS for the ⓘ,
+the window status and the plane model is in `mir/css/skin.css` (until then only λWAVES' sheets had it).
+Accent defaults were A=300°, B=30°, Vivid=10%, without replacing saved choices — superseded
+by *Default refinements* below: the code ships A=30°, B=300° (λWAVES `rack.js`, and
+`createAccent()` in `mir/shell/accent.js`).
 Accent selectors and modulation dials show colored value arcs. ENV uses Accent A,
 including its heading. Native readouts retain the shared inset basin material.
 Macro relocation and matrix launchers are parked; see ARCHIVED-MACRO-TOOLS.md.
@@ -478,7 +527,7 @@ Logo menus use a glass surface in the browser top layer above floating windows.
 The work-bar chip cycles the preset and tempo bars below, above, then hidden; the
 chosen lane persists. Every ENV dial, including STEPS, keeps its caption.
 
-### First-visit rack arrangement and compact macros
+### First-visit rack arrangement and compact macros (λWAVES ruling)
 
 First-visit left rack: SHADOW, SPECTRUM. Right rack: SETTINGS (folded), STATE
 (folded), PALETTE, WAVE, CAMERA, SLICE/CLIP. Other windows, including modulation,
@@ -492,7 +541,7 @@ The routing grip, master-depth dial and reorder/delete tool retain their row pos
 and height. `+ MACRO` and `+ DEVICE` remain at the rail foot. The separately archived
 macro relocation and matrix launchers stay off.
 
-### Default refinements and transport placement
+### Default refinements and transport placement (λWAVES ruling)
 
 New settings use 22px glass blur, Accent A=30°, Accent B=300° (Vivid stays 10%).
 Saved settings retain their values. SHADOW uses PHASORS / OSC / LISSA, followed by

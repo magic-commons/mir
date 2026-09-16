@@ -1,5 +1,10 @@
-# λWAVES ANTI-PATTERNS — real failures from this build, each with its fix
+# MIR · ANTI-PATTERNS — real failures from the λWAVES build, each with its fix
 *Cheap insurance: read this before a UI wave and you will not spend a gate discovering these again.*
+
+**Provenance.** Written for λWAVES as its `docs/ui/ANTI-PATTERNS.md`; every failure below happened there, and the
+wave numbers are λWAVES' own. Adopted as MIR's law on 2026-09-10 and corrected for the kit on 2026-09-16: a path
+names the kit's file where the kit has one, and a file only λWAVES has is marked "(λWAVES)", as are its gates
+(`B8`, `B71`, `B95`, `tests/*.mjs`). The lessons are the kit's; most of the machinery they were learned on is not.
 
 **1. A colour defined only inside a theme block.** NO: putting a colour's only definition in the dark block, or
 in `@media (prefers-color-scheme)`. YES: every colour is a token on the bare `:root`, and a theme block only
@@ -57,7 +62,7 @@ calls the same loader unconditionally (or a `click` handler that re-applies the 
 bow until the impulses had accumulated real momentum and found there was no way back but a page refresh — the
 creep is correct physics, the absence of a way back was the bug. B95 demonstrates it with a *counting* listener
 rather than asserting it. **Six `<select>`s exist in the lab and the audit is the point of this entry**: two of
-them reloaded — the PRESET list, and `lab/paletteview.js`, where after ROTATE / REVERSE / ADD / REMOVE you could
+them reloaded — the PRESET list, and `lab/paletteview.js` (λWAVES), where after ROTATE / REVERSE / ADD / REMOVE you could
 not re-pick the palette you were on to get it back. Both now carry a RELOAD trigger beside them. The other four
 (modulation's macro, target, wave, drive) are pure assignments where the value *is* the state, and re-picking
 there means nothing — which is the test: **is this handler an assignment or a reload?** Only a reload needs the
@@ -69,15 +74,15 @@ and DRIFT would have been stranded, since no preset can draw a per-cycle stochas
 
 **13. A test that certifies a bug.** NO: a green line whose wording describes a behaviour the fixture never
 entered. YES: assert from the outside in VALUE space, and cover every ORDERING of the actors, not one. WHY:
-`mir.test.mjs` blessed `registry.resync()` as "re-reads the instrument" while its fixture called `restoreAll()`
+`mir.test.mjs` (λWAVES) blessed `registry.resync()` as "re-reads the instrument" while its fixture called `restoreAll()`
 one line earlier, so the *modulated* branch was never run — and on that branch resync read the modulator's own
 output back into the base, destroying the user's number silently, with no event, in two of the six
 drag/modulate/resync orderings. The base is the only copy of that number in the program. **And the second half of
-the smell: `rack.js` had already routed around it** with a local `modSyncBases()` — "resync() minus that" — rather
+the smell: `rack.js` (λWAVES) had already routed around it** with a local `modSyncBases()` — "resync() minus that" — rather
 than fixing the module, on the stated grounds that "`registry.js` is MIR's file and 53 gates pin its behaviour".
-Both halves of that were wrong: `PORT-NOTES.md` lists `registry.js` as **ours** (only `mod.js`, `curve.js` and
+Both halves of that were wrong: `mir/modulation/PORT-NOTES.md` lists `registry.js` as **ours** (only `mod.js`, `curve.js` and
 `glyph.js` are vendored), and a gate that pins a defect is the defect, not a reason to keep it. A local workaround
-for a module defect is a smell: **fix the module.** It has since been fixed in `lab/mir/registry.js`
+for a module defect is a smell: **fix the module.** It has since been fixed in `mir/modulation/registry.js`
 (the law is stated in its own comment: *the base of a modulated parameter is never read out of its Card*), and
 `mir.test.mjs §18` now proves all six orderings, both halves of resync's job, and the quiet.
 
@@ -85,7 +90,7 @@ for a module defect is a smell: **fix the module.** It has since been fixed in `
 from a table somebody has to remember to regenerate. If an entry goes stale the name does **not** change when the
 file does, the service worker keeps serving the old bytes, and a returning visitor never re-checks — the browser
 is doing exactly what it was told. YES: if the name is derived, the list must be *generated and gated*, so the
-build fails rather than drifts. WHY: `lab/sw.js` names its cache `digest(url@hash …)` over its own §1 precache
+build fails rather than drifts. WHY: `lab/sw.js` (λWAVES) names its cache `digest(url@hash …)` over its own §1 precache
 table — which is right, and strictly better than a hand-edited `const VERSION` (ANTI-PATTERN 6) — and the whole
 guarantee rests on §1 being current. The guard is `node tests/pwa.test.mjs`, which walks `lab/` itself, re-hashes
 every file and FAILS on a missing, stale or wrong entry; `--write` rewrites §1 and then proves it. **Run it after
@@ -94,7 +99,7 @@ and invisible to the person who caused it.
 
 **15. A law the code breaks itself.** NO: a header that states an absolute guarantee and a mechanism further down
 that cannot honour it. YES: state the guarantee at the strength the mechanism actually provides, and put the
-missing half where it can be kept. WHY: `lab/sw.js` opens with *"A NEW BUILD IS NEVER SWAPPED IN UNDER A RUNNING
+missing half where it can be kept. WHY: `lab/sw.js` (λWAVES) opens with *"A NEW BUILD IS NEVER SWAPPED IN UNDER A RUNNING
 SESSION"* — and its §6 message handler calls `self.skipWaiting()`. The worker-side mitigations are real and worth
 keeping (it is the only `skipWaiting()` in the file, unreachable outside the message handler, on no timer, and
 `pwa.test.mjs` asserts both facts on the CODE), but none of them touch the actual hole: **`skipWaiting()` is
@@ -111,7 +116,7 @@ can hold it, and say in both files which layer that is.
 **16. A claim proved by a lucky sample.** NO: "N mutations, all refused" as a robustness headline. A round number
 of *successes* with no sample size, no coverage fraction and no failure count is not a measurement — it is a draw.
 YES: state the sample size, what fraction of the space it covers, and the failure count; and where the space is
-small enough, sweep it exhaustively instead. WHY: `statelink.test.mjs`'s corruption section prints "over 680
+small enough, sweep it exhaustively instead. WHY: `statelink.test.mjs`'s (λWAVES) corruption section prints "over 680
 mutations … 680 were refused with a LinkError", and 680 sounds exhaustive. It is not: 286 of those are the
 truncations (which *are* exhaustive) and the other ~394 are randomly drawn single-character substitutions out of
 the 18 081 that exist on that 287-character link — **about 2 %**. Swept in full, the same fixture does have
@@ -129,9 +134,9 @@ anything referenced them** — `tests/pwa.test.mjs` and `tests/statelink.test.mj
 called `navigator.serviceWorker.register`, nothing linked the manifest, and nothing minted or read a link. A
 service worker nobody registers is worth exactly nothing, and **the failure mode is silence in both directions**:
 nothing breaks, nothing works, and the gate is green. It kept happening — three modules in one week, which is the
-list `tests/wiring.test.mjs` now opens with: `sw.js` (built 55, registered 56), `capture.js` (built 57, wired 58,
+list `tests/wiring.test.mjs` (λWAVES) now opens with: `sw.js` (built 55, registered 56), `capture.js` (built 57, wired 58,
 and **three of the four defects that wave met were in code no browser had ever executed**), and
-`lab/render-exact.js`, **inert as this is written**: 92 KB, 39 green gates, zero importers, precached and
+`lab/render-exact.js` (λWAVES), **inert as this is written**: 92 KB, 39 green gates, zero importers, precached and
 downloaded by every visitor. The corollary, learned the same night: **when the code you are handed
 and the comment prescribing how to wire it disagree, the code is the fact.** `pwa.test.mjs`'s own closing
 prescription would have shipped an orphaned message channel, a lost update and a lost registration, all three
@@ -186,7 +191,7 @@ understanding the risk precisely, and then proving it somewhere it cannot bite. 
 configuration that ships, or it says out loud which one it does not cover. WHY — this has now happened three
 times in one week, each time written by someone who understood the danger better than the person who later found
 it:
-- `pwa.test.mjs:553` names the service-worker scope hazard as a test case and hard-codes `host.invalid/lab/sw.js`.
+- `pwa.test.mjs:553` (λWAVES) names the service-worker scope hazard as a test case and hard-codes `host.invalid/lab/sw.js`.
   Production serves from the ORIGIN ROOT, where `SCOPE === '/'` makes the guard a no-op and every URL on the
   hostname returns the app from cache. The test could only ever prove the mount we abandoned.
 - **B70**, the 44-px touch-target walk, tests DOM ownership and opens with `mod.reset()`. So it walks with every
@@ -202,7 +207,7 @@ and whether your fixture has just removed it.
 **22. "Add the class and it will take the other background."** NO: fixing a transparent element whose own
 rule is `background: var(--some-token)` by adding a lower-specificity class that also sets a background.
 YES: give the `var()` a **reachable value** — a fallback, or the token declared where the element actually
-lands. WHY: `MANIFEST.md` prescribed exactly that one-word fix for two of the ported window's defects
+lands. WHY: `mir/modulation/modwindow/MANIFEST.md` prescribed exactly that one-word fix for two of the ported window's defects
 (`.m2pick`, `.m2clr`), and it would have changed nothing, silently. **A declaration that is INVALID AT
 COMPUTED-VALUE TIME still wins the cascade first, and only then computes to `unset`** — so
 `.mir-modwindow .m2pick { background: var(--m2-plate) }` at (0,2,0) beats `.glass` at (0,1,0), the
@@ -216,8 +221,9 @@ losing cascade** — read the token's declaring selector before you reach for sp
 panel "looks wrong beside the others". YES: ask what the other surfaces RESPOND to and whether this one
 can hear it. WHY: the modulation plugin read as a flat slab beside the ABOUT card for three waves and the
 colours were the same to within one 8-bit code — `hsl(212 14% 13%)` against the house's
-`hsl(214 16% 13%)`, both `rgb(28, 33, 38)`. The difference was that reach-list 15 pinned the plugin's pane
-at `:root:root:root`, where **CARD STYLE cannot reach it**: every other card in the lab went REFRACTIVE on
-the shipped default and this one could not. Two waves of tint adjustment could not have found that, and
+`hsl(214 16% 13%)`, both `rgb(28, 33, 38)`. The difference was that reach-list 15 (in the host sheet,
+now `mir/modulation/modhost.css`, whose item 15 is the fix) pinned the plugin's pane at `:root:root:root`,
+where **CARD STYLE cannot reach it**: every other card in the lab went REFRACTIVE on the shipped default of the time (λWAVES ships TINTED since
+2026-09-10) and this one could not. Two waves of tint adjustment could not have found that, and
 one question would have. The fix is that the surface reads the house's own tokens and answers the house's
 own switch — after which "it follows the glass" is true tomorrow as well as today.

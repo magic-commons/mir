@@ -1,0 +1,60 @@
+/* lint-tokens.mjs — every token the kit READS is a token something WRITES.
+ *
+ *   node tools/lint-tokens.mjs            exit 1 if any var(--x) without a fallback has no definition
+ *   node tools/lint-tokens.mjs --unused   also list tokens the kit defines and nothing in the kit reads
+ *
+ * A token counts as written when a kit sheet declares it (`--x:` in any rule), when kit JavaScript sets it
+ * (`setProperty('--x'…)`, or a '--x' string handed to style), or when it is on HOST below: a token the kit
+ * deliberately leaves to the app, each with the reason.  A var() WITH a fallback is not an error — the rule
+ * says what happens without it — but it is listed when --unused is asked for, so a typo in a fallback-guarded
+ * name can still be seen.  A read with no fallback and no writer is a bug: the property silently falls back
+ * to its initial value (measured 2026-09-16: --w-medium, --accent-sweep, --line). */
+import fs from 'node:fs'; import path from 'node:path';
+
+const ROOT = new URL('..', import.meta.url).pathname;
+/* written by the app, read by the kit — the contract (docs/CONTRACT.md lists them too) */
+export const HOST = {
+  '--accent-sweep': 'an accent dial\'s arc angle, written per knob by the app that builds accent dials (λWAVES native-ui.js)',
+  '--cx': 'the busy mark\'s pointer x, written by the app that shows a busy mark (λWAVES rack.js)',
+  '--cy': 'the busy mark\'s pointer y (λWAVES rack.js)',
+};
+
+const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => e.isDirectory() ? (e.name === 'vendor' ? [] : walk(path.join(d, e.name))) : [path.join(d, e.name)]);
+const files = walk(path.join(ROOT, 'mir'));
+const css = files.filter((f) => f.endsWith('.css')), js = files.filter((f) => f.endsWith('.js'));
+const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
+
+const defined = new Map(), reads = [];
+for (const f of css) {
+  const src = strip(fs.readFileSync(f, 'utf8'));
+  for (const m of src.matchAll(/(^|[\s;{])(--[\w-]+)\s*:/g)) if (!defined.has(m[2])) defined.set(m[2], path.relative(ROOT, f));
+  for (const m of src.matchAll(/var\(\s*(--[\w-]+)\s*(,)?/g)) {
+    const line = src.slice(0, m.index).split('\n').length;
+    reads.push({ name: m[1], fallback: !!m[2], at: `${path.relative(ROOT, f)}:${line}` });
+  }
+}
+for (const f of js) {
+  const src = fs.readFileSync(f, 'utf8');
+  for (const m of src.matchAll(/setProperty\(\s*['"`](--[\w-]+)['"`]/g)) if (!defined.has(m[1])) defined.set(m[1], path.relative(ROOT, f) + ' (JS)');
+  for (const m of src.matchAll(/['"`](--[\w-]+)\s*:/g)) if (!defined.has(m[1])) defined.set(m[1], path.relative(ROOT, f) + ' (JS string)');
+  for (const m of src.matchAll(/var\(\s*(--[\w-]+)\s*(,)?/g)) reads.push({ name: m[1], fallback: !!m[2], at: `${path.relative(ROOT, f)}:${src.slice(0, m.index).split('\n').length}`, js: true });
+}
+
+const missing = reads.filter((r) => !r.fallback && !defined.has(r.name) && !(r.name in HOST));
+const guarded = reads.filter((r) => r.fallback && !defined.has(r.name) && !(r.name in HOST));
+const byName = (list) => { const m = new Map(); for (const r of list) { if (!m.has(r.name)) m.set(r.name, []); m.get(r.name).push(r.at); } return m; };
+
+console.log(`tokens: ${defined.size} written by the kit, ${Object.keys(HOST).length} left to the host, ${new Set(reads.map((r) => r.name)).size} read`);
+if (missing.length) {
+  console.log(`\nREAD WITH NO WRITER AND NO FALLBACK (${byName(missing).size}) — the property falls back to its initial value:`);
+  for (const [n, at] of byName(missing)) console.log(`  ${n}  ← ${at.slice(0, 6).join(', ')}${at.length > 6 ? ` (+${at.length - 6})` : ''}`);
+}
+if (process.argv.includes('--unused')) {
+  if (guarded.length) { console.log(`\nread only behind a fallback, written nowhere in the kit (${byName(guarded).size}):`); for (const [n, at] of byName(guarded)) console.log(`  ${n}  ← ${at.slice(0, 3).join(', ')}`); }
+  const readNames = new Set(reads.map((r) => r.name));
+  const unused = [...defined.keys()].filter((n) => !readNames.has(n));
+  console.log(`\nwritten and never read inside the kit (${unused.length}) — an app may read them; check before removing:`);
+  console.log('  ' + unused.join(' '));
+}
+console.log(missing.length ? `\n${byName(missing).size} unwritten token(s)` : '\nevery token the kit reads has a writer');
+process.exit(missing.length ? 1 : 0);

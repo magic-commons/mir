@@ -1,5 +1,94 @@
 # MIR — changelog
 
+## 1.4.0 — 2026-09-16 · polish: the kit proves itself
+
+MIR gets its own proofs, repairs the bugs its 2026-09-16 survey found, shows everything it has in a gallery that restyles nothing, and has docs that are MIR's.
+
+Every change below was measured in throwaway copies of λWAVES and BASINS III re-adopted onto this kit (`tools/stylehash.mjs`: every visible element × theme × card × frost, λWAVES fully booted on the GPU). The results, and how they were checked:
+- **λWAVES:** identical in all 8 default states, element by element and pixel by pixel. Two tokens change underneath (see *The accent follows the app*), and they show as soon as a switch is on.
+- **BASINS:** identical except that its accent setting now works.
+- **The shell:** still λWAVES' own in all 14 states (`tools/shell-parity.mjs`).
+- **An independent verifier** re-ran every proof, mutated the kit under the tests (each mutation caught), and found the gaps fixed below before release.
+
+### Fixed
+- **The accent follows the app.** `--acc` was a literal (`#78e1f0`, and `hsl(188 70% 34%)` on light), and its soft tints were resolved once on `:root`. So:
+  - an app that turned `--hue-acc` on `<body>` moved the derived tints but never `--acc` itself;
+  - an app that wrote `--acc` never moved `--acc-soft` or `--acc2-soft`.
+
+  Accents are now `hsl(var(--hue-acc) var(--sat-acc) var(--lum-acc))`, and B likewise with `--hue-acc2/--sat-acc2/--lum-acc2`. They and their soft tints are declared again on `<body>`, so they follow whatever the app writes there; an inline `--acc` still wins. The defaults are the house cyan to within one level of green.
+  - **Visible in BASINS and NEBULA:** their ACCENT A setting now recolours the power lamps, the switch and trigger fills and every other accent. Measured in BASINS: rgb(120,225,240) → rgb(134,227,214), BASINS' own chosen accent.
+  - **Visible in λWAVES, once it re-adopts (Josh's call):** the soft tints now follow λWAVES' own accent instead of the house cyan. That means the fill of a switch that is ON, the modulation button while live, the transport's mod buttons and the keymap's highlights: a switch turned on at boot fills with the palette's accent rather than cyan (measured). The default screens paint no soft tint, so they are identical.
+  - **Breaking, for an app that writes accents on `<html>` or in a `:root` rule:** those are now shadowed by the `<body>` declaration and ignored. Write accents on `<body>`; λWAVES, BASINS and NEBULA already do, and hue tokens on `<html>` still work.
+- **Help reopened on a click.** A mouse press closed a hover hint, and the press's own focus reopened it at once, against the law that a hand on a control closes the hint. Focus now shows a hint only to the keyboard (`:focus-visible`), and Tab still does.
+- **The parts the kit builds are styled by the kit.** The CSS for the window status (`.dev-stat`), the formula (`.fx`), the ⓘ button and panel, the hover hint (`.control-help`) and the plane model lived only in λWAVES' sheets, so every other app got them unstyled: the gallery's status ran into its title, and a hint sat in the page flow. The rules are λWAVES', now at the end of `mir/css/skin.css`: 32 blocks, 28 byte for byte, 1 differing only in whitespace, 3 with their selector lists trimmed to the kit's parts. They duplicate, and so don't change, what λWAVES, BASINS and NEBULA already carry.
+- **A disabled fader is disabled.** It no longer resets on a double-click, and it looks disabled (`.fd.disabled`, the knob's .38 / .3).
+- **Undefined tokens.**
+  - `--w-medium` (a typo for `--w-med`) is now `--w-med`: bold text in a window's ⓘ help is medium weight again.
+  - `--line` (defined nowhere) is now `--glass-border-color`, in the parked macro matrix.
+  - `tools/lint-tokens.mjs` now fails on any token read that nothing writes.
+- **Motion tokens.** `--t-fast/--t-soft/--t-linger/--logo-turn` moved from `skin.css` to `base.css`, which reads them.
+- **The fader caught up with the knob.**
+  - `setBase(fn)` works (it was an empty stub), and so does `setDisabled(on)`.
+  - A painted (modulated) fader or knob announces the hand's value in both `aria-valuenow` and `aria-valuetext`.
+  - `log` with min ≤ 0 warns instead of silently turning linear.
+- **The drag law round-trips.** `setKnobLaw` takes explicit `keyFine`, `faderFine` and `touchTravel`, so `setKnobLaw(setKnobLaw())` changes nothing. `dragTravel(event, { touch })` gives the law to a drag surface the kit did not build.
+- **The plane model** is sharp at every device-pixel ratio. It repaints on a theme flip, when it used to hold the other theme's ink. An accent written inline on `<body>` is noticed on the next `paint()`, with no style resolution per frame, since λWAVES paints it every frame. `destroy()` releases its observers.
+- **Leaks.** An ⓘ panel's document listener leaves once the panel has been in the page and left it.
+
+### λWAVES names became options (defaults unchanged)
+- `device({ loadingMark })`: an element, a selector, or `false`. Default: the wordmark's mark.
+- `createWindowActivity({ rackIds, classes: { uiHidden, rackHidden, rackPeek } })`. This renames what window-activity reads; `shell.css` still hides the shell on `ui-hidden`.
+- `setHelpClasses({ hintsOff })`, and `consolidateWindowHelp(root, { sources })`. `window-info-off` is a CSS contract name and stays as it is.
+- **Not in this release:** an injectable preset key. `mod.js` is untouched, byte-identical to its vendored source, because λWAVES' `tests/mir.test.mjs` §16 proves those bytes and an adopt must not break λWAVES' gate. It waits for that gate to retire.
+
+### Proofs and tools
+- **`npm test` (`tests/run.mjs`)**, with no dependencies. Every suite passes:
+  - the token lint;
+  - `adopt.node.mjs` (17 assertions);
+  - `registry.node.mjs` (19), `curve.node.mjs` (10), `host.node.mjs` (50) and `modulation-model.node.mjs` (20), ported from λWAVES' `tests/mir.test.mjs` with neutral fixtures;
+  - `widgets.browser.mjs` (47, real pointer and keyboard);
+  - `shell.browser.mjs` (the 19 shell probes).
+- **`tools/stylehash.mjs`** is the neutrality proof: the "3 292-element computed-style hash" of 1.0.0, kept this time.
+  - **What it captures:** every visible element including `<html>` and `<body>`, about 90 computed properties, boxes, `::before`/`::after`, and every custom property the page's sheets declare.
+  - **Noise:** a second capture of the unchanged page masks noise per property and per pixel. With that mask, a pixel difference fails the run too.
+  - **What it does not drive:** hover, focus or popovers (the other proofs cover those).
+- **`tools/lint-tokens.mjs`:** every `var(--x)` the kit reads has a writer. Tokens left to the host are listed with their reason.
+- **`tools/adopt.mjs` hardened:**
+  - an unknown flag is an error (a mistyped `--check` used to copy), and so is a `--prefix` that is a flag or leaves the app;
+  - files the kit no longer has are removed, and `--check` reports them as EXTRA along with a manifest that doesn't match the bytes;
+  - `--dry-run` and `--prefix` are new, and a corrupt manifest is reported, not thrown;
+  - the manifest records the kit commit, and adopting from uncommitted kit changes needs `--allow-dirty`;
+  - files are replaced atomically;
+  - the manifest keeps the shape λWAVES' `tests/mir-manifest.test.mjs` reads.
+- **`tools/serve.mjs`:** a static server with no dependencies. `npm run gallery` no longer needs Python.
+- **`tools/cdp.mjs`:**
+  - every call has a deadline (`MIR_CDP_TIMEOUT`), so a GPU-wedged page fails a proof instead of hanging it;
+  - `gpu: true` for an app that needs WebGPU;
+  - it finds Chromium on the PATH;
+  - a snap Chromium's profile goes where the snap can write it, and every browser is killed on exit.
+- **`package.json`:** `"type": "module"`, and scripts for `test`, `gallery`, `lint:tokens`, `adopt`, `check`, `parity:shell` and `stylehash`.
+
+### Gallery
+`gallery/index.html` is rebuilt.
+- **Seats:** theme, card style, frost, disconnected, and a **ground** seat: plain, or a busy coloured field (Sol's test: glass must hold over a picture).
+- **Accents:** A, B and VIVID on the accent engine.
+- **Tokens:** every colour, type size, spacing and radius.
+- **Controls:** every control in every state (linear, log, wrap, stepped, modulated with its base tick, disabled, large; switches off and on; a latched trigger; faders linear, log, driven and disabled; readout states; the formula; badges).
+- **Window states:** live, off, calculating, folded.
+- **The glyph set, and the real modulation window**, built by `createModWindow` and not restyled.
+- **Removed:** the gallery's own `.g-tile` overrides, which broke the one rule.
+
+### Docs
+- **New:**
+  - `docs/API.md`: every export of every module.
+  - `docs/CONTRACT.md`: load order, what the kit reads on `<body>`, the tokens an app may re-point, ids, events, storage.
+  - `docs/PLUGIN-CONTRACT.md`: the socket TIMELINE plugs into, and what the vault already decided about it.
+- **Corrected:** STYLE-LOCK, MOTION-LAW, ANTI-PATTERNS, REFERENCES and the modulation window's notes are now MIR docs. Their λWAVES provenance is kept, λWAVES rulings are labelled as such, and stale claims are corrected (the byte-frozen law, keyboard knobs "NOT built", the default card style, the accent defaults, the host-API claim).
+
+### Measured and left as rulings (look changes are Josh's call)
+- **Light theme:** `--ok` and `--warn` readouts are faint on the light cards (see the gallery, light).
+- **The field ground:** over a bright busy picture with frost and refractive cards, small text is hard to read. This is the question BASINS' ink polarity answers; a `data-ground` axis is proposed.
+
 ## 1.3.0 — 2026-09-16 · the shell, from λWAVES
 
 Josh named λWAVES the reference app for MIR's features. The first to come into the kit are the menubar the wordmark opens and the notebook glass with its ABOUT face. A fresh app on MIR now gets these, and the basics of an ABOUT page, without writing them.
@@ -118,7 +207,8 @@ The two commits after the 1.1.3 entry (f0ac335, 05155da) added API to `kit.js` w
   cut out of λWAVES' `native-ui.js`.
 - The modulation system (BASINS' window, byte-frozen, with λWAVES' host, model, registry and curves) under
   `mir/modulation/`. The host API exposes the window's own gestures (`wireGrip`, `wireDepth`, `paintDepth`,
-  `moveMacro`, `rebuildMacros`) so a second face can reuse them.
+  `moveMacro`, `rebuildMacros`) so a second face can reuse them. *(Corrected in 1.4.0: those five live in
+  λWAVES' own `lab/modwindow.js` host controller, not in MIR; the kit ships the window's builders.)*
 - The dot grip (`gripDots`, 3 × 3 on a 5-px pitch) is the one *drag me* mark: rack window headers, the rail's
   reorder handle, the transport's macro tiles, the modulation device cards. The four-way cross is *route me*.
 - `tools/adopt.mjs` copies the kit into an app and writes `MIR-MANIFEST.json`; `--check` reports drift.

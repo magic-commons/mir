@@ -25,7 +25,7 @@ function findChromium() {
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-export async function launch({ width = 1280, height = 900, scale = 1, port = 9300 + Math.floor(Math.random() * 600) } = {}) {
+export async function launch({ width = 1280, height = 900, scale = 1, gpu = false, port = 9300 + Math.floor(Math.random() * 600) } = {}) {
   const bin = findChromium();
   let snap = false; try { snap = fs.realpathSync(bin).startsWith('/snap/') || bin.startsWith('/snap/'); } catch { snap = bin.startsWith('/snap/'); }
   const base = process.env.MIR_TMP || (snap ? path.join(os.homedir(), 'snap', 'chromium', 'common') : os.tmpdir());
@@ -35,7 +35,9 @@ export async function launch({ width = 1280, height = 900, scale = 1, port = 930
     /* grayscale text everywhere: whether Chromium uses subpixel (LCD) antialiasing depends on the compositing layer
        the text lands in — λWAVES' wordmark sits over canvases and gets grayscale, a plain page gets LCD — and a
        proof must not see that as a design difference (measured 2026-09-16: 0.35 % of the menubar strip, text only) */
-    '--font-render-hinting=none', '--disable-lcd-text', `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, `--window-size=${width},${height}`, 'about:blank'],
+    '--font-render-hinting=none', '--disable-lcd-text', `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, `--window-size=${width},${height}`,
+    /* gpu: a real WebGPU adapter for an app that will not boot without one (MANDELBROT-REDUX's rig flags) */
+    ...(gpu ? ['--enable-unsafe-webgpu', '--ignore-gpu-blocklist'] : []), 'about:blank'],
   { stdio: 'ignore' });
   const handle = { proc, profile }; LIVE.add(handle);
   let ok = false;
@@ -51,7 +53,14 @@ export async function launch({ width = 1280, height = 900, scale = 1, port = 930
     if (d.method === 'Runtime.exceptionThrown') logs.push('EXCEPTION ' + (d.params.exceptionDetails.exception?.description || d.params.exceptionDetails.text));
     else if (d.method === 'Runtime.consoleAPICalled' && (d.params.type === 'error' || d.params.type === 'warning')) logs.push(d.params.type + ' ' + d.params.args.map((a) => a.value ?? a.description).join(' '));
   };
-  const send = (method, params = {}) => new Promise((resolve) => { const i = ++id; pending.set(i, resolve); ws.send(JSON.stringify({ id: i, method, params })); });
+  /* every call has a deadline: a page wedged in GPU work must fail a proof, not hang it (MIR_CDP_TIMEOUT ms, default 90 s) */
+  const LIMIT = Number(process.env.MIR_CDP_TIMEOUT) || 90000;
+  const send = (method, params = {}) => new Promise((resolve, reject) => {
+    const i = ++id;
+    const timer = setTimeout(() => { if (pending.delete(i)) reject(new Error(`cdp: ${method} took longer than ${LIMIT} ms`)); }, LIMIT);
+    pending.set(i, (d) => { clearTimeout(timer); resolve(d); });
+    try { ws.send(JSON.stringify({ id: i, method, params })); } catch (e) { clearTimeout(timer); pending.delete(i); reject(e); }
+  });
   await send('Runtime.enable'); await send('Page.enable');
   await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: scale, mobile: false });
   return {
