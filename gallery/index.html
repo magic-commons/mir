@@ -38,6 +38,7 @@ r0.appendChild(seg({ label: 'CARD STYLE', value: 'tinted', options: [{ id: 'tint
 r0.appendChild(sw({ label: 'FROST', value: false, title: 'the frost policy over both card styles', onChange: (v) => document.body.classList.toggle('frost', v) }).root);
 r0.appendChild(sw({ label: 'DISCONNECTED', value: true, title: 'the window as a constellation: bar-chip, body-card, air between', onChange: (v) => document.body.classList.toggle('disconnected', v) }).root);
 el('div', 'g-note', s0.body, 'Every window on this page is kit chrome: header, grip, fold, power, close. Change the seats above and watch all of them follow — that is the material language.');
+{ const n = el('div', 'g-note', s0.body, 'The SHELL — the wordmark, its menus and the notebook with ABOUT — is a page of its own: '); const a = el('a', '', n, 'shell.html'); a.href = './shell.html'; a.style.color = 'var(--acc)'; }
 
 /* 2 · TOKENS */
 const t = card('tokens', 'MIR · TOKENS', 'read from :root at runtime');
