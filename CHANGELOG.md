@@ -85,9 +85,12 @@ Every change below was measured in throwaway copies of λWAVES and BASINS III re
   - `docs/PLUGIN-CONTRACT.md`: the socket TIMELINE plugs into, and what the vault already decided about it.
 - **Corrected:** STYLE-LOCK, MOTION-LAW, ANTI-PATTERNS, REFERENCES and the modulation window's notes are now MIR docs. Their λWAVES provenance is kept, λWAVES rulings are labelled as such, and stale claims are corrected (the byte-frozen law, keyboard knobs "NOT built", the default card style, the accent defaults, the host-API claim).
 
-### Measured and left as rulings (look changes are Josh's call)
-- **Light theme:** `--ok` and `--warn` readouts are faint on the light cards (see the gallery, light).
-- **The field ground:** over a bright busy picture with frost and refractive cards, small text is hard to read. This is the question BASINS' ink polarity answers; a `data-ground` axis is proposed.
+### Readability is the app's (Josh, 2026-09-16)
+*"Each app specific stuff should be fine. And readability is different for each app."*
+- **The kit ships normal polarity:** dark ink on light, light ink on dark, as λWAVES reads.
+- **An app sets its own ink in its own sheet.** BASINS, whose glass sits over the coloured Mandelbrot set, uses white text on light and black on dark (its `ink.css`, re-pointing the ink ladder, CONTRACT §4).
+- **So no kit-wide ground axis.** The gallery's FIELD ground stays a way to look at glass over a busy picture, not a law.
+- **The same goes for the faint `--ok`/`--warn` readouts on light cards:** an app that uses them re-points them.
 
 ## 1.3.0 — 2026-09-16 · the shell, from λWAVES
 

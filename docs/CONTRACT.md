@@ -60,9 +60,17 @@ Write them in the app's own sheet or on `<body>`. They are resolved where they a
 | `--glass-blur` | the frost and notebook blur (λWAVES: SETTINGS › GLASS BLUR) |
 | `--card-opacity`, `--glass-opacity` | how solid a tinted pane is |
 | `--glass-hue`, `--glass-sat-tint`, `--glass-lum`, `--glass-tint` | the pane's tint |
-| `--fg`, `--fg-soft`, `--ink-key`, `--dim`, `--ink-faint`, `--ink-shadow` | the ink ladder (BASINS' ink polarity re-points these) |
+| `--fg`, `--fg-soft`, `--ink-key`, `--dim`, `--ink-faint`, `--ink-shadow` | the ink ladder: see *Readability is the app's* below |
+| `--ok`, `--warn`, `--bad`, `--n1`…`--n6` | status and data inks, per theme |
 | `--rack-w` | the rack gutter. An app with no racks sets `0px`, and the shell's wordmark and notebook use the whole width |
 | `--ui-scale` | the modulation window's scale (the kit's other sheets don't read it yet) |
+
+**Readability is the app's** (Josh, 2026-09-16: *"readability is different for each app"*).
+- **The kit ships normal polarity:** dark ink on the light theme, light ink on the dark, which is how λWAVES reads.
+- **An app whose picture asks for something else re-points the ink ladder in its own sheet, loaded after the kit's.**
+  - BASINS draws its glass over the coloured Mandelbrot set, and its ink is white on light and black on dark.
+  - That's done by BASINS' `ink.css`, never by editing a kit file.
+- **App-specific readability is expected, not a breach of the one rule.** The rule is about reusing the kit's nodes, gestures and CSS, not about every app wearing the same ink.
 
 Two families of tokens are written by the app and read by the kit (`tools/lint-tokens.mjs` checks both):
 - `--accent-sweep`: an accent dial's arc, per dial;
