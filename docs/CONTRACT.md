@@ -1,6 +1,6 @@
 # MIR · the contract between the kit and an app
 
-What an app must do, what it may change, and what belongs to the kit. MIR 1.4.0.
+What an app must do, what it may change, and what belongs to the kit. MIR 1.4.2.
 
 ## 1. Adoption
 
@@ -108,6 +108,7 @@ The kit writes `localStorage` only here:
 - **Idle is zero work.** A window that is closed, folded, powered off or off screen does not compute (`window-activity.js`).
 - **The single-key law.** Controls never take Enter or Space; those stay the app's. Typing in the notebook reaches no app key except Ctrl/⌘+S and Ctrl/⌘+,.
 - **A gesture belongs to the pointer that started it.** A capture that can't be taken must not throw. Cancel and lost capture end a gesture like pointerup.
+- **Curve gestures are MIR's, not a host's.** `mir/modulation/curve-gesture.js` is the FL Studio law: right-drag empty space adds and places a point; Shift-right-click adds at the curve's current value; left-drag moves a point; left-drag on a tension handle bends it; Ctrl makes the tension drag fine; right-click on a tension handle resets it; Alt-left-click deletes a point. Shift locks a point's value and Ctrl locks its time while moving it. A plain left click on empty curve is inert. Pointer coordinates are transformed into SVG user space before hit testing, and a deterministic analytic wave materializes on its first edit instead of demanding a preset.
 - **Touch targets are 44 px** (`--touch`) wherever the pointer is coarse.
 - **Text in hover hints steps aside for a hand on a control**, and shows for the keyboard.
 - **Colour comes from tokens.** `tools/lint-tokens.mjs` proves every token the kit reads is written; it does not police literals, and the kit still carries some (the ⓘ panel's glass, the modulation window's sheet), each a candidate for a token.

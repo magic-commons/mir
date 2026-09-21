@@ -1,5 +1,14 @@
 # MIR — changelog
 
+## 1.4.2 — 2026-09-21 · the FL curve workflow is a kit law
+
+- Added `mir/modulation/curve-gesture.js`, the shared interpreter every modulation host now uses.
+- Restored Image-Line's documented envelope controls: right-drag empty space adds and places a point; Shift-right-click adds at the curve's current value; left-drag moves a point; left-drag on the tension handle changes curvature; Ctrl gives fine tension control; right-click on a tension handle resets it; Alt-left-click deletes a point. A plain left click on empty curve is inert.
+- Fixed the scaled-editor miss: pointer coordinates are converted from client pixels into the SVG viewBox before point/handle hit testing. Clicking a visible tension handle can no longer fall through as empty space and add a point.
+- Deterministic analytic LFOs materialize their equivalent editable curve on the first edit. The editor no longer blocks behind “select a preset first.” S&H and DRIFT remain analytic because no single-cycle breakpoint curve represents them.
+- `PROMPT.md`, the contract, API and adopted host contract state the law explicitly so a model cannot silently reintroduce the tap-to-add or preset-gate variants.
+- `tests/curve-gesture.node.mjs` proves the coordinate transform, hit priority, full action matrix, point-axis locks, Ctrl-fine tension and analytic-wave mapping.
+
 ## 1.4.0 — 2026-09-16 · polish: the kit proves itself
 
 MIR gets its own proofs, repairs the bugs its 2026-09-16 survey found, shows everything it has in a gallery that restyles nothing, and has docs that are MIR's.

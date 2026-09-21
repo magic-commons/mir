@@ -174,6 +174,19 @@ Notes on the shell:
 | `curveHash`, `curveInfo` | A hash and a summary of a curve |
 | `TENSION_OCT`, `CURVE_MAX_POINTS`, `SINE_TENSION` | Limits and constants |
 
+### `curve-gesture.js`: the curve editor's pointer law (1.4.2)
+
+| Export | What it is |
+|---|---|
+| `svgPoint(svg, event)` | Converts client coordinates to the SVG viewBox before hit testing, including CSS/UI scaling |
+| `curveHit(point, points, handles, radius)` | Nearest point-or-handle hit test in that coordinate system |
+| `curveAction(event, hit)` | FL Studio's action matrix: right-empty add, left-point move, left-handle tension, right-handle reset, Alt-left-point delete |
+| `pointDrag(start, current, event)` | Shift locks value; Ctrl locks time |
+| `pointAddValue(event, pointerValue, curveValue)` | Shift-right-click preserves the curve's current value; ordinary right-click uses pointer value |
+| `tensionDelta(startY, currentY, event)` | Handle travel with Ctrl fine adjustment |
+| `editablePresetForWave(wave)` | Deterministic analytic wave → editable breakpoint preset; S&H and DRIFT return `null` |
+| `CURVE_GESTURES` | The human-readable gesture contract |
+
 ### `mod.js`: the model
 
 188 exports. Grouped:
@@ -219,7 +232,7 @@ They go home to λWAVES when the kit drops its λWAVES leftovers (2.0.0).
 | `gripIcon`, `powIcon`, `GLYPHS`, `glyphEl`, `setGlyph`, `m2mk`, `m2svg`, `SVG_PLAY`, `SVG_PAUSE` | The window's own icons and DOM helpers |
 | `NS`, `WINDOW_ID`, `WINDOW_TITLE`, `CHIPRAIL_LABEL`, `IDS`, `GEOM`, `sizeLaw`, `COPY` | Names, ids, geometry and copy |
 
-**The controller that wires the window to a host is not in the kit yet.** Routes, rings, the clock, presets and gestures (`wireGrip`, `wireDepth`, `paintDepth`, `moveMacro`, `rebuildMacros`) live in λWAVES' `lab/modwindow.js`, which BASINS and NEBULA copied. It comes into the kit with the shell harvest.
+**The complete controller that wires the window to a host is not in the kit yet.** Routes, rings, the clock and presets (`wireGrip`, `wireDepth`, `paintDepth`, `moveMacro`, `rebuildMacros`) live in λWAVES' `lab/modwindow.js`, which BASINS and NEBULA copied. Curve pointer semantics are the exception since 1.4.2: every host imports `curve-gesture.js`, so copied controllers cannot drift on point/tension controls.
 
 The window loads two sheets, `mir/modulation/modhost.css` and then `mir/modulation/modwindow/modwindow.css`, and nothing may follow the second.
 

@@ -255,7 +255,14 @@ below, the four edges and the model.)*
 - **the rack** — `mw.addDevice({id, kind})`, kind `'lfo' | 'env' | 'audio'`. Cards are
   appended to the horizontal scroller. `setDeviceMode(dev, 'F' | 'C' | 'M')` is the whole of the
   presentation tri-state.
-- **the curve** — write `d` on `dev.ed.path` and `dev.ed.fill`; the measuring law is
+- **the curve** — write `d` on `dev.ed.path` and `dev.ed.fill`; bind its pointer surface through
+  `../curve-gesture.js`. The 1.4.2 law is FL Studio's: right-drag empty space adds and places a point;
+  Shift-right-click adds at the curve's current value;
+  left-drag moves a point or tension handle; Ctrl fine-tunes tension; right-click resets a tension
+  handle; Alt-left-click deletes a point. Plain left-click on empty space is inert. `svgPoint()` must
+  transform client pixels into the SVG viewBox before `curveHit()` is asked, or a resized visible
+  tension handle becomes an empty-space press. A deterministic analytic wave materializes on its
+  first edit and never asks the user to select a preset. The measuring law is
   `w = max(60, round(box.clientWidth) || 206)`,
   `h = max(60, round(box.clientHeight - 14) || 128)`,
   `px(t, v) = [11 + t·(w − 22), h − 11 − v·(h − 22)]`.
