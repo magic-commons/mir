@@ -1,5 +1,10 @@
 # MIR — changelog
 
+## 1.4.3 — 2026-09-23 · editable sine at birth, double-click tension reset
+
+- Fresh LFOs now start on the editable SINE preset. Explicit analytic waves and saved source modes are preserved.
+- Double-clicking a tension handle resets it, alongside the existing right-click reset, for LFO and ENV hosts.
+
 ## 1.4.2 — 2026-09-21 · the FL curve workflow is a kit law
 
 - Added `mir/modulation/curve-gesture.js`, the shared interpreter every modulation host now uses.

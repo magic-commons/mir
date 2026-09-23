@@ -38,6 +38,24 @@ const clone = (v) => JSON.parse(JSON.stringify(v));
 
 const ROOTS = ['view', 'look', 'grid', 'clock', 'state'];
 
+/* A new LFO starts as the real editable SINE preset. Explicit analytic waves
+   in saved and factory patches keep their old meaning through a round trip. */
+{
+  M.modReset({ bare: true });
+  const fresh = M.addSource('lfo');
+  const explicit = M.addSource('lfo', { wave: 'sine' });
+  const before = M.serializeRack();
+  const initial = fresh.shapeMode === 'curve' && fresh.wave === 'sine' &&
+    CV.pointsEqual(fresh.points, CV.presetPoints('sine')) && explicit.shapeMode === 'wave';
+  M.modReset({ bare: true });
+  const loaded = M.deserializeRack(before), rows = M.sourceList();
+  check('a new LFO is the editable SINE preset while explicit analytic waves and saved shapes survive',
+    initial && loaded && rows[0].shapeMode === 'curve' && rows[1].shapeMode === 'wave' &&
+    CV.pointsEqual(rows[0].points, CV.presetPoints('sine')),
+    { initial, loaded, modes: rows.map(s => s.shapeMode) });
+  M.modReset();
+}
+
 /* ══════════════ λWAVES §5 · serializeRack / deserializeRack round-trips ══════════ */
 {
   const port = { angle: 0.65, tilt: 0.38, gain: 1, knee: 0.6, cells: 96 };

@@ -30,6 +30,9 @@ const pass = (name, detail) => { n++; console.log(`PASS ${name}${detail ? ` — 
   assert.equal(curveAction({ button: 0, altKey: true }, point), 'remove-point');
   assert.equal(curveAction({ button: 0 }, handle), 'move-tension');
   assert.equal(curveAction({ button: 2 }, handle), 'reset-tension');
+  assert.equal(curveAction({ type: 'dblclick', button: 0 }, handle), 'reset-tension');
+  assert.equal(curveAction({ type: 'dblclick', button: 0 }, point), null);
+  assert.equal(curveAction({ type: 'dblclick', button: 0 }, empty), null);
   assert.equal(curveAction({ button: 2 }, point), 'point-menu');
   pass('the FL gesture matrix is exact', Object.values(CURVE_GESTURES).join(' · '));
 }

@@ -9,8 +9,8 @@ Give a model this, verbatim, with the path filled in:
 > `mir/shell/` (with `mir/shell/shell.css` loaded after the kit's two sheets), every drag surface uses `mir/slider-keys.js`, hints
 > come from `mir/control-help.js`, idle work is governed by `mir/window-activity.js`. **A modulation curve editor must use
 > `mir/modulation/curve-gesture.js` unchanged: right-drag empty space adds, Shift-right-click preserves the curve's current value, left-drag moves a point or tension handle,
-> Ctrl fine-tunes tension, right-click resets a tension handle, and Alt-left-click deletes a point. A plain left click on
-> empty curve never adds a point, and no host may require a preset before a deterministic wave can be edited.** Colours, spacing and type
+> Ctrl fine-tunes tension, right-click or double-click resets a tension handle, and Alt-left-click deletes a point. A plain left click on
+> empty curve never adds a point, a fresh LFO starts as the editable SINE preset, and no host may require a preset before a deterministic wave can be edited.** Colours, spacing and type
 > come only from the tokens in `base.css`. If a widget or material is missing, add it to MIR with its law and a
 > proof, re-adopt, and never grow a second version here. Read `docs/STYLE-LOCK.md` and `docs/ANTI-PATTERNS.md`
 > before the first UI change. Run `node tools/adopt.mjs <this-app> --check` before every commit; it must report

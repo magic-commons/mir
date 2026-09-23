@@ -174,13 +174,13 @@ Notes on the shell:
 | `curveHash`, `curveInfo` | A hash and a summary of a curve |
 | `TENSION_OCT`, `CURVE_MAX_POINTS`, `SINE_TENSION` | Limits and constants |
 
-### `curve-gesture.js`: the curve editor's pointer law (1.4.2)
+### `curve-gesture.js`: the curve editor's pointer law (1.4.3)
 
 | Export | What it is |
 |---|---|
 | `svgPoint(svg, event)` | Converts client coordinates to the SVG viewBox before hit testing, including CSS/UI scaling |
 | `curveHit(point, points, handles, radius)` | Nearest point-or-handle hit test in that coordinate system |
-| `curveAction(event, hit)` | FL Studio's action matrix: right-empty add, left-point move, left-handle tension, right-handle reset, Alt-left-point delete |
+| `curveAction(event, hit)` | FL Studio's action matrix: right-empty add, left-point move, left-handle tension, right- or double-click handle reset, Alt-left-point delete |
 | `pointDrag(start, current, event)` | Shift locks value; Ctrl locks time |
 | `pointAddValue(event, pointerValue, curveValue)` | Shift-right-click preserves the curve's current value; ordinary right-click uses pointer value |
 | `tensionDelta(startY, currentY, event)` | Handle travel with Ctrl fine adjustment |
