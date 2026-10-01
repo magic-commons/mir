@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MIR · kit paint fixture</title>
+<link rel="stylesheet" href="../../mir/css/base.css">
+<link rel="stylesheet" href="../../mir/css/skin.css">
+<link rel="stylesheet" href="../../mir/history/history.css">
+<style>html, body { margin: 0; background: #070a0f; } #host { position: absolute; left: 20px; top: 20px; width: 360px; } #hl { position: absolute; left: 400px; top: 20px; width: 300px; height: 300px; display: flex; }</style>
+</head>
+<body data-theme="dark" data-card="tinted">
+<div id="host"></div>
+<div id="hl"></div>
+<script type="module">
+import * as kit from '../../mir/kit.js';
+import { createHistory } from '../../mir/history/history.js';
+import { historyList, installHistoryKeys } from '../../mir/history/history-list.js';
+const host = document.getElementById('host');
+const k = kit.knob({ label: 'LIN', min: 0, max: 1, value: 0 }); host.appendChild(k.root);
+const f = kit.fader({ label: 'FADE', min: 0, max: 1, value: 0.5 }); host.appendChild(f.root);
+const fx = kit.formula({ lines: [['E = ', { s: 'e', v: '1.0' }]] }); host.appendChild(fx.root);
+const H = createHistory(); let x = 0;
+H.register('x', { read: () => ({ x }), write: (s) => { x = s.x; } });
+const list = historyList(H, document.getElementById('hl'));
+installHistoryKeys(H);
+window.__T = { kit, k, f, fx, H, list, set x(v) { x = v; }, get x() { return x; } };
+window.__ready = true;
+</script>
+</body>
+</html>

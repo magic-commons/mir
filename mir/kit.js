@@ -44,6 +44,7 @@
  *   B140 gates the EAR, the EYE and the MODEL together, which is what B127 could not see.
  */
 import { setGlyph } from './glyph.js';
+import { setText, setVar } from './core/perf.js';   // paint writes only what changed, and the meter counts both
 
 
 export const chip = (btn, name, label) => setGlyph(btn, name, { label });
@@ -178,13 +179,13 @@ export function knob(o) {
   function paint(fromUser) {
     const shownV = (shown !== null && !dragging) ? shown : v;
     const p = o.wrap ? (norm(shownV) % 1 + 1) % 1 : clamp01(norm(shownV));
-    needle.style.setProperty('--turn', (o.wrap ? p * 360 : -135 + p * 270) + 'deg');
-    val.textContent = fmt(shownV);
+    setVar(needle, '--turn', (o.wrap ? p * 360 : -135 + p * 270) + 'deg');
+    setText(val, fmt(shownV));
     /* THE BASE STAYS VISIBLE UNDER A MODULATOR (Bitwig's convention): while a painted value dances the needle, a
        small tick at the rim marks the base the hand owns — where a drag starts and what the file saves. */
     const mod = shown !== null && !dragging;
     root.classList.toggle('k-mod', mod);
-    if (mod) { const pb = o.wrap ? (norm(v) % 1 + 1) % 1 : clamp01(norm(v)); dial.style.setProperty('--base-turn', (o.wrap ? pb * 360 : -135 + pb * 270) + 'deg'); }
+    if (mod) { const pb = o.wrap ? (norm(v) % 1 + 1) % 1 : clamp01(norm(v)); setVar(dial, '--base-turn', (o.wrap ? pb * 360 : -135 + pb * 270) + 'deg'); }
     announce(fromUser);
   }
   /** WAVE 68 · ONE QUANTISER, ONE FOLD, ONE CLAMP — and BOTH ROADS TAKE IT.  The fold lived in the
@@ -439,7 +440,7 @@ export function fader(o) {
     if (saidNow !== now) { saidNow = now; root.setAttribute('aria-valuenow', now); }
     if (saidText !== text) { saidText = text; root.setAttribute('aria-valuetext', text); }
   }
-  const paint = (fromUser) => { const sv = (shown !== null && !dragging) ? shown : v; root.style.setProperty('--fill', norm(sv)); val.textContent = fmt(sv); root.classList.toggle('mod', shown !== null && !dragging); announce(fromUser); };
+  const paint = (fromUser) => { const sv = (shown !== null && !dragging) ? shown : v; setVar(root, '--fill', norm(sv)); setText(val, fmt(sv)); root.classList.toggle('mod', shown !== null && !dragging); announce(fromUser); };
   const fromEvent = (e) => { const r = root.getBoundingClientRect(); return denorm((e.clientX - r.left) / Math.max(1, r.width)); };
   root.addEventListener('pointerdown', (e) => { if (disabled) return; e.preventDefault(); try { root.setPointerCapture(e.pointerId); } catch (_) {} dragging = true; root.classList.add('drag'); tap(); lastX = e.clientX; if (!e.shiftKey) v = fromEvent(e); paint(); if (o.onInput) o.onInput(v); });
   let dragRect = null;   // 2026-09-11: the rect is read once per drag, not once per move
@@ -502,13 +503,13 @@ export function formula(o) {
       if (typeof part === 'string') { mathText(el('span', null, row), part); continue; }
       const v = el('i', 'fx-v', row, part.v === undefined ? '—' : String(part.v));
       v.dataset.s = part.s;
-      slots.set(part.s, { el: v, was: v.textContent });
+      slots.set(part.s, { el: v });
     }
   }
   return {
     root,
-    /** write only the slots whose value MOVED — the dirty-check is the closure, never the DOM */
-    set(vals) { for (const k in vals) { const sl = slots.get(k); if (!sl) continue; const t = String(vals[k]); if (sl.was !== t) { sl.was = t; sl.el.textContent = t; } } },
+    /** write only the slots whose value MOVED — setText skips an identical write */
+    set(vals) { for (const k in vals) { const sl = slots.get(k); if (sl) setText(sl.el, vals[k]); } },
     get names() { return [...slots.keys()]; }
   };
 }
@@ -692,7 +693,7 @@ export function hideGraphTip(owner) {
 /** the tip never leaves the viewport: it is fixed on the body, so no card can clip it */
 function placeTip(txt, cx, cy) {
   const t = tipNode();
-  if (t.textContent !== txt) t.textContent = txt;
+  setText(t, txt);
   t.hidden = false;
   const r = t.getBoundingClientRect(), W = window.innerWidth, H = window.innerHeight;
   let x = cx + 13, y = cy + 15;
