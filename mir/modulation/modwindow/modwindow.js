@@ -45,9 +45,8 @@ export const NS = 'mir-modwindow';
 export const WINDOW_ID = 'modwin';
 
 /** LOAD-BEARING FOR PAINT.  The chip rail's label is (title || root.id) +
- *  ' window controls', and five rules in modwindow.css select on the result
- *  byte-for-byte.  Translate this and the chips silently lose their material,
- *  with no error and no hint beyond "the chips look wrong". */
+ *  ' window controls'.  Since 1.5 no kit CSS selects on it: the rail carries
+ *  data-mir-rail and each chip data-mir-chip, so this label may be translated. */
 export const WINDOW_TITLE = 'MODULATION';
 export const CHIPRAIL_LABEL = WINDOW_TITLE + ' window controls';
 
@@ -423,7 +422,7 @@ export function createModWindow(host) {
   const close = m2mk('button', 'kwin-close', bar);
   close.type = 'button';
   close.setAttribute('aria-label', 'Close ' + title);
-  close.dataset.ink = 'close';
+  close.dataset.glyph = 'close';
   const closeInk = glyphEl('close', 'crail-ink gly-close', 26);
   if (closeInk) close.appendChild(closeInk);
 
@@ -489,8 +488,11 @@ export function buildChipRail(windowRoot, host) {
   const rail = m2mk('div', 'crail crail-float kwin-chiprail kwin-chiprail-' + side);
   rail.setAttribute('role', 'toolbar');
   /* window.js builds this as (o.title || root.id) + ' window controls'.
-     modwindow.css selects on the exact result in five rules. */
+     The label is for people and may be translated; the kit's CSS keys on the
+     hooks below, never on the label text. */
   rail.setAttribute('aria-label', (title || windowRoot.id) + ' window controls');
+  /* STYLING HOOKS (1.5): the rail names its window, each chip names itself. */
+  rail.dataset.mirRail = windowRoot.id === WINDOW_ID ? 'modulation' : windowRoot.id;
 
   const chips = {};
   const chip = (spec, kind) => {
@@ -499,6 +501,7 @@ export function buildChipRail(windowRoot, host) {
       (drag ? ' crail-grip' : '') + (kind === 'close' ? ' kwin-close-chip' : ''));
     if (!drag) b.type = 'button';
     b.dataset.rail = spec.id;
+    b.dataset.mirChip = spec.id;
     b.dataset.chromeKind = kind;
     b.dataset.reopensWindow = 'false';
     b.setAttribute('aria-label', spec.label);
@@ -509,14 +512,14 @@ export function buildChipRail(windowRoot, host) {
   };
 
   const closeChip = chip({ id: 'close', label: 'Close window', title: 'Close window' }, 'close');
-  closeChip.dataset.ink = 'close';
+  closeChip.dataset.glyph = 'close';
   const closeInk = glyphEl('close', 'crail-ink gly-close', 26);
   if (closeInk) closeChip.appendChild(closeInk);
 
   for (const c of copy.chips) {
     const b = chip({ id: c.id, label: c.label, title: c.label }, 'action');
     b.setAttribute('aria-pressed', 'false');
-    b.dataset.ink = c.glyph;
+    b.dataset.glyph = c.glyph;
     const ink = glyphEl(c.glyph, 'crail-ink gly-' + c.glyph, 26);
     if (ink) b.appendChild(ink);
   }

@@ -158,7 +158,7 @@
 
 /* THE CHIPS ARE .kwin-tab TOO (button.kwin-tab.crail-chip), and the chip rail is a DOM SIBLING of the window — hence the second part. */
 /* index.html:3479-3497   was:  .kwin-tab  */
-.mir-modwindow .kwin-tab, .kwin-chiprail[aria-label="MODULATION window controls"] .kwin-tab {
+.mir-modwindow .kwin-tab, .kwin-chiprail[data-mir-rail="modulation"] .kwin-tab {
   flex: 1 1 0;
   min-width: 0;
   padding: 4px 2px 3px;
@@ -176,7 +176,7 @@
   transition: color 140ms ease, background-color 140ms ease;
 }
 /* index.html:3496-3498   was:  .kwin-tab:active  */
-.mir-modwindow .kwin-tab:active, .kwin-chiprail[aria-label="MODULATION window controls"] .kwin-tab:active { background: var(--glass-press); }
+.mir-modwindow .kwin-tab:active, .kwin-chiprail[data-mir-rail="modulation"] .kwin-tab:active { background: var(--glass-press); }
 /* index.html:3521-3535   was:  .kwin-body  */
 .mir-modwindow .kwin-body {
   flex: 1 1 auto;
@@ -232,7 +232,7 @@
 
 /* THE BUTTON RESET, AND EXTRACT FILE 02 DOES NOT CARRY IT.  index.html has exactly four bare element selectors — html, body, button and button:active — and file 02's filter ("every rule whose selector names kwin or modwin") could not see them.  MEASURED, headless, with and without this rule: 44 of the window's 48 buttons lose cursor:pointer; .m2zoom, .m2audgrip, .m2audmac, .modxport and .modtempo fall back to the UA font at 13.33px because they rely on `font: inherit`; and .m2pickb loses its 5px 9px padding for the UA's 1px 6px.  It is required. */
 /* index.html:4802   was:  button  */
-.mir-modwindow button, .kwin-chiprail[aria-label="MODULATION window controls"] button {
+.mir-modwindow button, .kwin-chiprail[data-mir-rail="modulation"] button {
   font: inherit;
   color: var(--fg);
   background: var(--glass-raise);
@@ -243,9 +243,9 @@
   -webkit-tap-highlight-color: transparent;
 }
 /* index.html:4812   was:  button:active  */
-.mir-modwindow button:active, .kwin-chiprail[aria-label="MODULATION window controls"] button:active { background: var(--glass-press); }
+.mir-modwindow button:active, .kwin-chiprail[data-mir-rail="modulation"] button:active { background: var(--glass-press); }
 /* index.html:6917   was:  .kwin-tab.on  */
-.mir-modwindow .kwin-tab.on, .kwin-chiprail[aria-label="MODULATION window controls"] .kwin-tab.on {
+.mir-modwindow .kwin-tab.on, .kwin-chiprail[data-mir-rail="modulation"] .kwin-tab.on {
   color: var(--fg);
   background: var(--bar-raise);
   box-shadow: inset 0 0 0 var(--glass-border) var(--glass-border-color);
@@ -253,9 +253,9 @@
   text-shadow: var(--ink-shadow);
 }
 
-/* THE FLOATING CHIP RAIL. Scoped by the same byte-exact aria-label hook file 01 already uses. The label is (title || root.id) + " window controls" — pass title: "MODULATION" or the chips lose their material. */
+/* THE FLOATING CHIP RAIL. Scoped by the rail's data-mir-rail hook (set where buildChipRail builds it); the aria-label is for people and no rule reads it. */
 /* index.html:7098   was:  .crail.crail-float.kwin-chiprail  */
-.crail.crail-float.kwin-chiprail[aria-label="MODULATION window controls"] {
+.crail.crail-float.kwin-chiprail[data-mir-rail="modulation"] {
   position: fixed;
   width: var(--chrome-chip-target);
   height: auto;
@@ -275,7 +275,7 @@
   backdrop-filter: none;
 }
 /* index.html:7116-7140   was:  .crail.crail-float.kwin-chiprail .crail-chip  */
-.crail.crail-float.kwin-chiprail[aria-label="MODULATION window controls"] .crail-chip {
+.crail.crail-float.kwin-chiprail[data-mir-rail="modulation"] .crail-chip {
   box-sizing: border-box;
   position: relative;
   z-index: 0;
@@ -299,7 +299,7 @@
   font: 700 var(--fs-small)/1 ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 /* index.html:7139-7158   was:  .crail.crail-float.kwin-chiprail .crail-chip::before  */
-.crail.crail-float.kwin-chiprail[aria-label="MODULATION window controls"] .crail-chip::before {
+.crail.crail-float.kwin-chiprail[data-mir-rail="modulation"] .crail-chip::before {
   content: "";
   position: absolute;
   z-index: -1;
@@ -318,22 +318,22 @@
   backdrop-filter: var(--glass-filter);
 }
 /* index.html:7157-7159   was:  .crail.crail-float.kwin-chiprail .crail-chip:focus-visible  */
-.crail.crail-float.kwin-chiprail[aria-label="MODULATION window controls"] .crail-chip:focus-visible { outline: 1px solid var(--fg-soft); }
+.crail.crail-float.kwin-chiprail[data-mir-rail="modulation"] .crail-chip:focus-visible { outline: 1px solid var(--fg-soft); }
 /* index.html:7158-7160   was:  .crail.crail-float.kwin-chiprail .crail-chip.on  */
-.crail.crail-float.kwin-chiprail[aria-label="MODULATION window controls"] .crail-chip.on { color: var(--fg); outline: none; }
+.crail.crail-float.kwin-chiprail[data-mir-rail="modulation"] .crail-chip.on { color: var(--fg); outline: none; }
 /* index.html:7159-7165   was:  .crail.crail-float.kwin-chiprail .crail-chip:active::before, .crail.crail-float.kwin-chiprail .crail-chip.on::before  */
-.crail.crail-float.kwin-chiprail[aria-label="MODULATION window controls"] .crail-chip:active::before,
-.crail.crail-float.kwin-chiprail[aria-label="MODULATION window controls"] .crail-chip.on::before {
+.crail.crail-float.kwin-chiprail[data-mir-rail="modulation"] .crail-chip:active::before,
+.crail.crail-float.kwin-chiprail[data-mir-rail="modulation"] .crail-chip.on::before {
   background-color: var(--bar-raise);
   border-color: var(--glass-border-color);
 }
 /* index.html:7164-7169   was:  .crail.crail-float.kwin-chiprail .crail-grip  */
-.crail.crail-float.kwin-chiprail[aria-label="MODULATION window controls"] .crail-grip {
+.crail.crail-float.kwin-chiprail[data-mir-rail="modulation"] .crail-grip {
   cursor: move;
   touch-action: none;
 }
 /* index.html:7168-7177   was:  .kwin-grip-dots  */
-.kwin-chiprail[aria-label="MODULATION window controls"] .kwin-grip-dots {
+.kwin-chiprail[data-mir-rail="modulation"] .kwin-grip-dots {
   width: calc(14px * var(--ui-scale));
   height: calc(14px * var(--ui-scale));
   display: grid;
@@ -342,7 +342,7 @@
   pointer-events: none;
 }
 /* index.html:7176-7185   was:  .kwin-grip-dots > i  */
-.kwin-chiprail[aria-label="MODULATION window controls"] .kwin-grip-dots > i {
+.kwin-chiprail[data-mir-rail="modulation"] .kwin-grip-dots > i {
   width: calc(2px * var(--ui-scale));
   height: calc(2px * var(--ui-scale));
   align-self: center;
@@ -351,12 +351,12 @@
   background: currentColor;
 }
 /* index.html:7200   was:  html body .crail.crail-float  */
-html body .crail.crail-float[aria-label="MODULATION window controls"] {
+html body .crail.crail-float[data-mir-rail="modulation"] {
   width: var(--chrome-chip-target);
   gap: var(--sp-3);
 }
 /* index.html:7203-7211   was:  html body .crail.crail-float .crail-chip  */
-html body .crail.crail-float[aria-label="MODULATION window controls"] .crail-chip {
+html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip {
   flex-basis: var(--chrome-chip-target);
   width: var(--chrome-chip-target);
   height: var(--chrome-chip-target);
@@ -364,7 +364,7 @@ html body .crail.crail-float[aria-label="MODULATION window controls"] .crail-chi
   min-height: var(--chrome-chip-target);
 }
 /* index.html:7210-7218   was:  html body .crail.crail-float .crail-chip::before  */
-html body .crail.crail-float[aria-label="MODULATION window controls"] .crail-chip::before {
+html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip::before {
   left: 50%;
   top: 50%;
   width: var(--chrome-chip-disc);
@@ -372,19 +372,19 @@ html body .crail.crail-float[aria-label="MODULATION window controls"] .crail-chi
   transform: translate(-50%, -50%);
 }
 /* index.html:7217-7223   was:  html body .crail.crail-float .crail-chip.on  */
-html body .crail.crail-float[aria-label="MODULATION window controls"] .crail-chip.on {
+html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip.on {
   color: var(--fg);
   outline: none;
   text-shadow: var(--ink-shadow);
 }
 /* index.html:7222-7228   was:  html body .crail.crail-float .crail-chip.on::before  */
-html body .crail.crail-float[aria-label="MODULATION window controls"] .crail-chip.on::before {
+html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip.on::before {
   background-color: var(--bar-raise);
   border-color: var(--glass-border-color);
   box-shadow: inset 0 var(--glass-border) 0 var(--glass-sheen), var(--glass-bevel);
 }
 /* index.html:7227-7232   was:  html body .crail.crail-float .crail-chip:active::before  */
-html body .crail.crail-float[aria-label="MODULATION window controls"] .crail-chip:active::before {
+html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::before {
   background-color: var(--glass-press);
   border-color: var(--glass-border-color);
 }
@@ -417,7 +417,7 @@ html body .crail.crail-float[aria-label="MODULATION window controls"] .crail-chi
      .modwin…                  →  .modwin.mir-modwindow…      (compound)
      :root… #modwin…           →  …#modwin.mir-modwindow…     (compound)
      :root  (subject)          →  UNCHANGED — the material-token ladder
-     .kwin-chiprail[aria-label="MODULATION window controls"]…
+     .kwin-chiprail[data-mir-rail="modulation"]…
                                →  UNCHANGED — already scoped by the label
      .m2ghost / .m2ring* / .m2clr* / .m2span* / [data-m2target]
                                →  UNCHANGED — these attach to HOST controls
@@ -1899,11 +1899,11 @@ html body .crail.crail-float[aria-label="MODULATION window controls"] .crail-chi
 #modwin.mir-modwindow .m2foot { background: transparent; }
 
 /* Window chrome is structural Frost, never modulation signal. */
-.kwin-chiprail[aria-label="MODULATION window controls"] .crail-chip::before {
+.kwin-chiprail[data-mir-rail="modulation"] .crail-chip::before {
   background: var(--m2-mat-pane); border-color: var(--m2-mat-edge);
   box-shadow: inset 0 1px 0 var(--m2-mat-inner), 0 3px 12px hsl(0 0% 0% / .20); }
-.kwin-chiprail[aria-label="MODULATION window controls"] .crail-chip.on::before,
-.kwin-chiprail[aria-label="MODULATION window controls"] .crail-chip[aria-pressed="true"]::before {
+.kwin-chiprail[data-mir-rail="modulation"] .crail-chip.on::before,
+.kwin-chiprail[data-mir-rail="modulation"] .crail-chip[aria-pressed="true"]::before {
   background: var(--m2-mat-frost);
   box-shadow: inset 0 0 0 1px hsl(0 0% 100% / .22), inset 0 1px 0 hsl(0 0% 100% / .12); }
 
@@ -1938,7 +1938,7 @@ html body .crail.crail-float[aria-label="MODULATION window controls"] .crail-chi
   transition-property: transform;
   transition-duration: var(--m2-motion-structural);
   transition-timing-function: var(--m2-motion-ease); }
-.kwin-chiprail[aria-label="MODULATION window controls"] .crail-chip::before {
+.kwin-chiprail[data-mir-rail="modulation"] .crail-chip::before {
   transition: background-color var(--m2-motion-micro) var(--m2-motion-ease),
               border-color var(--m2-motion-micro) var(--m2-motion-ease),
               box-shadow var(--m2-motion-micro) var(--m2-motion-ease); }
@@ -1972,7 +1972,7 @@ html body .crail.crail-float[aria-label="MODULATION window controls"] .crail-chi
 @layer mir.a11y {
 @media (prefers-reduced-motion: reduce) {
   #modwin.mir-modwindow button, #modwin.mir-modwindow .kctl, #modwin.mir-modwindow .m2chev,
-  .kwin-chiprail[aria-label="MODULATION window controls"] .crail-chip::before,
+  .kwin-chiprail[data-mir-rail="modulation"] .crail-chip::before,
   .mir-modwindow .m2dev, .m2ring, .m2ghost, .m2span, .m2spancap {
     transition: none !important; animation: none !important; }
 }

@@ -373,7 +373,7 @@ body[data-theme="light"] .m2ghost {
   box-shadow: inset 0 1px 0 var(--m2-mat-inner), var(--m2-mat-shadow); }                              /* 13 */
 /* 14 · the artifact's ONE literal font family, on the chip rail.  Family only — the size still reads
    --fs-small, and the 48 px disc in its 62 px target is untouched. */
-.kwin-chiprail[aria-label="MODULATION window controls"] .crail-chip { font-family: var(--font-ui); }  /* 14 */
+.kwin-chiprail[data-mir-rail="modulation"] .crail-chip { font-family: var(--font-ui); }  /* 14 */
 /* 15 · THE HOUSE'S CARD-STYLE SWITCH REACHES INTO THE PLUGIN, AND MEASURING IT IS HOW THE WASH WAS
    FOUND TO BE DEAD.  `body[data-card="refractive"] .glass { background: transparent }` (skin.css:279)
    is (0,2,1) and the artifact's own `.glass.mir-modwindow` recipe is (0,2,0), so the HOUSE wins on
@@ -493,7 +493,7 @@ body[data-theme="light"] .m2ghost {
 #modwin.mir-modwindow .m2add { display: none; }                                        /* 20 */
 
 
-.kwin-chiprail[aria-label$="window controls"] .m2addchip .crail-ink {
+.kwin-chiprail[data-mir-rail] .m2addchip .crail-ink {
   transform: rotate(45deg); transform-origin: 50% 50%; }                                              /* 20b */
 
 
@@ -860,22 +860,22 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
   position: fixed; right: auto; bottom: auto; transform: none; z-index: calc(var(--z-banner) + 6); }   /* 30 */
 
 
-.kwin-chiprail[aria-label$="window controls"] .crail-chip::before {
+.kwin-chiprail[data-mir-rail] .crail-chip::before {
   background-color: transparent;
   background-image: none;
   border-color: var(--glass-border-color);
   box-shadow: var(--glass-shadow); }                                                                  /* 31 */
 
 
-.kwin-chiprail[aria-label$="window controls"] .crail-chip:active::before {
+.kwin-chiprail[data-mir-rail] .crail-chip:active::before {
   background-color: var(--glass-press); border-color: var(--glass-border-color); }                     /* 31b */
 
 
-.kwin-chiprail[aria-label$="window controls"] .crail-chip .crail-ink,
-.kwin-chiprail[aria-label$="window controls"] .kwin-grip-dots {
+.kwin-chiprail[data-mir-rail] .crail-chip .crail-ink,
+.kwin-chiprail[data-mir-rail] .kwin-grip-dots {
   color: var(--ink-key);
   filter: drop-shadow(0 1px 0 var(--glass-raise)); }                                                   /* 32 */
-.kwin-chiprail[aria-label$="window controls"] .crail-chip:active .crail-ink { color: var(--fg); }
+.kwin-chiprail[data-mir-rail] .crail-chip:active .crail-ink { color: var(--fg); }
 
 
 #modwin.mir-modwindow .m2k { flex-direction: column; }
@@ -968,7 +968,7 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
    dark ink on a light card and the halo only smears it. */
 #modwin.mir-modwindow,
 #modwin.mir-modwindow *,
-.kwin-chiprail[aria-label$="window controls"] * { text-shadow: none; }                 /* 40 */
+.kwin-chiprail[data-mir-rail] * { text-shadow: none; }                 /* 40 */
 
 
 #modwin.mir-modwindow .m2workbar,
@@ -1033,9 +1033,9 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 
 
 #modwin.mir-modwindow *,
-.kwin-chiprail[aria-label$="window controls"] * { outline: none; }
+.kwin-chiprail[data-mir-rail] * { outline: none; }
 #modwin.mir-modwindow *:focus-visible,
-.kwin-chiprail[aria-label$="window controls"] *:focus-visible {
+.kwin-chiprail[data-mir-rail] *:focus-visible {
   outline: none;
   /* ⚠ NOT `--acc-soft`: this window redeclares the house glass names onto its own ladder, and that
      token computed to `color(srgb 0 0 0 / 0)` here — a fully transparent halo, i.e. no ring at all.
@@ -1249,13 +1249,13 @@ body[data-theme="light"] #modwin.mir-modwindow .m2macdel {
 #modwin.mir-modwindow .m2bars-hidden .m2foot { display: none; }
 
 
-body.frost .kwin-chiprail[aria-label$="window controls"] .crail-chip::before,
-body.frost .kwin-chiprail[aria-label$="window controls"] .crail-chip::before {
+body.frost .kwin-chiprail[data-mir-rail] .crail-chip::before,
+body.frost .kwin-chiprail[data-mir-rail] .crail-chip::before {
   -webkit-backdrop-filter: var(--frost-filter); backdrop-filter: var(--frost-filter);
   background-color: hsl(0 0% 100% / .10); }
-body.frost[data-theme="dark"] .kwin-chiprail[aria-label$="window controls"] .crail-chip::before {
+body.frost[data-theme="dark"] .kwin-chiprail[data-mir-rail] .crail-chip::before {
   background-color: hsl(0 0% 0% / .10); }
-body.frost.frost-hold .kwin-chiprail[aria-label$="window controls"] .crail-chip::before {
+body.frost.frost-hold .kwin-chiprail[data-mir-rail] .crail-chip::before {
   -webkit-backdrop-filter: none; backdrop-filter: none; }                                              /* 78 */
 
 /* 78b · AND THE TWO BARS FROST WITH THEM.  Measured after 78: the chip took the filter and the bar
@@ -1280,7 +1280,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin.mir-modwindow .m2workbar .m2predead.off { display: none; }                     /* 101 */
 
 
-.kwin-chiprail[aria-label$="window controls"] .crail-chip[data-rail="ribbon"] { display: none; }                      /* 80 */
+.kwin-chiprail[data-mir-rail] .crail-chip[data-mir-chip="ribbon"] { display: none; }                      /* 80 */
 
 
 #modwin.mir-modwindow .m2railhead {
@@ -1601,22 +1601,22 @@ body[data-theme="light"] #modwin.mir-modwindow .m2kd.drag .m2dialink::before {
 
 
 #modwin.mir-modwindow .m2workbar button:not(.modtempo),
-.kwin-chiprail[aria-label$="window controls"] .crail-chip {
+.kwin-chiprail[data-mir-rail] .crail-chip {
   color: var(--ink-key);
   transition: color var(--t-fast, .12s) ease, background-color var(--t-fast, .12s) ease; }
 #modwin.mir-modwindow .m2workbar button:not(.modtempo) svg,
 #modwin.mir-modwindow .m2preset .m2gl,
-.kwin-chiprail[aria-label$="window controls"] .crail-chip .crail-ink,
-.kwin-chiprail[aria-label$="window controls"] .kwin-grip-dots {
+.kwin-chiprail[data-mir-rail] .crail-chip .crail-ink,
+.kwin-chiprail[data-mir-rail] .kwin-grip-dots {
   filter: drop-shadow(0 1px 0 var(--glass-raise)); }
 @media (hover: hover) {
   #modwin.mir-modwindow .m2workbar button:not(.modtempo):hover,
-  .kwin-chiprail[aria-label$="window controls"] .crail-chip:hover,
+  .kwin-chiprail[data-mir-rail] .crail-chip:hover,
   /* ⟡ WAVE 105 · THE GLYPH HAD TO BE NAMED, not left to inherit.  `.crail-ink` carries its own
      `color: var(--ink-key)` from entry 32 at (0,7,0); the chip's hover above is (0,6,1) and sets the
      colour on the PARENT, so the chip's own text lit and the drawing inside it did not.  A descendant
      with its own colour never inherits one.  Named here, the whole chip moves as one object. */
-  .kwin-chiprail[aria-label$="window controls"] .crail-chip:hover .crail-ink { color: var(--fg); }
+  .kwin-chiprail[data-mir-rail] .crail-chip:hover .crail-ink { color: var(--fg); }
 }
 #modwin.mir-modwindow .m2workbar button:not(.modtempo):active {
   background-color: var(--glass-press); }
@@ -1628,8 +1628,8 @@ body[data-theme="light"] #modwin.mir-modwindow .m2kd.drag .m2dialink::before {
   text-shadow: 0 1px 0 var(--glass-raise); }                                                          /* 108 */
 
 
-.kwin-chiprail[aria-label$="window controls"] .crail-chip.on,
-.kwin-chiprail[aria-label$="window controls"] .kwin-tab.on {
+.kwin-chiprail[data-mir-rail] .crail-chip.on,
+.kwin-chiprail[data-mir-rail] .kwin-tab.on {
   box-shadow: none; background: transparent; }                                                        /* 109 */
 
 
@@ -1644,7 +1644,7 @@ body[data-theme="light"] #modwin.mir-modwindow .m2kd.drag .m2dialink::before {
 #modwin.mir-modwindow .m2dev.env .m2k[data-knob="steps"] .m2kcap { display: block; }
 
 /* The third work-lane state keeps the same glyph and crosses it out. */
-.kwin-chiprail[aria-label$="window controls"] .crail-chip[data-work-lane="hidden"]::after {
+.kwin-chiprail[data-mir-rail] .crail-chip[data-work-lane="hidden"]::after {
   content:"";position:absolute;z-index:2;width:21px;height:1.5px;border-radius:2px;
   background:currentColor;transform:rotate(-42deg);pointer-events:none; }
 
@@ -2081,15 +2081,15 @@ body[data-theme="light"] #modwin.mir-modwindow .m2devadd {
    less the (0,3,0) the ladders gave this sheet — the class-weights moved into :where() — and sits LAST, because
    modwindow.css followed modhost.css and so won every tie. */
 /* modwindow.css:316 (0,6,0) → (0,3,0), and :318 after it, which beat it on a chip that is both .on and focused */
-:where(.crail.crail-float).kwin-chiprail[aria-label="MODULATION window controls"] .crail-chip:where(:focus-visible) { outline: 1px solid var(--fg-soft); }
-:where(.crail.crail-float).kwin-chiprail[aria-label="MODULATION window controls"] .crail-chip:where(.on) { color: var(--fg); outline: none; }
+:where(.crail.crail-float).kwin-chiprail[data-mir-rail="modulation"] .crail-chip:where(:focus-visible) { outline: 1px solid var(--fg-soft); }
+:where(.crail.crail-float).kwin-chiprail[data-mir-rail="modulation"] .crail-chip:where(.on) { color: var(--fg); outline: none; }
 /* modwindow.css:320 (0,6,1) → (0,3,1) */
-:where(.crail.crail-float).kwin-chiprail[aria-label="MODULATION window controls"] .crail-chip:where(:active)::before,
-:where(.crail.crail-float).kwin-chiprail[aria-label="MODULATION window controls"] .crail-chip:where(.on)::before {
+:where(.crail.crail-float).kwin-chiprail[data-mir-rail="modulation"] .crail-chip:where(:active)::before,
+:where(.crail.crail-float).kwin-chiprail[data-mir-rail="modulation"] .crail-chip:where(.on)::before {
   background-color: var(--bar-raise);
   border-color: var(--glass-border-color); }
 /* the chip-rail .on text-shadow (0,5,2) → (0,2,2) */
-html body :where(.crail.crail-float)[aria-label="MODULATION window controls"] .crail-chip:where(.on) { text-shadow: var(--ink-shadow); }
+html body :where(.crail.crail-float)[data-mir-rail="modulation"] .crail-chip:where(.on) { text-shadow: var(--ink-shadow); }
 /* the dragged value's number (1,4,0) → (1,1,0) */
 #modwin:where(.mir-modwindow) .m2val:where(.drag) :where(.m2vnum) { color: var(--fg); }
 /* ⟲ modwindow.css .m2ghost (0,1,0) beat this sheet's UNLADDERED seat (0,1,0) by order alone, so it keeps its weight;
