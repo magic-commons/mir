@@ -2145,7 +2145,7 @@ export function targetPos(id, base, wrap) {
 }
 
 /* Returns a target's modulated value. */
-export function targetValue(id, base, wrap) {
+export function targetValue(id, base, wrap, handOnly = false) {
   const list = routeByTarget.get(String(id));
   if (!list) return NaN;
   /* THE PER-FRAME SUM.  No allocation, no closure, no Array method — this runs
@@ -2158,6 +2158,7 @@ export function targetValue(id, base, wrap) {
     const r = list[i];
     const m = macroById.get(r.macroId);
     if (!m) continue;
+    if (handOnly && m.sourceId) continue;
     const s = m.sourceId ? sourceById.get(m.sourceId) : null;
     const lerped = r.min + (r.max - r.min) * routeReading(m, s, wrap, r);
     const influence = routeInfluence(m, r, lerped);
@@ -2235,7 +2236,7 @@ function audioRtSnapshot(s) {
            refractory: r.refractory, lastDb: r.lastDb, lastFlux: r.lastFlux,
            threshold: r.threshold, feedHz: r.feedHz, sampleRate: r.sampleRate,
            hits: r.hits, frames: r.frames, fed: r.fed,
-           hitAgeSeconds: r.hitAgeSeconds, capturedAt: r.capturedAt, outs };
+           hitAgeSeconds: r.hitAgeSeconds, capturedAt: r.capturedAt, inputDb: { ...r.inputDb }, outs };
 }
 function audioRtRestore(s, v) {
   const r = s.audioRt;
@@ -2249,6 +2250,7 @@ function audioRtRestore(s, v) {
   r.threshold = v.threshold; r.feedHz = v.feedHz; r.sampleRate = v.sampleRate;
   r.hits = v.hits; r.frames = v.frames; r.fed = v.fed;
   r.hitAgeSeconds = v.hitAgeSeconds; r.capturedAt = v.capturedAt;
+  if (v.inputDb) r.inputDb = { ...v.inputDb };
   for (const k of AUDIO_EXPOSED) audioPublish(s, k, v.outs[k]);
 }
 
@@ -2258,6 +2260,8 @@ export function snapshotPhases() {
     map.set(s.id, { phase: s.phase, cycles: s.cycles | 0, t: s.t, gate: s.gate,
                     fired: s.fired, releasedAt: s.releasedAt, releaseFrom: s.releaseFrom,
                     out: s.out, cont: s.cont, primed: s.primed,
+                    shadowPhase: s.shadowPhase, shadowCycles: s.shadowCycles | 0,
+                    shadowed: s.shadowed, fires: s.fires,
                     audio: s.kind === 'audio' ? audioRtSnapshot(s) : undefined });
   }
   return { sources: map, beats: transport.beats, time: transport.time };
@@ -2266,6 +2270,15 @@ export function snapshotPhases() {
 export function restorePhases(snap) {
   if (!snap) return false;
   if (transport.hold) holdEnd();
+  restoreSourceRuntime(snap, false);
+  transport.beats = snap.beats;
+  transport.time = snap.time;
+  reanchorTransport(null);
+  syncMacros();
+  return true;
+}
+
+function restoreSourceRuntime(snap, shadows) {
   for (const [id, v] of snap.sources) {
     const s = sourceById.get(id);
     if (!s) continue;
@@ -2273,11 +2286,34 @@ export function restorePhases(snap) {
     s.fired = v.fired; s.releasedAt = v.releasedAt; s.releaseFrom = v.releaseFrom;
     s.out = v.out; s.cont = Number.isFinite(v.cont) ? v.cont : v.out;
     s.primed = v.primed;
+    if (shadows) {
+      s.shadowPhase = v.shadowPhase; s.shadowCycles = v.shadowCycles;
+      s.shadowed = v.shadowed; s.fires = v.fires;
+    }
     if (s.kind === 'audio' && v.audio) audioRtRestore(s, v.audio);
   }
-  transport.beats = snap.beats;
-  transport.time = snap.time;
-  reanchorTransport(null);
+}
+
+/** In-memory suspension state, not a project preset. Unlike restorePhases,
+ * restoring it preserves an active stutter and its un-held shadow. No play,
+ * trigger, release, or registry edge is emitted during this operation. */
+export function snapshotRuntime() {
+  return { v: 1, transport: { ...transport }, phases: snapshotPhases(),
+    macros: macros.map(m => ({ id: m.id, value: m.value })), stats: { ...modStat } };
+}
+
+export function restoreRuntime(snap, options = {}) {
+  if (!snap || snap.v !== 1 || !snap.transport || !(snap.phases?.sources instanceof Map) ||
+      !Array.isArray(snap.macros) || Object.keys(transport).some(k => !Object.hasOwn(snap.transport, k))) return false;
+  Object.assign(transport, snap.transport);
+  restoreSourceRuntime(snap.phases, true);
+  for (const m of snap.macros) { const current = macroById.get(m.id); if (current) current.value = m.value; }
+  if (snap.stats) Object.assign(modStat, snap.stats);
+  if (Number.isFinite(options.wall)) {
+    transport.wall = options.wall; transport.anchorAt = options.wall;
+    transport.anchorBeats = transport.beats; transport.anchorTime = transport.time;
+    transport.pending = options.wall <= 0;
+  }
   syncMacros();
   return true;
 }

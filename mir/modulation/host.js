@@ -212,7 +212,12 @@ export function createModClock(opts) {
   let stepping = 0;                 /* > 0 inside a deterministic step (their videoClock.on) */
   let wall = Number.isFinite(o.wall) ? o.wall : 0;
   let prevWall = null;              /* null: the next dt is NOT a dt (their prevTs = 0) */
+  let realtimeOwner = null;        /* a scrub owns advancement, never Play/BASE/HOLD */
   const demands = new Set();        /* things that want the clock without owning a route */
+  let automation = null;           /* optional beat-sampled moving baseline, never an authored write */
+  let modulationEnabled = true;    /* deterministic clients may drive automation without macro routes */
+  let exactResume = !!o.exactResume; /* arrangements can own an exact play cursor; legacy ships */
+  let automationHold = !!o.automationHold; /* paused arrangement baseline is independent of LFO BASE/HOLD */
   const stats = { plays: 0, pauses: 0, autoPauses: 0, resumes: 0, frames: 0, steps: 0,
                   seconds: 0, sets: 0, restores: 0, presents: 0, refusedPlays: 0,
                   arms: 0, disarms: 0, quantised: 0, beatsRewound: 0 };
@@ -250,9 +255,14 @@ export function createModClock(opts) {
    * exactly what it did in the last one, armed or not. */
   function livePos(id) {
     const st = registry.state(id);
-    const v = M.targetValue(id, st.baseNorm, st.wrap);
-    if (v !== v) return null;
     if (!enabled && stepping === 0) return null;
+    const active = running || stepping > 0 || pauseMode === 'HOLD';
+    const sample = (active || (automationHold && !hidden)) && automation ? automation.value(id, M.transport.beats) : null;
+    const baseline = Number.isFinite(sample) ? sample : st.baseNorm;
+    const pausedBaseline = automationHold && !running && stepping === 0 && pauseMode === 'BASE' && Number.isFinite(sample);
+    const v = modulationEnabled ? M.targetValue(id, baseline, st.wrap, pausedBaseline) : NaN;
+    if (v !== v) return Number.isFinite(sample) ? sample : null;
+    if (pausedBaseline) return v; // Hand offsets remain; paused source offsets return to the Timeline baseline.
     if (!M.targetDriven(id)) return v;
     if (running || stepping > 0) return v;
     return pauseMode === 'HOLD' ? v : null;
@@ -302,14 +312,14 @@ export function createModClock(opts) {
    *  is the number `modPlayEdge` re-anchors and the frame after it places every source from.
    *  Returns the plan whether or not it moved anything, so a face can say which law is in force
    *  even when the answer is "nothing to do". */
-  function applyResume() {
+  function applyResume(exact = exactResume) {
     const plan = resumeGrid(M.sourceList());
     const mode = M.effectiveSyncMode();
     const from = M.transport.beats;
     const p = { ...plan, from, to: from, moved: 0, mode, applied: false };
     /* FREE sync is deliberately left alone: a non-anchored synced source accumulates its OWN
        phase there, so the beat is not its position and `modPlayEdge` already floors it to 0. */
-    if (plan.law === 'BPM' && plan.grid > 0 && mode !== 'free') {
+    if (!exact && plan.law === 'BPM' && plan.grid > 0 && mode !== 'free') {
       const q = Math.floor(from / plan.grid) * plan.grid;
       if (from - q > 1e-12) {
         M.setTransport({ beats: q });              /* the model's own road — it re-anchors */
@@ -336,13 +346,13 @@ export function createModClock(opts) {
    *  for an EDIT — it advances no time and re-reads every source where the beat says it is — so
    *  the placement happens HERE, before anything is applied.  Under FREE there is nothing to
    *  place: the phase is the source's own and `modPlayEdge` has just said what it should be. */
-  function placeOnResume() {
-    if (!(wall > 0) || M.effectiveSyncMode() === 'free') return false;
+  function placeOnResume(exact = exactResume) {
+    if ((!exact && !(wall > 0)) || M.effectiveSyncMode() === 'free') return false;
     M.advance(0, wall);
     return true;
   }
 
-  function setPlaying(on) {
+  function setPlaying(on, options) {
     const want = !!on;
     if (want && !anyLive()) {
       /* A transport with NO SOURCES is a control that does nothing.  Refuse, and SAY so — the caller
@@ -354,7 +364,7 @@ export function createModClock(opts) {
     if (want !== playing) {
       playing = want;
       M.setTransport({ playing });
-      if (want) { stats.plays++; applyResume(); M.modPlayEdge(); placeOnResume(); } else stats.pauses++;
+      if (want) { const exact = options?.resume === 'exact' ? true : options?.resume === 'legacy' ? false : exactResume; stats.plays++; applyResume(exact); M.modPlayEdge(); placeOnResume(exact); } else stats.pauses++;
     }
     recomputeRunning();
     return { ok: true, playing, running, resume: want ? lastResume : null };
@@ -362,13 +372,33 @@ export function createModClock(opts) {
 
   return Object.freeze({
     /* transport */
-    play: (at) => { if (Number.isFinite(at)) { wall = at; prevWall = at; } return setPlaying(true); },
+    play: (at, options) => { if (Number.isFinite(at)) { wall = at; prevWall = at; } return setPlaying(true, options); },
     pause: (at) => { if (Number.isFinite(at)) { wall = at; prevWall = at; } return setPlaying(false); },
-    toggle: (at) => { if (Number.isFinite(at)) { wall = at; prevWall = at; } return setPlaying(!playing); },
+    toggle: (at, options) => { if (Number.isFinite(at)) { wall = at; prevWall = at; } return setPlaying(!playing, options); },
     setPlaying,
     isPlaying: () => playing,
     isRunning: () => running,
     anyRouted,
+
+    /** Suspend only the realtime pump. Seeking still previews at the cursor;
+     *  deterministic stepping remains the recorder's explicit door. A release
+     *  cannot restore stale transport state or manufacture a new play edge. */
+    suspendRealtime(at) {
+      if (realtimeOwner) return null;
+      const owner = {};
+      realtimeOwner = owner;
+      if (Number.isFinite(at)) { wall = at; prevWall = at; M.reanchorTransport(at); }
+      return (stamp) => {
+        if (realtimeOwner !== owner) return false;
+        realtimeOwner = null;
+        if (Number.isFinite(stamp)) wall = stamp;
+        prevWall = wall;
+        M.reanchorTransport(wall);
+        requestPresentation('realtime-resume');
+        return true;
+      };
+    },
+    isRealtimeSuspended: () => realtimeOwner !== null,
 
     /** Unrouted sources run only to animate their editor. Routed sources remain machinery and
      *  continue when the editor closes. This changes presentation demand, never transport state. */
@@ -406,7 +436,7 @@ export function createModClock(opts) {
       const dt = prevWall === null ? 0 : Math.min(Math.max(w - prevWall, 0), maxStep);
       prevWall = w;
       wall = w;
-      if (!running) return 0;
+      if (!running || realtimeOwner) return 0;
       stats.frames++;
       stats.seconds += dt;
       M.advance(dt, w);
@@ -423,6 +453,7 @@ export function createModClock(opts) {
       const d = Number.isFinite(dt) && dt > 0 ? dt : 0;
       stepping++;
       try {
+        if (wall === 0) M.advance(0, wall); // establish the zero-time anchor before advancing
         wall += d;
         prevWall = wall;
         stats.steps++;
@@ -472,6 +503,29 @@ export function createModClock(opts) {
 
     /** Clients that want the clock to run without owning a route of their own. */
     demand(id, on) { if (on) demands.add(String(id)); else demands.delete(String(id)); recomputeRunning(); return demands.size; },
+    /** A host's automation evaluator supplies normalized values or null. No second writer/clock. */
+    setAutomation(provider) {
+      automation = provider && typeof provider.value === 'function' ? provider : null;
+      applyAll(true); requestPresentation('automation-provider');
+    },
+    setModulationEnabled(on) { modulationEnabled = !!on; applyAll(true); },
+    isModulationEnabled: () => modulationEnabled,
+    setExactResume(on) { exactResume = !!on; return exactResume; },
+    isExactResume: () => exactResume,
+    setAutomationHold(on) { automationHold = !!on; applyAll(true); requestPresentation('automation-hold'); return automationHold; },
+    isAutomationHold: () => automationHold,
+    /** Seek musical time through the model, including a stopped transport preview. */
+    seek(beats) {
+      if (!Number.isFinite(beats) || beats < 0) return M.transport.beats;
+      M.setTransport({ beats }); M.reanchorTransport(wall);
+      M.advance(0, wall);
+      // Timeline cursor preview follows the same paused BASE/HOLD law as the
+      // next paint. Legacy clients retain their deterministic preview door.
+      const previewStep = !automationHold || running;
+      if (previewStep) stepping++;
+      try { applyAll(true); requestPresentation('transport-seek'); } finally { if (previewStep) stepping--; }
+      return M.transport.beats;
+    },
 
     setPauseMode(m) {
       pauseMode = m === 'HOLD' ? 'HOLD' : 'BASE';
@@ -501,9 +555,36 @@ export function createModClock(opts) {
     applyAll,
     recomputeRunning,
     reanchor: (w) => M.reanchorTransport(Number.isFinite(w) ? w : wall).anchorAt,
+    /** Suspension state for a deterministic renderer. It contains an evaluator
+     * reference and Maps, so belongs in memory rather than project JSON. */
+    captureRuntime: () => ({ v: 1, model: M.snapshotRuntime(),
+      host: { playing, hidden, presentationActive, wall, pauseMode, enabled,
+        modulationEnabled, exactResume, automationHold, demands: [...demands], automation,
+        lastResume: { ...lastResume }, stats: { ...stats } } }),
+    restoreRuntime(snapshot, options = {}) {
+      const state = snapshot?.host;
+      if (snapshot?.v !== 1 || !state || !Array.isArray(state.demands)) return false;
+      const at = Number.isFinite(options.wall) ? options.wall : wall;
+      if (!M.restoreRuntime(snapshot.model, { wall: at })) return false;
+      playing = !!state.playing; hidden = Object.hasOwn(options, 'hidden') ? !!options.hidden : !!state.hidden;
+      presentationActive = !!state.presentationActive; pauseMode = state.pauseMode === 'HOLD' ? 'HOLD' : 'BASE';
+      enabled = !!state.enabled; modulationEnabled = !!state.modulationEnabled;
+      exactResume = !!state.exactResume; automationHold = !!state.automationHold;
+      automation = state.automation; demands.clear(); for (const id of state.demands) demands.add(String(id));
+      lastResume = { ...state.lastResume }; Object.assign(stats, state.stats);
+      wall = at; prevWall = null; stepping = 0; realtimeOwner = null;
+      if (hidden && M.transport.hold) M.holdEnd();
+      M.transport.playing = playing;
+      running = enabled && playing && !hidden && available() && anyLive();
+      // One final output, after every gate and phase is restored: no transient
+      // BASE write or play/retrigger/quantization edge escapes the suspension.
+      if (options.apply !== false) { applyAll(true); requestPresentation('transport-runtime-restore'); }
+      return true;
+    },
     stats: () => ({ ...stats }),
     snapshot: () => ({
-      playing, running, hidden, presentationActive, wall, pauseMode, enabled,
+      playing, running, hidden, presentationActive, wall, pauseMode, enabled, modulationEnabled, exactResume, automationHold,
+      demands: [...demands],
       resume: { ...resumeGrid(M.sourceList()), mode: M.effectiveSyncMode(), last: { ...lastResume } },
       bpm: M.transport.bpm, beats: M.transport.beats, time: M.transport.time,
       sync: M.transport.sync, reanchors: M.transport.reanchors,
@@ -559,7 +640,8 @@ export function createModHost(opts) {
   const targets = o.targets || createTargetHost({ registry, available: o.available });
   const clock = createModClock({ registry, targets, present,
                                  pauseMode: o.pauseMode, wall: o.wall, maxStep: o.maxStep,
-                                 enabled: o.enabled, presentationActive: o.presentationActive });
+                                 enabled: o.enabled, presentationActive: o.presentationActive,
+                                 exactResume: o.exactResume, automationHold: o.automationHold });
 
   return Object.freeze({
     /* the four edges, each reachable on its own */

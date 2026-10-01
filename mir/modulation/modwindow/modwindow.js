@@ -33,6 +33,8 @@
 
 /* ── THE NAMESPACE ──────────────────────────────────────────────────────── */
 
+import { setGlyph as setHouseGlyph } from '../../glyph.js';
+
 /** The one class modwindow.css scopes on.  It goes on the window root and on
  *  nothing else. */
 export const NS = 'mir-modwindow';
@@ -251,13 +253,6 @@ export const GLYPHS = {
     '<circle cx="15" cy="17" r="1.45" fill="currentColor"/>',
   leave:
     '<path ' + STROKE + ' d="M6.6 12 L17.4 12"/>',
-  save:
-    '<circle cx="12" cy="12" r="9.2" ' + STROKE + '/>' +
-    '<path ' + STROKE + ' d="M7.78 6.79 H14.23 L17.21 9.77 V16.22 ' +
-    'A0.99 0.99 0 0 1 16.22 17.21 H7.78 A0.99 0.99 0 0 1 6.79 16.22 V7.78 ' +
-    'A0.99 0.99 0 0 1 7.78 6.79 Z"/>' +
-    '<path ' + STROKE + ' d="M9.52 6.79 V9.89 H13.61 V6.79"/>' +
-    '<path ' + STROKE + ' d="M9.15 17.21 V13.36 H14.85 V17.21"/>',
   swap:
     '<path ' + STROKE + ' d="M3.4 9.1 L20.6 9.1 M16.6 5.1 L20.6 9.1 L16.6 13.1"/>' +
     '<path ' + STROKE + ' d="M20.6 16.5 L3.4 16.5 M7.4 12.5 L3.4 16.5 L7.4 20.5"/>',
@@ -610,7 +605,8 @@ function buildPresetStrip(panel, copy) {
   open.setAttribute('aria-expanded', 'false');
   open.title = 'PRESETS';
 
-  const save = navBtn('m2presave', 'save', 21, 'Save this rack as a preset');
+  const save = navBtn('m2presave', null, 20, 'Save this rack as a preset');
+  setHouseGlyph(save, 'save', { size: 20, label: 'Save this rack as a preset' });
   save.title = 'SAVE';
 
   const name = m2mk('input', 'm2prename', core);

@@ -92,6 +92,37 @@ const GLYPHS = {
     '<rect x="3.3" y="13.1" width="7.6" height="7.6" rx="1.5" ' + STROKE + '/>' +
     '<rect x="13.1" y="13.1" width="7.6" height="7.6" rx="1.5" ' + STROKE + '/>',
 
+  camera:
+    '<path ' + STROKE + ' d="M3.2 7.2 H7.2 L9 4.9 H15 L16.8 7.2 H20.8 V18.6 H3.2 Z"/>' +
+    '<circle cx="12" cy="12.8" r="3.2" ' + STROKE + '/>',
+  duplicate:
+    '<rect x="7.1" y="7.1" width="13.4" height="13.4" rx="1.7" ' + STROKE + '/>' +
+    '<path ' + STROKE + ' d="M4.8 16.9 H3.5 V3.5 H16.9 V4.8"/>',
+  sliders:
+    '<path ' + STROKE + ' d="M3 6.1 H21 M3 12 H21 M3 17.9 H21"/>' +
+    '<circle cx="8" cy="6.1" r="2.1" fill="currentColor"/>' +
+    '<circle cx="16" cy="12" r="2.1" fill="currentColor"/>' +
+    '<circle cx="10.5" cy="17.9" r="2.1" fill="currentColor"/>',
+  bulletList:
+    '<circle cx="4.5" cy="6.5" r="1.35" fill="currentColor"/>' +
+    '<circle cx="4.5" cy="12" r="1.35" fill="currentColor"/>' +
+    '<circle cx="4.5" cy="17.5" r="1.35" fill="currentColor"/>' +
+    '<path ' + STROKE + ' d="M9.2 6.5 H20.5 M9.2 12 H20.5 M9.2 17.5 H20.5"/>',
+  download:
+    '<path ' + STROKE + ' d="M12 3.2 V15.4 M7.5 11.1 L12 15.6 L16.5 11.1 M4.1 17.6 V20.2 H19.9 V17.6"/>',
+  saveFolder:
+    '<path ' + STROKE + ' d="M3 6.2 A1.5 1.5 0 0 1 4.5 4.7 H8.8 A1.8 1.8 0 0 1 10.3 5.6 L11.7 7.6 A1.8 1.8 0 0 0 13.2 8.5 H19.5 A1.5 1.5 0 0 1 21 10 V18 A1.5 1.5 0 0 1 19.5 19.5 H4.5 A1.5 1.5 0 0 1 3 18 Z"/>' +
+    '<path ' + STROKE + ' d="M3 10.5 H21"/>',
+  mandelbrotSmall:
+    '<path fill="currentColor" stroke="none" d="M12 21 C15.5 21 17.8 18 17.4 15 C17 12.2 13.5 12.5 12 11 C10.5 12.5 7 12.2 6.6 15 C6.2 18 8.5 21 12 21 Z"/>' +
+    '<circle cx="12" cy="8.8" r="1.9" fill="currentColor"/>' +
+    '<circle cx="12" cy="5.8" r="0.75" fill="currentColor"/>',
+  projectFile:
+    '<path ' + STROKE + ' d="M5 3.5 H14 L19 8.5 V20.5 A1.5 1.5 0 0 1 17.5 22 H6.5 A1.5 1.5 0 0 1 5 20.5 Z"/>' +
+    '<path ' + STROKE + ' d="M14 3.5 V8.5 H19"/>' +
+    '<circle cx="12" cy="15.8" r="2.4" fill="currentColor"/>' +
+    '<circle cx="12" cy="12.4" r="1" fill="currentColor"/>',
+
 
   render:
     '<path ' + STROKE + ' d="M12 2.7 L21.3 12 L12 21.3 L2.7 12 Z"/>' +
@@ -261,12 +292,14 @@ const GLYPHS = {
 
 
   save:
-    '<circle cx="12" cy="12" r="9.2" ' + STROKE + '/>' +
-    '<path ' + STROKE + ' d="M7.78 6.79 H14.23 L17.21 9.77 V16.22 ' +
-    'A0.99 0.99 0 0 1 16.22 17.21 H7.78 A0.99 0.99 0 0 1 6.79 16.22 V7.78 ' +
-    'A0.99 0.99 0 0 1 7.78 6.79 Z"/>' +
-    '<path ' + STROKE + ' d="M9.52 6.79 V9.89 H13.61 V6.79"/>' +
-    '<path ' + STROKE + ' d="M9.15 17.21 V13.36 H14.85 V17.21"/>',
+    '<path ' + STROKE + ' d="M4.5 5.5 A1.5 1.5 0 0 1 6 4 H16.5 L19.5 7 V18.5 A1.5 1.5 0 0 1 18 20 H6 A1.5 1.5 0 0 1 4.5 18.5 Z"/>' +
+    '<path ' + STROKE + ' d="M8 4 V9.2 H15 V4"/>' +
+    '<path ' + STROKE + ' d="M8 20 V13.2 H16 V20"/>',
+
+  /* Gemini 3.8 Flash via agy: a half-filled disk, reversed when INVERT is on. */
+  invertColors:
+    '<circle cx="12" cy="12" r="10" ' + STROKE + '/>' +
+    '<path d="M12 2a10 10 0 0 1 0 20z" fill="currentColor"/>',
 
   /* ── chevronDown.  The ▾ the preset bar opens its folder list with, and the
      caret each folder header turns.  R4 rotated `dirNext` by a quarter turn in

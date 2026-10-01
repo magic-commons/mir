@@ -215,6 +215,16 @@ About the preset store:
 | `MAX_WALL_STEP`, `PAUSE_MODES`, `RESUME_LAWS`, `resumeGrid` | Clock limits and pause/resume laws |
 | `model` | the model module (`mod.js`) the host drives, re-exported |
 
+Interactive transport clients may call `clock.suspendRealtime(wallSeconds)`.
+It returns an owned `release(wallSeconds)` function, or `null` if already owned.
+While owned, `advanceTo()` refreshes its wall stamp without advancing the model;
+`seek()` still previews and explicit deterministic `step()` remains available.
+Release reanchors time without changing Play, demand, MOD, BASE/HOLD or retriggering
+sources. Release is idempotent, and successful `restoreRuntime()` invalidates old
+owners. `clock.isRealtimeSuspended()` reports this gate. Clients must release on
+pointer end/cancel, blur, close, project replacement and disposal; recording clients
+must reject interactive ownership before taking over the clock.
+
 The remaining exports are **λWAVES content that still lives in the kit**:
 - `labParameters`, `LAB_PRESET_FOLDER`, `LAB_PRESETS`, `presetRouteTargets`, `foreignPresets`, `labPresetList`, `labPresetFolders`, `labPresetGet`, `labPresetApply`;
 - `barTempo`.

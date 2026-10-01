@@ -90,9 +90,10 @@ export function tapWatcher(fn) {
 }
 
 /**
- * knob({ label, aria, title, min, max, value, log, wrap, step, fmt, unit, onInput, onChange, onDelta, onReset, size, cls, travel, fine })
+ * knob({ label, aria, title, min, max, value, log, wrap, step, fmt, unit, onInput, onChange, onDelta, onReset, size, cls, travel, fine, dragAxis })
  *   wrap: free-spinning (phase); onDelta(dRad) reports drag deltas instead of absolute values (a JOG WHEEL);
  *   onReset: what a wheel's reset does; size: 'lg'; travel / fine: this knob's own drag law (see setKnobLaw).
+ *   dragAxis: 'vertical' ignores horizontal pointer motion (used by the COLOUR window's knobs).
  *   → { root, get, set(x, silent = true), show(x), shown, setDefault(x), setDisabled(on), setBase(fn), paint }
  */
 /* THE DRAG LAW, as defaults an app may retune (BASINS asked for Shift = 1/8): travel = px for a full scale,
@@ -132,7 +133,7 @@ export function knob(o) {
   /* WAVE 62 · THE DIAL IS A SLIDER.  The role goes on the ROOT, not the dial: skin.css's
      `.k:focus-within .k-val` has been waiting for a focusable root since it was written, so the value
      tooltip appears on Tab for free.  No `aria-orientation` — a knob is neither horizontal nor
-     vertical and both arrow axes work, exactly as the pointer sums both axes.
+     vertical and both arrow axes work, including for a vertical pointer drag.
      A JOG WHEEL (`o.onDelta`: ROTATE z, STARK K_z, DEFECT L², the palette's ROTATE) holds no value:
      it reports drag deltas.  It is still a slider, and what it announces is THE TURN IT HAS APPLIED —
      0…360°, folded — which is honest, satisfies ARIA's demand for a valuenow, and is the same
@@ -197,16 +198,22 @@ export function knob(o) {
     if (o.wrap) return lo + ((((nv - lo) % (hi - lo)) + (hi - lo)) % (hi - lo));
     return Math.min(hi, Math.max(lo, nv));
   };
-  let p0 = 0, x0 = 0, y0 = 0, acc = 0;
+  let p0 = 0, x0 = 0, y0 = 0, lastY = 0, dragP = 0, touchDrag = false, acc = 0;
   dial.addEventListener('pointerdown', (e) => {
     if (disabled) return;
     e.preventDefault(); try { dial.setPointerCapture(e.pointerId); } catch (_) {}   // a pointer already gone (or a synthetic one) must not abort the drag
-    dragging = true; root.classList.add('drag'); root.classList.add('active'); p0 = norm(v); x0 = e.clientX; y0 = e.clientY; acc = 0;   // p0 is the BASE: a routed knob's drag moves the range, never teleports it to where the modulator was
+    dragging = true; root.classList.add('drag'); root.classList.add('active'); p0 = norm(v); x0 = e.clientX; y0 = lastY = e.clientY; dragP = acc = 0; touchDrag = e.pointerType === 'touch';   // p0 is the BASE: a routed knob's drag moves the range, never teleports it to where the modulator was
     tap();
   });
   dial.addEventListener('pointermove', (e) => {
     if (!dragging) return;
-    const dp = ((y0 - e.clientY) + (e.clientX - x0)) / ((o.travel || KNOB_LAW.travel) * (e.shiftKey ? (o.fine || KNOB_LAW.fine) : 1));
+    let dp;
+    if (o.dragAxis === 'vertical') {
+      const travel = touchDrag ? KNOB_LAW.touchTravel : (o.travel || KNOB_LAW.travel);
+      const fine = e.shiftKey || e.altKey || e.ctrlKey || e.metaKey;
+      dragP += (lastY - e.clientY) / (travel * (fine ? (o.fine || KNOB_LAW.fine) : 1));
+      lastY = e.clientY; dp = dragP; // changing fine gear in place never moves the value
+    } else dp = ((y0 - e.clientY) + (e.clientX - x0)) / ((o.travel || KNOB_LAW.travel) * (e.shiftKey ? (o.fine || KNOB_LAW.fine) : 1));
     if (o.onDelta) { const d = dp - acc; acc = dp; turn = ((turn + d * 360) % 360 + 360) % 360; o.onDelta(d * 2 * Math.PI); announce(true); return; }
     const nv = settle(denorm(o.wrap ? p0 + dp : clamp01(p0 + dp)));
     if (nv !== v) { v = nv; paint(); if (o.onInput) o.onInput(v); }

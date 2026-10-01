@@ -469,8 +469,8 @@ html body .crail.crail-float[aria-label="MODULATION window controls"] .crail-chi
   background: transparent; color: rgba(255,255,255,0.72);
   font: 600 11px var(--font-sans); letter-spacing: 0.06em; }
 .mir-modwindow .m2prenav { color: var(--acc); font-size: 15px; }
-/* The save button, a 44 px disc. */
-.mir-modwindow .m2presave { min-width: 44px; width: 44px; border-radius: 50%; padding: 0; color: var(--acc);
+/* The preset save uses the same plain floppy as the Save window. */
+.mir-modwindow .m2presave { min-width: 44px; width: 44px; border-radius: var(--r-md, 8px); padding: 0; color: var(--acc);
   display: flex; align-items: center; justify-content: center; }
 .mir-modwindow .m2presave svg { width: 21px; height: 21px; display: block; pointer-events: none; }
 .mir-modwindow .m2presave.m2arm { width: 44px; min-width: 44px; border-radius: 6px; padding: 0;
