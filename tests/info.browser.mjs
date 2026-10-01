@@ -136,6 +136,16 @@ try {
     return { snap: T.perf.snapshot(), rafs: window.__rafCalls - raf0, state: T.frame.state(), running: D().running };`);
   check('idle: after everything settles no rAF is booked and none is requested over 600 ms', r.rafs === 0 && !r.state.scheduled && r.state.pending === 0 && !r.running, JSON.stringify({ rafs: r.rafs, state: r.state }));
   check('idle: __MIR.perf shows zero writes, reads and frames', r.snap.writes === 0 && r.snap.reads === 0 && r.snap.frames === 0, JSON.stringify(r.snap));
+  /* ── the two lines are for two jobs: a named feature is diagonal-first, a note is flat-first, a label may choose ── */
+  r = await run(`${LEGAL} L.addLabel({ id: 'note', anchor: () => ({ x: 640, y: 600, r: 4 }), md: 'a note at a place' });
+    L.addLabel({ id: 'pick', anchor: () => ({ x: 300, y: 620, r: 4 }), title: 'Chosen', md: 'x', line: 'diagonal-first' });
+    for (let i = 0; i < 80 && (D().running || D().items.some((i) => !i.measured)); i++) await wait(50); await wait(900);
+    const line = (id) => document.querySelector('[data-id="' + id + '"]').getAttribute('data-line');
+    const by = { la: line('la'), note: line('note'), pick: line('pick') };
+    L.setStyle('flat-first'); await wait(120); const forced = line('la'); L.setStyle('auto'); await wait(120);
+    return { by, forced, back: line('la'), bad: D().groups.flatMap((g) => legal(g.d)) };`);
+  check('lines by job: a named feature is diagonal-first, a note at a place is flat-first, a label may choose, the layer may force one for all',
+    r.by.la === 'diagonal-first' && r.by.note === 'flat-first' && r.by.pick === 'diagonal-first' && r.forced === 'flat-first' && r.back === 'diagonal-first' && r.bad.length === 0, JSON.stringify(r));
   check('the page raised no exception', p.logs.filter((l) => l.startsWith('EXCEPTION')).length === 0, p.logs.join(' | '));
 } finally {
   await p.close();

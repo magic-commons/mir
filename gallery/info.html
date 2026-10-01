@@ -148,6 +148,9 @@ function place(x, y) {
   const rho = Math.hypot(x - P.cx, y - P.cy) / P.R, alpha = Math.atan2(y - P.cy, x - P.cx) - P.phi;
   return { rho, alpha, at: () => ({ x: P.cx + rho * P.R * Math.cos(alpha + P.phi), y: P.cy + rho * P.R * Math.sin(alpha + P.phi), r: 4 }) };
 }
+/* the two lines are for two jobs: a NAMED feature gets diagonal-first (the shelf underlines its name), a NOTE at a
+   place gets flat-first.  The four labels above are named features; this one is a note at a place. */
+{ const p = place(P.cx - 0.2 * P.R, P.cy + 0.42 * P.R); layer.addLabel({ anchor: p.at, md: String.raw`A note at a place: $\rho = ${p.rho.toFixed(2)}R$. It turns with the shape.` }); }
 const added = [];
 const keep = (h) => { added.push(h); if (added.length > 8) added.shift().remove(); };
 const deg = (a) => Math.round(((a * 180) / Math.PI % 360 + 360) % 360);
@@ -191,7 +194,7 @@ canvas.addEventListener('dblclick', () => { view.tx = 0; view.ty = 0; });
 /* ── THE STRIP ─────────────────────────────────────────────────────────────────────────────────────────────── */
 const strip = document.getElementById('strip');
 strip.append(
-  seg({ label: 'LINE', value: 'diagonal-first', options: [{ id: 'diagonal-first', label: 'DIAGONAL FIRST', title: 'thing → 45° → flat, the flat part underlining the title' }, { id: 'flat-first', label: 'FLAT FIRST', title: 'thing → flat → 45° → text' }], onChange: (v) => layer.setStyle(v) }).root,
+  seg({ label: 'LINE', value: 'auto', options: [{ id: 'auto', label: 'BY JOB', title: 'a named feature gets diagonal-first, a note at a place gets flat-first' }, { id: 'diagonal-first', label: 'DIAGONAL', title: 'all: thing → 45° → flat, the flat part underlining the title' }, { id: 'flat-first', label: 'FLAT', title: 'all: thing → flat → 45° → text' }], onChange: (v) => layer.setStyle(v) }).root,
   sw({ label: 'FOLLOW CURSOR', value: true, title: 'everything leans away from your pointer, and the greeting keeps to the far side of the shape', onChange: (v) => layer.setFollow(v) }).root,
   sw({ label: 'FLOAT', value: true, title: 'a slow drift, so nothing ever sits quite still', onChange: (v) => layer.setDrift(v) }).root,
   sw({ label: 'LINES', value: true, onChange: (v) => layer.setLines(v) }).root,

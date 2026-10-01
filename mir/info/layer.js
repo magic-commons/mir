@@ -74,7 +74,7 @@ const spring = () => {
   return (SPRING = ok ? s : { easing: motionToken('out'), ms: 300 });
 };
 
-export function createInfoLayer({ stage, host = stage.parentElement, subject = null, features = null, style = 'diagonal-first', follow = true, lines = true, parallax = true, drift = false } = {}) {
+export function createInfoLayer({ stage, host = stage.parentElement, subject = null, features = null, style = 'auto', follow = true, lines = true, parallax = true, drift = false } = {}) {
   const doc = stage.ownerDocument, win = doc.defaultView;
   const root = doc.createElement('div'); root.className = 'mir-info';
   root.dataset.style = style; root.dataset.lines = lines ? 'on' : 'off';
@@ -218,21 +218,34 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
       setVar(it.el, 'translate', `${px(b.x)}px ${px(b.y)}px`);
       if (it.kind === 'block') setAttr(it.el, 'data-travel', Math.hypot(b.x - b.rx - b.ox, b.y - b.ry - b.oy) > INFO.travel ? '' : null);
     }
-    const flat = root.dataset.style === 'flat-first', show = root.dataset.lines === 'on';
+    const show = root.dataset.lines === 'on';
     for (const g of groups.values()) {
       const ls = g.labels.filter((l) => l.measured);
       if (!g.A || !ls.length) continue;
       const pts = ls.map((l) => attach(l, g.A));
       for (const [i, l] of ls.entries()) setAttr(l.el, 'data-side', pts[i].side > 0 ? 'right' : 'left');
       if (!show) continue;
-      const under = ls.map((l) => (flat ? 0 : INFO.pad + l.titleW));
+      const styles = ls.map((l) => lineOf(l, g));
+      for (const [i, l] of ls.entries()) setAttr(l.el, 'data-line', styles[i]);
+      const under = ls.map((l, i) => (styles[i] === 'flat-first' ? 0 : INFO.pad + l.titleW));
       let segs, start;
-      if (ls.length === 1) ({ segs, start } = leader(g.A, pts[0], { style: root.dataset.style, under: under[0], side: pts[0].side }));
+      if (ls.length === 1) ({ segs, start } = leader(g.A, pts[0], { style: styles[0], under: under[0], side: pts[0].side }));
       else ({ segs, start } = comb(g.A, pts, { under }));
       const d = toPath(segs);
       setAttr(g.halo, 'd', d); setAttr(g.ink, 'd', d);
       setAttr(g.dot, 'cx', px(start.x)); setAttr(g.dot, 'cy', px(start.y));
     }
+  }
+  /* THE TWO LINES ARE FOR TWO JOBS (Josh, 10-01: "could be for different purposes, be sure to use them both"):
+       diagonal-first  NAMING a feature the app knows: thing → 45° → a flat shelf that underlines the name
+       flat-first      a NOTE: at a place, on a control, or with no title: thing → flat → 45° → the text
+     A label may say which it wants (`line`); the layer's style may force one for all; otherwise the job decides. */
+  function lineOf(l, g) {
+    if (l.line === 'diagonal-first' || l.line === 'flat-first') return l.line;
+    const all = root.dataset.style;
+    if (all === 'diagonal-first' || all === 'flat-first') return all;
+    const named = typeof g.spec === 'string' && !g.spec.startsWith('ui:');
+    return l.title && named ? 'diagonal-first' : 'flat-first';
   }
   const schedule = () => frame.write(() => { if (!destroyed) paint(); });
 
@@ -509,13 +522,15 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
   }
   const api = {
     root,
-    addLabel({ anchor, title = '', md = '', id } = {}) {
+    addLabel({ anchor, title = '', md = '', id, line = 'auto' } = {}) {
       const it = make('label', { title, md, id }), g = groupFor(anchor);
+      it.line = line;
       it.group = g; g.labels.push(it); draggable(it);
       return handle(it);
     },
     addBlock({ md = '', hold = 0, id } = {}) { return handle(make('block', { md, hold, id })); },
-    setStyle(s) { root.dataset.style = s === 'flat-first' ? 'flat-first' : 'diagonal-first'; schedule(); },
+    /** setStyle('auto' | 'diagonal-first' | 'flat-first') — 'auto' lets each label's job choose its line */
+    setStyle(s) { root.dataset.style = s === 'flat-first' || s === 'diagonal-first' ? s : 'auto'; schedule(); },
     setFollow(v) { follow = !!v; if (!follow) { win.clearTimeout(dwellTimer); dwellTimer = 0; } kick(); },
     /** setParallax(on) — everything leans away from the cursor; setDrift(on) — a slow bob that keeps the frame on */
     setParallax(v) { parallax = !!v; kick(); },

@@ -8,14 +8,19 @@ Plates: `docs/plates/informational/dark.png`, `light.png` (1280 × 800; real fac
 
 ```js
 import { createInfoLayer } from './mir/info/layer.js';      // + link mir/info/faces.css, then mir/info/info.css
-const layer = createInfoLayer({ stage, host?, subject?: () => rect, features?: () => [{ id, x, y, r }], style?, follow?, lines? });
-layer.addLabel({ anchor, title, md })   // anchor: a feature id, { x, y, r }, or () => { x, y, r }  → { el, id, remove() }
+const layer = createInfoLayer({ stage, host?, subject?: () => rect, features?: () => [{ id, x, y, r }], style?, follow?, lines?, parallax?, drift? });
+layer.addLabel({ anchor, title, md, line? })   // anchor: a feature id, { x, y, r }, or () => { x, y, r }  → { el, id, remove() }
 layer.addBlock({ md, hold })            // hold: ms before it may move (the greeting uses 2500)    → { el, id, remove() }
-layer.setStyle('diagonal-first' | 'flat-first'); layer.setFollow(on); layer.setLines(on); layer.setEdit(on); layer.freeze(on);
+layer.setStyle('auto' | 'diagonal-first' | 'flat-first'); layer.setFollow(on); layer.setLines(on); layer.setEdit(on); layer.freeze(on);
+layer.setParallax(on); layer.setDrift(on);
 layer.viewChanged();                    // the picture moved: anchors and subject are read again, labels follow on the spring
 layer.replay(); layer.clear(kind?); layer.debug(); layer.destroy();
 ```
 
+- **The two lines are for two jobs** (Josh, 10-01: "could be for different purposes, be sure to use them both").
+  - **diagonal-first** names a feature the app knows: thing → 45° → a flat shelf that underlines the name. The default for a titled label on a feature id.
+  - **flat-first** is a note: thing → flat → 45° → the text. The default for a label at a place (`{x,y}` or a function), on a control (`ui:`), or with no title.
+  - A label may choose with `line`; `setStyle` may force one for all; `'auto'` (the default) lets the job decide. Each label carries `data-line`.
 - **Coordinates:** `subject()` and `features()` answer in the stage's own CSS pixels. The layer sits over the stage inside `host` (default: the stage's parent, which must be positioned).
 - **Markdown and maths:** `shell/notebook-render.js` (sanitised marked + KaTeX), loaded on first use by `shell/notebook.js` `loadRenderer()`.
 - **Pure parts:** `info/leader.js` (`leader`, `comb`, `route`, `toPath`) and `info/bodies.js` (`step`, `resolveRests`, `createRunner`).
