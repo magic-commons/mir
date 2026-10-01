@@ -1,6 +1,6 @@
 # MIR · the contract between the kit and an app
 
-What an app must do, what it may change, and what belongs to the kit. MIR 1.4.3.
+What an app must do, what it may change, and what belongs to the kit. MIR 1.5.0-alpha.1.
 
 ## 1. Adoption
 
@@ -24,10 +24,17 @@ Load these in `index.html`, in this order:
 <link rel="stylesheet" href="./mir/shell/stage.css">       <!-- optional: λWAVES' ground -->
 <!-- the app's own sheets -->
 <link rel="stylesheet" href="./mir/modulation/modhost.css">              <!-- if the app uses modulation -->
-<link rel="stylesheet" href="./mir/modulation/modwindow/modwindow.css">  <!-- LAST: nothing may follow it -->
+<link rel="stylesheet" href="./mir/modulation/modwindow/modwindow.css">
 ```
 
-A host that needs a different material writes its own sheet after the kit's and re-points the kit's tokens (§4). It never forks a kit file.
+A host that needs a different material writes its own sheet and re-points the kit's tokens (§4). It never forks a kit file.
+
+**Since 1.5.0 the kit is in CSS cascade layers** (`docs/LAYERS.md`). `base.css` must still load first: its first rule declares the order, `@layer mir.tokens, mir.kit, mir.core, mir.a11y;`.
+- **An app's own sheets stay in no layer, and so beat every kit rule, whatever the selector.** Re-point the kit with a plain selector; a `:root:root…` ladder is never needed again, and the old "modwindow.css LAST, nothing may follow it" rule is retired. Source order now matters only among the app's own sheets and inside the kit.
+- **This is a behaviour change for an app that relied on losing.** A rule of the app's that a kit rule used to out-specify now wins. Expect it where an app wrote a rule the kit's modulation sheets overrode (measured on BASINS: `docs/LAYERS.md` §6).
+- **`!important` runs the other way.** A kit `!important` beats an app `!important`, whatever the selector. The kit keeps very few (`docs/LAYERS.md` §4); an app that must beat one asks for it to go, it does not escalate.
+- **The `mir` layer name is the kit's.** An app that layers its own sheets uses its own root name (`app.material`, not `mir.material`): a `mir.*` name lands inside the kit's layer, after `mir.a11y`, and outranks the whole kit.
+- **A script that reads the kit's CSSOM must descend into `@layer` blocks** (`CSSLayerBlockRule.cssRules`), and re-issue what it copies inside the same layer if it wants the same rank.
 
 ## 3. What the kit reads on `<body>`
 
@@ -111,4 +118,4 @@ The kit writes `localStorage` only here:
 - **Curve gestures are MIR's, not a host's.** `mir/modulation/curve-gesture.js` is the FL Studio law: right-drag empty space adds and places a point; Shift-right-click adds at the curve's current value; left-drag moves a point; left-drag on a tension handle bends it; Ctrl makes the tension drag fine; right-click or double-click on a tension handle resets it; Alt-left-click deletes a point. Shift locks a point's value and Ctrl locks its time while moving it. A plain left click on empty curve is inert. Pointer coordinates are transformed into SVG user space before hit testing. A fresh LFO is the editable SINE preset; an explicitly selected deterministic analytic wave materializes on its first edit instead of demanding a preset.
 - **Touch targets are 44 px** (`--touch`) wherever the pointer is coarse.
 - **Text in hover hints steps aside for a hand on a control**, and shows for the keyboard.
-- **Colour comes from tokens.** `tools/lint-tokens.mjs` proves every token the kit reads is written; it does not police literals, and the kit still carries some (the ⓘ panel's glass, the modulation window's sheet), each a candidate for a token.
+- **Colour comes from tokens.** `tools/lint-tokens.mjs` proves every token the kit reads is written; it does not police literals, and the kit still carries some (the ⓘ panel's glass, the modulation window's sheet), each a candidate for a token. It also counts `:root:root` ladders in every kit sheet, and fails on one in a sheet whose layer pass has landed.

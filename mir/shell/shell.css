@@ -17,9 +17,15 @@
  * ground for an app that wants it.
  *
  * THIS SHEET IS THE FROST SKIN'S SHELL.  Structure and look are still one sheet here; when skins arrive the look
- * moves under [data-skin]. */
+ * moves under [data-skin].
+ *
+ * 1.5.0 · LAYER mir.kit.house (the order is declared once, at the top of base.css; docs/LAYERS.md).  Every rule is in the
+ * same layer as base.css and skin.css, so the cascade among the three is 1.4's; the app's own sheets, in no layer,
+ * now beat the shell with a plain selector.  The one exception is the reduced-motion pair, which is a guarantee and
+ * sits in mir.a11y.  tools/extract-shell-css.mjs emits the layer blocks itself, so the sheet stays reproducible. */
 
 /* ── from λWAVES lab/lab.css ── */
+@layer mir.kit.house {
 #notebook { position: absolute; left: calc(50% - 320px); top: 12%; width: 640px; height: 460px; min-width: 320px; min-height: 240px; max-width: calc(100vw - 2 * var(--rack-w) - 40px); max-height: calc(100vh - 40px); resize: both; --nb-line: hsl(0 0% 100% / .45); --nb-btn: hsl(0 0% 100% / .18); --nb-btn-line: hsl(0 0% 100% / .35); z-index: calc(var(--z-chrome) + 4); display: flex; flex-direction: column; border-radius: 16px;
   border: 1px solid hsl(0 0% 100% / .45); background: transparent; -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(115%); backdrop-filter: blur(var(--glass-blur)) saturate(115%);
   box-shadow: inset 0 1px 0 hsl(0 0% 100% / .55), 0 8px 24px hsl(0 0% 0% / .18); color: var(--fg); overflow: hidden; }
@@ -113,12 +119,16 @@ body.ui-hidden #notebook { display: none !important; }
 #title .mark.busy rect { animation-duration: var(--logo-turn, 1.2s); animation-timing-function: linear; animation-iteration-count: infinite; }
 #title { transform-origin: left center; }
 #title.menu-open { transform: none; }
+}
+@layer mir.a11y {
 @media (prefers-reduced-motion: reduce) {
 #title { transition: none !important; }
 #title.menu-open { transform: none !important; }
 }
+}
 
 /* ── from λWAVES lab/skin.css ── */
+@layer mir.kit.house {
 #title .ms { display: none; }
 #title:hover .ms { display: none; }
 #title .word { font-family: 'LW Title', var(--font-ui); color: #fff; letter-spacing: .06em; margin-right: -.06em; margin-left: .02em; }
@@ -142,7 +152,10 @@ body[data-theme="dark"] #notebook::before { display: none; }
 .mb-item { min-height: var(--touch); }
 }
 #menubar .mb-list { background:var(--glass-sheen),hsl(var(--glass-tint) / .65);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));box-shadow:var(--glass-shadow);border:1px solid var(--glass-border-color); }
+}
 
 /* ── kit additions (not from λWAVES) ── */
+@layer mir.kit.house {
 /* a face an app adds wears what λWAVES' PROJECTS face wears: the notebook's own title stands aside for it */
 #notebook:not([data-face="notes"]) .nb-titles, #notebook:not([data-face="notes"]) .nb-title, #notebook:not([data-face="notes"]) .nb-subtitle { visibility: hidden; }
+}

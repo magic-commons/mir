@@ -1,4 +1,9 @@
-
+/* 1.5.0 · LAYER mir.kit.plugin.artifact, wrapped whole (the order is declared once, at the top of mir/css/base.css;
+   docs/LAYERS.md).  Above the house sheets and below modhost.css (mir.kit.plugin.host), which wins by rank instead
+   of by ladder; an app sheet, in no layer, beats both with a plain selector.  "LAST: nothing may follow it" is retired by this:
+   source order now matters only inside the kit.  Its one reduced-motion guarantee is moved, whole, to mir.a11y at
+   the foot of this sheet; nothing else in PART A or PART B is changed. */
+@layer mir.kit.plugin.artifact {
 
 /* ══════════════════════════════════════════════════════════════════════════
    PART A — THE CHROME.  42 rules, each labelled with the index.html line it
@@ -1947,10 +1952,7 @@ html body .crail.crail-float[aria-label="MODULATION window controls"] .crail-chi
 .mir-modwindow .m2barfloat { position: fixed; z-index: 44; }
 @media (prefers-reduced-motion: reduce) {
   :root { --m2-motion-micro: 0ms; --m2-motion-structural: 0ms; }
-  #modwin.mir-modwindow button, #modwin.mir-modwindow .kctl, #modwin.mir-modwindow .m2chev,
-  .kwin-chiprail[aria-label="MODULATION window controls"] .crail-chip::before,
-  .mir-modwindow .m2dev, .m2ring, .m2ghost, .m2span, .m2spancap {
-    transition: none !important; animation: none !important; }
+  /* 1.5.0: the transition/animation stop that stood here is in mir.a11y at the foot of this sheet. */
   /* Histories are optional presentation memory. Current-value markers, meters,
      LFO/ENV playheads and HIT remain visible and continue to tell the truth. */
   #modwin.mir-modwindow .m2spark, #modwin.mir-modwindow .m2audtrace { visibility: hidden; }
@@ -1961,4 +1963,17 @@ html body .crail.crail-float[aria-label="MODULATION window controls"] .crail-chi
       valid CSS (browsers recover by implicit close at EOF, but a bundler or a
       later concatenation would not).  This brace is the ONLY character added
       to PART B. ── */
+}
+
+}   /* end @layer mir.kit.plugin.artifact */
+
+/* 1.5.0 · mir.a11y — reduced motion stops every transition and animation in the window, verbatim from PART B's
+   reduced-motion block.  A layered !important beats an app's unlayered !important, so no app rule can restart one. */
+@layer mir.a11y {
+@media (prefers-reduced-motion: reduce) {
+  #modwin.mir-modwindow button, #modwin.mir-modwindow .kctl, #modwin.mir-modwindow .m2chev,
+  .kwin-chiprail[aria-label="MODULATION window controls"] .crail-chip::before,
+  .mir-modwindow .m2dev, .m2ring, .m2ghost, .m2span, .m2spancap {
+    transition: none !important; animation: none !important; }
+}
 }

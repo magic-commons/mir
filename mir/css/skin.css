@@ -1,6 +1,12 @@
 /* MIR · skin.css — the material language: frost, tinted, refractive, the neumorphic seats, the three faces,
    light and dark. Extracted 2026-09-10 from λWAVES skin.css. Fonts live one level up in ../../fonts/. */
 
+/* 1.5.0 · LAYER mir.kit.house, wrapped whole (the order is declared once, at the top of base.css; docs/LAYERS.md).  One
+   layer with base.css, so skin.css still beats base.css by order of appearance and specificity exactly as in 1.4,
+   and every app sheet, which is in no layer, beats both with a plain selector.  The @font-face rules ride inside: a
+   face the app declares under the same family name now wins whatever the load order. */
+@layer mir.kit.house {
+
 /* skin.css — the GLASS × NEUMORPHIC skin for λWAVES.
  * Loads AFTER lab.css and only re-points its tokens and re-dresses its selectors; lab.css stays whole without it.
  * Law 1: no frosted blur by default (the filter was measured at −26 fps over the live canvas). Glass = tint + hairline + sheen + shadow.
@@ -443,3 +449,5 @@ body[data-theme="light"] .native-info .native-info-content, body[data-theme="lig
 .plane-model { object-fit:contain; background:var(--glass-well);box-shadow:var(--neu-inset);border-radius:8px; }
 body.window-info-off .native-info, body.window-info-off .native-info-content { display:none !important; }
 body.window-info-off .row:has(> .native-info):not(:has(> :not(.native-info))) { display:none; }
+
+}   /* end @layer mir.kit.house */

@@ -8,8 +8,16 @@
  * deliberately leaves to the app, each with the reason.  A var() WITH a fallback is not an error — the rule
  * says what happens without it — but it is listed when --unused is asked for, so a typo in a fallback-guarded
  * name can still be seen.  A read with no fallback and no writer is a bug: the property silently falls back
- * to its initial value (measured 2026-09-16: --w-medium, --accent-sweep, --line). */
+ * to its initial value (measured 2026-09-16: --w-medium, --accent-sweep, --line).
+ *
+ * 1.5.0 · NO :root LADDERS.  The kit is in cascade layers (docs/LAYERS.md): rank comes from the layer, so a
+ * `:root:root…` prefix that buys specificity is a bug.  Every kit sheet is counted; a sheet listed in LADDER_FREE
+ * fails the lint if one comes back, the others are reported only, until their layer pass lands.
+ * The sheets are read as text, so @layer blocks need nothing special: a declaration is a declaration in any block. */
 import fs from 'node:fs'; import path from 'node:path';
+
+/* the sheets whose ladders are gone, so a ladder there is an error (docs/LAYERS.md: STEP B) */
+export const LADDER_FREE = ['mir/modulation/modhost.css'];
 
 const ROOT = new URL('..', import.meta.url).pathname;
 /* written by the app, read by the kit — the contract (docs/CONTRACT.md lists them too) */
@@ -56,5 +64,15 @@ if (process.argv.includes('--unused')) {
   console.log(`\nwritten and never read inside the kit (${unused.length}) — an app may read them; check before removing:`);
   console.log('  ' + unused.join(' '));
 }
+/* the :root ladder check: selectors (outside comments) carrying two or more :root in a row */
+let ladderErrors = 0; const ladderReport = [];
+for (const f of css) {
+  const rel = path.relative(ROOT, f), n = (strip(fs.readFileSync(f, 'utf8')).match(/:root:root/g) || []).length;
+  if (!n) continue;
+  if (LADDER_FREE.includes(rel)) { ladderErrors += n; ladderReport.push(`  ${rel}: ${n} — ERROR, this sheet is ladder-free since its layer pass`); }
+  else ladderReport.push(`  ${rel}: ${n} (report only until its layer pass lands)`);
+}
+if (ladderReport.length) console.log(`\n:root ladders (two or more :root in a row):\n${ladderReport.join('\n')}`);
 console.log(missing.length ? `\n${byName(missing).size} unwritten token(s)` : '\nevery token the kit reads has a writer');
-process.exit(missing.length ? 1 : 0);
+if (ladderErrors) console.log(`${ladderErrors} :root ladder(s) in a ladder-free sheet`);
+process.exit(missing.length || ladderErrors ? 1 : 0);

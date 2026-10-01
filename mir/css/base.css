@@ -2,6 +2,22 @@
    readout, formula, window chrome). Extracted 2026-09-10 from λWAVES lab.css; the app keeps only its own
    selectors in its lab.css. Load order: base.css, skin.css, then the app sheets. */
 
+/* 1.5.0 · THE LAYERS (docs/LAYERS.md).  This sheet loads first, so the ORDER statement below is the one place the
+   kit's layers are named and ranked: later beats earlier, and a rule in no layer — every app sheet — beats them all,
+   whatever its selector.  So an app re-points the kit with a plain selector and never stacks :root again.
+   `!important` runs the other way: a layered !important beats an unlayered one, which is why the kit keeps so few.
+     mir.tokens  reserved for the token tiers (1.5.1); empty today
+     mir.kit     the six kit sheets, each wrapped whole, in three ranks:
+       .house            base.css, skin.css, shell/shell.css, shell/stage.css — one layer, so among them it is 1.4's cascade
+       .plugin.artifact  modulation/modwindow/modwindow.css, the vendored window sheet
+       .plugin.host      modulation/modhost.css, which beats the artifact by RANK, so it needs no :root ladder
+     mir.core    mir/core/** (1.5.0, its own sheets)
+     mir.a11y    the guarantees an app may not undo by accident: reduced motion
+   This sheet is in mir.kit.house. */
+@layer mir.tokens, mir.kit, mir.core, mir.a11y;
+@layer mir.kit.house, mir.kit.plugin.artifact, mir.kit.plugin.host;
+@layer mir.kit.house {
+
 /* lab.css — λWAVES material: the token ladder (in the MANDELBROT/BASINS family) and the rack grammar. */
 :root {
   color-scheme: dark;
@@ -394,3 +410,5 @@ select.sel { min-height: var(--touch); padding: 0 8px; border-radius: var(--r-md
 
 .sw[data-mode] { min-width:112px; }
 .sw[data-mode]::after { content:attr(data-mode); font-size:8px; margin-left:auto; opacity:.7; }
+
+}   /* end @layer mir.kit.house */

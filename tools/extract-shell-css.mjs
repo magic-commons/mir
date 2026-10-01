@@ -1,7 +1,14 @@
 /* extract-shell-css.mjs — how mir/shell/shell.css was made, kept so it can be made again.
  *
- *   node tools/extract-shell-css.mjs <served λWAVES url> <λWAVES lab dir> <out.css>
+ *   node tools/extract-shell-css.mjs <served λWAVES url> <λWAVES lab dir> <out.css> [--frame mir/shell/shell.css]
  *   e.g. node tools/extract-shell-css.mjs http://127.0.0.1:8779/index.html ~/Documents/LAMBDAWAVES/lab /tmp/shell-extract.css
+ *
+ * 1.5.0 · THE LAYERS ARE EMITTED HERE, so the sheet stays reproducible: every kept rule goes into `@layer mir.kit.house`,
+ * except a reduced-motion rule whose declarations are !important, which is a guarantee and goes into `@layer
+ * mir.a11y` (docs/LAYERS.md).  A wrapper is closed only as far as the next rule's wrappers differ, so a media block
+ * inside the kit layer does not split it.  --frame <file> takes that file's hand-written header (everything before
+ * the first "from λWAVES" section) and its kit additions (from "kit additions" on), puts the extraction between
+ * them, writes the whole sheet to <out.css>, and says whether it is byte-identical to <file>.
  *
  * It takes, from λWAVES' app sheets (lab.css, skin.css), every rule that can style the SHELL — #title, #menubar
  * (every list filled), #notebook (NOTES and ABOUT faces, a markdown view) — in cascade order, with each declaration
@@ -13,8 +20,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { launch } from './cdp.mjs';
-const [URL_LW, LAB, OUT_CSS] = process.argv.slice(2);
-if (!URL_LW || !LAB || !OUT_CSS) { console.error('usage: extract-shell-css.mjs <served λWAVES url> <λWAVES lab dir> <out.css>'); process.exit(2); }
+const ARGV = process.argv.slice(2);
+const FRAME = ARGV.includes('--frame') ? ARGV.splice(ARGV.indexOf('--frame'), 2)[1] : null;
+const [URL_LW, LAB, OUT_CSS] = ARGV;
+if (!URL_LW || !LAB || !OUT_CSS) { console.error('usage: extract-shell-css.mjs <served λWAVES url> <λWAVES lab dir> <out.css> [--frame mir/shell/shell.css]'); process.exit(2); }
 const LW = LAB.endsWith('/') ? LAB : LAB + '/';
 const KIT = new URL('../mir/css/', import.meta.url).pathname;
 
@@ -105,18 +114,27 @@ for (const it of items) {
   if (it.kind !== 'rule') continue;
   const sels = it.selectors.filter((s) => { const t = testable(s); return t && hit.has(t); });
   if (!sels.length) continue;
-  kept.push({ ...it, sels });
+  /* the layer is the outermost wrapper: mir.a11y for a reduced-motion guarantee, mir.kit for everything else */
+  const a11y = it.wrappers.some((w) => /prefers-reduced-motion/.test(w)) && /!important/.test(it.body);
+  kept.push({ ...it, sels, wrappers: [a11y ? '@layer mir.a11y' : '@layer mir.kit.house', ...it.wrappers] });
 }
 let out = '', open = [];
-const close = () => { for (let k = open.length - 1; k >= 0; k--) out += '}\n'; open = []; };
+const closeTo = (n) => { while (open.length > n) { out += '}\n'; open.pop(); } };
 let lastFile = null;
 for (const r of kept) {
-  if (r.file !== lastFile) { close(); out += `\n/* ── from λWAVES lab/${r.file} ── */\n`; lastFile = r.file; }
-  if (JSON.stringify(open) !== JSON.stringify(r.wrappers)) { close(); for (const w of r.wrappers) out += w + ' {\n'; open = r.wrappers.slice(); }
+  if (r.file !== lastFile) { closeTo(0); out += `\n/* ── from λWAVES lab/${r.file} ── */\n`; lastFile = r.file; }
+  let common = 0; while (common < open.length && common < r.wrappers.length && open[common] === r.wrappers[common]) common++;
+  if (common < open.length || common < r.wrappers.length) { closeTo(common); for (const w of r.wrappers.slice(common)) { out += w + ' {\n'; open.push(w); } }
   out += r.sels.join(', ') + ' {' + r.body + '}\n';
 }
-close();
-fs.writeFileSync(OUT_CSS, out);
+closeTo(0);
+if (FRAME) {
+  const frame = fs.readFileSync(FRAME, 'utf8');
+  const head = frame.slice(0, frame.indexOf('\n/* ── from λWAVES ')), tailAt = frame.indexOf('\n/* ── kit additions');
+  const whole = head + out + (tailAt < 0 ? '' : frame.slice(tailAt));
+  fs.writeFileSync(OUT_CSS, whole);
+  console.log(whole === frame ? `byte-identical to ${FRAME} (${whole.length} bytes)` : `DIFFERS from ${FRAME}: ${whole.length} vs ${frame.length} bytes — diff ${OUT_CSS} ${FRAME}`);
+} else fs.writeFileSync(OUT_CSS, out);
 /* custom properties the kept rules read, and whether anything defines them */
 const used = new Set([...out.matchAll(/var\((--[\w-]+)/g)].map((m) => m[1]));
 const kit = fs.readFileSync(path.join(KIT, 'base.css'), 'utf8') + fs.readFileSync(path.join(KIT, 'skin.css'), 'utf8');

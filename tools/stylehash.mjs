@@ -18,6 +18,8 @@
  *   --skip   <css>    elements (and their subtrees) to leave out                    (default: canvas)
  *   --size   <WxH>    viewport                                                       (default: 1440x900)
  *   --gpu    1        a real WebGPU adapter, and one reload (for an app that will not boot without the GPU)
+ *   --media  <list>   emulated media features for the whole capture, e.g. prefers-reduced-motion=reduce,prefers-contrast=more
+ *                     (CDP Emulation.setEmulatedMedia; set before the page loads — the kit's a11y layer lives behind these)
  *
  * COMPARE reports, per state, elements that appeared, disappeared or changed (with the properties that differ),
  * and the pixels.  A page is rarely still — a clock ticks, a mark turns — so `--noise <name>` names a SECOND
@@ -27,7 +29,8 @@
  *
  * WHAT IT SEES: every visible element under <html> including <html> and <body>, 80-odd computed properties, the
  * element's box, ::before/::after, and every custom property the page's own sheets declare, read on <html> and
- * <body> — so a token that changes shows up even where nothing paints it yet.  WHAT IT DOES NOT: hover, focus,
+ * <body> — so a token that changes shows up even where nothing paints it yet.  The token scan walks every grouping
+ * rule (@layer blocks since 1.5.0, @media, @supports, @container), so a token declared inside a layer is seen.  WHAT IT DOES NOT: hover, focus,
  * open popovers and any state the matrix does not drive (drive them with --setup, or prove them elsewhere:
  * tools/shell-parity.mjs, tests/widgets.browser.mjs), and differences inside a <canvas>. */
 import fs from 'node:fs'; import path from 'node:path';
@@ -83,8 +86,9 @@ async function capture(name, url, outDir, o) {
   const T = o.theme || 'document.body.dataset.theme = %s', C = o.card || 'document.body.dataset.card = %s', F = o.frost || "document.body.classList.toggle('frost', %s)";
   const dir = path.join(outDir, name); fs.mkdirSync(dir, { recursive: true });
   const p = await launch({ width: W, height: H, gpu: !!o.gpu });
-  const meta = { url, states, at: new Date().toISOString(), counts: {} };
+  const meta = { url, states, at: new Date().toISOString(), counts: {}, media: o.media || null };
   try {
+    if (o.media) await p.send('Emulation.setEmulatedMedia', { features: o.media.split(',').map((kv) => { const [name, value] = kv.split('='); return { name, value }; }) });
     await p.goto(url, 2500);
     const ready = o.ready || "document.readyState === 'complete'";
     for (let i = 0; i < 40 && !(await p.eval(ready)); i++) await sleep(250);
@@ -183,4 +187,4 @@ const [cmd, ...rest] = process.argv.slice(2);
 const { o, pos } = args(rest);
 if (cmd === 'capture' && pos.length === 3) await capture(pos[0], pos[1], pos[2], o);
 else if (cmd === 'compare' && pos.length === 3) await compare(pos[0], pos[1], pos[2], o);
-else { console.error('usage: stylehash.mjs capture <name> <url> <out-dir> [--ready js] [--setup js] [--theme js] [--card js] [--frost js] [--states list] [--skip css] [--size WxH]\n       stylehash.mjs compare <out-dir> <before> <after> [--noise <before-again>]'); process.exit(2); }
+else { console.error('usage: stylehash.mjs capture <name> <url> <out-dir> [--ready js] [--setup js] [--theme js] [--card js] [--frost js] [--states list] [--skip css] [--size WxH] [--gpu 1] [--media name=value,…]\n       stylehash.mjs compare <out-dir> <before> <after> [--noise <before-again>]'); process.exit(2); }
