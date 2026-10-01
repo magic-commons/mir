@@ -10,6 +10,7 @@
      proves nothing about it. -->
 <link rel="stylesheet" href="../mir/css/base.css">
 <link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/css/tokens.css">
 <link rel="stylesheet" href="../mir/shell/shell.css">
 <link rel="stylesheet" href="../mir/modulation/modhost.css">
 <link rel="stylesheet" href="../mir/modulation/modwindow/modwindow.css">
@@ -62,6 +63,8 @@ r0.appendChild(seg({ label: 'THEME', value: 'dark', options: [{ id: 'dark', labe
 r0.appendChild(seg({ label: 'CARD STYLE', value: 'tinted', options: [{ id: 'tinted', label: 'TINTED', title: 'a pane, no filter' }, { id: 'refractive', label: 'REFRACTIVE', title: 'blur only' }], onChange: (v) => { document.body.dataset.card = v; } }).root);
 r0.appendChild(sw({ label: 'FROST', value: false, title: 'the frost policy over both card styles', onChange: (v) => document.body.classList.toggle('frost', v) }).root);
 r0.appendChild(sw({ label: 'DISCONNECTED', value: true, title: 'the window as a constellation: bar-chip, body-card, air between', onChange: (v) => document.body.classList.toggle('disconnected', v) }).root);
+r0.appendChild(seg({ label: 'TIER', value: 'full', options: [{ id: 'full', label: 'FULL', title: 'every blur, shadow and motion the seats ask for' }, { id: 'lite', label: 'LITE', title: 'no blur anywhere, the tinted fill, one-layer shadows (docs/TIERS.md)' }, { id: 'flat', label: 'FLAT', title: 'lite, and no relief, no sheen, no motion' }],
+  onChange: (v) => { if (v === 'full') delete document.documentElement.dataset.uiTier; else document.documentElement.dataset.uiTier = v; } }).root);
 r0.appendChild(seg({ label: 'GROUND', value: 'plain', options: [{ id: 'plain', label: 'PLAIN', title: 'the flat stage: black or white' }, { id: 'field', label: 'FIELD', title: 'a busy coloured picture under the glass' }], onChange: (v) => document.body.classList.toggle('g-field', v === 'field') }).root);
 const ra = el('div', 'row tight', group(s0.body, 'the accents — two angles on a palette (mir/shell/accent.js)'));
 ra.appendChild(knob({ label: 'ACCENT A', min: 0, max: 360, value: accent.a, wrap: true, fmt: (v) => v.toFixed(0) + '°', title: 'the first accent: an angle on the palette', onInput: (v) => accent.set({ a: v }) }).root);
