@@ -39,18 +39,22 @@ layer.replay(); layer.clear(kind?); layer.debug(); layer.destroy();
 | **EDIT** | Labels take the pointer (only then). A dragged label is held: its rest is the hand, and its neighbours yield through the same force step. Dropped, it keeps that place relative to its anchor. Escape or blur rolls it back (`pointer.drag`) |
 | **Click-through** | `pointer-events: none` everywhere except labels in EDIT. `elementFromPoint` under a label is the stage (tested) |
 | **Idle** | The frame is booked only while a body moves, an entrance is laid out, or the view changed. Once at rest: no rAF, and zero writes, reads and frames (tested over 600 ms) |
-| **Ink** | Ink plus a four-step halo in the opposite ink, and a halo stroke under every line. No pane, no box, no shadow height |
+| **Ink** | Ink over a soft darkness: a feathered ellipse in the opposite ink under each block of words, and a broad weak blur under the glyphs. No outline, no pane, no box (Josh, 10-01: "way less drop shadow or outline. Let it be a soft darkness underneath") |
+| **Parallax** | Everything leans away from the cursor, blocks more than labels, eased; a block being reached for holds its lean. `setParallax(on)`; FOLLOW CURSOR off stops it |
+| **Drift** | `drift: true` / `setDrift(on)`: a slow bob per item. While it is on the layer keeps its frame on purpose, so idle is no longer zero work; it is off by default and on in the gallery page (FLOAT) |
 
-## The numbers I settled on
+## The numbers (retuned 10-01 after Josh's first look: "stronger and smoother, everything moving and floaty")
 
 | What | Number | Feel |
 |---|---|---|
-| Label spring | k 170 s⁻², ζ 0.72 | ω 13 rad/s, ~3 % overshoot (measured 102.8 on a 100 px move), at rest in ~37 frames |
-| Block spring | k 95 s⁻², ζ 0.8 | A heavier glide for a seat change, with a 700 px/s² lift off the subject while crossing it |
-| Neighbours | gap 18 px, 520 s⁻² per px of overlap, along the shallower axis | The rest pass resolves rest boxes deterministically, 12 passes, blocks fixed |
-| Pointer | reach 120 px, 4400 px/s² at contact, (1 − d/120)², heat τ 180 ms | About 26 px of give at contact. A still pointer pushes nothing, so labels come home under it |
+| Label spring | k 70 s⁻², ζ 0.6 | ω 8.4 rad/s, ~9 % overshoot (measured 108.7 on a 100 px move), settled in ~0.8 s. Was k 170, ζ 0.72 |
+| Block spring | k 34 s⁻², ζ 0.72 | A slow, heavy glide, with a 700 px/s² lift off the subject while crossing it. Was k 95, ζ 0.8 |
+| Neighbours | rests 18 px apart (gap); in flight they push only when closer than 2 px (bump), 520 s⁻² per px | The rest pass resolves rest boxes deterministically, 12 passes, blocks fixed. The small bump lets bodies whose leans differ still reach their places |
+| Pointer | reach 260 px, 5200 px/s² at contact, (1 − d/260)², heat τ 0.9 s, scaled by 1 − toward² | About 74 px of give at contact, and it lets go slowly. Was 120 px, 4400, τ 180 ms |
+| Parallax | lean = −(pointer from the stage's middle, −1…1) × depth: block 38 px, labels 22 / 26 / 30 px; eased with τ 0.28 s; ×0.7 vertically | The lean is clamped so it never asks for a place beyond the walls |
+| Drift | block 5 px, labels 3.5 px, periods about 8–14 s, each item its own phase | |
 | Walls | 10 px in, 900 s⁻² per px | |
-| Stop | every \|v\| < 6 px/s and every \|x − rest\| < 0.4 px, else 90 frames per disturbance | Then every body is snapped exactly onto its rest |
+| Stop | every \|v\| < 6 px/s and every \|x − target\| < 0.4 px, else 300 frames per disturbance | Then every body is snapped exactly onto its target (rest + lean). Never while drift is on |
 | Label offset | out = escape from the subject + 46 + r; rise = 34 + min(40, 0.2·escape) | Comb members stack 14 px apart |
 | Block seat | 36 px from the subject, centred on it | |
 | Entrance | dot 140 ms (spring) · line from 60 ms over 260 ms (ease-out) · text from 200 ms, 30 ms per line (spring, k 300 c 22, ~330 ms, as CSS `linear()`) · labels stagger 55 ms outward from the subject (max 5) | About 0.7 s for a screenful |

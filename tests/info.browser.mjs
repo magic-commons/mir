@@ -55,7 +55,9 @@ try {
   check('dwell: just after crossing, the block has not moved yet', r.earlySide === 'right', JSON.stringify(r));
   s = await run(`await wait(600); for (let i = 0; i < 60 && D().running; i++) await wait(50); await wait(50);
     return { blk: item('blk'), pin: document.querySelector('[data-id="blk"] .mir-info-pin').hasAttribute('data-show') };`);
-  check('against the cursor: after the dwell the block rests on the FAR side (left) of the subject', s.blk.x + s.blk.w < 540 && s.blk.x === s.blk.rx, `x ${s.blk.x.toFixed(1)} w ${s.blk.w.toFixed(1)}`);
+  /* at rest a body sits on its seat PLUS its lean away from the pointer (the parallax); the lean here is leftward */
+  check('against the cursor: after the dwell the block rests on the FAR side (left) of the subject, leaning away', s.blk.x + s.blk.w < 540 && s.blk.x === s.blk.rx + s.blk.ox && s.blk.ox < 0,
+    `x ${s.blk.x.toFixed(1)} w ${s.blk.w.toFixed(1)} lean ${s.blk.ox.toFixed(1)}`);
   check('the pin: the first time the block moves away, its pin shows', s.pin);
 
   /* ── REACHING IS NOT FLEEING ── */
@@ -68,7 +70,9 @@ try {
     if (i % 4 === 0) samples.push((await run(`return item('blk');`)).rx);
   }
   r = await run(`await wait(900); return { blk: item('blk'), reach: document.querySelector('[data-id="blk"]').hasAttribute('data-reach'), op: getComputedStyle(document.querySelector('[data-id="blk"]')).opacity };`);
-  check('reaching: moving toward the block and resting on it never moves it', samples.every((x) => x === before.rx) && r.blk.rx === before.rx && Math.abs(r.blk.x - before.x) < 0.5, JSON.stringify({ samples, rx: r.blk.rx, was: before.rx }));
+  /* its SEAT never changes, and it does not flee: the lean it had gathered before the reach was read is held (a few px) */
+  check('reaching: moving toward the block and resting on it never moves its seat, and it does not flee', samples.every((x) => x === before.rx) && r.blk.rx === before.rx && Math.abs(r.blk.x - before.x) < 14,
+    JSON.stringify({ samples, rx: r.blk.rx, was: before.rx, moved: +(r.blk.x - before.x).toFixed(2) }));
   check('reaching: the block is at full strength while reached for', r.reach && +r.op === 1, JSON.stringify({ reach: r.reach, op: r.op }));
   await glide(before.x + before.w / 2, 420, 640, 760, 8, 25);       // out, down to a neutral place on the centre line
   await sleep(500);
@@ -101,15 +105,15 @@ try {
   check('EDIT: a neighbour yielded while the label was carried onto it', pushed > 20, `the neighbour moved up to ${pushed.toFixed(1)} px`);
   s = await settle();
   const la2 = s.items.find((i) => i.id === 'la');
-  check('EDIT: dropped, the label rests where the hand left it (its new place is kept)', Math.abs(la2.x - (la.x + 80 - 20)) < 2 && Math.abs(la2.y - (la.y + 40 - 10)) < 2 && la2.x === la2.rx, `at ${la2.x.toFixed(1)},${la2.y.toFixed(1)} want ${la.x + 60},${la.y + 30}`);
+  check('EDIT: dropped, the label rests where the hand left it (its new place is kept)', Math.abs(la2.x - (la.x + 80 - 20)) < 2 && Math.abs(la2.y - (la.y + 40 - 10)) < 2 && la2.x === la2.rx + la2.ox, `at ${la2.x.toFixed(1)},${la2.y.toFixed(1)} want ${la.x + 60},${la.y + 30}`);
   await run(`L.setEdit(false); return 0;`);
 
   /* ── follow: the anchor moves, the label trails on its spring and lands exactly ── */
   r = await run(`const a0 = item('la'); T.F.a.x += 60; T.F.a.y += 30; L.viewChanged();
     await wait(70); const mid = item('la');
     for (let i = 0; i < 60 && D().running; i++) await wait(50); await wait(50); const end = item('la');
-    return { lag: (a0.x + 60) - mid.x, end: [end.x - (a0.x + 60), end.y - (a0.y + 30)], exact: end.x === end.rx && end.y === end.ry };`);
-  check('follow: a label trails its moving anchor on the spring, then lands exactly', r.lag > 2 && Math.abs(r.end[0]) < 0.01 && Math.abs(r.end[1]) < 0.01 && r.exact, JSON.stringify(r));
+    return { lag: (a0.x + 60) - mid.x, end: [end.x - (a0.x + 60), end.y - (a0.y + 30)], exact: end.x === end.rx + end.ox && end.y === end.ry + end.oy };`);
+  check('follow: a label trails its moving anchor on the spring, then lands exactly', r.lag > 2 && Math.abs(r.end[0]) < 0.5 && Math.abs(r.end[1]) < 0.5 && r.exact, JSON.stringify(r));
 
   /* ── reduced motion: the entrance is a fade, nothing travels ── */
   r = await run(`T.motion.setMotionPolicy('reduced'); await L.replay(); await wait(30);

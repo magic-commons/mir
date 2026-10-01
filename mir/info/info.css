@@ -1,9 +1,11 @@
 /* info/info.css — INFORMATIONAL: words on the picture.  Load after the kit's sheets (it is in mir.kit.house).
  *
- * THE LAW IT DRAWS: WORDS ON THE STAGE ARE INK PLUS A HALO — NEVER A PANE.  No background, no border, no drop
- * shadow height: the halo is the opposite ink, blurred, round every glyph and under every line, so the words read
- * over a loud picture without a box (INTENT, the proposed row "words on the stage").  The layer never takes a
- * click: `pointer-events: none` throughout, except a label while EDIT is on.
+ * THE LAW IT DRAWS: WORDS ON THE STAGE ARE INK OVER A SOFT DARKNESS — NEVER A PANE, NEVER AN OUTLINE.  Josh,
+ * 2026-10-01, on the first page: "way less drop shadow or outline.  Let it be a soft darkness underneath."  So
+ * there is no tight shadow round the glyphs: a wide, faint shade sits under each block of words (a feathered
+ * ellipse in the opposite ink, no edge), and the glyphs carry only a broad, weak blur of it (INTENT, the row
+ * "words on the stage").  The layer never takes a click: `pointer-events: none` throughout, except a label while
+ * EDIT is on.
  *
  * Type comes through tokens; the real faces (Spectral, Playfair Display, Alegreya SC for links) are in
  * mir/info/faces.css — a page links it before this sheet, and without it the system serifs stand in.  Sizes are read from the layer's own width (`cqi`), not the
@@ -13,11 +15,11 @@
 @layer mir.kit.house {
   .mir-info {
     --info-ink: hsl(40 33% 96%);
-    --info-paper: hsl(228 40% 4% / .78);
-    --info-paper-soft: hsl(228 40% 4% / .42);
-    --info-halo: 0 0 1px var(--info-paper), 0 0 3px var(--info-paper), 0 0 9px var(--info-paper-soft), 0 0 22px var(--info-paper-soft);
+    --info-paper: hsl(228 40% 4% / .27);
+    --info-paper-soft: hsl(228 40% 4% / .14);
+    --info-halo: 0 1px 12px var(--info-paper-soft), 0 2px 30px var(--info-paper-soft);
     --info-line-w: 1.25px;
-    --info-halo-w: 4.5px;
+    --info-halo-w: 3px;
     --info-lh: 1.45;
     --info-size-body: clamp(14px, 8px + .68cqi, 18px);
     --info-size-label: clamp(13px, 7.5px + .6cqi, 16.5px);
@@ -38,8 +40,8 @@
   }
   [data-theme="light"] .mir-info {
     --info-ink: hsl(232 22% 10%);
-    --info-paper: hsl(42 45% 97% / .86);
-    --info-paper-soft: hsl(42 45% 97% / .5);
+    --info-paper: hsl(42 45% 97% / .38);
+    --info-paper-soft: hsl(42 45% 97% / .2);
   }
 
   /* ── the lines: one svg, a halo stroke under the ink, a dot on the thing's edge ── */
@@ -52,12 +54,19 @@
   .mir-info-ink { stroke: var(--info-ink); stroke-width: var(--info-line-w); }
   .mir-info-dot { fill: var(--info-ink); stroke: var(--info-paper); stroke-width: var(--info-line-w); transform-box: fill-box; transform-origin: center; }
 
-  /* ── labels and blocks: ink, a halo, no box ── */
+  /* ── labels and blocks: ink over a soft shade, no box, no outline ── */
   .mir-info-label, .mir-info-block {
-    position: absolute; left: 0; top: 0; box-sizing: border-box; margin: 0;
+    position: absolute; left: 0; top: 0; box-sizing: border-box; margin: 0; isolation: isolate;
     text-shadow: var(--info-halo); visibility: hidden;
     transition: opacity var(--motion-structural) var(--ease-out);
   }
+  /* the shade: a feathered ellipse under the words, wider than they are, with no edge to see */
+  .mir-info-label::before, .mir-info-block::before {
+    content: ''; position: absolute; z-index: -1; inset: -2em -3.2em; pointer-events: none;
+    background: radial-gradient(ellipse closest-side, var(--info-paper) 0%, var(--info-paper-soft) 50%, transparent 100%);
+    opacity: 0; transition: opacity var(--motion-structural) var(--ease-out);
+  }
+  .mir-info-label[data-state="in"]::before, .mir-info-block[data-state="in"]::before { opacity: 1; }
   .mir-info-label[data-state="in"], .mir-info-block[data-state="in"] { visibility: visible; }
   .mir-info-label { width: max-content; max-width: var(--info-measure); font-size: var(--info-size-label); }
   .mir-info-label[data-side="left"] { text-align: right; }

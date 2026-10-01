@@ -28,10 +28,14 @@ function fakeFrame() {
   check('rest: bodies land EXACTLY on their resting places', exact && rested === 1, `frames ${frames}, at ${bodies.map((b) => `${b.x},${b.y}`).join(' ')}`);
   check('rest: the run ends before the cap on its own energy cut-off', frames < PHYS.cap && frames > 10, `${frames} frames`);
   check('idle: once at rest nothing is booked', F.booked() === 0 && !run.running && F.f.state().pending === 0, JSON.stringify(F.f.state()));
-  /* the feel: a little overshoot, not a wobble */
+  /* the feel: floaty — a soft overshoot, not a wobble (Josh, 10-01: "everything moving and floaty") */
   const b = createBody({ id: 'o', x: 0, y: 0, w: 10, h: 10 }); b.rx = 100;
-  let peak = 0; for (let i = 0; i < 120; i++) { step([b], 1 / 60); peak = Math.max(peak, b.x); }
-  check('feel: a 100 px move overshoots a little (2–8 %) and settles', peak > 102 && peak < 108 && Math.abs(b.x - 100) < 0.5, `peak ${peak.toFixed(2)}`);
+  let peak = 0; for (let i = 0; i < 180; i++) { step([b], 1 / 60); peak = Math.max(peak, b.x); }
+  check('feel: a 100 px move overshoots softly (5–13 %) and settles', peak > 105 && peak < 113 && Math.abs(b.x - 100) < 0.5, `peak ${peak.toFixed(2)}`);
+  /* an offset rides on top of the rest: the body lands on rest + offset, and the rest itself is untouched */
+  const o = createBody({ id: 'p', x: 0, y: 0, w: 10, h: 10 }); o.rx = 50; o.ox = 12; o.oy = -6;
+  for (let i = 0; i < 240; i++) step([o], 1 / 60);
+  check('offset: a body settles on rest + offset, and snap lands there', Math.abs(o.x - 62) < 0.5 && Math.abs(o.y + 6) < 0.5 && o.rx === 50 && (snap([o]), o.x === 62 && o.y === -6), `at ${o.x.toFixed(2)},${o.y.toFixed(2)}`);
 }
 
 /* 2 · two overlapping bodies separate */
@@ -48,17 +52,23 @@ function fakeFrame() {
     [c, d, e].map((z) => `${z.id} ${z.rx.toFixed(1)},${z.ry.toFixed(1)}`).join(' '));
 }
 
-/* 3 · the cap: a body that will not settle is landed at frame 90 */
+/* 3 · the cap: a body that will not settle is landed at the cap (300 frames) */
 {
   const P = { ...PHYS, zeta: 0.0, k: 30 };                          // no damping: it would ring forever
   const bodies = [createBody({ id: 'r', x: 0, y: 0, w: 10, h: 10 })]; bodies[0].rx = 300;
   const F = fakeFrame();
   const run = createRunner({ frame: F.f, bodies: () => bodies, P });
   run.kick(); const frames = F.pump(1000);
-  check('cap: an undamped body is stopped at 90 frames and landed on its rest', run.frames === 90 && bodies[0].x === 300 && F.booked() === 0, `frames ${run.frames} (pumped ${frames}), x ${bodies[0].x}`);
+  check('cap: an undamped body is stopped at the cap and landed on its rest', run.frames === PHYS.cap && bodies[0].x === 300 && F.booked() === 0, `frames ${run.frames} (pumped ${frames}), x ${bodies[0].x}`);
   /* a kick mid-run resets the cap */
   bodies[0].x = 0; bodies[0].rx = 300; run.kick(); F.pump(60); run.kick(); F.pump(1000);
-  check('cap: a new disturbance restarts the count', run.frames === 90 && bodies[0].x === 300);
+  check('cap: a new disturbance restarts the count', run.frames === PHYS.cap && bodies[0].x === 300);
+  /* alive: a layer that drifts keeps its frame; it lands the moment it stops being alive */
+  let on = true; bodies[0].x = 0;
+  const live = createRunner({ frame: F.f, bodies: () => bodies, P, alive: () => on });
+  live.kick(); F.pump(PHYS.cap + 50);
+  const still = live.running; on = false; F.pump(5);
+  check('alive: the run does not land while alive, and lands when it is not', still && !live.running && bodies[0].x === 300 && F.booked() === 0);
 }
 
 /* 4 · the pointer: passing by parts them; reaching for one does not */

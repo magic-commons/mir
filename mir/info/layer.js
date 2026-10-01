@@ -46,8 +46,12 @@ export const INFO = Object.freeze({
   gap: 36, out: 46, rise: 34, pad: 6, comb: 14, margin: 14,
   enter: { dot: 140, lineAt: 60, line: 260, textAt: 200, perLine: 30, maxLines: 6, stagger: 55, maxStagger: 5, block: 340, blockLine: 45 },
   exit: { text: 120, lineAt: 70, line: 120, dot: 90, stagger: 25 },
-  fade: 120, travel: 60,
-  block: { k: 95, zeta: 0.8 },
+  fade: 120, travel: 96,
+  block: { k: 34, zeta: 0.72 },
+  /* PARALLAX against the cursor (px of travel at the stage's edge, per kind; eased over tau seconds) and DRIFT, a
+     slow bob that never stops while it is on (Josh, 10-01: "everything moving and floaty") */
+  par: { block: 38, label: 22, step: 4, tau: 0.28 },                // depths differ by ≤ 16 px: less than gap − bump, so rests stay reachable
+  drift: { block: 5, label: 3.5 },
 });
 const SVG = 'http://www.w3.org/2000/svg';
 const sgn = (v) => (v < 0 ? -1 : 1);
@@ -70,7 +74,7 @@ const spring = () => {
   return (SPRING = ok ? s : { easing: motionToken('out'), ms: 300 });
 };
 
-export function createInfoLayer({ stage, host = stage.parentElement, subject = null, features = null, style = 'diagonal-first', follow = true, lines = true } = {}) {
+export function createInfoLayer({ stage, host = stage.parentElement, subject = null, features = null, style = 'diagonal-first', follow = true, lines = true, parallax = true, drift = false } = {}) {
   const doc = stage.ownerDocument, win = doc.defaultView;
   const root = doc.createElement('div'); root.className = 'mir-info';
   root.dataset.style = style; root.dataset.lines = lines ? 'on' : 'off';
@@ -86,16 +90,35 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
 
   /* ── the bodies ─────────────────────────────────────────────────────────────────────────────────────────── */
   const bodies = () => items.filter((i) => i.measured).map((i) => i.body);
+  const par = { x: 0, y: 0 };                                       // the pointer's place, −1…1 from the stage's middle, eased
+  let envT = 0;
   const env = () => {
-    ptr.heat = ptr.on ? Math.exp(-(performance.now() - ptr.t) / (PHYS.tau * 1000)) : 0;
-    for (const it of items) {                                       // a block crossing over the subject lifts off it
-      if (it.kind !== 'block' || !S.has) { it.body.lift = 0; continue; }
-      const b = it.body, over = b.x < S.right && b.x + b.w > S.left && b.y < S.bottom && b.y + b.h > S.top;
-      it.body.lift = over && Math.abs(b.vx) > 40 ? -sgn(S.cy - (b.y + b.h / 2)) * 700 : 0;
+    const now = performance.now(), dt = envT ? Math.min(0.1, (now - envT) / 1000) : 1 / 60; envT = now;
+    ptr.heat = ptr.on ? Math.exp(-(now - ptr.t) / (PHYS.tau * 1000)) : 0;
+    /* PARALLAX: everything leans away from the cursor, the blocks more than the labels, eased so it never jerks */
+    const on = parallax && follow && ptr.on && !ptr.touch && W > 0 && H > 0;
+    const tx = on ? Math.max(-1, Math.min(1, (ptr.x - W / 2) / (W / 2))) : 0, ty = on ? Math.max(-1, Math.min(1, (ptr.y - H / 2) / (H / 2))) : 0;
+    const ease = 1 - Math.exp(-dt / INFO.par.tau);
+    par.x += (tx - par.x) * ease; par.y += (ty - par.y) * ease;
+    if (Math.abs(tx - par.x) < 1e-3) par.x = tx; if (Math.abs(ty - par.y) < 1e-3) par.y = ty;   // arrive, so the rest is exact
+    const t = now / 1000;
+    for (const it of items) {
+      const b = it.body;
+      if (!it.el.hasAttribute('data-reach')) { it.px = -par.x * it.depth; it.py = -par.y * it.depth * 0.7; }   // reaching is not fleeing: it holds its lean
+      const dx = drift ? Math.sin(t * it.f1 + it.ph) * it.amp : 0, dy = drift ? Math.cos(t * it.f2 + it.ph * 1.7) * it.amp * 0.8 : 0;
+      b.ox = (it.px || 0) + dx; b.oy = (it.py || 0) + dy;
+      /* a lean never asks for a place beyond the soft walls, or the body could not reach it and would never rest */
+      const m = PHYS.margin, hiX = W - m - b.w, hiY = H - m - b.h;
+      if (hiX > m) b.ox = Math.max(Math.min(m, b.rx), Math.min(b.rx + b.ox, Math.max(hiX, b.rx))) - b.rx;
+      if (hiY > m) b.oy = Math.max(Math.min(m, b.ry), Math.min(b.ry + b.oy, Math.max(hiY, b.ry))) - b.ry;
+      if (it.kind !== 'block' || !S.has) { b.lift = 0; continue; }  // a block crossing over the subject lifts off it
+      const over = b.x < S.right && b.x + b.w > S.left && b.y < S.bottom && b.y + b.h > S.top;
+      b.lift = over && Math.abs(b.vx) > 40 ? -sgn(S.cy - (b.y + b.h / 2)) * 700 : 0;
     }
     return { pointer: frozen ? null : ptr, bounds: { left: 0, top: 0, right: W, bottom: H } };
   };
-  const runner = createRunner({ frame, bodies, env, paint: () => paint(), policy: motionPolicy, key: 'info:bodies:' + Math.random().toString(36).slice(2) });
+  const runner = createRunner({ frame, bodies, env, paint: () => paint(), policy: motionPolicy, alive: () => drift && !frozen && !destroyed && !doc.hidden,
+    key: 'info:bodies:' + Math.random().toString(36).slice(2) });
   const kick = () => { if (!frozen && !destroyed) runner.kick(); };
 
   /* ── geometry ───────────────────────────────────────────────────────────────────────────────────────────── */
@@ -193,7 +216,7 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
       if (!it.measured) continue;
       const b = it.body;
       setVar(it.el, 'translate', `${px(b.x)}px ${px(b.y)}px`);
-      if (it.kind === 'block') setAttr(it.el, 'data-travel', Math.hypot(b.x - b.rx, b.y - b.ry) > INFO.travel ? '' : null);
+      if (it.kind === 'block') setAttr(it.el, 'data-travel', Math.hypot(b.x - b.rx - b.ox, b.y - b.ry - b.oy) > INFO.travel ? '' : null);
     }
     const flat = root.dataset.style === 'flat-first', show = root.dataset.lines === 'on';
     for (const g of groups.values()) {
@@ -225,6 +248,11 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
     const it = { kind, id, el, text, pin, body: createBody({ id, x: 0, y: 0, w: 0, h: 0 }), measured: false, w: 0, h: 0, titleH: 0, titleW: 0,
       side: 0, offset: null, title: o.title || '', md: o.md || '', pinned: false, holdUntil: 0, anims: [] };
     if (kind === 'block') { it.body.k = INFO.block.k; it.body.zeta = INFO.block.zeta; it.side = 1; it.holdUntil = performance.now() + (o.hold || 0); }
+    /* how far it leans from the cursor, and its own slow bob: each item a little different, so they read as layers */
+    const n = items.length;
+    it.depth = kind === 'block' ? INFO.par.block : INFO.par.label + INFO.par.step * (n % 3);
+    it.amp = kind === 'block' ? INFO.drift.block : INFO.drift.label;
+    it.ph = n * 2.399963; it.f1 = 0.55 + 0.13 * (n % 3); it.f2 = 0.43 + 0.11 * (n % 4); it.px = 0; it.py = 0;
     items.push(it);
     ready.then(() => {
       if (destroyed || !it.el.isConnected) return;
@@ -402,10 +430,11 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
     const over = S.has && p.x > S.left && p.x < S.right && p.y > S.top && p.y < S.bottom;
     if (over !== ptr.onSubject) { ptr.onSubject = over; setAttr(root, 'data-pointer', over ? 'subject' : null); }
     judge();
-    /* only a pointer near a body is a disturbance — moving across empty picture costs nothing */
-    if (!frozen && items.some((it) => it.measured && inside(p, it.body, PHYS.reach))) kick();
+    /* with parallax every move over the stage leans the layer; without it only a pointer near a body disturbs it */
+    const overStage = p.x >= 0 && p.x <= W && p.y >= 0 && p.y <= H;
+    if (!frozen && ((parallax && follow && overStage) || items.some((it) => it.measured && inside(p, it.body, PHYS.reach)))) kick();
   }
-  function onLeave() { ptr.on = false; ptr.onSubject = false; setAttr(root, 'data-pointer', null); for (const it of items) { it.since = 0; setAttr(it.el, 'data-reach', null); } }
+  function onLeave() { ptr.on = false; ptr.onSubject = false; setAttr(root, 'data-pointer', null); for (const it of items) { it.since = 0; setAttr(it.el, 'data-reach', null); } kick(); }
   function hold(on) { held = on; applyFreeze(); }
   win.addEventListener('pointermove', onMove, on);
   win.addEventListener('pointerout', (e) => { if (!e.relatedTarget) onLeave(); }, on);   // out of the window
@@ -453,7 +482,10 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
     });
     const settleDrag = () => {
       const A = it.group.A, L = attach(it, A);
-      it.offset = { dx: L.x - A.x, dy: L.y - A.y };
+      /* less the lean it will have once the parallax has caught up with the hand, so it ends where the hand left it */
+      const on = parallax && follow && ptr.on && !ptr.touch && W > 0 && H > 0;
+      const lx = on ? -Math.max(-1, Math.min(1, (ptr.x - W / 2) / (W / 2))) * it.depth : 0, ly = on ? -Math.max(-1, Math.min(1, (ptr.y - H / 2) / (H / 2))) * it.depth * 0.7 : 0;
+      it.offset = { dx: L.x - A.x - lx - (it.body.ox - it.px), dy: L.y - A.y - ly - (it.body.oy - it.py) };
       it.body.held = false; setAttr(it.el, 'data-carried', null);
       computeRests(); kick();
     };
@@ -484,7 +516,10 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
     },
     addBlock({ md = '', hold = 0, id } = {}) { return handle(make('block', { md, hold, id })); },
     setStyle(s) { root.dataset.style = s === 'flat-first' ? 'flat-first' : 'diagonal-first'; schedule(); },
-    setFollow(v) { follow = !!v; if (!follow) { win.clearTimeout(dwellTimer); dwellTimer = 0; } },
+    setFollow(v) { follow = !!v; if (!follow) { win.clearTimeout(dwellTimer); dwellTimer = 0; } kick(); },
+    /** setParallax(on) — everything leans away from the cursor; setDrift(on) — a slow bob that keeps the frame on */
+    setParallax(v) { parallax = !!v; kick(); },
+    setDrift(v) { drift = !!v; kick(); },
     setLines(v) { root.dataset.lines = v ? 'on' : 'off'; schedule(); },
     setEdit(v) { edit = !!v; setAttr(root, 'data-edit', edit ? '' : null); },
     freeze(v) { userFrozen = !!v; applyFreeze(); },
@@ -508,7 +543,7 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
     debug() {
       return {
         subject: { ...S }, running: runner.running, frozen, size: { W, H },
-        items: items.map((i) => ({ id: i.id, kind: i.kind, x: i.body.x, y: i.body.y, rx: i.body.rx, ry: i.body.ry, w: i.w, h: i.h, side: i.side, titleH: i.titleH, measured: i.measured })),
+        items: items.map((i) => ({ id: i.id, kind: i.kind, x: i.body.x, y: i.body.y, rx: i.body.rx, ry: i.body.ry, ox: i.body.ox, oy: i.body.oy, w: i.w, h: i.h, side: i.side, titleH: i.titleH, measured: i.measured })),
         groups: [...groups.values()].map((g) => ({ key: String(g.key), A: g.A, d: g.ink.getAttribute('d') || '' })),
       };
     },

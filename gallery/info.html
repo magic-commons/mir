@@ -131,7 +131,7 @@ const subjectRect = () => { const r = P.R * 1.24; return { left: P.cx - r, top: 
 
 /* ── THE LAYER ─────────────────────────────────────────────────────────────────────────────────────────────── */
 resize();
-const layer = createInfoLayer({ stage: canvas, host, subject: subjectRect, features: feats });
+const layer = createInfoLayer({ stage: canvas, host, subject: subjectRect, features: feats, drift: true });
 window.__INFO = layer;
 const greeting = String.raw`# Informational
 Words on the picture that keep out of your way. Move past the shape and I cross to its far side; reach for me and I stay.
@@ -192,7 +192,8 @@ canvas.addEventListener('dblclick', () => { view.tx = 0; view.ty = 0; });
 const strip = document.getElementById('strip');
 strip.append(
   seg({ label: 'LINE', value: 'diagonal-first', options: [{ id: 'diagonal-first', label: 'DIAGONAL FIRST', title: 'thing → 45° → flat, the flat part underlining the title' }, { id: 'flat-first', label: 'FLAT FIRST', title: 'thing → flat → 45° → text' }], onChange: (v) => layer.setStyle(v) }).root,
-  sw({ label: 'FOLLOW CURSOR', value: true, title: 'the greeting keeps to the far side of the shape from your pointer', onChange: (v) => layer.setFollow(v) }).root,
+  sw({ label: 'FOLLOW CURSOR', value: true, title: 'everything leans away from your pointer, and the greeting keeps to the far side of the shape', onChange: (v) => layer.setFollow(v) }).root,
+  sw({ label: 'FLOAT', value: true, title: 'a slow drift, so nothing ever sits quite still', onChange: (v) => layer.setDrift(v) }).root,
   sw({ label: 'LINES', value: true, onChange: (v) => layer.setLines(v) }).root,
   sw({ label: 'EDIT', value: false, title: 'drag a label; its neighbours yield', onChange: (v) => layer.setEdit(v) }).root,
   trig({ label: 'REPLAY ENTRANCE', onFire: () => layer.replay() }).root,
