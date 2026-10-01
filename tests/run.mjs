@@ -32,6 +32,7 @@ const run = async (label, args, env = {}) => {
 };
 
 await run('token lint', ['tools/lint-tokens.mjs']);
+await run('intent lint', ['tools/lint-intent.mjs']);
 const tests = fs.readdirSync(path.join(ROOT, 'tests')).sort();
 for (const f of tests.filter((f) => f.endsWith('.node.mjs'))) await run(f, ['tests/' + f]);
 const browser = tests.filter((f) => f.endsWith('.browser.mjs'));
