@@ -24,6 +24,7 @@ The tokens named below are in `mir/tokens.json` (the schema) and `docs/TOKENS.md
 | **Drop here** | A dotted outline that brightens as the thing gets near; solid when it will land | `--prox` (core/proximity.js) + core.css `.mir-prox` | A whole-container line |
 | **A value in its own colour** | An arc, or a coloured thumb, with a glow in that colour — and no other relief | `--accent-sweep`, `--nc`, `--m2-slot-ink`; *`--glow-own`* | Raise or well on top of it |
 | **Disabled** | Faded, no relief | *`--state-disabled`* | Keeping its relief. More than one fade |
+| **Words on the stage** (INFORMATIONAL: a greeting, a label, a slide) | Ink plus a soft halo in the opposite ink; a jointed line that is only ever flat, 45° or vertical | `--info-ink`, `--info-halo`, `--info-line-w` (mir/info/info.css) | A pane by default. A fifth shadow height. Any other line angle |
 
 ## The rules
 

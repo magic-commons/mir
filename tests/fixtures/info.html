@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MIR · info fixture</title>
+<!-- a STILL stage (no picture loop), so the idle law can be proved: a subject in the middle, two features, a block,
+     one label on A and a comb of two on B -->
+<link rel="stylesheet" href="../../mir/css/base.css">
+<link rel="stylesheet" href="../../mir/css/skin.css">
+<link rel="stylesheet" href="../../mir/core/core.css">
+<link rel="stylesheet" href="../../mir/info/faces.css">
+<link rel="stylesheet" href="../../mir/info/info.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0c14; }
+  #host { position: fixed; inset: 0; }
+  #stage { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, #6a3dbb, #101426 70%); }
+  #subject { position: absolute; left: 540px; top: 300px; width: 200px; height: 200px; border-radius: 50%; background: #e0a040; }
+</style>
+<script>
+  window.__rafCalls = 0;
+  const raf0 = window.requestAnimationFrame.bind(window);
+  window.requestAnimationFrame = (f) => { window.__rafCalls++; return raf0(f); };
+</script>
+</head>
+<body data-theme="dark" data-card="tinted">
+<div id="host"><div id="stage"><div id="subject"></div></div></div>
+<script type="module">
+import { frame } from '../../mir/core/frame.js';
+import * as motion from '../../mir/core/motion.js';
+import { perf } from '../../mir/core/perf.js';
+import { createInfoLayer } from '../../mir/info/layer.js';
+
+const stage = document.getElementById('stage');
+const F = { a: { id: 'a', x: 732, y: 340, r: 6 }, b: { id: 'b', x: 548, y: 460, r: 6 } };
+const layer = createInfoLayer({ stage, subject: () => ({ left: 540, top: 300, width: 200, height: 200 }), features: () => Object.values(F) });
+layer.addBlock({ md: '# Hello\nA block of words, kept on the far side.\n\n$$e^{i\\pi} + 1 = 0$$', id: 'blk' });
+layer.addLabel({ anchor: 'a', title: 'Feature A', md: 'Period $p = 3$', id: 'la' });
+layer.addLabel({ anchor: 'b', title: 'Feature B', md: '$\\kappa = 2$', id: 'lb1' });
+layer.addLabel({ anchor: 'b', title: 'Its twin', md: 'turned $2\\pi/3$', id: 'lb2' });
+window.__T = { layer, frame, motion, perf, F };
+window.__ready = true;
+</script>
+</body>
+</html>

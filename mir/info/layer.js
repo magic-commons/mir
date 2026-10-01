@@ -1,0 +1,525 @@
+/* info/layer.js — INFORMATIONAL's presenter: floating words on the picture, with no window.
+ *
+ * THE LAW IT KEEPS: THE WORDS SERVE THE PICTURE AND NEVER TAKE IT.  The layer is one element over the stage with
+ * `pointer-events: none` (except labels while EDIT is on), so the app keeps every click; it moves only by
+ * transform, writes only through core/perf, and books the one frame only while a body is moving or an entrance
+ * is being laid out — idle is zero work.  Text is ink plus a soft halo: never a pane, never a box.
+ *
+ * And the laws of keeping out of the way (plan §2.4):
+ *   AGAINST THE CURSOR     a block rests on the far side of the subject from the pointer.  It changes side only once
+ *                          the pointer has crossed the subject's centre line by 8 % of the stage width AND stayed there
+ *                          350 ms.
+ *   REACHING IS NOT FLEEING  a pointer moving toward a block, or on it, never moves it, and lifts it to full strength.
+ *   HOLD STILL             Space held (or a long press on touch) freezes every body at full strength.
+ *   THE PIN                the first time a block moves away, a small pin shows on it once: this is intended.
+ *   FOLLOWING              labels trail their anchors on the spring (viewChanged()), so lines stretch and settle.
+ *   EDIT                   a label can be dragged; its neighbours yield through the same force step; the line stays
+ *                          legal all the way (info/leader.js).
+ *   THE ENTRANCE           the dot, then the line drawing outward from it, then the text arriving from the line's end
+ *                          line by line; labels stagger outward from the subject; ~0.7 s for a screenful.  The exit
+ *                          is the reverse, faster.  Reduced motion: a fade.  Motion off: nothing animates.
+ *
+ * LINES ARE ONE SVG.  One <path> per anchor (two: a halo stroke under the ink), so a frame writes one attribute per
+ * line however many joints it has; `pathLength="1"` makes "the line draws outward from the dot" a single dash
+ * offset whatever the line's length is mid-flight; and a stroke is crisp at any angle, which thin rotated divs are
+ * not at 45°.
+ *
+ * COORDINATES: subject() and features() answer in the stage's own CSS pixels (0,0 = the stage's top-left).
+ *
+ * createInfoLayer({ stage, host, subject, features, style, follow, lines })
+ *   → { addLabel({ anchor, title, md }), addBlock({ md, hold }), setStyle(s), setFollow(on), setLines(on),
+ *       setEdit(on), freeze(on), viewChanged(), replay(), clear(kind?), debug(), destroy(), root }
+ *   anchor: a feature id (looked up in features() every view change), { x, y, r }, or () => { x, y, r }.
+ *   Each add returns { el, remove(), id }. */
+import { frame } from '../core/frame.js';
+import { motionPolicy, motionToken } from '../core/motion.js';
+import { drag } from '../core/pointer.js';
+import { setVar, setAttr, rect } from '../core/perf.js';
+import { leader, comb, toPath } from './leader.js';
+import { createBody, createRunner, resolveRests, PHYS } from './bodies.js';
+import { renderNotebook } from '../shell/notebook-render.js';
+import { loadRenderer } from '../shell/notebook.js';
+
+/* THE NUMBERS — tuned by eye on gallery/info.html.  Times in ms, lengths in CSS px. */
+export const INFO = Object.freeze({
+  cross: 0.08, dwell: 350, reach: 140, near: 110, longPress: 480, touchGrace: 600,
+  gap: 36, out: 46, rise: 34, pad: 6, comb: 14, margin: 14,
+  enter: { dot: 140, lineAt: 60, line: 260, textAt: 200, perLine: 30, maxLines: 6, stagger: 55, maxStagger: 5, block: 340, blockLine: 45 },
+  exit: { text: 120, lineAt: 70, line: 120, dot: 90, stagger: 25 },
+  fade: 120, travel: 60,
+  block: { k: 95, zeta: 0.8 },
+});
+const SVG = 'http://www.w3.org/2000/svg';
+const sgn = (v) => (v < 0 ? -1 : 1);
+const px = (v) => Math.round(v * 100) / 100;
+
+/** springEasing(k, c) — a damped spring (mass 1) as a CSS linear() easing, and the time it takes to settle.
+ *  Draft 1 §1.6: stiffness 300, damping 22 → ζ ≈ 0.64, about 7 % overshoot. */
+export function springEasing(k = 300, c = 22, n = 36) {
+  let x = 0, v = 0; const dt = 1 / 1000, xs = [0]; let t = 0, still = 0;
+  while (t < 2) { v += (k * (1 - x) - c * v) * dt; x += v * dt; t += dt; xs.push(x); if (Math.abs(1 - x) < 0.002 && Math.abs(v) < 0.02) { if (++still > 30) break; } else still = 0; }
+  const pts = []; for (let i = 0; i <= n; i++) pts.push(+xs[Math.round((i / n) * (xs.length - 1))].toFixed(4));
+  pts[pts.length - 1] = 1;
+  return { easing: `linear(${pts.join(', ')})`, ms: Math.round(t * 1000) };
+}
+let SPRING = null;
+const spring = () => {
+  if (SPRING) return SPRING;
+  const s = springEasing();
+  const ok = globalThis.CSS && CSS.supports && CSS.supports('animation-timing-function', 'linear(0, 1)');
+  return (SPRING = ok ? s : { easing: motionToken('out'), ms: 300 });
+};
+
+export function createInfoLayer({ stage, host = stage.parentElement, subject = null, features = null, style = 'diagonal-first', follow = true, lines = true } = {}) {
+  const doc = stage.ownerDocument, win = doc.defaultView;
+  const root = doc.createElement('div'); root.className = 'mir-info';
+  root.dataset.style = style; root.dataset.lines = lines ? 'on' : 'off';
+  const svg = doc.createElementNS(SVG, 'svg'); svg.classList.add('mir-info-lines'); svg.setAttribute('aria-hidden', 'true');
+  root.appendChild(svg); host.appendChild(root);
+
+  const items = [], groups = new Map();
+  let W = 0, H = 0, stageBox = null, edit = false, frozen = false, held = false, uid = 0, destroyed = false;
+  const S = { has: false, left: 0, top: 0, right: 0, bottom: 0, cx: 0, cy: 0, w: 0, h: 0 };
+  const ptr = { on: false, x: 0, y: 0, vx: 0, vy: 0, t: 0, heat: 0, touch: false, onSubject: false };
+  const life = new AbortController(), on = { signal: life.signal, passive: true };
+  const ready = loadRenderer().catch(() => false);
+
+  /* ── the bodies ─────────────────────────────────────────────────────────────────────────────────────────── */
+  const bodies = () => items.filter((i) => i.measured).map((i) => i.body);
+  const env = () => {
+    ptr.heat = ptr.on ? Math.exp(-(performance.now() - ptr.t) / (PHYS.tau * 1000)) : 0;
+    for (const it of items) {                                       // a block crossing over the subject lifts off it
+      if (it.kind !== 'block' || !S.has) { it.body.lift = 0; continue; }
+      const b = it.body, over = b.x < S.right && b.x + b.w > S.left && b.y < S.bottom && b.y + b.h > S.top;
+      it.body.lift = over && Math.abs(b.vx) > 40 ? -sgn(S.cy - (b.y + b.h / 2)) * 700 : 0;
+    }
+    return { pointer: frozen ? null : ptr, bounds: { left: 0, top: 0, right: W, bottom: H } };
+  };
+  const runner = createRunner({ frame, bodies, env, paint: () => paint(), policy: motionPolicy, key: 'info:bodies:' + Math.random().toString(36).slice(2) });
+  const kick = () => { if (!frozen && !destroyed) runner.kick(); };
+
+  /* ── geometry ───────────────────────────────────────────────────────────────────────────────────────────── */
+  function readStage() {
+    const s = rect(stage), h = rect(host);
+    stageBox = s; W = s.width; H = s.height;
+    setVar(root, 'left', px(s.left - h.left - host.clientLeft + host.scrollLeft) + 'px');
+    setVar(root, 'top', px(s.top - h.top - host.clientTop + host.scrollTop) + 'px');
+    setVar(root, 'width', px(W) + 'px'); setVar(root, 'height', px(H) + 'px');
+  }
+  function readSubject() {
+    const r = subject && subject();
+    if (r) {
+      const left = r.left ?? r.x, top = r.top ?? r.y, w = r.width ?? r.w, h = r.height ?? r.h;
+      Object.assign(S, { has: true, left, top, right: left + w, bottom: top + h, w, h, cx: left + w / 2, cy: top + h / 2 });
+      return;
+    }
+    const as = [...groups.values()].map((g) => g.A).filter(Boolean);   // no subject: the anchors stand in for it
+    if (!as.length) { S.has = false; return; }
+    const left = Math.min(...as.map((a) => a.x - a.r)), right = Math.max(...as.map((a) => a.x + a.r));
+    const top = Math.min(...as.map((a) => a.y - a.r)), bottom = Math.max(...as.map((a) => a.y + a.r));
+    Object.assign(S, { has: true, left, top, right, bottom, w: right - left, h: bottom - top, cx: (left + right) / 2, cy: (top + bottom) / 2 });
+  }
+  function resolveAnchor(spec) {
+    let a = null;
+    if (typeof spec === 'string') a = features ? (features() || []).find((f) => f.id === spec) : null;
+    else if (typeof spec === 'function') a = spec();
+    else a = spec;
+    return a ? { x: a.x, y: a.y, r: a.r || 0 } : null;
+  }
+
+  /* where each body belongs: blocks at their seat, labels off their anchors, then the seat pass */
+  function computeRests() {
+    for (const g of groups.values()) g.A = resolveAnchor(g.spec) || g.A;
+    readSubject();
+    for (const g of groups.values()) {
+      const A = g.A; if (!A) continue;
+      const ls = g.labels.filter((l) => l.measured); if (!ls.length) continue;
+      /* the side: away from the subject's middle, with a little hysteresis so a label on the centre line does not flip */
+      const hx = S.has ? 0.12 * S.w / 2 : 0, hy = S.has ? 0.12 * S.h / 2 : 0;
+      if (!g.sx || (S.has && Math.abs(A.x - S.cx) > hx)) g.sx = !S.has ? 1 : A.x >= S.cx ? 1 : -1;
+      if (!g.sy || (S.has && Math.abs(A.y - S.cy) > hy)) g.sy = !S.has ? -1 : A.y <= S.cy ? -1 : 1;
+      const escape = S.has ? Math.max(0, g.sx > 0 ? S.right - A.x : A.x - S.left) : 0;
+      const dx = escape + INFO.out + A.r, dy = INFO.rise + Math.min(40, 0.2 * escape);
+      let Ly = A.y + g.sy * dy, prev = null;
+      for (const l of ls) {
+        if (l.offset) { placeLabel(l, A.x + l.offset.dx, A.y + l.offset.dy, sgn(l.offset.dx)); continue; }
+        if (prev) Ly = g.sy < 0 ? Ly - prev.titleH - (l.h - l.titleH) - INFO.comb : Ly + (prev.h - prev.titleH) + l.titleH + INFO.comb;
+        placeLabel(l, A.x + g.sx * dx, Ly, g.sx); prev = l;
+      }
+    }
+    for (const it of items) if (it.kind === 'block' && it.measured) placeBlock(it);
+    const list = bodies();
+    resolveRests(list, new Set(items.filter((i) => i.kind === 'block').map((i) => i.body.id)));
+    for (const b of list) {                                          // and inside the stage
+      if (b.held) continue;
+      b.rx = Math.max(INFO.margin, Math.min(b.rx, W - INFO.margin - b.w));
+      b.ry = Math.max(INFO.margin, Math.min(b.ry, H - INFO.margin - b.h));
+    }
+  }
+  function placeLabel(l, Lx, Ly, side) {
+    const b = l.body;
+    if (b.held) return;
+    b.rx = side > 0 ? Lx + INFO.pad : Lx - INFO.pad - l.w;
+    b.ry = Ly - l.titleH;
+  }
+  function placeBlock(it) {
+    const b = it.body;
+    if (!S.has) { b.rx = (W - it.w) / 2; b.ry = H * 0.12; return; }
+    /* beside the subject when a side has room for it, else above or below it (a phone, a tall picture) */
+    const room = (s) => (s > 0 ? W - S.right : S.left) - INFO.gap - INFO.margin >= it.w;
+    it.axis = room(1) || room(-1) ? 'x' : 'y';
+    if (it.axis === 'x') {
+      const side = room(it.side) ? it.side : -it.side;
+      b.rx = side > 0 ? S.right + INFO.gap : S.left - INFO.gap - it.w;
+      b.ry = S.cy - it.h / 2;
+    } else {
+      const fits = (s) => (s > 0 ? H - S.bottom : S.top) - INFO.gap - INFO.margin >= it.h;
+      const side = fits(it.side) || !fits(-it.side) ? it.side : -it.side;
+      b.rx = Math.max(INFO.margin, Math.min(S.cx - it.w / 2, W - INFO.margin - it.w));
+      b.ry = side > 0 ? S.bottom + INFO.gap : S.top - INFO.gap - it.h;
+    }
+  }
+  /** a label's attach point and side from where its body is NOW (mid-flight too) */
+  function attach(l, A) {
+    const b = l.body, cx = b.x + l.w / 2;
+    if (!l.side || Math.abs(cx - A.x) > 0.15 * l.w) l.side = cx >= A.x ? 1 : -1;
+    const x = l.side > 0 ? b.x - INFO.pad : b.x + l.w + INFO.pad;
+    return { x, y: b.y + l.titleH, side: l.side };
+  }
+
+  /* ── painting: transforms, attributes, one path per anchor ─────────────────────────────────────────────── */
+  function paint() {
+    for (const it of items) {
+      if (!it.measured) continue;
+      const b = it.body;
+      setVar(it.el, 'translate', `${px(b.x)}px ${px(b.y)}px`);
+      if (it.kind === 'block') setAttr(it.el, 'data-travel', Math.hypot(b.x - b.rx, b.y - b.ry) > INFO.travel ? '' : null);
+    }
+    const flat = root.dataset.style === 'flat-first', show = root.dataset.lines === 'on';
+    for (const g of groups.values()) {
+      const ls = g.labels.filter((l) => l.measured);
+      if (!g.A || !ls.length) continue;
+      const pts = ls.map((l) => attach(l, g.A));
+      for (const [i, l] of ls.entries()) setAttr(l.el, 'data-side', pts[i].side > 0 ? 'right' : 'left');
+      if (!show) continue;
+      const under = ls.map((l) => (flat ? 0 : INFO.pad + l.titleW));
+      let segs, start;
+      if (ls.length === 1) ({ segs, start } = leader(g.A, pts[0], { style: root.dataset.style, under: under[0], side: pts[0].side }));
+      else ({ segs, start } = comb(g.A, pts, { under }));
+      const d = toPath(segs);
+      setAttr(g.halo, 'd', d); setAttr(g.ink, 'd', d);
+      setAttr(g.dot, 'cx', px(start.x)); setAttr(g.dot, 'cy', px(start.y));
+    }
+  }
+  const schedule = () => frame.write(() => { if (!destroyed) paint(); });
+
+  /* ── content ────────────────────────────────────────────────────────────────────────────────────────────── */
+  const render = (md) => (win.marked ? renderNotebook(md) : String(md).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])));
+  const unwrapP = (html) => html.replace(/^\s*<p>([\s\S]*)<\/p>\s*$/, '$1');
+  function make(kind, o) {
+    const id = o.id || `${kind}-${++uid}`;
+    const el = doc.createElement('div'); el.className = 'mir-info-' + kind; el.dataset.state = 'wait'; el.dataset.id = id;
+    const text = doc.createElement('div'); text.className = 'mir-info-text'; el.appendChild(text);
+    const pin = doc.createElement('i'); pin.className = 'mir-info-pin'; pin.setAttribute('aria-hidden', 'true'); el.appendChild(pin);
+    root.appendChild(el);
+    const it = { kind, id, el, text, pin, body: createBody({ id, x: 0, y: 0, w: 0, h: 0 }), measured: false, w: 0, h: 0, titleH: 0, titleW: 0,
+      side: 0, offset: null, title: o.title || '', md: o.md || '', pinned: false, holdUntil: 0, anims: [] };
+    if (kind === 'block') { it.body.k = INFO.block.k; it.body.zeta = INFO.block.zeta; it.side = 1; it.holdUntil = performance.now() + (o.hold || 0); }
+    items.push(it);
+    ready.then(() => {
+      if (destroyed || !it.el.isConnected) return;
+      let html = '';
+      if (it.title) html += `<div class="mir-info-title"><span>${unwrapP(render(it.title))}</span></div>`;
+      if (it.md) html += render(it.md);
+      text.innerHTML = html;
+      queueMeasure(it, true);
+    });
+    return it;
+  }
+
+  /* measuring: one read batch for every item that changed, then rests, then one write + the entrance */
+  const toMeasure = new Set(), toEnter = new Set(); let measuring = false;
+  function queueMeasure(it, entering) {
+    toMeasure.add(it); if (entering) toEnter.add(it);
+    if (measuring) return; measuring = true;
+    frame.read(() => {
+      measuring = false; if (destroyed) return;
+      readStage();
+      for (const it of toMeasure) measure(it);
+      toMeasure.clear();
+      computeRests();
+      const fresh = [...toEnter]; toEnter.clear();
+      for (const it of fresh) { it.body.x = it.body.rx; it.body.y = it.body.ry; it.body.vx = it.body.vy = 0; }
+      frame.write(() => {
+        if (destroyed) return;
+        paint();
+        if (fresh.length) enter(fresh);
+        kick();
+      });
+    });
+  }
+  function measure(it) {
+    if (!it.el.isConnected) return;
+    const box = rect(it.el);
+    it.w = box.width; it.h = box.height; it.body.w = it.w; it.body.h = it.h;
+    const t = it.text.querySelector('.mir-info-title > span');
+    if (t) { const r = rect(t); it.titleH = r.bottom - box.top + 1; it.titleW = r.width; }
+    else {
+      const first = it.text.firstElementChild, range = doc.createRange();
+      if (first) { range.selectNodeContents(first); const rs = [...range.getClientRects()]; const top = rs.length ? rs[0].top : box.top;
+        const line = rs.filter((r) => r.top < top + 4); it.titleH = (line.length ? Math.max(...line.map((r) => r.bottom)) : box.top + 18) - box.top + 1;
+        it.titleW = line.length ? Math.max(...line.map((r) => r.right)) - Math.min(...line.map((r) => r.left)) : it.w; }
+    }
+    it.titleW = Math.min(it.titleW, it.w);
+    it.measured = true;
+  }
+
+  /* ── groups (one per anchor: the dot and the line) ──────────────────────────────────────────────────────── */
+  const keyOf = (spec) => (typeof spec === 'string' ? 'f:' + spec : spec);
+  function groupFor(spec) {
+    const key = keyOf(spec);
+    if (groups.has(key)) return groups.get(key);
+    const g = doc.createElementNS(SVG, 'g'); g.classList.add('mir-info-leader');
+    const mk = (tag, cls) => { const e = doc.createElementNS(SVG, tag); e.classList.add(cls); g.appendChild(e); return e; };
+    const halo = mk('path', 'mir-info-halo'), ink = mk('path', 'mir-info-ink'), dot = mk('circle', 'mir-info-dot');
+    halo.setAttribute('pathLength', '1'); ink.setAttribute('pathLength', '1'); dot.setAttribute('r', '3');
+    svg.appendChild(g);
+    const grp = { key, spec, g, halo, ink, dot, labels: [], A: resolveAnchor(spec), sx: 0, sy: 0 };
+    groups.set(key, grp);
+    return grp;
+  }
+
+  /* ── the entrance and the exit ──────────────────────────────────────────────────────────────────────────── */
+  const anim = (el, kf, o, owner) => { const a = el.animate(kf, o); if (owner) owner.anims.push(a); return a; };
+  const stopAnims = (it) => { for (const a of it.anims) a.cancel(); it.anims = []; };
+  const rows = (it) => [...it.text.children].slice(0, INFO.enter.maxLines);
+  function enter(list) {
+    const policy = motionPolicy();
+    for (const it of list) { setAttr(it.el, 'data-state', 'in'); if (it.group) setAttr(it.group.g, 'data-state', 'in'); }
+    if (policy === 'off' || typeof root.animate !== 'function') return;
+    if (policy === 'reduced') {
+      for (const it of list) {
+        stopAnims(it);
+        anim(it.el, [{ opacity: 0 }, { opacity: 1 }], { duration: INFO.fade, easing: 'linear' }, it);
+        if (it.group && it.group.labels[0] === it) anim(it.group.g, [{ opacity: 0 }, { opacity: 1 }], { duration: INFO.fade, easing: 'linear' }, it);
+      }
+      return;
+    }
+    const E = INFO.enter, sp = spring(), out = motionToken('out');
+    const d0 = (it) => (it.group && it.group.A ? Math.hypot(it.group.A.x - S.cx, it.group.A.y - S.cy) : -1);
+    const order = [...list].sort((a, b) => d0(a) - d0(b));          // blocks first, then labels outward from the subject
+    let k = 0;
+    for (const it of order) {
+      stopAnims(it);
+      if (it.kind === 'block') {
+        rows(it).forEach((ln, i) => anim(ln, [{ opacity: 0, transform: 'translateY(10px) scale(.985)' }, { opacity: 1, transform: 'none' }],
+          { duration: E.block, delay: i * E.blockLine, easing: sp.easing, fill: 'backwards' }, it));
+        continue;
+      }
+      const t0 = Math.min(k++, E.maxStagger - 1) * E.stagger, g = it.group, lead = g.labels.find((l) => l.measured) === it;
+      if (lead) {
+        anim(g.dot, [{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: E.dot, delay: t0, easing: sp.easing, fill: 'backwards' }, it);
+        for (const p of [g.halo, g.ink]) anim(p, [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: E.line, delay: t0 + E.lineAt, easing: out, fill: 'backwards' }, it);
+      }
+      const from = `translateX(${-12 * (it.side || 1)}px) scale(.94)`;
+      rows(it).forEach((ln, i) => anim(ln, [{ opacity: 0, transform: from }, { opacity: 1, transform: 'none' }],
+        { duration: sp.ms, delay: t0 + E.textAt + i * E.perLine, easing: sp.easing, fill: 'backwards' }, it));
+    }
+  }
+  /** exit(list) → a promise that resolves when every exit has landed */
+  function exit(list) {
+    const policy = motionPolicy(), jobs = [];
+    if (policy === 'off' || typeof root.animate !== 'function') return Promise.resolve();
+    const X = INFO.exit, inn = motionToken('in'), going = new Set(list);
+    [...list].reverse().forEach((it, n) => {
+      stopAnims(it);
+      const t0 = n * X.stagger, o = { fill: 'forwards' };
+      if (policy === 'reduced') {
+        jobs.push(anim(it.el, [{ opacity: 1 }, { opacity: 0 }], { duration: INFO.fade, ...o }, it).finished);
+        if (it.group && it.group.labels.length === 1) jobs.push(anim(it.group.g, [{ opacity: 1 }, { opacity: 0 }], { duration: INFO.fade, ...o }, it).finished);
+        return;
+      }
+      for (const ln of rows(it)) jobs.push(anim(ln, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translateX(${-8 * (it.side || 1)}px) scale(.97)` }], { duration: X.text, delay: t0, easing: inn, ...o }, it).finished);
+      const g = it.group;
+      if (g && g.labels[0] === it && g.labels.every((l) => going.has(l) || l.leaving)) {   // the line goes with its last label
+        for (const p of [g.halo, g.ink]) jobs.push(anim(p, [{ strokeDashoffset: 0 }, { strokeDashoffset: 1 }], { duration: X.line, delay: t0 + X.lineAt, easing: inn, ...o }, it).finished);
+        jobs.push(anim(g.dot, [{ transform: 'scale(1)' }, { transform: 'scale(0)' }], { duration: X.dot, delay: t0 + X.lineAt + X.line, easing: inn, ...o }, it).finished);
+      }
+    });
+    return Promise.all(jobs.map((p) => p.catch(() => {})));
+  }
+
+  /* ── the pointer: against the cursor, reaching is not fleeing, hold still ──────────────────────────────── */
+  let dwellTimer = 0, pressTimer = 0, touchTimer = 0, pressAt = null;
+  const local = (e) => { if (!stageBox) stageBox = rect(stage); return { x: e.clientX - stageBox.left, y: e.clientY - stageBox.top }; };
+  const inside = (p, b, m = 0) => p.x >= b.x - m && p.x <= b.x + b.w + m && p.y >= b.y - m && p.y <= b.y + b.h + m;
+  /** is the pointer reaching for this body?  'on' it, 'near' it (a reader who stopped short), 'heading' at it
+   *  (within 60°, the speed fading 140 ms after the last move), or not (null) */
+  function reaching(it) {
+    const b = it.body;
+    if (inside(ptr, b, 16)) return 'on';
+    if (inside(ptr, b, INFO.near)) return 'near';
+    const fade = Math.exp(-(performance.now() - ptr.t) / INFO.reach);   // a pointer that stopped is no longer heading anywhere
+    const vx = ptr.vx * fade, vy = ptr.vy * fade, sp = Math.hypot(vx, vy); if (sp < 40) return null;
+    const cx = b.x + b.w / 2 - ptr.x, cy = b.y + b.h / 2 - ptr.y, l = Math.hypot(cx, cy) || 1;
+    return (vx * cx + vy * cy) / (sp * l) > 0.5 ? 'heading' : null;
+  }
+  const later = (ms) => { if (!dwellTimer) dwellTimer = win.setTimeout(judge, Math.max(16, ms)); };
+  function judge() {
+    dwellTimer = 0;
+    if (!follow || frozen || !S.has || !ptr.on) return;
+    const now = performance.now();
+    let moved = false;
+    for (const it of items) {
+      if (it.kind !== 'block' || !it.measured) continue;
+      const r = reaching(it);
+      setAttr(it.el, 'data-reach', r ? '' : null);
+      const y = it.axis === 'y', at = y ? ptr.y : ptr.x, mid = y ? S.cy : S.cx;   // side +1 = right (or below), −1 = left (or above)
+      const want = at < mid ? 1 : -1, far = Math.abs(at - mid) > INFO.cross * (y ? H : W);
+      if (want === it.side || !far) { it.since = 0; continue; }
+      if (r) {                                                         // reaching is not fleeing
+        it.since = 0;
+        if (r === 'heading') later(INFO.reach * Math.log(Math.max(1.01, Math.hypot(ptr.vx, ptr.vy) / 40)) + 10);   // look again once the reach has faded
+        continue;
+      }
+      if (!it.since) it.since = now;
+      if (now - it.since >= INFO.dwell && now >= it.holdUntil) {
+        it.side = want; it.since = 0; moved = true;
+        if (!it.pinned) { it.pinned = true; setAttr(it.pin, 'data-show', ''); }
+      } else later(Math.max(INFO.dwell - (now - it.since) + 5, it.holdUntil - now));
+    }
+    if (moved) { computeRests(); kick(); }
+  }
+  function onMove(e) {
+    if (destroyed) return;
+    if (e.pointerType === 'touch' && !ptr.touch) return;             // a finger counts only while it is down
+    const p = local(e), now = performance.now(), dt = Math.max(1, now - ptr.t);
+    const a = Math.min(1, dt / 120);                                   // ~120 ms of velocity memory
+    if (ptr.on) { ptr.vx += (((p.x - ptr.x) / dt) * 1000 - ptr.vx) * a; ptr.vy += (((p.y - ptr.y) / dt) * 1000 - ptr.vy) * a; }
+    else { ptr.vx = 0; ptr.vy = 0; }
+    ptr.x = p.x; ptr.y = p.y; ptr.t = now; ptr.on = true;
+    if (pressAt && Math.hypot(e.clientX - pressAt.x, e.clientY - pressAt.y) > 8) { win.clearTimeout(pressTimer); pressAt = null; }
+    const over = S.has && p.x > S.left && p.x < S.right && p.y > S.top && p.y < S.bottom;
+    if (over !== ptr.onSubject) { ptr.onSubject = over; setAttr(root, 'data-pointer', over ? 'subject' : null); }
+    judge();
+    /* only a pointer near a body is a disturbance — moving across empty picture costs nothing */
+    if (!frozen && items.some((it) => it.measured && inside(p, it.body, PHYS.reach))) kick();
+  }
+  function onLeave() { ptr.on = false; ptr.onSubject = false; setAttr(root, 'data-pointer', null); for (const it of items) { it.since = 0; setAttr(it.el, 'data-reach', null); } }
+  function hold(on) { held = on; applyFreeze(); }
+  win.addEventListener('pointermove', onMove, on);
+  win.addEventListener('pointerout', (e) => { if (!e.relatedTarget) onLeave(); }, on);   // out of the window
+  win.addEventListener('blur', () => { onLeave(); if (held) hold(false); }, on);
+  win.addEventListener('pointerdown', (e) => {
+    if (e.pointerType !== 'touch') return;
+    ptr.touch = true; win.clearTimeout(touchTimer); onMove(e);
+    pressAt = { x: e.clientX, y: e.clientY };
+    pressTimer = win.setTimeout(() => { if (pressAt) hold(true); }, INFO.longPress);
+  }, on);
+  const lift = (e) => {
+    if (e.pointerType !== 'touch') return;
+    win.clearTimeout(pressTimer); pressAt = null; if (held) hold(false);
+    touchTimer = win.setTimeout(() => { ptr.touch = false; onLeave(); kick(); }, INFO.touchGrace);   // then settle back
+  };
+  win.addEventListener('pointerup', lift, on); win.addEventListener('pointercancel', lift, on);
+  const typing = (t) => t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(t.tagName));
+  win.addEventListener('keydown', (e) => { if (e.code === 'Space' && !typing(e.target)) { e.preventDefault(); if (!e.repeat && !held) hold(true); } }, { signal: life.signal });
+  win.addEventListener('keyup', (e) => { if (e.code === 'Space' && held) hold(false); }, { signal: life.signal });
+  win.addEventListener('resize', () => api.viewChanged(), on);
+  win.addEventListener('scroll', () => { stageBox = null; }, { ...on, capture: true });
+  /* a face that arrives late (KaTeX's, or the real serif one day) changes every size: measure again, then glide */
+  if (doc.fonts) doc.fonts.addEventListener('loadingdone', () => { for (const it of items) if (it.measured) queueMeasure(it, false); }, { signal: life.signal });
+  let userFrozen = false;
+  function applyFreeze() {
+    const f = userFrozen || held;
+    if (f === frozen) return;
+    frozen = f; setAttr(root, 'data-hold', f ? '' : null);
+    if (f) { runner.stop(); win.clearTimeout(dwellTimer); dwellTimer = 0; }
+    else { computeRests(); kick(); }
+  }
+
+  /* ── EDIT: drag a label; the neighbours yield ───────────────────────────────────────────────────────────── */
+  function draggable(it) {
+    let start = null;
+    it.drag = drag(it.el, {
+      onStart() { if (!edit) return; start = { x: it.body.x, y: it.body.y, offset: it.offset }; it.body.held = true; setAttr(it.el, 'data-carried', ''); },
+      onMove(s) {
+        if (!start) return;
+        const b = it.body; b.x = b.rx = start.x + s.dx; b.y = b.ry = start.y + s.dy; b.vx = b.vy = 0;
+        computeRests(); paint(); kick();
+      },
+      onEnd() { if (!start) return; settleDrag(); start = null; },
+      onCancel() { if (!start) return; it.offset = start.offset; it.body.held = false; setAttr(it.el, 'data-carried', null); start = null; computeRests(); kick(); },
+    });
+    const settleDrag = () => {
+      const A = it.group.A, L = attach(it, A);
+      it.offset = { dx: L.x - A.x, dy: L.y - A.y };
+      it.body.held = false; setAttr(it.el, 'data-carried', null);
+      computeRests(); kick();
+    };
+  }
+
+  /* ── the API ────────────────────────────────────────────────────────────────────────────────────────────── */
+  function handle(it) {
+    return {
+      id: it.id, el: it.el,
+      remove() {
+        if (it.leaving) return Promise.resolve(); it.leaving = true;
+        return exit([it]).then(() => {
+          const i = items.indexOf(it); if (i >= 0) items.splice(i, 1);
+          if (it.drag) it.drag.destroy();
+          it.el.remove();
+          if (it.group) { it.group.labels = it.group.labels.filter((l) => l !== it); if (!it.group.labels.length) { it.group.g.remove(); groups.delete(it.group.key); } }
+          computeRests(); kick(); schedule();
+        });
+      },
+    };
+  }
+  const api = {
+    root,
+    addLabel({ anchor, title = '', md = '', id } = {}) {
+      const it = make('label', { title, md, id }), g = groupFor(anchor);
+      it.group = g; g.labels.push(it); draggable(it);
+      return handle(it);
+    },
+    addBlock({ md = '', hold = 0, id } = {}) { return handle(make('block', { md, hold, id })); },
+    setStyle(s) { root.dataset.style = s === 'flat-first' ? 'flat-first' : 'diagonal-first'; schedule(); },
+    setFollow(v) { follow = !!v; if (!follow) { win.clearTimeout(dwellTimer); dwellTimer = 0; } },
+    setLines(v) { root.dataset.lines = v ? 'on' : 'off'; schedule(); },
+    setEdit(v) { edit = !!v; setAttr(root, 'data-edit', edit ? '' : null); },
+    freeze(v) { userFrozen = !!v; applyFreeze(); },
+    /** viewChanged() — the picture moved: anchors and subject are read again and the labels follow on the spring */
+    viewChanged() {
+      if (destroyed) return;
+      if (pendingView) return; pendingView = true;
+      frame.read(() => {
+        pendingView = false; if (destroyed) return;
+        readStage(); computeRests();
+        if (frozen || motionPolicy() !== 'full') { if (!frozen) for (const b of bodies()) { b.x = b.rx; b.y = b.ry; } frame.write(paint); }
+        else { kick(); frame.write(paint); }
+      });
+    },
+    /** replay() — every item leaves, then enters again */
+    replay() {
+      const list = items.filter((i) => i.measured && !i.leaving);
+      return exit(list).then(() => { if (!destroyed) { for (const it of list) for (const a of it.anims) a.cancel(); enter(list); } });
+    },
+    clear(kind) { return Promise.all(items.filter((i) => !kind || i.kind === kind).map((i) => handle(i).remove())); },
+    debug() {
+      return {
+        subject: { ...S }, running: runner.running, frozen, size: { W, H },
+        items: items.map((i) => ({ id: i.id, kind: i.kind, x: i.body.x, y: i.body.y, rx: i.body.rx, ry: i.body.ry, w: i.w, h: i.h, side: i.side, titleH: i.titleH, measured: i.measured })),
+        groups: [...groups.values()].map((g) => ({ key: String(g.key), A: g.A, d: g.ink.getAttribute('d') || '' })),
+      };
+    },
+    destroy() {
+      destroyed = true; runner.destroy(); life.abort();
+      win.clearTimeout(dwellTimer); win.clearTimeout(pressTimer); win.clearTimeout(touchTimer);
+      for (const it of items) { stopAnims(it); if (it.drag) it.drag.destroy(); }
+      root.remove();
+    },
+  };
+  let pendingView = false;
+  if (win.ResizeObserver) { const ro = new win.ResizeObserver(() => api.viewChanged()); ro.observe(stage); life.signal.addEventListener('abort', () => ro.disconnect()); }
+  return api;
+}

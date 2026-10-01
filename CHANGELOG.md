@@ -1,5 +1,24 @@
 # MIR — changelog
 
+## 1.5.0-alpha.2 — 2026-10-01 · one window, the first 1.5 tokens, words on the stage
+
+Not released: the 1.5 line is built on branch `worktree-mir-1.5`. The plans are in Josh's vault (`MIR CLAUDE 1.5 PLAN 2026-10-01`, `MIR CLAUDE 1.5.X INFORMATIONAL + LLM PLAN 2026-10-01`).
+
+- **`mir/window/`**: one floating window, one chip rail, one dock (`docs/WINDOWS.md`). No runtime CSS cloning; chips relocate by Shift-drag, long press and keyboard; the dock guide is the landing rect.
+- **The chip rail is styled by hooks** (`data-mir-rail`, `data-mir-chip`), not by its English label; the chips' glyph attribute is `data-glyph`. **Breaking for an adopting app:** `docs/ADOPTING-1.5.md`.
+- **The first 1.5 token names**, read at the place of use with the 1.4 name as the fallback (`--surface-*`, `--relief-*`, `--state-*`, `--label-*`), and **`data-ui-tier="lite" | "flat"`** (`docs/TIERS.md`).
+- **Controls paint only what changed** (`kit.js` through `core/perf.js`).
+- **`mir/history/`** (one undo ring and its list) and **`mir/core/project.js`** (project parts), lifted from BASINS.
+- **`mir/info/`**: INFORMATIONAL's first page: floating text, a jointed line that is only ever flat, 45° or vertical, force between labels (`docs/INFORMATIONAL.md`, `gallery/info.html`). The notebook faces Spectral, Playfair Display and Alegreya SC are in `fonts/info/`.
+
+## 1.5.0-alpha.1 — 2026-10-01 · the foundation
+
+- **The base**: BASINS' four forked kit files and the timeline's `host.js` / `mod.js` work are in the kit.
+- **The line guard**: `adopt.mjs` refuses to move an app onto another line without `--line` (`docs/LINES.md`). The 1.4 line is frozen as branch `mir-1.4.x` at `v1.4.3`.
+- **Cascade layers**: the kit's sheets are in `@layer`s; an app's sheets beat them with plain selectors; 838 `:root` ladders are gone (`docs/LAYERS.md`). **Behaviour change:** the kit's `!important`s now beat an app's.
+- **`mir/core/`**: frame, motion, pointer, proximity, perf (`docs/CORE.md`).
+- **INTENT**: `docs/INTENT.md`, `mir/tokens.json`, `tools/lint-intent.mjs`.
+
 ## 1.4.3 — 2026-09-23 · editable sine at birth, double-click tension reset
 
 - Fresh LFOs now start on the editable SINE preset. Explicit analytic waves and saved source modes are preserved.

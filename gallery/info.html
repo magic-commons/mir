@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>MIR · informational</title>
+<!-- INFORMATIONAL, PLAYABLE: words on a moving picture, with no window.  A trefoil turns slowly in a colour field
+     (plain 2D canvas, no GPU); a greeting block keeps to the far side of the shape from your pointer; labels hang off
+     the shape's features on lines that are only ever flat, 45° and vertical, and trail the shape on a spring.
+     Click the shape to label it; paste text with $…$ to pin it where your pointer is; hold Space to hold still;
+     drag the picture to move the shape; EDIT lets you drag a label while its neighbours yield. -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<link rel="stylesheet" href="../mir/info/faces.css">
+<link rel="stylesheet" href="../mir/info/info.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #05060b; }
+  body[data-theme="light"] { background: #f2eee6; }
+  .g-host { position: fixed; inset: 0; }
+  .g-host canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+  .g-host canvas.grabbing { cursor: grabbing; }
+  .g-strip { position: fixed; left: 50%; bottom: 14px; translate: -50% 0; z-index: 5; box-sizing: border-box; width: max-content; max-width: calc(100vw - 32px);
+    padding: 8px 10px; border-radius: 14px; display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; justify-content: center; }
+  .g-strip .segw { min-width: 0; }
+  .g-hint { position: fixed; left: 50%; bottom: calc(14px + var(--strip-h, 64px) + 6px); translate: -50% 0; z-index: 5; width: max-content; max-width: calc(100vw - 32px);
+    font-size: var(--fs-small); color: var(--ink-faint); text-align: center; pointer-events: none; text-shadow: 0 0 6px var(--g-hint-halo, #000); }
+  body[data-theme="light"] .g-hint { --g-hint-halo: #fff; }
+  /* a narrow screen: the stage is the picture ABOVE the controls, so nothing the layer places goes under them */
+  @media (max-width: 640px) { .g-host { bottom: calc(var(--strip-h, 200px) + 48px); } .g-strip .sw-lbl, .g-strip .trig-l, .g-strip .seg-b { font-size: 10px; } }
+</style>
+</head>
+<body class="disconnected" data-card="tinted" data-theme="dark">
+<div class="g-host" id="host"><canvas id="stage" aria-label="a trefoil turning slowly in a colour field"></canvas></div>
+<div class="g-hint" id="hint">click the shape to label it · paste text with $…$ · hold <b>Space</b> to hold still · drag the picture</div>
+<div class="g-strip glass" id="strip"></div>
+<script type="module">
+import { seg, sw, trig } from '../mir/kit.js';
+import { frame } from '../mir/core/frame.js';
+import { installPress, drag } from '../mir/core/pointer.js';
+import { motionPolicy } from '../mir/core/motion.js';
+import { createInfoLayer } from '../mir/info/layer.js';
+
+const canvas = document.getElementById('stage'), host = document.getElementById('host');
+const ctx = canvas.getContext('2d');
+const bg = document.createElement('canvas'), bctx = bg.getContext('2d');
+let W = 0, H = 0, dpr = 1;
+installPress({ selector: 'button' });
+
+/* ── THE PICTURE: a colour field, ripples, and a turning trefoil (the SUBJECT) ─────────────────────────────── */
+const view = { ox: 0, oy: 0, tx: 0, ty: 0 };                          // the hand's offset (t = target, eased toward)
+const P = { cx: 0, cy: 0, R: 100, eps: 0.22, phi: 0 };
+const TAU = Math.PI * 2;
+const BLOBS = [
+  { h: 286, x: .22, y: .28, ax: .16, ay: .12, f: 1 / 41, k: 0.0 },
+  { h: 188, x: .78, y: .30, ax: .14, ay: .16, f: 1 / 53, k: 1.7 },
+  { h: 34, x: .70, y: .80, ax: .18, ay: .10, f: 1 / 47, k: 3.1 },
+  { h: 336, x: .26, y: .78, ax: .12, ay: .14, f: 1 / 59, k: 4.4 },
+  { h: 222, x: .50, y: .50, ax: .22, ay: .18, f: 1 / 67, k: 5.2 },
+];
+function resize() {
+  dpr = Math.min(2, window.devicePixelRatio || 1);
+  W = host.clientWidth; H = host.clientHeight;
+  canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+  bg.width = Math.max(1, Math.round(W / 4)); bg.height = Math.max(1, Math.round(H / 4));
+}
+const dark = () => document.body.dataset.theme !== 'light';
+function field(t) {
+  const w = bg.width, h = bg.height, d = dark();
+  bctx.globalCompositeOperation = 'source-over';
+  bctx.fillStyle = d ? '#070812' : '#f4efe6'; bctx.fillRect(0, 0, w, h);
+  bctx.globalCompositeOperation = d ? 'screen' : 'multiply';
+  for (const b of BLOBS) {
+    const s = TAU * b.f * t + b.k, x = w * (b.x + b.ax * Math.sin(s)), y = h * (b.y + b.ay * Math.cos(s * 1.3));
+    const r = Math.max(w, h) * (0.5 + 0.1 * Math.sin(s * 0.7)), hue = b.h + 18 * Math.sin(t / 23 + b.k);
+    const g = bctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, d ? `hsla(${hue}, 88%, 56%, .62)` : `hsla(${hue}, 85%, 76%, .7)`);
+    g.addColorStop(1, d ? `hsla(${hue}, 88%, 40%, 0)` : `hsla(${hue}, 85%, 90%, 0)`);
+    bctx.fillStyle = g; bctx.fillRect(0, 0, w, h);
+  }
+}
+function trefoil(c, cx, cy, R, eps, phi, scale = 1) {
+  c.beginPath();
+  for (let i = 0; i <= 240; i++) {
+    const th = (i / 240) * TAU, r = R * scale * (1 + eps * Math.cos(3 * (th - phi)));
+    const x = cx + r * Math.cos(th), y = cy + r * Math.sin(th);
+    if (i) c.lineTo(x, y); else c.moveTo(x, y);
+  }
+  c.closePath();
+}
+function draw(t) {
+  const d = dark();
+  field(t);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const { cx, cy, R, eps, phi } = P, hue = (phi * 180 / Math.PI) % 360;
+  /* the ripples: the trefoil's level lines, turning the other way */
+  ctx.lineWidth = 1;
+  for (let k = 1; k <= 9; k++) {
+    ctx.strokeStyle = d ? `hsla(0, 0%, 100%, ${0.13 - k * 0.012})` : `hsla(230, 30%, 20%, ${0.12 - k * 0.011})`;
+    trefoil(ctx, cx, cy, R, eps / (1 + k * 0.55), -phi * 0.6 + k * 0.21, 1.18 + k * 0.33); ctx.stroke();
+  }
+  /* the subject */
+  const cg = ctx.createConicGradient(phi, cx, cy);
+  for (let i = 0; i <= 6; i++) cg.addColorStop(i / 6, `hsl(${hue + i * 60}, ${d ? 92 : 80}%, ${d ? 62 : 58}%)`);
+  ctx.save();
+  ctx.shadowColor = d ? `hsla(${hue + 40}, 95%, 60%, .55)` : `hsla(${hue + 40}, 70%, 40%, .28)`; ctx.shadowBlur = d ? 70 : 40;
+  trefoil(ctx, cx, cy, R, eps, phi); ctx.fillStyle = cg; ctx.fill();
+  ctx.restore();
+  for (const [s, a] of [[0.74, 0.42], [0.5, 0.34], [0.28, 0.26]]) {
+    trefoil(ctx, cx, cy, R, eps * (0.6 + s * 0.4), phi * (1 + (1 - s) * 0.8), s);
+    ctx.strokeStyle = `hsla(0, 0%, 100%, ${a})`; ctx.lineWidth = 1.2; ctx.stroke();
+  }
+  trefoil(ctx, cx, cy, R, eps, phi); ctx.strokeStyle = 'hsla(0, 0%, 100%, .7)'; ctx.lineWidth = 1.5; ctx.stroke();
+  /* the nucleus and the tips */
+  const ng = ctx.createRadialGradient(cx, cy, 0, cx, cy, 22);
+  ng.addColorStop(0, 'hsla(0,0%,100%,1)'); ng.addColorStop(0.3, 'hsla(0,0%,100%,.85)'); ng.addColorStop(1, 'hsla(0,0%,100%,0)');
+  ctx.fillStyle = ng; ctx.beginPath(); ctx.arc(cx, cy, 22, 0, TAU); ctx.fill();
+  for (const f of feats()) if (f.id !== 'nucleus') { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(f.x, f.y, 3.2, 0, TAU); ctx.fill(); }
+}
+
+/* the features the app names, in the stage's CSS pixels */
+function feats() {
+  const { cx, cy, R, eps, phi } = P, out = [{ id: 'nucleus', name: 'The nucleus', x: cx, y: cy, r: 9 }];
+  for (let k = 0; k < 3; k++) { const a = phi + (k * TAU) / 3, r = R * (1 + eps); out.push({ id: 'tip-' + k, name: 'Tip ' + (k + 1), x: cx + r * Math.cos(a), y: cy + r * Math.sin(a), r: 5 }); }
+  return out;
+}
+const subjectRect = () => { const r = P.R * 1.24; return { left: P.cx - r, top: P.cy - r, width: 2 * r, height: 2 * r }; };
+
+/* ── THE LAYER ─────────────────────────────────────────────────────────────────────────────────────────────── */
+resize();
+const layer = createInfoLayer({ stage: canvas, host, subject: subjectRect, features: feats });
+window.__INFO = layer;
+const greeting = String.raw`# Informational
+Words on the picture that keep out of your way. Move past the shape and I cross to its far side; reach for me and I stay.
+
+$$r(\theta) = R\,\bigl(1 + \varepsilon\cos 3\theta\bigr)$$`;
+layer.addBlock({ md: greeting, hold: 2500 });
+layer.addLabel({ anchor: 'nucleus', title: 'The nucleus', md: String.raw`Period $p = 3$, at $c \approx -0.1226 + 0.7449i$.` });
+layer.addLabel({ anchor: 'tip-0', title: 'A lobe', md: String.raw`$r(\theta) = R\,(1 + \varepsilon\cos 3\theta)$` });
+layer.addLabel({ anchor: 'tip-1', title: 'The tip', md: String.raw`Curvature $\kappa \approx 2.6/R$` });
+layer.addLabel({ anchor: 'tip-1', title: 'Its twins', md: String.raw`Turned by $2\pi/3$ and $4\pi/3$` });
+
+/* a PLACE on the shape: kept in the shape's own polar coordinates, so the label turns with it */
+function place(x, y) {
+  const rho = Math.hypot(x - P.cx, y - P.cy) / P.R, alpha = Math.atan2(y - P.cy, x - P.cx) - P.phi;
+  return { rho, alpha, at: () => ({ x: P.cx + rho * P.R * Math.cos(alpha + P.phi), y: P.cy + rho * P.R * Math.sin(alpha + P.phi), r: 4 }) };
+}
+const added = [];
+const keep = (h) => { added.push(h); if (added.length > 8) added.shift().remove(); };
+const deg = (a) => Math.round(((a * 180) / Math.PI % 360 + 360) % 360);
+
+/* CLICK THE THING: the nearest feature within reach, or that place on the shape */
+let dragged = false;
+canvas.addEventListener('click', (e) => {
+  if (dragged) { dragged = false; return; }
+  const r = canvas.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  const f = feats().map((q) => ({ q, d: Math.hypot(q.x - x, q.y - y) })).sort((a, b) => a.d - b.d)[0];
+  if (f && f.d < 28) {
+    const ang = f.q.id === 'nucleus' ? 'the centre' : `$\\alpha = ${deg(Math.atan2(f.q.y - P.cy, f.q.x - P.cx) - P.phi)}^\\circ$ on the shape`;
+    keep(layer.addLabel({ anchor: f.q.id, title: f.q.name, md: `Clicked at ${ang}.` }));
+    return;
+  }
+  const p = place(x, y);
+  keep(layer.addLabel({ anchor: p.at, title: p.rho <= 1.25 ? 'A place' : 'Out in the field', md: `$\\rho = ${p.rho.toFixed(2)}R$, $\\alpha = ${deg(p.alpha)}^\\circ$` }));
+});
+
+/* PASTE: text with $…$ becomes a label where the pointer is */
+let px = W * 0.5, py = H * 0.5;
+window.addEventListener('pointermove', (e) => { const r = canvas.getBoundingClientRect(); px = e.clientX - r.left; py = e.clientY - r.top; }, { passive: true });
+window.addEventListener('paste', (e) => {
+  const text = (e.clipboardData && e.clipboardData.getData('text')) || '';
+  if (!/\$[^$\n]+\$/.test(text)) return;
+  e.preventDefault();
+  const lines = text.trim().slice(0, 400).split('\n'), title = lines.length > 1 && lines[0].length < 48 && !lines[0].includes('$') ? lines.shift() : '';
+  keep(layer.addLabel({ anchor: place(px, py).at, title, md: lines.join('\n') }));
+});
+
+/* DRAG THE PICTURE: the view moves, the labels follow on their springs */
+let start = null;
+drag(canvas, {
+  onStart() { start = { ox: view.tx, oy: view.ty }; dragged = true; canvas.classList.add('grabbing'); },
+  onMove(s) { view.tx = start.ox + s.dx; view.ty = start.oy + s.dy; },
+  onEnd() { canvas.classList.remove('grabbing'); },
+  onCancel() { view.tx = start.ox; view.ty = start.oy; canvas.classList.remove('grabbing'); },
+});
+canvas.addEventListener('dblclick', () => { view.tx = 0; view.ty = 0; });
+
+/* ── THE STRIP ─────────────────────────────────────────────────────────────────────────────────────────────── */
+const strip = document.getElementById('strip');
+strip.append(
+  seg({ label: 'LINE', value: 'diagonal-first', options: [{ id: 'diagonal-first', label: 'DIAGONAL FIRST', title: 'thing → 45° → flat, the flat part underlining the title' }, { id: 'flat-first', label: 'FLAT FIRST', title: 'thing → flat → 45° → text' }], onChange: (v) => layer.setStyle(v) }).root,
+  sw({ label: 'FOLLOW CURSOR', value: true, title: 'the greeting keeps to the far side of the shape from your pointer', onChange: (v) => layer.setFollow(v) }).root,
+  sw({ label: 'LINES', value: true, onChange: (v) => layer.setLines(v) }).root,
+  sw({ label: 'EDIT', value: false, title: 'drag a label; its neighbours yield', onChange: (v) => layer.setEdit(v) }).root,
+  trig({ label: 'REPLAY ENTRANCE', onFire: () => layer.replay() }).root,
+  trig({ label: 'CLEAR ADDED', onFire: () => { while (added.length) added.pop().remove(); } }).root,
+  seg({ label: 'THEME', value: 'dark', options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], onChange: (v) => { document.body.dataset.theme = v; } }).root,
+);
+const hint = document.getElementById('hint');
+new ResizeObserver(() => { document.documentElement.style.setProperty("--strip-h", strip.offsetHeight + "px"); }).observe(strip);
+
+/* ── THE LOOP: the picture's own, and it drives the kit's one frame (one animation frame per display frame) ── */
+new ResizeObserver(resize).observe(host);
+frame.drive(() => {});
+let t0 = performance.now(), last = t0, clock = 0;
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  clock += dt * (motionPolicy() === 'full' ? 1 : 0.25);
+  const k = 1 - Math.exp(-dt * 14);                                   // the hand's offset, eased
+  view.ox += (view.tx - view.ox) * k; view.oy += (view.ty - view.oy) * k;
+  P.R = Math.max(70, Math.min(W, H) * 0.165);
+  P.cx = W / 2 + view.ox + 16 * Math.sin(clock / 9); P.cy = H * (H > W ? 0.4 : 0.46) + view.oy + 10 * Math.cos(clock / 11);
+  P.eps = 0.22 + 0.035 * Math.sin(clock * 0.35); P.phi = (clock * TAU) / 56;
+  draw(clock);
+  layer.viewChanged();
+  frame.tick(now);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

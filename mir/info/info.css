@@ -1,0 +1,104 @@
+/* info/info.css — INFORMATIONAL: words on the picture.  Load after the kit's sheets (it is in mir.kit.house).
+ *
+ * THE LAW IT DRAWS: WORDS ON THE STAGE ARE INK PLUS A HALO — NEVER A PANE.  No background, no border, no drop
+ * shadow height: the halo is the opposite ink, blurred, round every glyph and under every line, so the words read
+ * over a loud picture without a box (INTENT, the proposed row "words on the stage").  The layer never takes a
+ * click: `pointer-events: none` throughout, except a label while EDIT is on.
+ *
+ * Type comes through tokens; the real faces (Spectral, Playfair Display, Alegreya SC for links) are in
+ * mir/info/faces.css — a page links it before this sheet, and without it the system serifs stand in.  Sizes are read from the layer's own width (`cqi`), not the
+ * window's.  NOTE for INVERT (not built): the root is a size container, which makes it a stacking context, so a
+ * future `mix-blend-mode: difference` must go ON the root, not on a label inside it (draft 1 §1.6, measured).
+ */
+@layer mir.kit.house {
+  .mir-info {
+    --info-ink: hsl(40 33% 96%);
+    --info-paper: hsl(228 40% 4% / .78);
+    --info-paper-soft: hsl(228 40% 4% / .42);
+    --info-halo: 0 0 1px var(--info-paper), 0 0 3px var(--info-paper), 0 0 9px var(--info-paper-soft), 0 0 22px var(--info-paper-soft);
+    --info-line-w: 1.25px;
+    --info-halo-w: 4.5px;
+    --info-lh: 1.45;
+    --info-size-body: clamp(14px, 8px + .68cqi, 18px);
+    --info-size-label: clamp(13px, 7.5px + .6cqi, 16.5px);
+    --info-size-title: clamp(16px, 9px + .8cqi, 22px);
+    --info-size-h1: clamp(26px, 13px + 2.3cqi, 48px);
+    --info-size-h2: clamp(18px, 10px + 1cqi, 28px);
+    --info-measure: 22em;
+    --info-block-measure: 23em;
+    --info-dim: .5;
+    --info-travel: .55;
+    --info-pin-time: 1.9s;
+
+    position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+    container-type: size; pointer-events: none; overflow: visible;
+    color: var(--info-ink); font-family: var(--font-info-body, "Spectral", Georgia, "Times New Roman", serif);
+    font-size: var(--info-size-body); line-height: var(--info-lh); font-variant-ligatures: none;
+    user-select: none; -webkit-user-select: none;
+  }
+  [data-theme="light"] .mir-info {
+    --info-ink: hsl(232 22% 10%);
+    --info-paper: hsl(42 45% 97% / .86);
+    --info-paper-soft: hsl(42 45% 97% / .5);
+  }
+
+  /* ── the lines: one svg, a halo stroke under the ink, a dot on the thing's edge ── */
+  .mir-info-lines { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+  .mir-info[data-lines="off"] .mir-info-lines { display: none; }
+  .mir-info-leader { visibility: hidden; }
+  .mir-info-leader[data-state="in"] { visibility: visible; }
+  .mir-info-halo, .mir-info-ink { fill: none; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 1 1; stroke-dashoffset: 0; }
+  .mir-info-halo { stroke: var(--info-paper-soft); stroke-width: var(--info-halo-w); }
+  .mir-info-ink { stroke: var(--info-ink); stroke-width: var(--info-line-w); }
+  .mir-info-dot { fill: var(--info-ink); stroke: var(--info-paper); stroke-width: var(--info-line-w); transform-box: fill-box; transform-origin: center; }
+
+  /* ── labels and blocks: ink, a halo, no box ── */
+  .mir-info-label, .mir-info-block {
+    position: absolute; left: 0; top: 0; box-sizing: border-box; margin: 0;
+    text-shadow: var(--info-halo); visibility: hidden;
+    transition: opacity var(--motion-structural) var(--ease-out);
+  }
+  .mir-info-label[data-state="in"], .mir-info-block[data-state="in"] { visibility: visible; }
+  .mir-info-label { width: max-content; max-width: var(--info-measure); font-size: var(--info-size-label); }
+  .mir-info-label[data-side="left"] { text-align: right; }
+  .mir-info-block { width: max-content; max-width: min(var(--info-block-measure), 42cqi); }
+  .mir-info-text > * { margin: 0; transform-origin: left center; }
+  .mir-info-label[data-side="left"] .mir-info-text > * { transform-origin: right center; }
+  .mir-info-text > * + * { margin-top: .3em; }
+
+  /* the type: # and a label's title in the display face, bold; # centred; ## semibold, left */
+  .mir-info-title, .mir-info-text h1 { font-family: var(--font-info-display, "Playfair Display", Georgia, serif); font-weight: 700; line-height: 1.2; }
+  .mir-info-title { font-size: var(--info-size-title); padding-bottom: .12em; }
+  .mir-info-text h1 { font-size: var(--info-size-h1); text-align: center; margin-bottom: .2em; }
+  .mir-info-text h2, .mir-info-text h3 { font-family: var(--font-info-body, "Spectral", Georgia, "Times New Roman", serif); font-weight: 600; text-align: left; line-height: 1.2; }
+  .mir-info-text h2 { font-size: var(--info-size-h2); }
+  .mir-info-text strong { font-weight: 600; }
+  .mir-info-text a { font-family: var(--font-info-link, "Alegreya SC", Georgia, serif); color: inherit; text-decoration-thickness: 1px; text-underline-offset: .18em; }
+  .mir-info-text .katex-display { margin: .45em 0 .1em; }
+  .mir-info-text .katex { white-space: nowrap; }                     /* a formula never breaks across lines in a label */
+  .mir-info-block .mir-info-text > p:has(> .katex-display) { text-align: center; }
+
+  /* strength: the blocks recede while you look at the subject, and come back the moment you reach for them */
+  .mir-info[data-pointer="subject"] .mir-info-block:not([data-reach]) { opacity: var(--info-dim); }
+  .mir-info-block[data-travel] { opacity: var(--info-travel); }
+  .mir-info[data-hold] .mir-info-block, .mir-info .mir-info-block[data-reach] { opacity: 1; }
+
+  /* EDIT: the only time the layer takes the pointer */
+  .mir-info[data-edit] .mir-info-label { pointer-events: auto; cursor: grab; touch-action: none; }
+  .mir-info[data-edit] .mir-info-label[data-carried] { cursor: grabbing; }
+
+  /* THE PIN: shown once, the first time a block moves away — "this is meant" */
+  .mir-info-pin { position: absolute; top: -.1em; right: -1.1em; width: .5em; height: .9em; opacity: 0; pointer-events: none; }
+  .mir-info-pin::before { content: ''; position: absolute; left: 0; top: 0; width: .5em; height: .5em; border-radius: 50%; background: var(--info-ink); box-shadow: var(--info-halo); }
+  .mir-info-pin::after { content: ''; position: absolute; left: calc(.25em - .5px); top: .45em; width: 1px; height: .45em; background: var(--info-ink); }
+  .mir-info-pin[data-show] { animation: mir-info-pin var(--info-pin-time) var(--ease-out) both; }
+  @keyframes mir-info-pin {
+    0% { opacity: 0; transform: translateY(-.6em) scale(.6); }
+    14% { opacity: 1; transform: none; }
+    70% { opacity: 1; transform: none; }
+    100% { opacity: 0; transform: none; }
+  }
+  @keyframes mir-info-pin-fade { 0%, 100% { opacity: 0; } 14%, 70% { opacity: 1; } }
+  :root[data-motion="reduced"] .mir-info-pin[data-show] { animation-name: mir-info-pin-fade; }
+  :root[data-motion="off"] .mir-info-pin[data-show] { animation: none; }
+}
