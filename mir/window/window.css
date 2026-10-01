@@ -1,0 +1,107 @@
+/* window/window.css — the floating window and its chip rail, native.
+ *
+ * THE LAW IT KEEPS: THE WINDOW WEARS THE HOUSE GLASS, AND ITS CHIPS WEAR THEIR WINDOW.
+ * The pane is a `.glass` (window.js puts the class on it), so skin.css paints it in every seat — theme × card style ×
+ * frost — exactly as it paints a card, and this sheet adds only its box.  Nothing is cloned: this replaces the
+ * ~1,250 modulation-window rules BASINS kwin.js copied into every window at startup (survey B §1).
+ * The chip is lab.css §56's law (BASINS, 2026-09-26), as tokens on the rail:
+ *   REST    the disc is its window's pane: --chip-fill and --chip-filter answer the same seat ladder the pane does;
+ *   HOVER   a lighter face (--chip-lift) and 6 % larger — docs/INTENT.md "a lighter face and a small lift", no ring;
+ *   ON      the frost face (--chip-on ← --state-on) with a thin rim (--chip-on-rim ← --state-on-rim), never an accent
+ *           fill — a latched toggle, the
+ *           chosen pane of a radio pair, a grip mid-drag (.drag) or held for a seat (.armed);
+ *   PRESS   it sinks: the press wash, --chip-sink and 8 % smaller; `.press` gives a finger what :active gives a mouse.
+ * Motion is the core's tokens (--motion-micro, --ease-out).  Everything is in mir.kit.house, after skin.css. */
+@layer mir.kit.house {
+
+/* ── THE PANE ─────────────────────────────────────────────────────────────────────────────────────────────── */
+.mir-win {
+  position: fixed; box-sizing: border-box; display: flex; flex-direction: column; min-width: 0; overflow: hidden;
+  border-radius: var(--r-lg); pointer-events: auto; contain: layout paint; isolation: isolate;
+}
+.mir-win-body {
+  flex: 1 1 auto; min-height: 0; overflow: hidden auto; overscroll-behavior: contain;
+  padding: var(--sp-3) var(--sp-4) var(--sp-4); touch-action: pan-y;
+  scrollbar-width: thin; scrollbar-color: var(--glass-groove-hot) transparent;
+}
+/* the resize corner: two hairlines in the corner; docked at the bottom it moves to the top edge, where the height grows */
+.mir-win-resize {
+  position: absolute; right: 0; bottom: 0; width: 22px; height: 22px; cursor: nwse-resize; touch-action: none;
+  background-image: linear-gradient(135deg, transparent 58%, var(--glass-groove-hot) 58% 63%, transparent 63% 73%, var(--glass-groove-hot) 73% 78%, transparent 78%);
+}
+.mir-win[data-dock="bottom"] .mir-win-resize { top: 0; bottom: auto; cursor: nesw-resize; transform: scaleY(-1); }
+
+/* ── THE RAIL ─────────────────────────────────────────────────────────────────────────────────────────────── */
+.mir-rail {
+  --chrome-chip-disc: calc(48px * var(--ui-scale));
+  --chrome-chip-target: max(var(--touch), calc(62px * var(--ui-scale)));
+  /* the disc's material, seat by seat below — the same ladder skin.css §14c gives the pane (L64/L65 change both) */
+  --chip-fill: hsl(var(--glass-tint) / var(--glass-opacity));
+  --chip-filter: var(--glass-filter);
+  --chip-lift: hsl(0 0% 100% / .16);
+  --chip-rim: hsl(0 0% 100% / .30);
+  --chip-sink: inset 0 2px 5px hsl(0 0% 0% / .30), inset 0 0 0 1px var(--chip-rim);
+  /* ON reads the semantic tier (a skin may set it); the fallbacks are §56's: the plugin's frost at its default blend */
+  --chip-on: var(--state-on, hsl(0 0% 100% / .086));
+  --chip-on-rim: var(--state-on-rim, inset 0 0 0 1px var(--chip-rim), inset 0 1px 0 hsl(0 0% 100% / .12));
+  position: fixed; display: flex; flex-direction: column; align-items: center; gap: var(--sp-3);
+  margin: 0; padding: 0; pointer-events: auto;
+}
+.mir-rail:is([data-side="top"], [data-side="bottom"]) { flex-direction: row; }
+body[data-theme="light"] .mir-rail { --chip-rim: hsl(214 30% 40% / .34); }
+body[data-card="tinted"] .mir-rail { --chip-fill: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
+body[data-card="refractive"] .mir-rail { --chip-fill: var(--surface-veil, transparent); }
+body.frost .mir-rail { --chip-filter: var(--surface-filter, var(--frost-filter)); }
+body.frost:not(.frost-hold)[data-card="tinted"] .mir-rail { --chip-fill: var(--surface-fill, hsl(var(--glass-tint) / .58)); }
+body.frost[data-card="refractive"][data-theme="dark"] .mir-rail { --chip-fill: var(--surface-veil, hsl(0 0% 0% / .10)); }
+
+/* ── THE CHIP: a 62 px target around a 48 px disc ─────────────────────────────────────────────────────────── */
+.mir-chip {
+  box-sizing: border-box; position: relative; z-index: 0; flex: 0 0 var(--chrome-chip-target);
+  width: var(--chrome-chip-target); height: var(--chrome-chip-target); margin: 0; padding: 0;
+  display: flex; align-items: center; justify-content: center; overflow: visible;
+  border: 0; border-radius: 50%; background: transparent; color: var(--ink-key);
+  font: 700 var(--fs-small)/1 var(--font-ui); cursor: pointer; outline: none;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: color var(--motion-micro) var(--ease-out);
+}
+.mir-chip::before {
+  content: ""; position: absolute; z-index: -1; left: 50%; top: 50%;
+  width: var(--chrome-chip-disc); height: var(--chrome-chip-disc); box-sizing: border-box;
+  border: var(--glass-border) solid var(--glass-border-color); border-radius: 50%;
+  background-color: var(--chip-fill); background-image: none; box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: var(--chip-filter); backdrop-filter: var(--chip-filter);
+  transform: translate(-50%, -50%);
+  transition: background-color var(--motion-micro) var(--ease-out), box-shadow var(--motion-micro) var(--ease-out), transform var(--motion-micro) var(--ease-out);
+}
+.mir-chip-ink, .mir-grip-dots, .mir-chip-text { pointer-events: none; }
+.mir-chip-text { white-space: nowrap; }
+.mir-chip:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }   /* focus: the accent ring OUTSIDE */
+.mir-chip[data-kind="grip"] { cursor: move; touch-action: none; }
+.mir-grip-dots {
+  width: calc(14px * var(--ui-scale)); height: calc(14px * var(--ui-scale));
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(2px * var(--ui-scale));
+}
+.mir-grip-dots > i {
+  width: calc(2px * var(--ui-scale)); height: calc(2px * var(--ui-scale));
+  align-self: center; justify-self: center; border-radius: 50%; background: currentColor;
+}
+
+/* ON — the frost face and its rim */
+.mir-chip:is(.on, .drag, .armed) { color: var(--fg); }
+.mir-chip:is(.on, .drag, .armed)::before {
+  background-image: linear-gradient(var(--chip-on), var(--chip-on)); box-shadow: var(--glass-shadow), var(--chip-on-rim);
+}
+/* HOVER — a lighter face and a small lift, only where there is a hover */
+@media (hover: hover) {
+  .mir-chip:hover { color: var(--fg); }
+  .mir-chip:hover::before { background-image: linear-gradient(var(--chip-lift), var(--chip-lift)); transform: translate(-50%, -50%) scale(1.06); }
+}
+/* PRESS — it sinks, for a mouse (:active) and for a finger (.press, core/pointer.js installPress) */
+.mir-chip:is(:active, .press) { color: var(--fg); }
+.mir-chip:is(:active, .press)::before {
+  background-image: linear-gradient(var(--glass-press), var(--glass-press)); box-shadow: var(--chip-sink);
+  transform: translate(-50%, -50%) scale(.92);
+}
+
+}   /* end @layer mir.kit.house */

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>MIR · windows</title>
+<!-- THE WINDOWS, PLAYABLE: two kit windows over a busy ground between two mock racks.  ALPHA docks between the racks
+     (drag it near the top or bottom: the dotted guide is exactly where it lands), has a radio pair, a cycle chip and a
+     text chip, resizes from its corner and drags from its empty glass.  Move either rail with Shift-drag on its grip,
+     a long press on it (touch), or the keyboard (Tab to the grip, arrows, Enter / Escape; Shift+arrows nudge).  Every
+     look is the kit's sheets; this page's own rules only lay the page out and paint the ground. -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<link rel="stylesheet" href="../mir/window/window.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #070a0f; }
+  body[data-theme="light"] { background: #eef1f6; }
+  #ground { position: fixed; inset: 0; width: 100%; height: 100%; }
+  .g-rack { position: fixed; top: 0; bottom: 0; width: 260px; z-index: 20; padding: 64px 12px 12px; box-sizing: border-box;
+    display: flex; flex-direction: column; gap: 10px; transition: transform 280ms cubic-bezier(.22, 1, .36, 1); }
+  #rackL { left: 0; } #rackR { right: 0; }
+  body.racks-hidden #rackL { transform: translateX(-100%); } body.racks-hidden #rackR { transform: translateX(100%); }
+  .g-card { height: 120px; border-radius: 14px; }
+  #floats { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  #bar { position: fixed; z-index: 25; left: 50%; bottom: 10px; transform: translateX(-50%); display: flex; gap: 8px; align-items: end;
+    padding: 8px 10px; border-radius: 14px; max-width: calc(100vw - 32px); flex-wrap: wrap; justify-content: center; }
+  .g-note { font-size: var(--fs-small); color: var(--fg-soft); line-height: 1.5; margin: 0 0 8px; }
+  .g-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .g-swatch { width: 54px; height: 54px; border-radius: 10px; }
+</style>
+</head>
+<body data-card="tinted" data-theme="dark">
+<canvas id="ground" aria-hidden="true"></canvas>
+<div id="rackL" class="g-rack"></div>
+<div id="rackR" class="g-rack"></div>
+<div id="floats"></div>
+<div id="bar" class="glass"></div>
+<script type="module">
+import { el, seg, sw, trig } from '../mir/kit.js';
+import { createWindow } from '../mir/window/window.js';
+import { observeSpan } from '../mir/window/dock.js';
+import { installPress } from '../mir/core/pointer.js';
+
+/* ── the busy ground: drawn once per size, so the page is idle when nothing moves ── */
+const ground = document.getElementById('ground');
+function paint() {
+  const dpr = devicePixelRatio || 1, w = innerWidth, h = innerHeight;
+  ground.width = w * dpr; ground.height = h * dpr;
+  const g = ground.getContext('2d'); g.scale(dpr, dpr);
+  const light = document.body.dataset.theme === 'light';
+  g.fillStyle = light ? '#eef1f6' : '#070a0f'; g.fillRect(0, 0, w, h);
+  let s = 7; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  for (let i = 0; i < 90; i++) {
+    const x = rnd() * w, y = rnd() * h, r = 30 + rnd() * 180, hue = Math.round(rnd() * 360);
+    const grad = g.createRadialGradient(x, y, 0, x, y, r);
+    grad.addColorStop(0, `hsla(${hue} 80% ${light ? 60 : 55}% / .55)`); grad.addColorStop(1, `hsla(${hue} 80% 50% / 0)`);
+    g.fillStyle = grad; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+  }
+  g.strokeStyle = light ? 'hsla(214 30% 30% / .25)' : 'hsla(0 0% 100% / .12)';
+  for (let x = 0; x < w; x += 24) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + h * .4, h); g.stroke(); }
+}
+paint(); addEventListener('resize', paint);
+
+/* ── the mock racks: cards of glass, slid away by HIDE RACKS (the docked window follows its span) ── */
+for (const id of ['rackL', 'rackR']) for (let i = 0; i < 4; i++) el('div', 'g-card glass', document.getElementById(id));
+const span = observeSpan({ left: document.getElementById('rackL'), right: document.getElementById('rackR') });   // ONE, for every window
+
+/* ── the windows ── */
+const host = document.getElementById('floats');
+const keep = (k) => ({ read: () => { try { return JSON.parse(localStorage.getItem('mir.gallery.' + k)); } catch { return null; } },
+  write: (s) => { try { localStorage.setItem('mir.gallery.' + k, JSON.stringify(s)); } catch { /* private mode */ } } });
+let guideOn = true;
+const swatches = (parent) => { const r = el('div', 'g-row', parent); for (let i = 0; i < 12; i++) { const s = el('div', 'g-swatch', r); s.style.background = `hsl(${i * 30} 60% 50% / .7)`; } return r; };
+const alpha = createWindow({ id: 'alpha', title: 'ALPHA', host, size: { w: 520, h: 320 }, min: { w: 280, h: 200 }, resizable: true, emptyDrag: '.g-swatch',
+  dock: { span, guide: () => guideOn }, persist: keep('alpha'),
+  panels: [
+    { name: 'gallery', body: (b) => { el('p', 'g-note', b, 'GALLERY. Drag me by my empty glass, or by the grip. Bring my top or bottom edge near the screen\'s: the guide is where I land.'); swatches(b); } },
+    { name: 'render', body: (b) => { el('p', 'g-note', b, 'RENDER. The pair of chips above is a radio pair: one pane at a time.'); b.appendChild(trig({ label: 'A BUTTON IN THE BODY', onFire: () => {} }).root); } },
+  ],
+  chips: [
+    { name: 'gallery', kind: 'radio', group: 'pane', glyph: 'gallery', label: 'Gallery', hint: 'Gallery — the swatches' },
+    { name: 'render', kind: 'radio', group: 'pane', glyph: 'render', label: 'Render', hint: 'Render — a button in the body' },
+    { name: 'bars', kind: 'cycle', label: 'Work bars', states: [
+      { id: 'bottom', pressed: false, glyph: 'barsBottom', label: 'Work bars: below', hint: 'Work bars below · press to put them above' },
+      { id: 'top', pressed: true, glyph: 'barsTop', label: 'Work bars: above', hint: 'Work bars above · press to hide them' },
+      { id: 'hidden', pressed: 'mixed', glyph: 'barsTop', label: 'Work bars: hidden', hint: 'Work bars hidden · press to show them below' }] },
+    { name: 'sort', kind: 'cycle', label: 'Sort', states: [
+      { id: 'az', text: 'A–Z', label: 'Sort: A to Z' }, { id: 'za', text: 'Z–A', label: 'Sort: Z to A' }, { id: 'new', text: 'NEW', label: 'Sort: newest first' }] },
+  ] });
+const beta = createWindow({ id: 'beta', title: 'BETA', host, size: { w: 340, h: 240 }, persist: keep('beta'),
+  body: (b) => { el('p', 'g-note', b, 'BETA floats only. Press either window: it and its rail come up together.'); },
+  chips: [{ name: 'pin', kind: 'toggle', glyph: 'lock', label: 'Pin', states: { true: { hint: 'Pinned · press to unpin' }, false: { hint: 'Not pinned · press to pin' } } }] });
+if (!alpha.isOpen()) alpha.open();
+if (!beta.isOpen()) { beta.place({ x: Math.round(innerWidth * .55), y: 140 }); beta.open(); }
+installPress({ selector: '.sw, .seg-b, .trig' });
+
+/* ── the bar: the seats and the switches ── */
+const bar = document.getElementById('bar');
+/* (under the windows: a window docked at the bottom covers it — drag the window away to reach it) */
+bar.appendChild(seg({ label: 'THEME', value: 'dark', options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], onChange: (v) => { document.body.dataset.theme = v; paint(); } }).root);
+bar.appendChild(seg({ label: 'CARD', value: 'tinted', options: [{ id: 'tinted', label: 'TINTED' }, { id: 'refractive', label: 'REFRACTIVE' }], onChange: (v) => { document.body.dataset.card = v; } }).root);
+bar.appendChild(sw({ label: 'FROST', value: false, onChange: (v) => document.body.classList.toggle('frost', v) }).root);
+bar.appendChild(sw({ label: 'DOCK GUIDE', value: true, title: 'the Display switch: off hides the guide, the snap still works', onChange: (v) => { guideOn = v; } }).root);
+bar.appendChild(sw({ label: 'HIDE RACKS', value: false, onChange: (v) => document.body.classList.toggle('racks-hidden', v) }).root);
+bar.appendChild(trig({ label: 'ALPHA', title: 'open or close ALPHA', onFire: () => alpha.toggle() }).root);
+bar.appendChild(trig({ label: 'BETA', title: 'open or close BETA', onFire: () => beta.toggle() }).root);
+bar.appendChild(trig({ label: 'RESET', title: 'forget the saved seats', onFire: () => { localStorage.removeItem('mir.gallery.alpha'); localStorage.removeItem('mir.gallery.beta'); location.reload(); } }).root);
+window.__G = { alpha, beta, span };
+</script>
+</body>
+</html>

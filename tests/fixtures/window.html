@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MIR · window fixture</title>
+<link rel="stylesheet" href="../../mir/css/base.css">
+<link rel="stylesheet" href="../../mir/css/skin.css">
+<link rel="stylesheet" href="../../mir/modulation/modhost.css">
+<link rel="stylesheet" href="../../mir/modulation/modwindow/modwindow.css">
+<link rel="stylesheet" href="../../mir/core/core.css">
+<link rel="stylesheet" href="../../mir/window/window.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #070a0f; }
+  .rack { position: fixed; top: 0; bottom: 0; width: 240px; background: #1a2230; transition: transform 200ms ease; }
+  #rackL { left: 0; } #rackR { right: 0; }
+  body.racks-off #rackL { transform: translateX(-100%); } body.racks-off #rackR { transform: translateX(100%); }
+  #floats { position: fixed; inset: 0; pointer-events: none; z-index: 30; }
+  #modfloats { position: fixed; left: 0; top: 0; width: 0; height: 0; }
+  .fill { height: 120px; }
+</style>
+<!-- counts every rAF the page books, from before any module loads -->
+<script>
+  window.__rafCalls = 0;
+  const raf0 = window.requestAnimationFrame.bind(window);
+  window.requestAnimationFrame = (f) => { window.__rafCalls++; return raf0(f); };
+</script>
+</head>
+<body data-theme="dark" data-card="tinted">
+<div id="rackL" class="rack"></div>
+<div id="rackR" class="rack"></div>
+<div id="floats"></div>
+<div id="modfloats"></div>
+<script type="module">
+import { createWindow } from '../../mir/window/window.js';
+import { observeSpan } from '../../mir/window/dock.js';
+import * as motion from '../../mir/core/motion.js';
+import { frame } from '../../mir/core/frame.js';
+import { perf } from '../../mir/core/perf.js';
+import { createModWindow, buildChipRail } from '../../mir/modulation/modwindow/modwindow.js';
+
+const $ = (id) => document.getElementById(id);
+const host = $('floats');
+const span = observeSpan({ left: $('rackL'), right: $('rackR') });
+const store = { A: null, B: { x: 700, y: 120, w: 340, h: 220, open: false, dock: null, chipSide: 'right' } };
+const writes = { A: [], B: [] };
+const persistFor = (k) => ({ read: () => store[k], write: (s) => { store[k] = s; writes[k].push(s); } });
+const moved = [];
+
+const para = () => { const d = document.createElement('div'); d.innerHTML = '<p class="g-note">Empty glass drags this window.</p><button id="inner" type="button">INNER</button><div class="fill"></div>'; return d; };
+const A = createWindow({ id: 'alpha', title: 'ALPHA', host, size: { w: 480, h: 300 }, min: { w: 260, h: 180 }, resizable: true, emptyDrag: true,
+  dock: { span, guide: () => !document.body.classList.contains('no-guide') }, persist: persistFor('A'), onMoved: (r) => moved.push(r),
+  panels: [{ name: 'gallery', body: para }, { name: 'render', body: (el) => { el.textContent = 'RENDER PANE'; } }],
+  chips: [
+    { name: 'gallery', kind: 'radio', group: 'pane', glyph: 'gallery', label: 'Gallery' },
+    { name: 'render', kind: 'radio', group: 'pane', glyph: 'render', label: 'Render' },
+    { name: 'bars', kind: 'cycle', label: 'Work bars', states: [
+      { id: 'bottom', pressed: false, glyph: 'barsBottom', label: 'Work bars: below', hint: 'Work bars below · press to put them above' },
+      { id: 'top', pressed: true, glyph: 'barsTop', label: 'Work bars: above', hint: 'Work bars above · press to hide them' },
+      { id: 'hidden', pressed: 'mixed', glyph: 'barsTop', label: 'Work bars: hidden', hint: 'Work bars hidden · press to show them below' }] },
+    { name: 'sort', kind: 'cycle', label: 'Sort', states: [{ id: 'az', text: 'A–Z', label: 'Sort: A to Z' }, { id: 'new', text: 'NEW', label: 'Sort: newest first' }] },
+  ] });
+const B = createWindow({ id: 'beta', title: 'BETA', host, size: { w: 340, h: 220 }, persist: persistFor('B'),
+  body: (el) => { el.textContent = 'BETA'; }, chips: [{ name: 'pin', kind: 'toggle', glyph: 'lock', label: 'Pin' }] });
+
+/* the modulation window's own rail, built by its own builder, for the computed-style comparison */
+const mw = createModWindow({}); $('modfloats').appendChild(mw); buildChipRail(mw, {});
+const modRail = document.querySelector('.kwin-chiprail'); modRail.style.left = '-400px'; modRail.style.top = '0px';
+
+window.__T = { A, B, span, store, writes, moved, motion, frame, perf, modRail };
+window.__ready = true;
+</script>
+</body>
+</html>
