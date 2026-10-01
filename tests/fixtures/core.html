@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MIR · core fixture</title>
+<link rel="stylesheet" href="../../mir/css/base.css">
+<link rel="stylesheet" href="../../mir/css/skin.css">
+<link rel="stylesheet" href="../../mir/core/core.css">
+<style>
+  html, body { margin: 0; background: #070a0f; overflow: hidden; }
+  .fx { position: absolute; box-sizing: border-box; background: #345; }
+  #tw { left: 40px; top: 300px; width: 120px; height: 80px; }
+  #box { left: 40px; top: 600px; width: 120px; height: 80px; touch-action: none; }
+  #list { position: absolute; left: 900px; top: 20px; width: 160px; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+  #list > div { height: 30px; background: #456; }
+  #panel { left: 900px; top: 300px; width: 200px; height: 120px; }
+  #tile { left: 900px; top: 500px; width: 200px; height: 200px; border-radius: 12px; }
+  #btn { position: absolute; left: 1150px; top: 20px; width: 80px; height: 44px; }
+</style>
+<!-- counts every rAF the page books, from before any module loads -->
+<script>
+  window.__rafCalls = 0;
+  const raf0 = window.requestAnimationFrame.bind(window);
+  window.requestAnimationFrame = (f) => { window.__rafCalls++; return raf0(f); };
+</script>
+</head>
+<body data-theme="dark" data-card="tinted">
+<div id="tw" class="fx"></div>
+<div id="box" class="fx"></div>
+<div id="list"><div id="i0"></div><div id="i1"></div><div id="i2"></div><div id="i3"></div><div id="i4"></div></div>
+<div id="panel" class="fx" hidden></div>
+<div id="tile" class="fx mir-glow"></div>
+<button id="btn">PRESS</button>
+<script type="module">
+import { frame } from '../../mir/core/frame.js';
+import * as motion from '../../mir/core/motion.js';
+import { drag, installPress, pointerField } from '../../mir/core/pointer.js';
+import { createProximity } from '../../mir/core/proximity.js';
+import { perf } from '../../mir/core/perf.js';
+
+const $ = (id) => document.getElementById(id);
+const list = $('list'), items = [...list.children];
+const order = (ids) => { for (const i of ids) list.appendChild($('i' + i)); };
+
+/* the dock: one landing rect, measured from its top-left corner */
+const LAND = { left: 400, top: 40, width: 120, height: 80 };
+const box = $('box'), log = [];
+const prox = createProximity({ reach: 96, capture: 32 });
+const targets = () => [{ id: 'dock', rect: LAND, hit: { x: LAND.left, y: LAND.top }, shape: 'rect' }];
+let start = null, last = null;
+const place = (s) => { box.style.left = start.left + s.dx + 'px'; box.style.top = start.top + s.dy + 'px'; };
+const g = drag(box, {
+  onStart: (s) => { const cs = getComputedStyle(box); start = { left: parseFloat(cs.left), top: parseFloat(cs.top), at: box.getBoundingClientRect() }; log.push(['start', s.x, s.y, s.pointerId]); },
+  onMove: (s) => { log.push(['move', s.x, s.y, s.shiftKey]); place(s); last = prox.update({ x: start.at.left + s.dx, y: start.at.top + s.dy }, targets()); },
+  onEnd: (s) => { log.push(['end', s.x, s.y]); const m = prox.end(); if (m && m.captured) motion.tweenRect(box, m.captured.rect); },
+  onCancel: (s) => { log.push(['cancel', s.x, s.y]); prox.cancel(); box.style.left = start.left + 'px'; box.style.top = start.top + 'px'; },
+});
+const unpress = installPress({ selector: '#btn' });
+const unfield = pointerField($('tile'));
+
+window.__T = { frame, motion, prox, perf, g, log, items, order, LAND, get last() { return last; }, unpress, unfield };
+window.__ready = true;
+</script>
+</body>
+</html>

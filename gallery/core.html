@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>MIR · core</title>
+<!-- THE CORE, PLAYABLE: a window that docks with a guide and lands with a tween, a list that reorders with FLIP, a
+     panel that opens and closes with presence, a tile with the pointer field's light, and the meter.  Every look is
+     the kit's (its sheets and core.css); the page's own rules only lay the page out. -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<style>
+  html, body { height: auto; min-height: 100%; overflow: auto; margin: 0; background: #070a0f; }
+  body[data-theme="light"] { background: #eef1f6; }
+  .g-page { max-width: 1100px; margin: 0 auto; padding: 32px 16px 80px; display: flex; flex-direction: column; gap: 18px; }
+  .g-note { font-size: var(--fs-small); color: var(--ink-faint); line-height: 1.5; max-width: 70ch; }
+  .g-stage { position: relative; height: 380px; }
+  .g-float { position: absolute; left: 280px; top: 150px; width: 240px; margin: 0; }
+  .g-float .dev-head { touch-action: none; cursor: grab; }
+  .g-cells { display: flex; flex-wrap: wrap; gap: 8px; }
+  .g-cells > * { width: 120px; }
+  .g-shelf { min-height: 150px; }
+  .g-tile { height: 220px; border-radius: var(--r-md, 12px); display: grid; place-items: center; }
+  .g-meter { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+</style>
+</head>
+<body class="disconnected" data-card="tinted" data-theme="dark">
+<div class="g-page" id="page"></div>
+<script type="module">
+import { el, device, group, trig, seg, sw, readout } from '../mir/kit.js';
+import { frame } from '../mir/core/frame.js';
+import { flip, tweenRect, presence, owns, setMotionPolicy, motionPolicy } from '../mir/core/motion.js';
+import { drag, installPress, pointerField } from '../mir/core/pointer.js';
+import { createProximity } from '../mir/core/proximity.js';
+import { perf } from '../mir/core/perf.js';
+
+const page = document.getElementById('page');
+const card = (id, eyebrow, status) => { const d = device({ id, eyebrow, status, loadingMark: false }); page.appendChild(d.root); return d; };
+const note = (parent, text) => el('div', 'g-note', parent, text);
+installPress({ selector: 'button' });                               // a finger gets the press a mouse gets from :active
+
+/* ── 1 · THE DOCK ────────────────────────────────────────────────────────────────────────────────────────── */
+const dock = card('core-dock', 'CORE · DOCK', 'pointer.js · proximity.js · tweenRect');
+note(dock.body, 'Drag the window by its header toward a corner of this stage. The dotted guide brightens as you near the place it would land and turns solid when release would land there; let go and it lands with a tween. Escape, or leaving the page, puts it back.');
+const stage = el('div', 'g-stage', dock.body);
+const win = device({ id: 'core-float', eyebrow: 'DRAG ME', status: 'by the header', loadingMark: false });
+win.root.classList.add('g-float'); stage.appendChild(win.root);
+el('div', 'g-note', win.body, 'A kit window. Any element with a left and top can be docked this way.');
+let guideOn = true;
+const prox = createProximity({ reach: 120, capture: 36, enabled: () => guideOn });
+/* the landing rects: the stage's four corners, at the window's own size — the guide IS where it will land */
+const slots = (w, h) => {
+  const s = stage.getBoundingClientRect(), m = 12;
+  return [[m, m], [s.width - w - m, m], [m, s.height - h - m], [s.width - w - m, s.height - h - m]].map(([x, y], i) => {
+    const rect = { left: s.left + x, top: s.top + y, width: w, height: h };
+    return { id: 'corner-' + i, rect, hit: { x: rect.left, y: rect.top } };
+  });
+};
+let start = null, targets = [];
+drag(win.root.querySelector('.dev-head'), {
+  onStart() {
+    if (owns(win.root)) tweenRect(win.root, win.root.getBoundingClientRect());   // a landing in flight stops where it is
+    const r = win.root.getBoundingClientRect(), cs = getComputedStyle(win.root);
+    start = { r, left: parseFloat(cs.left), top: parseFloat(cs.top) };
+    targets = slots(r.width, r.height);
+  },
+  onMove(s) {
+    win.root.style.left = start.left + s.dx + 'px'; win.root.style.top = start.top + s.dy + 'px';   // the hand: no animation (MOTION-LAW gate 1)
+    prox.update({ x: start.r.left + s.dx, y: start.r.top + s.dy }, targets);
+  },
+  onEnd() { const m = prox.end(); if (m && m.captured) tweenRect(win.root, m.captured.rect); },
+  onCancel() { prox.cancel(); tweenRect(win.root, start.r); },     // roll back, visibly
+});
+
+/* ── 2 · FLIP ────────────────────────────────────────────────────────────────────────────────────────────── */
+const fl = card('core-flip', 'CORE · FLIP', 'motion.flip');
+note(fl.body, 'Reorder the cells. Each one moves by transform from where you saw it to where it now lays out. Press again mid-move: it turns from where it is.');
+const cellsRow = el('div', 'row tight', fl.body);
+const cells = el('div', 'g-cells', group(fl.body, 'cells'));
+const items = [1, 2, 3, 4, 5, 6, 7, 8].map((i) => { const r = readout({ label: 'CELL', value: String(i) }); r.root.dataset.n = i; cells.appendChild(r.root); return r.root; });
+const reorder = (fn) => flip(items, () => { for (const n of fn([...cells.children])) cells.appendChild(n); });
+cellsRow.appendChild(trig({ label: 'SHUFFLE', onFire: () => reorder((a) => a.map((n) => [Math.random(), n]).sort((x, y) => x[0] - y[0]).map((p) => p[1])) }).root);
+cellsRow.appendChild(trig({ label: 'SORT', onFire: () => reorder((a) => a.sort((x, y) => x.dataset.n - y.dataset.n)) }).root);
+cellsRow.appendChild(trig({ label: 'REVERSE', onFire: () => reorder((a) => a.reverse()) }).root);
+
+/* ── 3 · PRESENCE ────────────────────────────────────────────────────────────────────────────────────────── */
+const pr = card('core-presence', 'CORE · PRESENCE', 'motion.presence');
+note(pr.body, 'Open and close the panel. Toggle quickly: it turns around from where it is, and always ends in the state you asked for last.');
+const prRow = el('div', 'row tight', pr.body);
+const shelf = el('div', 'g-shelf', pr.body);
+const panel = device({ id: 'core-panel', eyebrow: 'A PANEL', status: 'opened with presence()', loadingMark: false });
+el('div', 'g-note', panel.body, 'Shown before its entrance, hidden after its exit.');
+panel.root.hidden = true; shelf.appendChild(panel.root);
+let open = false;
+const toggle = trig({ label: 'OPEN', onFire: () => { open = !open; toggle.on = open; toggle.setLabel(open ? 'CLOSE' : 'OPEN'); presence(panel.root, open); } });
+prRow.appendChild(toggle.root);
+
+/* ── 4 · THE POINTER FIELD ───────────────────────────────────────────────────────────────────────────────── */
+const pf = card('core-field', 'CORE · FIELD', 'pointer.pointerField');
+note(pf.body, 'Move a mouse or a pen over the tile: the pointer\'s place is written as --px/--py, and core.css draws a soft light there. Off under reduced motion, never for a finger.');
+const tile = el('div', 'g-tile mir-glow', pf.body); el('div', 'g-note', tile, '--px · --py');
+pointerField(tile);
+
+/* ── 5 · THE METER ───────────────────────────────────────────────────────────────────────────────────────── */
+const mt = card('core-meter', 'CORE · METER', 'window.__MIR.perf');
+note(mt.body, 'What the UI did since the last reset, counted by the core\'s own helpers. Leave the page alone and every number stops: idle is zero work. (This readout refreshes twice a second with plain writes, so the meter never meters itself.)');
+const mRow = el('div', 'row tight', mt.body);
+mRow.appendChild(seg({ label: 'MOTION', value: 'auto', options: ['auto', 'full', 'reduced', 'off'].map((id) => ({ id, label: id.toUpperCase() })),
+  onChange: (v) => setMotionPolicy(v) }).root);
+mRow.appendChild(sw({ label: 'DOCK GUIDE', value: true, title: 'the Display switch: the guide is drawn, snapping works either way', onChange: (v) => { guideOn = v; } }).root);
+mRow.appendChild(trig({ label: 'RESET', onFire: () => perf.reset() }).root);
+const grid = el('div', 'g-meter', mt.body);
+const KEYS = ['writes', 'skipped', 'reads', 'frames', 'timers', 'longTasks'];
+const ro = Object.fromEntries(KEYS.map((k) => { const r = readout({ label: k.toUpperCase(), value: '0' }); grid.appendChild(r.root); return [k, r]; }));
+const state = readout({ label: 'FRAME', value: '—' }); grid.appendChild(state.root);
+const pol = readout({ label: 'POLICY', value: '—' }); grid.appendChild(pol.root);
+setInterval(() => {
+  if (document.hidden) return;
+  const s = perf.snapshot();
+  for (const k of KEYS) ro[k].set(String(s[k]));
+  state.set(frame.state().scheduled ? 'booked' : 'idle');
+  pol.set(motionPolicy());
+}, 500);
+</script>
+</body>
+</html>
