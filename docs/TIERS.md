@@ -77,14 +77,16 @@ The plugin's two sheets (`mir/modulation/modhost.css`, `mir/modulation/modwindow
 
 | Name | What it reaches in the plugin |
 |---|---|
-| `--surface-filter` | every frost blur: the panes, the work bar, the chip rail's discs; the matrix dialog's backdrop |
-| `--surface-shadow` | the six panes (work bar, macro rail, device cards, the three picker sheets), the audio sheet, the hint, the chip discs |
+| `--surface-filter` | every frost blur: the panes, the work bar, the chip rail's discs (the matrix dialog has no backdrop of its own) |
+| `--surface-shadow` | the six panes (work bar, macro rail, device cards, the three picker sheets), the audio sheet, the hint, the chip discs. With it unset they wear the house's `--glass-shadow`: the plugin has no pane height of its own |
 | `--surface-shadow-float` | the routing pill while it is carried |
 | `--surface-fill` / `--surface-veil` | the pane fill: TINTED reads `--surface-fill`, REFRACTIVE (and its frost whisper) reads `--surface-veil`; the picker sheets read `--surface-fill` |
 | `--surface-sheen` | the device head's top wash |
 | `--surface-edge`, `--surface-edge-width`, `--surface-radius` | the panes' hairline and corner |
-| `--relief-raise`, `--relief-well` | the routed knob's puck, the name field, the plot box |
-| `--state-hover`, `--state-press`, `--state-on`, `--state-disabled` | every hover, press, ON and disabled fill that was a token |
+| `--relief-raise`, `--relief-well` | the routed knob's puck, the modulation dial, the name field, the plot box |
+| `--state-hover`, `--state-press`, `--state-on`, `--state-on-rim`, `--state-disabled` | every hover face, press wash, ON face and rim, and disabled fade |
+| `--state-press-scale` | the one press scale on every plugin button (default .96) |
+| `--state-focus` | the accent ring outside a focused control |
 | `--label-tracking`, `--label-case` | every tracked label and the window title |
 
 - **Lite** takes every blur off the plugin and gives its panes the tinted fill.

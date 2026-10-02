@@ -14,16 +14,8 @@
    only the selector was scoped.
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* THE BEVEL. Declared on the surfaces, never on :root — see the comment. */
-/* index.html:1236-1244   was:  .glass, .panel, .chip, .kwin, .jwin  */
-.glass.mir-modwindow, .mir-modwindow .glass {
-  --glass-bevel:
-    inset 0 var(--gl-w) 0 calc(var(--gl-w) * -0.35) var(--gl-t),
-    inset calc(-1 * var(--gl-w)) 0 0 calc(var(--gl-w) * -0.35) var(--gl-r),
-    inset 0 calc(-1 * var(--gl-w)) 0 calc(var(--gl-w) * -0.35) var(--gl-b),
-    inset var(--gl-w) 0 0 calc(var(--gl-w) * -0.35) var(--gl-l),
-    0 0 14px -2px var(--gl-glow);
-}
+/* THE BEVEL (index.html:1236-1244) is retired in 1.5.0-alpha.3 (INTENT L61/L62): every light was transparent, so it drew
+   nothing, and "a bevel has a meaning".  Its lights (--gl-w/-t/-l/-r/-b/-glow) went from modhost.css with it. */
 
 /* THE GLASS RECIPE. #modwin reads border-width/style from here; so do .m2ppick.glass, .m2deadpick.glass and the two .m2workbar.glass boxes. */
 /* index.html:1290   was:  .glass, .panel, .chip  */
@@ -52,7 +44,7 @@
      engine's four edge colours and its outer spill, and it is `transparent`
      until a probe has run — so this line is identical to v1's on any build
      where the engine is off, absent, or has not sampled yet. */
-  box-shadow: inset 0 var(--glass-border) 0 var(--glass-sheen), var(--glass-bevel);
+  box-shadow: inset 0 var(--glass-border) 0 var(--glass-sheen);
   /* INHERITED, deliberately: every descendant of a glass surface is text over
      an unpredictable picture, so the halo belongs to the surface and not to
      each label.  Filled-accent ink turns it off (see .kwin-tab.on etc). */
@@ -68,7 +60,7 @@
   flex-direction: column;
   overflow: hidden;
   border-radius: var(--surface-radius, var(--r-lg));
-  box-shadow: var(--surface-shadow, var(--glass-shadow)), var(--glass-bevel);
+  box-shadow: var(--surface-shadow, var(--glass-shadow));
 
 
   contain: layout paint;
@@ -83,7 +75,7 @@
 }
 /* index.html:3210-3213   was:  .kwin.resizing, .jwin.resizing  */
 .kwin.mir-modwindow.resizing {
-  box-shadow: var(--surface-shadow, var(--glass-shadow)), var(--glass-bevel),
+  box-shadow: var(--surface-shadow, var(--glass-shadow)),
               0 0 0 1px hsl(var(--hue-acc) var(--sat-acc) 68% / 0.55);
 }
 
@@ -316,7 +308,7 @@
   border-radius: 50%;
   background-color: hsl(var(--glass-tint) / var(--glass-opacity));
   background-image: linear-gradient(180deg, var(--gl-fill-a), var(--gl-fill-b));
-  box-shadow: inset 0 var(--glass-border) 0 var(--glass-sheen), var(--glass-bevel);
+  box-shadow: inset 0 var(--glass-border) 0 var(--glass-sheen);
   -webkit-backdrop-filter: var(--glass-filter);
   backdrop-filter: var(--glass-filter);
 }
@@ -384,7 +376,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip.on {
 html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip.on::before {
   background-color: var(--state-on, var(--bar-raise));
   border-color: var(--glass-border-color);
-  box-shadow: inset 0 var(--glass-border) 0 var(--glass-sheen), var(--glass-bevel);
+  box-shadow: inset 0 var(--glass-border) 0 var(--glass-sheen);
 }
 /* index.html:7227-7232   was:  html body .crail.crail-float .crail-chip:active::before  */
 html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::before {
@@ -913,7 +905,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2swb { min-height: 44px; border: 0; border-radius: var(--r-sm); background: rgba(255,255,255,0.07);
   color: rgba(255,255,255,0.62); font: 600 8.5px var(--font-sans);
   letter-spacing: var(--label-tracking, 0.04em); padding: 0; }
-.mir-modwindow .m2swb.on { background: hsl(var(--hue-acc) var(--sat-acc) 62% / 0.32); color: #fff; }
+/* .m2swb.on's accent fill (INTENT L27) is deleted: ON is a frost face, and modhost.css draws it. */
 .mir-modwindow .m2chks { flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .mir-modwindow .m2chk { display: flex; align-items: center; gap: 5px; min-height: 44px; border: 0; padding: 0 3px;
   border-radius: var(--r-sm); background: transparent; color: rgba(255,255,255,0.62);
@@ -1309,11 +1301,6 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
    These rules add no handlers and never alter a control's hit geometry. */
 #modwin.mir-modwindow button, #modwin.mir-modwindow input, #modwin.mir-modwindow [role="slider"] {
   -webkit-tap-highlight-color: transparent; }
-@media (hover: hover) {
-  #modwin.mir-modwindow button:not(:disabled):not(.on):hover,
-  #modwin.mir-modwindow .kctl:not(.ctl-frozen):hover {
-    box-shadow: inset 0 0 0 1px hsl(0 0% 100% / .20); }
-}
 #modwin.mir-modwindow button:focus-visible, #modwin.mir-modwindow input:focus-visible,
 #modwin.mir-modwindow [role="slider"]:focus-visible {
   outline: 1px solid var(--fg); outline-offset: 2px;
@@ -1427,8 +1414,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
    targets.  The output seat is distinguished by label, not glow. */
 .mir-modwindow .m2dev.lfo .m2preset { width: 100%; height: 44px; min-height: 44px;
   border: 1px solid transparent; border-radius: var(--r-sm); }
-.mir-modwindow .m2dev.lfo .m2preset.on { border-color: hsl(var(--hue-acc) var(--sat-acc) 66% / .55);
-  background: var(--acc-soft); }
+/* .m2dev.lfo .m2preset.on's accent fill and accent border (INTENT L28) are deleted: CHOSEN is the ON face, drawn by modhost.css. */
 .mir-modwindow .m2dev.lfo .m2preset .m2gl { stroke-width: 1.5; }
 .mir-modwindow .m2dev.lfo .m2macbox::before { content: "OUT"; position: absolute; z-index: 1;
   left: 0; right: 0; top: 4px; text-align: center; pointer-events: none;
@@ -1820,7 +1806,6 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   --m2-mat-status: hsl(var(--m2-mat-hue) 18% 6% / calc(.68 + var(--m2-blend) * .24));
   --m2-mat-edge: hsl(0 0% 100% / var(--m2-mat-edge-alpha));
   --m2-mat-inner: hsl(0 0% 100% / calc(.055 + var(--m2-blend) * .055));
-  --m2-mat-shadow: 0 8px 26px hsl(0 0% 0% / .24);
   --m2-signal-glow: 0 0 4px hsl(var(--hue-acc2, 288) var(--sat-acc2, 75%) 68% / .20);
 }
 /* LIGHT is not a white theme. It bends the material toward a brighter local
@@ -1841,7 +1826,6 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   --m2-mat-chassis-lum: 17%;
   --m2-mat-pane-alpha: calc(.60 + var(--m2-blend) * .22);
   --m2-mat-chassis-alpha: calc(.68 + var(--m2-blend) * .22);
-  --m2-mat-shadow: none;
 }
 :root.skin-frost.fr-light {
   --m2-mat-pane-lum: 31%;
@@ -1856,7 +1840,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 :root:not(.skin-frost) #modwin.mir-modwindow.glass {
   background-color: var(--m2-mat-pane);
   border-color: var(--m2-mat-edge);
-  box-shadow: inset 0 1px 0 var(--m2-mat-inner), var(--surface-shadow, var(--m2-mat-shadow)), var(--glass-bevel); }
+  box-shadow: inset 0 1px 0 var(--m2-mat-inner), var(--surface-shadow, var(--m2-mat-shadow)); }
 :root:not(.skin-frost) #modwin.mir-modwindow .m2rail {
   background-color: hsl(var(--m2-mat-hue) 12% var(--m2-mat-chassis-lum) / calc(.24 + var(--m2-blend) * .20));
   box-shadow: inset -1px 0 0 var(--m2-mat-inner); }
@@ -1915,7 +1899,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 @media (hover: hover) {
   #modwin.mir-modwindow button:not(:disabled):hover,
   #modwin.mir-modwindow .kctl:not(.ctl-frozen):hover {
-    box-shadow: inset 0 0 0 1px hsl(0 0% 100% / .20), inset 0 1px 0 hsl(0 0% 100% / .10); }
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / .10); }   /* 1.5.0-alpha.3: the ring went (INTENT: hover is a lighter face, never a ring); the face is modhost.css's */
 }
 #modwin.mir-modwindow button:active:not(:disabled), #modwin.mir-modwindow [role="slider"].drag {
   background-color: hsl(0 0% 0% / .10);

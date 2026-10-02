@@ -154,16 +154,16 @@ body.frost .glass:where(.mir-modwindow, .mir-modwindow *, .kwin-chiprail, .kwin-
   /* ── T2 · THE LIGHT.  This is what replaces the deleted paint. ─────────────────── */
   --m2-mat-inner:  transparent;                  /* WAVE 71: the inner light was depth painted ON a fill; with no
                                                     fill there is nothing for it to sit on. */
-  /* ⚠ THE HOUSE VALUE IS QUOTED, NOT REFERENCED, AND THAT IS FORCED.  This window RE-DECLARES the
-     house names onto itself 20 lines above (`--glass-border-color: var(--m2-mat-edge)`) so that the
-     artifact's own `.glass` internals wear plugin material.  Pointing the ladder back at the house
-     name therefore closes a CYCLE, and a cyclic custom property is guaranteed-invalid: measured in
-     the browser, --m2-mat-edge AND --glass-border-color both computed to the empty string, which is
-     why the first cut of this wave had no edges and no shadow at all.  So skin.css's two literals are
-     copied here per theme.  If skin.css's card edge moves, this moves with it. */
+  /* ⚠ THE EDGE IS QUOTED, NOT REFERENCED, AND THAT IS FORCED.  This window RE-DECLARES --glass-border-color onto
+     --m2-mat-edge below, so pointing the edge back at the house name would close a CYCLE (guaranteed-invalid).  So
+     skin.css's card edge is copied here per theme.  If skin.css's card edge moves, this moves with it. */
   --m2-mat-edge:   hsl(0 0% 100% / .14);         /* = skin.css:12 --glass-border-color (dark) */
   --m2-mat-frost:  hsl(0 0% 100% / 0.13);        /* the chip rail's ON face */
-  --m2-mat-shadow: inset 0 1px 0 hsl(0 0% 100% / .06), 0 -2px 6px hsl(0 0% 0% / .20), 0 1px 2px hsl(0 0% 0% / .16);   /* = skin.css:15 (dark), wave 80 */
+  /* 1.5.0-alpha.3 · INTENT L03/L04/L06: ONE PANE HEIGHT, THE HOUSE'S.  The plugin no longer quotes skin.css's float
+     (with its upward term) per theme, nor re-points --glass-shadow: every pane reads var(--surface-shadow,
+     var(--glass-shadow)) and gets the house's own value, whatever the house makes it.  The name is kept for the
+     artifact's readers, resolved HERE (on the plugin's own elements, never :root, so the body's theme reaches it). */
+  --m2-mat-shadow: var(--surface-shadow, var(--glass-shadow));
   /* the signal glow is BASINS' own value, restated here for one reason: at `:root` it substitutes
      where --hue-acc2 is not declared, so it froze at the 288 fallback and never followed the wheel.
      Declared in this scope it reads the live accent setAccent() writes inline on the window. */
@@ -221,28 +221,16 @@ body.frost .glass:where(.mir-modwindow, .mir-modwindow *, .kwin-chiprail, .kwin-
   --glass-border-color: var(--m2-mat-edge);
   --glass-hairline:     hsl(0 0% 100% / 0.09);   /* dark; the light host overrides below */
   --glass-sheen:        var(--m2-mat-inner);     /* `.glass` reads this as `inset 0 .6px 0 <sheen>` — the Fresnel top */
-  --glass-shadow:       var(--m2-mat-shadow);
   --glass-raise:  hsl(0 0% 0% / 0.06);           /* the NON-officiated buttons match L3 */
+  --m2-hover:     hsl(0 0% 100% / 0.10);         /* INTENT: hover is a LIGHTER face (read as var(--state-hover, var(--m2-hover))) */
+  --m2-on-rim:    inset 0 0 0 1px var(--state-on-rim, var(--m2-mat-edge));   /* INTENT: ON's thin rim, in the pane's own edge colour (themed through --m2-mat-edge, on this element) */
   --bar-raise:    var(--glass-raise);
   --glass-press:  var(--m2-st-press);
   --glass-groove-hot: hsl(0 0% 100% / 0.18);
   --glass-well:   hsl(0 0% 0% / 0.22);
 
-  /* ── T6 · THE BEVEL — eight tokens the artifact declares and shipped INERT.  ON. ── */
-  /* modwindow.css:46-54 builds --glass-bevel from these and wires it to `.glass`, `.kwin`, the two
-     pickers and the work bars.  The light source is ABOVE: top brightest, sides half and a quarter,
-     and the bottom lip DARK rather than white — that asymmetry is the whole effect. */
-  --gl-w: 1.6px;
-
-
-  --gl-t: transparent;                           /* TOP    — was hsl(0 0% 100% / 0.20) */
-  --gl-l: transparent;                           /* LEFT   — was 0.11 */
-  --gl-r: transparent;                           /* RIGHT  — was 0.07 */
-  --gl-b: transparent;                           /* BOTTOM — was hsl(0 0% 0% / 0.22) */
-  --gl-glow: transparent;                        /* was the 14 px Accent-B outer spill — wave 71: no spill. Kept text:
-                                                    THE PRISM IS SPENT HERE AND NOT TWICE — no chromatic border
-                                                    on top, because it would compete with the Accent-B
-                                                    modulation ring, which is load-bearing information. */
+  /* ── T6 · THE WASH.  The bevel and its six lights are retired (1.5.0-alpha.3, INTENT L61): they drew nothing.  The
+     two-stop wash the artifact's .glass recipe reads stays, off. */
   /* RETIRED wave 105 — --gl-fill: zero readers; the artifact reads --gl-fill-a / -b, never this. */
   --gl-fill-a: transparent;                      /* THE TWO-STOP WASH — off: a wash needs a surface */
   --gl-fill-b: transparent;
@@ -325,9 +313,9 @@ body[data-theme="light"] .m2ghost {
   --m2-ink-faint: hsl(214 12% 36%);              /* = skin.css:269 --dim       */
   /* RETIRED wave 105 — --m2-ink-ghost (light): see the dark seat. */
   --m2-mat-edge:   hsl(214 30% 40% / .22);       /* = skin.css:270 --glass-border-color (light) */
+  --m2-hover:      hsl(0 0% 100% / .55);         /* = skin.css --glass-raise (light): the house's lighter face */
   --glass-hairline: hsl(214 30% 30% / .16);      /* = skin.css:270 — the INNER rules go dark on a pale card too */
   --m2-mat-inner:  transparent;
-  --m2-mat-shadow: inset 0 1px 0 hsl(0 0% 100% / .8), 0 -2px 6px hsl(214 40% 20% / .11), 0 1px 2px hsl(214 40% 20% / .09);   /* = skin.css:273 (light), wave 80 */
   /* THE RIM INVERTS, and it is physics rather than taste: a glass edge on a PALE ground reads as a
      DARK line, because what the edge refracts is darker than what surrounds it.  Keeping a white rim
      here is the commonest way a glass system looks fake in light mode.  The TOP light survives —
@@ -335,8 +323,7 @@ body[data-theme="light"] .m2ghost {
   /* WAVE 71 · the directional rim and the two-stop wash were the "pretty texture" of a surface that
      HAD a surface.  The ABOUT card has neither — it is a hairline and a shadow — so both go inert
      again, which is the state they shipped in before wave 66 lit them. */
-  --gl-t: transparent; --gl-l: transparent; --gl-r: transparent; --gl-b: transparent;
-  --gl-glow: transparent; --gl-fill-a: transparent; --gl-fill-b: transparent;
+  --gl-fill-a: transparent; --gl-fill-b: transparent;
   --ink-shadow: 0 1px 2px hsl(0 0% 0% / 0.70), 0 0 5px hsl(0 0% 0% / 0.42), 0 0 1px hsl(0 0% 0% / 0.60);
 }
 
@@ -378,7 +365,7 @@ body[data-theme="light"] .m2ghost {
    the device card and the work bar — and takes the same card the other two take. */
 :root:not(.skin-frost) #modwin.mir-modwindow .m2rail {
   background-color: var(--m2-mat-chassis);
-  box-shadow: inset 0 1px 0 var(--m2-mat-inner), var(--surface-shadow, var(--m2-mat-shadow)); }                              /* 13 */
+  box-shadow: inset 0 1px 0 var(--m2-mat-inner), var(--surface-shadow, var(--glass-shadow)); }                              /* 13 */
 /* 14 · the artifact's ONE literal font family, on the chip rail.  Family only — the size still reads
    --fs-small, and the 48 px disc in its 62 px target is untouched. */
 .kwin-chiprail[data-mir-rail="modulation"] .crail-chip { font-family: var(--font-ui); }  /* 14 */
@@ -417,6 +404,11 @@ body[data-theme="light"] .m2ghost {
 #modwin.mir-modwindow button:active:not(:disabled),
 #modwin.mir-modwindow [role="slider"].drag {
   background-color: var(--state-press, var(--m2-st-press)); }
+/* 1.5.0-alpha.3 · INTENT S1: ONE press scale for every plugin button (a slider being dragged does not shrink) */
+#modwin.mir-modwindow button:active:not(:disabled),
+.kwin-chiprail[data-mir-rail] button:active:not(:disabled),
+.kwin-chiprail[data-mir-rail] .crail-chip:active {
+  scale: var(--state-press-scale, .96); }
 
 
 /* 16 · D1 · `.m2pick`, the ADD LFO / ADD ENV / ADD AUDIO sheet, and the macro sheet beside it.  Both
@@ -468,7 +460,6 @@ body[data-theme="light"] .m2ghost {
     --m2-scrim: 1;
     --m2-mat-chassis: hsl(0 0% 0% / 0.16);
     --m2-mat-control: hsl(0 0% 0% / 0.10);
-    --gl-glow: transparent;
     --ink-shadow: none;
   }
   /* WAVE 69 · A TRANSPARENCY PREFERENCE OUTRANKS A CARD STYLE, and it has to say so at (4,0,0):
@@ -495,7 +486,7 @@ body[data-theme="light"] .m2ghost {
    `.m2dev` a radius and a hairline but no shadow — it never needed one, because it sat on a plate.
    Off the plate it needs the house's own card float, which is what --m2-mat-shadow already is
    (a key + an ambient, themed, declared in the seat block above). */
-#modwin.mir-modwindow .m2dev:not(.m2min) { box-shadow: var(--surface-shadow, var(--m2-mat-shadow)); }        /* 19 */
+#modwin.mir-modwindow .m2dev:not(.m2min) { box-shadow: var(--surface-shadow, var(--glass-shadow)); }        /* 19 */
 
 
 #modwin.mir-modwindow .m2add { display: none; }                                        /* 20 */
@@ -902,9 +893,9 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 #modwin.mir-modwindow .m2dev .m2chk:active,
 #modwin.mir-modwindow .m2dev .m2flipb:active,
 #modwin.mir-modwindow .m2dev .m2sw .m2trig:active {
-  background: transparent; box-shadow: none; }
+  background: var(--state-press, var(--glass-press)); box-shadow: none; }   /* S1: pressed is the press wash, not nothing */
 #modwin.mir-modwindow .m2dev .m2swb.on,
-#modwin.mir-modwindow .m2dev .m2chk.on { background: transparent; box-shadow: none; }
+#modwin.mir-modwindow .m2dev .m2chk.on { background: var(--state-on, var(--m2-mat-frost)); box-shadow: var(--m2-on-rim); }   /* INTENT L29: the LED is the light */
 /* THE LAMP.  Off is the window's own recess; on is Accent A and it glows, which is the one place in
    this row a colour is allowed to mean something. */
 #modwin.mir-modwindow .m2dev .m2dot {
@@ -1048,8 +1039,8 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
   /* ⚠ NOT `--acc-soft`: this window redeclares the house glass names onto its own ladder, and that
      token computed to `color(srgb 0 0 0 / 0)` here — a fully transparent halo, i.e. no ring at all.
      Measured, then written as the accent's own hue at an alpha, which cannot be re-pointed. */
-  box-shadow: 0 0 0 3px hsl(var(--hue-acc) var(--sat-acc) 66% / 0.30),
-              0 0 0 1px hsl(var(--hue-acc) var(--sat-acc) 52%); }                                      /* 50 */
+  box-shadow: var(--state-focus, 0 0 0 3px hsl(var(--hue-acc) var(--sat-acc) 66% / 0.30),
+              0 0 0 1px hsl(var(--hue-acc) var(--sat-acc) 52%)); }                                      /* 50 */
 
 
 #modwin.mir-modwindow .m2kval {
@@ -1075,14 +1066,10 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 #modwin.mir-modwindow .m2deptharc { stroke: var(--acc); }                              /* 53 */
 
 
-/* ⚠ AND THE TOP EDGE IS NOT `--glass-raise`.  Inside this window that token is `hsl(0 0% 0% / 0.06)`
-   — a DARK wash, because the seat re-points it for the buttons — so the first cut read back dark on
-   top AND dark on the lip, which is a smudge and not a bevel.  Measured; written as two explicit
-   lights instead, and the light theme gets the stronger one because its face is pale. */
+/* 1.5.0-alpha.3 · INTENT L16/L17: the dial wears the ONE raised relief, the kit puck's (--neu-raise, themed by the
+   house; the seat does not re-point it), in place of its own two-light knob drawing per theme. */
 #modwin.mir-modwindow .m2dialink::before {
-  box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.28), inset 0 -1px 0 hsl(214 30% 20% / 0.20); }
-body[data-theme="light"] #modwin.mir-modwindow .m2dialink::before {
-  box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.85), inset 0 -1px 0 hsl(214 30% 40% / 0.26); }            /* 54 */
+  box-shadow: var(--relief-raise, var(--neu-raise)); }                                                 /* 54 */
 
 
 #modwin.mir-modwindow .m2dialink .m2kn {
@@ -1135,7 +1122,9 @@ body[data-theme="light"] #modwin.mir-modwindow .m2dialink::before {
   color: var(--acc); filter: none; }
 #modwin.mir-modwindow .m2dev.m2off .m2pow,
 #modwin.mir-modwindow .m2pow[aria-pressed="false"] {
-  color: var(--m2-ink-faint); filter: none; }                                                          /* 61 */
+  color: var(--m2-ink-faint); filter: none; }
+#modwin.mir-modwindow .m2dev:not(.m2off) .m2pow:not([aria-pressed="false"]) {
+  background: var(--state-on, var(--m2-mat-frost)); box-shadow: var(--m2-on-rim); border-radius: var(--r-sm); }   /* INTENT L31: the glyph in accent is the light */                                                          /* 61 */
 
 
 #modwin.mir-modwindow .m2ab { border: 0; background: transparent; }                    /* 62 */
@@ -1174,7 +1163,7 @@ body[data-theme="light"] #modwin.mir-modwindow .m2dialink::before {
 #modwin.mir-modwindow .modtempo .modhz {
   font: 500 calc(9px * var(--ui-scale)) var(--font-num); letter-spacing: var(--label-tracking, 0.04em);
   color: var(--m2-ink-faint); opacity: 1; }
-#modwin.mir-modwindow .modtempo.on { border: 0; color: var(--acc); }                    /* 67 */
+#modwin.mir-modwindow .modtempo.on { border: 0; color: var(--acc); background: var(--state-on, var(--m2-mat-frost)); box-shadow: var(--m2-on-rim); border-radius: var(--r-sm); }   /* INTENT L32 */                    /* 67 */
 
 
 #modwin.mir-modwindow .m2bank { border: 0; background: transparent; }
@@ -1300,7 +1289,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 /* RETIRED wave 105 — 81: entry 88 sets 40px on this exact selector, later. */
 #modwin.mir-modwindow .m2rail.m2railmin .m2railhead .m2chev { transform: rotate(-90deg); }
 @media (hover: hover) {
-  #modwin.mir-modwindow .m2railhead:hover { color: var(--m2-ink-hi); }
+  #modwin.mir-modwindow .m2railhead:hover { color: var(--m2-ink-hi); background-color: var(--state-hover, var(--m2-hover)); }   /* L41 */
 }                                                                                                      /* 81 */
 
 
@@ -1373,12 +1362,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
   transition: box-shadow var(--t-fast) ease; }
 #modwin.mir-modwindow .m2dialink.drag::before,
 #modwin.mir-modwindow .m2kd.drag .m2dialink::before {
-  box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.28), inset 0 -1px 0 hsl(214 30% 20% / 0.20),
-              0 0 0 1px var(--acc); }
-body[data-theme="light"] #modwin.mir-modwindow .m2dialink.drag::before,
-body[data-theme="light"] #modwin.mir-modwindow .m2kd.drag .m2dialink::before {
-  box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.85), inset 0 -1px 0 hsl(214 30% 40% / 0.26),
-              0 0 0 1px var(--acc); }                                                                  /* 90 */
+  box-shadow: var(--relief-raise, var(--neu-raise)), 0 0 0 1px var(--acc); }                                                                  /* 90 */
 
 
 #modwin.mir-modwindow .m2grab i {
@@ -1396,7 +1380,7 @@ body[data-theme="light"] #modwin.mir-modwindow .m2kd.drag .m2dialink::before {
   border: 0; border-radius: var(--r-sm);
   filter: none; box-shadow: none; text-shadow: none; }
 #modwin.mir-modwindow .m2workbar .modxport.on {
-  color: var(--acc); background: transparent; }
+  color: var(--acc); background: var(--state-on, var(--m2-mat-frost)); box-shadow: var(--m2-on-rim); }   /* INTENT L29 */
 #modwin.mir-modwindow .m2workbar .modxport svg {
   fill: currentColor; stroke: currentColor; }                                                          /* 92 */
 
@@ -1698,7 +1682,7 @@ body[data-theme="light"] #modwin.mir-modwindow .m2kd.drag .m2dialink::before {
 #modwin .m2-native-rate.drag .k-val { color:var(--fg); font-weight:800; }
 
 .mod-matrix { width:min(1100px,calc(100vw - 24px)); height:calc(100dvh - 32px); box-sizing:border-box; border:1px solid var(--glass-border-color); border-radius:14px; color:var(--fg); padding:16px; }
-.mod-matrix::backdrop { background:#0008; backdrop-filter:var(--surface-filter, blur(8px)); }
+.mod-matrix::backdrop { background:transparent; }   /* INTENT L71: no dark layer (the UA's own .1 black included), no blur */
 .mod-matrix-head,.mod-matrix-add,.mod-matrix-bars { display:flex; align-items:center; gap:12px; }
 .mod-matrix-head { justify-content:space-between; height:44px; }
 .mod-matrix-bars { min-height:60px; position:relative; }
@@ -2036,19 +2020,18 @@ body[data-theme="light"] #modwin.mir-modwindow .m2kd.drag .m2dialink::before {
   flex:1 1 0;min-width:0;height:44px;min-height:44px;padding:0 5px;border:0;
   border-radius:7px;background:hsl(0 0% 100% / .06);color:var(--acc2);
   font:700 8px/1 var(--font-sans);letter-spacing:var(--label-tracking, .08em);white-space:nowrap;
-  transition:transform .1s ease,background-color var(--t-fast) ease,box-shadow var(--t-fast) ease; }
+  transition:scale var(--t-fast) ease,background-color var(--t-fast) ease,box-shadow var(--t-fast) ease; }
 body[data-theme="light"] #modwin.mir-modwindow .m2macadd,
 body[data-theme="light"] #modwin.mir-modwindow .m2devadd {
   background:hsl(214 30% 40% / .09); }
 #modwin.mir-modwindow .m2macadd:hover:not(:disabled),
 #modwin.mir-modwindow .m2devadd:hover:not(:disabled) {
-  background:var(--state-hover, var(--glass-raise));box-shadow:inset 0 0 0 1px var(--glass-hairline); }
+  background:var(--state-hover, var(--m2-hover)); }
 #modwin.mir-modwindow .m2macadd:active:not(:disabled),
 #modwin.mir-modwindow .m2devadd:active:not(:disabled) {
-  transform:translateY(1px) scale(.985);background:var(--state-press, var(--glass-press));
-  box-shadow:inset 1px 1px 3px hsl(0 0% 0% / .18); }
+  transform:none;background:var(--state-press, var(--glass-press));box-shadow:none; }   /* L21: the scale is S1's, below */
 #modwin.mir-modwindow .m2devadd.on {
-  background:var(--glass-well);box-shadow:var(--relief-well, var(--neu-inset)); }
+  background:var(--state-on, var(--m2-mat-frost));box-shadow:var(--m2-on-rim);color:var(--acc); }   /* INTENT L26: frost face + rim; no LED, so the label is the light */
 
 /* Minimized macros remove only the value face. Route and depth stay at the
    same coordinates, and the right tool seat still offers reorder, rename and
@@ -2084,6 +2067,29 @@ body[data-theme="light"] #modwin.mir-modwindow .m2devadd {
   background-size:4.333px 4.333px;background-position:0 0; }
 
 
+/* ══ 1.5.0-alpha.3 · INTENT — the plugin rows of docs/INTENT.md's ledger, fixed in the host seat (the ported-window
+   exception: modwindow.css is edited only where a row cannot be overridden cleanly).  ON = a frost face + a thin rim +
+   an accent light; CHOSEN = the ON face with its label in the accent; HOVER = a lighter face; PRESSED = the press wash +
+   one scale (S1, above); every pane one height, the house's; no dark scrim. ══ */
+/* L29 · eight controls whose ON was an accent UNDERLINE alone: they get the face and the rim; the bar stays as the light */
+#modwin.mir-modwindow .m2chk.on, #modwin.mir-modwindow .m2swb.on, #modwin.mir-modwindow .m2mac.on,
+#modwin.mir-modwindow .m2bus.on, #modwin.mir-modwindow .modsync.on, #modwin.mir-modwindow .modcad.on,
+#modwin.mir-modwindow .m2audsrc.on {
+  background-color: var(--state-on, var(--m2-mat-frost));
+  box-shadow: var(--m2-on-rim), inset 0 -2px 0 hsl(var(--hue-acc) var(--sat-acc) 66% / .64); }
+/* L30 · the compact LFO's command: the same, and its accent border becomes the rim */
+#modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcmd.on {
+  background: var(--state-on, var(--m2-mat-frost)); border-color: var(--state-on-rim, var(--m2-mat-edge)); }
+/* L28 · a CHOSEN preset: the ON face, its glyph in the accent (entry 46 strokes it) — never an accent fill */
+#modwin.mir-modwindow .m2dev.lfo .m2preset.on {
+  background: var(--state-on, var(--m2-mat-frost)); border-color: var(--state-on-rim, var(--m2-mat-edge)); }
+/* L41 · HOVER is a lighter face on every plugin button, not ink alone and not a ring */
+@media (hover: hover) {
+  #modwin.mir-modwindow button:not(:disabled):not(.on):not(:active):hover,
+  #modwin.mir-modwindow .kctl:not(.ctl-frozen):not(.on):not(:active):hover { background-color: var(--state-hover, var(--m2-hover)); }
+}
+
+
 /* ══ 1.5.0 · RE-ASSERTED: modwindow.css rules that out-ranked this sheet in 1.4 ══ */
 /* ⟲ modwindow.css rules that out-ranked a LADDERED rule of this sheet.  Each weighs exactly its 1.4.3 specificity
    less the (0,3,0) the ladders gave this sheet — the class-weights moved into :where() — and sits LAST, because
@@ -2092,9 +2098,11 @@ body[data-theme="light"] #modwin.mir-modwindow .m2devadd {
 :where(.crail.crail-float).kwin-chiprail[data-mir-rail="modulation"] .crail-chip:where(:focus-visible) { outline: 1px solid var(--fg-soft); }
 :where(.crail.crail-float).kwin-chiprail[data-mir-rail="modulation"] .crail-chip:where(.on) { color: var(--fg); outline: none; }
 /* modwindow.css:320 (0,6,1) → (0,3,1) */
-:where(.crail.crail-float).kwin-chiprail[data-mir-rail="modulation"] .crail-chip:where(:active)::before,
-:where(.crail.crail-float).kwin-chiprail[data-mir-rail="modulation"] .crail-chip:where(.on)::before {
+:where(.crail.crail-float).kwin-chiprail[data-mir-rail="modulation"] .crail-chip:where(:active)::before {
   background-color: var(--state-press, var(--bar-raise));
+  border-color: var(--glass-border-color); }
+:where(.crail.crail-float).kwin-chiprail[data-mir-rail="modulation"] .crail-chip:where(.on)::before {
+  background-color: var(--state-on, var(--bar-raise));
   border-color: var(--glass-border-color); }
 /* the chip-rail .on text-shadow (0,5,2) → (0,2,2) */
 html body :where(.crail.crail-float)[data-mir-rail="modulation"] .crail-chip:where(.on) { text-shadow: var(--ink-shadow); }
