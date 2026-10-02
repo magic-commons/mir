@@ -90,7 +90,7 @@ Every control on MIR OPTIONS changes what is drawn through a hook a kit sheet or
 | TEXT | HINTS | switch | `body.control-hints-off` (`control-help.js`) | on |
 | | HELP | switch | `body.window-info-off` (skin.css hides every ⓘ) | on |
 | QUALITY | FULL · BALANCED · LIGHT | seg | `<html data-ui-tier>`: none · `lite` · `flat` (`docs/TIERS.md`) | FULL |
-| | BLUR · SHADOWS · FRAME | readouts | the cost of the look (below) | |
+| | BLUR · SHADOW · FRAME | readouts | the cost of the look (below) | |
 
 **The presets** set only MATERIAL, RELIEF and QUALITY. Theme, accents, motion and text are the user's own, and no preset touches them.
 
@@ -104,7 +104,7 @@ Every control on MIR OPTIONS changes what is drawn through a hook a kit sheet or
 
 **The cost reading** answers "beautiful but cost heavy". After every change, while MIR OPTIONS is showing, QUALITY reads:
 - **BLUR** — how many visible surfaces (elements and their drawn `::before`/`::after`) carry a backdrop filter: each is a compositor pass.
-- **SHADOWS** — how many draw a shadow.
+- **SHADOW** — how many draw a shadow.
 - **FRAME** — the mean frame time over the next 30 frames.
 
 It is taken once per change and never on a timer, so the reading costs nothing at rest. In the gallery, CLASSIC reads BLUR 0, GLASS reads BLUR 16.
@@ -132,7 +132,9 @@ It is built on the kit's window (`mir/window/window.js`), not the notebook's fre
 
 The notebook form would have meant a second drag and resize machinery for one more window.
 
-**Nothing scrolls.** Each page is laid out at its natural size: the grid's columns are content-sized with a 196 px floor, and ABOUT is one 440 px column. The window is placed to fit the page (one layout read per page turn or change), centred where it was.
+**The layout.** OPTIONS is one even grid of five equal 208 px columns and two rows, so every group shares its column edges, gutters and title inset, and each row's first control labels share a baseline: PRESET · SKIN · ACCENT · TEXT · QUALITY, then MATERIAL (two columns: its two choices side by side over its four dials) · RELIEF · MOTION (two columns).
+
+**Nothing scrolls.** Each page is laid out at its natural size (ABOUT is one 440 px column). The window is placed to fit the page (one layout read per page turn or change), centred where it was.
 
 **At 720 px wide and under**, the grid is one 300 px column. OPTIONS splits into four sheets — PRESET · SKIN · ACCENT, then MATERIAL, then RELIEF · TEXT · QUALITY, then MOTION — and the page turner steps through them, then ABOUT.
 

@@ -11,7 +11,7 @@
 @layer mir.kit.house {
 
 .mir-gui {
-  --gui-col: 196px;                                         /* a group's narrowest column */
+  --gui-col: 208px;                                         /* one grid column: every group is one or two of them */
   --gui-col-narrow: 300px;                                  /* the one column of a phone sheet */
   --gui-about-w: 440px;
   --gui-about-w-narrow: 300px;
@@ -29,8 +29,8 @@
 /* ── OPTIONS: the grid ── */
 .gui-grid {
   display: grid; gap: var(--gui-gap); width: max-content; align-items: stretch;
-  grid-template-columns: repeat(4, minmax(var(--gui-col), max-content));
-  grid-template-areas: "preset skin accent quality" "material material relief motion" "material material text motion";
+  grid-template-columns: repeat(5, var(--gui-col));         /* equal columns: shared edges, equal gutters */
+  grid-template-areas: "preset skin accent text quality" "material material relief motion motion";
 }
 .gui-grp[data-group="preset"] { grid-area: preset; }
 .gui-grp[data-group="skin"] { grid-area: skin; }
@@ -44,16 +44,20 @@
   display: flex; flex-direction: column; gap: var(--sp-3); min-width: 0; margin: 0;
   padding: var(--gui-grp-pad); border: var(--glass-border) solid var(--glass-hairline); border-radius: var(--gui-grp-r);
 }
+.gui-grp > * { flex-shrink: 0; }                            /* a title or a row never gives up height: every title keeps the same inset */
 /* a group's title is the house label */
 .gui-grp-lbl { margin: 0; font-size: var(--fs-micro); font-weight: var(--w-bold); letter-spacing: var(--label-tracking, var(--tr-wider)); color: var(--ink-faint); line-height: 1; }
 .gui-line { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--sp-2); }
 .gui-line.gui-knobs { justify-content: space-between; flex-wrap: nowrap; }
-.gui-line.gui-sws > .sw { flex: 1 1 auto; }
-.gui-line > .trig { flex: 1 1 auto; }
+.gui-line.gui-pair { gap: var(--gui-gap); flex-wrap: nowrap; }
+.gui-line.gui-sws > .sw { flex: 1 1 0; justify-content: flex-start; }
+.gui-line.gui-col { flex-direction: column; align-items: stretch; }   /* switches one under another */
+.gui-show { flex: 1 1 auto; align-items: stretch; }
 .gui-note { font-size: var(--fs-tiny); letter-spacing: var(--label-tracking, var(--tr-wide)); color: var(--ink-faint); }
 .gui-cost { flex-wrap: nowrap; }
 .gui-cost > .ro { flex: 1 1 0; }
 .gui-ro .ro-sub { display: none; }
+.gui-ro .ro-val { font-size: var(--fs-small); }
 
 /* ── the stepper: ‹ NAME › ── */
 .gui-step { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
@@ -85,6 +89,7 @@
 @media (max-width: 720px) {
   .gui-grid { grid-template-columns: var(--gui-col-narrow); grid-template-areas: none; }
   .gui-grid > .gui-grp { grid-area: auto; }
+  .gui-line.gui-pair { flex-wrap: wrap; }
   .gui-options[data-sheet="1"] .gui-grp:not([data-sheet="1"]),
   .gui-options[data-sheet="2"] .gui-grp:not([data-sheet="2"]),
   .gui-options[data-sheet="3"] .gui-grp:not([data-sheet="3"]),

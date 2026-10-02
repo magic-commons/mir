@@ -218,8 +218,8 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
 
   /* MATERIAL */
   g = groupEl('material', 'MATERIAL');
-  line(g).append(segOf('card', 'PANE', [['tinted', 'TINTED', 'A tinted pane: no blur, no compositor cost'], ['refractive', 'REFRACTIVE', 'The blur alone, with a veil']]).root);
-  line(g).append(segOf('frost', 'FROST', [['off', 'OFF'], ['still', 'STILL', 'Frost while the picture is still'], ['always', 'ALWAYS', 'Frost always: the costliest']]).root);
+  line(g, 'gui-pair').append(segOf('card', 'PANE', [['tinted', 'TINTED', 'A tinted pane: no blur, no compositor cost'], ['refractive', 'REFRACTIVE', 'The blur alone, with a veil']]).root,
+    segOf('frost', 'FROST', [['off', 'OFF'], ['still', 'STILL', 'Frost while the picture is still'], ['always', 'ALWAYS', 'Frost always: the costliest']]).root);
   const kBlur = knobOf('blur', 'BLUR', { min: 0, max: 40, fmt: (v) => Math.round(v) + 'px' });
   const kVeil = knobOf('veil', 'VEIL', { min: 0, max: 40, fmt: (v) => Math.round(v) + '%' });
   const kSat = knobOf('saturation', 'SATURATION', { min: 0.5, max: 2, fmt: (v) => Math.round(v * 100) + '%' });
@@ -229,23 +229,24 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   /* RELIEF */
   g = groupEl('relief', 'RELIEF');
   line(g).append(segOf('relief', 'CONTROLS', [['default', 'DEFAULT', 'Raised controls and wells'], ['flat', 'FLAT', 'No control relief']]).root);
-  line(g, 'gui-sws').append(swOf('shadow', 'SHADOW', 'Pane shadows').root, swOf('disconnected', 'DISCONNECTED', 'Window headers apart from their bodies').root);
+  line(g, 'gui-sws gui-col').append(swOf('shadow', 'SHADOW', 'Pane shadows').root, swOf('disconnected', 'DISCONNECTED', 'Window headers apart from their bodies').root);
 
   /* MOTION */
   g = groupEl('motion', 'MOTION');
   line(g).append(segOf('motion', 'MOTION', [['auto', 'AUTO', 'Follow the system'], ['full', 'FULL'], ['reduced', 'REDUCED', 'Fades only: nothing travels'], ['off', 'OFF', 'Nothing animates']]).root);
   line(g, 'gui-sws').append(swOf('glow', 'POINTER GLOW', 'A soft light follows the pointer over lit surfaces (never on touch)').root,
-    swOf('parallax', 'PARALLAX', 'Marked layers drift against the pointer (never on touch)').root);
-  line(g, 'gui-sws').append(swOf('dropGuides', 'DROP GUIDES', 'The dotted guide where a dragged window will land').root);
+    swOf('parallax', 'PARALLAX', 'Marked layers drift against the pointer (never on touch)').root,
+    swOf('dropGuides', 'DROP GUIDES', 'The dotted guide where a dragged window will land').root);
 
   /* TEXT */
   g = groupEl('text', 'TEXT');
-  line(g, 'gui-sws').append(swOf('hints', 'HINTS', 'Hover hints on controls').root, swOf('help', 'HELP', 'The ⓘ panels on windows').root);
+  const shows = el('div', 'segw gui-show', line(g)); el('div', 'k-lbl', shows, 'SHOW');      // a label like every first control's, so the labels share a baseline
+  el('div', 'gui-line gui-sws gui-col', shows).append(swOf('hints', 'HINTS', 'Hover hints on controls').root, swOf('help', 'HELP', 'The ⓘ panels on windows').root);
 
   /* QUALITY — and what it costs */
   g = groupEl('quality', 'QUALITY');
   line(g).append(segOf('quality', 'TIER', [['full', 'FULL', 'Everything'], ['balanced', 'BALANCED', 'No blur anywhere, one shadow layer'], ['light', 'LIGHT', 'No blur, no relief, no shadows, no motion']]).root);
-  const roBlur = readout({ label: 'BLUR', value: '—' }), roShadow = readout({ label: 'SHADOWS', value: '—' }), roFrame = readout({ label: 'FRAME', value: '—' });
+  const roBlur = readout({ label: 'BLUR', value: '—' }), roShadow = readout({ label: 'SHADOW', value: '—' }), roFrame = readout({ label: 'FRAME', value: '—' });
   for (const r of [roBlur, roShadow, roFrame]) { r.root.classList.add('gui-ro'); r.root.title = 'What the look costs, measured after the last change'; }
   roBlur.root.title = 'Surfaces that blur what is behind them: one compositor pass each';
   roShadow.root.title = 'Surfaces that draw a shadow';
