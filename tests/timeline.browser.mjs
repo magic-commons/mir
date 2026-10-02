@@ -141,6 +141,25 @@ const RUN = await (async () => {
     await page.keyboard.press('Escape');
     L.ck(typing.shown && typing.focused && !typing.panel, 'a click on the work bar\'s BPM pill types the tempo (no panel)', typing);
 
+    /* ── THE LOOK: the vanilla themes' settings reach the timeline's panes and controls (no literal in its sheet) ── */
+    const look = (set) => E(async (set) => { const g = window.__TL.gui; g.prefs.set(set); await new Promise((r) => setTimeout(r, 150));
+      const cs = (s, ...ps) => { const n = document.querySelector(s), c = getComputedStyle(n); return ps.map((p) => c.getPropertyValue(p)).join(' | '); };
+      return { lane: cs('.mir-timeline .tl-pane:not(.clip-at-start)', 'background-color', 'backdrop-filter', 'border-top-right-radius', 'box-shadow'),
+        bar: cs('.mir-timeline .tl-toolbar', 'background-color', 'border-top-right-radius'), tool: cs('.mir-timeline .tl-tool[aria-pressed="false"]', 'background-color', 'box-shadow'),
+        chips: (() => { const c = [...document.querySelectorAll('.mir-rail[data-mir-rail="timeline"] .mir-chip')].map((n) => n.getBoundingClientRect()); return Math.round(c[2].top - c[1].top); })() }; }, set);
+    const base = await look({ card: 'refractive', frost: 'always', corners: 24, spacing: 'default', faces: 'glass', lightAngle: 0, reliefAngle: 315 });
+    const reach = {
+      card: (await look({ card: 'tinted' })).lane !== base.lane,
+      frost: (await look({ card: 'refractive', frost: 'off' })).lane !== base.lane,
+      corners: /10px/.test((await look({ frost: 'always', corners: 10 })).lane.split(' | ')[2]),
+      faces: (await look({ corners: 24, faces: 'solid' })).tool !== base.tool,
+      lightAngle: (await look({ faces: 'glass', lightAngle: 90 })).lane !== base.lane,
+      reliefAngle: (await look({ lightAngle: 0, reliefAngle: 45 })).tool !== base.tool,
+      spacing: (await look({ reliefAngle: 315, spacing: 'tight' })).chips !== base.chips,
+    };
+    await look({ spacing: 'default' });
+    L.ck(Object.values(reach).every(Boolean), 'CARD, FROST, CORNERS, FACES, the two lights and SPACING each reach the timeline', reach);
+
     /* ── WORDS: under qps the timeline's words translate ───────────────────────────────────────────────────────── */
     await E(() => window.__TL.setLanguage('qps')); await page.waitForTimeout(200);
     const qps = await E(() => ({ step: document.querySelector('.tl-toolbar [data-mode="step"]').textContent, snap: document.querySelector('.tl-setting-word').textContent,
