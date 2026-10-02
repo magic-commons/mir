@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MIR · intent fixture</title>
+<!-- tests/intent.browser.mjs: the kit's panes and controls in the states docs/INTENT.md rules on, nothing restyled -->
+<link rel="stylesheet" href="../../mir/css/base.css">
+<link rel="stylesheet" href="../../mir/css/skin.css">
+<link rel="stylesheet" href="../../mir/css/tokens.css">
+<link rel="stylesheet" href="../../mir/shell/shell.css">
+<style>html, body { margin: 0; background: #070a0f; } #host { position: absolute; left: 20px; top: 20px; width: 520px; display: flex; flex-direction: column; gap: 14px; }
+  #m { position: relative; height: 120px; } #m #menubar { position: relative; } #m .mb-list { position: relative; top: 0; }</style>
+</head>
+<body data-theme="dark" data-card="tinted" class="frost">
+<div id="host"></div>
+<script type="module">
+import * as kit from '../../mir/kit.js';
+const host = document.getElementById('host');
+const d = kit.device({ id: 'pane', eyebrow: 'PANE' }); host.appendChild(d.root);
+const f = kit.device({ id: 'float', eyebrow: 'FLOAT' }); f.root.classList.add('floating'); host.appendChild(f.root);
+const c = kit.device({ id: 'carried', eyebrow: 'CARRIED' }); c.root.classList.add('dragging'); host.appendChild(c.root);
+const row = kit.el('div', 'row tight', d.body);
+const before = kit.trig({ label: 'BEFORE', onFire: () => {} }); row.appendChild(before.root);
+const swOn = kit.sw({ label: 'ON', value: true }); row.appendChild(swOn.root);
+const trOn = kit.trig({ label: 'LATCHED' }); trOn.on = true; row.appendChild(trOn.root);
+const sg = kit.seg({ value: 'a', options: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }] }); row.appendChild(sg.root);
+const press = kit.trig({ label: 'PRESS', onFire: () => {} }); row.appendChild(press.root);
+const row2 = kit.el('div', 'row tight', d.body);
+const k = kit.knob({ label: 'OFF', min: 0, max: 1, value: .5 }); k.setDisabled(true); row2.appendChild(k.root);
+const fd = kit.fader({ label: 'OFF', min: 0, max: 1, value: .5 }); fd.setDisabled(true); row2.appendChild(fd.root);
+const m = kit.el('div', null, host); m.id = 'm'; const bar = kit.el('div', null, m); bar.id = 'menubar'; const list = kit.el('div', 'mb-list', kit.el('div', 'mb-group', bar));
+kit.el('button', 'mb-item', list, 'ITEM');
+const g = kit.el('div', 'glass', host, 'glass'); g.style.height = '30px';
+const b = kit.el('span', 'badge', host, 'BADGE');
+window.__T = { swOn, trOn, sg, press, before, k, fd };
+window.__ready = true;
+</script>
+</body>
+</html>

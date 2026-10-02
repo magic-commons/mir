@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>MIR · intent</title>
+<!-- THE VOCABULARY, LIVE (docs/INTENT.md).  One row per meaning in INTENT's table, each drawn by the kit's own builders
+     and the kit's own sheets.  The page's rules below only lay the sheet out — a grid, the grounds, the captions — and
+     never touch a control's material: a specimen sheet that restyled the kit would prove nothing about it. -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/css/tokens.css">
+<link rel="stylesheet" href="../mir/shell/shell.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<style>
+  html, body { height: auto; min-height: 100%; overflow: auto; margin: 0; background: #070a0f; }
+  body[data-theme="light"] { background: #eef1f6; }
+  body.g-field { background: radial-gradient(circle at 22% 30%, #ff5e3a 0 6%, transparent 22%), radial-gradient(circle at 70% 18%, #2dc9e8 0 5%, transparent 20%),
+    radial-gradient(circle at 55% 72%, #b031a3 0 7%, transparent 26%), conic-gradient(from 40deg at 45% 45%, #1b2a6b, #46fcbf, #ffce3e, #d7386e, #2b3f7a, #1b2a6b); background-attachment: fixed; }
+  .i-page { max-width: 1180px; margin: 0 auto; padding: 22px 16px 60px; display: flex; flex-direction: column; gap: 16px; }
+  .i-head { display: flex; align-items: baseline; gap: 14px; color: var(--fg); }
+  .i-head h1 { font: var(--w-bold) 20px/1 var(--font-ui); letter-spacing: var(--tr-wide); }
+  .i-head p { margin: 0; font-size: var(--fs-small); color: var(--dim); }
+  .i-head a { color: var(--acc); }
+  .i-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  @media (max-width: 900px) { .i-cols { grid-template-columns: 1fr; } }
+  /* a row: what it means · the kit drawing it · the tokens */
+  .i-rows { display: flex; flex-direction: column; }
+  .i-row { display: grid; grid-template-columns: 150px 1fr; gap: 4px 14px; padding: 10px 2px; border-top: 1px solid var(--glass-hairline); align-items: center; }
+  .i-row:first-child { border-top: 0; }
+  .i-name b { display: block; font-size: var(--fs-small); letter-spacing: var(--tr-wide); color: var(--fg); }
+  .i-name span { display: block; margin-top: 2px; font-size: var(--fs-tiny); line-height: 1.4; color: var(--dim); }
+  .i-tok { grid-column: 2; font: var(--fs-micro)/1.4 var(--font-mono); color: var(--ink-faint); }
+  .i-spec { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+  .i-spec > .sw, .i-spec > .trig, .i-spec > .seg { flex: 0 0 auto; }
+  .i-spec .fd { width: 150px; flex: 0 0 auto; }
+  .i-spec .ro { flex: 0 0 auto; min-width: 84px; }
+  .i-hint { font-size: var(--fs-micro); letter-spacing: var(--tr-wide); color: var(--ink-faint); }
+  /* the four heights, side by side on the ground itself (a shadow is read against what is under it) */
+  .i-heights { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; padding: 6px 4px 14px; }
+  @media (max-width: 900px) { .i-heights { grid-template-columns: 1fr 1fr; } }
+  .i-h { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .i-h > .dev, .i-h > .glass, .i-h > .i-menu { height: 128px; }
+  .i-h > .glass { border-radius: var(--r-lg); padding: var(--sp-4); color: var(--fg-soft); font-size: var(--fs-small); }
+  .i-cap b { display: block; font-size: var(--fs-small); letter-spacing: var(--tr-wide); color: var(--fg); }
+  .i-cap span { display: block; font: var(--fs-micro)/1.4 var(--font-mono); color: var(--ink-faint); }
+  .i-menu { position: relative; }
+  .i-menu #menubar { position: relative; z-index: auto; }
+  .i-menu .mb-list { position: relative; top: 0; min-width: 0; width: 100%; }
+  .i-menu .mb-group { width: 100%; }
+  .i-carry { position: relative; }
+  .i-carry .dev { width: 230px; }
+  .i-ring { margin-top: 14px; }
+  .i-page .row > .sw { flex: 0 0 auto; }
+</style>
+</head>
+<body data-card="tinted" data-theme="dark">
+<div class="i-page" id="page"></div>
+<script type="module">
+import { el, knob, seg, sw, trig, fader, readout, device, group } from '../mir/kit.js';
+import { createAccent } from '../mir/shell/accent.js';
+import { createProximity } from '../mir/core/proximity.js';
+import { installControlHelp } from '../mir/control-help.js';
+
+const page = document.getElementById('page');
+const accent = createAccent();
+const setTheme = (v) => { document.body.dataset.theme = v; accent.apply(); };
+
+/* ── the head and the seats ── */
+const head = el('div', 'i-head', page);
+el('h1', null, head, 'INTENT');
+{ const p = el('p', null, head, 'Every shadow, bevel and light in the kit means one thing. This is the vocabulary, drawn by the kit itself — the law is '); const a = el('a', '', p, 'docs/INTENT.md'); a.href = '../docs/INTENT.md'; p.append('; the rest of the kit is on '); const b = el('a', '', p, 'the gallery'); b.href = './index.html'; p.append('.'); }
+
+const seats = device({ id: 'intent-seats', eyebrow: 'SEATS', status: 'theme, card style, frost, tier, ground' });
+page.appendChild(seats.root);
+const rs = el('div', 'row tight', seats.body);
+rs.appendChild(seg({ label: 'THEME', value: 'dark', options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], onChange: setTheme }).root);
+rs.appendChild(seg({ label: 'CARD STYLE', value: 'tinted', options: [{ id: 'tinted', label: 'TINTED', title: 'tint and sheen, never a blur' }, { id: 'refractive', label: 'REFRACTIVE', title: 'the veil, and the blur under FROST' }], onChange: (v) => { document.body.dataset.card = v; } }).root);
+rs.appendChild(sw({ label: 'FROST', value: false, title: 'the blur policy: it reaches REFRACTIVE panes only', onChange: (v) => document.body.classList.toggle('frost', v) }).root);
+rs.appendChild(seg({ label: 'TIER', value: 'full', options: [{ id: 'full', label: 'FULL' }, { id: 'lite', label: 'LITE', title: 'no blur, the tinted fill, one-layer shadows' }, { id: 'flat', label: 'FLAT', title: 'lite, and no relief, no pane shadows, no motion' }],
+  onChange: (v) => { if (v === 'full') delete document.documentElement.dataset.uiTier; else document.documentElement.dataset.uiTier = v; } }).root);
+rs.appendChild(seg({ label: 'GROUND', value: 'plain', options: [{ id: 'plain', label: 'PLAIN' }, { id: 'field', label: 'FIELD', title: 'a busy coloured picture under the glass' }], onChange: (v) => document.body.classList.toggle('g-field', v === 'field') }).root);
+
+/* ── 1 · A PANE FLOATS: the four heights, on the ground ── */
+const hs = el('div', 'i-heights', page);
+const height = (cap, tok, build) => { const c = el('div', 'i-h', hs); build(c); const k = el('div', 'i-cap', c); el('b', null, k, cap); el('span', null, k, tok); };
+height('1 · DOCKED', '--glass-shadow (a card on the rack)', (c) => { const d = device({ id: 'h-docked', eyebrow: 'DOCKED' }); el('div', 'note', d.body, 'A card in the rack.'); c.appendChild(d.root); });
+height('2 · PANE', '--surface-shadow → --glass-shadow', (c) => { const g = el('div', 'glass', c, 'Chrome over the stage. Docked and pane are one value today.'); g.dataset.id = 'h-pane'; });
+height('3 · FLOATING WINDOW', '--surface-shadow-float', (c) => { const d = device({ id: 'h-float', eyebrow: 'FLOATING' }); d.root.classList.add('floating'); el('div', 'note', d.body, 'A window off the rack.'); c.appendChild(d.root); });
+height('4 · MENU · TIP · POPOVER', '--surface-shadow-menu', (c) => {
+  const m = el('div', 'i-menu', c); const bar = el('div', null, m); bar.id = 'menubar'; const g = el('div', 'mb-group', bar); const list = el('div', 'mb-list', g);
+  for (const [t, k] of [['NEW', ''], ['OPEN…', ''], ['SAVE', 'Ctrl+S']]) { const b = el('button', 'mb-item', list); b.type = 'button'; el('span', null, b, t); if (k) el('span', 'mb-key', b, k); }
+});
+
+const cols = el('div', 'i-cols', page);
+const sheet = (id, eyebrow, status) => { const d = device({ id, eyebrow, status }); cols.appendChild(d.root); return el('div', 'i-rows', d.body); };
+const row = (rows, name, how, tok, build) => {
+  const r = el('div', 'i-row', rows); const n = el('div', 'i-name', r); el('b', null, n, name); el('span', null, n, how);
+  const s = el('div', 'i-spec', r); build(s); el('div', 'i-tok', r, tok); return r;
+};
+
+/* ── 2 · CONTROLS ── */
+const C = sheet('intent-controls', 'CONTROLS', 'relief and state');
+row(C, 'PRESS ME', 'the raised relief: a control that stands proud', '--relief-raise ← --neu-raise', (s) => {
+  s.appendChild(trig({ label: 'RESET', onFire: () => {} }).root);
+  s.appendChild(knob({ label: 'LEVEL', min: 0, max: 1, value: .6, fmt: (v) => (v * 100).toFixed(0) + '%' }).root);
+});
+row(C, 'A WELL', 'the inset relief on the well fill: a track, a field, a readout', '--relief-well ← --neu-inset, --glass-well', (s) => {
+  s.appendChild(fader({ label: 'SCRUB', min: 0, max: 1, value: .35, fmt: (v) => v.toFixed(2) }).root);
+  s.appendChild(readout({ label: 'NORM', value: '1.000' }).root);
+});
+row(C, 'PRESSED', 'while held: the press wash and a small scale down — hold one', '--state-press ← --glass-press · --state-press-scale .96', (s) => {
+  s.appendChild(trig({ label: 'HOLD ME', onFire: () => {} }).root);
+  s.appendChild(sw({ label: 'HOLD ME', value: false }).root);
+});
+row(C, 'ON · LATCHED', 'the frost face and a thin rim; its light — the LED, a trigger’s label — in accent A with a glow', '--state-on · --state-on-rim · --state-on-light ← --acc-glow', (s) => {
+  s.appendChild(sw({ label: 'AUTO', value: true }).root);
+  s.appendChild(sw({ label: 'MANUAL', value: false }).root);
+  { const t = trig({ label: 'LATCHED' }); t.on = true; s.appendChild(t.root); }
+});
+row(C, 'CHOSEN', 'one of several: the same frost face, the label in accent A', '--state-on + --acc', (s) => {
+  s.appendChild(seg({ value: 'cloud', options: [{ id: 'cloud', label: 'CLOUD' }, { id: 'solid', label: 'SOLID' }, { id: 'grain', label: 'GRAIN' }] }).root);
+});
+row(C, 'HOVER', 'a lighter face; what stands proud also lifts a pixel — point at one', '--state-hover ← --glass-raise', (s) => {
+  s.appendChild(trig({ label: 'POINT HERE', onFire: () => {} }).root);
+  s.appendChild(sw({ label: 'OR HERE', value: false }).root);
+  s.appendChild(knob({ label: 'OR HERE', min: 0, max: 1, value: .3 }).root);
+});
+row(C, 'KEYBOARD FOCUS', 'an accent ring outside the control — Tab onto these', '--state-focus (an outline, 2px accent, offset 2px)', (s) => {
+  s.appendChild(sw({ label: 'TAB', value: false }).root);
+  s.appendChild(trig({ label: 'TAB', onFire: () => {} }).root);
+  s.appendChild(knob({ label: 'TAB', min: 0, max: 1, value: .5 }).root);
+});
+row(C, 'DISABLED', 'one fade, and no relief', '--state-disabled .38', (s) => {
+  { const k = knob({ label: 'OFF', min: 0, max: 1, value: .5 }); k.setDisabled(true); s.appendChild(k.root); }
+  { const f = fader({ label: 'OFF', min: 0, max: 1, value: .7 }); f.setDisabled(true); s.appendChild(f.root); }
+  { const t = trig({ label: 'OFF' }); t.root.disabled = true; s.appendChild(t.root); }
+});
+
+/* ── 3 · SIGNAL AND MOTION ── */
+const S = sheet('intent-signal', 'SIGNAL', 'colour, carry and drop');
+row(S, 'LIVE', 'a value is moving: a glow in accent A', '--acc · --acc-glow', (s) => {
+  const k = knob({ label: 'DRIVEN', min: 0, max: 1, value: .5 }); k.root.classList.add('live'); s.appendChild(k.root);
+  const f = fader({ label: 'DRIVEN', min: 0, max: 1, value: .5, fmt: (v) => v.toFixed(2) }); f.root.classList.add('active'); s.appendChild(f.root);
+  const ro = readout({ label: 'LIVE', value: '0.998' }); ro.set('0.998', 'live'); s.appendChild(ro.root);
+  let ph = 0; const tick = () => { ph += 0.02; k.show(.5 + .3 * Math.sin(ph)); f.show(.5 + .3 * Math.sin(ph * 1.3)); requestAnimationFrame(tick); }; requestAnimationFrame(tick);
+});
+row(S, 'A RELATIONSHIP · TIME', 'a route, a macro, the playhead: accent B', '--acc2 · --acc2-soft', (s) => {
+  /* the modulation ring, in the kit's own .k-ring classes (an app's modulation view builds it; the kit styles it) */
+  const k = knob({ label: 'ROUTED', min: 0, max: 1, value: .4 }); k.root.classList.add('i-ring'); s.appendChild(k.root);
+  const NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'); svg.setAttribute('class', 'k-ring'); svg.setAttribute('viewBox', '0 0 60 60');
+  const arc = (r, a0, a1) => { const p = (a) => [30 + r * Math.sin(a), 30 - r * Math.cos(a)], [x0, y0] = p(a0), [x1, y1] = p(a1); return `M${x0} ${y0} A${r} ${r} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${x1} ${y1}`; };
+  for (const [cls, r, a0, a1] of [['k-ring-edit', 28, -0.6, 1.4], ['k-ring-stack', 24, -2.2, 0.9]]) { const e = document.createElementNS(NS, 'path'); e.setAttribute('class', cls); e.setAttribute('d', arc(r, a0, a1)); svg.appendChild(e); }
+  k.root.querySelector('.k-dial').appendChild(svg);
+  { const t = trig({ label: 'ROUTE' }); t.root.classList.add('acc2'); s.appendChild(t.root); }
+});
+row(S, 'A VALUE IN ITS OWN COLOUR', 'an arc or a coloured fill, with no other relief on top', '--accent-sweep · --nc · --glow-own', (s) => {
+  for (const [cls, deg] of [['accent-dial', 200], ['accent-dial accent-dial-b', 120]]) { const k = knob({ label: cls.includes('-b') ? 'ACCENT B' : 'ACCENT A', min: 0, max: 360, value: deg, wrap: true, fmt: (v) => v.toFixed(0) + '°' }); for (const c of cls.split(' ')) k.root.classList.add(c); k.root.style.setProperty('--accent-sweep', deg + 'deg'); s.appendChild(k.root); }
+  const box = el('div', null, s); box.style.setProperty('--nc', 'hsl(40 90% 62%)');   // an app writes --nc on an ancestor (λWAVES' spectrum lanes)
+  box.appendChild(fader({ label: '|c|²', min: 0, max: 1, value: .62, cls: 'pop', fmt: (v) => v.toFixed(2) }).root);
+});
+row(S, 'CARRIED', 'mid-drag: one height up, and an accent ring', '--state-carried = --surface-shadow-float + ring', (s) => {
+  const c = el('div', 'i-carry', s); const d = device({ id: 'i-carried', eyebrow: 'CARRIED' }); el('div', 'note', d.body, 'Picked up by its header.'); c.appendChild(d.root); d.root.classList.add('dragging');
+});
+row(S, 'DROP HERE', 'a dotted outline that brightens as the thing nears; solid where it will land — move the pointer over the slots', 'core/proximity.js · --prox · .mir-prox', (s) => {
+  const slots = ['A', 'B', 'C'].map((n) => { const r = readout({ label: 'SLOT ' + n, value: '—' }); s.appendChild(r.root); return r.root; });
+  const prox = createProximity({ reach: 110, capture: 30 });
+  const targets = () => slots.map((e, i) => ({ id: i, rect: e.getBoundingClientRect(), el: e }));
+  const demo = () => { const r = slots[0].getBoundingClientRect(); prox.update({ x: r.left + r.width / 2, y: r.top + r.height / 2 }, targets()); };
+  s.addEventListener('pointermove', (e) => prox.update({ x: e.clientX, y: e.clientY }, targets()));
+  s.addEventListener('pointerleave', demo);
+  requestAnimationFrame(demo); addEventListener('scroll', demo, { passive: true });
+});
+
+accent.apply();
+installControlHelp();
+window.__INTENT = { setTheme, accent };
+</script>
+</body>
+</html>

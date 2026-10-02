@@ -34,16 +34,14 @@
 @layer mir.kit.house {
 #notebook { position: absolute; left: calc(50% - 320px); top: 12%; width: 640px; height: 460px; min-width: 320px; min-height: 240px; max-width: calc(100vw - 2 * var(--rack-w) - 40px); max-height: calc(100vh - 40px); resize: both; --nb-line: hsl(0 0% 100% / .45); --nb-btn: hsl(0 0% 100% / .18); --nb-btn-line: hsl(0 0% 100% / .35); z-index: calc(var(--z-chrome) + 4); display: flex; flex-direction: column; border-radius: var(--surface-radius, 16px);
   border: var(--surface-edge-width, 1px) solid var(--surface-edge, hsl(0 0% 100% / .45)); background: var(--surface-veil, transparent); -webkit-backdrop-filter: var(--surface-filter, blur(var(--glass-blur)) saturate(115%)); backdrop-filter: var(--surface-filter, blur(var(--glass-blur)) saturate(115%));
-  box-shadow: var(--surface-shadow-float, inset 0 1px 0 hsl(0 0% 100% / .55), 0 8px 24px hsl(0 0% 0% / .18)); color: var(--fg); overflow: hidden; }
+  box-shadow: var(--surface-shadow-float, var(--glass-shadow)); color: var(--fg); overflow: hidden; }   /* it floats like a window: height 3 (L14/L15) */
 #notebook[data-face="about"] { width: 470px; height: 670px; left: calc(50% - 235px); top: max(20px, calc(50% - 335px)); }
-body[data-theme="dark"] #notebook { border-color: var(--surface-edge, hsl(0 0% 100% / .18)); box-shadow: var(--surface-shadow-float, inset 0 1px 0 hsl(0 0% 100% / .12), 0 8px 24px hsl(0 0% 0% / .45)); --nb-line: hsl(0 0% 100% / .18); --nb-btn: hsl(0 0% 100% / .08); --nb-btn-line: hsl(0 0% 100% / .2); }
+body[data-theme="dark"] #notebook { border-color: var(--surface-edge, hsl(0 0% 100% / .18)); --nb-line: hsl(0 0% 100% / .18); --nb-btn: hsl(0 0% 100% / .08); --nb-btn-line: hsl(0 0% 100% / .2); }
 body[data-theme="dark"] #notebook::before { content: ''; position: absolute; inset: 0; z-index: -1; background: hsl(0 0% 0% / .22); pointer-events: none; }
 .nb-head { display: flex; align-items: flex-start; justify-content: space-between; padding: 8px 8px 6px 14px; cursor: grab; user-select: none; touch-action: none; }
 .nb-titles { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; }
 .nb-title { font-family: var(--font-display, 'LW Title', var(--font-ui)); font-size: 34px; letter-spacing: .04em; color: var(--fg); background: transparent; border: 0; outline: 0; padding: 0; width: 100%; min-width: 0; }
-.nb-title:focus { color: var(--acc); }
 .nb-subtitle { font-family: var(--font-display, 'LW Title', var(--font-ui)); font-size: 18px; letter-spacing: .04em; color: var(--fg-soft); background: transparent; border: 0; outline: 0; padding: 0; width: 100%; min-width: 0; margin-top: 2px; }
-.nb-subtitle:focus { color: var(--acc); }
 .nb-subtitle::placeholder { color: var(--dim); opacity: .6; }
 #notebook[data-face="about"] .nb-titles, #notebook[data-face="projects"] .nb-titles, #notebook[data-face="about"] .nb-title, #notebook[data-face="projects"] .nb-title, #notebook[data-face="about"] .nb-subtitle, #notebook[data-face="projects"] .nb-subtitle { visibility: hidden; }
 .nb-view { flex: 1 1 auto; min-height: 120px; overflow: auto; padding: 4px 2px; font: 14px/1.6 var(--font-ui); color: var(--fg); }
@@ -71,7 +69,7 @@ body[data-theme="dark"] #notebook::before { content: ''; position: absolute; ins
 .nb-tools { display: flex; gap: 4px; }
 .nb-tools button { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--nb-btn-line); background: var(--nb-btn); color: var(--fg-soft); cursor: pointer; font-size: 13px; line-height: 1; }
 .nb-about { font: italic 700 12px Georgia, 'Times New Roman', serif; }
-.nb-tools button:hover { color: var(--acc); }
+.nb-tools button:hover { color: var(--fg); box-shadow: inset 0 0 0 99px var(--state-hover, var(--glass-raise)); }
 .nb-face { display: flex; flex-direction: column; padding: 0 14px 12px; flex: 1 1 auto; min-height: 0; overflow: auto; }
 .nb-text { flex: 1 1 auto; min-height: 120px; resize: none; border: 0; outline: 0; background: transparent; color: var(--fg); font: 13px/1.5 var(--font-ui); padding: 4px 0; }
 .nb-text::placeholder { color: var(--dim); }
@@ -97,16 +95,16 @@ body[data-theme="dark"] #notebook::before { content: ''; position: absolute; ins
 .ab-actions { display: flex; align-items: center; justify-content: center; gap: 24px; width: 100%; margin-top: auto; padding-top: 12px; flex: 0 0 auto; }
 .nb-aboutface .ab-home { color: var(--fg-soft); text-decoration: none; }
 .nb-dump:hover, .ab-home:hover { color: var(--fg); border-color: color-mix(in srgb, var(--acc) 45%, var(--nb-btn-line)); }
-.nb-dump:active, .ab-home:active { transform: translateY(1px); background: var(--state-press, var(--glass-press)); }
+.nb-dump:active, .ab-home:active { scale: var(--state-press-scale, .96); background: var(--state-press, var(--glass-press)); }
 .mb-group { position: relative; }
 .mb-btn { height: 26px; padding: 0 10px; border: 0; border-radius: 7px; background: transparent; color: var(--fg-soft); font: var(--w-bold) var(--fs-tiny) var(--font-ui); letter-spacing: var(--label-tracking, var(--tr-wider)); cursor: pointer; }
-.mb-btn:hover { background: transparent; color: var(--acc); }
-.mb-list { position: absolute; left: 0; top: 30px; min-width: 240px; max-height: 60vh; overflow: auto; padding: 4px; border-radius: 10px; background: var(--surface-fill, hsl(var(--glass-tint) / .97)); border: var(--surface-edge-width, 1px) solid var(--surface-edge, var(--glass-hairline)); box-shadow: var(--surface-shadow-menu, var(--surface-shadow, var(--glass-shadow))); display: flex; flex-direction: column; }
+.mb-btn:hover { background: var(--state-hover, var(--glass-raise)); color: var(--fg); }
+.mb-list { position: absolute; left: 0; top: 30px; min-width: 240px; max-height: 60vh; overflow: auto; padding: 4px; border-radius: 10px; box-shadow: var(--surface-shadow-menu, var(--glass-shadow)); display: flex; flex-direction: column; }
 .mb-item { display: flex; justify-content: space-between; align-items: baseline; gap: 18px; text-align: left; border: 0; background: transparent; color: var(--fg-soft); padding: 6px 10px; border-radius: 6px; font: var(--fs-small) var(--font-ui); cursor: pointer; white-space: nowrap; }
 .mb-item:hover { background: var(--state-hover, var(--glass-raise)); color: var(--fg); }
 .mb-key { color: var(--dim); font-size: var(--fs-micro); letter-spacing: var(--label-tracking, var(--tr-wide)); }
 .mb-sep { height: 1px; margin: 4px 8px; background: var(--glass-hairline); pointer-events: none; }
-.mb-item:disabled { color: var(--dim); opacity: var(--state-disabled, .45); cursor: default; }
+.mb-item:disabled { color: var(--dim); opacity: var(--state-disabled, .38); cursor: default; }
 .mb-item:disabled:hover { background: transparent; color: var(--dim); }
 #title { position: absolute; left: calc(var(--rack-w) + 14px); top: 6px; z-index: var(--z-chrome); display: flex; align-items: center; gap: var(--sp-3);
   padding: var(--sp-2) var(--sp-4); border-radius: var(--r-pill); pointer-events: none; }
@@ -157,11 +155,21 @@ body[data-theme="dark"] #notebook::before { display: none; }
 .mb-list { max-width: calc(100vw - 24px); }
 .mb-item { min-height: var(--touch); }
 }
-#menubar .mb-list { background:var(--surface-sheen, var(--glass-sheen)),var(--surface-fill, hsl(var(--glass-tint) / .65));backdrop-filter:var(--surface-filter, blur(var(--glass-blur)));-webkit-backdrop-filter:var(--surface-filter, blur(var(--glass-blur)));box-shadow:var(--surface-shadow-menu, var(--surface-shadow, var(--glass-shadow)));border:var(--surface-edge-width, 1px) solid var(--surface-edge, var(--glass-border-color)); }
+/* 1.5.0-alpha.3 · A MENU IS A PANE, AND WEARS CARD STYLE's MATERIAL (INTENT rule 4, L08 / L70; open question O8).
+   It was a .65 tint AND a blur, neither material.  TINTED: the tint, never a blur.  REFRACTIVE: the veil and the blur.
+   Height 4, falling down (on .mb-list above); the material is drawn here once, where λWAVES' sheet issued it twice (L07 / L08). */
+#menubar .mb-list { border: var(--surface-edge-width, 1px) solid var(--surface-edge, var(--glass-border-color));
+  background: var(--surface-sheen, var(--glass-sheen)), var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
+body[data-card="refractive"] #menubar .mb-list { background: var(--surface-sheen, var(--glass-sheen)), var(--surface-veil, hsl(var(--glass-tint) / .65));
+  -webkit-backdrop-filter: var(--surface-filter, blur(var(--glass-blur))); backdrop-filter: var(--surface-filter, blur(var(--glass-blur))); }
 }
 
 /* ── kit additions (not from λWAVES) ── */
 @layer mir.kit.house {
+/* KEYBOARD FOCUS (INTENT, S2): the accent ring outside, as skin.css draws it for the widgets — the shell's buttons and
+   the notebook's two title fields (whose focus was the ink turning accent: L44 / L45). */
+:is(.mb-btn, .mb-item, .nb-tools button, .nb-foot button, .nb-dump, .ab-home, .nb-title, .nb-subtitle):focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .nb-dump:active, .ab-home:active { scale: none; } }
 /* a face an app adds wears what λWAVES' PROJECTS face wears: the notebook's own title stands aside for it */
 #notebook:not([data-face="notes"]) .nb-titles, #notebook:not([data-face="notes"]) .nb-title, #notebook:not([data-face="notes"]) .nb-subtitle { visibility: hidden; }
 }

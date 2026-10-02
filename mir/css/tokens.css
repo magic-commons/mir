@@ -12,7 +12,8 @@
  *                --surface-fill --surface-sheen --surface-veil --surface-filter --surface-lift --surface-edge
  *                --surface-edge-width --surface-radius --surface-shadow --surface-shadow-float --surface-shadow-menu
  *                --relief-raise --relief-well
- *                --state-hover --state-press --state-on --state-disabled
+ *                --state-hover --state-press --state-press-scale --state-on --state-on-rim --state-on-light
+ *                --state-focus --state-carried --state-disabled
  *                --label-tracking --label-case --font-display
  *   component  one part's knob, read with a semantic fallback at the place of use: var(--knob-face, var(--face-fill)).
  *
@@ -20,9 +21,13 @@
  *   A custom property whose value contains var() is resolved on the element that DECLARES it.  Apps re-point the 1.4
  *   names below :root (BASINS re-points the ink ladder per label; apps write the accents on <body>), so an alias
  *   declared at :root — `--surface-shadow: var(--glass-shadow)` — would freeze :root's value and miss every re-point.
- *   So NO 1.5 NAME IS DECLARED BY DEFAULT.  Each is read FIRST at the place of use with the exact 1.4 expression as
- *   its fallback:  box-shadow: var(--surface-shadow, var(--glass-shadow)).  Unset, it costs nothing and every 1.4
- *   re-point still works; set by a skin or by the tier below, it wins.
+ *   So a 1.5 name is read FIRST at the place of use with the 1.4 expression as its fallback:
+ *   box-shadow: var(--surface-shadow, var(--glass-shadow)).  Unset, it costs nothing and every 1.4 re-point still works;
+ *   set by a skin or by the tier below, it wins.  1.5.0-alpha.3 (docs/INTENT.md) DECLARES the few whose value has no
+ *   var() in it, in skin.css on :root and body[data-theme="light"]: the two new pane heights (--surface-shadow-float,
+ *   --surface-shadow-menu), the ON face and rim (--state-on, --state-on-rim) and the two single numbers
+ *   (--state-press-scale, --state-disabled).  The ones that read the accent (--state-on-light, --state-focus,
+ *   --state-carried) stay undeclared and are read with their drawing as the fallback.
  *
  * ── THE NAMING LAW ──────────────────────────────────────────────────────────────────────────────────────────────────
  *   lower-kebab · --p-* primitive · a bare semantic group (--surface-, --relief-, --state-, --label-, --ink-, --acc,
@@ -58,7 +63,7 @@
   --glass-filter: none;              /* bridge: the TINTED filter, none already unless a skin set it */
 }
 :where(html[data-ui-tier="lite"], html[data-ui-tier="flat"]) :where(body) {
-  --surface-fill: hsl(var(--glass-tint) / var(--card-opacity));     /* the TINTED pane: the frost-thinned .58 and the .65/.97 menus take it too */
+  --surface-fill: hsl(var(--glass-tint) / var(--card-opacity));     /* the TINTED pane: the .97/.98 tips and popovers take it too */
   --surface-veil: hsl(var(--glass-tint) / var(--card-opacity));     /* REFRACTIVE, unblurred, would be the bare field: it wears the tinted fill */
   --surface-shadow: 0 1px 2px hsl(0 0% 0% / .16);                    /* one layer, falling down: the drop term of --glass-shadow */
   --surface-shadow-float: 0 1px 2px hsl(0 0% 0% / .16);

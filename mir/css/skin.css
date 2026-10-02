@@ -25,9 +25,21 @@
   --glass-sheen: linear-gradient(160deg, hsl(0 0% 100% / .07), hsl(0 0% 100% / 0) 42%);   /* the glass highlight, replaces blur */
 
 
-  --glass-shadow: inset 0 1px 0 hsl(0 0% 100% / .06), 0 -2px 6px hsl(0 0% 0% / .20), 0 1px 2px hsl(0 0% 0% / .16);
-  /* WAVE 98 · THE SAME CARD FLOAT WITH THE UPWARD TERM TAKEN OUT — see §2b. */
-  --glass-shadow-flat: inset 0 1px 0 hsl(0 0% 100% / .06), 0 1px 2px hsl(0 0% 0% / .16);
+  /* 1.5.0-alpha.3 · INTENT (docs/INTENT.md): ONE LIGHT, FROM ABOVE.  The card float lost its upward `0 -2px 6px` term
+     and is what wave 98's --glass-shadow-flat was (that name is gone: nothing read it).  The four pane heights are
+     docked/pane (--glass-shadow, read as --surface-shadow) · floating window (--surface-shadow-float) · menu, tip and
+     popover (--surface-shadow-menu); every one falls down, and the tier (mir/css/tokens.css) reaches all of them. */
+  --glass-shadow: inset 0 1px 0 hsl(0 0% 100% / .06), 0 1px 2px hsl(0 0% 0% / .16);
+  --surface-shadow-float: inset 0 1px 0 hsl(0 0% 100% / .08), 0 6px 18px hsl(0 0% 0% / .30), 0 1px 3px hsl(0 0% 0% / .18);
+  --surface-shadow-menu: inset 0 1px 0 hsl(0 0% 100% / .06), 0 10px 28px hsl(0 0% 0% / .38), 0 2px 6px hsl(0 0% 0% / .20);
+  /* THE STATES (INTENT's table), each one number or one drawing so a skin tunes one place.  ON is a frost face and a
+     thin rim, never an accent fill; its light (an LED, a trigger's label) is accent A with its glow, read at the place
+     of use as var(--state-on-light, var(--acc-glow)) because it reads the accent.  The values match the window rail's
+     chip (mir/window/window.css), so the rail and the widgets draw ON one way. */
+  --state-on: hsl(0 0% 100% / .086);
+  --state-on-rim: inset 0 0 0 1px hsl(0 0% 100% / .30), inset 0 1px 0 hsl(0 0% 100% / .12);
+  --state-press-scale: .96;                                       /* pressed: the wash and this small scale (INTENT O6) */
+  --state-disabled: .38;                                          /* the one fade, relief removed (INTENT O6) */
   --glass-well: hsl(0 0% 0% / .28); --glass-raise: hsl(0 0% 100% / .045); --glass-press: hsl(0 0% 100% / .12);
   --glass-groove: hsl(0 0% 100% / .08); --glass-groove-hot: hsl(0 0% 100% / .14);
   --neu-raise: -1px -1px 3px hsl(0 0% 100% / .05), 2px 2px 4px hsl(0 0% 0% / .42), inset 0 1px 0 hsl(0 0% 100% / .08);  /* a control that stands proud */
@@ -91,9 +103,11 @@ body {
 .dev-util > .dev-close, .dev-util > .dev-fold { margin-left: 0; margin-right: 0; }
 .dev-head:active { cursor: grabbing; }
 .folded .dev-head { border-radius: var(--surface-radius, var(--card-r)); }
-.dev.dragging { cursor: grabbing; z-index: 5; transform: scale(1.012); opacity: .97;   /* lifted while carried */
+/* CARRIED (INTENT): one height up — the floating window's shadow, falling down — and an accent ring.  One drawing:
+   base.css's outline and fade and this sheet's scale and upward shadow are gone (L51–L53). */
+.dev.dragging { cursor: grabbing; z-index: 5;
   transition: none;                                                           /* wave 67: the lift is INSTANT — see the note on .dev's transition */
-  box-shadow: inset 0 1px 0 hsl(0 0% 100% / .1), 0 -6px 16px hsl(0 0% 0% / .34), 0 0 0 1px color-mix(in srgb, var(--acc) 35%, transparent); }
+  box-shadow: var(--state-carried, var(--surface-shadow-float, var(--glass-shadow)), 0 0 0 1px color-mix(in srgb, var(--acc) 35%, transparent)); }
 .dev.dragging * { pointer-events: none; }                                     /* nothing inside catches the pointer mid-drag */
 .dev-eyebrow { opacity: 1; }                                                   /* the eyebrow IS the name now; the long title is the header's hover hint */
 .dev:hover .dev-eyebrow, .dev.tab-hot .dev-eyebrow { opacity: 1; }
@@ -116,36 +130,57 @@ body {
   background: repeating-conic-gradient(var(--glass-groove) 0deg 1.6deg, transparent 1.6deg 30deg),
     radial-gradient(circle at 35% 30%, hsl(0 0% 100% / .07), transparent 62%), hsl(var(--glass-tint) / 1);
   transition: box-shadow var(--t-fast); }
-.k:hover .k-dial { box-shadow: var(--relief-raise, var(--neu-raise)), 0 0 0 1px hsl(0 0% 100% / .08); }
+/* HOVER (INTENT): a lighter face and a small lift.  The face is lightened by a full inset wash in --state-hover, which
+   paints over the puck's own background and under its needle, so no gradient is restated; the lift is `translate`,
+   which composes with the press `scale` instead of fighting it for `transform`. */
+.k:hover .k-dial { box-shadow: var(--relief-raise, var(--neu-raise)), inset 0 0 0 99px var(--state-hover, var(--glass-raise)); translate: 0 -1px; }
 
 
 .k.drag .k-dial, .k.active .k-dial, .k[data-live] .k-dial { border-color: transparent; box-shadow: var(--relief-raise, var(--neu-raise)), 0 0 0 1px color-mix(in srgb, var(--acc) 60%, transparent); }
 .k-needle { background: var(--fg-soft); box-shadow: none; }
-.k.live .k-needle, .k.drag .k-needle, .k.active .k-needle { background: var(--acc); box-shadow: 0 0 0 .5px hsl(0 0% 0% / .38); }
+.k.live .k-needle, .k.drag .k-needle, .k.active .k-needle { background: var(--acc); box-shadow: var(--acc-glow); }   /* LIVE: a glow in accent A (L46) */
 .k-val { opacity: 0; transform: translateY(2px); pointer-events: none;        /* the value is a tooltip: hidden at rest … */
-  padding: 1px 6px; border-radius: var(--r-pill); color: var(--fg); background: hsl(var(--glass-tint) / .96); box-shadow: var(--neu-flat), var(--surface-shadow-menu, 0 3px 8px hsl(0 0% 0% / .45));
+  padding: 1px 6px; border-radius: var(--r-pill); color: var(--fg); background: hsl(var(--glass-tint) / .96); box-shadow: var(--neu-flat), var(--surface-shadow-menu, var(--glass-shadow));   /* a tooltip is a popover: height 4 (INTENT O4) */
   transition: opacity var(--t-soft) ease var(--t-linger), transform var(--t-soft) ease var(--t-linger); }  /* … and lingers after the hand leaves */
 .k:hover .k-val, .k.drag .k-val, .k.active .k-val, .k[data-live] .k-val, .k:focus-within .k-val { opacity: 1; transform: none;
   transition: opacity var(--t-fast), transform var(--t-fast); }               /* in fast, no delay */
 .k.drag .k-val, .k.active .k-val { color: var(--acc); }
-.k.disabled { opacity: var(--state-disabled, .3); }
-.fd.disabled { opacity: var(--state-disabled, .3); }
 
 /* ── 6. switch, segmented select, trigger — flat seats that press in; the accent lights what is ON ── */
-.sw { border-color: transparent; background: hsl(0 0% 100% / .035); box-shadow: var(--neu-flat); color: var(--ink-key); transition: box-shadow var(--t-fast), background var(--t-fast); }
+/* 1.5.0-alpha.3 · INTENT.  ON and CHOSEN are one drawing: the frost face (--state-on) and its thin rim
+   (--state-on-rim), never an accent fill and never a well.  The switch's LED is its light; a trigger has no LED, so
+   its label is the light (accent A with the accent glow, INTENT O5); a chosen segment's label is in accent A.
+   PRESSED is the press wash and the press scale (base.css draws the scale once for every control).  HOVER is a
+   lighter face; the knob and the trigger, which stand proud, also lift a pixel. */
+.sw { border-color: transparent; background: hsl(0 0% 100% / .035); box-shadow: var(--neu-flat); color: var(--ink-key); transition: box-shadow var(--t-fast), background var(--t-fast), scale var(--t-fast); }
 .sw:hover { background: var(--state-hover, var(--glass-raise)); }
-.sw:active { box-shadow: var(--relief-well, var(--neu-inset)); background: var(--state-press, var(--glass-well)); }
-.sw.on { background: var(--state-on, var(--acc-soft)); border-color: transparent; box-shadow: var(--relief-well, var(--neu-inset)), 0 0 0 1px color-mix(in srgb, var(--acc) 35%, transparent); color: var(--fg); }
+.sw:active { background: var(--state-press, var(--glass-press)); }
+.sw.on { background: var(--state-on, var(--glass-raise)); border-color: transparent; box-shadow: var(--state-on-rim, var(--neu-flat)); color: var(--fg); }
 .sw-led { background: hsl(0 0% 100% / .12); box-shadow: var(--relief-well, inset 0 1px 1px hsl(0 0% 0% / .5)); }
 .seg { border-color: transparent; background: var(--glass-well); box-shadow: var(--relief-well, var(--neu-inset)); }   /* the track is a well … */
-.seg-b { color: var(--ink-key); transition: background var(--t-fast), box-shadow var(--t-fast); }
+.seg-b { color: var(--ink-key); transition: background var(--t-fast), box-shadow var(--t-fast), scale var(--t-fast); }
 .seg-b:hover { background: var(--state-hover, var(--glass-raise)); }
-.seg-b.on { background: var(--state-on, hsl(var(--glass-tint) / 1)); color: var(--acc); box-shadow: var(--relief-raise, var(--neu-raise)); }  /* … the chosen segment rises out of it */
-.trig { border-color: transparent; background: hsl(var(--glass-tint) / 1); box-shadow: var(--relief-raise, var(--neu-raise)); color: var(--fg-soft); transition: box-shadow var(--t-fast), transform var(--t-fast); }
-.trig:hover { box-shadow: var(--relief-raise, var(--neu-raise)), 0 0 0 1px hsl(0 0% 100% / .08); }
-.trig:active { box-shadow: var(--relief-well, var(--neu-inset)); background: var(--state-press, var(--glass-well)); transform: translateY(1px); }
-.trig.on { background: var(--state-on, var(--acc-soft)); border-color: transparent; box-shadow: var(--relief-well, var(--neu-inset)), 0 0 0 1px color-mix(in srgb, var(--acc) 35%, transparent); color: var(--acc); }
+.seg-b.on { background: var(--state-on, var(--glass-raise)); color: var(--acc); box-shadow: var(--state-on-rim, var(--neu-flat)); }  /* … the chosen segment wears the ON face in it, its label in accent A */
+.trig { border-color: transparent; background: hsl(var(--glass-tint) / 1); box-shadow: var(--relief-raise, var(--neu-raise)); color: var(--fg-soft); transition: box-shadow var(--t-fast), scale var(--t-fast), translate var(--t-fast); }
+.trig:hover { box-shadow: var(--relief-raise, var(--neu-raise)), inset 0 0 0 99px var(--state-hover, var(--glass-raise)); translate: 0 -1px; }
+.trig:active { box-shadow: 0 0 0 0 transparent; background: var(--state-press, var(--glass-press)); translate: none; }   /* sunk: the raise goes, the wash comes */
+.trig.on { background: var(--state-on, var(--glass-raise)); border-color: transparent; box-shadow: var(--state-on-rim, var(--neu-flat)); color: var(--acc); text-shadow: var(--state-on-light, var(--acc-glow)); }
 select.sel { border-color: transparent; background: var(--glass-well); box-shadow: var(--relief-well, var(--neu-inset)); color: var(--fg-soft); }
+
+/* DISABLED (INTENT): one fade, and no relief — a control that stands down neither stands proud nor sinks.  The one
+   rule for every control (the knob and the fader were faded twice, .38 in base.css and .3 here: L55–L58).  It sits
+   after .on so a disabled ON control loses its rim too. */
+.k.disabled, .fd.disabled, .sw.disabled, .sw:disabled, .seg-b:disabled, .trig:disabled { opacity: var(--state-disabled, .38); pointer-events: none; box-shadow: 0 0 0 0 transparent; }
+.k.disabled .k-dial { box-shadow: 0 0 0 0 transparent; }
+
+/* KEYBOARD FOCUS (INTENT): an accent ring OUTSIDE the control, on :focus-visible only, one drawing for every control
+   the kit builds (S2: the trigger, switch, segment, knob, fader and select had the browser's ring).  An outline, not a
+   shadow, so it never has to be composed with each control's own relief.  The knob is focused as a whole (.k) and
+   rings its puck. */
+:is(.trig, .sw, .seg-b, .fd, select.sel, .dev-util > button, .dev-fold, .native-info-button, .plane-model, .corner-axis-hit):focus-visible,
+.k:focus-visible .k-dial { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
+.k:focus-visible { outline: none; }
+@media (prefers-reduced-motion: reduce) { .k:hover .k-dial, .trig:hover { translate: none; } }   /* the hover keeps its lighter face; the lift is travel */
 
 /* ── 7. fader: a well with a thin fill; the value appears on touch ─────── */
 .fd { border-color: transparent; background: var(--glass-well); box-shadow: var(--relief-well, var(--neu-inset)); border-radius: 8px; }
@@ -168,7 +203,8 @@ select.sel { border-color: transparent; background: var(--glass-well); box-shado
 
 /* ── 10. chrome over the stage: the title, badges, sheet, keyboard hint ─── */
 .glass { border-color: var(--surface-edge, var(--glass-border-color)); background: transparent; box-shadow: var(--surface-shadow, var(--glass-shadow)); }   /* the pane is CARD STYLE's, §14c */
-.badge { min-height: 24px; padding: 2px 9px; border-color: transparent; box-shadow: var(--neu-flat), var(--surface-shadow, 0 4px 12px hsl(0 0% 0% / .4)); color: var(--ink-key);
+.badge { min-height: 24px; padding: 2px 9px; border-color: transparent; box-shadow: var(--neu-flat), var(--surface-shadow, var(--glass-shadow));   /* a pane's height (L13) */
+  color: var(--ink-key);
   background: hsl(var(--glass-tint) / var(--glass-opacity)); max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .badge:hover { color: var(--fg-soft); }
 
@@ -208,8 +244,11 @@ body[data-theme="light"] {
   --glass-border-color: hsl(214 30% 40% / .22); --glass-hairline: hsl(214 30% 30% / .16);
   --glass-sheen: linear-gradient(hsl(0 0% 100% / .55), hsl(0 0% 100% / .55));   /* the same flat white wash it always was — but as an IMAGE, so it is a legal background LAYER (§14c) */
   --glass-well: hsl(214 30% 40% / .10); --glass-raise: hsl(0 0% 100% / .55); --glass-press: hsl(214 30% 40% / .16);
-  --glass-shadow: inset 0 1px 0 hsl(0 0% 100% / .8), 0 -2px 6px hsl(214 40% 20% / .11), 0 1px 2px hsl(214 40% 20% / .09);
-  --glass-shadow-flat: inset 0 1px 0 hsl(0 0% 100% / .8), 0 1px 2px hsl(214 40% 20% / .09);
+  --glass-shadow: inset 0 1px 0 hsl(0 0% 100% / .8), 0 1px 2px hsl(214 40% 20% / .09);
+  --surface-shadow-float: inset 0 1px 0 hsl(0 0% 100% / .8), 0 6px 18px hsl(214 40% 20% / .16), 0 1px 3px hsl(214 40% 20% / .10);
+  --surface-shadow-menu: inset 0 1px 0 hsl(0 0% 100% / .8), 0 10px 28px hsl(214 40% 20% / .20), 0 2px 6px hsl(214 40% 20% / .10);
+  --state-on: hsl(0 0% 100% / .62);                               /* on a light card a .086 white is invisible: the frost face is whiter */
+  --state-on-rim: inset 0 0 0 1px hsl(214 30% 40% / .34), inset 0 1px 0 hsl(0 0% 100% / .12);
   --neu-raise: -1px -1px 3px hsl(0 0% 100% / .9), 2px 2px 4px hsl(214 30% 40% / .22), inset 0 1px 0 hsl(0 0% 100% / .9);
   --neu-inset: inset 1px 1px 3px hsl(214 30% 40% / .24), inset -1px -1px 2px hsl(0 0% 100% / .8);
   --lum-acc: 34%; --acc: hsl(var(--hue-acc) calc(var(--sat-acc) - 10%) var(--lum-acc)); --acc-ink: hsl(0 0% 100%);   /* hsl(188 70% 34%) by default, and it follows the hue */
@@ -228,13 +267,10 @@ body[data-card="tinted"] .dev, body[data-card="tinted"] .glass
 /* CARD STYLE owns the pane even with FROST on. An enabled FROST policy otherwise
    overrode both choices with the same veil, making the setting inert. Refractive keeps
    its thin frost veil; tinted keeps its tint. Both share the same filter and hold law. */
-body.frost .dev, body.frost .glass { -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter)); backdrop-filter: var(--surface-filter, var(--frost-filter)); }
-/* FROST OVER TINTED (2026-09-11): a full tinted pane (--card-opacity: .84 dark, .86 light) hides the blur it sits
-   on, so while frost is IN FORCE the tinted pane thins to .58, a glass the blur can be seen through; the moment the
-   policy lifts (frost-hold while the transport runs under STILL) it is a full pane again. Refractive is untouched — it was always the blur alone. */
-body.frost:not(.frost-hold)[data-card="tinted"] .dev, body.frost:not(.frost-hold)[data-card="tinted"] .glass,
-body.frost:not(.frost-hold)[data-card="tinted"] #transport.mini { background: var(--surface-sheen, var(--glass-sheen)), var(--surface-fill, hsl(var(--glass-tint) / .58)); }
-body.disconnected.frost:not(.frost-hold)[data-card="tinted"]:not(.phone) .dev > .dev-body { background: var(--surface-sheen, var(--glass-sheen)), var(--surface-fill, hsl(var(--glass-tint) / .58)); }
+/* 1.5.0-alpha.3 · TWO MATERIALS, ONE BLUR (INTENT rule 4, L64–L68): TINTED never blurs, so FROST reaches only the
+   REFRACTIVE pane.  The tinted pane keeps its own --card-opacity under FROST: the .58 thinning that let a blur show
+   through it is gone with the blur. */
+body.frost[data-card="refractive"] .dev, body.frost[data-card="refractive"] .glass { -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter)); backdrop-filter: var(--surface-filter, var(--frost-filter)); }
 body.frost[data-card="refractive"][data-theme="dark"] .dev, body.frost[data-card="refractive"][data-theme="dark"] .glass { background: var(--surface-veil, hsl(0 0% 0% / .10)); }
 
 /* A live WebGPU canvas makes every blurred/inset child shadow in a translucent rack a recurring
@@ -267,9 +303,9 @@ body.disconnected[data-card="tinted"]:not(.phone) .dev > .dev-body { background:
    filter alone answers `frost-hold`.  The chip keeps its own lighter fill — the difference is the point. */
 body.disconnected.frost[data-card="refractive"]:not(.phone) .dev > .dev-body { background: var(--surface-veil, hsl(0 0% 100% / .10)); }
 body.disconnected.frost[data-card="refractive"][data-theme="dark"]:not(.phone) .dev > .dev-body { background: var(--surface-veil, hsl(0 0% 0% / .10)); }
-body.disconnected.frost:not(.phone) .dev > .dev-body { -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter)); backdrop-filter: var(--surface-filter, var(--frost-filter)); }
+body.disconnected.frost[data-card="refractive"]:not(.phone) .dev > .dev-body { -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter)); backdrop-filter: var(--surface-filter, var(--frost-filter)); }
 /* the WHOLE chain is the fallback: a set --surface-filter replaces it, so `none` is the whole value, never `none brightness(…)` */
-body.disconnected.frost:not(.phone) .dev > .dev-head {
+body.disconnected.frost[data-card="refractive"]:not(.phone) .dev > .dev-head {
   -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter) brightness(1.03) saturate(1.03));
   backdrop-filter: var(--surface-filter, var(--frost-filter) brightness(1.03) saturate(1.03)); }
 body.disconnected.frost.frost-hold:not(.phone) .dev > .dev-head,
@@ -288,9 +324,12 @@ body.disconnected:not(.phone) .dev.dragging * { pointer-events: none; }
    read better: the whole constellation lights, which is what "this window" means when there is no slab. */
 body.disconnected:not(.phone) .dev.tab-hot > .dev-head,
 body.disconnected:not(.phone) .dev.tab-hot > .dev-body { outline: 1px solid color-mix(in srgb, var(--acc) 70%, transparent); outline-offset: -1px; }
+/* a floating window's islands float one height up, like the joined window (L05) */
+body.disconnected:not(.phone) .dev.floating > .dev-head,
+body.disconnected:not(.phone) .dev.floating > .dev-body { box-shadow: var(--surface-shadow-float, var(--glass-shadow)); }
 body.disconnected:not(.phone) .dev.dragging > .dev-head,
 body.disconnected:not(.phone) .dev.dragging > .dev-body {
-  box-shadow: inset 0 1px 0 hsl(0 0% 100% / .1), 0 -6px 16px hsl(0 0% 0% / .34), 0 0 0 1px color-mix(in srgb, var(--acc) 35%, transparent); }
+  box-shadow: var(--state-carried, var(--surface-shadow-float, var(--glass-shadow)), 0 0 0 1px color-mix(in srgb, var(--acc) 35%, transparent)); }
 
 /* LIGHT · THE VIVID SHELL SET (wave 46).  --n1…--n6 were chosen on the dark ground: measured against the
    light card they run 1.25 : 1 … 2.19 : 1, far under the 3 : 1 a 2 px line needs.  Same six hues, chroma up
@@ -428,29 +467,22 @@ body.disconnected:not(.phone) .dev.tab-hot > .dev-body { outline: none; }
 .dev-stat.live { color: var(--acc); }
 .native-info { display: inline-flex; vertical-align: middle; position: relative; height: 28px; align-items: center; }
 .native-info-button { width: 28px; height: 28px; padding: 0; border: 1px solid transparent; border-radius: 50%; background: none; color: var(--dim); cursor: pointer; font: italic var(--w-bold) 12px Georgia, 'Times New Roman', serif; }
-.native-info-button:hover, .native-info-button:focus-visible, .native-info-button[aria-expanded="true"] { color: var(--acc); border-color: var(--glass-hairline); background: var(--state-hover, var(--glass-raise)); outline: none; }
+.native-info-button:hover, .native-info-button[aria-expanded="true"] { color: var(--acc); border-color: var(--glass-hairline); background: var(--state-hover, var(--glass-raise)); }   /* focus is the ring (§6), not this look (L42) */
 .native-info .native-info-content { display: none !important; z-index: 150; top: 100%; left: 0; width: min(340px, calc(100vw - 16px)); max-height: min(360px, calc(100vh - 16px)); overflow: auto; box-sizing: border-box; padding: 14px 16px; border-radius: var(--r-lg); color: var(--fg-soft); font: var(--fs-small)/1.5 var(--font-ui); }
 .control-help { position: fixed; z-index: 10000; width: max-content; max-width: min(280px, calc(100vw - 16px)); box-sizing: border-box; padding: 8px 11px; border-radius: var(--r-md); color: var(--fg-soft); font: var(--fs-small)/1.5 var(--font-ui); pointer-events: none; }
 .control-help[hidden] { display: none; }
-.native-info .native-info-content, .control-help {
-  border: 1px solid hsl(0 0% 100% / .12) !important;
-  background: linear-gradient(160deg, hsl(0 0% 100% / .055), transparent 44%), hsl(214 16% 13% / .98) !important;
-  box-shadow: 0 8px 24px hsl(0 0% 0% / .34), inset 0 1px 0 hsl(0 0% 100% / .05) !important;
-  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
-}
-body[data-theme="light"] .native-info .native-info-content, body[data-theme="light"] .control-help {
-  color: hsl(214 18% 20%);
-  border-color: hsl(214 20% 74% / .72) !important;
-  background: linear-gradient(160deg, hsl(0 0% 100% / .72), transparent 46%), hsl(214 24% 93% / .99) !important;
-  box-shadow: 0 8px 24px hsl(214 28% 28% / .18), inset 0 1px 0 hsl(0 0% 100% / .9) !important;
+.native-info .native-info-content, .control-help {   /* a popover: the TINTED pane at menu height (L10/L11), no blur; layers replace the !important */
+  border: var(--surface-edge-width, var(--glass-border)) solid var(--surface-edge, var(--glass-border-color));
+  background: var(--surface-sheen, var(--glass-sheen)), var(--surface-fill, hsl(var(--glass-tint) / .98));
+  box-shadow: var(--surface-shadow-menu, var(--glass-shadow));
+  -webkit-backdrop-filter: none; backdrop-filter: none;
 }
 .plane-model { display: block; width: 100%; height: 150px; touch-action: none; cursor: grab; }
 .plane-model:active { cursor: grabbing; }
-.plane-model:focus-visible { outline: 1px solid var(--acc); outline-offset: -2px; }
 @media (pointer: coarse) { .native-info-button { min-width: 44px; min-height: 44px; } }
-.native-info .native-info-content { position:fixed !important; inset:auto; margin:0; border:0; }
+.native-info .native-info-content { position:fixed !important; inset:auto; margin:0; }   /* the border is the pane's, above */
 .native-info .native-info-content:popover-open { display:block !important; }
-.plane-model[aria-disabled="true"] { opacity:var(--state-disabled, .35);cursor:default; }
+.plane-model[aria-disabled="true"] { opacity:var(--state-disabled, .38);cursor:default; }
 .plane-model { object-fit:contain; background:var(--glass-well);box-shadow:var(--relief-well, var(--neu-inset));border-radius:8px; }
 body.window-info-off .native-info, body.window-info-off .native-info-content { display:none !important; }
 body.window-info-off .row:has(> .native-info):not(:has(> :not(.native-info))) { display:none; }
