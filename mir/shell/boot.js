@@ -15,11 +15,34 @@
  * bootCard({ name, steps, host = document.body }) → { root, step(text?), done(), fail(error, { retry }), destroy() }
  *   step()      → the next of `steps`;  step('Compiling shaders') → that text
  * explainBoot(error) → { code: 'nogpu' | 'noadapter' | 'lost' | 'link' | 'exception', what, todo }
- * bootDetails(error, { name, steps }) → the text COPY DETAILS puts on the clipboard */
+ * bootDetails(error, { name, steps }) → the text COPY DETAILS puts on the clipboard
+ *
+ * THE BOOT VEIL (BASINS app/main.js armVeil / dismissVeil, overlay.js veilStat, the inline `#veil` of index.html)
+ *   bootVeil({ ready, el, host, timeout = 8000 }) → { el, stat, dismiss(via), done }
+ *   One opaque layer over the stage until THE FIRST REAL FRAME: not `load`, not the end of boot — a configured WebGPU
+ *   canvas is opaque black until something is presented, which is the flash the veil exists to hide.
+ *   · ready   () → true once a picture has been SUBMITTED (BASINS: the pyramid's present count ≥ 1), asked once a frame by
+ *             a rAF chain that stops dead when it fires or times out (so it can never become a poll); or a Promise.
+ *   · ONE MORE FRAME after ready: submitted is not composited.  Then a 160 ms opacity fade (the sheet's --veil-fade),
+ *     and `hidden` 220 ms later.  document.startViewTransition() is a garnish around a no-op where the platform has it,
+ *     never the thing the dismissal waits for (a skipped transition must not leave the veil up).
+ *   · NO MINIMUM TIME, no spinner, no logo.  After `timeout` (8 s) it comes down anyway and says so (`via: 'timeout'`).
+ *   · MEASURED: stat { firstPresentMs (navigation start → ready), dismissedMs, frames, dismissed, via, timeoutMs }, and a
+ *     `boot veil` line in every dump (core/describe.js registerDumpLines).
+ *   · el: the page's own veil (BASINS' `#veil`, or a `.mir-veil`); one is made in `host` when the page has none.
+ *
+ * THE RELOAD OFFER (BASINS gpu.js device.lost → rebootGpu → offerReload)
+ *   watchDevice(device, { recover }) → off()
+ *   A device lost OUTSIDE boot: `recover(info)` (the app's own restart, optional) is tried first; when it resolves true the
+ *   loss was undone and a notice says so.  Otherwise the banner (shell/banner.js) says what happened and offers RELOAD.
+ *   A loss with reason 'destroyed' is the app's own teardown and says nothing.  The words are explainBoot's `lost`. */
 import { el, label, trig } from '../kit.js';
 import { presence } from '../core/motion.js';
+import { registerDumpLines } from '../core/describe.js';
 import { busyMark } from './busy.js';
 import { notice } from './notice.js';
+import { copyText } from './clipboard.js';
+import { fail as bannerFail, offerReload } from './banner.js';
 
 /* `t` here only MARKS a sentence for the catalogue (tools/i18n-extract.mjs reads t('…')); it returns the English, and the
    card translates it where it writes it (label()), so a language change rewrites it in place. */
@@ -103,8 +126,8 @@ export function bootCard({ name = 'MIR', steps = [], host = document.body } = {}
       const acts = el('div', 'mir-boot-acts', root);
       const copy = trig({ label: 'COPY DETAILS', onFire: async () => {
         const text = bootDetails(error, { name, steps: done });
-        try { await navigator.clipboard.writeText(text); notice('The details are on the clipboard.', { kind: 'ok' }); }
-        catch (_) { notice('The clipboard refused; the details are in the console.', { kind: 'warn' }); console.info(text); }
+        if (await copyText(text)) notice('The details are on the clipboard.', { kind: 'ok' });
+        else { notice('The clipboard refused; the details are in the console.', { kind: 'warn' }); console.info(text); }
       } });
       acts.appendChild(copy.root);
       if (typeof retry === 'function') {
@@ -117,4 +140,71 @@ export function bootCard({ name = 'MIR', steps = [], host = document.body } = {}
     destroy() { root.dataset.state = 'gone'; mark.stop(); root.remove(); }
   };
   return api;
+}
+
+/* ── THE BOOT VEIL ────────────────────────────────────────────────────────────────────────────────────────── */
+/** veilLine(stat) → the dump's line, BASINS' words (debug.js 'boot veil') */
+export function veilLine(s) {
+  return 'boot veil   ' + (s.dismissed
+    ? 'down after ' + s.firstPresentMs.toFixed(1) + ' ms (nav -> first present)   dismissed at ' + s.dismissedMs.toFixed(1) +
+      ' ms via ' + s.via + ', ' + s.frames + ' frames waited'
+    : 'UP (no present yet, ' + s.frames + ' frames waited)');
+}
+
+export function bootVeil({ ready = null, el: given = null, host = null, timeout = 8000 } = {}) {
+  const doc = document;
+  let v = given || doc.getElementById('veil') || doc.querySelector('.mir-veil');
+  if (!v) { v = el('div', 'mir-veil', host || doc.getElementById('stage') || doc.body); v.setAttribute('aria-hidden', 'true'); }
+  const stat = { firstPresentMs: 0, dismissedMs: 0, frames: 0, dismissed: false, via: null, timeoutMs: timeout };
+  registerDumpLines('veil', () => [veilLine(stat)]);
+  let settle = null;
+  const done = new Promise((r) => { settle = r; });
+
+  function dismiss(via = 'fade') {
+    if (stat.dismissed) return;
+    stat.dismissed = true; stat.dismissedMs = performance.now(); stat.via = via;
+    /* the fade runs unconditionally and at once; `hidden` only after it, so the transition has something to run on */
+    v.classList.add('gone');
+    setTimeout(() => { v.hidden = true; settle(stat); }, 220);
+    /* the garnish: a platform that has view transitions gets the cross-fade; a hidden document rejects its promises */
+    if (typeof doc.startViewTransition === 'function') {
+      stat.via = via + '+view-transition';
+      if (!doc.hidden) try { const vt = doc.startViewTransition(() => {}); for (const k of ['ready', 'finished', 'updateCallbackDone']) vt[k]?.catch?.(() => {}); } catch (_) { /* the fade already ran */ }
+    }
+  }
+  const t0 = performance.now();
+  let seen = false;
+  const fired = () => { seen = true; stat.firstPresentMs = performance.now(); requestAnimationFrame(() => dismiss('fade')); };   // ONE MORE FRAME: submitted is not composited
+  if (ready && typeof ready.then === 'function') ready.then(() => { if (!seen && !stat.dismissed) fired(); }, () => {});
+  const tick = () => {
+    if (stat.dismissed || seen) return;
+    stat.frames++;
+    if (typeof ready === 'function') { let ok = false; try { ok = !!ready(); } catch (_) { ok = false; } if (ok) { fired(); return; } }
+    if (performance.now() - t0 > timeout) { stat.firstPresentMs = 0; dismiss('timeout'); return; }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+  return { el: v, stat, dismiss, done };
+}
+
+/* ── THE RELOAD OFFER ─────────────────────────────────────────────────────────────────────────────────────── */
+export function watchDevice(device, { recover = null } = {}) {
+  let live = true;
+  if (!device || !device.lost || typeof device.lost.then !== 'function') return () => false;
+  device.lost.then(async (info) => {
+    if (!live) return;
+    const reason = (info && info.reason) || 'unknown';
+    if (reason === 'destroyed') return;                                  // the app's own teardown
+    const why = 'device lost (' + reason + ')' + (info && info.message ? ': ' + info.message : '');
+    if (typeof recover === 'function') {
+      let ok = false;
+      try { ok = !!(await recover(info)); } catch (e) { bannerFail('The graphics device could not be restarted', e); }
+      if (!live) return;
+      if (ok) { notice('The graphics device was reset. The picture is being rebuilt.', { kind: 'info', ms: 4500 }); return; }
+    }
+    const x = explainBoot({ name: 'DeviceLost', message: why });
+    bannerFail('The graphics device was lost', why + '\n' + x.what + ' ' + x.todo);
+    offerReload();
+  });
+  return () => { const was = live; live = false; return was; };
 }

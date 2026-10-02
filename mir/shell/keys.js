@@ -274,6 +274,29 @@ export function localKeyStorage(name = 'mir.keys') {
   };
 }
 
+/* ── the kit's default keys: BASINS' table (app/shell.js: "M modulation, S save, J about, B rack, T dock, H hide,
+      F full screen, Space play"), ruled the kit's default 2026-10-02.  createApp() builds its rows from this map, so
+      a menu, a hint, the help view and the docs all read one place.  An app rebinds by its own row or the KEYBOARD. ── */
+export const KIT_KEYS = Object.freeze({
+  'transport.play': 'Space',     // the one play (shell/transport.js transportActions)
+  save: 'Mod+S',                 // save over the open project (FOLDERS)
+  folders: 'S',                  // FOLDERS (BASINS: its SAVE window)
+  modulation: 'M',
+  notebook: 'J',
+  rack: 'B',                     // hide / show the rack
+  dock: 'T',                     // dock / undock the transport
+  hide: 'H',                     // the whole interface out of paint, and back
+  fullscreen: 'F',
+  help: '?',
+});
+/** toggleFullscreen(doc) — the document full screen, or out of it (BASINS shell.js fullscreen; a refusal is silent) */
+export function toggleFullscreen(doc = globalThis.document) {
+  try {
+    if (doc.fullscreenElement) { const p = doc.exitFullscreen(); if (p && p.catch) p.catch(() => {}); }
+    else { const p = doc.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => {}); }
+  } catch (_) { /* no full screen here (an iPhone): nothing to do */ }
+}
+
 /* ── the table ──────────────────────────────────────────────────────────────────────────────────────────── */
 export function createKeys({ actions = [], storage = null, platform = detectPlatform(), target } = {}) {
   const view = target || (typeof window !== 'undefined' ? window : null);

@@ -35,7 +35,23 @@ keys.hints(document);                                             // every [data
 keys.onChange(() => keys.hints(document));
 ```
 
-With `createApp()` (`mir/app.js`) the table is made for you (`app.keys`): the app's own rows (`createApp({ keys: [...] })`) first, then the kit's: Space the one play (`transportActions`), Ctrl/⌘+S save, F FOLDERS, M modulation, J the notebook, ? the help view, and I held to hold the words on the picture still (`infoActions`). It writes the hints again whenever a window is built, so a lazily built window's `[data-key-action]` shows its key too.
+With `createApp()` (`mir/app.js`) the table is made for you (`app.keys`): the app's own rows (`createApp({ keys: [...] })`) first, then the kit's, which are **BASINS' table** (ruled the kit's default 2026-10-02; `KIT_KEYS` in `mir/shell/keys.js` is the one place they are written):
+
+| Key | Action id | What it does |
+|---|---|---|
+| Space | `transport.play` | the one play (`transportActions`; it works over a focused control) |
+| S | `folders` | FOLDERS (BASINS: its SAVE window) |
+| M | `modulation` | the modulation window |
+| J | `notebook` | the notebook |
+| B | `rack` | HIDE / SHOW the rack |
+| T | `dock` | DOCK / UNDOCK the transport (with a rack and a bar) |
+| H | `hide` | HIDE the interface, and back (`app.hideInterface()`; the focus leaves what is hidden) |
+| F | `fullscreen` | FULL SCREEN, and out of it (`toggleFullscreen()`) |
+| Ctrl/⌘+S | `save` | save over the open project (works in a field too) |
+| ? | `help` | the keys' help view |
+| I (held) | `info-hold` | holds the words on the picture still (`infoActions`) |
+
+Before 1.5.0-alpha.12 the kit had F on FOLDERS; a user who rebound nothing now finds FOLDERS on S. The table writes the hints again whenever a window is built, so a lazily built window's `[data-key-action]` shows its key too.
 
 **A held key.** An action with `up(event, action)` is held: `run` on the press, `up` on that key's release, or when the page loses the focus. INFORMATIONAL's hold-still is one (`infoActions(() => layer)` in `mir/info/layer.js`): in the table, it is listed in the menus and the help view, and Space stays free for play.
 

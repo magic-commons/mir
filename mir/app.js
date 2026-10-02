@@ -6,9 +6,11 @@
  *
  * THE LAWS IT KEEPS
  *   1. THIN.  Every piece is the kit's own constructor, called with the options an app would pass, in this order:
- *      a first run? · the rack (and its float layer) · the look (accent, GUI) · the language · the key table ·
+ *      the banner · a first run? · the rack (and its float layer) · the look (accent, GUI) · the language · the key table ·
  *      modulation · the one clock and the transport bar · the parameters · the pages · the notebook · FOLDERS ·
- *      INFORMATIONAL and its greeting · the keys' help view · the menus · the hints and the pressed look · describe.  It adds no behaviour of its own; read the function below as the checklist.
+ *      INFORMATIONAL and its greeting · the keys' help view · the menus · the hints and the pressed look · describe ·
+ *      the scene guard · the wake lock · the skip link · the live project (off by default).  It adds no behaviour of its
+ *      own; read the function below as the checklist.
  *   2. EVERY PIECE IS OPTIONAL AND STILL YOURS.  Pass `false` to leave one out (`folders: false`), an object to add
  *      options to its constructor (`rack: { favourites: 4 }`), and build any piece by hand instead: each is returned.
  *   3. ONE CLOCK.  The transport's ▶ (and Space) is the app's ONE play; modulation's power only bypasses the routes
@@ -20,26 +22,31 @@
  *
  * makeParam(o) is the one function that makes a number a kit control, a modulation target and a saved value; app.param()
  * is it with the app's state and modulation filled in. */
-import { el, knob, onThemeChange } from './kit.js';
+import { el, knob, onThemeChange, label } from './kit.js';
 import { installPress } from './core/pointer.js';
 import { registerProjectPart } from './core/project.js';
-import { createDescribe } from './core/describe.js';
+import { createDescribe, dumpLines } from './core/describe.js';
 import { frame } from './core/frame.js';
+import { installWakeLock } from './core/wakelock.js';
+import { createSession } from './core/session.js';
 import { installControlHelp } from './control-help.js';
 import { wordmark } from './shell/wordmark.js';
-import { createMenubar } from './shell/menubar.js';
+import { createMenubar, comingRow, purgeRow, copyDumpRow } from './shell/menubar.js';
+import { installBanner } from './shell/banner.js';
+import { createSceneGuard, uiSpace } from './shell/scene-guard.js';
+import { recentRows } from './folders/files.js';
+import * as modBind from './modulation/bind.js';
 import { createAccent } from './shell/accent.js';
 import { createNotebook } from './shell/notebook.js';
 import { gplLicence, kitType } from './shell/about.js';
 import { createPages } from './shell/pages.js';
 import { createRack } from './shell/rack.js';
 import { createGui } from './shell/gui.js';
-import { createKeys, localKeyStorage } from './shell/keys.js';
+import { createKeys, localKeyStorage, KIT_KEYS, toggleFullscreen } from './shell/keys.js';
 import { createTransport, firstRun, rackOpeners, transportActions } from './shell/transport.js';
 import { createKeysHelp } from './keyboard/keyboard.js';
 import { languageMenu, startLanguage } from './shell/language.js';
 import { notice } from './shell/notice.js';
-import { installModulation } from './modulation/bind.js';
 import { createFolders } from './folders/folders.js';
 import { createInfoLayer, infoActions } from './info/layer.js';
 import { greet } from './info/page.js';
@@ -95,12 +102,22 @@ export function makeParam({ state, key, label = String(key).toUpperCase(), min =
  *   pages          rows to add to the pages ({ title, md, shared }); page 0 is the greeting
  *   thumbnail      () → the canvas FOLDERS takes a project's picture from
  *   about          extra ABOUT options (tagline, copyright …); sub: the line under the wordmark
- *   and one entry per piece — gui, transport, rack, mod, notebook, folders, info, greet, help, menubar, describe —
- *   each `false` to leave it out, or an object of extra options for its constructor.
+ *   and one entry per piece — gui, transport, rack, mod, notebook, folders, info, greet, help, menubar, describe, banner,
+ *   sceneGuard, wakeLock — each `false` to leave it out, or an object of extra options for its constructor.
+ *   canvas         the picture's element the scene guard watches (default: the first <canvas> in the stage)
+ *   coming         [[NAME, hint], …] windows to come: disabled '○  NAME  (coming)' rows at the foot of WINDOW
+ *   session        off by default.  true (or { key, …createSession options, auto }) keeps the live project — every
+ *                  registered project part — in one storage key (default '<key>.session'): autosaved 300 ms after a
+ *                  change and on leaving, given back on the next load.  With no opener (wave 13), `auto` (default true)
+ *                  resumes the saved work, or arms autosave, one task after createApp resolves, so the app's own parts
+ *                  registered right after `await createApp()` are in it.  → app.session (core/session.js)
+ *   THE KEYS are BASINS' (shell/keys.js KIT_KEYS): Space play · S FOLDERS · M modulation · J notebook · B the rack ·
+ *   T dock the transport · H hide the interface · F full screen · Ctrl/⌘+S save · ? the keys.
  *   subject        () → { left, top, width, height } in stage px: the thing the words on the picture talk about (the
  *                  board, the ring); the greeting rests beside it, never under the bar or a rack (default: none)
- *   → { first, param, params, playing(), play(), pause(), safeRect(), rack, keys, gui, accent, transport, mod, pages,
- *       notebook, folders, info, greeting, help, menubar, describe, floats }
+ *   → { first, param, params, playing(), play(), pause(), safeRect(), hideInterface(), dump(), rack, keys, gui, accent,
+ *       transport, mod, pages, notebook, folders, info, greeting, help, menubar, describe, floats, banner, sceneGuard,
+ *       wakeLock, session }   (also window.__MIR.app, the live shell object for a rig or the console: BASINS' __BASINS)
  *   The app's `present()` is also called when the theme or the look changes and when a window opens or closes.
  */
 export async function createApp(o = {}) {
@@ -110,6 +127,9 @@ export async function createApp(o = {}) {
   const want = (piece) => o[piece] !== false;
   let tr = null, rack = null, mod = null, notebook = null, folders = null, info = null, help = null;
 
+  /* 0. THE BANNER first, so a problem anywhere below is on the screen (BASINS: "the only debugger on an iPad") */
+  const banner = want('banner') ? installBanner({ host: stage, ...opt(o.banner) }) : null;
+
   /* 0. A FIRST RUN?  Asked before anything is saved: nothing stored → every window stays closed (the opener law) */
   const first = firstRun(key + '.transport', key + '.rack', key + '.modulation');
 
@@ -118,30 +138,45 @@ export async function createApp(o = {}) {
         the bar, the rack shows no + and ☆ of its own: the bar's latches open the windows (as gallery/transport.html) */
   const bar = want('transport') ? el('div', '', host) : null;
   if (bar) bar.id = 'transport';
-  if (want('rack')) rack = createRack({ host, key: key + '.rack', transport: bar, favourites: 0, ...(bar ? { chrome: false, handle: 'always' } : {}), ...opt(o.rack) });
+  if (want('rack')) rack = createRack({ host, key: key + '.rack', transport: bar, favourites: 0, scrollbar: true, name, notebook: () => notebook, ...(bar ? { chrome: false, handle: 'always' } : {}), ...opt(o.rack) });
   const floats = rack ? rack.el.floats : el('div', 'mir-rack-floats', host);
   const moved = (r) => (tr ? tr.moved(r) : rack ? rack.dodge(r) : null);
 
   /* 2. THE LOOK: the GUI window applies the stored theme, accent and glass */
-  const accent = createAccent();
-  const gui = want('gui') ? createGui({ host: floats, app: { name }, accent, about: { fonts: FONTS }, ...opt(o.gui) }) : null;
+  const accent = createAccent({ onAccent: (a, b) => { if (mod && mod.view && typeof mod.view.setAccent === 'function') mod.view.setAccent(a, b); } });   // the modulation window's tints follow the accent
+  const gui = want('gui') ? createGui({ host: floats, app: { name, rack }, accent, about: { fonts: FONTS }, ...opt(o.gui) }) : null;
 
   /* 3. THE LANGUAGE the user chose, before the first label is drawn */
   await startLanguage();
 
-  /* 4. THE KEYS, once, as data: the app's rows first (a chord held twice runs the first), then the kit's */
+  /* 4. THE KEYS, once, as data: the app's rows first (a chord held twice runs the first), then the kit's — BASINS'
+        table (KIT_KEYS): S FOLDERS · M modulation · J notebook · B the rack · T dock · H hide · F full screen · Space play */
+  const K = (id) => [KIT_KEYS[id]];
+  /** hideInterface() — H: the whole interface out of paint and back (BASINS hideUi: the focus leaves what is hidden) */
+  function hideInterface() {
+    const hidden = !document.body.classList.contains('ui-hidden');
+    if (rack) rack.setInterface(!hidden); else document.body.classList.toggle('ui-hidden', hidden);
+    if (hidden && document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    present();
+    return hidden;
+  }
   const keys = createKeys({ storage: localKeyStorage(key + '.keys'), actions: [...(o.keys || []),
     ...(bar ? transportActions(() => tr) : []),
-    { id: 'save', label: 'SAVE', group: 'FILE', keys: ['Mod+S'], inFields: true, run: () => folders && folders.save() },
-    { id: 'folders', label: 'FOLDERS', group: 'WINDOW', keys: ['F'], run: () => folders && folders.toggle() },
-    { id: 'modulation', label: 'MODULATION', group: 'WINDOW', keys: ['M'], run: () => mod && mod.toggle() },
-    { id: 'notebook', label: 'NOTEBOOK', group: 'WINDOW', keys: ['J'], run: () => notebook && notebook.toggle() },
-    { id: 'help', label: 'KEYS', group: 'WINDOW', keys: ['?'], run: () => help && help.toggle() },
+    { id: 'save', label: 'SAVE', group: 'FILE', keys: K('save'), inFields: true, run: () => folders && folders.save() },
+    { id: 'folders', label: 'FOLDERS', group: 'WINDOW', keys: K('folders'), run: () => folders && folders.toggle() },
+    { id: 'modulation', label: 'MODULATION', group: 'WINDOW', keys: K('modulation'), run: () => mod && mod.toggle() },
+    { id: 'notebook', label: 'NOTEBOOK', group: 'WINDOW', keys: K('notebook'), run: () => notebook && notebook.toggle() },
+    { id: 'help', label: 'KEYS', group: 'WINDOW', keys: K('help'), run: () => help && help.toggle() },
+    ...(want('rack') ? [{ id: 'rack', label: 'HIDE / SHOW the rack', group: 'WINDOW', keys: K('rack'), run: () => rack && rack.toggleHidden() }] : []),
+    ...(want('rack') && bar ? [{ id: 'dock', label: 'DOCK / UNDOCK the transport', group: 'WINDOW', keys: K('dock'), run: () => tr && tr.dock(!tr.docked) }] : []),
+    { id: 'hide', label: 'HIDE the interface', group: 'VIEW', keys: K('hide'), run: hideInterface },
+    { id: 'fullscreen', label: 'FULL SCREEN', group: 'VIEW', keys: K('fullscreen'), run: () => toggleFullscreen(document) },
     ...(want('info') ? infoActions(() => info) : []),
   ] });
 
   /* 5. MODULATION: the window and its seam.  Targets arrive through app.param(), a lazily built window's when it is built */
-  if (want('mod')) mod = installModulation({ mount: floats, params: [], present, storageKey: key + '.modulation', presetKey: key + '.modpresets', moved, ...opt(o.mod) });
+  if (want('mod')) mod = modBind.installModulation({ mount: floats, params: [], present, storageKey: key + '.modulation', presetKey: key + '.modpresets', moved,
+    ...(gui && typeof gui.sampling === 'function' ? { automationGrid: gui.sampling().grid } : {}), ...opt(o.mod) });   // GUI › SAMPLING · AUTOMATION, saved
 
   /* 6. THE ONE CLOCK and THE TRANSPORT BAR, the main opener: ▶ (and Space) plays; the power ring is modulation's */
   const clock = o.clock || (mod ? { play: () => mod.play(true), pause: () => mod.play(false), isPlaying: () => mod.playing(), onChange: (fn) => mod.onPlay(fn) } : null);
@@ -186,7 +221,11 @@ export async function createApp(o = {}) {
         and FILE › SAVE / Ctrl+S (the key table's 'save' row) save over the open project */
   if (want('folders')) folders = createFolders({ host: floats, app: key, store: key + '.folders', rack,
     adapter: o.thumbnail ? { thumbnail: o.thumbnail } : {}, onMoved: moved,
-    say: (text, warn) => notice(text, { kind: warn ? 'warn' : 'ok' }), ...opt(o.folders) });
+    say: (text, warn) => notice(text, { kind: warn ? 'warn' : 'ok' }),
+    /* A PROJECT SAVE IS ALSO A PRESET (Josh 10-01): with modulation installed, every save writes the rack as a preset
+       named the project in CAPS (modulation/bind.js upsertProjectPreset) */
+    onSaved: (e) => { if (mod && e && e.name && typeof modBind.upsertProjectPreset === 'function') modBind.upsertProjectPreset(e.name); },
+    ...opt(o.folders) });
 
   /* 11. INFORMATIONAL: words on the picture, never under the bar or a rack; the greeting is page 0's first part */
   const keepClear = () => (rack ? rack.keepClear() : bar && bar.isConnected && bar.offsetWidth ? [bar.getBoundingClientRect()] : []);
@@ -195,14 +234,24 @@ export async function createApp(o = {}) {
 
   /* 12. THE KEYS' HELP VIEW (?) and THE MENUS: data; WINDOW from the rack, LANGUAGE from the kit, keys from the table */
   if (want('help')) help = createKeysHelp({ keys, host: floats });
-  const k = (id) => keys.menuItem(id);
+  /* the menus are BASINS' (app/shell.js): FILE ends with the five recent projects (↺), EDIT has PLAY / PAUSE and Purge
+     Cache/RAM, VIEW hide and full screen, WINDOW the kit's windows with their keys then the rack's, and the windows to
+     come; ABOUT · SETTINGS · COPY DUMP.  A row whose piece is left out is not shown. */
+  const k = (id) => (keys.get(id) ? keys.menuItem(id) : undefined);
+  const rows = (...list) => list.filter((x) => x !== undefined);
+  const dump = () => (describe ? describe.dump() : dumpLines().join('\n'));
   const M = o.menus || {};
   const menus = {
-    FILE: M.FILE || (() => [k('save'), ['NEW', () => folders && folders.fresh()], k('folders')]),
-    ...(M.EDIT ? { EDIT: M.EDIT } : {}), ...(M.VIEW ? { VIEW: M.VIEW } : {}),
-    WINDOW: M.WINDOW || (() => [...(rack ? rack.windowMenu() : []), null, k('modulation'), k('notebook'), k('help')]),
+    FILE: M.FILE || (() => rows(folders ? k('save') : undefined, folders ? ['NEW', () => folders.fresh()] : undefined, folders ? k('folders') : undefined,
+      ...(folders ? recentRows(folders.files, 5, (id) => { folders.open(); folders.openEntry(id); }) : []))),
+    EDIT: M.EDIT || (() => rows(bar ? k('transport.play') : undefined, bar ? null : undefined, purgeRow({ name }))),
+    VIEW: M.VIEW || (() => rows(k('hide'), k('fullscreen'))),
+    WINDOW: M.WINDOW || (() => rows(mod ? k('modulation') : undefined, folders ? k('folders') : undefined, notebook ? k('notebook') : undefined,
+      help ? k('help') : undefined, k('rack'), k('dock'), ...(rack ? [null, ...rack.windowMenu()] : []),
+      ...((o.coming || []).length ? [null, ...o.coming.map(([n, h]) => comingRow(n, h))] : []))),
     ...Object.fromEntries(Object.entries(M).filter(([g]) => !['FILE', 'EDIT', 'VIEW', 'WINDOW', 'ABOUT', 'LANGUAGE', 'GUI'].includes(g))),
-    ABOUT: M.ABOUT || (() => [['ABOUT ' + name, () => notebook && notebook.open('about')]]),
+    ABOUT: M.ABOUT || (() => rows(['ABOUT ' + name, () => notebook && notebook.open('about')],
+      gui ? ['SETTINGS…', () => gui.open('options')] : undefined, null, copyDumpRow(dump))),
     LANGUAGE: M.LANGUAGE || languageMenu(),
     GUI: M.GUI || (() => [['MIR OPTIONS', () => gui && gui.open('options')], ['MIR ABOUT', () => gui && gui.open('about')]]),
   };
@@ -226,6 +275,30 @@ export async function createApp(o = {}) {
   if (want('describe')) describe = createDescribe({ app: { name, version: o.version || '', what: o.what || '' }, rack, params: () => params, pages, keys,
     prefs: gui ? gui.prefs : null, mod, transport: tr, ...opt(o.describe) });
 
+  /* 15. THE SCENE GUARD: the UI's space (a rack column, a floating window's whole rect, its gaps and corners) never lets a
+         wheel or a press fall through to the picture (shell/scene-guard.js; Josh 10-01) */
+  const canvas = o.canvas || stage.querySelector('canvas');
+  const sceneGuard = want('sceneGuard') && canvas ? createSceneGuard({ canvas, rects: uiSpace({ rack, layer: floats }), ...opt(o.sceneGuard) }) : null;
+
+  /* 16. THE WAKE LOCK: the screen stays on while the one clock plays (core/wakelock.js); app.wakeLock.hold(reason) for a recorder */
+  const wakeLock = want('wakeLock') && clock ? installWakeLock({ clock, ...opt(o.wakeLock) }) : null;
+
+  /* 17. THE SKIP LINK (BASINS index.html a.skip): the first Tab stop moves the focus to the rack */
+  const rackEl = rack && rack.el.racks && (rack.el.racks.right || rack.el.racks.left);
+  if (rackEl && rackEl.id && !host.querySelector(':scope > a.skip')) {
+    const skip = label(el('a', 'skip'), 'skip to the device rack'); skip.href = '#' + rackEl.id;
+    host.insertBefore(skip, host.firstChild);
+    skip.addEventListener('click', (e) => { const t = document.getElementById(rackEl.id); if (!t) return; e.preventDefault(); t.focus(); });
+  }
+
+  /* 18. THE LIVE PROJECT (off by default): one session over every registered project part (core/session.js) */
+  let session = null;
+  if (o.session) {
+    const so = opt(o.session);
+    session = createSession({ key: key + '.session', ...so });
+    if (so.auto !== false) setTimeout(() => { try { if (session.hasResume()) session.resume(); else session.arm(); } catch (err) { console.warn('session', err); } }, 0);
+  }
+
   /** safeRect() — where the picture may draw: the stage minus the racks showing a window and the transport bar, in the
    *  stage's own px { left, top, width, height } (the same free stage the words on the picture keep to) */
   function safeRect() {
@@ -241,10 +314,13 @@ export async function createApp(o = {}) {
     return { left: L, top: T, width: R - L, height: B - T };
   }
 
-  return { name, key, first, param, params, clock, safeRect,
+  const app = { name, key, first, param, params, clock, safeRect, hideInterface, dump,
     /** the one clock: playing(), and play() / pause() as the bar's ▶ would (a game over pauses it itself) */
     playing: () => !!(clock && clock.isPlaying()),
     play: () => (tr ? tr.play() : clock && !clock.isPlaying() ? clock.play() : null),
     pause: () => (tr ? tr.pause() : clock && clock.isPlaying() ? clock.pause() : null),
-    accent, gui, keys, transport: tr, rack, mod, pages, notebook, folders, info, greeting, help, menubar, describe, floats };
+    accent, gui, keys, transport: tr, rack, mod, pages, notebook, folders, info, greeting, help, menubar, describe, floats,
+    banner, sceneGuard, wakeLock, session };
+  (globalThis.__MIR = globalThis.__MIR || {}).app = app;     // the live shell object for a rig or the console (BASINS' window.__BASINS)
+  return app;
 }

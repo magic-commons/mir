@@ -443,4 +443,34 @@ select.sel { min-height: var(--touch); padding: 0 8px; border-radius: var(--r-md
 .sw[data-mode] { min-width:112px; }
 .sw[data-mode]::after { content:attr(data-mode); font-size:var(--fs-micro); margin-inline-start:auto; opacity:var(--sw-mode-fade); }
 
+/* THE SKIP LINK (BASINS skin.css:50–53, index.html a.skip): out of sight until the keyboard reaches it, then a raised pill
+   in the top corner; createApp() puts one first in the page, pointing at the rack */
+.skip { --skip-fill: hsl(var(--glass-tint) / .98);
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.skip:focus { width: auto; height: auto; clip-path: none; left: 8px; top: 8px; z-index: 9999; padding: 6px 10px;
+  border-radius: var(--r-pill); background: var(--skip-fill); color: var(--fg); box-shadow: var(--relief-raise, var(--neu-raise));
+  font: var(--w-bold) var(--fs-small)/1 var(--font-ui); letter-spacing: var(--tr-wide); text-decoration: none; }
+
+/* THE TOUCH TABLET (BASINS tablet.css, Safari's paint fix; `body.touch-tablet` is set by the GUI's device tier).  A
+   disconnected window's root is hidden and its head and body re-shown; WebKit will not composite panes through a hidden,
+   contained ancestor, so on a coarse tablet the root is VISIBLE AND PAINTLESS instead — still pointer-transparent, each
+   pane owning its glass and its events.  Each floating pane scrolls inside the screen (the page cannot), and the
+   desktop's 22 px chips grow to a finger's 38 (44 for the head). */
+@media (min-width: 701px) {
+  body.touch-tablet.disconnected:not(.phone) .dev { visibility: visible; contain: none; }
+  body.touch-tablet.disconnected:not(.phone) :is(.mir-rack, .mir-rack-floats) > .dev { pointer-events: none; }
+  /* the frost rule would otherwise put a second backdrop on the transparent root, under the head's and body's */
+  body.touch-tablet.disconnected.frost:not(.phone) .dev { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  body.touch-tablet.disconnected:not(.phone) .mir-rack-floats > .dev:not(.compact) > .dev-body {
+    max-height: calc(100dvh - 88px); min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  body.touch-tablet .mir-rack-floats > .dev:not(.compact) { max-height: calc(100dvh - 16px); }
+  body.touch-tablet .dev-head { min-height: 44px; }
+  body.touch-tablet .dev-util > :is(.dev-swap, .dev-copy) { display: none; }
+  body.touch-tablet .dev-head > .dev-util { gap: 2px; }
+  body.touch-tablet .dev-head .dev-util > button:not(.dev-rail) { width: 38px; min-width: 38px; height: 38px; margin: 0; }
+  body.touch-tablet .dev.floating .dev-head .dev-util > .dev-rail { width: 38px; min-width: 38px; height: 38px; margin: 0; }
+  body.touch-tablet .dev-head .dev-power::before { inset: 14px; }
+  body.touch-tablet .dev-head .dev-power::after { top: 12px; }
+}
+
 }   /* end @layer mir.kit.house */

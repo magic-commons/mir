@@ -109,6 +109,15 @@ export function savedAtLabel(at) {
   return mon + ' ' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
 }
 
+/** recentRows(files, n = 5, open) → menu rows for the last `n` saved projects, newest first (BASINS shell.js FILE menu):
+ *  ['↺  NAME', () => open(id), null, 'FOLDER / NAME' (root: 'ROOT / NAME'), { raw: true }] — a name is never translated.
+ *  `files` is a library (createFiles, or FOLDERS' `folders.files`) or a plain list of entries. */
+export function recentRows(files, n = 5, open = () => {}) {
+  const list = Array.isArray(files) ? files : files && typeof files.entries === 'function' ? files.entries() : [];
+  return list.filter((e) => e && e.id).slice().sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, n)
+    .map((e) => ['↺  ' + e.name, () => open(e.id, e), null, (e.folder ? e.folder : 'ROOT') + ' / ' + e.name, { raw: true }]);
+}
+
 /** one entry passes inspection */
 export function entryOk(e) {
   return !!(e && typeof e === 'object' && typeof e.id === 'string' && e.id &&

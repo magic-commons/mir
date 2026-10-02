@@ -29,7 +29,9 @@
  * measureState(state, opts) → { text, length, ceiling, fits, keys }
  * createShareLink(opts) → { encode, decode, read(), write(state), copy(state) → Promise<url>, url(state), destroy() } */
 
-export const LINK_CEILING = 2000;            // what a URL should stay under to survive browsers, chat apps and mail (λWAVES)
+import { copyText } from './clipboard.js';
+
+export const LINK_CEILING = 2000;           // what a URL should stay under to survive browsers, chat apps and mail (λWAVES)
 const EPS = 1e-9;
 
 /* ── CRC32 (the PNG one), over a string's UTF-8 ───────────────────────────────────────────────────────── */
@@ -157,7 +159,7 @@ export function createShareLink(opts = {}) {
     },
     url: (state) => base() + encodeState(state, o),
     /** copy the link to the clipboard → the url (it is also returned when the clipboard refuses) */
-    async copy(state) { const u = api.url(state); try { await navigator.clipboard.writeText(u); } catch (_) {} return u; },
+    async copy(state) { const u = api.url(state); await copyText(u); return u; },   // shell/clipboard.js: the textarea fallback too
     destroy() { clearTimeout(timer); timer = 0; pending = null; }
   };
   return api;

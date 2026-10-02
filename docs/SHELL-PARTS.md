@@ -17,6 +17,12 @@ Try them all: `gallery/parts.html` (`?theme=light`, `?lang=qps`). Plates, dark a
 | `mir/shell/flash-guard.js` | the flash limiter, the field judge, the photosensitivity notice | POLAR and EARTH (the route-naming guard), λWAVES (the notice) |
 | `mir/shell/share-link.js` | the share-link codec | SOLEIL, AUTOMATA, EARTH, POLAR (the shape), λWAVES (the header law) |
 | `mir/shell/settings-rows.js` | a settings panel built from rows of data; the `select` and `number` fields | NEBULA (`control()` and the edit-ownership law) |
+| `mir/shell/banner.js` + `banner.css` | the banner: a persistent, dismissable pane of problems, and the reload offer | BASINS (`overlay.js report / fail / warn / offerReload`, `#banner`) |
+| `mir/shell/boot.js` `bootVeil`, `watchDevice` | the veil until the first real frame; a lost GPU offers RELOAD | BASINS (`main.js armVeil / dismissVeil`, `gpu.js` device lost) |
+| `mir/shell/clipboard.js`, `menubar.js` rows | `copyText` with the textarea fallback; COPY DUMP, Purge Cache/RAM, the "coming" rows, recent projects | BASINS (`shell.js` menus, `debug.js copyDebugInfo`) |
+| `mir/core/wakelock.js` | the screen stays on while the clock plays or something records | BASINS (`wakelock.js`, node-tested) |
+
+`createApp()` (`mir/app.js`) wires the last four for you: the banner first (every uncaught error lands in it), the wake lock on the one clock, the menus with the rows, and `app.dump()`.
 
 All of them write their words through the language seam (`label()` / `t()`, docs/LANGUAGES.md): pass English, and a language change rewrites it in place.
 
@@ -239,16 +245,107 @@ panel.sync();   // after the engine changed something: repaints only what moved,
 
 **An app deletes:** NEBULA's `control()` and `bindWidget()` (main.js:113-161) and its `.choice select` / `.number-control` CSS; SOLEIL's and EARTH's raw `<select>`s and their `--option-ink` fixes; AUTOMATA's `seg` standing in for a port list; each app's hand-built SETTINGS groups (APPEARANCE, SAFETY, WORKSPACE).
 
+## 8. Banner — `mir/shell/banner.js`
+
+A pane of what went wrong that stays until it is put down. The notice leaves by itself; the banner is for the problem somebody must read and report. BASINS' words: "The overlay is our only debugger: the user is a non-programmer on an iPad with no console."
+
+```html
+<link rel="stylesheet" href="mir/shell/banner.css">
+```
+```js
+import { installBanner, fail, warn, report, offerReload, problems } from './mir/shell/banner.js';
+installBanner({ host: stage });                 // createApp does this first; also reports every uncaught error and rejection
+warn('The tile cache is full', 'oldest tiles are being dropped');
+fail('The picture broke', error);               // an Error shows its name, message and stack
+offerReload();                                  // the last honest move, once recovery itself has failed
+```
+
+| Law | How |
+|---|---|
+| One line per title | the same title again counts on its first line, `(x3)`: a failure in a frame loop never appends a node a frame |
+| At most 30 problems drawn | after that the console and the dump still have everything |
+| An error makes it an error pane | `data-kind="error"` for good; warnings alone leave it `warn` |
+| Dismissable | the × (26 px of ink, 44 px of finger) hides it; a new problem shows it again |
+| In the dump | `--- problems (n) ---` and every problem with its detail, drawn or not |
+| BASINS' look | one pane at 40 % of the stage, at most 520 px, BASINS' maroon (`--banner-fill`, `--banner-edge`) with its own near-white ink on both themes (`--banner-ink`): the pane does not follow the theme, so its ink cannot either. No shadow, no scrim |
+
+## 9. Boot veil and the reload offer — `mir/shell/boot.js`
+
+**The veil** covers the stage until the FIRST REAL FRAME. A configured WebGPU canvas is opaque black until something is presented; that flash is what the veil hides, so it comes down after the first present, not on `load` and not when boot returns.
+
+```html
+<!-- in <head>, before any sheet, so the first paint is already covered (BASINS' index.html) -->
+<style>.mir-veil { position: fixed; inset: 0; z-index: 40; background: #000; pointer-events: none; transition: opacity 160ms ease; }
+  .mir-veil.gone { opacity: 0; } .mir-veil[hidden] { display: none; }</style>
+<!-- first in the stage -->  <div class="mir-veil" aria-hidden="true"></div>
+```
+```js
+import { bootVeil, watchDevice } from './mir/shell/boot.js';
+const veil = bootVeil({ ready: () => renderer.presents > 0 });   // or a Promise; asked once a frame until it holds
+// veil.stat → { firstPresentMs, dismissedMs, frames, dismissed, via, timeoutMs }
+```
+
+| Law | How |
+|---|---|
+| After the first present, plus one frame | submitted is not composited: one more frame, then a 160 ms opacity fade, `hidden` 220 ms later |
+| The fade never waits on a transition | `startViewTransition()` is a garnish around a no-op where the platform has it (`via: 'fade+view-transition'`); while it runs, about 250 ms, the page takes no input |
+| No minimum time, no spinner | after 8 s it comes down anyway and says so (`via: 'timeout'`) |
+| Measured | navigation start → first present on `stat`, and a `boot veil` line in every dump |
+| A rAF chain that stops dead | it asks `ready()` once a frame and stops when it holds or times out: never a poller |
+
+**The reload offer.** `watchDevice(device, { recover })` watches a GPU device after boot. When it is lost, the app's own `recover(info)` is tried first; if it resolves true, a notice says the picture is being rebuilt. If not, the banner says what happened (the boot card's `lost` words) and offers **Reload the page**. A loss with reason `destroyed` is the app's own teardown and says nothing.
+
+## 10. Copy, the dump and the menu rows — `mir/shell/clipboard.js`, `mir/shell/menubar.js`
+
+`copyText(text) → Promise<boolean>`: the clipboard API, then a hidden read-only textarea and `execCommand('copy')` (an older Safari, a refused permission). It never throws. The share link's `copy()` and the boot card's COPY DETAILS use it.
+
+**The dump lines.** `registerDumpLines(name, fn)` (`mir/core/describe.js`) adds a module's own lines to every dump; `fn()` returns an array of strings, a second registration under a name replaces the first, and a producer that throws is one line naming it, never a lost dump. The banner (`problems`), the veil (`boot veil`) and the wake lock (`wakeLock`) register theirs. `app.dump()` (createApp) is describe's dump with them.
+
+**The rows** (each one menu entry, for `createMenubar({ menus })`):
+
+| Row | What it is |
+|---|---|
+| `copyDumpRow(dump)` | ABOUT › **COPY DUMP**: the dump to the clipboard, for a tablet with no console; a notice says whether it worked, and a failed copy prints it to the console |
+| `purgeRow({ name })` | EDIT › **Purge Cache/RAM**: reloads to give the session's memory back; saved projects and settings are kept |
+| `comingRow(name, hint)` | `○  NAME  (coming)`, disabled, its hint naming the window to come; `createApp({ coming: [[NAME, hint]] })` puts them at the foot of WINDOW |
+| `recentRows(files, 5, open)` (`mir/folders/files.js`) | FILE › the last five projects as `↺  NAME`, newest first, the folder in the hint; createApp opens one in FOLDERS |
+
+createApp's menus are BASINS': FILE (SAVE, NEW, FOLDERS, the recent projects) · EDIT (PLAY / PAUSE, Purge Cache/RAM) · VIEW (HIDE the interface, FULL SCREEN) · WINDOW (MODULATION, FOLDERS, NOTEBOOK, KEYS, HIDE / SHOW the rack, DOCK / UNDOCK the transport, then the rack's windows, then the windows to come) · ABOUT (ABOUT, SETTINGS…, COPY DUMP) · LANGUAGE · GUI. Each takes the key from the table. `window.__MIR.app` is the live app object for a rig or the console (BASINS' `window.__BASINS`).
+
+## 11. Wake lock — `mir/core/wakelock.js`
+
+The screen stays on while the one clock plays, or while something holds it (a recorder). BASINS' state machine as it stands, every platform dependency injected, so every transition runs under node.
+
+```js
+import { installWakeLock } from './mir/core/wakelock.js';
+const wake = installWakeLock({ clock });         // createApp does this: app.wakeLock
+recordButton.onclick = () => { const release = wake.hold('record'); recorder.start().finally(release); };   // inside the tap: a gesture
+```
+
+| Law (BASINS, proved on an iPad) | How |
+|---|---|
+| A context with no gesture only ARMS | a restored play, a resume: it never asks, so it can never be refused |
+| An armed lock asks inside live activation | on pointerup (touch and pen), pointerdown (a mouse), a key that is not Escape; where `navigator.userActivation` says no activation is live, it spends nothing and stays armed |
+| A play inside a tap asks at once | the bar's ▶, Space, a RECORD press carry activation, so the request is made in the same stack |
+| Three refusals stop the asking | only a refusal with a real gesture in hand counts (Low Power Mode is the known cause); a success resets it |
+| The platform lets go on a hidden page | a visible page again re-arms; the next touch asks |
+| Idle costs nothing | it moves only on the clock's change, a hold and visibility: no timer, no poller |
+
+`wake.state()` → `{ state, held, armed, denials, skips, attempts, acquires, releases, refusals, holds }`; the dump carries one `wakeLock` line in BASINS' words.
+
 ---
 
 ## Tokens
 
 Every look value is a token declared on the part's own root in `parts.css` (group `shell-parts` in `mir/tokens.json`): `--dialog-w/-pad/-gap/-gutter/-max-h/-z`, `--caution-size`, `--notice-w/-inset/-gap/-z/-pad/-bar/-x`, `--busy-size/-turn/-breathe/-ease/-low/-ring/-off`, `--boot-w/-pad/-gutter`, `--settings-gap`, `--field-h/-pad`. Written by script: `--busy-c` (a square's colour), `--busy-x/-y` (the pointer seat). The materials are the kit's: `.glass`, `--surface-shadow-menu`, `--relief-well`, `--glass-well`, `--state-focus`.
+`banner.css` declares, on `.mir-banner`, `--banner-fill`, `--banner-edge`, `--banner-ink`, `--banner-x-hover`, `--banner-w`, and on `.mir-veil` `--veil-fill`, `--veil-fade`, `--veil-ease` (BASINS' values). `base.css` declares `--skip-fill` on the skip link.
 
 ## Proofs
 
 | Test | What it proves |
 |---|---|
+| `tests/wakelock.node.mjs` | the wake lock's law under node (arm only without a gesture, the granting events, the activation veto, three strikes, the platform's release); held while the clock plays and by `hold()`; never while hidden; the dump lines registry; `recentRows`; BASINS' key table |
+| `tests/scene-guard.browser.mjs` (its last checks) | the banner de-duplicates and counts, is an error pane in BASINS' maroon, offers RELOAD, and its × (hit-tested) puts it down; the boot veil comes down after its first frame; the dump carries problems, the veil and the wake lock |
 | `tests/share-link.node.mjs` | the round trip; only what differs; typed by the defaults; cut short at every length, edited, or garbage → `null`, never a throw; versions; the length report |
 | `tests/flash-guard.node.mjs` | a 10 Hz square wave comes out at ≤ 3 flashes in every second and the trip names its route and its 10 Hz; a slow sine passes untouched; routes are judged apart; the field judge trips and lets go |
 | `tests/parts.browser.mjs` | real pointer and keys, hit-tested with `elementFromPoint`: the dialog traps and returns focus, resolves, is dismissed by Escape and by a press outside that never reaches the stage, and paints no scrim; the toast is one seat, centred within 1 px, 84 px up (or an app's offset), with no ×, a second replaces the first, it holds under the pointer and leaves, and the corner seat still stacks; the busy mark animates only translate and opacity and writes nothing when stopped; the boot card fails into a readable message; a switch row changes its value; `sync()` during a fader drag leaves the fader alone; everything reads in the pseudo-language |

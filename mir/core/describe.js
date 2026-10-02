@@ -38,7 +38,29 @@
  *   max     how many events and errors are kept (default 20 each)
  * It also sets `window.__MIR.describe` and `window.__MIR.dump` for an agent with a console.
  *
- * Pure, node-tested: describeText(state), dumpText(state), targetOf(node), eventEntry(event), scrub(text, typed). */
+ * Pure, node-tested: describeText(state), dumpText(state), targetOf(node), eventEntry(event), scrub(text, typed).
+ *
+ * THE DUMP LINES (BASINS overlay.js registerDumpLines): any module adds its own lines to every dump, by name.
+ *   registerDumpLines(name, fn) — fn() → [string]; a second registration under a name replaces the first; → off()
+ *   dumpLines() → [string]: every producer's lines in registration order.  TOTAL BY CONSTRUCTION: a producer that throws
+ *   is one line naming it, never a lost dump (BASINS: "a broken diagnostic must never be able to destroy the dump").
+ *   dump() prints them after the cost line, before the errors; the banner, the boot veil and the wake lock register theirs. */
+const PRODUCERS = [];
+export function registerDumpLines(name, fn) {
+  if (typeof fn !== 'function') return () => false;
+  const i = PRODUCERS.findIndex((p) => p.name === String(name));
+  const rec = { name: String(name), fn };
+  if (i >= 0) PRODUCERS[i] = rec; else PRODUCERS.push(rec);
+  return () => { const j = PRODUCERS.indexOf(rec); if (j >= 0) PRODUCERS.splice(j, 1); return j >= 0; };
+}
+export function dumpLines() {
+  const out = [];
+  for (const p of PRODUCERS) {
+    try { const L = p.fn(); if (Array.isArray(L)) for (const s of L) out.push(String(s)); }
+    catch (e) { out.push(p.name + '  [dump producer threw: ' + String((e && e.message) || e) + ']'); }
+  }
+  return out;
+}
 import { MIR_VERSION } from '../version.js';
 import { perf } from './perf.js';
 import { frame } from './frame.js';
@@ -129,6 +151,7 @@ export function dumpText(s = {}) {
   const out = ['```mir-dump', `app: ${(s.app && s.app.name) || '?'}${s.app && s.app.version ? ' ' + s.app.version : ''} · MIR ${MIR_VERSION} · ${s.made || ''}`];
   if (s.browser) out.push(`browser: ${s.browser}`);
   out.push(`look: ${json(s.look || {})}`, `prefs: ${json(s.prefs || null)}`, `layout: ${json(s.layout || null)}`, `cost: ${json(s.cost || {})}`);
+  for (const line of s.lines || []) out.push(line);
   out.push(`errors (${(s.errors || []).length}):`); for (const e of s.errors || []) out.push(`  +${e.at}ms ${e.message}${e.where ? ' @ ' + e.where : ''}`);
   out.push(`events (${(s.events || []).length}, kinds and targets only):`);
   for (const e of s.events || []) out.push(`  +${e.at}ms ${e.kind} ${e.target}${e.key ? ' ' + e.key : ''}${e.pointer ? ' ' + e.pointer : ''}`);
@@ -195,7 +218,7 @@ export function createDescribe({ app = {}, rack = null, params = [], pages = nul
   function dump() {
     const text = dumpText({ app, made: new Date().toISOString(), browser: globalThis.navigator ? navigator.userAgent : 'node',
       look: look(), prefs: prefs ? prefs.all() : null, layout: rack && rack.capture ? rack.capture() : null, cost: perf.snapshot(),
-      errors, events, describe: describe() });
+      lines: dumpLines(), errors, events, describe: describe() });
     return scrub(text, typed());
   }
 

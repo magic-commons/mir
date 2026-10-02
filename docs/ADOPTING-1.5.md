@@ -57,6 +57,8 @@ An unlayered app rule beats every kit layer, whatever the state. So the kit's `:
 
 An app's picture gestures (wheel zoom, drag to pan, a click that places something) must treat a floating window's **whole rect** as UI space: its gaps between parts and its round corners included, not only the elements under the pointer. Test the rect, not `event.target`: `rack.keepClear()` gives the rects of the racks and the transport bar, and each kit window's `rect()` its own. Inside the rack's float layer (`rack.el.floats`, where `createApp` mounts the kit's windows) the layer is `pointer-events: none` and each window `auto`, so a window takes the pointer; a press in a window's gap must still not reach the picture.
 
+**The kit does this for you since 1.5.0-alpha.12:** `mir/shell/scene-guard.js` (`docs/SCENE-GUARD.md`), BASINS' scene input guard. `createApp()` installs it on the stage's canvas (`app.sceneGuard`); by hand it is `createSceneGuard({ canvas, rects: uiSpace({ rack }) })`, or `install: false` and your gesture engine calls `guard.hit(e)` / `guard.wheel(e, region)` as BASINS' `gestures.js` does. A wheel in UI space goes to the UI's scroller, never the picture; a tap or a swipe from a gap starts nothing.
+
 ## 6. Behaviour that changed under an app in 1.5.0-alpha.5
 
 - **The notice is BASINS' toast by default**: one centred pill above the bottom, a new message replaces the old. An app that relied on NEBULA's corner stack passes `seat: 'corner'`.

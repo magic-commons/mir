@@ -35,10 +35,32 @@
  *   host    where the <nav id="menubar"> is appended (λWAVES: #lab)
  *   label   the opener's aria-label (default: '<word> — the <GROUPS> menus')
  *   phone   () => boolean, the phone law (default: the --phone sentinel, or body.phone)
- *   keep    () => Element[] — presses inside these do not close the bar (λWAVES: #rackToggle) */
+ *   keep    () => Element[] — presses inside these do not close the bar (λWAVES: #rackToggle)
+ *
+ * THE ROW HELPERS (BASINS app/shell.js menus; each returns one entry, ready for a `menus` function)
+ *   comingRow(name, hint)   '○  NAME  (coming)', disabled, its hint naming the window to come (BASINS' SEEDS rows)
+ *   purgeRow({ name })      'Purge Cache/RAM': reloads the page to give its memory back; saved projects and settings stay
+ *   copyDumpRow(dump)       'COPY DUMP': dump() (createApp: describe's dump with every registered dump line) to the
+ *                           clipboard through shell/clipboard.js copyText, its fallback included, for a tablet with no
+ *                           console; a notice says whether it worked (BASINS debug.js copyDebugInfo)
+ *   Recent projects are FOLDERS' (folders/files.js recentRows). */
 import { el, label as writeLabel } from '../kit.js';
 import { t, onLanguage } from '../core/i18n.js';
 import { setVar } from '../core/perf.js';
+import { copyText } from './clipboard.js';
+import { notice } from './notice.js';
+
+/** comingRow(name, hint) — a disabled row for a window that is not built yet (BASINS: '○  JULIA  (coming)') */
+export const comingRow = (name, hint = '') => ['○  ' + name + '  (coming)', () => {}, () => true, hint];
+/** purgeRow({ name }) — EDIT › Purge Cache/RAM (BASINS' words; the app's name in the hint) */
+export const purgeRow = ({ name = 'the app' } = {}) => ['Purge Cache/RAM', () => location.reload(), null,
+  t('Reload {name} to release the current session’s memory. Saved projects and settings are kept; unsaved renders are discarded.', { name })];
+/** copyDumpRow(dump) — ABOUT › COPY DUMP; dump() → text */
+export const copyDumpRow = (dump, hint = 'the debug dump, to the clipboard') => ['COPY DUMP', async () => {
+  const text = String((typeof dump === 'function' ? dump() : dump) || '');
+  if (await copyText(text)) notice('Debug info copied to clipboard.', { kind: 'ok' });
+  else { notice('Copy failed — the dump is in the browser console.', { kind: 'warn' }); try { console.log(text); } catch (_) { /* no console */ } }
+}, null, hint];
 
 export function createMenubar({ opener, host, menus, label, phone, keep } = {}) {
   if (!opener || !menus) return null;

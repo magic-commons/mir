@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>scene guard fixture</title>
+<!-- tests/scene-guard.browser.mjs: a whole createApp() over a 2D canvas, a rack window floating (its parts disconnected,
+     so its gaps are the canvas underneath), a window docked in the right rack, the kit's KEYS window open.  The canvas
+     counts every wheel, press and click that reaches it. -->
+<link rel="stylesheet" href="../../mir/mir.css">
+<link rel="stylesheet" href="../../mir/shell/banner.css">
+<style>
+  html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+  #lab, #stage { position: absolute; inset: 0; }
+  #picture { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted" class="disconnected">
+<div id="lab"><div id="stage"><canvas id="picture"></canvas></div></div>
+<script type="module">
+  import { createApp } from '../../mir/app.js';
+  try { localStorage.clear(); } catch (_) {}
+  const stage = document.getElementById('stage'), canvas = document.getElementById('picture');
+  const seen = { wheel: 0, pointerdown: 0, pointermove: 0, pointerup: 0, click: 0, touchstart: 0 };
+  for (const k of Object.keys(seen)) canvas.addEventListener(k, () => { seen[k]++; }, { passive: k !== 'wheel' });
+  const g = canvas.getContext('2d'); canvas.width = innerWidth; canvas.height = innerHeight; g.fillStyle = '#123'; g.fillRect(0, 0, innerWidth, innerHeight);
+  const app = await createApp({ name: 'GUARD', key: 'guard', stage, state: { a: 0.5 }, present: () => {}, session: /session/.test(location.search) });
+  app.gui.prefs.set('disconnected', true);                       // the constellation: a window's head and body are two panes with a gap
+  const rows = (n) => (body) => { for (let i = 0; i < n; i++) { const d = document.createElement('div'); d.textContent = 'row ' + i; d.style.height = '24px'; body.appendChild(d); } };
+  app.rack.register({ id: 'one', title: 'ONE', side: 'right', open: true, build: (body) => { body.textContent = 'the floating window'; } });
+  app.rack.register({ id: 'two', title: 'TWO', side: 'right', open: true, build: rows(40) });     // tall: the rack overflows and scrolls
+  app.rack.register({ id: 'three', title: 'THREE', side: 'right', open: true, build: rows(6) });
+  app.rack.start();
+  await new Promise((r) => setTimeout(r, 50));
+  app.rack.float('one', { x: 160, y: 470, w: 300 });               // low on the stage, clear of the KEYS window
+  app.help.open();
+  app.help.win.place({ left: 500, top: 60, width: 380, height: 320 });
+  const rackWheels = { n: 0, trusted: 0 };
+  app.rack.el.racks.right.addEventListener('wheel', (e) => { rackWheels.n++; if (e.isTrusted) rackWheels.trusted++; });
+  window.__G = { app, seen, rackWheels, canvas };
+  window.__ready = true;
+</script>
+</body>
+</html>
