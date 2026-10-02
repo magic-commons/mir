@@ -177,7 +177,7 @@
   height: auto; min-height: var(--xport-work-h); padding: var(--xport-work-pad); }
 .mir-transport[data-bar="work"] :is(.dock-btn, .mod-exp, .tbtn.transport-home).trig {
   width: var(--xport-work-seat); height: var(--xport-work-seat); min-width: var(--xport-work-seat); min-height: var(--xport-work-seat); padding: 0;
-  border: 0; border-radius: var(--xport-work-r); background: var(--trig-face); box-shadow: var(--relief-raise, var(--neu-raise)); }
+  border: var(--glass-border) solid var(--glass-hairline); border-radius: var(--xport-work-r); background: var(--trig-face); box-shadow: var(--relief-raise, var(--neu-raise)); }   /* the bar's hairline, as BASINS draws its seats beside the tools (1.5.0-alpha.11) */
 .mir-transport[data-bar="work"] .tbtn.tempo-expand { height: var(--xport-work-seat); border-radius: var(--xport-work-r); }
 
 /* ── DOCKED: the bar in the rack's TRANSPORT window (BASINS / λWAVES lab.css:317) ──────────────────────────── */

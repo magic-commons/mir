@@ -187,8 +187,6 @@
   font-size: var(--tl-action-size); letter-spacing: var(--tl-action-track); }
 .mir-win.mir-timeline .tl-toolbar .trig:not(.on) { color: var(--ink-key); }   /* BASINS: the bar's words are the key ink (.86), as the transport's */
 .mir-win.mir-timeline .tl-tool.tl-icon { display: inline-flex; align-items: center; justify-content: center; min-width: var(--tl-icon-min); }
-/* the transport's seats in this bar keep the bar's hairline, as BASINS draws them beside the tools */
-.mir-timeline .mir-transport[data-bar="work"] :is(.dock-btn, .mod-exp, .tbtn.transport-home).trig { border: var(--glass-border) solid var(--glass-hairline); }
 .mir-win.mir-timeline .tl-tool.tl-icon svg { width: var(--tl-icon); height: var(--tl-icon); display: block; flex: none; }
 .mir-timeline .tl-setting { display: flex; align-items: center; gap: var(--tl-bar-gap); padding: var(--tl-action-pad); height: var(--tl-setting-h); box-sizing: border-box; border-radius: var(--tl-action-r); white-space: nowrap; }
 .mir-timeline .tl-select-wrap { position: relative; display: inline-flex; align-items: center; flex: none; }

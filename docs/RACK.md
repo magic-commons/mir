@@ -278,9 +278,9 @@ The recipe for BASINS, and for any app whose rack predates the kit. It goes in f
 Each item is exact. "Stays" means it stays in BASINS until the kit has it.
 1. ~~Height motion~~: **done** (ruled 2026-10-02). What still differs in motion:
    - **The reorder rule.** It is the title bar's middle against the neighbour's middle, by Josh's ruling. BASINS compares the card's centre, ± 8 px.
-   - **The entrance.** BASINS' `.dev-enter` keyframe is 6 px up over `.22s cubic-bezier(.23, 1, .32, 1)`. The kit's is the same 6 px over `--motion-ui` (160 ms) and `--ease-out`.
+   - ~~The entrance~~: **matches** (1.5.0-alpha.11): 6 px up over `--rack-enter` (220 ms) on `--rack-enter-ease` (`cubic-bezier(.23, 1, .32, 1)`), BASINS' `.dev-enter`.
    - **A reduced-motion switch mid-session.** BASINS re-runs a refresh when `prefers-reduced-motion` changes. The kit reads the policy at every refresh, so the next change uses the new policy.
-   - **The lift.** The carried card keeps the house sheet's `.dev.dragging` scale (1.012), where BASINS' `material.css` sets `transform: none`. That is the sheet lane's, not the motion's.
+   - ~~The lift~~: **matches**: the carried card has no scale (`.dev.dragging` computes `scale: none`, as BASINS' `transform: none`; the house sheet's 1.012 left with INTENT's carried rule in 1.5.0-alpha.3).
 2. **The scrollbar seat** (`rack-scrollbars.js`, 62 lines). Stays, fed by the kit's span.
 3. **The touch-tablet clamp.** On a coarse pointer wider than 700 px, BASINS clamps a float fully inside the visual viewport (`clampFloat(…, touchTablet)`). The kit's clamp is the desktop one everywhere.
 4. **Retired ids** (`retired: { old: heir }`). The kit drops unknown ids. BASINS maps its old ids before `apply`.

@@ -175,6 +175,7 @@ export function installModulation(o) {
       host.clock.advanceTo(stamp / 1000);
       paintWidgets();
       if (view && view.isOpen) view.paint(false);
+      for (const fn of tickWatchers) { try { fn(stamp); } catch (e) { (globalThis.reportError || console.error)(e); } }
       if (present) present();
     }
     requestLoop();
@@ -211,7 +212,7 @@ export function installModulation(o) {
     for (const fn of playWatchers) { try { fn(host.clock.isPlaying()); } catch (e) { (globalThis.reportError || console.error)(e); } }
     return r;
   }
-  const playWatchers = new Set();
+  const playWatchers = new Set(), tickWatchers = new Set();
 
   const applyNow = () => { host.clock.applyAll(false); persistSoon(); if (present) present(); requestLoop(); paintSoon(); };
   const port = {
@@ -314,6 +315,8 @@ export function installModulation(o) {
     /** the app's one clock: play(on), togglePlay(), playing(), onPlay(fn) → off */
     play, togglePlay: () => play(!host.clock.isPlaying()), playing: () => host.clock.isPlaying(),
     onPlay(fn) { playWatchers.add(fn); return () => playWatchers.delete(fn); },
+    /** onTick(fn) → off: fn(stamp) after every advance of the clock (the timeline's playhead rides it) */
+    onTick(fn) { tickWatchers.add(fn); return () => tickWatchers.delete(fn); },
     isModulated: (id) => host.registry.isModulated(id),
     baseOf: (id) => host.registry.baseOf(id),
     currentOf: (id) => host.registry.state(id).current,

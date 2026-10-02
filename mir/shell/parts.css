@@ -83,6 +83,9 @@ body[data-theme="light"] .mir-toast { --toast-fill: hsl(0 0% 100% / .86); --toas
 }
 /* the pane's own drawing wins over CARD STYLE's fill and shadow, as BASINS' `#toast` does; the blur is CARD STYLE's */
 #mir-toast { border: 1px solid var(--toast-edge); background: var(--toast-fill); box-shadow: var(--toast-shadow); color: var(--toast-ink); }
+/* under TINTED the toast never blurs, FROST or not (BASINS' #toast: since TINTED can blur, 1.5.0-alpha.11, the .glass rule
+   would frost it with the panes); REFRACTIVE + FROST still blur it */
+body:not([data-card="refractive"]) #mir-toast { -webkit-backdrop-filter: none; backdrop-filter: none; }
 .mir-toast .mir-notice-text { overflow-wrap: anywhere; }
 .mir-toast .trig { flex: 0 0 auto; pointer-events: auto; }   /* with an action, only the action takes the pointer */
 

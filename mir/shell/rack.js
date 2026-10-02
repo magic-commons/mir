@@ -488,7 +488,8 @@ export function createRack({ host = globalThis.document && document.body, sides 
      its seat — translate only, no fade */
   function enter(root) {
     if (motionPolicy() !== 'full' || typeof root.animate !== 'function') return;
-    own(root, root.animate([{ translate: '0px 6px' }, { translate: '0px 0px' }], { duration: motionToken('ui'), easing: motionToken('out') }));
+    const cs = root.parentElement ? view.getComputedStyle(root.parentElement) : null, d = cs && cs.getPropertyValue('--rack-enter').trim(), e = cs && cs.getPropertyValue('--rack-enter-ease').trim();
+    own(root, root.animate([{ translate: '0px 6px' }, { translate: '0px 0px' }], { duration: d ? parseDuration(d, motionToken('ui')) : motionToken('ui'), easing: e || motionToken('out') }));   // BASINS' 220 ms on its own curve (rack.css)
   }
 
   /** open(id, { side, index }) — build it if it never was, then into a rack (default: the one it was in, at the top) */

@@ -86,6 +86,7 @@ One line each. Paths are from `app/`.
 | `languageMenu`, `t` | `../mir/shell/language.js`, `../mir/core/i18n.js` | the LANGUAGE menu; translate your own sentences |
 | `notice`, `openDialog`, `confirmDialog`, `bootCard`, `busyMark`, `settingsRows` | `../mir/shell/notice.js`, `dialog.js`, `boot.js`, `busy.js`, `settings-rows.js` | a toast, a dialog, the boot card, the loading mark, a settings panel |
 | `installModulation` | `../mir/modulation/bind.js` | the modulation window; `mod.add(param)`, `mod.route(source, id, depth)`, `mod.play(on)`, `mod.setPower(on)` |
+| `installTimeline` | `../mir/timeline/bind.js` | the timeline, the kit's second plugin: lanes of automation clips on any parameter, in the modulation clock (`installTimeline({ mount, mod, keys, history })`; `docs/TIMELINE.md`) |
 | `createFolders` | `../mir/folders/folders.js` | the project window |
 | `createInfoLayer`, `infoActions`, `showPage`, `greet` | `../mir/info/layer.js`, `../mir/info/page.js` | words on the picture; `greet(…, { first: true })` shows page 0 up to its first `---` |
 

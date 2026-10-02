@@ -1,5 +1,38 @@
 # MIR — changelog
 
+## 1.5.0-alpha.11 — 2026-10-02 · the timeline, TINTED can blur, the rack moves as BASINS'
+
+Not released: built on branch `worktree-mir-1.5`.
+
+**Behaviour changes (read these first):**
+- **TINTED can blur** (INTENT O12, ruled by Josh: "tinted can blur, the blur knob can reach 0 no?"): under FROST every tinted surface thins to `--frost-opacity` (.58) and takes the frost filter, as REFRACTIVE does; FROST · STILL, the lite and flat tiers and reduced transparency return the full tinted fill with no filter. SOLID never blurs. The value tooltip and the notice toast stay unblurred under TINTED, as BASINS' tip and toast.
+- **BLUR 0 is no blur**: `--surface-filter` and `--frost-filter` are both the whole value `none`; the pane stays at .58.
+- **CLASSIC states FROST off** (1.4's default); FROST on gives 1.4's .58 frosted card at 22 px.
+- **Rack cards move** (Josh: "Yes to basins animated drag and drop"): a fold, an open or close, content growing, a window dropped in or lifted out animate the card's height and every moved card's travel (320 ms); a card enters 6 px up over BASINS' 220 ms on its own curve.
+- **The title bar decides** (Josh: "Let the windows title bar be the deciding factor whether a window goes above or below something"): a carried window goes above another once the middle of its title bar is above that window's middle, below once below; in the rack and when a floating window is dropped over one.
+- **A work-bar transport's round seats (to-start, send-to-rack, the logo) keep the bar's hairline** in every work bar, as BASINS draws them beside the tools (they had none outside the timeline).
+- FOLDERS: 6 px between the wrap's rows, the fields and the grid; 4 px between tools (each 55 px); the count a 16 px row; a folder button with a cover sits on `--glass-well` (.22), not black.
+
+### THE TIMELINE: the kit's second plugin (`mir/timeline/`, `docs/TIMELINE.md`)
+- **BASINS' timeline, harvested whole** (Josh's 2026-10-01 tuning, branch `basins-ui-fixes-2026-10-01`): lanes of clips over musical time, automation curves on any registered parameter, pattern clips, audio clips (the kit's half), the ruler (scrub, range, Shift-zoom), the playhead, selection, slice, the curve editor (FL's gestures: `curve-gesture.js`), the readout layer, the held-knob CREATE AUTOMATION CLIP, the ⋯ menus.
+- **`installTimeline({ mount, mod, … })`** (`timeline/bind.js`): one call wires the arrangement into the modulation clock as its automation (no second clock), registers it as the project part `timeline`, adds its keys to the app's key table and (with `history`) makes it one domain of the app's history. **`createTimeline(host, port)`** (`timeline/window.js`) for an app that builds its own seam.
+- **The one play:** the work bar carries the kit's transport in its work-bar form (`createTransport({ bar: 'work' })`); its ▶ and Space start and stop the app's one clock; modulation's power only bypasses. The work bar is Josh's fix 5 (the transport hugs the left; EDIT … ACTIVE · ⋯ is one right bar reaching the resize corner); no hint row (fix 6).
+- **The window** is `createWindow({ material: 'modulation' })`: docked at the top or bottom of the app's span, floating, resizable, its rail relocatable (Shift-drag, long press, keys); WORK BARS cycles top → bottom → hidden with BASINS' pressed; + / − lane, reset size.
+- **The clip-kind registry** (`registerClipKind`): curve, `pattern`, `audio`, and an app's own.
+- **The keys are rows of the app's one key table** (`timelineActions(get)`, live only while the timeline has the focus); the SHORTCUTS sheet and `docs/TIMELINE.md`'s table are generated from them.
+- **The look** is tokens (`timeline.css`'s FROST block, 130 tokens, intent lint zero); the window is clear and its ruler, lanes and work bars are house `.glass` panes, so CARD, FROST, CORNERS, FACES, both lights and SPACING reach them.
+- **What BASINS deletes** when it adopts: about 2,300 lines (`docs/TIMELINE.md`, file by file); what stays its own: the palette remap (the `remap` port), the pattern sequencer and PATTERN window, the audio engine, its SAMPLING grid and recorder, the 10ⁿ readout.
+- `gallery/timeline.html`: a picture drawn from four parameters, two automation lanes, a pattern clip, play.
+- Tests: BASINS' node tests ported (`tests/timeline*.node.mjs`, 13 files) and its six browser rigs ported (`tests/timeline-{fixes,scrub,ticks,kinds,readout,smoke}.browser.mjs`: 44/44, 14 of 22, 58/58, 32/32, 23/23, 6/6, each plus a press ledger), and `tests/timeline.browser.mjs` (24 checks).
+- The timeline's status line counts through `tn()` ("1 clip selected", "2 clips selected").
+- `installModulation` gains `onTick(fn)`; a work-bar transport types the tempo on a click of the pill (BASINS' timeline form); `tools/cdp.mjs` names Insert and the numpad's * and /.
+
+### TINTED can blur
+- Rule 4 now reads: TINTED is tint + sheen, and thins and blurs under FROST as REFRACTIVE does; BLUR 0 is no blur. Every tinted surface follows: rack cards, `.glass` panes and hooked surfaces, stage rack buttons, islands, disconnected heads and bodies, menus, the hint and the ⓘ panel, both kinds of rail disc, the modulation work bar and the work-bar transport. Rail discs take the chip filter under FROST for every card style, as BASINS'. INTENT ledger L64–L68 and L70 reversed; L69 (the tip) kept unblurred, as BASINS' tip. New token `--frost-opacity` (.58).
+
+### The rack moves as BASINS' does
+- `shell/rack.js` `createRackMotion` is BASINS' `rack-motion.js`, harvested: height and travel at `--rack-motion` / `--rack-ease` (the core's structural duration and ease-out); the held card follows the hand and settles into its slot; reduced motion, `off` and the flat tier jump. It is the one sanctioned layout animation (`docs/MOTION-LAW.md`, `docs/CORE.md` law 2), joined to the one-writer registry by `core/motion.js` `own(el, anim)`. The entrance is BASINS' (`--rack-enter` 220 ms, `--rack-enter-ease`); the carried card has no scale, as BASINS'. `reorderIndex` / `insertionIndex` take the title bar's middle; `RACK.hyst` is gone. Racks carry `data-mir-rack`.
+
 ## 1.5.0-alpha.10 — 2026-10-02 · FOLDERS lands in BASINS
 
 Not released: built on branch `worktree-mir-1.5`.

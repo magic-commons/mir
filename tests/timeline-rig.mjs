@@ -14,7 +14,6 @@ export const BASE = (process.env.MIR_BASE || 'http://127.0.0.1:8830').replace(/\
 const MOD_BITS = { Alt: 1, Control: 2, Meta: 4, Shift: 8 };
 const BUTTON_BITS = { left: 1, right: 2, middle: 4 };
 const KEY_NAMES = { Control: 'ControlLeft', Shift: 'ShiftLeft', Alt: 'AltLeft' };
-const EXTRA_KEYS = { Insert: ['Insert', 45], NumpadMultiply: ['*', 106, '*'], NumpadDivide: ['/', 111, '/'] };
 
 export function ledger(name) {
   const checks = [];
@@ -48,12 +47,8 @@ export async function openTimeline({ base = BASE, query = '?fresh', width = 1920
   };
   const keyboard = {
     async press(spec) {
-      const name = String(spec).replace(/^Control\+/, 'Ctrl+').replace(/\+Control\+/, '+Ctrl+'), last = name.split('+').pop();
-      if (!EXTRA_KEYS[last]) { await cdp.key(name); return; }
-      /* keys tools/cdp.mjs does not name yet (Insert, the numpad's * and /): the same dispatch, from this table */
-      const [key, vk, text] = EXTRA_KEYS[last], mods = name.split('+').slice(0, -1).reduce((m, x) => m | ({ Alt: 1, Ctrl: 2, Mod: 2, Meta: 4, Shift: 8 }[x] || 0), st.mods);
-      await cdp.send('Input.dispatchKeyEvent', { type: text && !(mods & 7) ? 'keyDown' : 'rawKeyDown', key, code: last, windowsVirtualKeyCode: vk, modifiers: mods, ...(text && !(mods & 7) ? { text, unmodifiedText: text } : {}) });
-      await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key, code: last, windowsVirtualKeyCode: vk, modifiers: mods }); await sleep(60);
+      const name = String(spec).replace(/^Control\+/, 'Ctrl+').replace(/\+Control\+/, '+Ctrl+');
+      await cdp.key(name);   // tools/cdp.mjs names Insert and the numpad's * and / since 1.5.0-alpha.11
     },
     async down(name) { st.mods |= MOD_BITS[name] || 0; const k = keyOf(KEY_NAMES[name] || name); await cdp.send('Input.dispatchKeyEvent', { type: 'rawKeyDown', key: k.key, code: k.code, windowsVirtualKeyCode: k.vk, modifiers: st.mods }); },
     async up(name) { st.mods &= ~(MOD_BITS[name] || 0); const k = keyOf(KEY_NAMES[name] || name); await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: k.key, code: k.code, windowsVirtualKeyCode: k.vk, modifiers: st.mods }); },

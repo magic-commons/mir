@@ -1,6 +1,6 @@
 # MIR · API
 
-Every module the kit exports, what each export is, and what it returns. MIR 1.5.0-alpha.10.
+Every module the kit exports, what each export is, and what it returns. MIR 1.5.0-alpha.11.
 
 Each module's own header holds its laws and their reasons. This page is the map to them.
 
@@ -292,6 +292,7 @@ Storage: `{ items: { [path]: { path, folder, name, saved, opened, title, md } },
   - `rack.capture()` → `{ v, at, hidden, phoneShown, cards: [{ id, side, open, folded, off, float }] }`; `rack.apply(layout)`.
   - `saveLayout(slot?)`, `loadLayout(slot)`, `forgetLayout(slot)`, `layouts()`.
 - **Reading the state.** `windows()` → `[{ id, title, side, open, built, floating, folded }]`, `keepClear()` → the rects of the racks showing a window and the transport bar (`[{ left, top, right, bottom }]`), `built`, `registered`, `isBuilt(id)`, `window(id)`, `order(side)`, `floating()`, `floatOf(id)`, `phone`, `dragging`, `cancelDrag()`, `activity`, `el`, `sync()`, `destroy()`.
+- **The rack's motion (1.5.0-alpha.11, BASINS' `rack-motion.js`):** `createRackMotion(hosts, view)` → `{ refresh(), hold(card), follow(card, x, y), release(card, settle), holding, destroy() }`; any card change animates the card's height and every moved card's travel at `--rack-motion` / `--rack-ease`; a card enters 6 px up over `--rack-enter` / `--rack-enter-ease` (BASINS' 220 ms). `reorderIndex(boxes, at, bar)` and `insertionIndex(boxes, bar)` take the title bar's middle (the title bar decides above or below); `RACK.hyst` is removed. Racks carry `data-mir-rack`. The rack's height motion joins the core's one-writer registry through `core/motion.js` `own(el, anim)` → Promise<boolean> (`docs/CORE.md`).
 - **Pure helpers.** `reorderIndex`, `insertionIndex`, `slotRect`, `moveId`, `clampFloat`, `detached`, `peekSide`, `dodgeSeat`, `queueToggle`, `openOrder`, `favSlot`, `readLayout`, `layoutLabel`, `localStore`, `RACK`, `SIDES`.
 - **`mir/shell/rack.css`** loads after the kit's sheets and core.css, in `mir.kit.house`.
 
@@ -481,6 +482,10 @@ Load `mir/shell/parts.css` after the kit's sheets.
 - `localStore(key)` → `{ read(), write(patch) }` (guarded localStorage, one JSON record).
 - `rootsOf(params)` → the registry roots the ids imply.
 
+### `bind.js`: `onTick` (1.5.0-alpha.11)
+
+`installModulation(…)`'s result adds `onTick(fn)` → off: `fn(stamp)` after every advance of the clock (the timeline's playhead rides it, without the app's `present`).
+
 ### `bind.js`: the app's play is never refused (1.5.0-alpha.6)
 
 `play(true)` holds a demand of its own on the clock (`host.clock.demand('app.play')`), so with no route, no source or the power off, the app still plays. A bare `host.js` keeps its "nothing-to-run" refusal.
@@ -604,6 +609,75 @@ The glyph strings (`GLYPHS`, `SVG_PLAY`, `SVG_PAUSE`, `powIcon()`) read `--m2-gl
 **The complete controller that wires the window to a host is not in the kit yet.** Routes, rings, the clock and presets (`wireGrip`, `wireDepth`, `paintDepth`, `moveMacro`, `rebuildMacros`) live in λWAVES' `lab/modwindow.js`, which BASINS and NEBULA copied. Curve pointer semantics are the exception since 1.4.2: every host imports `curve-gesture.js`, so copied controllers cannot drift on point/tension controls.
 
 The window loads two sheets, `mir/modulation/modhost.css` and then `mir/modulation/modwindow/modwindow.css`, and nothing may follow the second.
+
+---
+
+## `mir/timeline/`: the timeline, the kit's second plugin ([TIMELINE.md](TIMELINE.md), 1.5.0-alpha.11)
+
+### `bind.js`: the app seam
+- `installTimeline({ mount, mod, model, present, say, dock, storageKey, store, initial, keys, history, project, remap,
+  automation, transport, audio, scrubLevel, busy, moved, onWindow })` → `{ win, root, rail, editor, model, controller,
+  transport, actions, keys, open(), close(), toggle(), isOpen(), paintHead(), presentation(), restore(shape),
+  shortcuts(x, y), automation(id, beat), dispose() }`.
+  `mod`: `installModulation`'s result (its registry is the targets, its clock the time); `initial`: the first shape
+  `{ dock, open, x, y, w, h, chipSide, workLane }`; `keys`: the app's `createKeys` table (the timeline's rows and the
+  one play's Space go in it); `history`: the app's `createHistory`; `remap(id, saved)`: a target id that does not
+  survive a reload; `automation: false`: the app wires `model.value` into its clock itself; `transport`:
+  `{ layout, nodes, rack }` or `false`; `audio`: `{ pick({ laneId, start }) }`; `scrubLevel()`: `'live' | 'light' |
+  'release'`; `busy()`: a recorder owns the clock.
+
+### `window.js`: the window
+- `createTimeline(host, port)` → as above, without `keys`, `automation` and `dispose` (`destroy()` instead). `port`:
+  `{ model, mod, controller, present, say, dock, store, initial, size, min, keys, transport, audio, scrubLevel, busy,
+  moved, onWindow, id, title, storageKey }`.
+- `TIMELINE_TRANSPORT` (the work bar's layout: play, power, tempo, `app:readout`, rewind, then dock and door),
+  `TIMELINE_SIZE` (1080 × 440), `TIMELINE_MIN` (320 × 400).
+
+### `editor.js`: inside the window
+- `buildTimelineEditor(win, { model, mod, controller, present, say, audio })` → `{ surface, transportHost, toolbar,
+  createClip(targetId), addClip(kind, source, { start, duration, laneId, targetId, name, select }), at(x, y) → { beat,
+  snapped, laneId }, model, paint(), px(), view, act, range(), activeRange(), setActiveRange(r), onDrop(fn) → off,
+  slice(ids, beat), tool(), setTool(name), gesture(), paintHead(), selected(), selection() → { clips, points }, workLane(),
+  setWorkLane(lane), snap(), setSnap(beats), scope(), keysLive(), locate(targetId), addLane(), removeLane(), close(),
+  dispose() }`. `act` is the key table's verbs. `SNAPS`, `TOOLS`, `SWATCHES`.
+
+### `model.js`: the arrangement (pure)
+- `createTimelineModel()` → `{ state(), serialize(), subscribe(fn) → off, beforeReplace(fn) → off, begin(), commit(),
+  cancel(), undo(), redo(), restore(snapshot | null, remap?) → bool, addLane(), removeLane(id, confirmed?), create({ targetId,
+  name, value, start, duration, laneId, source }), updateClip(id, patch), updateCurve(id, patch), addPoint, movePoint,
+  movePoints, removePoints, drawPoints, removePoint, setTension, setSegment, deleteClip, deleteClips, copyClips,
+  pasteClips, duplicateClips, moveClips, duplicate, makeUnique, value(targetId, beat) → 0..1 | null, setActive(range),
+  activeClips(beat, kind?), needsClock(has), signature() }`; `isTimelineSnapshot(o)`; `DEFAULT_TIMELINE_COLOR`,
+  `TIMELINE_HISTORY_BYTES`, `TIMELINE_HISTORY_LIMIT`.
+
+### The pure laws
+- `source.js`: `normalizeTimelinePoints`, `evaluateTimelineSource`, `addTimelinePoint`, `moveTimelinePoint`,
+  `slideTimelinePoint`, `moveTimelinePoints`, `removeTimelinePoint(s)`, `drawTimelinePoints`, `setTimelineTension`,
+  `setTimelineSegment`, `TIMELINE_MAX_SOURCE_POINTS` (256), `TIMELINE_MAX_TOTAL_POINTS` (32768).
+- `kinds.js`: `registerClipKind(name, { validate, value, paint, slice, duration, drives, menu })`, `clipKind(curve)`,
+  `clipKinds()`, `isKindCurve(curve)`.
+- `pattern-kind.js`: `patternSteps`, `patternSource({ envId, steps, name, color })`, `patternRepeatBeats`, `paintPattern`,
+  `PATTERN_LENGTHS`, `PATTERN_STEP_BEATS`.
+- `audio-kind.js`: `audioSource(meta, { bpm, keep, band })`, `validAudioSource`, `envelopeAt`, `audioRate`,
+  `readjustAudioTempo`, `stretchAudioClip`, `patchAudioClip`, `audioBudget`, `setAudioPeaks(fn)`, `AUDIO_KIND`,
+  `toBase64`, `fromBase64`, `envelopeFrames`, `sourceBeats`, `AUDIO_*`.
+- `geometry.js`: `createClipCoordinates`, `timelineLaneHeight`, `nearestTimelineLane`, `snapTimelineBeat`,
+  `timelineResizeDelta`, `resizeTimelineClip`, `timelineTabPath`, `TIMELINE_TAB_HEIGHT`, `TIMELINE_ROW_GAP`,
+  `TIMELINE_POINT_RADIUS`, `TIMELINE_TENSION_RADIUS`, `TIMELINE_CURVE_GRAB`, `TIMELINE_TENSION_TRAVEL`.
+- `curve-view.js` `createTimelinePlot`; `draw.js` `timelineStepSamples`; `selection.js` `selectionRect`, `clipsInRectangle`,
+  `pointsInRectangle`; `slice.js` `sliceClips`, `sliceClip`, `curveCut`, `midpointTension`, `SLICE_MIN`;
+  `time-format.js` `formatSeconds`, `formatBar`, `formatPercent`; `view.js` `tickLaw`, `ticks`.
+- `controller.js`: `createTransportController({ mod, onChange, onRefusedPlay, now, scrubLevel, busy })` → `{ play(on),
+  toggle(), seek(beat), scrub(beat, { snap, alt, shift }), beginning(), beginScrub(), endScrub({ cancel }), isScrubbing(),
+  handBeat(), subscribe(fn) → off, setModulation(on), toggleModulation(), state(), dispose() }`.
+- `project.js`: `timelinePart(model, { remap })` → `{ capture, restore, signature, subscribe }`,
+  `registerTimelinePart(model, { remap, name }, register?)` → unregister.
+- `history.js`: `adoptTimeline(history, model, name = 'timeline')`, `timelineLabel(method)`.
+- `shortcuts.js`: `timelineActions(get)` → key-table rows, `TIMELINE_POINTER`, `TIMELINE_FIXED`,
+  `shortcutRows(actions, keys?)`, `openTimelineShortcuts({ actions, keys, x, y })`, `renderShortcutsMarkdown(actions)`.
+- `readout.js`: `createReadoutLayer({ mount, resolve })` → `{ refresh(), dispose() }`, `coalesce(fn)` → `{ post, flush,
+  cancel }` (over `core/frame.js`); `cursor.js` `createTimelineCursor({ editor, mod })`; `playhead.js`
+  `createTimelinePlayhead`; `knobs.js` `installTimelineKnobs({ registry, editor })`; `icons.js` `TIMELINE_ICONS`.
 
 ---
 

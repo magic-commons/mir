@@ -30,7 +30,8 @@ export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const NAMED_KEYS = { Space: [' ', 32, ' '], Enter: ['Enter', 13, '\r'], Escape: ['Escape', 27], Tab: ['Tab', 9], Backspace: ['Backspace', 8], Delete: ['Delete', 46],
   ArrowLeft: ['ArrowLeft', 37], ArrowUp: ['ArrowUp', 38], ArrowRight: ['ArrowRight', 39], ArrowDown: ['ArrowDown', 40], Home: ['Home', 36], End: ['End', 35],
   PageUp: ['PageUp', 33], PageDown: ['PageDown', 34], Slash: ['/', 191, '/'], Comma: [',', 188, ','], Period: ['.', 190, '.'], Minus: ['-', 189, '-'], Equal: ['=', 187, '='],
-  ShiftLeft: ['Shift', 16], ControlLeft: ['Control', 17], AltLeft: ['Alt', 18], Shift: ['Shift', 16, '', 'ShiftLeft'] };
+  ShiftLeft: ['Shift', 16], ControlLeft: ['Control', 17], AltLeft: ['Alt', 18], Shift: ['Shift', 16, '', 'ShiftLeft'],
+  Insert: ['Insert', 45], NumpadMultiply: ['*', 106, '*'], NumpadDivide: ['/', 111, '/'] };
 export function keyOf(spec) {
   const parts = String(spec).split('+').filter(Boolean); let name = parts.pop() || '';
   let mods = 0;

@@ -28,7 +28,7 @@
  * core/frame.js; the popups are the house's menu pane; BASINS' CURVE_VIEW numbers live in geometry.js. */
 import { svgPoint, curveHit, curveAction, pointDrag, pointAddValue, tensionDelta } from '../modulation/curve-gesture.js';
 import { el, label, ariaLabel } from '../kit.js';
-import { t } from '../core/i18n.js';
+import { t, tn } from '../core/i18n.js';
 import { coalesce } from './readout.js';
 import { TIMELINE_TAB_HEIGHT, TIMELINE_ROW_GAP, TIMELINE_CURVE_GRAB, TIMELINE_TENSION_TRAVEL, resizeTimelineClip, createClipCoordinates, snapTimelineBeat, timelineResizeDelta, nearestTimelineLane } from './geometry.js';
 import { createTimelinePlot } from './curve-view.js';
@@ -84,8 +84,8 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   function selectOnly(id){selected=id;selection=new Set(id?[id]:[]);pointSelection=null;paintSelection();}
   /* the status line: what is selected, and the mode's one sentence (BASINS' words), only while there is something to say */
   function statusText(){const parts=[];
-    if(pointSelection?.indices.size)parts.push(t('{n} points selected',{n:pointSelection.indices.size}));
-    else if(selection.size)parts.push(t('{n} clips selected · {target}',{n:selection.size,target:view.getCurve(view.getClip(selected)?.curveId)?.targetId||''}));
+    if(pointSelection?.indices.size)parts.push(tn(pointSelection.indices.size,'{n} point selected','{n} points selected',{n:pointSelection.indices.size}));
+    else if(selection.size)parts.push(tn(selection.size,'{n} clip selected · {target}','{n} clips selected · {target}',{n:selection.size,target:view.getCurve(view.getClip(selected)?.curveId)?.targetId||''}));
     if(stepMode&&tool==='edit')parts.push(t('STEP: draw; Shift for pulses'));
     if(tool==='slice')parts.push(t('SLICE: click a clip to cut it; Insert cuts the selection at the playhead'));
     return parts.join(' · ');}

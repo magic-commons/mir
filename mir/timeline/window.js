@@ -82,11 +82,7 @@ export function createTimeline(host, port) {
     const layout = (tp.layout || TIMELINE_TRANSPORT).filter((x) => x !== 'dock' || tp.rack);
     transport = createTransport({ root: seat, host: editor.transportHost, bar: 'work', opener: false, clock, mod, layout, nodes: tp.nodes || {},
       rack: tp.rack || null, keys: port.keys || null, key: (port.storageKey || 'mir.timeline') + '.transport' });
-    transport.start();
-    /* BASINS' timeline form: a click on the BPM pill types the tempo (BASINS tempo-editor.js); the floating bar's click
-       opens the panel instead.  Until shell/transport.js says so for `bar: 'work'` (JOIN.md), this takes the click first. */
-    const pill = transport.el && transport.el.pill;
-    if (pill) pill.addEventListener('click', (e) => { if (pill.classList.contains('drag')) return; e.stopImmediatePropagation(); transport.edit(); }, { capture: true });
+    transport.start();   // a click on the BPM pill types the tempo: shell/transport.js does it for `bar: 'work'` (BASINS' timeline form)
   }
 
   /* THE CURSOR + THE READOUT LAYER: one tuple, resolved from the pointer or the edit in flight */

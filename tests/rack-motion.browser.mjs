@@ -105,7 +105,7 @@ try {
 
   /* a plate mid-fold */
   await ev(`dev('mix').querySelector('.dev-fold').click(); await wait(120); return 0;`);
-  await p.shot('docs/plates/rack/rack-motion-mid-fold.png');
+  if (process.env.MIR_PLATES) await p.shot('docs/plates/rack/rack-motion-mid-fold.png');   // a test run never writes into docs/: MIR_PLATES=1 retakes it
   await ev(`await settle(); dev('mix').querySelector('.dev-fold').click(); await settle(); return 0;`);
 
   await barProof('gallery', 'tone', 'mix', [180, 380, 560]);

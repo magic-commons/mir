@@ -36,7 +36,7 @@ mir/<plugin>/
 - Its API in `docs/API.md` and its laws in its notes file.
 - A CHANGELOG entry and a kit version bump.
 
-## 4. TIMELINE: what the notes already decided
+## 4. TIMELINE: built in 1.5.0-alpha.11 (`docs/TIMELINE.md`)
 
 This is not a spec. It records the laws the vault already holds, for Sol's spec to meet or overrule:
 
@@ -52,4 +52,4 @@ This is not a spec. It records the laws the vault already holds, for Sol's spec 
   - Automation records parameter and state events, not pixels.
   - Four clocks are never conflated: simulation, presentation, modulation, recording/replay.
   - Parameters carry a `recordable?` flag.
-- **The seam.** A TIMELINE reads and writes parameters through the same registry the modulation plugin uses (`mir/modulation/registry.js`). Whether the registry moves up to a shared primitive when a second plugin needs it is the first decision TIMELINE forces.
+- **The seam.** A TIMELINE reads and writes parameters through the same registry the modulation plugin uses (`mir/modulation/registry.js`). The decision is taken (1.5.0-alpha.11): the timeline reads and writes parameters through the modulation registry the app already has (`installModulation`'s `registry`); the registry did not move.

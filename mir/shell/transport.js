@@ -522,6 +522,8 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
   const work = barKind === 'work';
   setAttr(bar, 'data-bar', work ? 'work' : 'float');
   for (const b of bar.querySelectorAll(BAR_SEATS)) b.classList.toggle('trig', work);
+  /* in a work bar a click on the pill types the tempo (BASINS' timeline form, tempo-editor.js); the panel stays the floating bar's */
+  if (work && pillP) pillP.pill.addEventListener('click', (e) => { if (pillP.pill.classList.contains('drag')) return; e.stopImmediatePropagation(); pillP.edit(); }, { capture: true, signal });
 
   /* ── the latches, from data, redrawn only when the list changes ── */
   let latches = [], latchSig = '';
