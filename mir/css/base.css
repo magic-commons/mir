@@ -166,7 +166,7 @@ m { font-family: var(--font-math); font-style: normal; font-size: var(--math-sca
 .k.rate .k-val { font-size: var(--fs-micro); }
 
 /* ── title chip and badges over the stage ──────────────────────────────── */
-.glass { border: var(--surface-edge-width, var(--glass-border)) solid var(--surface-edge, var(--glass-border-color)); background: var(--surface-fill, hsl(var(--glass-tint) / var(--glass-opacity)));
+.glass { border: var(--surface-edge-width, var(--glass-border)) solid var(--pane-edge, var(--surface-edge, var(--glass-border-color))); background: var(--surface-fill, hsl(var(--glass-tint) / var(--glass-opacity)));
   box-shadow: var(--surface-shadow, var(--glass-shadow)); -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter); text-shadow: var(--ink-shadow); }
 .badge { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 3px 10px; border-radius: var(--r-pill); font-size: var(--fs-tiny); letter-spacing: var(--label-tracking, var(--tr-wide));
   color: var(--fg-soft); cursor: pointer; border: var(--glass-border) solid var(--glass-border-color); background: hsl(var(--glass-tint) / var(--glass-opacity)); }
@@ -177,7 +177,7 @@ m { font-family: var(--font-math); font-style: normal; font-size: var(--math-sca
 .badge.bad i { background: var(--bad); box-shadow: var(--badge-led-glow); }
 
 /* ── device chassis ─────────────────────────────────────────────────────── */
-.dev { flex: 0 0 auto; display: flex; flex-direction: column; border-radius: var(--surface-radius, var(--r-lg)); border: var(--surface-edge-width, var(--glass-border)) solid var(--surface-edge, var(--glass-border-color));
+.dev { flex: 0 0 auto; display: flex; flex-direction: column; border-radius: var(--surface-radius, var(--r-lg)); border: var(--surface-edge-width, var(--glass-border)) solid var(--pane-edge, var(--surface-edge, var(--glass-border-color)));
   background: var(--surface-fill, hsl(var(--glass-tint) / var(--glass-opacity))); box-shadow: var(--surface-shadow, var(--glass-shadow)); contain: layout paint; }
 .dev-head { flex: 0 0 auto; display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto; align-items: center; column-gap: 0; height: 38px; padding: 0 var(--sp-1) 0 var(--sp-4);
   border-bottom: var(--glass-border) solid var(--glass-hairline); background: var(--glass-raise); border-radius: var(--surface-radius, var(--r-lg)) var(--surface-radius, var(--r-lg)) 0 0; }

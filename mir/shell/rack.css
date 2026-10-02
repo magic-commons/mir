@@ -13,20 +13,27 @@
 
 /* the two halves of "slide, then stop painting": visibility turns on at the start of a show and off at the end of a hide */
 :is(.mir-rack, .mir-rack-transport) { --rack-step-show: step-start; --rack-step-hide: step-end; }
+.mir-rack { --rack-flush-radius: 0px; --rack-flush-shadow: 0 0 0 0 transparent; }   /* SPACING at 0: square, and no pane shadow inside the slab */
 
 /* ── THE COLUMNS ─────────────────────────────────────────────────────────────────────────────────────────── */
 .mir-rack {
   --rack-shadow-gutter: 0px;   /* paint space beside the cards for their shadows; not a hit-test column */
   position: absolute; top: 0; right: 0; bottom: auto; max-height: 100%; width: calc(var(--rack-w) + var(--rack-shadow-gutter));
   box-sizing: border-box; z-index: var(--z-chrome); min-height: 0; overflow: hidden auto; overscroll-behavior: contain;
-  padding: var(--card-gap, var(--sp-2)); display: flex; flex-direction: column; gap: var(--card-gap, var(--sp-2));
+  padding: var(--rack-inset, var(--card-gap, var(--sp-2))); display: flex; flex-direction: column; gap: var(--rack-gap, var(--card-gap, var(--sp-2)));
   background: transparent; border: 0; pointer-events: none; touch-action: pan-y;
   scrollbar-width: thin; scrollbar-color: var(--acc) transparent;
   transition: transform var(--motion-structural) var(--ease-out), visibility var(--motion-structural) var(--rack-step-show);
 }
 .mir-rack > * { pointer-events: auto; }
-.mir-rack[data-side="left"] { right: auto; left: 0; padding-right: calc(var(--card-gap, var(--sp-2)) + var(--rack-shadow-gutter)); }
-.mir-rack[data-side="right"] { padding-left: calc(var(--card-gap, var(--sp-2)) + var(--rack-shadow-gutter)); direction: rtl; }   /* the scrollbar on the inner edge */
+.mir-rack[data-side="left"] { right: auto; left: 0; padding-right: calc(var(--rack-inset, var(--card-gap, var(--sp-2))) + var(--rack-shadow-gutter)); }
+.mir-rack[data-side="right"] { padding-left: calc(var(--rack-inset, var(--card-gap, var(--sp-2))) + var(--rack-shadow-gutter)); direction: rtl; }   /* the scrollbar on the inner edge */
+/* SPACING (1.5.0-alpha.5): --rack-gap between the windows, --rack-inset from the screen's edge, --pane-pad inside a window
+   (skin.css .dev-body), written by the GUI window on <html>.  At 0 (html[data-flush]) the column is one slab: the windows
+   meet square, with one hairline between them and no drop shadow or shine falling across a neighbour; a window that
+   floats keeps its corner and its shadow. */
+html[data-flush] .mir-rack > .dev { --surface-radius: var(--rack-flush-radius); --surface-shadow: var(--rack-flush-shadow); --shine-term: var(--rack-flush-shadow); }
+html[data-flush] .mir-rack > .dev + .dev { border-top-color: transparent; }
 .mir-rack[data-side="right"] > * { direction: ltr; }
 .mir-rack:focus { outline: none; }
 @media (min-width: 861px) { .mir-rack { --rack-shadow-gutter: 48px; } }
@@ -118,7 +125,7 @@ body.rack-hidden:not(.transport-peek) .mir-rack-transport[data-seat="top"] { tra
   body.rack-hidden { --rack-edge: 0px; }
   .mir-rack[data-side="right"] {
     top: max(calc(env(safe-area-inset-top) + var(--top-bar)), var(--menubar-bottom, 0px)); bottom: 0; left: 0;   /* below a menubar that wrapped (menubar.js) */ right: auto; width: var(--rack-w); height: auto; max-height: none; direction: ltr;
-    padding: var(--card-gap) var(--card-gap) max(var(--card-gap), env(safe-area-inset-bottom)) max(var(--card-gap), env(safe-area-inset-left));
+    padding: var(--rack-inset, var(--card-gap)) var(--rack-inset, var(--card-gap)) max(var(--rack-inset, var(--card-gap)), env(safe-area-inset-bottom)) max(var(--rack-inset, var(--card-gap)), env(safe-area-inset-left));
   }
   body.rack-hidden:not(.rack-peek-right) .mir-rack[data-side="right"] { transform: translateX(calc(-100% - 12px)); }   /* it leaves to the LEFT */
   .mir-rack[data-side="left"] { display: none; }

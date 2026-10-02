@@ -5,6 +5,9 @@
  *     and a REFRACTIVE one blurs; a TINTED menu never blurs · FOCUS: Tab onto a switch draws a ring OUTSIDE it (an
  *     outline, offset ≥ 0) · PRESSED: a held trigger scales to --state-press-scale · DISABLED: one fade (.38) and no
  *     relief on the knob's puck.  Everything clicked or Tabbed is hit-tested with elementFromPoint.
+ *   THE VANILLA THEMES KEEP IT: under FROST and MORPH (shell/themes.js, applied through the look store), in both themes,
+ *     shadows fall away from LIGHT ANGLE, the heights stack, a resting trigger stands proud and is not a well, ON and
+ *     CHOSEN are the frost face and not wells, the track is the well, disabled has no relief.
  * Standalone: node tools/serve.mjs 8791 & MIR_BASE=http://127.0.0.1:8791 node tests/intent.browser.mjs */
 import { launch, sleep } from '../tools/cdp.mjs';
 
@@ -82,6 +85,40 @@ try {
     return JSON.stringify({ k: k.opacity, f: f.opacity, dial: dial.boxShadow, drawn: drawn(dial.boxShadow), fdDrawn: drawn(f.boxShadow) }); })()`));
   check('disabled: the knob and the fader fade to .38, once', dis.k === '0.38' && dis.f === '0.38', JSON.stringify(dis));
   check('disabled: no relief on the knob’s puck or the fader’s well', dis.drawn === 0 && dis.fdDrawn === 0, JSON.stringify(dis));
+
+  /* ── the vanilla themes keep INTENT: FROST (from above) and MORPH (SOLID, the light upper-left, neumorphism) ──────
+     Neumorphism makes every inset look alike — the "resting toolbar looks already pressed" fault INTENT was written to
+     stop — so under each theme: shadows fall away from the light, the heights still stack, a resting trigger stands
+     proud and is not a well, ON and CHOSEN wear the frost face and are not wells, the track is the well, and disabled
+     has no relief.  The theme is applied through the look store, as the GUI window applies it. */
+  for (const id of ['frost', 'morph']) for (const theme of ['dark', 'light']) {
+    await p.goto(BASE + '/tests/fixtures/intent.html', 800);
+    for (let i = 0; i < 50 && !(await p.eval('!!window.__ready')); i++) await sleep(100);
+    const t = JSON.parse(await ev(`(async () => { ${SHADOWS}
+      const { createPrefs } = await import('/mir/core/prefs.js'), { lookSchema } = await import('/mir/shell/gui.js'), { themeValues } = await import('/mir/shell/themes.js');
+      const P = createPrefs({ key: 'intent', schema: lookSchema(), storage: null }); P.set({ ...themeValues('${id}'), theme: '${theme}' }); P.apply({ now: true });
+      await new Promise((r) => setTimeout(r, 300));
+      const cs = (sel) => getComputedStyle(typeof sel === 'string' ? document.querySelector(sel) : sel);
+      const ang = (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--light-angle')) || 0) * Math.PI / 180, away = [-Math.sin(ang), Math.cos(ang)];
+      const xy = (t) => { const n = t.replace(/(rgba?|hsla?|color|oklab|oklch)\\([^)]*\\)/g, '').trim().split(/\\s+/).filter((x) => /px$/.test(x)).map(parseFloat); return { x: n[0] || 0, y: n[1] || 0, blur: n[2] || 0, clear: /rgba\\(0, 0, 0, 0\\)|\\/ 0\\)/.test(t) }; };
+      const drawn = (s) => s === 'none' ? [] : s.split(/,(?![^(]*\\))/).map((t) => ({ inset: /inset/.test(t), ...xy(t.trim()), t: t.trim() })).filter((d) => !d.clear);
+      const toward = []; for (const sel of ['[data-id="pane"]', '[data-id="float"]', '.mb-list', '.glass']) for (const d of drawn(cs(sel).boxShadow)) if (!d.inset && d.blur > 0 && d.x * away[0] + d.y * away[1] < -0.01 && (d.x || d.y)) {
+        const shine = /255, 255, 255/.test(d.t); if (!shine) toward.push(sel + ': ' + d.t); }
+      const h = (sel) => Math.max(0, ...drawn(cs(sel).boxShadow).filter((d) => !d.inset && !/255, 255, 255/.test(d.t)).map((d) => Math.hypot(d.x, d.y)));
+      const probe = (v) => { const i = document.createElement('i'); i.style.backgroundColor = v; document.body.appendChild(i); const c = getComputedStyle(i).backgroundColor; i.remove(); return c; };
+      const wells = (el) => drawn(cs(el).boxShadow).filter((d) => d.inset && d.blur > 0).length, raised = (el) => drawn(cs(el).boxShadow).filter((d) => !d.inset && d.blur > 0).length;
+      const dial = cs(__T.k.root.querySelector('.k-dial'));
+      return JSON.stringify({ card: document.body.dataset.card, angle: getComputedStyle(document.documentElement).getPropertyValue('--light-angle').trim() || '0deg', toward,
+        heights: { pane: h('[data-id="pane"]'), float: h('[data-id="float"]'), menu: h('.mb-list') },
+        rest: { raised: raised(__T.before.root), wells: wells(__T.before.root) }, on: { frost: probe('var(--state-on)'), sw: cs('.sw.on').backgroundColor, seg: cs('.seg-b.on').backgroundColor, swWells: wells('.sw.on'), segWells: wells('.seg-b.on'), trWells: wells(__T.trOn.root) },
+        track: wells('.seg'), disabled: drawn(dial.boxShadow).length }); })()`));
+    const L = `${id.toUpperCase()} ${theme}`;
+    check(`${L}: every pane shadow falls away from the light (${t.angle})`, t.toward.length === 0, t.toward.join(' ; '));
+    check(`${L}: the heights still stack (pane < floating window < menu)`, t.heights.pane < t.heights.float && t.heights.float < t.heights.menu, JSON.stringify(t.heights));
+    check(`${L}: a resting trigger stands proud and is not a well (not "already pressed")`, t.rest.raised > 0 && t.rest.wells === 0, JSON.stringify(t.rest));
+    check(`${L}: ON and CHOSEN wear the frost face and are not wells; the track is the well`, t.on.sw === t.on.frost && t.on.seg === t.on.frost && !t.on.swWells && !t.on.segWells && !t.on.trWells && t.track > 0, JSON.stringify({ on: t.on, track: t.track }));
+    check(`${L}: disabled has no relief`, t.disabled === 0, String(t.disabled));
+  }
   check('no page errors', !p.logs.some((l) => /EXCEPTION/.test(l)), p.logs.join(' | '));
 } finally { await p.close(); }
 

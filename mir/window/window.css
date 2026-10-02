@@ -31,7 +31,7 @@
   --chip-on-rim: var(--state-on-rim, inset 0 0 0 1px var(--chip-rim), inset 0 1px 0 hsl(0 0% 100% / .12));
 }
 body[data-theme="light"] .mir-rail { --chip-rim: hsl(214 30% 40% / .34); }
-body[data-card="tinted"] .mir-rail { --chip-fill: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
+body:is([data-card="tinted"], [data-card="solid"]) .mir-rail { --chip-fill: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
 body[data-card="refractive"] .mir-rail { --chip-fill: var(--surface-veil, transparent); }
 body.frost[data-card="refractive"] .mir-rail { --chip-filter: var(--surface-filter, var(--frost-filter)); }
 body.frost[data-card="refractive"][data-theme="dark"] .mir-rail { --chip-fill: var(--surface-veil, var(--frost-veil-dark)); }
@@ -41,7 +41,7 @@ body.frost.frost-hold[data-card="refractive"] .mir-rail { --chip-filter: none; -
 /* ── THE PANE ─────────────────────────────────────────────────────────────────────────────────────────────── */
 .mir-win {
   position: fixed; box-sizing: border-box; display: flex; flex-direction: column; min-width: 0; overflow: hidden;
-  border-radius: var(--r-lg); pointer-events: auto; contain: layout paint; isolation: isolate;
+  border-radius: var(--surface-radius, var(--r-lg)); pointer-events: auto; contain: layout paint; isolation: isolate;   /* CORNERS reaches the window (1.5.0-alpha.5) */
 }
 .mir-win-body {
   flex: 1 1 auto; min-height: 0; overflow: hidden auto; overscroll-behavior: contain;

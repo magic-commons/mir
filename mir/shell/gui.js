@@ -1,27 +1,30 @@
-/* MIR · shell/gui.js — the GUI window: MIR OPTIONS and MIR ABOUT, two pages behind one page turner.
+/* MIR · shell/gui.js — the GUI window: MIR OPTIONS 1 · 2 and MIR ABOUT, behind one page turner.
  *
- * WHAT IT IS.  The menubar's GUI entry opens a floating kit window (mir/window/window.js) with two pages.  MIR OPTIONS
- * holds every LOOK option an app on the kit has, in eight groups; MIR ABOUT says what MIR is.  The look is a browser
- * preference (core/prefs.js, one key, never in a project), so an app's own Settings keeps only its engine's options
- * (ruling 7 of the 1.5 plan).
+ * WHAT IT IS.  The menubar's GUI entry opens a floating kit window (mir/window/window.js).  MIR OPTIONS holds every LOOK
+ * option an app on the kit has, on two pages; MIR ABOUT says what MIR is.  The look is a browser preference
+ * (core/prefs.js, one key, never in a project), so an app's own Settings keeps only its engine's options (ruling 7 of
+ * the 1.5 plan).  A VANILLA THEME (shell/themes.js) is a named set of these options and nothing else: the SKIN stepper
+ * steps through them and TONE, under it, through the theme's colours.
  *
  * THE LAWS IT KEEPS
  *   · EVERY CONTROL IS A KIT CONTROL wearing the current look (knob, seg, sw, trig, readout from mir/kit.js), so the
  *     window is its own demonstration.  The one control the kit lacks — the `‹ NAME ›` stepper, built like BASINS'
  *     blend-mode picker — is built here, and the page turner is the same stepper.
  *   · NO DEAD CONTROLS.  Each option drives a hook a kit sheet or kit module already reads (the table is LOOK_SCHEMA
- *     below and docs/GUI.md).  An option with no hook yet is left out and listed in the doc as waiting for its token.
- *     A control that is inert in the current combination says so (it is disabled), it does not pretend.
+ *     below and docs/GUI.md).  A control that is inert in the current combination says so (it is disabled).
+ *   · HARVESTED FROM BASINS.  Where BASINS' Settings has the control (CONTROL FACES and BLEND, TEXT, SHADOW as an
+ *     amount, BRIGHT · HUE · TINT, the ABOUT material) the kind, range, help text and formula are BASINS'
+ *     (app/settings-window.js, app/skin.js; the formulas in core/look.js).
  *   · NOTHING SCROLLS.  Each page is laid out at its natural size and the window is placed to fit it; at phone width the
  *     OPTIONS groups split into sheets that the same page turner steps through sideways.
- *   · THE COST IS SHOWN.  QUALITY carries a reading of what the look costs: the panes that blur, the shadows drawn and the
- *     frame time measured over 30 frames after a change.  It is taken only while the window is open on OPTIONS, and
- *     only after a change (no timer, no poll), so the reading itself costs nothing at rest.
+ *   · THE COST IS SHOWN.  QUALITY carries a reading of what the look costs (the panes that blur, the shadows and shine
+ *     layers drawn, the frame time over 30 frames), taken only while the window is open on OPTIONS and only after a
+ *     change; and each theme shows the reading taken when it was applied, beside its name.
  *   · The pointer glow and the parallax (mir/fx/) are installed here, because their two switches live here.
  *
  * createGui({ host, prefs, app: { name, version }, about, accent, defaults, storageKey }) →
  *   { root, prefs, open(page?), close(), toggle(page?), get page, turn(dir), moving(bool), dropGuides(), census(),
- *     destroy() }
+ *     applyTheme(id), applyTone(id), themeCost(id?), destroy() }
  *   host       where the window goes (a fixed layer above the stage)
  *   prefs      a store from core/prefs.js made with LOOK_SCHEMA (default: one is made, key `storageKey` = 'mir.gui')
  *   defaults   { key: value } — the app's own home look, over the kit's (e.g. { theme: 'light' })
@@ -35,35 +38,34 @@ import { createPrefs } from '../core/prefs.js';
 import { setMotionPolicy } from '../core/motion.js';
 import { frame } from '../core/frame.js';
 import { setText, setVar } from '../core/perf.js';
+import { glassTint as lookTint, glassVeil, lightIsHome, solidInk, spacingPx } from '../core/look.js';
 import { createAccent } from './accent.js';
 import { richText, safeHref } from './about.js';
+import { THEMES, themeById, themeValues, toneValues, matchTone } from './themes.js';
 import { createPointerLight } from '../fx/pointer-light.js';
 import { createParallax } from '../fx/parallax.js';
 
 /** the kit's version, as package.json says it (the release step keeps the two in step) */
 import { MIR_VERSION } from '../version.js'; export { MIR_VERSION };   // one constant: mir/version.js
-/** the skins: FROST is the house look; the others are announced, not selectable, until their packages land */
+export { THEMES };
+/** the 'name'-specs: rules or art outside the settings, announced, not selectable, until their packages land */
 export const SKINS = Object.freeze([{ id: 'frost', label: 'FROST' }, { id: 'metro', label: 'METRO', coming: true }, { id: 'sprites', label: 'SPRITES', coming: true }]);
 /** the words MIR says about itself — quoted from magic-commons.com/joshs-library/lambdawaves/about (2026-10-01) */
 export const MIR_WORDS = 'MIR is the shared Magic Commons interface kit behind its controls, window system, gestures, and modulation. MIR is an open source platform and will continuously be updated, allowing for ‘LLM Mods’ support and customizable skins.';
 const ZERO_SHADOW = '0 0 0 0 transparent';                       // the off shadow: never `none` (a list with none drops)
 const HOME = Object.freeze({ veil: 10, saturation: 1, corners: 14 });   // where nothing is written: the dark frost veil · no saturate · skin.css --card-r
-/* the theme's own glass tint (skin.css: dark hsl(214 16% 13%), light hsl(214 22% 93%)), which BRIGHT, HUE and TINT move */
-const THEME_TINT = Object.freeze({ dark: { h: 214, s: 16, l: 13 }, light: { h: 214, s: 22, l: 93 } });
-/** glassTint(bright, hue, tint, theme) — BASINS skin.js applyGlass: lightness + 40·BRIGHT, hue → HUE and saturation → 70 %
- *  by TINT.  → the `H S% L%` triple the kit reads as --glass-tint, or null at home (BRIGHT 0, TINT 0) */
-export function glassTint(bright, hue, tint, theme) {
-  if (!bright && !tint) return null;
-  const T = THEME_TINT[theme] || THEME_TINT.dark;
-  const h = tint > 0 ? Math.round(hue) : T.h, sat = +(T.s + tint * (70 - T.s)).toFixed(1), l = +Math.max(2, Math.min(98, T.l + 40 * bright)).toFixed(1);
-  return `${h} ${sat}% ${l}%`;
-}
+/** glassTint(bright, hue, tint, theme, saturation = 1) — BASINS skin.js applyGlass (core/look.js): the `H S% L%` triple
+ *  the kit reads as --glass-tint, or null at home (BRIGHT 0, TINT 0, SATURATION 100 %) */
+export function glassTint(bright, hue, tint, theme, saturation = 1) { return lookTint({ bright, hue, tint, saturation }, theme); }
 
 /* ── THE LOOK, as one schema: what each option is, and the hook it drives ───────────────────────────────────────────
    Rows are applied in this order inside one frame job, so THEME is on <body> before the accent reads it, and the tier
-   and the motion policy are written before the pointer effects re-ask their off rules (the last row). */
+   and the motion policy are written before the pointer effects re-ask their off rules (the last row).  The defaults are
+   FROST with its CLEAR tone (shell/themes.js): a new user starts there. */
 export function lookSchema() {
   const full = (s) => s.quality === 'full';
+  const offShadow = (s) => s.shadow === 0 || !s.dropShadow;           // SHADOW at 0 %, or DROP SHADOW off: no pane shadow at all
+  const cast = (s) => !offShadow(s) && !lightIsHome(s);                 // a light setting off home: the sheets draw the cast
   return [
     { key: 'skin', type: 'enum', values: ['frost'], default: 'frost', apply: [{ on: 'html', attr: 'data-skin' }] },
     { key: 'theme', type: 'enum', values: ['dark', 'light', 'system'], default: 'dark', apply: [{ on: 'body', attr: 'data-theme', map: (v, s, e) => e.theme }] },
@@ -75,27 +77,60 @@ export function lookSchema() {
       if (c.lastAccent === k) return;
       c.lastAccent = k; c.accent.set({ a: s.accentA, b: s.accentB, vivid: v });
     } }] },
-    { key: 'card', type: 'enum', values: ['tinted', 'refractive'], default: 'refractive', apply: [{ on: 'body', attr: 'data-card' }] },
+    { key: 'card', type: 'enum', values: ['tinted', 'refractive', 'solid'], default: 'refractive', apply: [{ on: 'body', attr: 'data-card' }] },
     { key: 'frost', type: 'enum', values: ['off', 'still', 'always'], default: 'always', apply: [
       { on: 'body', cls: 'frost', when: (v) => v !== 'off' },
       { run(v, s, e, c) { const b = c && c.doc && c.doc.body; if (b) b.classList.toggle('frost-hold', v === 'still' && !!c.moving); } }] },
-    /* BLUR is BASINS' 0–20 px (20 is the WebKit ceiling), so it is always written: the kit's own 22 is outside it */
-    { key: 'blur', type: 'number', step: 1, min: 0, max: 20, default: 11, apply: [{ on: 'html', prop: '--glass-blur', map: (v) => v + 'px' }] },
+    /* BLUR is always written: 0–24 px.  BASINS' range stops at 20, the WebKit ceiling; it reaches 22 only so CLASSIC can
+       be 1.4's own blur exactly (WebKit draws anything over 20 as 20) */
+    { key: 'blur', type: 'number', step: 1, min: 0, max: 24, default: 11, apply: [{ on: 'html', prop: '--glass-blur', map: (v) => v + 'px' }] },
+    /* VEIL — BASINS' veil (core/look.js glassVeil): the theme's signed whiteness, plus ½·BRIGHT, toward HUE by TINT */
     { key: 'veil', type: 'number', step: 1, min: 0, max: 60, default: 0, apply: [{ on: 'body', prop: '--surface-veil',
-      map: (v, s, e) => (v === HOME.veil || !full(s) ? null : `hsl(${e.theme === 'light' ? '0 0% 100%' : '0 0% 0%'} / ${(v / 100).toFixed(2)})`) }] },
+      map: (v, s, e) => (!full(s) ? null : glassVeil(s, e.theme, HOME.veil)) }] },
     { key: 'saturation', type: 'number', step: 0.01, min: 0, max: 2, default: 1.3, apply: [{ on: 'body', prop: '--surface-filter',
       map: (v, s) => (!full(s) ? null : s.blur === 0 ? 'none' : v === HOME.saturation ? null : `blur(${s.blur}px) saturate(${v.toFixed(2)})`) }] },
     { key: 'corners', type: 'number', step: 1, min: 0, max: 24, default: 24, apply: [{ on: 'body', prop: '--surface-radius', map: (v) => (v === HOME.corners ? null : Math.round(v) + 'px') }] },
-    /* BRIGHT, HUE, TINT — BASINS' glass knobs, onto the kit's --glass-tint on <body> (the tinted pane and every solid face) */
+    /* BRIGHT, HUE, TINT — BASINS' glass knobs, onto the kit's --glass-tint on <body> (the tinted and solid pane, every
+       solid face); SATURATION multiplies the tint's chroma, as BASINS' does */
     { key: 'bright', type: 'number', step: 0.01, min: -1, max: 1, default: 0 },
     { key: 'hue', type: 'number', step: 1, min: 0, max: 360, wrap: true, default: 0 },
-    { key: 'tint', type: 'number', step: 0.01, min: 0, max: 1, default: 0, apply: [{ on: 'body', prop: '--glass-tint', map: (v, s, e) => glassTint(s.bright, s.hue, v, e.theme) }] },
+    { key: 'tint', type: 'number', step: 0.01, min: 0, max: 1, default: 0, apply: [{ on: 'body', prop: '--glass-tint', map: (v, s, e) => lookTint(s, e.theme) }] },
+    /* CONTROL FACES — GLASS · SOLID, and BLEND (0 % solid … 100 % glass) while SOLID (BASINS skin.js setFaces / setFaceBlend) */
+    { key: 'faces', type: 'enum', values: ['solid', 'glass'], default: 'glass', apply: [{ on: 'body', attr: 'data-faces',
+      map: (v, s) => (v === 'glass' || s.faceBlend >= 1 ? 'glass' : s.faceBlend > 0 ? 'blend' : null) }] },
+    { key: 'faceBlend', type: 'number', step: 0.01, min: 0, max: 1, default: 0, apply: [
+      { on: 'body', prop: '--faces-solid-pct', map: (v, s) => (s.faces === 'solid' && v > 0 && v < 1 ? ((1 - v) * 100).toFixed(2) + '%' : null) },
+      { on: 'body', prop: '--faces-transition-alpha', map: (v, s) => (s.faces === 'solid' && v > 0 && v < 1 ? (Math.sin(Math.PI * v) * 0.22).toFixed(3) : null) }] },
+    /* TEXT — AUTO · LIGHT · DARK (BASINS skin.js setText): white or black ink everywhere, or the theme's.  On a SOLID
+       pane AUTO follows the pane's lightness, with no sampling (BASINS' picture sampler is the app's, not the kit's) */
+    { key: 'text', type: 'enum', values: ['theme', 'light', 'dark'], default: 'light', apply: [{ on: 'body', attr: 'data-text',
+      map: (v, s, e) => (v !== 'theme' ? v : s.card === 'solid' ? solidInk(s, e.theme) : null) }] },
     { key: 'relief', type: 'enum', values: ['default', 'flat'], default: 'default', apply: [
       { on: 'html', prop: '--relief-raise', map: (v) => (v === 'flat' ? ZERO_SHADOW : null) },
       { on: 'html', prop: '--relief-well', map: (v) => (v === 'flat' ? ZERO_SHADOW : null) }] },
-    { key: 'shadow', type: 'bool', default: true, apply: ['--surface-shadow', '--surface-shadow-float', '--surface-shadow-menu']
-      .map((prop) => ({ on: 'body', prop, map: (v) => (v ? null : ZERO_SHADOW) })) },
+    /* EDGE — a window pane's hairline rim (BASINS' glass draws none on its windows; its menus and popovers keep theirs) */
+    { key: 'edge', type: 'bool', default: false, apply: [{ on: 'body', prop: '--pane-edge', map: (v) => (v ? null : 'transparent') }] },
+    /* THE ONE LIGHT — LIGHT ANGLE, SHADOW 0–200 % (BASINS' range), DISTANCE, SOFTNESS, SHINE, its SOFTNESS.  Each writes
+       its number on <html> off home; html[data-cast] lets the sheets draw the cast, html[data-shine] the shine layer */
+    { key: 'lightAngle', type: 'number', step: 1, min: 0, max: 360, wrap: true, default: 0, apply: [{ on: 'html', prop: '--light-angle', map: (v) => (v ? v + 'deg' : null) }] },
+    { key: 'shadow', type: 'number', step: 0.01, min: 0, max: 2, default: 2, apply: [{ on: 'html', prop: '--shadow-amount', map: (v) => (v === 1 ? null : String(v)) }] },
+    { key: 'shadowDist', type: 'number', step: 1, min: 0, max: 24, default: 2, apply: [{ on: 'html', prop: '--shadow-dist', map: (v) => (v === 2 ? null : v + 'px') }] },
+    { key: 'shadowSoft', type: 'number', step: 1, min: 0, max: 48, default: 8, apply: [{ on: 'html', prop: '--shadow-soft', map: (v) => (v === 8 ? null : v + 'px') }] },
+    { key: 'shine', type: 'number', step: 0.01, min: 0, max: 1, default: 0, apply: [{ on: 'html', prop: '--shine-amount', map: (v) => (v ? String(v) : null) }] },
+    { key: 'shineSoft', type: 'number', step: 1, min: 0, max: 48, default: 12, apply: [{ on: 'html', prop: '--shine-soft', map: (v) => (v === 12 ? null : v + 'px') }] },
+    /* DROP SHADOW — Display's switch (BASINS: "Display can switch it off"); off, or SHADOW at 0, is no pane shadow at all */
+    { key: 'dropShadow', type: 'bool', default: true, apply: [
+      { on: 'html', attr: 'data-cast', map: (v, s) => (cast(s) ? '' : null) },
+      { on: 'html', attr: 'data-shine', map: (v, s) => (s.shine > 0 ? '' : null) },
+      ...['--surface-shadow', '--surface-shadow-float', '--surface-shadow-menu'].map((prop) => ({ on: 'body', prop, map: (v, s) => (offShadow(s) ? ZERO_SHADOW : null) }))] },
     { key: 'disconnected', type: 'bool', default: false, apply: [{ on: 'body', cls: 'disconnected' }] },
+    /* SPACING — the rack's air (Josh, 2026-10-01: "the dock margins are too large … an option for 0 padding/margins"):
+       one dial, 0–100 %, to --rack-gap, --rack-inset and --pane-pad (core/look.js spacingPx); 0 is flush (html[data-flush]) */
+    { key: 'spacing', type: 'number', step: 0.01, min: 0, max: 1, default: 0.4, apply: [
+      { on: 'html', prop: '--rack-gap', map: (v) => spacingPx(v).gap + 'px' },
+      { on: 'html', prop: '--rack-inset', map: (v) => spacingPx(v).inset + 'px' },
+      { on: 'html', prop: '--pane-pad', map: (v) => spacingPx(v).pad + 'px' },
+      { on: 'html', attr: 'data-flush', map: (v) => (v === 0 ? '' : null) }] },
     { key: 'motion', type: 'enum', values: ['auto', 'full', 'reduced', 'off'], default: 'auto', apply: [{ run: (v) => setMotionPolicy(v) }] },
     { key: 'glow', type: 'bool', default: true },                    // fx/pointer-light.js — off on touch by its own law (ruling 13)
     { key: 'parallax', type: 'bool', default: true },                // fx/parallax.js
@@ -107,16 +142,9 @@ export function lookSchema() {
       { run(v, s, e, c) { if (c && c.fx) c.fx(); } }] },
   ];
 }
-/** the presets: named sets of the MATERIAL, RELIEF and QUALITY options.  Accents, theme, motion and text are the user's
- *  own and no preset touches them.
- *  FROST is Josh's recipe (2026-10-01) and the new user's look: BASINS' ABOUT GLASS (skin.js setMaterialPreset('about'):
- *  ABOUT_MATERIAL veil 0 · radius 16 · shadow 1, ABOUT_SATURATION 1.3, GLASS_DEF bright 0 · hue 0 · tint 0, refractive,
- *  frost always) with his changes: BLUR 11 px, CORNERS maxed (24), SHADOW maxed (on, until it is an amount), DISCONNECTED off. */
-export const LOOK_PRESETS = Object.freeze({
-  frost: { card: 'refractive', frost: 'always', blur: 11, veil: 0, saturation: 1.3, corners: 24, bright: 0, tint: 0, relief: 'default', shadow: true, disconnected: false, quality: 'full' },
-  classic: { card: 'tinted', frost: 'off', blur: 20, veil: HOME.veil, saturation: HOME.saturation, corners: HOME.corners, bright: 0, tint: 0, relief: 'default', shadow: true, disconnected: false, quality: 'full' },
-  light: { card: 'tinted', frost: 'off', blur: 20, veil: HOME.veil, saturation: HOME.saturation, corners: HOME.corners, bright: 0, tint: 0, relief: 'flat', shadow: false, disconnected: false, quality: 'light' },
-});
+/** the presets the store matches: each vanilla theme's options (its colours are its tones'; shell/themes.js).
+ *  Breaking in 1.5.0-alpha.5: LOOK_PRESETS.light is gone (SWIFT replaces it); every theme is here. */
+export const LOOK_PRESETS = Object.freeze(Object.fromEntries(THEMES.map((t) => [t.id, t.values])));
 
 /* ── THE STEPPER: `‹ NAME ›`, two 44 px buttons around a live label (BASINS colour-window.js blend-mode picker) ───── */
 /** stepper({ label, aria, items: [{ id, label, coming? }], value, onChange, wrap }) → { root, get, set(id), setItems(items, id) }
@@ -135,13 +163,14 @@ export function stepper(o) {
   const live = () => items.filter((i) => !i.coming);
   const paint = () => {
     const it = items.find((i) => i.id === v) || live()[0];
-    setText(name, it ? it.label : '');
+    setText(name, it ? it.label : '—');
     const L = live(), i = L.findIndex((x) => x.id === v), wrap = o.wrap !== false;
     prev.disabled = L.length < 2 || (!wrap && i <= 0); next.disabled = L.length < 2 || (!wrap && i >= L.length - 1);
   };
   const step = (d) => {
     const L = live(); if (L.length < 2) return;
-    const i = Math.max(0, L.findIndex((x) => x.id === v)), j = o.wrap === false ? Math.max(0, Math.min(L.length - 1, i + d)) : (i + d + L.length) % L.length;
+    const at = L.findIndex((x) => x.id === v);
+    const j = at < 0 ? (d > 0 ? 0 : L.length - 1) : o.wrap === false ? Math.max(0, Math.min(L.length - 1, at + d)) : (at + d + L.length) % L.length;
     if (L[j].id === v) return;
     v = L[j].id; paint(); if (o.onChange) o.onChange(v, d);
   };
@@ -156,10 +185,11 @@ export function stepper(o) {
 
 /* ── THE COST READING ────────────────────────────────────────────────────────────────────────────────────────────── */
 const OFF_SHADOW = /^(none|rgba\(0, 0, 0, 0\) 0px 0px 0px 0px)$/;
-/** census(doc) → { blur, shadow } — how many visible surfaces (elements and their drawn ::before/::after) carry a backdrop
- *  filter, and how many carry a drawn box shadow.  One style read per surface: it runs once after a change, never per frame. */
+/** census(doc) → { blur, shadow, shine } — how many visible surfaces (elements and their drawn ::before/::after) carry a
+ *  backdrop filter, a drawn box shadow, and a shine layer of their own (an additive pseudo-element).  One style read per
+ *  surface: it runs once after a change, never per frame. */
 export function census(doc = document) {
-  let blur = 0, shadow = 0;
+  let blur = 0, shadow = 0, shine = 0;
   for (const n of doc.body.querySelectorAll('*')) {
     if (n.checkVisibility ? !n.checkVisibility() : !n.getClientRects().length) continue;
     for (const pseudo of [null, '::before', '::after']) {
@@ -167,16 +197,18 @@ export function census(doc = document) {
       if (pseudo && (cs.content === 'none' || cs.content === 'normal')) continue;
       const bf = cs.backdropFilter || cs.webkitBackdropFilter;
       if (bf && bf !== 'none') blur++;
-      if (cs.boxShadow && !OFF_SHADOW.test(cs.boxShadow) && !cs.boxShadow.split(/,(?![^(]*\))/).every((l) => OFF_SHADOW.test(l.trim()))) shadow++;
+      const drawn = cs.boxShadow && !OFF_SHADOW.test(cs.boxShadow) && !cs.boxShadow.split(/,(?![^(]*\))/).every((l) => OFF_SHADOW.test(l.trim()));
+      if (drawn) { if (pseudo && cs.mixBlendMode === 'plus-lighter') shine++; else shadow++; }
     }
   }
-  return { blur, shadow };
+  return { blur, shadow, shine };
 }
 
-/* the narrow layout: the OPTIONS groups as sheets, stepped sideways by the page turner */
+/* the narrow layout: the OPTIONS groups as sheets, stepped sideways by the page turner; page 2's groups are sheet 5 */
 const NARROW = '(max-width: 720px)';
-const SHEETS = { preset: 1, skin: 1, accent: 1, material: 2, relief: 3, text: 3, quality: 3, motion: 4 };
-const SHEET_COUNT = 4;
+const SHEETS = { theme: 1, accent: 1, material: 2, controls: 3, text: 3, quality: 3, motion: 4, light: 5, windows: 5 };
+const PAGE_OF = { theme: 1, accent: 1, material: 1, controls: 1, text: 1, quality: 1, motion: 1, light: 2, windows: 2 };
+const SHEET_COUNT = 5;
 
 export function createGui({ host, prefs, app = {}, about = {}, accent, defaults = {}, storageKey = 'mir.gui' } = {}) {
   const doc = host.ownerDocument, win = doc.defaultView;
@@ -192,71 +224,92 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   ctx.fx = () => { light.refresh(); plx.refresh(); };
   P.apply({ now: true });                                            // the first paint wears the stored look
 
-  /* ── OPTIONS: eight groups ── */
+  /** applyTheme(id) — the theme's options and its own tone, in one set; its cost is measured once it has painted */
+  let costFor = null;
+  const applyTheme = (id) => { const v = themeValues(id); if (!v) return []; costFor = id; const changed = P.set(v); if (!changed.length) measureCost(true); return changed; };
+  const applyTone = (id) => { const t = P.preset(), v = t !== 'custom' && toneValues(t, id); return v ? P.set(v) : []; };
+  const costs = {};                                                  // theme id → { blur, shadow, shine, ms }
+
+  /* ── OPTIONS: two pages of groups ── */
   const controls = new Map();                                        // option key → { set(v) } so the window follows the store
   const bind = (key, c, toUi = (v) => v) => { controls.set(key, { c, set: (v) => c.set(toUi(v)) }); return c; };
   const opts = el('div', 'gui-page gui-options');
-  const grid = el('div', 'gui-grid', opts);
-  const groupEl = (id, title) => { const g = el('section', 'gui-grp', grid); g.dataset.group = id; g.dataset.light = ''; g.dataset.sheet = String(SHEETS[id]); el('h3', 'gui-grp-lbl', g, title); return g; };
+  const grids = { 1: el('div', 'gui-grid', opts), 2: el('div', 'gui-grid', opts) };
+  grids[1].dataset.page = '1'; grids[2].dataset.page = '2';
+  const groupEl = (id, title) => { const g = el('section', 'gui-grp', grids[PAGE_OF[id]]); g.dataset.group = id; g.dataset.light = ''; g.dataset.sheet = String(SHEETS[id]); el('h3', 'gui-grp-lbl', g, title); return g; };
   const line = (g, cls = '') => el('div', 'gui-line' + (cls ? ' ' + cls : ''), g);
   const segOf = (key, label, options) => bind(key, seg({ label, options: options.map(([id, l, title]) => ({ id, label: l, title })), value: P.get(key), onChange: (v) => P.set(key, v) }));
   const swOf = (key, label, title) => bind(key, sw({ label, title, value: P.get(key), onChange: (v) => P.set(key, v) }));
-  const knobOf = (key, label, o) => bind(key, knob({ label, value: o.toUi ? o.toUi(P.get(key)) : P.get(key), min: o.min, max: o.max, fmt: o.fmt, wrap: o.wrap, cls: o.cls,
+  const knobOf = (key, label, o) => bind(key, knob({ label, title: o.title, aria: o.aria, value: o.toUi ? o.toUi(P.get(key)) : P.get(key), min: o.min, max: o.max, fmt: o.fmt, wrap: o.wrap, cls: o.cls,
     onInput: (v) => { P.set(key, o.fromUi ? o.fromUi(v) : v); if (o.input) o.input(v); } }), o.toUi);
+  const pct = (v) => Math.round(v) + '%', px = (v) => Math.round(v) + 'px', deg = (v) => Math.round(v) + '°';
+  const hundred = { min: 0, max: 100, fmt: pct, toUi: (v) => v * 100, fromUi: (v) => v / 100 };
+  const sweep = (k) => (v) => setVar(k.root, '--accent-sweep', Math.round(v) + 'deg');
+  const seat = () => { const h = el('div', 'k'); h.setAttribute('aria-hidden', 'true'); return h; };   // an empty dial seat, so dial rows share columns
 
-  /* PRESET */
-  let g = groupEl('preset', 'PRESET');
-  const presetSeg = seg({ label: 'LOOK', options: [
-    { id: 'frost', label: 'FROST', title: 'Josh\u2019s glass: refractive frost, 11 px, 130 % saturation, round corners' },
-    { id: 'classic', label: 'CLASSIC', title: 'The 1.4 look: tinted panes, no blur, the relief' },
-    { id: 'light', label: 'LIGHT', title: 'The fast look: no blur, flat, no shadows, no motion' },
-    { id: 'custom', label: 'CUSTOM', title: 'Your own mix: the options match no preset' }], value: P.preset(),
-    onChange: (id) => { if (id !== 'custom') P.applyPreset(id); } });
-  line(g).append(presetSeg.root);
-  const resetT = trig({ label: 'RESET LOOK', title: 'Every look option back home', onFire: () => P.reset() });
-  line(g).append(resetT.root);
-
-  /* SKIN */
-  g = groupEl('skin', 'SKIN');
-  const skinStep = stepper({ label: 'SKIN', items: SKINS, value: P.get('skin'), onChange: (v) => P.set('skin', v) });
-  bind('skin', skinStep);
-  line(g).append(skinStep.root);
-  el('div', 'gui-note', g, SKINS.filter((s) => s.coming).map((s) => s.label).join(' · ') + ' — coming');
-  line(g).append(segOf('theme', 'THEME', [['light', 'LIGHT'], ['dark', 'DARK'], ['system', 'SYSTEM', 'Follow the system']]).root);
+  /* THEME — the vanilla themes (SKIN), their tones (TONE), the theme (LIGHT · DARK · SYSTEM), and what the theme costs */
+  let g = groupEl('theme', 'THEME');
+  const themeItems = () => [...THEMES.map((t) => ({ id: t.id, label: t.name })), { id: 'custom', label: 'CUSTOM', coming: true }];
+  const skinStep = stepper({ label: 'SKIN', items: themeItems(), value: P.preset(), onChange: (id) => applyTheme(id) });
+  const toneItems = (t) => { const th = themeById(t); return th ? [...th.tones.map((o) => ({ id: o.id, label: o.name })), { id: 'custom', label: 'CUSTOM', coming: true }] : []; };
+  const toneStep = stepper({ label: 'TONE', items: toneItems(P.preset()), value: matchTone(P.all(), P.preset()), onChange: (id) => applyTone(id) });
+  skinStep.root.classList.add('gui-skin'); toneStep.root.classList.add('gui-tone');
+  line(g, 'gui-pair').append(skinStep.root, toneStep.root);
+  const costNote = el('div', 'gui-note gui-theme-cost', g); costNote.title = 'What this theme cost when it was applied: surfaces that blur, shadows drawn, shine layers, the mean frame time';
+  el('div', 'gui-note gui-coming', g, SKINS.filter((s) => s.coming).map((s) => s.label).join(' · ') + ' — coming ("name"-specs)');
+  const themeLine = line(g, 'gui-pair');
+  themeLine.append(segOf('theme', 'THEME', [['light', 'LIGHT'], ['dark', 'DARK'], ['system', 'SYSTEM', 'Follow the system']]).root,
+    trig({ label: 'RESET LOOK', title: 'Every look option back home (FROST)', onFire: () => { costFor = 'frost'; P.reset(); } }).root);
 
   /* ACCENT — a hue is cyclic, so it is an arc (INTENT rule 2): the kit's accent dial */
   g = groupEl('accent', 'ACCENT');
-  const sweep = (k) => (v) => setVar(k.root, '--accent-sweep', Math.round(v) + 'deg');
-  const deg = (v) => Math.round(v) + '°';
   const kA = knobOf('accentA', 'A', { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial' });
   const kB = knobOf('accentB', 'B', { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial accent-dial-b' });
-  const kV = knobOf('vivid', 'VIVID', { min: 0, max: 100, fmt: (v) => Math.round(v) + '%', toUi: (v) => v * 100, fromUi: (v) => v / 100 });
+  const kV = knobOf('vivid', 'VIVID', hundred);
   const swA = sweep(kA), swB = sweep(kB); swA(P.get('accentA')); swB(P.get('accentB'));
   line(g, 'gui-knobs').append(kA.root, kB.root, kV.root);
 
+  /* TEXT — BASINS' TEXT seg (AUTO here follows the theme; BASINS' AUTO samples the picture), then what shows */
+  g = groupEl('text', 'TEXT');
+  line(g).append(segOf('text', 'INK', [['theme', 'AUTO', 'Follow the theme (on a SOLID pane, its lightness)'], ['light', 'LIGHT', 'White text on every label'], ['dark', 'DARK', 'Black text on every label']]).root);
+  const shows = el('div', 'segw gui-show', line(g)); el('div', 'k-lbl', shows, 'SHOW');
+  el('div', 'gui-line gui-sws gui-col', shows).append(swOf('hints', 'HINTS', 'Hover hints on controls').root, swOf('help', 'HELP', 'The ⓘ panels on windows').root);
+
+  /* QUALITY — and what it costs */
+  g = groupEl('quality', 'QUALITY');
+  line(g).append(segOf('quality', 'TIER', [['full', 'FULL', 'Everything'], ['balanced', 'BALANCED', 'No blur anywhere, one shadow layer'], ['light', 'LIGHT', 'No blur, no relief, no shadows, no motion']]).root);
+  const roBlur = readout({ label: 'BLUR', value: '—' }), roShadow = readout({ label: 'SHADOW', value: '—' }), roFrame = readout({ label: 'FRAME', value: '—' });
+  for (const r of [roBlur, roShadow, roFrame]) { r.root.classList.add('gui-ro'); r.root.title = 'What the look costs, measured after the last change'; }
+  roBlur.root.title = 'Surfaces that blur what is behind them: one compositor pass each';
+  roShadow.root.title = 'Surfaces that draw a shadow, and shine layers';
+  roFrame.root.title = 'The mean frame time over 30 frames after the last change';
+  line(g, 'gui-cost').append(roBlur.root, roShadow.root, roFrame.root);
+
   /* MATERIAL */
   g = groupEl('material', 'MATERIAL');
-  line(g, 'gui-pair').append(segOf('card', 'PANE', [['tinted', 'TINTED', 'A tinted pane: no blur, no compositor cost'], ['refractive', 'REFRACTIVE', 'The blur alone, with a veil']]).root,
-    segOf('frost', 'FROST', [['off', 'OFF'], ['still', 'STILL', 'Frost while the picture is still'], ['always', 'ALWAYS', 'Frost always: the costliest']]).root);
-  const kBlur = knobOf('blur', 'BLUR', { min: 0, max: 20, fmt: (v) => Math.round(v) + 'px' });
-  const kVeil = knobOf('veil', 'VEIL', { min: 0, max: 60, fmt: (v) => Math.round(v) + '%' });
-  const kSat = knobOf('saturation', 'SATURATION', { min: 0, max: 2, fmt: (v) => Math.round(v * 100) + '%' });
-  const kCorner = knobOf('corners', 'CORNERS', { min: 0, max: 24, fmt: (v) => Math.round(v) + 'px' });
+  line(g, 'gui-pair').append(segOf('card', 'PANE', [['tinted', 'TINTED', 'Add the theme tint behind window content: no blur, no compositor cost'], ['refractive', 'REFRACTIVE', 'Use transparent window surfaces: the blur, with a veil'],
+    ['solid', 'SOLID', 'An opaque pane in the tint’s colour: HUE picks it, TINT is its strength, BRIGHT its lightness']]).root,
+  segOf('frost', 'FROST', [['off', 'OFF', 'Disable backdrop filtering'], ['still', 'STILL', 'Apply frost while the picture is still'], ['always', 'ALWAYS', 'Apply frost continuously. This can reduce frame rate.']]).root);
+  const kBlur = knobOf('blur', 'BLUR', { min: 0, max: 24, fmt: (v) => Math.round(v) + ' px', title: 'BLUR — the blur radius of FROST' });
+  const kVeil = knobOf('veil', 'VEIL', { min: 0, max: 60, fmt: pct, title: 'Theme-coloured glass fill. Zero is clear.' });
+  const kSat = knobOf('saturation', 'SATURATION', { min: 0, max: 2, fmt: (v) => Math.round(v * 100) + '%', title: 'Colour intensity across glass surfaces: 0% neutral · 100% original · 200% vivid.' });
+  const kCorner = knobOf('corners', 'CORNERS', { min: 0, max: 24, fmt: (v) => Math.round(v) + ' px', title: 'Corner radius across window panes.' });
   line(g, 'gui-knobs').append(kBlur.root, kVeil.root, kSat.root, kCorner.root);
-  const signed = (v) => (v > 0.005 ? '+' : v < -0.005 ? '\u2212' : '') + Math.abs(v * 100).toFixed(0);
-  const kBright = knobOf('bright', 'BRIGHT', { min: -1, max: 1, fmt: signed });
+  const signed = (v) => (v > 0.005 ? '+' : v < -0.005 ? '−' : '') + Math.abs(v * 100).toFixed(0);
+  const kBright = knobOf('bright', 'BRIGHT', { min: -1, max: 1, fmt: signed, title: 'BRIGHT — how light or dark the glass is' });
   /* HUE is cyclic, so an arc (INTENT rule 2), drawn in the hue it names */
-  const kHue = knobOf('hue', 'HUE', { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial' });
-  const kTint = knobOf('tint', 'TINT', { min: 0, max: 100, fmt: (v) => Math.round(v) + '%', toUi: (v) => v * 100, fromUi: (v) => v / 100 });
+  const kHue = knobOf('hue', 'HUE', { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial', title: 'HUE — the colour TINT gives the glass' });
+  const kTint = knobOf('tint', 'TINT', { ...hundred, title: 'TINT — how much of HUE the glass carries' });
   const hueArc = (v) => { setVar(kHue.root, '--accent-sweep', Math.round(v) + 'deg'); setVar(kHue.root, '--acc', `hsl(${Math.round(v)} 70% 55%)`); };
   hueArc(P.get('hue'));
-  const holder = el('div', 'k'); holder.setAttribute('aria-hidden', 'true');      // the fourth seat, so the two dial rows share columns
-  line(g, 'gui-knobs').append(kBright.root, kHue.root, kTint.root, holder);
+  line(g, 'gui-knobs').append(kBright.root, kHue.root, kTint.root, seat());
 
-  /* RELIEF */
-  g = groupEl('relief', 'RELIEF');
-  line(g).append(segOf('relief', 'CONTROLS', [['default', 'DEFAULT', 'Raised controls and wells'], ['flat', 'FLAT', 'No control relief']]).root);
-  line(g, 'gui-sws gui-col').append(swOf('shadow', 'SHADOW', 'Pane shadows').root, swOf('disconnected', 'DISCONNECTED', 'Window headers apart from their bodies').root);
+  /* CONTROLS — the relief, the faces (BASINS' CONTROL FACES) and BLEND */
+  g = groupEl('controls', 'CONTROLS');
+  line(g).append(segOf('relief', 'RELIEF', [['default', 'DEFAULT', 'Raised controls and wells, lit by LIGHT ANGLE'], ['flat', 'FLAT', 'Flat control faces: hairlines and accents only']]).root);
+  line(g).append(segOf('faces', 'FACES', [['glass', 'GLASS', 'Under refractive or frost the knobs, buttons and fields are clear glass'], ['solid', 'SOLID', 'The kit’s filled knobs, buttons and fields']]).root);
+  const kBlend = knobOf('faceBlend', 'BLEND', { ...hundred, aria: 'Solid to glass control faces', title: '0% solid · 100% glass. The transition uses color burn in dark mode and color dodge in light mode.' });
+  line(g, 'gui-knobs').append(kBlend.root, seat(), seat());
 
   /* MOTION */
   g = groupEl('motion', 'MOTION');
@@ -267,36 +320,42 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
     Object.assign(el('div', 'sw'), { ariaHidden: 'true' }));         // an empty, invisible seat, so DROP GUIDES is as wide as the two above
   g.lastElementChild.lastElementChild.style.visibility = 'hidden';
 
+  /* ── page 2 ── */
+  /* LIGHT — one light: where it is, the shadow it casts, the shine across from it */
+  g = groupEl('light', 'LIGHT');
+  const kAngle = knobOf('lightAngle', 'ANGLE', { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial', aria: 'LIGHT ANGLE', title: 'LIGHT ANGLE — where the light is, clockwise from above: shadows fall away from it, the shine sits toward it, the controls’ relief turns with it' });
+  const angleArc = sweep(kAngle); angleArc(P.get('lightAngle'));
+  const kShadow = knobOf('shadow', 'SHADOW', { min: 0, max: 2, fmt: (v) => Math.round(v * 100) + '%', title: 'Strength of the pane shadow. Display can switch it off.' });
+  const kDist = knobOf('shadowDist', 'DISTANCE', { min: 0, max: 24, fmt: px, title: 'How far the shadow falls from its pane (and the shine across from it)' });
+  const kSoft = knobOf('shadowSoft', 'SOFTNESS', { min: 0, max: 48, fmt: px, title: 'The shadow’s blur' });
+  line(g, 'gui-knobs').append(kAngle.root, kShadow.root, kDist.root, kSoft.root);
+  const kShine = knobOf('shine', 'SHINE', { ...hundred, title: 'SHINE — the shadow’s opposite: a light across the pane’s edge toward the light, added to what is behind' });
+  const kShineSoft = knobOf('shineSoft', 'SHINE SOFT', { min: 0, max: 48, fmt: px, aria: 'SHINE SOFTNESS', title: 'The shine’s blur' });
+  line(g, 'gui-knobs').append(kShine.root, kShineSoft.root, seat(), seat());
 
-  /* TEXT */
-  g = groupEl('text', 'TEXT');
-  const shows = el('div', 'segw gui-show', line(g)); el('div', 'k-lbl', shows, 'SHOW');      // a label like every first control's, so the labels share a baseline
-  el('div', 'gui-line gui-sws gui-col', shows).append(swOf('hints', 'HINTS', 'Hover hints on controls').root, swOf('help', 'HELP', 'The ⓘ panels on windows').root);
-
-  /* QUALITY — and what it costs */
-  g = groupEl('quality', 'QUALITY');
-  line(g).append(segOf('quality', 'TIER', [['full', 'FULL', 'Everything'], ['balanced', 'BALANCED', 'No blur anywhere, one shadow layer'], ['light', 'LIGHT', 'No blur, no relief, no shadows, no motion']]).root);
-  const roBlur = readout({ label: 'BLUR', value: '—' }), roShadow = readout({ label: 'SHADOW', value: '—' }), roFrame = readout({ label: 'FRAME', value: '—' });
-  for (const r of [roBlur, roShadow, roFrame]) { r.root.classList.add('gui-ro'); r.root.title = 'What the look costs, measured after the last change'; }
-  roBlur.root.title = 'Surfaces that blur what is behind them: one compositor pass each';
-  roShadow.root.title = 'Surfaces that draw a shadow';
-  roFrame.root.title = 'The mean frame time over 30 frames after the last change';
-  line(g, 'gui-cost').append(roBlur.root, roShadow.root, roFrame.root);
+  /* WINDOWS — the pane's rim, its drop shadow, its header apart */
+  g = groupEl('windows', 'WINDOWS');
+  line(g, 'gui-sws gui-col').append(swOf('dropShadow', 'DROP SHADOW', 'Pane shadows (SHADOW sets their strength)').root, swOf('edge', 'EDGE', 'The pane’s hairline rim').root,
+    swOf('disconnected', 'DISCONNECTED', 'Separate window headers from their bodies').root);
+  const kSpace = knobOf('spacing', 'SPACING', { ...hundred, title: 'The rack\u2019s air: between its windows, from the screen\u2019s edge and inside each window. 0% is flush.' });
+  line(g, 'gui-knobs').append(kSpace.root, seat(), seat());
 
   /* ── ABOUT ── */
   const ab = el('div', 'gui-page gui-about');
   const logo = el('div', 'gui-logo', ab); logo.dataset.light = ''; logo.setAttribute('role', 'img'); logo.setAttribute('aria-label', 'MIR');
   const logoArt = el('div', 'gui-logo-art', logo); logoArt.dataset.parallax = '5';
-  el('div', 'gui-ab-ver', ab, `MIR ${MIR_VERSION} · SKIN ${SKINS.find((s) => s.id === P.get('skin')).label}`);
+  const abVer = el('div', 'gui-ab-ver', ab);
+  const paintVer = () => { const t = themeById(P.preset()); setText(abVer, `MIR ${MIR_VERSION} · SKIN ${t ? t.name : 'CUSTOM'}`); };
+  paintVer();
   el('div', 'gui-ab-std', ab, `${appName} is an MIR Standard app`);
   el('p', 'gui-ab-words', ab, MIR_WORDS);
   const fine = (parts) => richText(el('p', 'gui-ab-fine', ab), parts);
   if (about.github && safeHref(about.github)) fine(['Source: ', [about.github.replace(/^https?:\/\//, ''), about.github]]);
   fine(['MIR is free software under the GNU GPL v3.0 only (GPL-3.0-only) — no warranty.']);
   const F = about.fonts || '../fonts/';
-  fine(['Type: ', ['Roboto', F + 'Roboto-OFL.txt'], ' · ', ['LW Title', F + 'Spinwerad-OFL.txt'], ' (a renamed subset of Spinwerad by gluk) · ',
-    ['STIX Two Math', F + 'STIXTwoMath-OFL.txt'], ' · the notebook’s ', ['Spectral', F + 'info/Spectral-OFL.txt'], ', ', ['Playfair Display', F + 'info/PlayfairDisplay-OFL.txt'],
-    ' and ', ['Alegreya SC', F + 'info/AlegreyaSC-OFL.txt'], ' — all SIL OFL 1.1.']);
+  fine(['Type: ', ['Roboto', F + 'Roboto-OFL.txt'], ' · ', ['LW Title', F + 'Spinwerad-OFL.txt'], ' (a renamed subset of Spinwerad by gluk) · ',
+    ['STIX Two Math', F + 'STIXTwoMath-OFL.txt'], ' · the notebook’s ', ['Spectral', F + 'info/Spectral-OFL.txt'], ', ', ['Playfair Display', F + 'info/PlayfairDisplay-OFL.txt'],
+    ' and ', ['Alegreya SC', F + 'info/AlegreyaSC-OFL.txt'], ' — all SIL OFL 1.1.']);
   fine(['The MIR logo is outlined from Butler Free Extra Bold by ', ['Fabian De Smet', 'https://www.fabiandesmet.com/'], '.']);
   for (const c of about.credits || ['© 2026 Joshua Hosain · Magic Commons. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).']) fine(c);
 
@@ -330,10 +389,10 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
 
   /* ── the window, the page turner ── */
   const head = el('div', 'gui-head');
-  let narrow = !!(win.matchMedia && win.matchMedia(NARROW).matches), page = 'options', sheet = 1;
+  let narrow = !!(win.matchMedia && win.matchMedia(NARROW).matches), page = 'options', optPage = 1, sheet = 1;
   const pages = () => (narrow ? [...Array.from({ length: SHEET_COUNT }, (_, i) => ({ id: 'options:' + (i + 1), label: `MIR OPTIONS ${i + 1}/${SHEET_COUNT}` })), { id: 'about', label: 'MIR ABOUT' }]
-    : [{ id: 'options', label: 'MIR OPTIONS' }, { id: 'about', label: 'MIR ABOUT' }]);
-  const pageId = () => (page === 'about' ? 'about' : narrow ? 'options:' + sheet : 'options');
+    : [{ id: 'options:1', label: 'MIR OPTIONS 1' }, { id: 'options:2', label: 'MIR OPTIONS 2' }, { id: 'about', label: 'MIR ABOUT' }]);
+  const pageId = () => (page === 'about' ? 'about' : 'options:' + (narrow ? sheet : optPage));
   const turner = stepper({ cls: 'gui-turner', aria: 'page', items: pages(), value: pageId(), onChange: (id) => show(id) });
   head.append(turner.root);
 
@@ -349,7 +408,7 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
     if (!W.isOpen()) return;
     const cs = getComputedStyle(W.body);
     const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight), padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-    const pg = page === 'about' ? ab : opts, wide = page === 'about' ? ab : grid, edge = 2;
+    const pg = page === 'about' ? ab : opts, wide = page === 'about' ? ab : grids[optPage], edge = 2;
     const w = Math.ceil(Math.max(wide.offsetWidth, turner.root.scrollWidth) + padX + edge), h = Math.ceil(head.offsetHeight + pg.scrollHeight + padY + edge);
     const vw = win.innerWidth, vh = win.innerHeight, r = W.rect();
     const cw = Math.min(w, vw - 16), ch = Math.min(h, vh - 16);
@@ -358,34 +417,38 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   }
   function show(id) {
     page = id === 'about' ? 'about' : 'options';
-    if (id.startsWith('options:')) sheet = +id.split(':')[1] || 1;
-    opts.dataset.sheet = narrow ? String(sheet) : '';
+    if (id.startsWith('options')) { const n = +id.split(':')[1] || 1; if (narrow) sheet = Math.min(SHEET_COUNT, n); else optPage = Math.min(2, n); }
+    if (narrow) optPage = sheet === SHEET_COUNT ? 2 : 1;
+    opts.dataset.sheet = narrow ? String(sheet) : ''; opts.dataset.page = String(optPage);
     W.tab(page);
     turner.setItems(pages(), pageId());
     if (page === 'about') showLogo();
     fit();
-    if (page === 'options') measureCost();
+    if (page === 'options') { const t = P.preset(); if (t !== 'custom' && !costs[t] && costFor === null) costFor = t; measureCost(); }   // the theme in use is costed the first time OPTIONS shows
   }
-  const onNarrow = (e) => { narrow = e.matches; show(pageId() === 'about' ? 'about' : narrow ? 'options:' + sheet : 'options'); };
+  const onNarrow = (e) => { narrow = e.matches; if (narrow) sheet = optPage === 2 ? SHEET_COUNT : 1; show(page === 'about' ? 'about' : 'options:' + (narrow ? sheet : optPage)); };
   const mqNarrow = win.matchMedia ? win.matchMedia(NARROW) : null;
   if (mqNarrow && mqNarrow.addEventListener) mqNarrow.addEventListener('change', onNarrow, on);
-  opts.dataset.sheet = narrow ? '1' : '';
+  opts.dataset.sheet = narrow ? '1' : ''; opts.dataset.page = '1';
 
-  /* ── the cost: once after a change, while OPTIONS is showing ── */
+  /* ── the cost: once after a change, while OPTIONS is showing (and once after a theme is applied, window open or not) ── */
   let costRun = 0;
-  function measureCost() {
-    if (!W.isOpen() || page !== 'options') return;
-    const run = ++costRun;
+  const costText = (c) => `${c.blur} BLUR · ${c.shadow} SHADOW · ${c.shine} SHINE${c.ms ? ' · ' + c.ms.toFixed(1) + ' ms' : ''}`;
+  const paintCost = () => { const t = P.preset(), c = costs[t]; setText(costNote, t === 'custom' ? 'CUSTOM: no theme to cost' : c ? costText(c) : 'measured when applied'); };
+  function measureCost(force) {
+    if (!force && !(W.isOpen() && page === 'options')) return;
+    const run = ++costRun, theme = costFor; costFor = null;
     frame.coalesce('gui:cost', () => {
       requestAnimationFrame(() => {                                 // after the change has been styled and painted
         if (run !== costRun) return;
         const c = census(doc);
-        setText(roBlur.root.querySelector('.ro-val'), String(c.blur)); setText(roShadow.root.querySelector('.ro-val'), String(c.shadow));
-        roBlur.root.dataset.count = c.blur; roShadow.root.dataset.count = c.shadow;
+        setText(roBlur.root.querySelector('.ro-val'), String(c.blur)); setText(roShadow.root.querySelector('.ro-val'), String(c.shadow + c.shine));
+        roBlur.root.dataset.count = c.blur; roShadow.root.dataset.count = c.shadow + c.shine;
         const t = []; let last = 0;
         const tick = (now) => { if (run !== costRun) return; if (last) t.push(now - last); last = now; if (t.length < 30) requestAnimationFrame(tick); else {
           const ms = t.reduce((a, b) => a + b, 0) / t.length;
           setText(roFrame.root.querySelector('.ro-val'), ms.toFixed(1) + ' ms'); roFrame.root.dataset.ms = ms.toFixed(2);
+          if (theme && P.preset() === theme) { costs[theme] = { ...c, ms }; paintCost(); }
         } };
         requestAnimationFrame(tick);
       });
@@ -398,21 +461,26 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
     if (changed.includes('accentA')) swA(state.accentA);
     if (changed.includes('accentB')) swB(state.accentB);
     if (changed.includes('hue')) hueArc(state.hue);
-    const preset = P.preset();
-    presetSeg.set(preset); presetSeg.button('custom').hidden = preset !== 'custom';
-    const full = state.quality === 'full';
-    kBlur.setDisabled(!full); kSat.setDisabled(!full); kVeil.setDisabled(!full || state.card !== 'refractive');
+    if (changed.includes('lightAngle')) angleArc(state.lightAngle);
+    const theme = P.preset();
+    skinStep.set(theme); toneStep.setItems(toneItems(theme), theme === 'custom' ? undefined : matchTone(state, theme));
+    paintVer(); paintCost();
+    const full = state.quality === 'full', lit = state.shadow > 0 && state.dropShadow;
+    kBlur.setDisabled(!full || state.card === 'solid'); kSat.setDisabled(!full || state.card === 'solid'); kVeil.setDisabled(!full || state.card !== 'refractive');
     kHue.setDisabled(!state.tint);                                    // HUE shows only through TINT
+    kBlend.setDisabled(state.faces !== 'solid');                      // BLEND moves SOLID faces toward glass (BASINS)
+    kShine.setDisabled(state.quality === 'light'); kShineSoft.setDisabled(!state.shine || state.quality === 'light');
+    kDist.setDisabled(!lit && !state.shine); kSoft.setDisabled(!lit);
     if (changed.includes('theme') && page === 'about') showLogo();
-    if (changed.length) { fit(); measureCost(); }
+    if (changed.length) { fit(); measureCost(costFor !== null); }
   }
   const unsub = P.subscribe(sync);
   sync(P.all(), []);
 
   return {
     root: W.root, window: W, prefs: P,
-    /** open(page) — 'options' (default) or 'about' */
-    open(p) { const first = !W.isOpen(); if (first) W.open(); show(p === 'about' ? 'about' : narrow ? 'options:' + sheet : 'options'); },
+    /** open(page) — 'options' (default), 'options:2' or 'about' */
+    open(p) { const first = !W.isOpen(); if (first) W.open(); show(p === 'about' ? 'about' : p === 'options:2' ? (narrow ? 'options:' + SHEET_COUNT : 'options:2') : 'options:' + (narrow ? sheet : optPage)); },
     close() { W.close(); },
     toggle(p) { if (W.isOpen() && (!p || p === page)) W.close(); else this.open(p); },
     get page() { return page; },
@@ -421,6 +489,10 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
     moving(b) { ctx.moving = !!b; P.apply(); },
     dropGuides: () => P.get('dropGuides'),
     census: () => census(doc),
+    /** applyTheme(id) — a vanilla theme and its own tone; applyTone(id) — one of the current theme's tones */
+    applyTheme, applyTone,
+    /** themeCost(id?) — what a theme cost when it was last applied: { blur, shadow, shine, ms }, or all of them */
+    themeCost: (id) => (id ? costs[id] || null : { ...costs }),
     light, parallax: plx,
     destroy() { unsub(); life.abort(); costRun++; frame.cancel('gui:cost'); light.destroy(); plx.destroy(); W.destroy(); if (!prefs) P.destroy(); },
   };

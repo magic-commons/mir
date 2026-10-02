@@ -68,35 +68,44 @@ try {
   /* ── a new user is on FROST, Josh's recipe ── */
   r = await J(`return { preset: P.preset(), theme: document.body.dataset.theme, card: document.body.dataset.card, frost: document.body.classList.contains('frost'), blur: hv('--glass-blur'), radius: bv('--surface-radius'), filter: bv('--surface-filter') };`);
   check("a new user starts on FROST (Josh's recipe) on the dark theme", r.preset === 'frost' && r.theme === 'dark' && r.card === 'refractive' && r.frost && r.blur === '11px' && r.radius === '24px' && r.filter === 'blur(11px) saturate(1.30)', JSON.stringify(r));
-  /* the walk below starts from CLASSIC, chosen with the mouse, so each option moves something */
-  await option('PRESET classic', () => click(segB('preset', 0, 1), 'CLASSIC'), `[P.preset(), document.body.dataset.card]`, ['classic', 'tinted'], `cs('#pane', 'background-color')`);
-
-  /* ── every control on page one: hook + computed style ───────────────────────────────────────────────────── */
-  r = await J(`const st = ${grp('skin')}; return { skin: document.documentElement.dataset.skin, name: st.querySelector('.gui-step-name').textContent, arrows: [...st.querySelectorAll('.gui-step-b')].map((b) => b.disabled) };`);
-  check('SKIN: the stepper names FROST, writes <html data-skin="frost">, and its arrows stand down (nothing else is selectable yet)', r.skin === 'frost' && r.name === 'FROST' && r.arrows.every(Boolean) && (await spot(`${grp('skin')}.querySelector('.gui-step-name')`)).hit, JSON.stringify(r));
-  await option('THEME light', () => click(segB('skin', 0, 0), 'THEME LIGHT'), `document.body.dataset.theme`, 'light', `bv('--fg')`);
-  await click(segB('skin', 0, 1), 'THEME DARK');
-  await option('ACCENT A', () => dragUp(dial('accent', 0), 'ACCENT A'), `P.get('accentA') !== 30`, true, `bv('--acc')`);
+  /* the walk below starts from CLASSIC, stepped to with the mouse (SKIN ›, ›: FROST → MORPH → CLASSIC), so each option moves something */
+  const skinNext = `${grp('theme')}.querySelector('.gui-skin .gui-step-b[data-step="1"]')`, toneNext = `${grp('theme')}.querySelector('.gui-tone .gui-step-b[data-step="1"]')`;
+  await option('SKIN › › CLASSIC (a vanilla theme)', async () => { const a = await click(skinNext, 'SKIN ›'); const b = await click(skinNext, 'SKIN ›'); return a && b; },
+    `[P.preset(), document.body.dataset.card, ${grp('theme')}.querySelector('.gui-skin .gui-step-name').textContent]`, ['classic', 'tinted', 'CLASSIC'], `cs('#pane', 'background-color')`);
+  r = await J(`return document.documentElement.dataset.skin;`);
+  check('SKIN keeps the seam: <html data-skin="frost"> (the vanilla themes are settings, not a skin package)', r === 'frost', r);
+  await option('TONE › (INK: the theme\'s colours only)', () => click(toneNext, 'TONE ›'), `[P.preset(), ${grp('theme')}.querySelector('.gui-tone .gui-step-name').textContent, P.get('tint')]`, ['classic', 'INK', 0.2], `cs('#knob .k-dial', 'background-color')`);
+  await option('THEME light', () => click(segB('theme', 0, 0), 'THEME LIGHT'), `document.body.dataset.theme`, 'light', `bv('--fg')`);
+  await click(segB('theme', 0, 1), 'THEME DARK');
+  await option('ACCENT A', () => dragUp(dial('accent', 0), 'ACCENT A'), `P.get('accentA') !== 200`, true, `bv('--acc')`);
   await option('ACCENT B', () => dragUp(dial('accent', 1), 'ACCENT B'), `P.get('accentB') !== 300`, true, `bv('--acc2')`);
   await option('VIVID', () => dragUp(dial('accent', 2), 'VIVID'), `P.get('vivid') > 0.1`, true, `bv('--acc-glow')`);
   await option('PANE refractive', () => click(segB('material', 0, 1), 'REFRACTIVE'), `document.body.dataset.card`, 'refractive', `cs('#pane', 'background-color')`);
   await option('FROST always', () => click(segB('material', 1, 2), 'FROST ALWAYS'), `document.body.classList.contains('frost')`, true, `cs('#pane', 'backdrop-filter')`);
+  await option('FACES glass', () => click(segB('controls', 1, 0), 'FACES GLASS'), `document.body.dataset.faces`, 'glass', `cs('#knob .k-dial', 'background-color')`);
+  await click(segB('controls', 1, 1), 'FACES SOLID');
+  await option('BLEND (solid toward glass)', () => dragUp(dial('controls', 0), 'BLEND', 40), `[document.body.dataset.faces, P.get('faceBlend') > 0]`, ['blend', true], `cs('#knob .k-dial', 'background-color')`);
   const bHit = await dragUp(dial('material', 0), 'BLUR', -60);
   r = await J(`return { blur: P.get('blur'), hook: hv('--glass-blur'), filter: cs('#pane', 'backdrop-filter') };`);
-  check('option BLUR: dragging the dial writes --glass-blur on <html> and the pane\'s blur follows', bHit && r.blur !== 20 && r.hook === r.blur + 'px' && r.filter.includes('blur(' + r.blur + 'px)'), JSON.stringify(r));
+  check('option BLUR: dragging the dial writes --glass-blur on <html> and the pane\'s blur follows', bHit && r.blur !== 22 && r.hook === r.blur + 'px' && r.filter.includes('blur(' + r.blur + 'px)'), JSON.stringify(r));
   await option('VEIL', () => dragUp(dial('material', 1), 'VEIL'), `!!bv('--surface-veil')`, true, `cs('#pane', 'background-color')`);
   await option('SATURATION', () => dragUp(dial('material', 2), 'SATURATION'), `bv('--surface-filter').includes('saturate')`, true, `cs('#pane', 'backdrop-filter')`);
   await option('CORNERS', () => dragUp(dial('material', 3), 'CORNERS', 30), `!!bv('--surface-radius')`, true, `cs('.dev', 'border-top-left-radius')`);
-  await option('BRIGHT', () => dragUp(dial('material', 4), 'BRIGHT', 40), `!!bv('--glass-tint') && P.get('bright') > 0`, true, `cs('#knob .k-dial', 'background-color')`);
+  await click(segB('controls', 1, 0), 'FACES GLASS');              /* back to clear faces: the tint is read by the pane from here on */
+  await click(segB('material', 0, 0), 'TINTED');
+  await option('BRIGHT', () => dragUp(dial('material', 4), 'BRIGHT', 40), `!!bv('--glass-tint') && P.get('bright') > 0`, true, `cs('#pane', 'background-color')`);
+  await J(`P.set('tint', 0); return 0;`); await sleep(80);
   r = await J(`return ${dial('material', 5)}.closest('.k').classList.contains('disabled');`);
   check('HUE stands down while TINT is 0 (it shows only through TINT)', r === true);
-  await option('TINT', () => dragUp(dial('material', 6), 'TINT', 40), `P.get('tint') > 0`, true, `cs('#knob .k-dial', 'background-color')`);
-  await option('HUE', () => dragUp(dial('material', 5), 'HUE', 40), `bv('--glass-tint').split(' ')[0] === String(P.get('hue'))`, true, `cs('#knob .k-dial', 'background-color')`);
-  await option('RELIEF flat', () => click(segB('relief', 0, 1), 'FLAT'), `hv('--relief-raise')`, '0 0 0 0 transparent', `cs('#knob .k-dial', 'box-shadow')`);
-  await option('SHADOW off', () => click(swB('relief', 0), 'SHADOW'), `bv('--surface-shadow')`, '0 0 0 0 transparent', `cs('#pane', 'box-shadow')`);
-  await option('DISCONNECTED on', () => click(swB('relief', 1), 'DISCONNECTED'), `document.body.classList.contains('disconnected')`, true, `cs('.dev', 'visibility')`);
+  await option('TINT', () => dragUp(dial('material', 6), 'TINT', 40), `P.get('tint') > 0`, true, `cs('#pane', 'background-color')`);
+  await option('HUE', () => dragUp(dial('material', 5), 'HUE', 40), `bv('--glass-tint').split(' ')[0] === String(P.get('hue'))`, true, `cs('#pane', 'background-color')`);
+  await option('PANE solid', () => click(segB('material', 0, 2), 'SOLID'), `[document.body.dataset.card, cs('#pane', 'backdrop-filter')]`, ['solid', 'none'], `cs('#pane', 'background-color')`);
+  r = await J(`const c = cs('#pane', 'background-color'); return { c, a: c.startsWith('rgb(') };`);
+  check('a SOLID pane is opaque (alpha 1) and never blurs', r.a, JSON.stringify(r));
+  await click(segB('material', 0, 1), 'REFRACTIVE');
+  await option('RELIEF flat', () => click(segB('controls', 0, 1), 'FLAT'), `hv('--relief-raise')`, '0 0 0 0 transparent', `cs('#knob .k-dial', 'box-shadow')`);
   await option('FROST still, while the picture moves', async () => { const h = await click(segB('material', 1, 1), 'FROST STILL'); await p.eval('__T.gui.moving(true)'); await sleep(80); return h; },
-    `[document.body.classList.contains('frost'), document.body.classList.contains('frost-hold')]`, [true, true], `cs('.dev > .dev-body', 'backdrop-filter')`);
+    `[document.body.classList.contains('frost'), document.body.classList.contains('frost-hold')]`, [true, true], `cs('#pane', 'backdrop-filter')`);
   await p.eval('__T.gui.moving(false)');
   await option('MOTION off', () => click(segB('motion', 0, 3), 'MOTION OFF'), `document.documentElement.dataset.motion`, 'off', `hv('--motion-ui')`);
   await click(segB('motion', 0, 1), 'MOTION FULL'); await sleep(80);
@@ -129,24 +138,43 @@ try {
   r = await J(`return document.body.classList.contains('control-hints-off');`);
   check('option HINTS off: body.control-hints-off, and a hovered control\'s hint no longer shows', hHit && r && hintOn && !hintOff, `before ${hintOn} · after ${hintOff}`);
   await option('HELP off', () => click(swB('text', 1), 'HELP'), `document.body.classList.contains('window-info-off')`, true, `cs('.native-info', 'display')`);
-  await option('QUALITY balanced', () => click(segB('quality', 0, 1), 'BALANCED'), `document.documentElement.dataset.uiTier`, 'lite', `cs('.dev > .dev-body', 'backdrop-filter')`);
+  await option('INK dark (black text)', () => click(segB('text', 0, 2), 'INK DARK'), `document.body.dataset.text`, 'dark', `bv('--fg')`);
+  await option('INK auto (the theme\'s)', () => click(segB('text', 0, 0), 'INK AUTO'), `document.body.hasAttribute('data-text')`, false, `bv('--fg')`);
+  await option('QUALITY balanced', () => click(segB('quality', 0, 1), 'BALANCED'), `document.documentElement.dataset.uiTier`, 'lite', `cs('#pane', 'backdrop-filter')`);
   await option('QUALITY light', () => click(segB('quality', 0, 2), 'LIGHT'), `document.documentElement.dataset.uiTier`, 'flat', `cs('#knob .k-dial', 'transition-duration')`);
   await click(segB('quality', 0, 0), 'FULL');
   r = await J(`await wait(900); return { blur: ${grp('quality')}.querySelectorAll('.ro-val')[0].textContent, frame: ${grp('quality')}.querySelectorAll('.ro-val')[2].textContent };`);
   check('QUALITY shows what the look costs: blurred surfaces and a measured frame time', /^\d+$/.test(r.blur) && /ms$/.test(r.frame), JSON.stringify(r));
 
-  /* ── PRESET: the sets, and CUSTOM ── */
-  r = await J(`return { preset: P.preset(), customShown: !${segB('preset', 0, 3)}.hidden };`);
-  check('PRESET: after all that the options match no preset, and CUSTOM shows', r.preset === 'custom' && r.customShown, JSON.stringify(r));
-  await option('PRESET frost', () => click(segB('preset', 0, 0), 'FROST'), `[P.preset(), document.body.dataset.card, document.body.classList.contains('frost'), document.body.classList.contains('disconnected'), document.body.style.getPropertyValue('--glass-tint')]`, ['frost', 'refractive', true, false, ''], `[cs('.dev > .dev-body', 'border-top-left-radius'), cs('#pane', 'backdrop-filter')]`);
-  r = await J(`return !${segB('preset', 0, 3)}.hidden;`);
-  check('PRESET: a preset that matches hides CUSTOM again', r === false);
+  /* ── MIR OPTIONS 2: the light, the windows ── */
+  const pageNext = `document.querySelector('.mir-gui .gui-turner .gui-step-b[data-step="1"]')`;
+  const p2 = await click(pageNext, 'turner › (OPTIONS 2)'); await sleep(400);
+  r = await J(`return [G.page, G.root.querySelector('.gui-turner .gui-step-name').textContent, !!${grp('light')}.getClientRects().length];`);
+  check('the page turner shows MIR OPTIONS 2 (the light and the windows)', p2 && r[0] === 'options' && r[1] === 'MIR OPTIONS 2' && r[2], JSON.stringify(r));
+  await option('LIGHT ANGLE (an arc)', () => dragUp(dial('light', 0), 'LIGHT ANGLE', 50), `[hv('--light-angle') !== '', document.documentElement.hasAttribute('data-cast')]`, [true, true], `cs('#pane', 'box-shadow')`);
+  await option('SHADOW (0–200 %)', () => dragUp(dial('light', 1), 'SHADOW', 40), `[P.get('shadow') > 1, hv('--shadow-amount') === String(P.get('shadow'))]`, [true, true], `cs('#pane', 'box-shadow')`);
+  await option('DISTANCE', () => dragUp(dial('light', 2), 'DISTANCE', 40), `hv('--shadow-dist') === P.get('shadowDist') + 'px'`, true, `cs('#pane', 'box-shadow')`);
+  await option('SOFTNESS', () => dragUp(dial('light', 3), 'SOFTNESS', 40), `hv('--shadow-soft') === P.get('shadowSoft') + 'px'`, true, `cs('#pane', 'box-shadow')`);
+  await option('SHINE', () => dragUp(dial('light', 4), 'SHINE', 40), `[document.documentElement.hasAttribute('data-shine'), cs('#strip .dev', 'mix-blend-mode', '::before')]`, [true, 'plus-lighter'], `cs('#strip .dev', 'box-shadow', '::before')`);
+  await option('SHINE SOFT', () => dragUp(dial('light', 5), 'SHINE SOFT', 40), `hv('--shine-soft') === P.get('shineSoft') + 'px'`, true, `cs('#strip .dev', 'box-shadow', '::before')`);
+  await option('EDGE off', () => click(swB('windows', 1), 'EDGE'), `bv('--pane-edge')`, 'transparent', `cs('#pane', 'border-top-color')`);
+  await option('SPACING (less air)', () => dragUp(dial('windows', 0), 'SPACING', -50), `[P.get('spacing') < 0.63, hv('--pane-pad') !== '7px', hv('--rack-gap') !== '10px']`, [true, true, true], `cs('#strip .dev > .dev-body', 'padding-top')`);
+  await option('DROP SHADOW off', () => click(swB('windows', 0), 'DROP SHADOW'), `bv('--surface-shadow')`, '0 0 0 0 transparent', `cs('#pane', 'box-shadow')`);
+  await option('DISCONNECTED on', () => click(swB('windows', 2), 'DISCONNECTED'), `document.body.classList.contains('disconnected')`, true, `cs('.dev', 'visibility')`);
+  await click(pageNext, 'turner › (ABOUT)'); await sleep(300); await click(pageNext, 'turner › (OPTIONS 1)'); await sleep(300);
+
+  /* ── SKIN: the sets, and CUSTOM ── */
+  r = await J(`return { preset: P.preset(), name: ${grp('theme')}.querySelector('.gui-skin .gui-step-name').textContent };`);
+  check('SKIN: after all that the options match no theme, and the stepper says CUSTOM', r.preset === 'custom' && r.name === 'CUSTOM', JSON.stringify(r));
+  await option('SKIN › FROST (from CUSTOM, the first theme)', () => click(skinNext, 'SKIN › FROST'), `[P.preset(), document.body.dataset.card, document.body.classList.contains('frost'), document.body.classList.contains('disconnected'), document.body.style.getPropertyValue('--glass-tint')]`, ['frost', 'refractive', true, false, '214 20.8% 13%'], `[cs('.dev', 'border-top-left-radius'), cs('#pane', 'backdrop-filter')]`);
+  r = await J(`await wait(900); return [${grp('theme')}.querySelector('.gui-skin .gui-step-name').textContent, ${grp('theme')}.querySelector('.gui-tone .gui-step-name').textContent, ${grp('theme')}.querySelector('.gui-theme-cost').textContent, G.themeCost('frost')];`);
+  check('a theme that matches names itself and its tone, and shows what it cost when applied', r[0] === 'FROST' && r[1] === 'CLEAR' && /BLUR .* ms$/.test(r[2]) && r[3] && r[3].ms > 0, JSON.stringify(r));
 
   /* ── a reload keeps the choices ── */
-  await click(segB('skin', 0, 0), 'THEME LIGHT');
+  await click(segB('theme', 0, 0), 'THEME LIGHT');
   await p.goto(URL_, 900); await ready();
-  r = await J(`return { preset: P.preset(), theme: document.body.dataset.theme, card: document.body.dataset.card, frost: document.body.classList.contains('frost'), guides: P.get('dropGuides'), hints: document.body.classList.contains('control-hints-off') };`);
-  check('a reload keeps the choices (one localStorage key, applied before the first paint)', r.preset === 'frost' && r.theme === 'light' && r.card === 'refractive' && r.frost && r.guides === false && r.hints, JSON.stringify(r));
+  r = await J(`return { preset: P.preset(), tone: ${grp('theme')}.querySelector('.gui-tone .gui-step-name').textContent, theme: document.body.dataset.theme, card: document.body.dataset.card, frost: document.body.classList.contains('frost'), guides: P.get('dropGuides'), hints: document.body.classList.contains('control-hints-off') };`);
+  check('a reload keeps the choices, the theme and its tone (one localStorage key, applied before the first paint)', r.preset === 'frost' && r.tone === 'CLEAR' && r.theme === 'light' && r.card === 'refractive' && r.frost && r.guides === false && r.hints, JSON.stringify(r));
 
   /* ── the page turner, and nothing scrolls ── */
   await p.eval(`__T.gui.open('options')`); await sleep(500);
@@ -158,9 +186,11 @@ try {
   const next = `document.querySelector('.mir-gui .gui-turner .gui-step-b[data-step="1"]')`, prev = `document.querySelector('.mir-gui .gui-turner .gui-step-b[data-step="-1"]')`;
   const tHit = await click(next, 'turner ›'); await sleep(400);
   pages1280.push(await overflow());
-  const back = await click(prev, 'turner ‹'); await sleep(400);
-  r = await J(`return G.page;`);
-  check('the page turner: › shows MIR ABOUT, ‹ goes back to MIR OPTIONS (real clicks, hit-tested)', tHit && back && pages1280[1].page === 'about' && r === 'options', pages1280.map((x) => x.name).join(' → ') + ' → ' + r);
+  await click(next, 'turner ›'); await sleep(400);
+  pages1280.push(await overflow());
+  const back = await click(prev, 'turner ‹'); await sleep(400); await click(prev, 'turner ‹'); await sleep(400);
+  r = await J(`return G.root.querySelector('.gui-turner .gui-step-name').textContent;`);
+  check('the page turner: › MIR OPTIONS 2, › MIR ABOUT, ‹ ‹ back to MIR OPTIONS 1 (real clicks, hit-tested)', tHit && back && pages1280.map((x) => x.name).join() === 'MIR OPTIONS 1,MIR OPTIONS 2,MIR ABOUT' && r === 'MIR OPTIONS 1', pages1280.map((x) => x.name).join(' → ') + ' → ' + r);
   check('nothing scrolls at 1280×720: every panel, group and page fits (scrollHeight ≤ clientHeight)', pages1280.every((x) => !x.over.length), JSON.stringify(pages1280.flatMap((x) => x.over)));
   /* ── the pointer glow follows the pointer, and writes nothing when the pointer is still ── */
   await p.eval(`__T.gui.close(); __T.gui.prefs.set({ glow: true, parallax: true, motion: 'auto', quality: 'full' }); 0`); await sleep(500);
@@ -198,12 +228,12 @@ try {
   check('glow and parallax are off on a coarse pointer, with their switches on', coarse.coarse && coarse.glow && coarse.fx.every((v) => !v), JSON.stringify(coarse));
   await p.eval(`__T.gui.open('options')`); await sleep(500);
   const seen = [];
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 7; i++) {
     seen.push(await J(`const over = []; for (const n of [G.window.body, ...G.window.body.querySelectorAll('.mir-win-panel:not([hidden]), .gui-grp, .gui-page')]) { if (!n.getClientRects().length) continue; if (n.scrollHeight > n.clientHeight + 0.5 || n.scrollWidth > n.clientWidth + 0.5) over.push(n.className + ' ' + n.scrollWidth + '×' + n.scrollHeight + ' in ' + n.clientWidth + '×' + n.clientHeight); }
       const r = G.root.getBoundingClientRect(); if (r.right > innerWidth || r.bottom > innerHeight) over.push('off screen'); return { name: G.root.querySelector('.gui-turner .gui-step-name').textContent, over };`));
     await p.eval(`__T.gui.turn(1)`); await sleep(400);
   }
-  check('at 390×844 the OPTIONS groups page sideways (4 sheets, then ABOUT) and nothing scrolls on any of them', seen.slice(0, 5).map((s) => s.name).join() === 'MIR OPTIONS 1/4,MIR OPTIONS 2/4,MIR OPTIONS 3/4,MIR OPTIONS 4/4,MIR ABOUT' && seen.every((s) => !s.over.length),
+  check('at 390×844 the OPTIONS groups page sideways (5 sheets, then ABOUT) and nothing scrolls on any of them', seen.slice(0, 6).map((s) => s.name).join() === 'MIR OPTIONS 1/5,MIR OPTIONS 2/5,MIR OPTIONS 3/5,MIR OPTIONS 4/5,MIR OPTIONS 5/5,MIR ABOUT' && seen.every((s) => !s.over.length),
     seen.map((s) => s.name + (s.over.length ? ' ✗ ' + s.over.join(',') : '')).join(' · '));
 } finally { await p.close(); }
 

@@ -66,10 +66,10 @@ body[data-theme="dark"] #notebook { --nb-line: hsl(0 0% 100% / .18); --nb-btn: h
 .mb-list { --mb-list-veil: hsl(var(--glass-tint) / .65); }
 /* ── end of the values ── */
 #notebook { position: absolute; left: calc(50% - 320px); top: 12%; width: 640px; height: 460px; min-width: 320px; min-height: 240px; max-width: calc(100vw - 2 * var(--rack-w) - 40px); max-height: calc(100vh - 40px); resize: both; z-index: calc(var(--z-chrome) + 4); display: flex; flex-direction: column; border-radius: var(--surface-radius, var(--nb-r));
-  border: var(--surface-edge-width, 1px) solid var(--surface-edge, var(--nb-edge)); background: var(--surface-veil, transparent); -webkit-backdrop-filter: var(--surface-filter, blur(var(--glass-blur)) saturate(115%)); backdrop-filter: var(--surface-filter, blur(var(--glass-blur)) saturate(115%));
+  border: var(--surface-edge-width, 1px) solid var(--pane-edge, var(--surface-edge, var(--nb-edge))); background: var(--surface-veil, transparent); -webkit-backdrop-filter: var(--surface-filter, blur(var(--glass-blur)) saturate(115%)); backdrop-filter: var(--surface-filter, blur(var(--glass-blur)) saturate(115%));
   box-shadow: var(--surface-shadow-float, var(--glass-shadow)); color: var(--fg); overflow: hidden; }   /* it floats like a window: height 3 (L14/L15) */
 #notebook[data-face="about"] { width: 470px; height: 670px; left: calc(50% - 235px); top: max(20px, calc(50% - 335px)); }
-body[data-theme="dark"] #notebook { border-color: var(--surface-edge, var(--nb-edge)); }
+body[data-theme="dark"] #notebook { border-color: var(--pane-edge, var(--surface-edge, var(--nb-edge))); }
 body[data-theme="dark"] #notebook::before { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--nb-shade); pointer-events: none; }
 .nb-head { display: flex; align-items: flex-start; justify-content: space-between; padding-block: 8px 6px; padding-inline: 14px 8px; cursor: grab; user-select: none; touch-action: none; }
 .nb-titles { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; }
@@ -132,7 +132,7 @@ body[data-theme="dark"] #notebook::before { content: ''; position: absolute; ins
 .mb-group { position: relative; }
 .mb-btn { height: 26px; padding: 0 10px; border: 0; border-radius: var(--mb-btn-r); background: transparent; color: var(--fg-soft); font: var(--w-bold) var(--fs-tiny) var(--font-ui); letter-spacing: var(--label-tracking, var(--tr-wider)); cursor: pointer; }
 .mb-btn:hover { background: var(--state-hover, var(--glass-raise)); color: var(--fg); }
-.mb-list { position: absolute; inset-inline-start: 0; top: 30px; min-width: 240px; max-height: 60vh; overflow: auto; padding: 4px; border-radius: var(--mb-list-r); box-shadow: var(--surface-shadow-menu, var(--glass-shadow)); display: flex; flex-direction: column; }
+.mb-list { position: absolute; inset-inline-start: 0; top: 30px; min-width: 240px; max-height: 60vh; overflow: auto; padding: 4px; border-radius: var(--surface-radius, var(--mb-list-r)); box-shadow: var(--surface-shadow-menu, var(--glass-shadow)); display: flex; flex-direction: column; }
 .mb-item { display: flex; justify-content: space-between; align-items: baseline; gap: 18px; text-align: start; border: 0; background: transparent; color: var(--fg-soft); padding: 6px 10px; border-radius: var(--mb-item-r); font: var(--fs-small) var(--font-ui); cursor: pointer; white-space: nowrap; }
 .mb-item:hover { background: var(--state-hover, var(--glass-raise)); color: var(--fg); }
 .mb-key { color: var(--dim); font-size: var(--fs-micro); letter-spacing: var(--label-tracking, var(--tr-wide)); }
@@ -194,6 +194,9 @@ body[data-theme="dark"] #notebook::before { display: none; }
    Height 4, falling down (on .mb-list above); the material is drawn here once, where λWAVES' sheet issued it twice (L07 / L08). */
 #menubar .mb-list { border: var(--surface-edge-width, 1px) solid var(--surface-edge, var(--glass-border-color));
   background: var(--surface-sheen, var(--glass-sheen)), var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
+/* 1.5.0-alpha.5 · CARD STYLE · SOLID: the notebook is the opaque pane too (no blur, no shade over it) */
+body[data-card="solid"] #notebook { background: var(--surface-fill, var(--nb-phone-fill)); -webkit-backdrop-filter: none; backdrop-filter: none; }
+body[data-card="solid"] #notebook::before { display: none; }
 body[data-card="refractive"] #menubar .mb-list { background: var(--surface-sheen, var(--glass-sheen)), var(--surface-veil, var(--mb-list-veil));
   -webkit-backdrop-filter: var(--surface-filter, blur(var(--glass-blur))); backdrop-filter: var(--surface-filter, blur(var(--glass-blur))); }
 }

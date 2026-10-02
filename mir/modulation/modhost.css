@@ -125,7 +125,8 @@
   --m2-face-w10: hsl(0 0% 100% / .10);
   --m2-face-w18: hsl(0 0% 100% / 0.18);
   --m2-fill-tint-100: hsl(var(--glass-tint) / 1);
-  --m2-focus-shadow: 0 0 0 3px hsl(var(--hue-acc) var(--sat-acc) 66% / 0.30), 0 0 0 1px hsl(var(--hue-acc) var(--sat-acc) 52%);
+  --m2-focus-shadow: 0 0 0 3px hsl(var(--hue-acc) var(--sat-acc) 66% / 0.30);   /* the focus ring's soft halo (the ring itself is --m2-focus-ring, an outline) */
+  --m2-focus-ring: 1px solid hsl(var(--hue-acc) var(--sat-acc) 52%);          /* the focus ring: an OUTLINE, like --state-focus, which a skin may set */
   --m2-fs-12: 12px;
   --m2-grab-dots: radial-gradient(circle at 50% 50%, currentColor 1px, transparent 1.1px);
   --m2-grab-dots-frost: radial-gradient(circle at 50% 50%,currentColor 1.1px,transparent 1.3px);
@@ -173,6 +174,7 @@
   --m2-power-sw: 1.9;
   --m2-power-on-ink: var(--acc2);     /* lit in accent B, as BASINS (the time group: the tempo beside it is accent B too) */
   --m2-power-icon: 28px;
+  --m2-power-seat: 44px;             /* the power button's seat on the work bar: 44 × 44, as BASINS draws it (transport-controls.css) */
   --m2-power-halo-sw: .6;
   --m2-power-halo-rest: .12;
   --m2-power-halo-on: .45;
@@ -535,6 +537,23 @@ body[data-theme="light"] .m2ghost {
   --ink-shadow: 0 1px 2px hsl(0 0% 0% / 0.70), 0 0 5px hsl(0 0% 0% / 0.42), 0 0 1px hsl(0 0% 0% / 0.60);
 }
 
+/* 1.5.0-alpha.5 · THE BUILT-IN SETTINGS REACH THE PLUGIN (docs/THEMES.md).  Each is a seat rule on the plugin's roots at
+   the light seat's weight (0,2,1) and after it, so the choice wins in either theme.
+   TEXT · WHITE / BLACK (body[data-text], BASINS ink.css §3a): the plugin's four ink rungs become the pure ladder, and its
+   halo goes with every other relief on ink. */
+body[data-text="light"] .mir-modwindow, body[data-text="light"] .kwin-chiprail, body[data-text="light"] .m2ghost {
+  --m2-ink-hi: hsl(0 0% 100%); --m2-ink: hsl(0 0% 100% / .96); --m2-ink-soft: hsl(0 0% 100% / .86); --m2-ink-faint: hsl(0 0% 100% / .82);
+  --ink-shadow: none; }
+body[data-text="dark"] .mir-modwindow, body[data-text="dark"] .kwin-chiprail, body[data-text="dark"] .m2ghost {
+  --m2-ink-hi: hsl(0 0% 0%); --m2-ink: hsl(0 0% 0% / .96); --m2-ink-soft: hsl(0 0% 0% / .86); --m2-ink-faint: hsl(0 0% 0% / .82);
+  --ink-shadow: none; }
+/* CONTROL FACES · GLASS (BASINS material.css §1): the dial's puck face goes clear and keeps a hairline; the plugin's
+   other control faces (--m2-mat-control) are clear already.  SOLID: the window's chassis is the opaque pane. */
+:where(body[data-faces="glass"]:is([data-card="refractive"], .frost):not([data-card="solid"])) .mir-modwindow {
+  --m2-dialink-b-wash: transparent; }
+body[data-card="solid"] .mir-modwindow, body[data-card="solid"] #modwin.mir-modwindow {
+  --m2-mat-chassis: hsl(var(--glass-tint) / 1); }
+
 /* ── THE REACH LIST — FIFTEEN surfaces a token cannot reach, named and COUNTED ────────────────────
    Fourteen carry a literal in the artifact and are not in its officiation block, so a token has no
    way to them; the fifteenth undoes the HOUSE reaching in.  This is the ONE place this sheet paints
@@ -709,7 +728,7 @@ body[data-theme="light"] .m2ghost {
 #modwin.mir-modwindow .m2deadpick.glass {
   background-color: var(--surface-fill, var(--m2-face-tint-97));
   background-image: none;
-  border: var(--surface-edge-width, var(--glass-border)) solid var(--surface-edge, var(--glass-border-color));
+  border: var(--surface-edge-width, var(--glass-border)) solid var(--pane-edge, var(--surface-edge, var(--glass-border-color)));
   box-shadow: var(--surface-shadow, var(--glass-shadow));
   color: var(--fg); }                                                                                 /* 21 */
 #modwin.mir-modwindow .m2pick .m2pickb,
@@ -1017,7 +1036,7 @@ body[data-theme="dark"] .mir-modwindow .m2audout { background-color: transparent
 #modwin.mir-modwindow .m2ppick,
 #modwin.mir-modwindow .m2deadpick {
   visibility: visible; pointer-events: auto;
-  border: var(--surface-edge-width, var(--glass-border)) solid var(--surface-edge, var(--glass-border-color));
+  border: var(--surface-edge-width, var(--glass-border)) solid var(--pane-edge, var(--surface-edge, var(--glass-border-color)));
   border-radius: var(--surface-radius, var(--disc-r)); box-shadow: var(--surface-shadow, var(--glass-shadow)); }                                    /* 27 */
 
 
@@ -1243,11 +1262,14 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 .kwin-chiprail[data-mir-rail] * { outline: none; }
 #modwin.mir-modwindow *:focus-visible,
 .kwin-chiprail[data-mir-rail] *:focus-visible {
-  outline: none;
   /* ⚠ NOT `--acc-soft`: this window redeclares the house glass names onto its own ladder, and that
      token computed to `color(srgb 0 0 0 / 0)` here — a fully transparent halo, i.e. no ring at all.
-     Measured, then written as the accent's own hue at an alpha, which cannot be re-pointed. */
-  box-shadow: var(--state-focus, var(--m2-focus-shadow)); }                                      /* 50 */
+     Measured, then written as the accent's own hue at an alpha, which cannot be re-pointed.
+     1.5.0-alpha.5: THE RING IS AN OUTLINE.  `--state-focus` is an outline shorthand (INTENT: one accent ring outside
+     the control), so reading it as a box-shadow made it invalid wherever a skin set it, and the ring vanished.  The
+     ring is drawn where the 1 px shadow ring was (outline-offset 0 sits on the same edge); the soft halo stays. */
+  outline: var(--state-focus, var(--m2-focus-ring)); outline-offset: 0;
+  box-shadow: var(--m2-focus-shadow); }                                                          /* 50 */
 
 
 #modwin.mir-modwindow .m2kval {
@@ -1310,7 +1332,9 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 
 #modwin.mir-modwindow .m2dialink::before {
   background:
-    var(--m2-dialink-b-wash); }                                                                      /* 59 */
+    var(--m2-dialink-b-wash); }
+:where(body[data-faces="glass"]:is([data-card="refractive"], .frost):not([data-card="solid"])) #modwin.mir-modwindow .m2dialink::before {
+  border: var(--glass-border) solid var(--glass-hairline); }                                           /* CONTROL FACES · GLASS: the clear puck keeps a hairline (BASINS material.css §1) */                                                                      /* 59 */
 
 
 #modwin.mir-modwindow .m2pt,
@@ -1586,6 +1610,8 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
   filter: none; box-shadow: none; text-shadow: none; }
 #modwin.mir-modwindow .m2workbar .modxport.on {
   color: var(--acc); background: var(--state-on, var(--m2-mat-frost)); box-shadow: var(--m2-on-rim); }   /* INTENT L29 */
+#modwin.mir-modwindow .m2workbar .modxport.mir-mod-power {
+  width: var(--m2-power-seat); height: var(--m2-power-seat); min-height: var(--m2-power-seat); margin: 0; }    /* 1.5.0-alpha.5: BASINS' 44 px seat, in the 46 px bar */
 #modwin.mir-modwindow .m2workbar .modxport svg {
   fill: currentColor; stroke: currentColor; }                                                          /* 92 */
 /* 1.5.0-alpha.4 · THE POWER, NOT A PLAY (Josh: one clock — the timeline has the true play).  BASINS' drawing and its
@@ -1806,7 +1832,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin.mir-modwindow .m2audsheet {
   background-color: var(--m2-face-tint-97);
   background-image: none;
-  border: var(--surface-edge-width, var(--glass-border)) solid var(--surface-edge, var(--glass-border-color));
+  border: var(--surface-edge-width, var(--glass-border)) solid var(--pane-edge, var(--surface-edge, var(--glass-border-color)));
   box-shadow: var(--surface-shadow, var(--glass-shadow));
   color: var(--fg); }
 #modwin.mir-modwindow .m2audinput {

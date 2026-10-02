@@ -45,6 +45,9 @@
   --xport-flat: 0 0 0 0 transparent;                                          /* no relief */
   --xport-hover-wash: inset 0 0 0 99px var(--state-hover, var(--glass-raise)); /* a lighter face over a raise */
 }
+/* CONTROL FACES · GLASS (1.5.0-alpha.5): under REFRACTIVE or FROST the pill's face is clear, as BASINS' transport
+   seats are (material.css §1); the hairline keeps its outline */
+:where(body[data-faces="glass"]:is([data-card="refractive"], .frost):not([data-card="solid"])) .mir-transport { --xport-face: transparent; }
 /* ── end of the values ── */
 
 /* ── the bar, on the stage (BASINS `#transport.mini`) ─────────────────────────────────────────────────────── */

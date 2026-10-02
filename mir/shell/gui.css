@@ -1,4 +1,4 @@
-/* MIR · shell/gui.css — the GUI window's two pages: MIR OPTIONS in a grid of eight groups, MIR ABOUT in one column.
+/* MIR · shell/gui.css — the GUI window's pages: MIR OPTIONS 1 and 2, each a grid of groups, and MIR ABOUT in one column.
  *
  * THE LAW IT KEEPS: NOTHING SCROLLS, AND THE PAGE LAYS ITSELF OUT.  Each page has its natural size (the grid's columns
  * are content-sized with a floor, the ABOUT column has one width) and shell/gui.js places the window to fit it.  At
@@ -33,16 +33,20 @@
 .gui-grid {
   display: grid; gap: var(--gui-gap); width: max-content; align-items: stretch;
   grid-template-columns: repeat(5, var(--gui-col));         /* equal columns: shared edges, equal gutters */
-  grid-template-areas: "preset skin accent text quality" "material material relief motion motion";
+  grid-template-areas: "theme theme accent text quality" "material material controls motion motion";
 }
-.gui-grp[data-group="preset"] { grid-area: preset; }
-.gui-grp[data-group="skin"] { grid-area: skin; }
+.gui-grid[data-page="2"] { grid-template-columns: repeat(3, var(--gui-col)); grid-template-areas: "light light windows"; }
+/* MIR OPTIONS 1 · 2: one page's grid at a time */
+.gui-options[data-page="1"] > .gui-grid[data-page="2"], .gui-options[data-page="2"] > .gui-grid[data-page="1"] { display: none; }
+.gui-grp[data-group="theme"] { grid-area: theme; }
 .gui-grp[data-group="accent"] { grid-area: accent; }
 .gui-grp[data-group="quality"] { grid-area: quality; }
 .gui-grp[data-group="material"] { grid-area: material; }
-.gui-grp[data-group="relief"] { grid-area: relief; }
+.gui-grp[data-group="controls"] { grid-area: controls; }
 .gui-grp[data-group="text"] { grid-area: text; }
 .gui-grp[data-group="motion"] { grid-area: motion; }
+.gui-grp[data-group="light"] { grid-area: light; }
+.gui-grp[data-group="windows"] { grid-area: windows; }
 .gui-grp {
   display: flex; flex-direction: column; gap: var(--sp-3); min-width: 0; margin: 0;
   padding: var(--gui-grp-pad); border: var(--glass-border) solid var(--glass-hairline); border-radius: var(--gui-grp-r);
@@ -59,6 +63,11 @@
 .gui-note { font-size: var(--fs-tiny); letter-spacing: var(--label-tracking, var(--tr-wide)); color: var(--ink-faint); }
 .gui-cost { flex-wrap: nowrap; }
 .gui-cost > .ro { flex: 1 1 0; }
+.gui-pair > .gui-step { flex: 1 1 0; min-width: 0; }
+.gui-pair > .gui-step .gui-step-name { min-width: 0; flex: 1 1 auto; }
+.gui-pair > .gui-step .gui-step-row { width: 100%; }
+.gui-pair > .trig { align-self: flex-end; }
+.gui-theme-cost { font-variant-numeric: tabular-nums; }
 .gui-ro .ro-sub { display: none; }
 .gui-ro .ro-val { font-size: var(--fs-small); }
 
@@ -96,7 +105,9 @@
   .gui-options[data-sheet="1"] .gui-grp:not([data-sheet="1"]),
   .gui-options[data-sheet="2"] .gui-grp:not([data-sheet="2"]),
   .gui-options[data-sheet="3"] .gui-grp:not([data-sheet="3"]),
-  .gui-options[data-sheet="4"] .gui-grp:not([data-sheet="4"]) { display: none; }
+  .gui-options[data-sheet="4"] .gui-grp:not([data-sheet="4"]),
+  .gui-options[data-sheet="5"] .gui-grp:not([data-sheet="5"]) { display: none; }
+  .gui-grid[data-page="2"] { grid-template-columns: var(--gui-col-narrow); grid-template-areas: none; }
   .gui-about { width: var(--gui-about-w-narrow); }
   .gui-turner .gui-step-name { min-width: 10em; }
 }
