@@ -107,9 +107,12 @@
    HOST's controls (the rings, spans and range bars live outside its roots), and @own the few such values that read a var(),
    declared on the very elements that paint them. */
 /* @default */ .mir-modwindow, .kwin-chiprail, .m2ghost {
+  --m2-aud-level-mix-value-font: 600 7px/1 var(--font-num);
   --m2-aud-mix-focus-shadow: 0 0 0 1px color-mix(in srgb,var(--acc) 50%,transparent);
   --m2-aud-range-high-face: color-mix(in srgb,var(--acc) 30%,transparent);
   --m2-aud-range-low-face: color-mix(in srgb,var(--acc) 19%,transparent);
+  --m2-aud-range-name-font: 700 8px/1 var(--font-ui);
+  --m2-aud-range-value-font: 600 7.5px/1 var(--font-num);
   --m2-aud-range-zone-face: color-mix(in srgb,var(--acc2) 18%,transparent);
   --m2-audled-on-glow: 0 0 6px color-mix(in srgb,var(--acc) 55%,transparent);
   --m2-chip-ink-drop: drop-shadow(0 1px 0 var(--glass-raise));
@@ -127,16 +130,27 @@
   --m2-face-w18: hsl(0 0% 100% / 0.18);
   --m2-fill-tint-100: hsl(var(--glass-tint) / 1);
   --m2-focus-shadow: 0 0 0 3px hsl(var(--hue-acc) var(--sat-acc) 66% / 0.30), 0 0 0 1px hsl(var(--hue-acc) var(--sat-acc) 52%);
+  --m2-fs-12: 12px;
   --m2-head-shadow: inset 0 -1px 0 hsl(0 0% 100% / 0.09);
   --m2-head-wash: linear-gradient(180deg, hsl(0 0% 100% / 0.06), transparent);
   --m2-hero-well: inset 0 1px 2px hsl(0 0% 0% / 0.045);
+  --m2-k-val-font: 600 8.5px var(--font-num, monospace);
   --m2-kind-halo: 0 1px 0 var(--glass-raise);
   --m2-kn-shadow: 0 0 0 0.5px hsl(0 0% 0% / 0.38);
+  --m2-lfowave-font: 700 7px var(--font-sans);
   --m2-mac-hover-drop: drop-shadow(0 1px 0 var(--glass-raise)) drop-shadow(0 2px 6px hsl(214 40% 20% / .22));
+  --m2-macadd-font: 700 8px/1 var(--font-sans);
   --m2-matrix-face: #171b22;
   --m2-mintdot-shadow: 0 0 0 1px hsl(0 0% 0% / 0.38);
   --m2-rail-shadow: inset 0 1px 0 var(--m2-mat-inner), var(--surface-shadow, var(--glass-shadow));
   --m2-reorder-shadow: inset 0 0 0 1px var(--acc2);
+  --m2-say-font: 500 10.5px/1.35 var(--font-sans);
+  --m2-tr-04: 0.04em;
+  --m2-tr-06: 0.06em;
+  --m2-tr-08: .08em;
+  --m2-tr-035: .035em;
+  --m2-w-800: 800;
+  --m2-win-font: 700 11px var(--font-sans);
 }
 /* @dark */ :where(body[data-theme="dark"]) .mir-modwindow, :where(body[data-theme="dark"]) .kwin-chiprail, :where(body[data-theme="dark"]) .m2ghost {
   --m2-face-k10: hsl(0 0% 0% / .10);
@@ -890,7 +904,7 @@ body[data-theme="dark"] .mir-modwindow .m2audout { background-color: transparent
   max-width: min(560px, 92%); padding: 7px 14px;
   border: var(--glass-border) solid var(--glass-border-color); border-radius: var(--r-pill);
   background-color: var(--m2-face-tint-97); box-shadow: var(--surface-shadow, var(--glass-shadow));
-  color: var(--fg); font: 500 10.5px/1.35 var(--font-sans); letter-spacing: var(--label-tracking, var(--tr-tight));
+  color: var(--fg); font: var(--m2-say-font); letter-spacing: var(--label-tracking, var(--tr-tight));
   text-align: center; white-space: normal;
   animation: m2-say-in var(--t-fast) ease both; }
 /* a refusal is the one message that may wear a hue, and it is the artifact's own `--bad` */
@@ -1111,7 +1125,7 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 #modwin.mir-modwindow .m2route,
 #modwin.mir-modwindow .m2status {
   font-family: var(--font-mono); font-variant-numeric: tabular-nums;
-  letter-spacing: var(--label-tracking, 0.06em); }                                                                            /* 43 */
+  letter-spacing: var(--label-tracking, var(--m2-tr-06)); }                                                                            /* 43 */
 
 
 #modwin.mir-modwindow .m2dev .m2kd,
@@ -1283,7 +1297,7 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
   font: 700 calc(9px * var(--ui-scale)) var(--font-sans); letter-spacing: var(--label-tracking, var(--tr-wide));
   color: var(--m2-ink-soft); opacity: 1; }
 #modwin.mir-modwindow .modtempo .modhz {
-  font: 500 calc(9px * var(--ui-scale)) var(--font-num); letter-spacing: var(--label-tracking, 0.04em);
+  font: 500 calc(9px * var(--ui-scale)) var(--font-num); letter-spacing: var(--label-tracking, var(--m2-tr-04));
   color: var(--m2-ink-faint); opacity: 1; }
 #modwin.mir-modwindow .modtempo.on { border: 0; color: var(--acc); background: var(--state-on, var(--m2-mat-frost)); box-shadow: var(--m2-on-rim); border-radius: var(--r-sm); }   /* INTENT L32 */                    /* 67 */
 
@@ -1667,7 +1681,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
   padding: 0 2px; border: 1px solid transparent; border-radius: var(--r-sm);
   overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: center;
   cursor: pointer; color: var(--m2-ink-soft);
-  font: 700 7px var(--font-sans); letter-spacing: var(--label-tracking, 0.06em); }
+  font: var(--m2-lfowave-font); letter-spacing: var(--label-tracking, var(--m2-tr-06)); }
 @media (hover: hover) {
   #modwin.mir-modwindow .m2dev.lfo .m2presets .m2lfowave:hover { color: var(--fg); }
 }
@@ -1800,8 +1814,8 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin .m2-native-rate .k-lbl { display:none; }
 #modwin .m2-native-rate .dial { transform:scale(.75); }
 #modwin .m2-native-rate .k-dial { width:24px; height:24px; flex:0 0 24px; aspect-ratio:1; }
-#modwin .m2-native-rate .k-val { font:600 8.5px var(--font-num, monospace); line-height:1; color:var(--acc); margin-top:2px; }
-#modwin .m2-native-rate.drag .k-val { color:var(--fg); font-weight:800; }
+#modwin .m2-native-rate .k-val { font:var(--m2-k-val-font); line-height:1; color:var(--acc); margin-top:2px; }
+#modwin .m2-native-rate.drag .k-val { color:var(--fg); font-weight:var(--m2-w-800); }
 
 .mod-matrix { width:min(1100px,calc(100vw - 24px)); height:calc(100dvh - 32px); box-sizing:border-box; border:1px solid var(--glass-border-color); border-radius:14px; color:var(--fg); padding:16px; }
 .mod-matrix::backdrop { background:transparent; }   /* INTENT L71: no dark layer (the UA's own .1 black included), no blur */
@@ -1827,7 +1841,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 .mod-matrix { background:var(--pane, var(--m2-matrix-face)); }
 
 
-#modwin .mod-matrix { position:fixed; margin:auto; inset:0; background:var(--m2-face-tint-100); color:var(--fg); border-color:var(--glass-hairline); font-size:12px; }
+#modwin .mod-matrix { position:fixed; margin:auto; inset:0; background:var(--m2-face-tint-100); color:var(--fg); border-color:var(--glass-hairline); font-size:var(--m2-fs-12); }
 #modwin .mod-matrix-bars { position:relative; inset:auto; height:64px; display:flex; gap:12px; margin:8px 0; overflow:auto; }
 #modwin .mod-matrix-bars .m2pre { display:flex; flex:0 0 auto; position:relative; height:48px; }
 #modwin .mod-matrix-bars .m2prebar { position:relative; height:48px; flex:0 0 auto; }
@@ -1840,12 +1854,12 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin .aud-ranges { position:absolute; inset:3px 4px; overflow:visible; display:grid; grid-template:repeat(4,minmax(0,1fr)) / minmax(0,1fr); gap:2px; color:var(--fg); }
 #modwin .aud-range-row { --aud-live:var(--acc);position:relative;min-width:0;min-height:0;padding:0;display:grid;align-items:center;grid-template:1fr / 28px minmax(0,1fr) 12px;column-gap:4px; }
 #modwin .aud-range-row[data-band="level"] { grid-column:auto; }
-#modwin .aud-range-name { position:relative; z-index:2; grid-area:1 / 3; align-self:center; justify-self:center; width:auto; height:18px; min-width:0; padding:0; border:0; background:transparent; color:var(--m2-ink-soft); font:700 8px/1 var(--font-ui); letter-spacing:var(--label-tracking, .08em); text-align:center; cursor:pointer; }
+#modwin .aud-range-name { position:relative; z-index:2; grid-area:1 / 3; align-self:center; justify-self:center; width:auto; height:18px; min-width:0; padding:0; border:0; background:transparent; color:var(--m2-ink-soft); font:var(--m2-aud-range-name-font); letter-spacing:var(--label-tracking, var(--m2-tr-08)); text-align:center; cursor:pointer; }
 #modwin .aud-range-name::before { content:""; position:absolute; inset:-5px; }
 #modwin .aud-range-name[aria-pressed=true] { color:var(--acc2); }
 #modwin .aud-range-full { display:none; }
 #modwin .aud-range-short { display:inline; }
-#modwin .aud-range-value { position:absolute;z-index:6;right:3px;top:50%;transform:translateY(calc(-50% + 2px));padding:2px 4px;border:0;border-radius:3px;background:var(--m2-face-tint-94);font:600 7.5px/1 var(--font-num);color:var(--fg-soft);font-variant-numeric:tabular-nums;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity var(--t-fast) ease,transform var(--t-fast) ease; }
+#modwin .aud-range-value { position:absolute;z-index:6;right:3px;top:50%;transform:translateY(calc(-50% + 2px));padding:2px 4px;border:0;border-radius:3px;background:var(--m2-face-tint-94);font:var(--m2-aud-range-value-font);color:var(--fg-soft);font-variant-numeric:tabular-nums;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity var(--t-fast) ease,transform var(--t-fast) ease; }
 #modwin .aud-range-row:hover .aud-range-value,
 #modwin .aud-range-row:focus-within .aud-range-value,
 #modwin .aud-range-row.editing .aud-range-value { opacity:1;transform:translateY(-50%); }
@@ -1869,13 +1883,13 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin .aud-level-mix-dial .m2deptharc { stroke:var(--acc); }
 #modwin .aud-level-mix-core.m2num { width:14px;height:14px;border-color:transparent;background:transparent; }
 #modwin .aud-level-mix-dial:focus-visible { outline:0;box-shadow:var(--m2-aud-mix-focus-shadow); }
-#modwin .aud-level-mix-value { position:absolute;left:50%;bottom:calc(100% + 3px);z-index:5;transform:translate(-50%,2px);padding:2px 4px;border-radius:3px;background:var(--m2-face-tint-96);color:var(--fg-soft);font:600 7px/1 var(--font-num);opacity:0;pointer-events:none;white-space:nowrap; }
+#modwin .aud-level-mix-value { position:absolute;left:50%;bottom:calc(100% + 3px);z-index:5;transform:translate(-50%,2px);padding:2px 4px;border-radius:3px;background:var(--m2-face-tint-96);color:var(--fg-soft);font:var(--m2-aud-level-mix-value-font);opacity:0;pointer-events:none;white-space:nowrap; }
 #modwin .aud-level-mix:hover .aud-level-mix-value,
 #modwin .aud-level-mix:focus-within .aud-level-mix-value,
 #modwin .aud-level-mix-dial.drag + .aud-level-mix-value,
 #modwin .aud-range-row.editing .aud-level-mix-value { opacity:1;transform:translate(-50%,0); }
 #modwin .aud-range-hint { display:none; }
-#modwin .aud-latency { align-self:end;justify-self:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;padding:0 2px;border:0;background:transparent;color:var(--m2-ink-soft);font:600 7px/1 var(--font-num);letter-spacing:var(--label-tracking, .035em);white-space:nowrap; }
+#modwin .aud-latency { align-self:end;justify-self:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;padding:0 2px;border:0;background:transparent;color:var(--m2-ink-soft);font:var(--m2-aud-level-mix-value-font);letter-spacing:var(--label-tracking, var(--m2-tr-035));white-space:nowrap; }
 #modwin .aud-latency.on { color:var(--m2-ink-soft); }
 #modwin .audio-ranges .m2audsheet { overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; }
 #modwin .aud-setting-input { width:100%; min-width:0; border:0; color:var(--fg); background:transparent; text-align:center; font:inherit; font-variant-numeric:tabular-nums; }
@@ -2141,7 +2155,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin.mir-modwindow .m2devadd {
   flex:1 1 0;min-width:0;height:44px;min-height:44px;padding:0 5px;border:0;
   border-radius:7px;background:var(--m2-face-w06);color:var(--acc2);
-  font:700 8px/1 var(--font-sans);letter-spacing:var(--label-tracking, .08em);white-space:nowrap;
+  font:var(--m2-macadd-font);letter-spacing:var(--label-tracking, var(--m2-tr-08));white-space:nowrap;
   transition:scale var(--t-fast) ease,background-color var(--t-fast) ease,box-shadow var(--t-fast) ease; }
 body[data-theme="light"] #modwin.mir-modwindow .m2macadd,
 body[data-theme="light"] #modwin.mir-modwindow .m2devadd {
@@ -2172,9 +2186,9 @@ body[data-theme="light"] #modwin.mir-modwindow .m2devadd {
 #modwin.mir-modwindow .m2rail.m2railmin .m2devadd {
   font-size:0;letter-spacing:0; }
 #modwin.mir-modwindow .m2rail.m2railmin .m2macadd::after {
-  content:attr(data-cap);font:700 8px/1 var(--font-sans);letter-spacing:var(--label-tracking, .04em); }
+  content:attr(data-cap);font:var(--m2-macadd-font);letter-spacing:var(--label-tracking, var(--m2-tr-04)); }
 #modwin.mir-modwindow .m2rail.m2railmin .m2devadd::after {
-  content:attr(data-cap);font:700 8px/1 var(--font-sans);letter-spacing:var(--label-tracking, .04em); }
+  content:attr(data-cap);font:var(--m2-macadd-font);letter-spacing:var(--label-tracking, var(--m2-tr-04)); }
 #modwin.mir-modwindow .m2rail.m2railmin .m2namerow:not([hidden]) {
   display:flex;left:4px;right:4px;top:9px; }
 
@@ -2232,7 +2246,7 @@ html body :where(.crail.crail-float)[data-mir-rail="modulation"] .crail-chip:whe
 #modwin:where(.mir-modwindow) .m2val:where(.drag) :where(.m2vnum) { color: var(--fg); }
 /* ⟲ modwindow.css .m2ghost (0,1,0) beat this sheet's UNLADDERED seat (0,1,0) by order alone, so it keeps its weight;
    it won every font longhand in 1.4.3, so it is re-asserted whole */
-.m2ghost { font: 700 11px var(--font-sans); }
+.m2ghost { font: var(--m2-win-font); }
 
 /* ══ end of the re-asserted artifact rules ══ */
 
