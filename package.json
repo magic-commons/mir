@@ -1,6 +1,6 @@
 {
   "name": "mir",
-  "version": "1.5.0-alpha.8",
+  "version": "1.5.0-alpha.9",
   "private": true,
   "type": "module",
   "description": "MIR — Magic Commons' interface kit: tokens, materials, widgets, gestures, window chrome, the shell (wordmark, menubar, notebook with pages, ABOUT, the rack, the GUI window), INFORMATIONAL, languages, the portable format and the modulation system, as vanilla ES modules and CSS.",

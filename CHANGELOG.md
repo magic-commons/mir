@@ -1,5 +1,24 @@
 # MIR — changelog
 
+## 1.5.0-alpha.9 — 2026-10-02 · BASINS parity, round three
+
+Not released: built on branch `worktree-mir-1.5`. FOLDERS (`material: 'modulation'`) now computes what BASINS' SAVE window computes, element by element, at BASINS' boot, at Josh's FROST recipe and in the light TINTED seats; what still differs is ruled (`docs/THEMES.md`).
+
+**Behaviour changes (read these first):**
+- **The light TINTED pane is .86, not .84**: `--card-opacity` follows the theme's glass opacity (it resolved at `:root`), as its note always said and as BASINS draws it.
+- **The modulation plugin's panes lose their inner-light shadow layer**: the window and rail panes wear the pane shadow alone (`--m2-win-shadow`, `--m2-rail-shadow` = `var(--surface-shadow, …)`), as BASINS' material.
+- **In a modulation-material window, a trigger that is not a toolbar verb is the plugin's own button** (RESTORE FACTORY GALLERY, a question's buttons, the RENDER panel's): its corner, padding, ink, .06 face and edge, read from the plugin's shared values (`--m2-button-r`, `--m2-button-pad`, `--glass-raise`).
+
+### BASINS parity, round three
+- **The material's well is .22** (`--glass-well`, shared with the plugin in `skin.css`'s block): FOLDERS' folder and project tiles take it as their ground (still flat: a tile is pressed, not a well), and the options button too, with BASINS' hairline.
+- **A kit window's pane and rail stack as one** for an app's own window law: `windowOf(el)` (from the pane or the rail), `win.pair`, `win.stackAt(z)` (`docs/WINDOWS.md`).
+- An `island` under TINTED draws no 160° sheen; a transport in a work bar (`bar: 'work'`) keeps its tinted pane and its shadow inside a modulation window.
+- **Translator notes** (`// tr:`) for alpha.7's 14 strings, in `gui.js`, `folders/folders.js` and `folders/gallery.js`; the catalogue is unchanged at 931 keys, every pack 931 / 931.
+- `--m2-button-pad` is a padding shorthand, so it is geometry and not skin-settable (the format checker refused its two values).
+
+### Still to rule
+- **INTENT rule 4 against BASINS' own tinted-frost drawing** (`docs/INTENT.md`, open question O12): rule 4 says TINTED never blurs and REFRACTIVE carries the blur; BASINS draws its TINTED panes with the frost blur when FROST is on. The kit keeps rule 4 until Josh rules.
+
 ## 1.5.0-alpha.8 — 2026-10-02 · BASINS parity, round two
 
 Not released: built on branch `worktree-mir-1.5`.

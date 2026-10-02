@@ -54,6 +54,7 @@ Josh has not ruled these. 1.5.0-alpha.3 built the default in the last column so 
 | O9 | Drop here: accent A (as core.css draws it) or accent B (it is a relationship)? | accent A | left as it was |
 | O10 | `--neu-flat`, "a resting seat" (a 1 px ring): a meaning, or gone? | on `.sw`, `.badge`, `.k-val` | left as it was |
 | O11 | Plan §5.2 and F1 §5.2 name the same tokens twice (`--relief-raise` / `--face-relief-raise`, `--state-on` / `--face-fill-on` …). Which spelling? | both in the schema as `proposed`; the plan's are listed first | the plan's: `--relief-*`, `--state-*`. The `--face-*` duplicates are read by nothing and can leave the schema |
+| O12 | Rule 4 says TINTED never blurs; BASINS draws its own TINTED panes with the frost blur when FROST is on. Keep rule 4, or let TINTED + FROST blur as BASINS does? | (1.4: FROST blurred every pane, TINTED thinned to .58) | rule 4 is kept: TINTED never blurs, REFRACTIVE carries the blur (alpha.3). **Open for Josh (1.5.0-alpha.9).** Which elements change under each answer is the look lane's eight-row table in its round-three report to the orchestrator; it is not in the tree yet and goes here when it is |
 
 ## The vanilla themes keep it
 
