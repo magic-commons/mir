@@ -116,8 +116,9 @@
   --m2-aud-range-value-font: 600 7.5px/1 var(--font-num);
   --m2-aud-range-zone-face: color-mix(in srgb,var(--acc2) 18%,transparent);
   --m2-audled-on-glow: 0 0 6px color-mix(in srgb,var(--acc) 55%,transparent);
-  --m2-chip-ring: 1px solid var(--fg-soft);
+  --m2-audsreadout-font: 650 var(--fs-tiny) var(--font-num);
   --m2-chip-ink-drop: drop-shadow(0 1px 0 var(--glass-raise));
+  --m2-chip-ring: 1px solid var(--fg-soft);
   --m2-chk-on-shadow: var(--m2-on-rim), inset 0 -2px 0 hsl(var(--hue-acc) var(--sat-acc) 66% / .64);
   --m2-dialink-b-wash: repeating-conic-gradient(var(--glass-groove) 0deg 1.6deg, transparent 1.6deg 30deg), radial-gradient(circle at 35% 30%, hsl(0 0% 100% / .07), transparent 62%), hsl(var(--glass-tint) / 1);
   --m2-dialink-drag-shadow: var(--relief-raise, var(--neu-raise)), 0 0 0 1px var(--acc);
@@ -134,6 +135,8 @@
   --m2-fill-tint-100: hsl(var(--glass-tint) / 1);
   --m2-focus-shadow: 0 0 0 3px hsl(var(--hue-acc) var(--sat-acc) 66% / 0.30), 0 0 0 1px hsl(var(--hue-acc) var(--sat-acc) 52%);
   --m2-fs-12: 12px;
+  --m2-grab-dots: radial-gradient(circle at 50% 50%, currentColor 1px, transparent 1.1px);
+  --m2-grab-dots-frost: radial-gradient(circle at 50% 50%,currentColor 1.1px,transparent 1.3px);
   --m2-head-shadow: inset 0 -1px 0 hsl(0 0% 100% / 0.09);
   --m2-head-wash: linear-gradient(180deg, hsl(0 0% 100% / 0.06), transparent);
   --m2-hero-well: inset 0 1px 2px hsl(0 0% 0% / 0.045);
@@ -145,6 +148,7 @@
   --m2-lfowave-edge: 1px solid transparent;
   --m2-lfowave-font: 700 7px var(--font-sans);
   --m2-lower-alpha: .72;
+  --m2-mac-font-2: 700 var(--fs-lead) var(--font-num);
   --m2-mac-hover-drop: drop-shadow(0 1px 0 var(--glass-raise)) drop-shadow(0 2px 6px hsl(214 40% 20% / .22));
   --m2-macadd-font: 700 8px/1 var(--font-sans);
   --m2-matrix-edge: 1px solid var(--glass-border-color);
@@ -164,6 +168,9 @@
   --m2-sw-1: 1;
   --m2-sw-2: 2;
   --m2-sw-2p2: 2.2;
+  --m2-tempo-bpm-font: 700 calc(22px * var(--ui-scale)) var(--font-num);
+  --m2-tempo-hz-font: 500 calc(9px * var(--ui-scale)) var(--font-num);
+  --m2-tempo-unit-font: 700 calc(9px * var(--ui-scale)) var(--font-sans);
   --m2-tr-04: 0.04em;
   --m2-tr-06: 0.06em;
   --m2-tr-08: .08em;
@@ -1311,15 +1318,15 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
   height: calc(36px * var(--ui-scale)); min-height: calc(36px * var(--ui-scale));
   column-gap: calc(6px * var(--ui-scale)); }
 #modwin.mir-modwindow .modtempo b {
-  font: 700 calc(22px * var(--ui-scale)) var(--font-num); line-height: 1;
+  font: var(--m2-tempo-bpm-font); line-height: 1;
 
 
   color: var(--m2-ink); font-variant-numeric: tabular-nums; }
 #modwin.mir-modwindow .modtempo span {
-  font: 700 calc(9px * var(--ui-scale)) var(--font-sans); letter-spacing: var(--label-tracking, var(--tr-wide));
+  font: var(--m2-tempo-unit-font); letter-spacing: var(--label-tracking, var(--tr-wide));
   color: var(--m2-ink-soft); opacity: 1; }
 #modwin.mir-modwindow .modtempo .modhz {
-  font: 500 calc(9px * var(--ui-scale)) var(--font-num); letter-spacing: var(--label-tracking, var(--m2-tr-04));
+  font: var(--m2-tempo-hz-font); letter-spacing: var(--label-tracking, var(--m2-tr-04));
   color: var(--m2-ink-faint); opacity: 1; }
 #modwin.mir-modwindow .modtempo.on { border: 0; color: var(--acc); background: var(--state-on, var(--m2-mat-frost)); box-shadow: var(--m2-on-rim); border-radius: var(--r-sm); }   /* INTENT L32 */                    /* 67 */
 
@@ -1525,7 +1532,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 
 #modwin.mir-modwindow .m2grab i {
   width: 14px; height: 14px;
-  background-image: radial-gradient(circle at 50% 50%, currentColor 1px, transparent 1.1px);
+  background-image: var(--m2-grab-dots);
   background-size: 4.667px 4.667px; }                                                                  /* 91 */
 
 
@@ -1555,7 +1562,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
    was sized for a name; `lab/modwindow.js` now writes the macro's NUMBER into it, so it reads as the
    same object the macro rail numbers and the minimised device shows. */
 #modwin.mir-modwindow .m2mac {
-  color: var(--acc2); font: 700 var(--fs-lead) var(--font-num); font-variant-numeric: tabular-nums; }
+  color: var(--acc2); font: var(--m2-mac-font-2); font-variant-numeric: tabular-nums; }
 #modwin.mir-modwindow .m2mac.on { color: var(--acc2); }                                /* 94 */
 
 
@@ -2083,7 +2090,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin.mir-modwindow .aud-setting-input::-moz-range-thumb {
   width: 15px; height: 15px; border: 0; border-radius: 50%; background: var(--acc); box-shadow: none; }
 #modwin.mir-modwindow .m2audsreadout {
-  color: var(--acc); text-align: right; font: 650 var(--fs-tiny) var(--font-num); font-variant-numeric: tabular-nums; }
+  color: var(--acc); text-align: right; font: var(--m2-audsreadout-font); font-variant-numeric: tabular-nums; }
 #modwin.mir-modwindow .m2audsleg:empty { display: none; }
 
 /* One minimized anatomy for LFO, ENV and AUDIO. Removing the duplicate state
@@ -2221,7 +2228,7 @@ body[data-theme="light"] #modwin.mir-modwindow .m2devadd {
 #modwin.mir-modwindow .m2dev.m2min .m2headl { padding-top:0; }
 #modwin.mir-modwindow .m2grab i {
   width:13px;height:13px;color:var(--m2-ink-faint);opacity:var(--m2-i-alpha);
-  background-image:radial-gradient(circle at 50% 50%,currentColor 1.1px,transparent 1.3px);
+  background-image:var(--m2-grab-dots-frost);
   background-size:4.333px 4.333px;background-position:0 0; }
 
 
