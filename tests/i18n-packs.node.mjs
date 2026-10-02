@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 /* tests/i18n-packs.node.mjs — the translation packs (mir/locales/<tag>.json) against the catalogue (en.json).
-   FAILS on: a pack that does not parse · a key the catalogue does not have · an empty value · a value whose {placeholders}
-   differ from its key's · a value with '<' or a control character.
-   REPORTS (never fails): coverage per pack, and the short capital labels whose translation is more than 1.6x longer.
+   FAILS on: a pack that does not parse · an empty value · a value whose {placeholders} differ from its key's · a value
+   with '<' or a control character.
+   REPORTS (never fails): coverage per pack; STALE keys (the English changed, so the catalogue no longer has them: the
+   translation is kept for the translator to move, never deleted by a run) and MISSING keys (shown in English until
+   translated); and the short capital labels whose translation is more than 1.6x longer.
    An empty pack passes with coverage 0. English and the pseudo-languages are not packs to check. */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -31,10 +33,7 @@ for (const f of files) {
     assert.equal(typeof pack.strings, 'object');
   });
   const S = pack.strings;
-  ok(`${tag}: every key is in the catalogue`, () => {
-    const stale = Object.keys(S).filter((k) => !(k in en));
-    assert.deepEqual(stale, [], 'keys not in en.json: ' + stale.slice(0, 5).map((k) => JSON.stringify(k)).join(', '));
-  });
+  const stale = Object.keys(S).filter((k) => !(k in en)), missing = Object.keys(en).filter((k) => !(k in S));
   ok(`${tag}: no empty value, no '<', no control character`, () => {
     const bad = [];
     for (const [k, v] of Object.entries(S)) {
@@ -48,13 +47,15 @@ for (const f of files) {
     const bad = Object.entries(S).filter(([k, v]) => typeof v === 'string' && holders(k).join('\n') !== holders(v).join('\n'));
     assert.deepEqual(bad.map(([k]) => k), [], 'placeholder mismatch: ' + bad.slice(0, 3).map(([k, v]) => JSON.stringify(k) + ' → ' + JSON.stringify(v)).join(' | '));
   });
-  const done = Object.keys(S).length;
+  const done = Object.keys(S).length - stale.length;
   const long = Object.entries(S).filter(([k, v]) => isCapLabel(k) && typeof v === 'string' && v.length > 1.6 * k.length).map(([k, v]) => `${k} → ${v}`);
-  report.push({ tag, done, long });
+  report.push({ tag, done, long, stale, missing });
 }
 
 console.log('\ncoverage (translated / catalogue):');
 for (const r of report) console.log(`  ${r.tag.padEnd(8)} ${String(r.done).padStart(4)} / ${total}  ${(100 * r.done / total).toFixed(1)} %`);
+console.log('\nstale keys (no longer in en.json: the English changed) and missing keys (shown in English), per pack:');
+for (const r of report) console.log(`  ${r.tag.padEnd(8)} stale ${String(r.stale.length).padStart(3)} · missing ${String(r.missing.length).padStart(3)}` + (r.stale.length ? '   e.g. ' + r.stale.slice(0, 2).map((k) => JSON.stringify(k)).join(', ') : ''));
 console.log('\nshort capital labels (English <= 8 characters) translated more than 1.6x longer:');
 for (const r of report) if (r.long.length) console.log(`  ${r.tag}: ${r.long.length}\n    ` + r.long.join('\n    '));
 console.log(`\n${n} checks passed`);

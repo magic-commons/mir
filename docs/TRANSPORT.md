@@ -104,11 +104,11 @@ Every look value of the bar is the kit's, so the GUI window restyles it with no 
 | CARD STYLE | TINTED: the tint, never a blur; REFRACTIVE: the veil and the blur | the bar is `.glass` |
 | FROST | off: no blur anywhere | skin.css |
 | BLUR | the blur's radius | `--glass-blur` |
-| CORNERS | the bar's corner, the same as every pane's (BASINS' 16 px, `--tr-radius`, only where the 1.5 surface tokens are absent) | `border-radius: var(--surface-radius, var(--tr-radius))` |
+| CORNERS | the bar's corner, the same as every pane's (BASINS' 16 px, `--xport-radius`, only where the 1.5 surface tokens are absent) | `border-radius: var(--surface-radius, var(--xport-radius))` |
 | RELIEF | flat: the pill loses its raise | `--relief-raise` |
 | SHADOW, the tier | flat tier: no shadow, no blur, no relief | `--surface-shadow`, the tier's tokens |
 
-`tests/transport.browser.mjs` checks every row in both layouts. BASINS' own numbers (the bar's width and height, the seats, the pill) are `--tr-*` tokens declared on `.mir-transport`, so a skin can change them.
+`tests/transport.browser.mjs` checks every row in both layouts. BASINS' own numbers (the bar's width and height, the seats, the pill) are `--xport-*` tokens declared on `.mir-transport`, so a skin can change them.
 
 ## The opener law
 

@@ -65,7 +65,7 @@ The window's `api` is `{ id, dev, root, body, setStatus, canPresent(), open(), c
 - `setHidden(on)`: **the** hide path for the key, the menu, a touch and a test alike. Also `toggleHidden()` and the `hidden` property.
 - `setInterface(shown)`: H. The whole interface leaves paint, and the edge handle is the way back.
 
-**The transport.** `dodge(rect | null)` takes the rect a floating window reports. The transport moves to whichever seat that rect does not cover. `seat` says which seat it is in.
+**The transport.** `dodge(rect | null)` takes the rect a floating window reports. The transport moves to whichever seat that rect does not cover. `seat` says which seat it is in. `setHome('bottom' | 'top')` sets the seat the transport rests in (the user's choice on the bar, `docs/TRANSPORT.md`); the dodge then prefers it. `spec(id)` returns a registered window's description (its title, glyph, key, hint) for the bar's openers.
 
 **Menus.**
 - `windowMenu({ rack, rackKey })` returns the WINDOW menu's rows in the data shape `createMenubar({ menus })` takes: `[label, run, disabled, hint]`. There is one row per registered window: `↑ NAME` raises an open window and `⊕ NAME` opens a closed one. `rack: true` adds a separator and HIDE / SHOW the rack.
@@ -193,8 +193,8 @@ The brief asked for survey C's 65-item rack list. Survey C has no numbered list 
 | 63 | No keyboard way to move a window | added: header keys (law 9) |
 | 64 | Phone: one rack, nothing floats, floats remembered, left cards folded in with `data-phone-from` | kept |
 | 65 | Phone: the rack starts hidden unless the user left it shown (`phoneRack`) | kept (`phoneShown`) |
-| 66 | Phone: the transport docks at the top of the rack (`wTr` card) | not built: the transport card is the app's |
-| 67 | `dockTransport` / the transport's own dock chip | not built: the app's |
+| 66 | Phone: the transport docks at the top of the rack (`wTr` card) | the transport is `shell/transport.js` (`docs/TRANSPORT.md`): its parts, BASINS' and λWAVES' layouts, the dock chip and the docked seat (a rack window named TRANSPORT) |
+| 67 | `dockTransport` / the transport's own dock chip | the transport is `shell/transport.js` (`docs/TRANSPORT.md`): its parts, BASINS' and λWAVES' layouts, the dock chip and the docked seat (a rack window named TRANSPORT) |
 | 68 | Phone: the hide toggle follows the rack edge in the thumb zone | kept (rack.css) |
 | 69 | Narrow screens (≤ 860 px): the rack along the bottom | kept (rack.css) |
 | 70 | No way back from H on touch | added: the edge handle |
@@ -218,7 +218,7 @@ The brief asked for survey C's 65-item rack list. Survey C has no numbered list 
 | EARTH | `cardkit.js`'s own lazy-card machinery (`addWindow(…, { closed: true })`, the first-`devopen` bind) | its lifecycle hooks map onto `register` |
 
 **What stays in the app:**
-- the transport card and its dock chip;
+- the transport is `shell/transport.js` (`docs/TRANSPORT.md`): its parts, BASINS' and λWAVES' layouts, the dock chip and the docked seat (a rack window named TRANSPORT);
 - `copyDigest`;
 - retired-id maps;
 - the notebook's size in a layout;

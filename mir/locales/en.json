@@ -24,6 +24,7 @@
   "+ DEVICE": "+ DEVICE",
   "+ MACRO": "+ MACRO",
   ".MD": ".MD",
+  "60 Hz": "60 Hz",
   "A file the app needs did not load.": "A file the app needs did not load.",
   "ABOUT": "ABOUT",
   "ADD ROUTE": "ADD ROUTE",
@@ -42,9 +43,9 @@
   "Audio input is unavailable in this browser": "Audio input is unavailable in this browser",
   "Audio input, band ranges, timing, gate, and onset settings": "Audio input, band ranges, timing, gate, and onset settings",
   "Audio response ranges": "Audio response ranges",
-  "BASINS today: refractive frost, separate headers": "BASINS today: refractive frost, separate headers",
   "BIPOLAR": "BIPOLAR",
   "BLUR": "BLUR",
+  "BPM": "BPM",
   "Bypass this device and keep its settings": "Bypass this device and keep its settings",
   "CALCULATING": "CALCULATING",
   "CENTRE": "CENTRE",
@@ -66,6 +67,7 @@
   "Choose a key, with any modifiers.": "Choose a key, with any modifiers.",
   "Choose an action in the list first, then press RECORD INPUT": "Choose an action in the list first, then press RECORD INPUT",
   "Choose at least one project component before saving.": "Choose at least one project component before saving.",
+  "Choose where the transport sits": "Choose where the transport sits",
   "Close this window": "Close this window",
   "Close window": "Close window",
   "Collapse or expand the macro rail": "Collapse or expand the macro rail",
@@ -98,6 +100,7 @@
   "Delete {name}": "Delete {name}",
   "Deleted — {name}": "Deleted — {name}",
   "Disconnect the source from this macro": "Disconnect the source from this macro",
+  "Dock the transport into the rack": "Dock the transport into the rack",
   "Drag sideways to set; double-tap the row grip to rename": "Drag sideways to set; double-tap the row grip to rename",
   "Drag to reorder": "Drag to reorder",
   "Drag to reorder; double-tap to rename": "Drag to reorder; double-tap to rename",
@@ -111,6 +114,7 @@
   "EXPORT": "EXPORT",
   "EXPORT .MD": "EXPORT .MD",
   "EXPOSURE": "EXPOSURE",
+  "Enable or bypass modulation": "Enable or bypass modulation",
   "Enable route": "Enable route",
   "Escape is kept for closing and cancelling.": "Escape is kept for closing and cancelling.",
   "Every key is back to its default": "Every key is back to its default",
@@ -132,7 +136,6 @@
   "Folder renamed to {to}": "Folder renamed to {to}",
   "Folders": "Folders",
   "GATED": "GATED",
-  "GLASS": "GLASS",
   "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license}": "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license}",
   "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license} and {notice}": "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license} and {notice}",
   "GRAIN": "GRAIN",
@@ -153,6 +156,7 @@
   "Include {what} in the next save": "Include {what} in the next save",
   "Information": "Information",
   "Input dB at 0% output; upper boundary reaches 100%.": "Input dB at 0% output; upper boundary reaches 100%.",
+  "Josh’s glass: refractive frost, 11 px, 130 % saturation, round corners": "Josh’s glass: refractive frost, 11 px, 130 % saturation, round corners",
   "KEYBOARD": "KEYBOARD",
   "KEYS": "KEYS",
   "KNEE": "KNEE",
@@ -178,7 +182,8 @@
   "MIR": "MIR",
   "MIR ABOUT": "MIR ABOUT",
   "MIR OPTIONS": "MIR OPTIONS",
-  "MOD is on — the arm is the small button beside the transport’s own play": "MOD is on — the arm is the small button beside the transport’s own play",
+  "MOD off": "MOD off",
+  "MOD on": "MOD on",
   "MODULATION": "MODULATION",
   "MODULATION MATRIX": "MODULATION MATRIX",
   "MOVE TO": "MOVE TO",
@@ -186,8 +191,11 @@
   "Mac and iPad": "Mac and iPad",
   "Master depth for this macro. Double-tap for 100%.": "Master depth for this macro. Double-tap for 100%.",
   "Master depth for {macro}": "Master depth for {macro}",
+  "Modulation cadence": "Modulation cadence",
+  "Modulation on or off": "Modulation on or off",
   "Move macros to either side": "Move macros to either side",
   "Move macros to left or right end": "Move macros to left or right end",
+  "Move the transport between the stage and the rack": "Move the transport between the stage and the rack",
   "Move this window between the rack and stage": "Move this window between the rack and stage",
   "Move window": "Move window",
   "Move {name} to a folder": "Move {name} to a folder",
@@ -210,16 +218,18 @@
   "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.": "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.",
   "Open modulation matrix": "Open modulation matrix",
   "Open or close audio input. Audio is analysed locally and is not stored.": "Open or close audio input. Audio is analysed locally and is not stored.",
+  "Open the modulation window": "Open the modulation window",
   "Opened — {name}": "Opened — {name}",
   "Orient the plane. Shift gives finer motion; Home resets.": "Orient the plane. Shift gives finer motion; Home resets.",
   "PAGE {n} / {of}": "PAGE {n} / {of}",
   "PHOTOSENSITIVITY WARNING": "PHOTOSENSITIVITY WARNING",
   "PITCH": "PITCH",
+  "PLAY / PAUSE": "PLAY / PAUSE",
   "PRESETS": "PRESETS",
   "PROJECTS": "PROJECTS",
   "Paste a compatible device patch": "Paste a compatible device patch",
   "Picture made — {w}×{h}. Tap the download icon to keep it.": "Picture made — {w}×{h}. Tap the download icon to keep it.",
-  "Play or pause modulation": "Play or pause modulation",
+  "Play or pause": "Play or pause",
   "Previous project page": "Previous project page",
   "Project components and display options": "Project components and display options",
   "Project name": "Project name",
@@ -281,6 +291,7 @@
   "Save to folder": "Save to folder",
   "Saved projects and folders": "Saved projects and folders",
   "Saved — {name}": "Saved — {name}",
+  "Seek to the beginning": "Seek to the beginning",
   "Select a band for timing": "Select a band for timing",
   "Select a curve before reversing it": "Select a curve before reversing it",
   "Select the LFO waveform": "Select the LFO waveform",
@@ -294,6 +305,7 @@
   "Set free rate or a loop-clock division": "Set free rate or a loop-clock division",
   "Set the envelope stage time": "Set the envelope stage time",
   "Set the modulation clock in beats per minute": "Set the modulation clock in beats per minute",
+  "Set transport tempo": "Set transport tempo",
   "Shift": "Shift",
   "Show Mac and iPad key names": "Show Mac and iPad key names",
   "Show Windows and Linux key names": "Show Windows and Linux key names",
@@ -311,16 +323,22 @@
   "Sort oldest first": "Sort oldest first",
   "Sort shallowest zoom first": "Sort shallowest zoom first",
   "Step through twelve density levels to reveal shells.": "Step through twelve density levels to reveal shells.",
+  "Stutter: hold the beat at this note value": "Stutter: hold the beat at this note value",
   "Surfaces that blur what is behind them: one compositor pass each": "Surfaces that blur what is behind them: one compositor pass each",
   "Surfaces that draw a shadow": "Surfaces that draw a shadow",
   "Switch between two saved patches for this device": "Switch between two saved patches for this device",
+  "Sync the modulation clock to the wall clock or run it free": "Sync the modulation clock to the wall clock or run it free",
+  "TAP": "TAP",
   "THIS CONTROL IS HELD BY {n} MACROS  ·  which one the outer arc edits": "THIS CONTROL IS HELD BY {n} MACROS  ·  which one the outer arc edits",
+  "TRANSPORT": "TRANSPORT",
   "TRIG": "TRIG",
   "TRIG IN": "TRIG IN",
   "TRIG: the curve starts over": "TRIG: the curve starts over",
   "TURN": "TURN",
   "Tab is kept for moving the focus.": "Tab is kept for moving the focus.",
   "Tap repeatedly to set the modulation clock": "Tap repeatedly to set the modulation clock",
+  "Tap the tempo": "Tap the tempo",
+  "Tap the tempo: four taps set it": "Tap the tempo: four taps set it",
   "The 1.4 look: tinted panes, no blur, the relief": "The 1.4 look: tinted panes, no blur, the relief",
   "The browser has WebGPU but found no graphics adapter to use.": "The browser has WebGPU but found no graphics adapter to use.",
   "The factory gallery is already complete.": "The factory gallery is already complete.",
@@ -331,8 +349,10 @@
   "The mean frame time over 30 frames after the last change": "The mean frame time over 30 frames after the last change",
   "The view moved since the picture was made — capture it again.": "The view moved since the picture was made — capture it again.",
   "This browser has no WebGPU, which this app draws with.": "This browser has no WebGPU, which this app draws with.",
+  "Transport": "Transport",
   "Trigger this envelope. Start modulation to advance it.": "Trigger this envelope. Start modulation to advance it.",
   "Turn this window on or off": "Turn this window on or off",
+  "Type the tempo in BPM": "Type the tempo in BPM",
   "Type: {title}, a renamed subset of Spinwerad by gluk · {roboto} · {stix} — all SIL OFL 1.1, subset for this app.": "Type: {title}, a renamed subset of Spinwerad by gluk · {roboto} · {stix} — all SIL OFL 1.1, subset for this app.",
   "UNDO": "UNDO",
   "UNIPOLAR": "UNIPOLAR",
@@ -353,6 +373,8 @@
   "WORK BARS · HIDDEN": "WORK BARS · HIDDEN",
   "WORK BARS · TOP": "WORK BARS · TOP",
   "What the look costs, measured after the last change": "What the look costs, measured after the last change",
+  "What this app is, for a visiting model: windows, parameters, keys and shared pages": "What this app is, for a visiting model: windows, parameters, keys and shared pages",
+  "Where the transport sits": "Where the transport sits",
   "Windows and Linux": "Windows and Linux",
   "Work bars": "Work bars",
   "Work bars: above. Tap to hide them": "Work bars: above. Tap to hide them",
@@ -379,6 +401,7 @@
   "biolum": "biolum",
   "bipolar (Re/Im legible)": "bipolar (Re/Im legible)",
   "carousel": "carousel",
+  "clock": "clock",
   "close this window": "close this window",
   "cmyk": "cmyk",
   "copied into the project": "copied into the project",
@@ -444,7 +467,6 @@
   "notes — markdown, $inline$ and $$display$$ maths; ctrl+enter previews — kept in this browser and in the project": "notes — markdown, $inline$ and $$display$$ maths; ctrl+enter previews — kept in this browser and in the project",
   "nothing copied yet — press COPY on a device first": "nothing copied yet — press COPY on a device first",
   "nothing imported": "nothing imported",
-  "nothing is routed — the transport has nothing to do": "nothing is routed — the transport has nothing to do",
   "nothing to export — save first": "nothing to export — save first",
   "opal": "opal",
   "open a window": "open a window",
@@ -456,6 +478,7 @@
   "patina": "patina",
   "phosphor": "phosphor",
   "pinwheel": "pinwheel",
+  "play or pause": "play or pause",
   "point removed": "point removed",
   "power": "power",
   "press a key…": "press a key…",
@@ -506,6 +529,7 @@
   "the phase offset": "the phase offset",
   "the shelf was damaged and has been mended — the old text is kept under {key}": "the shelf was damaged and has been mended — the old text is kept under {key}",
   "the sustain LEVEL — the one ADSR control that is not a time": "the sustain LEVEL — the one ADSR control that is not a time",
+  "the transport, docked": "the transport, docked",
   "thirty-two points is the curve’s ceiling": "thirty-two points is the curve’s ceiling",
   "this build has no such target": "this build has no such target",
   "this host supplies no audio capture": "this host supplies no audio capture",
@@ -528,6 +552,7 @@
   "{band} {knob}": "{band} {knob}",
   "{band} · A {a} · R {r} · H {h} ms": "{band} · A {a} · R {r} · H {h} ms",
   "{band} · {out}% output · {db} dB input": "{band} · {out}% output · {db} dB input",
+  "{bpm} beats per minute": "{bpm} beats per minute",
   "{chord} is already bound to “{other}”: press it again to take it, or Esc to cancel": "{chord} is already bound to “{other}”: press it again to take it, or Esc to cancel",
   "{chord} now runs “{action}”, taken from “{other}”": "{chord} now runs “{action}”, taken from “{other}”",
   "{chord} runs “{action}”": "{chord} runs “{action}”",
@@ -593,6 +618,9 @@
   ".MD": [
    "mir/shell/notebook.js"
   ],
+  "60 Hz": [
+   "mir/shell/transport.js"
+  ],
   "A file the app needs did not load.": [
    "mir/shell/boot.js"
   ],
@@ -648,14 +676,14 @@
   "Audio response ranges": [
    "mir/modulation/window.js"
   ],
-  "BASINS today: refractive frost, separate headers": [
-   "mir/shell/gui.js"
-  ],
   "BIPOLAR": [
    "mir/modulation/window.js"
   ],
   "BLUR": [
    "mir/shell/gui.js"
+  ],
+  "BPM": [
+   "mir/shell/transport.js"
   ],
   "Bypass this device and keep its settings": [
    "mir/modulation/window.js"
@@ -721,6 +749,9 @@
   ],
   "Choose at least one project component before saving.": [
    "mir/folders/gallery.js"
+  ],
+  "Choose where the transport sits": [
+   "mir/shell/transport.js"
   ],
   "Close this window": [
    "mir/kit.js"
@@ -821,6 +852,9 @@
   "Disconnect the source from this macro": [
    "mir/modulation/window.js"
   ],
+  "Dock the transport into the rack": [
+   "mir/shell/transport.js"
+  ],
   "Drag sideways to set; double-tap the row grip to rename": [
    "mir/modulation/window.js"
   ],
@@ -860,6 +894,10 @@
   ],
   "EXPOSURE": [
    "mir/modulation/host.js"
+  ],
+  "Enable or bypass modulation": [
+   "mir/modulation/window.js",
+   "mir/shell/transport.js"
   ],
   "Enable route": [
    "mir/modulation/window.js"
@@ -924,9 +962,6 @@
   "GATED": [
    "mir/modulation/window.js"
   ],
-  "GLASS": [
-   "mir/shell/gui.js"
-  ],
   "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license}": [
    "mir/shell/about.js"
   ],
@@ -987,6 +1022,9 @@
   ],
   "Input dB at 0% output; upper boundary reaches 100%.": [
    "mir/modulation/window.js"
+  ],
+  "Josh’s glass: refractive frost, 11 px, 130 % saturation, round corners": [
+   "mir/shell/gui.js"
   ],
   "KEYBOARD": [
    "mir/keyboard/keyboard.js"
@@ -1063,7 +1101,10 @@
   "MIR OPTIONS": [
    "mir/shell/gui.js"
   ],
-  "MOD is on — the arm is the small button beside the transport’s own play": [
+  "MOD off": [
+   "mir/modulation/window.js"
+  ],
+  "MOD on": [
    "mir/modulation/window.js"
   ],
   "MODULATION": [
@@ -1087,11 +1128,20 @@
   "Master depth for {macro}": [
    "mir/modulation/window.js"
   ],
+  "Modulation cadence": [
+   "mir/shell/transport.js"
+  ],
+  "Modulation on or off": [
+   "mir/shell/transport.js"
+  ],
   "Move macros to either side": [
    "mir/modulation/window.js"
   ],
   "Move macros to left or right end": [
    "mir/modulation/window.js"
+  ],
+  "Move the transport between the stage and the rack": [
+   "mir/shell/transport.js"
   ],
   "Move this window between the rack and stage": [
    "mir/kit.js"
@@ -1162,6 +1212,9 @@
   "Open or close audio input. Audio is analysed locally and is not stored.": [
    "mir/modulation/window.js"
   ],
+  "Open the modulation window": [
+   "mir/shell/transport.js"
+  ],
   "Opened — {name}": [
    "mir/folders/gallery.js"
   ],
@@ -1177,6 +1230,9 @@
   "PITCH": [
    "mir/modulation/host.js"
   ],
+  "PLAY / PAUSE": [
+   "mir/shell/transport.js"
+  ],
   "PRESETS": [
    "mir/modulation/modwindow/modwindow.js"
   ],
@@ -1189,8 +1245,8 @@
   "Picture made — {w}×{h}. Tap the download icon to keep it.": [
    "mir/folders/gallery.js"
   ],
-  "Play or pause modulation": [
-   "mir/modulation/window.js"
+  "Play or pause": [
+   "mir/shell/transport.js"
   ],
   "Previous project page": [
    "mir/folders/gallery.js"
@@ -1378,6 +1434,9 @@
    "mir/folders/folders.js",
    "mir/folders/gallery.js"
   ],
+  "Seek to the beginning": [
+   "mir/shell/transport.js"
+  ],
   "Select a band for timing": [
    "mir/modulation/window.js"
   ],
@@ -1417,6 +1476,9 @@
   "Set the modulation clock in beats per minute": [
    "mir/modulation/window.js"
   ],
+  "Set transport tempo": [
+   "mir/shell/transport.js"
+  ],
   "Shift": [
    "mir/keyboard/keyboard.js"
   ],
@@ -1430,7 +1492,8 @@
    "mir/folders/gallery.js"
   ],
   "Show the interface": [
-   "mir/shell/rack.js"
+   "mir/shell/rack.js",
+   "mir/shell/transport.js"
   ],
   "Signed route amount percent": [
    "mir/modulation/window.js"
@@ -1468,6 +1531,9 @@
   "Step through twelve density levels to reveal shells.": [
    "mir/modulation/host.js"
   ],
+  "Stutter: hold the beat at this note value": [
+   "mir/shell/transport.js"
+  ],
   "Surfaces that blur what is behind them: one compositor pass each": [
    "mir/shell/gui.js"
   ],
@@ -1477,8 +1543,17 @@
   "Switch between two saved patches for this device": [
    "mir/modulation/window.js"
   ],
+  "Sync the modulation clock to the wall clock or run it free": [
+   "mir/shell/transport.js"
+  ],
+  "TAP": [
+   "mir/shell/transport.js"
+  ],
   "THIS CONTROL IS HELD BY {n} MACROS  ·  which one the outer arc edits": [
    "mir/modulation/window.js"
+  ],
+  "TRANSPORT": [
+   "mir/shell/transport.js"
   ],
   "TRIG": [
    "mir/modulation/modwindow/modwindow.js"
@@ -1497,6 +1572,12 @@
   ],
   "Tap repeatedly to set the modulation clock": [
    "mir/modulation/window.js"
+  ],
+  "Tap the tempo": [
+   "mir/shell/transport.js"
+  ],
+  "Tap the tempo: four taps set it": [
+   "mir/shell/transport.js"
   ],
   "The 1.4 look: tinted panes, no blur, the relief": [
    "mir/shell/gui.js"
@@ -1528,11 +1609,17 @@
   "This browser has no WebGPU, which this app draws with.": [
    "mir/shell/boot.js"
   ],
+  "Transport": [
+   "mir/shell/transport.js"
+  ],
   "Trigger this envelope. Start modulation to advance it.": [
    "mir/modulation/window.js"
   ],
   "Turn this window on or off": [
    "mir/kit.js"
+  ],
+  "Type the tempo in BPM": [
+   "mir/shell/transport.js"
   ],
   "Type: {title}, a renamed subset of Spinwerad by gluk · {roboto} · {stix} — all SIL OFL 1.1, subset for this app.": [
    "mir/shell/about.js"
@@ -1574,7 +1661,8 @@
    "mir/modulation/window.js"
   ],
   "WALL": [
-   "mir/modulation/window.js"
+   "mir/modulation/window.js",
+   "mir/shell/transport.js"
   ],
   "WALL follows elapsed time. FREE accumulates frame time.": [
    "mir/modulation/window.js"
@@ -1593,6 +1681,12 @@
   ],
   "What the look costs, measured after the last change": [
    "mir/shell/gui.js"
+  ],
+  "What this app is, for a visiting model: windows, parameters, keys and shared pages": [
+   "mir/core/describe.js"
+  ],
+  "Where the transport sits": [
+   "mir/shell/transport.js"
   ],
   "Windows and Linux": [
    "mir/keyboard/keyboard.js"
@@ -1671,6 +1765,9 @@
   ],
   "carousel": [
    "mir/palette.js"
+  ],
+  "clock": [
+   "mir/shell/transport.js"
   ],
   "close this window": [
    "mir/kit.js"
@@ -1869,9 +1966,6 @@
   "nothing imported": [
    "mir/notes/face.js"
   ],
-  "nothing is routed — the transport has nothing to do": [
-   "mir/modulation/window.js"
-  ],
   "nothing to export — save first": [
    "mir/notes/face.js"
   ],
@@ -1904,6 +1998,9 @@
   ],
   "pinwheel": [
    "mir/palette.js"
+  ],
+  "play or pause": [
+   "mir/shell/transport.js"
   ],
   "point removed": [
    "mir/modulation/window.js"
@@ -2056,6 +2153,9 @@
   "the sustain LEVEL — the one ADSR control that is not a time": [
    "mir/modulation/window.js"
   ],
+  "the transport, docked": [
+   "mir/shell/transport.js"
+  ],
   "thirty-two points is the curve’s ceiling": [
    "mir/modulation/window.js"
   ],
@@ -2122,6 +2222,9 @@
   ],
   "{band} · {out}% output · {db} dB input": [
    "mir/modulation/window.js"
+  ],
+  "{bpm} beats per minute": [
+   "mir/shell/transport.js"
   ],
   "{chord} is already bound to “{other}”: press it again to take it, or Esc to cancel": [
    "mir/keyboard/keyboard.js"

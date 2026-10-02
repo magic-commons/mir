@@ -2,7 +2,7 @@
 
 MIR speaks English and, through **language packs**, Chinese (Simplified), Hindi, Spanish, Arabic, French, Bengali, Portuguese (Brazil), Indonesian, Russian and Japanese. The user picks one from the **LANGUAGE** menu after ABOUT, and every label changes **without a reload**. English is both the key and the fallback: a string a pack does not have shows its English, never a key and never a blank.
 
-This release (1.5.4) ships the **mechanism**, the menu, the per-language type and the right-to-left mirror, proved with a generated pseudo-language. The packs are empty drafts: the real translations come next, against the catalogue (`mir/locales/en.json`). **No font is shipped yet** (font downloads are on hold): each pack names its faces and the system faces stand in.
+This release (1.5.4) ships the **mechanism**, the menu, the per-language type and the right-to-left mirror, proved with a generated pseudo-language. Since 1.5.0-alpha.4 all ten packs are **draft translations** of the whole catalogue (`mir/locales/en.json`), written against one glossary (`docs/LANGUAGES-GLOSSARY.md`); each stays `reviewed: false` (the menu shows DRAFT) until a native reader checks it. **No font is shipped yet** (font downloads are on hold): each pack names its faces and the system faces stand in.
 
 Try it: `gallery/language.html` (`?lang=qps`, `?lang=qps-rtl`, `?lang=es`).
 
@@ -162,16 +162,16 @@ All are SIL OFL 1.1. When they land: each in its own `@font-face` with a `unicod
 ## 11. What a translator needs
 
 1. `mir/locales/en.json`: the strings, and where each comes from.
-2. The glossary (instrument and maths terms, and what stays Latin): a separate file, to be written with the first pack.
+2. The glossary (instrument and maths terms, and what stays Latin): [`docs/LANGUAGES-GLOSSARY.md`](LANGUAGES-GLOSSARY.md), the rules, the voice per language and one table with the ten columns.
 3. The laws in §4: keep `{vars}` and `<m>…</m>` exactly as they are; write the case your language uses (the English labels are capitals); never translate names, units or shortcut keys.
 4. The pack format in §3. Copy `en.json` to `<tag>.json`, keep the head of the existing `<tag>.json` (`name`, `dir`, `fonts`, `type`), and fill `strings`. Leave `reviewed: false`: only a native reader flips it.
 5. A check: open `gallery/language.html?lang=<tag>`. The count says how many strings still fall back to English.
 
 ## 12. Not done yet
 
-- **The strings are not translated**: every pack is an empty draft.
-- **The notebook's own strings** (`shell/notebook.js`: COPY, the word count, the title placeholder) and **the modulation window's** (the largest set) do not go through `t()` yet.
+- **No pack is reviewed**: the ten packs are drafts (`reviewed: false`) until a native reader checks each. `tests/i18n-packs.node.mjs` checks their shape and placeholders and reports coverage; a key the English has changed shows English until the pack is updated.
+- **Ambiguous English keys** the translators found: `LIGHT` (the tier and the theme), `FROST` (the look's name and the frost option), `WINDOW` (a time window and the interface window), `FULL` (a lane mode and the tier) share one key each and need two.
 - **Native tooltips**: a `title` is translated where it becomes a hint (`installControlHelp`). On a page without it, the browser's own tooltip stays English.
 - **A window's head hint** (`name: status`) is assembled from two strings and falls back to English.
-- **Plurals**: no kit string needs `Intl.PluralRules` yet.
+- **Plurals**: there is no plural mechanism; counts such as "{n} pages" are one string per language, wrong for some n in Russian and Arabic.
 - **Directional glyphs** (a back chevron) do not flip under right-to-left.

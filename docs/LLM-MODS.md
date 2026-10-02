@@ -58,7 +58,7 @@ const d = createDescribe({ app: { name: 'TETRIS', what: 'Falling blocks.' }, rac
 
 - **Publishing the kit to npm** (plan ruling 8: not yet). The skill needs no publishing; a single-file web artifact would.
 - **The theme optimiser** ("make it look like Tetris Effect"): it needs the 1.5.5 skins first.
-- **Skin packages** with their own rules, images and fonts: they are code, and need their own loading law.
+- **'name'-specs** (METRO, SPRITES) with their own rules, images and fonts: they are code, and need their own loading law.
 - **Lint results in the dump** (plan §3.5): the lints are node tools; a page cannot run them.
 - **The observed mistakes** in `LLM.md` §9: they come from the model runs.
 

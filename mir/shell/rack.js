@@ -108,11 +108,13 @@ export function peekSide({ x, width, left = 0, right = 0, current = '', near = R
   return '';
 }
 const hits = (a, b) => !!a && !!b && !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
-/** dodgeSeat(seats, rect, current) — λWAVES modDodge: the bottom seat unless the floating rect covers it, then the
- *  top one unless that is covered too, else stay.  No rect (the window closed) is the bottom seat. */
-export function dodgeSeat(seats, r, current = 'bottom') {
-  if (!r || !hits(seats.bottom, r)) return 'bottom';
-  if (!hits(seats.top, r)) return 'top';
+/** dodgeSeat(seats, rect, current, home) — λWAVES modDodge: the home seat ('bottom' unless the user chose 'top' on the
+ *  transport bar) unless the floating rect covers it, then the other one unless that is covered too, else stay.
+ *  No rect (the window closed) is the home seat. */
+export function dodgeSeat(seats, r, current = 'bottom', home = 'bottom') {
+  const away = home === 'top' ? 'bottom' : 'top';
+  if (!r || !hits(seats[home], r)) return home;
+  if (!hits(seats[away], r)) return away;
   return current;
 }
 /** queueToggle(queue, id) — SHIFT-click adds a window to the queue, or takes it back out */
@@ -609,7 +611,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
   view.addEventListener('orientationchange', () => syncPhone(), passive);
 
   /* ── the transport's dodge: two seats, a sequence that waits on each animation (no timers) ── */
-  let seat = 'bottom', run = null, lastRect = null, trBox = null;
+  let seat = 'bottom', home = 'bottom', run = null, lastRect = null, trBox = null;
   const trSize = () => { if (!trBox && transport) { trBox = { w: transport.offsetWidth || 560, h: transport.offsetHeight || 46 }; } return trBox; };
   function seatRects() {
     const { w, h } = trSize(), vw = view.innerWidth, vh = view.innerHeight, left = (vw - w) / 2;
@@ -620,7 +622,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
   function dodge(r) {
     lastRect = r ? { left: r.left, top: r.top, right: r.right ?? r.left + r.width, bottom: r.bottom ?? r.top + r.height } : null;
     if (!transport || run) return seat;
-    const want = view.matchMedia('(max-width: 860px)').matches ? 'top' : dodgeSeat(seatRects(), lastRect, seat);
+    const want = view.matchMedia('(max-width: 860px)').matches ? 'top' : dodgeSeat(seatRects(), lastRect, seat, home);
     if (want === seat) return seat;
     const policy = motionPolicy(), shift = (s) => `0px ${s === 'bottom' ? 96 : -96}px`;
     const anim = (from, to, ease) => (policy === 'off' || typeof transport.animate !== 'function' ? null
@@ -635,6 +637,12 @@ export function createRack({ host = globalThis.document && document.body, sides 
     return want;
   }
   if (transport) setAttr(transport, 'data-seat', seat);
+  /** setHome(seat) — the transport's resting seat, the user's choice on the bar (shell/transport.js): 'bottom' | 'top' */
+  function setHome(s) {
+    home = s === 'top' ? 'top' : 'bottom'; trBox = null;
+    if (run) run.finished.then(() => dodge(lastRect)); else dodge(lastRect);
+    return home;
+  }
 
   /* ── the + menu (the SHIFT-queue) and the ☆ menu (favourite layouts) ── */
   let queue = [];
@@ -808,7 +816,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
 
   const api = {
     register, start, open, close, toggle, isOpen, raise, fold, move, float, dock, toggleFloat, setCompact,
-    setHidden, setInterface, dodge, windowMenu,
+    setHidden, setInterface, dodge, setHome, windowMenu,
     get hidden() { return isHidden(); },
     toggleHidden: () => setHidden(!isHidden()),
     get peek() { return peek; },
@@ -818,6 +826,8 @@ export function createRack({ host = globalThis.document && document.body, sides 
     get built() { return built; },
     get registered() { return [...reg.keys()]; },
     isBuilt: (id) => !!(reg.get(id) && reg.get(id).dev),
+    /** spec(id) — a registered window's own description ({ id, title, side, glyph, key, hint, … }), for the transport's openers */
+    spec: (id) => (reg.get(id) ? { ...reg.get(id).spec } : null),
     window: (id) => (reg.get(id) && reg.get(id).api) || null,
     order: (side) => cards(rackOf(side)).map((c) => c.dataset.id),
     floating: () => stack.map((r) => r.dataset.id),

@@ -2,7 +2,9 @@
 
 A **skin is a set of token values**. Nothing else in the kit's sheets carries a look: every colour, shadow, radius, blur, duration, easing, font size, weight, letter-spacing and look opacity the house draws with is a custom property, declared once, in one block at the top of its sheet. The rules below each block read names only, so a skin that sets the names changes the look and nothing else. FROST, the kit's own glass, is simply the values those blocks hold today.
 
-This page is for whoever builds a skin package (FROST lifted out, METRO beside it) and for a model writing a skin against the schema (`mir/tokens.json`, `docs/LLM-MODS.md`). Plan: `MIR CLAUDE 1.5 PLAN 2026-10-01.md` §5.2, §7 (1.5.5), §8.3. The modulation plugin's two sheets follow the same law in their own blocks (`docs/TIERS.md`, "The modulation plugin").
+**How MIR names a look** (Josh, 2026-10-01): a **vanilla theme** is a named set of the built-in settings and nothing else. **FROST** (glassmorphism, Josh's recipe, the default) is one; **MORPH** (neumorphism) is coming. Anything that needs rules or art outside the settings is a **'name'-spec** MIR build or theme: **METRO** and **SPRITES** are 'name'-specs.
+
+This page is for whoever writes a vanilla theme or a 'name'-spec against these names (FROST is the values the blocks hold; METRO will be a 'name'-spec beside it) and for a model writing a skin against the schema (`mir/tokens.json`, `docs/LLM-MODS.md`). Plan: `MIR CLAUDE 1.5 PLAN 2026-10-01.md` §5.2, §7 (1.5.5), §8.3. The modulation plugin's two sheets follow the same law in their own blocks (`docs/TIERS.md`, "The modulation plugin").
 
 ## The four rules a skin follows
 

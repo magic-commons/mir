@@ -68,6 +68,17 @@ await ok('an outline token (--state-focus) takes a width, a style and a colour, 
   for (const v of ['2px solid var(--acc)', 'solid 3px #78e1f0', 'thin dotted hsl(188 80% 70%)', 'var(--acc) 2px solid', 'none']) assert.equal(checkSkinValue(row, v, known), null, v);
   for (const v of ['2px 3px solid', 'solid dashed red', '40px solid red', 'url(x) solid', '2px solid red blue', 'bold red']) assert.notEqual(checkSkinValue(row, v, known), null, v);
 });
+await ok('a border token takes a width, a style and a colour (no `auto`)', () => {
+  const known = new Map(tokens.tokens.map((r) => [r.name, r])), row = { name: '--x-edge', type: 'border' };
+  for (const v of ['1px solid hsl(0 0% 100% / .14)', '2px solid var(--acc)', 'none', 'dashed currentColor 1px']) assert.equal(checkSkinValue(row, v, known), null, v);
+  for (const v of ['1px auto red', '1px solid red 2px', '30px solid red', 'url(x) solid']) assert.notEqual(checkSkinValue(row, v, known), null, v);
+});
+await ok('a font-shorthand token takes [style] [weight] size[/line-height] family', () => {
+  const known = new Map(tokens.tokens.map((r) => [r.name, r])), row = { name: '--x-font', type: 'font-shorthand' };
+  for (const v of ['600 7px/1 var(--font-num)', '300 24px var(--font-sans)', 'italic 700 var(--fs-tiny) var(--font-ui)', '700 var(--fs-small)/1 ui-monospace, Menlo, monospace', '600 8.5px var(--font-num, monospace)'])
+    assert.equal(checkSkinValue(row, v, known), null, v);
+  for (const v of ['600 var(--font-num)', '7px', '600 7px/1 Comic Sans Nowhere', 'bold bold bold 7px serif', '600 7px/1 url(x)']) assert.notEqual(checkSkinValue(row, v, known), null, v);
+});
 await ok('refused, with a path and a reason: an unknown token',() => refused(skin({ '--nope': '1' }), 'data.tokens.--nope', /not a token in the schema/));
 await ok('refused: a token that is not a skin\'s (data ink)', () => refused(skin({ '--n1': 'red' }), 'data.tokens.--n1', /not a skin's/));
 await ok('refused: an out-of-range number, percentage, length', () => {

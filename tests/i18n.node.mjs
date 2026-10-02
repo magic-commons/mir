@@ -76,7 +76,9 @@ await ok('every pack file agrees with the language list (name, dir, reviewed) an
     assert.ok(Array.isArray(p.fonts) && p.fonts.some((f) => f.role === 'ui'), l.tag + ' names a UI face');
     assert.ok(p.fonts.every((f) => f.status === 'held' && f.file === null), l.tag + ': no font is shipped while downloads are on hold');
     assert.ok(p.strings && typeof p.strings === 'object', l.tag);
-    for (const k of Object.keys(p.strings)) assert.ok(k in cat.strings, `${l.tag}: "${k}" is not in the catalogue`);
+    /* a key the catalogue no longer has is STALE (the English changed): tests/i18n-packs.node.mjs reports it; a run never fails
+       on it, because only a translator may move or drop a translation */
+    assert.ok(Object.keys(p.strings).some((k) => k in cat.strings) || !Object.keys(p.strings).length, l.tag + ': the pack shares no key with the catalogue');
   }
   assert.equal(languages().length, 11); assert.equal(languages({ dev: true }).length, 13);
 });

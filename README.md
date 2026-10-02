@@ -22,7 +22,7 @@ MIR is the source; the apps are readers.
 | **Shell** | `mir/shell/` | What every app begins with, taken node for node from λWAVES: the **wordmark** (`wordmark.js`), the **menubar** it opens — FILE · EDIT · VIEW · WINDOW · ABOUT as data (`menubar.js`), the **notebook** glass with NOTES and **ABOUT** faces (`notebook.js`, `about.js` — the GPL notice and the font licences by default), the **accent engine** that colours A, B and the mark from a palette (`accent.js`), their sheet (`shell.css`) and an optional ground (`stage.css`). NOTES previews markdown and maths with marked and KaTeX from `vendor/`, loaded on the first preview. See `gallery/shell.js` for the whole assembly. |
 | **Modulation** | `mir/modulation/` | The kit's first plugin: the modulation window's builders (`modwindow/`, BASINS' window, the source since 1.1.0), its host (`host.js`, `modhost.css`), model (`mod.js`), registry, curves and the shared FL-style curve gesture interpreter (`curve-gesture.js`). The rest of the controller that wires the window to a host is still λWAVES' (`lab/modwindow.js`). See `modulation/modwindow/host-contract.md` and `docs/PLUGIN-CONTRACT.md`. |
 | **Type** | `fonts/` | LW Title (a renamed Spinwerad subset), Roboto (UI), STIX Two Math (the maths), with their licences. |
-| **Laws** | `docs/` | [API](docs/API.md) (every export) · [CONTRACT](docs/CONTRACT.md) (load order, what the kit reads on `<body>`, the tokens an app may re-point, ids, storage) · [INTENT](docs/INTENT.md) (what every shadow, bevel and light means) · [TOKENS](docs/TOKENS.md) (every token, generated) · [TIERS](docs/TIERS.md) (lite and flat) · [LAYERS](docs/LAYERS.md) (the cascade layers) · [CORE](docs/CORE.md) (frame, motion, pointer, proximity, perf) · [WINDOWS](docs/WINDOWS.md) · [RACK](docs/RACK.md) · [KEYS](docs/KEYS.md) (the key table and the keyboard window) · [SHELL-PARTS](docs/SHELL-PARTS.md) (dialog, notice, busy, boot, flash guard, share link, settings rows) · [FOLDERS](docs/FOLDERS.md) (the project window) · [MODULATION](docs/MODULATION.md) (the plugin's controller and app seam) · [NOTEBOOK](docs/NOTEBOOK.md) (pages and the shelf) · [INFORMATIONAL](docs/INFORMATIONAL.md) (words on the picture) · [GUI](docs/GUI.md) (MIR OPTIONS and MIR ABOUT) · [LANGUAGES](docs/LANGUAGES.md) · [FORMAT](docs/FORMAT.md) (the portable file format, its checker, and pictures that carry a project) · [HISTORY](docs/HISTORY.md) · [ADOPTING-1.5](docs/ADOPTING-1.5.md) · [LINES](docs/LINES.md) · [PLUGIN-CONTRACT](docs/PLUGIN-CONTRACT.md) (the socket TIMELINE plugs into) · STYLE-LOCK, MOTION-LAW, ANTI-PATTERNS, REFERENCES — the reasoning, kept with the code. |
+| **Laws** | `docs/` | [API](docs/API.md) (every export) · [CONTRACT](docs/CONTRACT.md) (load order, what the kit reads on `<body>`, the tokens an app may re-point, ids, storage) · [INTENT](docs/INTENT.md) (what every shadow, bevel and light means) · [TOKENS](docs/TOKENS.md) (every token, generated) · [TIERS](docs/TIERS.md) (lite and flat) · [LAYERS](docs/LAYERS.md) (the cascade layers) · [CORE](docs/CORE.md) (frame, motion, pointer, proximity, perf) · [WINDOWS](docs/WINDOWS.md) · [RACK](docs/RACK.md) · [KEYS](docs/KEYS.md) (the key table and the keyboard window) · [SHELL-PARTS](docs/SHELL-PARTS.md) (dialog, notice, busy, boot, flash guard, share link, settings rows) · [FOLDERS](docs/FOLDERS.md) (the project window) · [MODULATION](docs/MODULATION.md) (the plugin's controller and app seam) · [NOTEBOOK](docs/NOTEBOOK.md) (pages and the shelf) · [INFORMATIONAL](docs/INFORMATIONAL.md) (words on the picture) · [GUI](docs/GUI.md) (MIR OPTIONS and MIR ABOUT) · [LANGUAGES](docs/LANGUAGES.md) · [FORMAT](docs/FORMAT.md) (the portable file format, its checker, and pictures that carry a project) · [LLM-MODS](docs/LLM-MODS.md) (the mir-builder skill, the starter, LLM.md, describe() and dump()) · [SKINS](docs/SKINS.md) (where the look lives: every FROST value block, the rules a skin follows, the near-duplicates) · [SKINS-MODULATION](docs/SKINS-MODULATION.md) (the modulation window's look values: its FROST blocks, how to set one, what stays a literal) · [TRANSPORT](docs/TRANSPORT.md) (the transport: its parts, BASINS' and λWAVES' layouts, the main opener) · [LANGUAGES-GLOSSARY](docs/LANGUAGES-GLOSSARY.md) (the translators' glossary) · [HISTORY](docs/HISTORY.md) · [ADOPTING-1.5](docs/ADOPTING-1.5.md) · [LINES](docs/LINES.md) · [PLUGIN-CONTRACT](docs/PLUGIN-CONTRACT.md) (the socket TIMELINE plugs into) · STYLE-LOCK, MOTION-LAW, ANTI-PATTERNS, REFERENCES — the reasoning, kept with the code. |
 | **Proofs** | `tests/`, `tools/` | `npm test`: the token lint, node tests of the model and the adopt tool, browser tests of the controls and the shell. `tools/stylehash.mjs` proves a kit change neutral in an app; `tools/shell-parity.mjs` proves the shell is λWAVES'. |
 
 ## Adopt it
@@ -72,18 +72,19 @@ accent.apply();
 
 **Reuse the nodes, the gestures and the CSS. Do not copy their look.** A widget the kit has is built by the
 kit's builder and styled by the kit's sheet. When something is missing, add it to MIR (with its law and its
-proof) and re-adopt; do not grow a second version inside an app. `PROMPT.md` is the sentence to give a model
-starting a new app.
+proof) and re-adopt; do not grow a second version inside an app. A model starting a new app copies `starter/` and
+reads `LLM.md`; the `mir-builder` skill (`node tools/make-skill.mjs`, `docs/LLM-MODS.md`) carries both, and the kit.
 
 ## Skins
 
-The look MIR has today is called **FROST** — frosted glass over the stage, the VST-LFO modulation window's
-material — and it is the only skin.  Skins are coming: a skin will be a file a user can download (JSON) that
-changes the fonts, the buttons, the windows, everything; every skin has a Dark and a Light variant and works with
-the accent A/B system; and SETTINGS is where one is chosen.  The second skin planned is **METRO** (flat, colour
-switches instead of shading — old Android material and the Windows 8–10 start-menu cards).  Until skins land,
-structure and look share one set of sheets; the split comes with METRO, because a second skin is the only proof
-that the split is real.
+The look MIR has today is **FROST**: frosted glass over the stage, the VST-LFO modulation window's material,
+and the default (GUI › MIR OPTIONS; new users start on FROST, dark). Every look value in the kit's sheets is a token,
+declared once in a `/* FROST · values */` block at the top of its sheet (`docs/SKINS.md`, and
+`docs/SKINS-MODULATION.md` for the modulation window), so a skin is a set of token values (`docs/FORMAT.md` checks one).
+
+**How MIR names a look** (Josh, 2026-10-01): a **vanilla theme** is a named set of the built-in settings and nothing else. **FROST** (glassmorphism, Josh's recipe, the default) is one; **MORPH** (neumorphism) is coming. Anything that needs rules or art outside the settings is a **'name'-spec** MIR build or theme: **METRO** and **SPRITES** are 'name'-specs. METRO is flat colour switches instead of shading (old Android
+material, the Windows 8–10 start-menu cards); every look has a Dark and a Light variant and works with the accent
+A/B system.
 
 ## See it
 
@@ -91,6 +92,7 @@ that the split is real.
 modulation window on one page, built from the kit itself and restyled by nothing, with the theme, card style,
 frost, ground (plain or a busy coloured field) and accent seats live.
 `gallery/shell.html` is a fresh app on the kit: hover the wordmark for the menus, press J for the notebook (with a project's pages and the ▤ shelf), ⓘ for ABOUT.
+`starter/` is the smallest whole app, to copy: `http://127.0.0.1:8790/starter/`.
 
 The gallery's front page links every other page:
 
@@ -108,7 +110,9 @@ The gallery's front page links every other page:
 | `gallery/info.html` | INFORMATIONAL: words on the picture, read from `.md` pages |
 | `gallery/gui.html` | MIR OPTIONS and MIR ABOUT, the pointer glow and the parallax |
 | `gallery/language.html` | the language mechanism: English, the pseudo-language and right to left |
+| `gallery/transport.html` | the transport's parts in BASINS' and λWAVES' layouts: one play, modulation's power, the BPM pill, the tempo panel |
 | `gallery/format.html` | the portable file: a skin, a spec, a picture that carries one |
+| `starter/index.html` | the smallest whole MIR app, to copy |
 
 ## Prove it
 

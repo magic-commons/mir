@@ -60,7 +60,7 @@ const r = check(envelope, { tokens });           // the data: { ok, errors: [{ p
 | every value is in its type's grammar (table below) | a whitelist, not a blacklist: nothing outside the grammar passes |
 | a `var()` names a token in the schema | a skin can point at the kit's tokens, not at anything else |
 | a value is at most 400 characters | |
-| the skin has `tokens`, `dark`, `light` and no other member | rules, images, fonts and script are a **skin package**, which is code (not built; see the end) |
+| the skin has `tokens`, `dark`, `light` and no other member | rules, images, fonts and script make a **'name'-spec** (METRO, SPRITES), which is code (not built; see the end); a skin file is a vanilla theme's values |
 
 Warned, not refused: a shadow switched off as `none` (the kit's off value is `0 0 0 0 transparent`), a blur switched
 off as `blur(0)` (the kit's off value is the whole filter `none`), a deprecated token, and top ink (`--fg`) on the pane
@@ -88,6 +88,8 @@ are allowed wherever a single value is, with the same leaves.
 | `font` | a comma list of family names from a fixed list (`FONTS` in `envelope.js`: the faces the kit ships — Roboto, Spectral, Playfair Display, Alegreya SC, STIX Two Math … — common system faces, and the generics) | |
 | `keyword` | a word from the token's set (`--label-case`: `uppercase none lowercase capitalize`) | |
 | `outline` | an outline shorthand (`--state-focus`): a width (a length or `thin medium thick`), a style (`none auto solid dashed dotted double groove ridge inset outset`) and a colour, each at most once, in any order | width 0…16px |
+| `border` | a border shorthand: the same three parts as `outline`, with the border styles (`hidden` yes, `auto` no) | width 0…16px |
+| `font-shorthand` | a whole `font`: `[style] [weight] size[/line-height] family`, the family by the `font` grammar; each part may be a `var()` | weight 1…1000, size ≤ 400px, a unitless line height 0.5…4 |
 
 #### What is refused, and why
 
@@ -210,7 +212,7 @@ The command needs nothing but node and the kit (`--app`, `--settings <schema.jso
 ## Not built
 
 - **The QR code** (writing and reading one), for pictures that get re-encoded.
-- **Skin packages**: a folder with its own rules, images and fonts (METRO, SPRITES). That is code, so it loads only
+- **'name'-specs**: a MIR build or theme with its own rules, images and fonts (METRO, SPRITES). That is code, so it loads only
   from a file by an explicit act, and the app shows that it is loaded. A skin envelope never carries one.
 - **The GUI window's import**: the options window will call `createIntake` with its own rows; this kit step gives it
   the door, not the window.

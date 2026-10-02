@@ -1,6 +1,6 @@
 # MIR · API
 
-Every module the kit exports, what each export is, and what it returns. MIR 1.5.0-alpha.3.
+Every module the kit exports, what each export is, and what it returns. MIR 1.5.0-alpha.4.
 
 Each module's own header holds its laws and their reasons. This page is the map to them.
 
@@ -264,6 +264,7 @@ Storage: `{ items: { [path]: { path, folder, name, saved, opened, title, md } },
   - `rack.open(id, { side, index })`, `close(id)`, `toggle(id)`, `isOpen(id)`, `raise(id)`, `fold(id, on?)`, `move(id, { side, index })`.
   - `rack.float(id, at)`, `dock(id, { side, index })`, `toggleFloat(id)`, `setCompact(id, on)`.
 - **Hiding and the transport.**
+  - `rack.setHome('bottom' | 'top')` is the transport's resting seat (the user's choice on the bar); the dodge prefers it. `rack.spec(id)` is a registered window's description, for the bar's openers.
   - `rack.setHidden(on)` is the one hide path. Also `toggleHidden()`, `hidden` and `peek`.
   - `rack.setInterface(shown)` is H; the edge handle is the way back.
   - `rack.dodge(rect | null)` moves the transport to the free seat; `seat` says which.
@@ -280,7 +281,7 @@ Storage: `{ items: { [path]: { path, folder, name, saved, opened, title, md } },
 ### The GUI window: `mir/shell/gui.js` ([GUI.md](GUI.md))
 
 - `createGui({ host, prefs, app: { name }, about: { github, credits, fonts }, accent, defaults, storageKey = 'mir.gui' })` → `{ root, window, prefs, open('options' | 'about'), close(), toggle(page), page, turn(±1), moving(bool), dropGuides(), census(), light, parallax, destroy() }`
-- `lookSchema()`, `LOOK_PRESETS` (`classic`, `glass`, `light`), `SKINS`, `MIR_VERSION`, `MIR_WORDS`
+- `lookSchema()`, `LOOK_PRESETS` (`frost` — the default, `classic`, `light`: vanilla themes, named sets of the built-in settings), `SKINS`, `MIR_VERSION`, `MIR_WORDS`
 - `stepper({ label, aria, items: [{ id, label, coming? }], value, onChange, wrap })` → `{ root, prev, next, get(), set(id), setItems(items, id), step(d) }`
 - `census(doc)` → `{ blur, shadow }`
 - Sheet: `mir/shell/gui.css`.
@@ -292,6 +293,23 @@ Storage: `{ items: { [path]: { path, folder, name, saved, opened, title, md } },
 - Pure: `fxAllowed({ coarse, motion, tier })`, `fxEnv(doc)`, `watchFxMedia(doc, fn)`, `parallaxOffset(px, py, view, depth)`.
 - Sheet: `mir/fx/fx.css` (`@layer mir.kit.house`).
 
+
+---
+
+## `mir/shell/transport.js`: the transport, its parts, its layouts, the main opener ([TRANSPORT.md](TRANSPORT.md))
+
+The kit gives the parts and the look; the layout is the app's (BASINS' design, λWAVES' arrangement from the same parts).
+
+- `createTransport({ layout = BASINS_LAYOUT, nodes, clock, mod, model, setBpm, persist, openers, rack, keys, store, key = 'mir.transport', opener = true, onRefused, onInterface, host, root, id = 'transport' })`
+  → `{ root, layout, parts, el: { play, power, door, pill, field, panel, seat, dock, back, menu, openers }, toggle(), play(), pause(), setBpm(v), bpm, edit(), moved(rect | null), setSeat(seat), seat, dock(on), docked, seatMenu(show), sync(), refresh(), start(), destroy() }`
+  - `layout`: an array of part names (`play`, `power`, `door`, `tempo`, `panel`, `tap`, `rewind`, `openers`, `seat`, `dock`), `app:<name>` (from `nodes`), DOM nodes and `{ group, items }`.
+  - `clock`: the ONE play's clock `{ play(), pause(), isPlaying(), toggle?(), onChange?(fn), seek?(beat) }`; `mod`: `installModulation`'s result (modulation is a power button, never a second play). `model` is `mir/modulation/mod.js` (`BPM_DEFAULT` 30).
+  - `openers`: `[{ id, label, glyph?, key?, action?, hint?, open(), close?(), toggle?(), isOpen }]` or a function returning it. Seats BOTTOM / TOP / COMPACT; TOP uses the rack's `setHome(seat)`.
+- Parts (each `→ { root, sync(), destroy() }`, with a `signal`): `playButton({ clock, onRefused })`, `modPower({ mod })`, `modDoor({ mod })`, `tempoPill({ tempo, panel })`, `tempoPanel({ tempo, mod })`, `tapButton({ tempo })`, `barButton({ cls, glyph, svg, text, label, title, run })`, `latch(opener)`, `wayBack({ run })`; `createTempo({ model, setBpm, mod, persist })` → `{ get, set, commit, min, max, onChange }`.
+- `BASINS_LAYOUT`, `LAMBDAWAVES_LAYOUT`, `layoutNames(layout)`, `SVG_REWIND`, `DOCK_ID`.
+- `firstRun(...stores)`, `rackOpeners(rack, { only, glyphs })`, `transportActions(get)` (Space: the one play).
+- Pure: `formatBpm`, `clampBpm`, `digitStep`, `charAt`, `dragBpm`, `keyStep`, `parseBpm`, `seatOf`, `homeOf`, `seatRect`, `menuSide`, `localSeatStore`, `menuRow`, `openerRows`, `isOpenOf`, `toggleOf`; `TRANSPORT`, `SEATS`.
+- Sheet: `mir/shell/transport.css` (after `rack.css`), `@layer mir.kit.house`; tokens `--xport-*` on `.mir-transport`.
 
 ---
 
@@ -424,6 +442,12 @@ Load `mir/shell/parts.css` after the kit's sheets.
 - `localStore(key)` → `{ read(), write(patch) }` (guarded localStorage, one JSON record).
 - `rootsOf(params)` → the registry roots the ids imply.
 
+### `bind.js`: one clock and modulation's power (1.5.0-alpha.4)
+
+- `installModulation(…)` adds `power()` → bool · `setPower(on)` → bool · `togglePower()` → bool · `onPower(fn)` → off: modulation's power, a route bypass (time runs on). `arm(on)`, `armed()`, `onArm(fn)` are the same under their 1.4 names.
+- `play(on)` → the clock's result · `togglePlay()` · `playing()` → bool · `onPlay(fn)` → off: the app's one clock. The window no longer starts time; an app gives the user its own play.
+- The `enabled` option is the power at first boot when the store holds none.
+
 ### `window.js`: the controller (1.5.0-alpha.3)
 - `createModulation(host, port)` → `{ root, rail, chipRail, api, open(), close(), toggle(), isOpen, paint(force), sync(),
   rebuild(), presentation(), restore(o), setAccent(a, b), say(msg, cls), resumeSentence(), wake(), dispose() }`.
@@ -434,6 +458,7 @@ Load `mir/shell/parts.css` after the kit's sheets.
   `api` (the gates' read-back) adds `placement()` → `{ box, dock, chipSide, side, seat, landing: { top, bottom }, moving }`
   and `presetKey()`.
 - `ROUTABLE` (`'.k[data-param], .fd[data-param]'`), `ROUTE_REACH` (56), `ROUTE_CAPTURE` (18).
+- 1.5.0-alpha.4: `port.armed()` / `port.arm(on)` are the power (absent: the window uses `clock.setModulationEnabled`). The window calls no play or pause.
 
 ### `mod.js`: the preset key (1.5.0-alpha.3)
 - `setPresetKey(key)` → the key in force ('' restores `PRESET_LS`); `presetKeyOf()`. `presetStoreState().key` names the key
@@ -516,6 +541,10 @@ They go home to λWAVES when the kit drops its λWAVES leftovers (2.0.0).
 
 ### `modwindow/modwindow.js`: the window's builders
 
+`SVG_POWER` (1.5.0-alpha.4) is the work bar's first seat (`button.modxport.mir-mod-power[data-face="power"]`); `SVG_PLAY` / `SVG_PAUSE` stay exported and are no longer drawn by the window.
+
+The glyph strings (`GLYPHS`, `SVG_PLAY`, `SVG_PAUSE`, `powIcon()`) read `--m2-glyph-sw` (and `--m2-glyph-dim`, `--m2-xport-sw`, `--m2-pow-stem-sw`, `--m2-pow-ring-sw`) through an inline style: declare them if you draw a glyph outside the plugin's roots.
+
 | Export | What it is |
 |---|---|
 | `createModWindow(host)` | The whole window, built and not wired: `root.modwindow` holds `rack, foot, transport, addMacro, addDevice, buildRing, buildSpan, buildClear, buildGhost, buildDevicePick, buildMacroPick, buildPresetSheet, buildDeadInspector` |
@@ -528,6 +557,19 @@ They go home to λWAVES when the kit drops its λWAVES leftovers (2.0.0).
 **The complete controller that wires the window to a host is not in the kit yet.** Routes, rings, the clock and presets (`wireGrip`, `wireDepth`, `paintDepth`, `moveMacro`, `rebuildMacros`) live in λWAVES' `lab/modwindow.js`, which BASINS and NEBULA copied. Curve pointer semantics are the exception since 1.4.2: every host imports `curve-gesture.js`, so copied controllers cannot drift on point/tension controls.
 
 The window loads two sheets, `mir/modulation/modhost.css` and then `mir/modulation/modwindow/modwindow.css`, and nothing may follow the second.
+
+---
+
+## `mir/core/describe.js`: what a visiting model can read (1.5.0-alpha.4, [LLM-MODS.md](LLM-MODS.md))
+
+- `createDescribe({ app, rack?, params?, pages?, keys?, prefs?, mod?, doc?, mount?, max? })` → `{ describe(), dump(), refresh(), observe(event), events(), errors(), destroy() }`
+  - `app` `{ name, version?, what? }`; `rack` a `createRack()`; `params` the rows `installModulation` takes (`{ id, label, unit?, min, max, get() }`); `pages` a `createPages()`; `keys` a `createKeys()`; `prefs` a `createPrefs()` store (the GUI window's `gui.prefs`); `mod` the `installModulation()` handle (which parameters a route drives, and their base).
+  - `doc` the document (default: the page's; `null` runs without a DOM); `mount` keeps the hidden `#mir-describe` element (default true); `max` the events and errors kept (default 20 each).
+  - `describe()` → markdown: the app, its windows (open, built, rack side, floating, folded), its parameters (range, live value, base when modulated), its key actions, and only the pages with `shared: true`.
+  - `dump()` → one fenced block: kit version, browser, look (skin, theme, card, frost, language, direction, motion, viewport), the prefs, the rack layout, `perf.snapshot()`, the last errors and the last input events (kind and target hooks only; a key in a field has no key), then `describe()`. Every text a field holds now (4+ characters) is cut out.
+  - `refresh()` rewrites the hidden element in one coalesced frame job (it also runs on a pages or keys change and at the end of a gesture). `observe(event)` records one event (the document's capture listeners call it). `destroy()` removes the listeners, the element and the globals.
+  - Sets `window.__MIR.describe` and `window.__MIR.dump`.
+- Pure: `describeText(state)`, `dumpText(state)`, `targetOf(node)`, `eventEntry(event)`, `scrub(text, typed)`, `DESCRIBE_ID`.
 
 ---
 
@@ -546,6 +588,7 @@ The window loads two sheets, `mir/modulation/modhost.css` and then `mir/modulati
 | `tokens-doc.mjs` | Writes `docs/TOKENS.md` from `mir/tokens.json` |
 | `i18n-extract.mjs [--check]` | The English catalogue `mir/locales/en.json` and its report (`npm run i18n`) |
 | `check-envelope.mjs <file> [--app id] [--settings schema.json] [--tokens tokens.json] [--json]` | `ok <kind>` or `error path: why` lines; exit 0 / 1 (2 on bad usage) (`npm run check:envelope`) |
+| `make-skill.mjs [--out <dir>] [--allow-dirty]` | Assembles the installable `mir-builder` skill into `dist/mir-builder/` (SKILL.md, LLM.md, LICENSE, the starter, `mir/`, `fonts/`, `docs/*.md`, `tools/serve.mjs`, `tools/check-envelope.mjs`, `tools/cdp.mjs`, `check-app.mjs`, BUILD.json) and prints its size; refuses a dirty kit unless told (`npm run skill`) |
 | `cdp.mjs` | The headless Chromium under all of them |
 
 `npm test` runs the token lint, `tests/*.node.mjs` and `tests/*.browser.mjs`.

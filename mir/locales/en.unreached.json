@@ -1,5 +1,11 @@
 [
  {
+  "file": "mir/core/describe.js",
+  "line": 201,
+  "why": "fragment",
+  "text": "unhandled rejection: "
+ },
+ {
   "file": "mir/core/envelope.js",
   "line": 75,
   "why": "fragment",
@@ -139,25 +145,25 @@
  },
  {
   "file": "mir/modulation/modwindow/modwindow.js",
-  "line": 513,
+  "line": 522,
   "why": "fragment",
   "text": " window controls"
  },
  {
   "file": "mir/modulation/modwindow/modwindow.js",
-  "line": 678,
+  "line": 690,
   "why": "textContent",
   "text": "BPM"
  },
  {
   "file": "mir/modulation/modwindow/modwindow.js",
-  "line": 1001,
+  "line": 1013,
   "why": "textContent",
   "text": "A"
  },
  {
   "file": "mir/modulation/modwindow/modwindow.js",
-  "line": 1003,
+  "line": 1015,
   "why": "textContent",
   "text": "B"
  },
@@ -175,13 +181,13 @@
  },
  {
   "file": "mir/modulation/window.js",
-  "line": 1037,
+  "line": 1040,
   "why": "fragment",
   "text": "px,"
  },
  {
   "file": "mir/modulation/window.js",
-  "line": 1859,
+  "line": 1862,
   "why": "fragment",
   "text": " failed to build"
  },
@@ -229,8 +235,20 @@
  },
  {
   "file": "mir/shell/gui.js",
-  "line": 206,
+  "line": 224,
   "why": "fragment",
   "text": " — coming"
+ },
+ {
+  "file": "mir/shell/transport.js",
+  "line": 338,
+  "why": "fragment",
+  "text": "Hold to "
+ },
+ {
+  "file": "mir/shell/transport.js",
+  "line": 338,
+  "why": "fragment",
+  "text": " the tempo, release to return · tap to latch, tap again to release"
  }
 ]

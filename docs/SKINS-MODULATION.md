@@ -2,7 +2,7 @@
 
 The modulation plugin's two sheets, `mir/modulation/modhost.css` and `mir/modulation/modwindow/modwindow.css`, hold no look literal below their first block. Every colour, gradient, shadow, filter, radius, border width, font, size, tracking, weight, line height, duration, easing, stroke width and look opacity is a token, declared once in a block at the top of its sheet headed `/* FROST · values */`, and the rules below the block read tokens only.
 
-A skin is a set of values for these names. Today's values are FROST: they are exactly what the sheets drew before the move (proved neutral, element by element and pixel by pixel; see "How this was proved"). A later step lifts the two blocks out as the FROST skin package and writes METRO against the same names.
+A skin is a set of values for these names. Today's values are FROST: they are exactly what the sheets drew before the move (proved neutral, element by element and pixel by pixel; see "How this was proved"). FROST is a vanilla theme (a named set of the built-in settings, nothing else); METRO, a 'name'-spec (it needs rules or art outside the settings), will be written against the same names.
 
 Plan: `MIR CLAUDE 1.5 PLAN 2026-10-01` §5.2 ("The literals move last, and exactly"), §7 (1.5.5), §8.3.
 

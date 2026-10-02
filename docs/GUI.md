@@ -70,7 +70,7 @@ Every control on MIR OPTIONS changes what is drawn through a hook a kit sheet or
 |---|---|---|---|---|
 | PRESET | FROST · CLASSIC · LIGHT · CUSTOM | seg | sets the MATERIAL, RELIEF and QUALITY options at once (below); CUSTOM shows only when the options match no preset | **FROST** (new users) |
 | | RESET LOOK | trig | every option home; the stored key is removed | |
-| SKIN | `‹ FROST ›` | stepper | `<html data-skin="frost">` — the seam for 1.5.5; METRO and SPRITES are listed as coming | FROST |
+| SKIN | `‹ FROST ›` | stepper | `<html data-skin="frost">` — the seam for 1.5.5; METRO and SPRITES ('name'-specs) are listed as coming | FROST |
 | | THEME light · dark · system | seg | `<body data-theme>`; SYSTEM follows `prefers-color-scheme` live | dark |
 | ACCENT | A, B | arc dials (`.accent-dial`, cyclic: INTENT rule 2) | `shell/accent.js` `set({ a, b })` → `--acc`, `--acc2` on `<body>` | 30°, 300° |
 | | VIVID | dial | `accent.set({ vivid })` → `--acc-glow` and the chroma | 10 % |
@@ -103,7 +103,9 @@ Every control on MIR OPTIONS changes what is drawn through a hook a kit sheet or
 
 **FROST** is Josh's own default (2026-10-01): *"'About Glass', Shadow maxed, Veil 0, Brightness 0, Dark mode, White Text, Glass control surface, Blur at 11px. Saturation bumped to 130. Tint 0, and disconnected off. Corners knob maxed. This will be known as 'Frost'. … Refractive on and frost always."* BASINS' ABOUT GLASS (`skin.js setMaterialPreset('about')`) is `ABOUT_MATERIAL` = veil 0 · radius 16 · shadow 1, `ABOUT_SATURATION` = 1.3, `GLASS_DEF` = bright 0 · hue 0 · tint 0, refractive, frost always; his changes on top: BLUR 11, CORNERS 24 (the knob's maximum), SHADOW maxed, DISCONNECTED off. New users start on FROST with THEME dark.
 
-**FROST wants these; they arrive with the FROST skin package.** Part of Josh's recipe has no kit hook yet, so it is not faked:
+**How MIR names a look** (Josh, 2026-10-01): a **vanilla theme** is a named set of the built-in settings and nothing else. **FROST** (glassmorphism, Josh's recipe, the default) is one; **MORPH** (neumorphism) is coming. Anything that needs rules or art outside the settings is a **'name'-spec** MIR build or theme: **METRO** and **SPRITES** are 'name'-specs.
+
+**FROST wants these; they arrive as built-in settings, so FROST stays a vanilla theme.** Part of Josh's recipe has no kit hook yet, so it is not faked:
 - **WHITE TEXT** — the ink law (BASINS' TEXT LIGHT);
 - **GLASS CONTROL FACES** — clear control faces (BASINS' CONTROL FACES · GLASS);
 - **SHADOW maxed (200 %)** — SHADOW is a switch until the pane shadow is an amount (BASINS' SHADOW 0–200 %).
@@ -128,7 +130,7 @@ These are in the plan's table but have no hook a kit sheet reads yet. A control 
 | TEXT › AUTO · LIGHT · DARK (FROST wants LIGHT: white text) | the ink law in the kit. `data-text` and the adaptive sampler are BASINS' (`ink.css`, `adaptive-ink.js`); no kit sheet reads `data-text` |
 | TEXT › STATUS TAGS | a kit class that hides the badges. `body.no-badges` is BASINS' `lab.css` |
 | SHADOW as an amount, 0–200 % (FROST wants it maxed) | a shadow-strength token. The pane shadows are literals in the theme, so SHADOW is a switch |
-| SKIN › METRO, SPRITES | their skin packages (plan §8.3, 1.5.5) |
+| SKIN › METRO, SPRITES | they are 'name'-specs: rules or art outside the settings (plan §8.3, 1.5.5) |
 | QUALITY › AUTO | the governor, after a measured reason |
 
 ## The window

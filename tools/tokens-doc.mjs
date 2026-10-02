@@ -36,7 +36,7 @@ export function render(schema) {
   L.push('', '## How to read a row', '');
   L.push('| field | meaning |', '|---|---|',
     '| **tier** | `primitive` a raw scale step · `semantic` what a thing is for (the names components read) · `component` one part\'s knob, read with a semantic fallback at the use site |',
-    '| **type** | color · color-channels (`H S% L%` for `hsl(var(--x) / a)`) · angle · percentage · number · length · shadow · filter · image · duration · easing · font · keyword · outline (an `outline` shorthand) |',
+    '| **type** | color · color-channels (`H S% L%` for `hsl(var(--x) / a)`) · angle · percentage · number · length · shadow · filter · image · duration · easing · font · keyword · outline (an `outline` shorthand) · border (a `border` shorthand) · font-shorthand (a whole `font`) |',
     '| **dark / light** | the value the kit gives it, per theme (light only where it differs). For a plugin token, the value in the plugin seat (`.mir-modwindow, .kwin-chiprail, .m2ghost`) |',
     '| **owner** | `kit` its sheets declare it · `plugin` only the modulation sheets do · `app-input` the kit reads it and the app writes it · `runtime` written per element by script |',
     '| **skin** | ✓ a skin may set it. Geometry, data, runtime and plugin tokens are not a skin\'s (the PORTED-WINDOW EXCEPTION: a host sets the plugin\'s accent hues, nothing else) |',

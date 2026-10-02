@@ -489,20 +489,53 @@ function shadowLayer(layer, g, bad, allowInset) {
 
 const OUTLINE_STYLES = new Set(['none', 'auto', 'solid', 'dashed', 'dotted', 'double', 'groove', 'ridge', 'inset', 'outset']);
 const OUTLINE_WIDTHS = new Set(['thin', 'medium', 'thick']);
+const BORDER_STYLES = new Set([...OUTLINE_STYLES].filter((x) => x !== 'auto').concat(['hidden']));
+const FONT_STYLES = new Set(['normal', 'italic', 'oblique', 'small-caps']);
+const FONT_WEIGHTS = new Set(['bold', 'bolder', 'lighter']);
+/* an outline or a border: a width, a style and a colour, each at most once, in any order (or one var()) */
+function lineShorthand(nodes, g, bad, styles, what) {
+  if (nodes.length === 1 && isVar(nodes[0], g, bad)) return;
+  if (!nodes.length || nodes.length > 3) return bad(`${what} is a width, a style and a colour: at most three parts`);
+  const seen = { width: 0, style: 0, colour: 0 };
+  for (const n of nodes) {
+    if (n.t === 'ident' && styles.has(n.v)) seen.style++;
+    else if (n.t === 'ident' && OUTLINE_WIDTHS.has(n.v)) seen.width++;
+    else if (n.t === 'num' || (n.t === 'fn' && MATH_FNS.has(n.name))) { seen.width++; if (!numeric(n, g, bad, LEN_UNITS, false, (x) => { if (x.v < 0 || (x.unit === 'px' && x.v > 16)) bad2(g, `${x.v}${x.unit} is out of range for ${what} (0…16px)`); })) return; }
+    else { seen.colour++; if (!color(n, g, bad)) return; }
+  }
+  if (seen.width > 1 || seen.style > 1 || seen.colour > 1) bad(`${what} names its width, style and colour once each`);
+}
 const TYPE_RULES = {
   color(nodes, g, bad) { const n = one(nodes, bad, 'colour'); if (n) color(n, g, bad); },
   /* an outline shorthand (--state-focus): a width, a style and a colour, each at most once, in any order */
-  outline(nodes, g, bad) {
+  outline(nodes, g, bad) { lineShorthand(nodes, g, bad, OUTLINE_STYLES, 'an outline'); },
+  /* a border shorthand: the same three parts; `auto` is an outline's style only */
+  border(nodes, g, bad) { lineShorthand(nodes, g, bad, BORDER_STYLES, 'a border'); },
+  /* a font shorthand: [style] [weight] size[/line-height] family, the family by the font grammar */
+  'font-shorthand'(nodes, g, bad) {
     if (nodes.length === 1 && isVar(nodes[0], g, bad)) return;
-    if (!nodes.length || nodes.length > 3) return bad('an outline is a width, a style and a colour: at most three parts');
-    const seen = { width: 0, style: 0, colour: 0 };
-    for (const n of nodes) {
-      if (n.t === 'ident' && OUTLINE_STYLES.has(n.v)) seen.style++;
-      else if (n.t === 'ident' && OUTLINE_WIDTHS.has(n.v)) seen.width++;
-      else if (n.t === 'num' || (n.t === 'fn' && MATH_FNS.has(n.name))) { seen.width++; if (!numeric(n, g, bad, LEN_UNITS, false, (x) => { if (x.v < 0 || (x.unit === 'px' && x.v > 16)) bad2(g, `${x.v}${x.unit} is out of range for an outline (0…16px)`); })) return; }
-      else { seen.colour++; if (!color(n, g, bad)) return; }
+    const comma = nodes.findIndex((n) => n.t === 'op' && n.v === ','), seg = comma < 0 ? nodes : nodes.slice(0, comma);
+    let f = seg.length - 1;                                          // where the family starts: a var, a string, or a run of names
+    if (f >= 0 && !(seg[f].t === 'str' || (seg[f].t === 'fn' && seg[f].name === 'var'))) { while (f >= 0 && seg[f].t === 'ident' && !FONT_STYLES.has(seg[f].v) && !FONT_WEIGHTS.has(seg[f].v)) f--; f++; }
+    const pre = seg.slice(0, f), fam = nodes.slice(f);
+    if (!fam.length || !pre.length) return bad('a font shorthand is [style] [weight] size[/line-height] family');
+    const slash = pre.length >= 3 && pre[pre.length - 2].t === 'op' && pre[pre.length - 2].v === '/';
+    const size = pre[pre.length - (slash ? 3 : 1)], lh = slash ? pre[pre.length - 1] : null, lead = pre.slice(0, pre.length - (slash ? 3 : 1));
+    if (lead.length > 2) return bad('a font shorthand has at most a style and a weight before its size');
+    for (const n of lead) {
+      if (n.t === 'ident' && (FONT_STYLES.has(n.v) || FONT_WEIGHTS.has(n.v))) continue;
+      if (n.t === 'num' && n.unit === '') { range(g, n.v, 1, 1000); continue; }
+      if (n.t === 'fn' && n.name === 'var') { if (!isVar(n, g, bad)) return; continue; }
+      return bad(`${show(n)} is not a font style or weight`);
     }
-    if (seen.width > 1 || seen.style > 1 || seen.colour > 1) bad('an outline names its width, style and colour once each');
+    if (!size) return bad('a font shorthand needs a size');
+    if (size.t === 'fn' && size.name === 'var') { const was = g.type; g.type = 'length'; const v = isVar(size, g, bad); g.type = was; if (!v) return; }
+    else if (!numeric(size, g, bad, LEN_UNITS, false, (x) => { if (x.unit === 'px' && (x.v < 0 || x.v > 400)) bad2(g, `${x.v}px is out of range for a font size`); })) return;
+    if (lh) {
+      if (lh.t === 'fn' && lh.name === 'var') { if (!isVar(lh, g, bad)) return; }
+      else if (!numeric(lh, g, bad, LEN_UNITS, true, (x) => { if (x.unit === '') range(g, x.v, 0.5, 4); })) return;
+    }
+    const was = g.type; g.type = 'font'; TYPE_RULES.font(fam, g, bad); g.type = was;   // a var() fallback in the family is a family
   },
   'color-channels'(nodes, g, bad) {
     if (nodes.length === 1 && isVar(nodes[0], g, bad)) return;
