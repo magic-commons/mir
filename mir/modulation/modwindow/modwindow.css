@@ -15,6 +15,11 @@
    HOST's controls (the rings, spans and range bars live outside its roots), and @own the few such values that read a var(),
    declared on the very elements that paint them. */
 /* @default */ .mir-modwindow, .kwin-chiprail, .m2ghost {
+  --m2-glyph-dim: 0.42;
+  --m2-glyph-sw: 1.9;
+  --m2-pow-ring-sw: 2.2;
+  --m2-pow-stem-sw: 2.6;
+  --m2-xport-sw: 1.6;
   --m2-add-edge: 2px solid var(--acc);
   --m2-add-font: 300 24px var(--font-sans);
   --m2-arm-shadow: inset 0 0 0 1px var(--bad);

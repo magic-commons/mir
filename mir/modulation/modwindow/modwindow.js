@@ -214,8 +214,8 @@ export const COPY = {
 
 /* anim.js:1525-1526 — the two transport faces, verbatim.  They are swapped
    through innerHTML; they are not glyphs. */
-export const SVG_PAUSE = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="width:14px;height:14px;display:block;margin:auto"><rect x="6" y="4" width="3.5" height="16" rx="1"/><rect x="14.5" y="4" width="3.5" height="16" rx="1"/></svg>';
-export const SVG_PLAY = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="width:14px;height:14px;display:block;margin:auto"><polygon points="6 4 20 12 6 20 6 4"/></svg>';
+export const SVG_PAUSE = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="width:14px;height:14px;display:block;margin:auto;stroke-width:var(--m2-xport-sw)"><rect x="6" y="4" width="3.5" height="16" rx="1"/><rect x="14.5" y="4" width="3.5" height="16" rx="1"/></svg>';
+export const SVG_PLAY = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="width:14px;height:14px;display:block;margin:auto;stroke-width:var(--m2-xport-sw)"><polygon points="6 4 20 12 6 20 6 4"/></svg>';
 
 /* ── THE TWO ELEMENT HELPERS (anim.js:1042, 3313) ───────────────────────── */
 
@@ -243,7 +243,10 @@ export function m2svg(tag, cls, parent, attrs) {
 /* ── THE GLYPHS (EXTRACT file 05, verbatim from glyph.js) ────────────────── */
 
 /* glyph.js:44,60,65,70 — ONE stroke weight for the whole set. */
-const STROKE = 'fill="none" stroke="currentColor" stroke-width="1.9" ' +
+/* 1.5.0-alpha.4 · the weight and the dim rung are tokens (modwindow.css FROST · values), read in an inline style */
+const STROKE = 'fill="none" stroke="currentColor" style="stroke-width: var(--m2-glyph-sw)" ' +
+  'stroke-linecap="round" stroke-linejoin="round"';
+const STROKE_DIM = 'fill="none" stroke="currentColor" style="stroke-width: var(--m2-glyph-sw); opacity: var(--m2-glyph-dim)" ' +
   'stroke-linecap="round" stroke-linejoin="round"';
 
 export const GLYPHS = {
@@ -281,9 +284,9 @@ export const GLYPHS = {
     '<path ' + STROKE + ' d="M21.8 12 L17.5 12 M19.5 9.6 L17.1 12 L19.5 14.4"/>',
   barsTop:
     '<path ' + STROKE + ' d="M3.1 5.2 H9.2 M14.8 5.2 H20.9"/>' +
-    '<path ' + STROKE + ' opacity="0.42" d="M3.1 18.8 H20.9"/>',
+    '<path ' + STROKE_DIM + ' d="M3.1 18.8 H20.9"/>',
   barsBottom:
-    '<path ' + STROKE + ' opacity="0.42" d="M3.1 5.2 H20.9"/>' +
+    '<path ' + STROKE_DIM + ' d="M3.1 5.2 H20.9"/>' +
     '<path ' + STROKE + ' d="M3.1 18.8 H9.2 M14.8 18.8 H20.9"/>'
 };
 
@@ -385,12 +388,12 @@ export function gripIcon(parent) {
 export function powIcon(parent) {
   const s = m2svg('svg', null, parent, { viewBox: '0 0 24 24' });
   m2svg('path', null, s, {
-    d: 'M12 2 V11', stroke: 'currentColor', 'stroke-width': '2.6',
+    d: 'M12 2 V11', stroke: 'currentColor', style: 'stroke-width: var(--m2-pow-stem-sw)',
     'stroke-linecap': 'round', fill: 'none'
   });
   m2svg('path', null, s, {
     d: 'M6.2 5.6 A8.4 8.4 0 1 0 17.8 5.6', stroke: 'currentColor',
-    'stroke-width': '2.2', 'stroke-linecap': 'round', fill: 'none'
+    style: 'stroke-width: var(--m2-pow-ring-sw)', 'stroke-linecap': 'round', fill: 'none'
   });
   return s;
 }
