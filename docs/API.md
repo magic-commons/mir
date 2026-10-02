@@ -1,12 +1,24 @@
 # MIR · API
 
-Every module the kit exports, what each export is, and what it returns. MIR 1.5.0-alpha.4.
+Every module the kit exports, what each export is, and what it returns. MIR 1.5.0-alpha.5.
 
 Each module's own header holds its laws and their reasons. This page is the map to them.
 
 How an app loads the kit, the body attributes it reads, the ids it owns and the tokens an app may re-point are all in [CONTRACT.md](CONTRACT.md).
 
 Import paths below are from an adopted app's `lab/` folder: `./mir/…`.
+
+---
+
+## `mir/app.js` and `mir/mir.css`: the easy start (1.5.0-alpha.5)
+
+| Export | What it is |
+|---|---|
+| `createApp(options)` → `Promise<app>` | The standard wiring, in the kit's order. Options: `name`, `key` (store prefix, default the name in lower case), `version`, `what`, `about` (ABOUT extras; `sub` under the wordmark), `stage`, `host` (default the stage's parent), `state`, `present()`, `clock` (`{ play, pause, isPlaying, onChange }`; default modulation's), `keys` (the app's key rows, ahead of the kit's), `menus` (`{ FILE, EDIT, VIEW, WINDOW, …, ABOUT, LANGUAGE, GUI }`, functions or arrays; given ones replace the kit's), `pages` (rows to add; page 0 greets), `subject()`, `thumbnail()`; and per piece `gui`, `transport`, `rack`, `mod`, `notebook`, `folders`, `info`, `greet`, `help`, `menubar`, `describe`: `false` to leave it out, an object of extra constructor options. Returns `{ name, key, first, param(key, label, min, max, more), params, playing(), clock, accent, gui, keys, transport, rack, mod, pages, notebook, folders, info, greeting, help, menubar, describe, floats }`. |
+| `makeParam({ state, key, label, min, max, map, mod, onChange, id, make, …widget })` | One number as a kit control (`make`, default `knob`), a modulation target (`mod.add`; id `app.<key>`) and a saved value. → `{ id, key, label, unit, min, max, map, widget, root, home, get(), value(), set(v), remove() }`; `value()` is the base, never the modulated reading. |
+| `PRESSABLE` | the selector `installPress` is given (`.sw, .seg-b, .trig, .tbtn, .mir-rack-btn`) |
+
+**`mir/mir.css`**: every kit sheet, by `@import`, in the kit's order: `<link rel="stylesheet" href="mir/mir.css">`. Its header says which order still matters under the cascade layers. `tests/mir-css.node.mjs` fails if a sheet under `mir/` is missing from it or imported twice.
 
 ---
 
@@ -131,12 +143,15 @@ A window does no presentation work while it is off, closed, folded, compact, hid
 
 ## `mir/core/i18n.js`: one translation seam ([LANGUAGES.md](LANGUAGES.md))
 
-- `t(en, vars?)` → the current language's string, or `en` itself. `{name}` substitution; a var `{ t: 'English' }` is translated in turn, any other var is data.
-- `setLanguage(tag)` → `Promise<boolean>`: loads the pack (one fetch per source, cached), writes `<html lang dir>`, then calls the subscribers. `false` when no pack exists (every string stays English). The last call wins.
-- `language()`, `direction()`, `languages({ dev })` (each `{ tag, name, dir, reviewed }`; `dev` adds `qps`, `qps-rtl`), `LANGUAGES`.
-- `onLanguage(fn)` → `off`. `missing()` → the English strings the current pack lacked. `addLocales(urlOrFn)`: an app's packs, later sources win.
+- `t(en, vars?, context?)` → the current language's string, or the English. `{name}` substitution: a var `{ t: 'English' }` and an inline `{:LABEL}` are translated in turn, any other var is data. `context` (or the key `context::English`) is one meaning of a word that has two; the context `name` is never translated.
+- `tn(n, one, other, vars?, context?)` → a count: English one/other by English rules; a pack entry `{ zero, one, two, few, many, other }` chosen by `Intl.PluralRules`; a missing form is `other`, a missing entry the English.
+- `phrase(en, context?)` → the catalogue key, translating nothing (marks a string the extractor must see). `english(key)` → the English a key shows.
+- `setLanguage(tag)` → `Promise<boolean>`; `language()`, `direction()`, `languages({ dev })`, `LANGUAGES`, `onLanguage(fn)` → off, `missing()`, `addLocales(urlOrFn)`.
 
-`mir/kit.js` adds: `label(node, en, vars?)` (write a translated label and keep its English on the node), `ariaLabel(node, en, vars?)`, `relabel(root?)` (runs by itself on every language change). `knob()` and `fader()` roots are `dir="ltr"`. A seg's arrow keys follow the eye under `dir="rtl"`. A window's OFF / COPIED caption is written on its `.dev-stat` as `data-cap-off` / `data-cap-copied`.
+`mir/kit.js`: `label(node, en, vars?, context?)`, `ariaLabel(node, en, vars?, context?)`, `hint(node, en | [en, vars], vars?, context?)`, `placeholder(input, en, vars?, context?)`, `relabel(root?)`. A builder's `title` may be `[en, vars]`. `knob()` and `fader()` roots are `dir="ltr"`.
+`mir/glyph.js` `setGlyph(el, name, { label, vars })`.
+A pack: `{ tag, name, dir, reviewed, fonts, type, strings: { English: "…" | { one, few, many, other } }, review?: { key: why } }`.
+`tools/i18n-extract.mjs`: the catalogue's `strings`, `notes`, `names`, `sources`; `// tr:` / `// tr[KEY]:` notes; `--check`.
 
 - `mir/shell/language.js`: `languageMenu({ languages, dev, storageKey })` → a menu entries function (`menus.LANGUAGE`); `startLanguage({ languages, storageKey })` → `Promise<tag>`; `pickLanguage(prefs, languages)`.
 - `mir/locales/pseudo.js`: `pseudo(s)`, `unpseudo(p)`. `mir/locales/locales.css` (layer `mir.kit.locale`): load after base.css.
@@ -199,7 +214,7 @@ A window does no presentation work while it is off, closed, folded, compact, hid
 - `parsePage(md) → { blocks: [{ md }], labels: [{ anchor, kind, line, title, md }] }` — pure. A label is `> [!mir|anchor word?] Title?` followed by `>` lines; `kind` is `'feature' | 'place' | 'control'` (`@…` a place, `ui:…` a control); `line` is `'auto' | 'flat-first' | 'diagonal-first'` (`flat`, `diagonal` in the callout). Other callouts stay prose; `---` on its own line separates blocks; fences, CRLF, a BOM and front matter are handled.
 - `anchorKind(anchor)` → the kind.
 - `showPage(layer, page, { place?, controls?, pane?, hold? }) → { clear(), page, blocks, labels }` — `page` is a pages-model row, a markdown string or a parsed page. One page per layer: showing another runs the old page's exit, then the new one's entrance. `place(text) → { x, y, r } | null` in stage px, asked on every `viewChanged()`.
-- `greet(layer, pages, { hold = 2500, onDismiss?, place?, controls?, pane? }) → { shown, dismiss() }` — page 0 when `pages.shouldGreet()`; leaves on Escape or on the first press on the stage after the hold.
+- `greet(layer, pages, { hold = 2500, first?, onDismiss?, place?, controls?, pane? }) → { shown, dismiss() }` (`first`: page 0 only up to its first `---`; `firstPart(md)` exported) — page 0 when `pages.shouldGreet()`; leaves on Escape or on the first press on the stage after the hold.
 
 ### `info/seats.js`: the seat chooser (pure)
 
@@ -207,7 +222,7 @@ A window does no presentation work while it is off, closed, folded, compact, hid
 
 ### `info/layer.js`: additions
 
-`createInfoLayer({ …, pane = false, controls = null })`; `addLabel({ anchor: 'ui:name', control? })`; `addBlock({ pane? })`; `setPane(on)`; `layer.stage`. A `() => null` anchor hides its labels.
+`createInfoLayer({ …, pane = false, controls = null, keys })` (with the app's key table the layer listens to no key of its own); `layer.hold(on)`; `infoActions(get, { keys = ['I'] })` → the `info-hold` row; `HOLD_KEY` (`'KeyI'`); `addLabel({ anchor: 'ui:name', control? })`; `addBlock({ pane? })`; `setPane(on)`; `layer.stage`. A `() => null` anchor hides its labels.
 
 ---
 
@@ -274,17 +289,29 @@ Storage: `{ items: { [path]: { path, folder, name, saved, opened, title, md } },
 - **The layout.**
   - `rack.capture()` → `{ v, at, hidden, phoneShown, cards: [{ id, side, open, folded, off, float }] }`; `rack.apply(layout)`.
   - `saveLayout(slot?)`, `loadLayout(slot)`, `forgetLayout(slot)`, `layouts()`.
-- **Reading the state.** `built`, `registered`, `isBuilt(id)`, `window(id)`, `order(side)`, `floating()`, `floatOf(id)`, `phone`, `dragging`, `cancelDrag()`, `activity`, `el`, `sync()`, `destroy()`.
+- **Reading the state.** `windows()` → `[{ id, title, side, open, built, floating, folded }]`, `keepClear()` → the rects of the racks showing a window and the transport bar (`[{ left, top, right, bottom }]`), `built`, `registered`, `isBuilt(id)`, `window(id)`, `order(side)`, `floating()`, `floatOf(id)`, `phone`, `dragging`, `cancelDrag()`, `activity`, `el`, `sync()`, `destroy()`.
 - **Pure helpers.** `reorderIndex`, `insertionIndex`, `slotRect`, `moveId`, `clampFloat`, `detached`, `peekSide`, `dodgeSeat`, `queueToggle`, `openOrder`, `favSlot`, `readLayout`, `layoutLabel`, `localStore`, `RACK`, `SIDES`.
 - **`mir/shell/rack.css`** loads after the kit's sheets and core.css, in `mir.kit.house`.
 
-### The GUI window: `mir/shell/gui.js` ([GUI.md](GUI.md))
+### The GUI window: `mir/shell/gui.js` ([GUI.md](GUI.md), [THEMES.md](THEMES.md))
 
-- `createGui({ host, prefs, app: { name }, about: { github, credits, fonts }, accent, defaults, storageKey = 'mir.gui' })` → `{ root, window, prefs, open('options' | 'about'), close(), toggle(page), page, turn(±1), moving(bool), dropGuides(), census(), light, parallax, destroy() }`
-- `lookSchema()`, `LOOK_PRESETS` (`frost` — the default, `classic`, `light`: vanilla themes, named sets of the built-in settings), `SKINS`, `MIR_VERSION`, `MIR_WORDS`
-- `stepper({ label, aria, items: [{ id, label, coming? }], value, onChange, wrap })` → `{ root, prev, next, get(), set(id), setItems(items, id), step(d) }`
-- `census(doc)` → `{ blur, shadow }`
+- `createGui({ host, prefs, app, about, accent, defaults, storageKey })` → `{ root, window, prefs, open(page), close(), toggle(page), page, turn(dir), moving(bool), dropGuides(), census(), applyTheme(id), applyTone(id), themeCost(id?), light, parallax, destroy() }`; `open('options' | 'options:2' | 'about')`.
+- `lookSchema()` → the schema rows (35 options) · `LOOK_PRESETS` → `{ [themeId]: theme options }` · `THEMES`.
+- `glassTint(bright, hue, tint, theme, saturation = 1)` → `'H S% L%'` | null · `census(doc)` → `{ blur, shadow, shine }` · `stepper(o)` · `migrateShadow(key, win)` · `SKINS`, `MIR_VERSION`, `MIR_WORDS`.
 - Sheet: `mir/shell/gui.css`.
+
+### The vanilla themes: `mir/shell/themes.js`
+
+A vanilla theme is a named set of the built-in settings and nothing else; its tones are named sets of only the colour options.
+- `THEMES` → `[{ id, name, values, tones: [{ id, name, values }] }]` (FROST · MORPH · CLASSIC · SWIFT · AURORA · NEON) · `THEME_KEYS` · `COLOUR_KEYS`.
+- `themeById(id)` · `themeValues(id)` → the theme's options + its first tone · `toneValues(themeId, toneId)` · `matchTheme(state)` → id | `'custom'` · `matchTone(state, themeId)` → id | `'custom'`.
+
+### The look's arithmetic: `mir/core/look.js` (pure)
+
+- `glassTint({ bright, hue, tint, saturation }, theme)` → `'H S% L%'` | null (BASINS' `applyGlass`) · `glassVeil({ veil, bright, hue, tint, saturation }, theme, homeVeil = 10)` → `'rgb(r g b / a)'` | null.
+- `autoInk(state, theme)` → `'light' | 'dark' | null` · `solidInk(state, theme)` · `solidRelief(state, theme)` → `{ lift, sink, gain }` · `paneLightness(state, theme)`.
+- `paneShadow({ shadow, lightAngle, shadowDist, shadowSoft }, theme)` → a box-shadow (BASINS' ABOUT shadow) · `lightOffset(angle, d)` → `{ x, y }` · `lightIsHome(state)`.
+- `SPACING`, `spacingPx(level)` → `{ gap, inset, pad, rail }` · `THEME_GLASS` · `LIGHT_HOME` · `hslRgb(h, s, l)`.
 
 ### Pointer effects: `mir/fx/`
 
@@ -300,13 +327,13 @@ Storage: `{ items: { [path]: { path, folder, name, saved, opened, title, md } },
 
 The kit gives the parts and the look; the layout is the app's (BASINS' design, λWAVES' arrangement from the same parts).
 
-- `createTransport({ layout = BASINS_LAYOUT, nodes, clock, mod, model, setBpm, persist, openers, rack, keys, store, key = 'mir.transport', opener = true, onRefused, onInterface, host, root, id = 'transport' })`
+- `createTransport({ layout = BASINS_LAYOUT, bar = 'float' | 'work', nodes, clock, mod, model, setBpm, persist, openers, rack, keys, store, key = 'mir.transport', opener = true, onRefused, onInterface, host, root, id = 'transport' })`
   → `{ root, layout, parts, el: { play, power, door, pill, field, panel, seat, dock, back, menu, openers }, toggle(), play(), pause(), setBpm(v), bpm, edit(), moved(rect | null), setSeat(seat), seat, dock(on), docked, seatMenu(show), sync(), refresh(), start(), destroy() }`
   - `layout`: an array of part names (`play`, `power`, `door`, `tempo`, `panel`, `tap`, `rewind`, `openers`, `seat`, `dock`), `app:<name>` (from `nodes`), DOM nodes and `{ group, items }`.
   - `clock`: the ONE play's clock `{ play(), pause(), isPlaying(), toggle?(), onChange?(fn), seek?(beat) }`; `mod`: `installModulation`'s result (modulation is a power button, never a second play). `model` is `mir/modulation/mod.js` (`BPM_DEFAULT` 30).
   - `openers`: `[{ id, label, glyph?, key?, action?, hint?, open(), close?(), toggle?(), isOpen }]` or a function returning it. Seats BOTTOM / TOP / COMPACT; TOP uses the rack's `setHome(seat)`.
 - Parts (each `→ { root, sync(), destroy() }`, with a `signal`): `playButton({ clock, onRefused })`, `modPower({ mod })`, `modDoor({ mod })`, `tempoPill({ tempo, panel })`, `tempoPanel({ tempo, mod })`, `tapButton({ tempo })`, `barButton({ cls, glyph, svg, text, label, title, run })`, `latch(opener)`, `wayBack({ run })`; `createTempo({ model, setBpm, mod, persist })` → `{ get, set, commit, min, max, onChange }`.
-- `BASINS_LAYOUT`, `LAMBDAWAVES_LAYOUT`, `layoutNames(layout)`, `SVG_REWIND`, `DOCK_ID`.
+- `BASINS_LAYOUT`, `LAMBDAWAVES_LAYOUT`, `layoutNames(layout)`, `SVG_REWIND`, `DOCK_ID`. `bar: 'work'` is the transport inside a work bar (BASINS' timeline-mounted form: 52 px tall, its seats the bar's button face); `BARS`, `BAR_SEATS`.
 - `firstRun(...stores)`, `rackOpeners(rack, { only, glyphs })`, `transportActions(get)` (Space: the one play).
 - Pure: `formatBpm`, `clampBpm`, `digitStep`, `charAt`, `dragBpm`, `keyStep`, `parseBpm`, `seatOf`, `homeOf`, `seatRect`, `menuSide`, `localSeatStore`, `menuRow`, `openerRows`, `isOpenOf`, `toggleOf`; `TRANSPORT`, `SEATS`.
 - Sheet: `mir/shell/transport.css` (after `rack.css`), `@layer mir.kit.house`; tokens `--xport-*` on `.mir-transport`.
@@ -320,12 +347,12 @@ help view and the KEYBOARD window ([KEYS.md](KEYS.md)). Load `mir/keyboard/keybo
 
 | Export | What it is |
 |---|---|
-| `createKeys({ actions, storage, platform, target })` | The table. An action is `{ id, label, group, keys, run(event, action), when?, hint?, inFields?, repeat?, short? }`; `storage` is `{ get(), set(obj) }`; `platform` is `'mac'` or `'other'` (detected). Returns `{ run, bind, unbind, reset, resetAll, check, holders, conflicts, record, answer, stopRecording, recording, menuKey, menuItem, hint, hints, helpRows, describe, list, get, chords, saved, restore, onChange, platform, destroy }` |
+| `createKeys({ actions, storage, platform, target })` | The table. An action is `{ id, label, group, keys, run(event, action), when?, hint?, inFields?, overControls?, repeat?, short?, up? }` (`overControls`: runs even when a focused control owns the key, never in a text field unless `inFields`; `up(event, action)`: a held key, run on press and `up` on release or blur); `storage` is `{ get(), set(obj) }`; `platform` is `'mac'` or `'other'` (detected). Returns `{ run, bind, unbind, reset, resetAll, check, holders, conflicts, record, answer, stopRecording, recording, menuKey, menuItem, hint, hints, helpRows, describe, list, get, chords, saved, restore, onChange, platform, destroy }` |
 | `localKeyStorage(name)` | A `{ get, set }` over localStorage that survives a private window |
 | `parseChord(s, platform)`, `normalize(s, platform)` | Any accepted spelling → `{ mods, code }` / `'Mod+Shift+KeyS'`, or `null` |
 | `chordFromEvent(e, platform)` | The chord a keydown is (`null` for a modifier alone) |
 | `displayChord(chord, platform)`, `keyText(code, platform)`, `modText(mod, platform)`, `ariaChord(chord, platform)` | `⇧⌘S` / `Ctrl+Shift+S`; a cap's legend; a modifier's chip; the `aria-keyshortcuts` spelling |
-| `pickAction(entries, chord, { field, repeat })` | The action a chord runs: table order, the first whose `when()` holds |
+| `pickAction(entries, chord, { field, repeat, owned })` | The action a chord runs: table order, the first whose `when()` holds; `owned` (a focused control owns the key) picks only an `overControls` action |
 | `isField(node)`, `ownsKey(node, chord)` | A place the user types; a key a focused control works by |
 | `bindError(chord)`, `steal(map, id, chord, { add })` | The binding law (Escape and Tab are kept); the pure steal |
 | `diffSaved(defaults, current)`, `repairSaved(raw, ids, platform)` | What is saved (only the difference); a save read back, bad entries dropped, never thrown |
@@ -354,8 +381,8 @@ Load `mir/shell/parts.css` after the kit's sheets.
 ### `mir/shell/notice.js`
 | Export | |
 |---|---|
-| `notice(text, { kind = 'info' \| 'ok' \| 'warn' \| 'error', ms, action: { label, run }, max = 4 })` → `{ close(), root }` | 5 s (9 s for an error); `ms: 0` stays; hover or focus holds it |
-| `guarded(fn)` → fn's result | a throw or a rejection becomes an error notice |
+| `notice(text, { kind = 'info' \| 'ok' \| 'warn' \| 'error', ms, action: { label, run }, seat = 'toast' \| 'corner', stack, offset, max = 4 })` → `{ close(), root }` | **toast** (default, BASINS'): one centred seat, `offset` from the bottom (default 84 px), replaced by the next notice, no ×, 3 s. **corner** (`seat: 'corner'` or `stack: true`, NEBULA's): a stack of up to `max`, each with a ×, 5 s (9 s for an error). `ms: 0` stays; hover or focus holds either |
+| `guarded(fn)` → fn's result | a throw or a rejection becomes an error notice (the toast) |
 
 ### `mir/shell/busy.js`
 | Export | |
@@ -409,6 +436,8 @@ Load `mir/shell/parts.css` after the kit's sheets.
   exportProject('mir' | 'png'), importEnvelope(env), ingest(input), say(text, warn), state(), destroy() }`
 - `localPrefs(storage, key)` → `{ read, write }` · `toThumb(src, { max, type, quality })` → `Promise<data URL>` · `FOLDERS_COPY`
 
+`createFolders({ rack })`: the first seat keeps clear of the racks and the transport bar · `freeSeat({ vw, vh, w, h, minH, clear, top, margin })` → `{ x, y, h? }` (pure; 1.5.0-alpha.5).
+
 **`folders/project.js`** (pure)
 - `createProjectAdapter({ capture, restore, signature, thumbnail, empty, subscribe, facts })` — any hook left out is core/project.js's
 - `openWithRollback(adapter, data, ctx)` · `emptyProject(adapter)` → `Promise<{ ok, why?, failed, rolledBack?, rollbackFailed? }>`
@@ -441,6 +470,10 @@ Load `mir/shell/parts.css` after the kit's sheets.
   write(patch) }` (default `localStore(storageKey || 'mir.modulation')`); `audio`: the app's `createAudioCapture`.
 - `localStore(key)` → `{ read(), write(patch) }` (guarded localStorage, one JSON record).
 - `rootsOf(params)` → the registry roots the ids imply.
+
+### `bind.js`: targets after the install, and a first route in one call (1.5.0-alpha.5)
+
+`installModulation(…)`'s result adds `add(param)` → `remove()` · `remove(id)` → boolean (the target and every route onto it go; the number stays on its base) · `route(source, id, depth = 0.5)` → `{ route, macro, source, remove() }` or `null` (a source id, a source or a kind; `depth` of the range up from the base, negative down) · `params()` → the targets (a copy). A route onto a target not added yet waits, dormant. Option `mount: null`: the seam without its window. Default `roots`: the params' roots and `app`. Power is on by default; play stays the app's.
 
 ### `bind.js`: one clock and modulation's power (1.5.0-alpha.4)
 
@@ -560,9 +593,16 @@ The window loads two sheets, `mir/modulation/modhost.css` and then `mir/modulati
 
 ---
 
+## `mir/window/` and `mir/history/`: additions (1.5.0-alpha.5)
+
+- `window/rail.js` `createRail(…)` → adds `setDock('top' | 'bottom' | null)`: docked at the top or bottom, the rail's chips sit tighter (its disc plus `--rail-gap` along the rail). `createWindow` calls it from its layout, so every kit window's docked rail tightens.
+- `history/history-list.js`: `historyList(history, host, { tools = true, count = true })` → `{ root, paint, state(), onChange(fn) → off, destroy }`; `tools: false` / `count: false` leave UNDO / REDO and the count to the host; `state()` is `{ canUndo, canRedo, length, count }`. `historyState(history)` is the same state, pure.
+
+---
+
 ## `mir/core/describe.js`: what a visiting model can read (1.5.0-alpha.4, [LLM-MODS.md](LLM-MODS.md))
 
-- `createDescribe({ app, rack?, params?, pages?, keys?, prefs?, mod?, doc?, mount?, max? })` → `{ describe(), dump(), refresh(), observe(event), events(), errors(), destroy() }`
+- `createDescribe({ app, rack?, params?, pages?, keys?, prefs?, mod?, transport?, doc?, mount?, max? })` (`params` may be a function; with `transport`, `describe()` carries the clock: playing, the tempo, modulation's power) → `{ describe(), dump(), refresh(), observe(event), events(), errors(), destroy() }`
   - `app` `{ name, version?, what? }`; `rack` a `createRack()`; `params` the rows `installModulation` takes (`{ id, label, unit?, min, max, get() }`); `pages` a `createPages()`; `keys` a `createKeys()`; `prefs` a `createPrefs()` store (the GUI window's `gui.prefs`); `mod` the `installModulation()` handle (which parameters a route drives, and their base).
   - `doc` the document (default: the page's; `null` runs without a DOM); `mount` keeps the hidden `#mir-describe` element (default true); `max` the events and errors kept (default 20 each).
   - `describe()` → markdown: the app, its windows (open, built, rack side, floating, folded), its parameters (range, live value, base when modulated), its key actions, and only the pages with `shared: true`.

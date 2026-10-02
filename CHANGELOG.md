@@ -1,5 +1,70 @@
 # MIR — changelog
 
+## 1.5.0-alpha.5 — 2026-10-01 · the vanilla themes, one light, SPACING, createApp, plurals and context, BASINS' toast and transport sizes
+
+Not released: built on branch `worktree-mir-1.5`.
+
+**Behaviour and breaking changes (read these first):**
+- **English keys changed.** 70 of the 559 English keys the alpha.4 drafts were written against changed (a context, a `{:LABEL}`, an index var, a whole sentence, curly quotes). **An app's own language packs keyed on kit strings must be re-keyed** to the new English (`mir/locales/en.json`); the kit's ten packs were carried over by script.
+- **The notice is BASINS' toast by default**: one centred pill 84 px above the bottom, at most 560 px wide; a new message replaces the one showing; no ×; 3 s. An app that relied on NEBULA's corner stack passes `seat: 'corner'` (or `stack: true`).
+- **SPACING's default is tighter**: rack gap and inset 6 px, pane padding 8 px (1.4 was 10 / 10 / 7); docked chip rails 4 px.
+- **INFORMATIONAL's hold-still is the I key; Space is the app's one play** (BASINS and λWAVES both play on Space).
+- **The GUI window's `shadow` is an amount (0–2), not a switch**: the switch is `dropShadow`; a stored alpha.4 `shadow: true/false` is migrated (true → the matched theme's amount, FROST 200 %, else 100 %; false → 0).
+- **`LOOK_PRESETS` → the themes**: it holds every vanilla theme (no colour options; a theme's colours are its tones'); `LOOK_PRESETS.light` is gone (SWIFT replaces it). `census()` returns `{ blur, shadow, shine }`.
+- **The controls' relief at the default light is straight down**, not down-right (every raised control and well shifts by about a pixel); the text emboss is off under REFRACTIVE or FROST; TEXT AUTO under glass is white ink in dark and black in light, so FROST reads in both modes; NEON sets the dark mode; a cast's height scales its distance and softness, not its darkness; the BLUR range is 0–24.
+- **FOLDERS' default first seat** with no `firstSeat` and no rack is the centre of the stage, not the top right.
+
+### The vanilla themes and the settings that reach them
+- **A vanilla theme is a named set of the built-in settings and nothing else** (`mir/shell/themes.js`, `docs/THEMES.md`): **FROST** (Josh's recipe, the default), **MORPH** (neumorphism), **CLASSIC** (the 1.4 spirit), **SWIFT** (the fast one), **AURORA** (the flashy one) and **NEON**. Each has tones, named sets of only the colour options. Anything that needs rules or art outside the settings is a 'name'-spec (METRO, SPRITES). The GUI window's PRESET and SKIN groups are one THEME group: SKIN `‹ theme ›`, TONE `‹ tone ›`, the theme's measured cost, THEME light · dark · system, RESET LOOK. Wall: `gallery/themes.html`.
+- **Harvested from BASINS, exactly:** CONTROL FACES glass · solid and BLEND, TEXT white · black · auto, SHADOW 0–200 % plus the DROP SHADOW switch, and BRIGHT · HUE · TINT · VEIL · SATURATION as BASINS' `applyGlass` computes them. FROST now matches BASINS at Josh's recipe on every compared element except where INTENT rules otherwise.
+- **EDGE**: a window pane's rim (`--pane-edge`). CORNERS now reaches the kit window, menus and popovers. Under REFRACTIVE with FROST the hover hint and the ⓘ panel are glass.
+- **The GUI window** has three pages (MIR OPTIONS 1 · 2 · MIR ABOUT) and five phone sheets; every new option has its proof (`tests/gui.browser.mjs`).
+- `mir/core/look.js`: the look's arithmetic, pure (`glassTint`, `glassVeil`, `autoInk`, `paneShadow`, `spacingPx` …).
+- **The modulation window:** its focus ring is an outline (`--state-focus` is one; reading it as a box-shadow lost the ring whenever a skin set it); the work bar's power seat is 44 × 44, as BASINS draws it.
+- **Apps can delete** (BASINS): Settings › LOOK's implementation in `skin.js` (setFaces, setFaceBlend, setText, setMaterial, setMaterialPreset, applyGlass, setBlur, the pane part of setUIDropShadow), `surface-material.js` + `.css`, the glass-face, popover, glass-knob and window-edge rules of `material.css`, the TEXT seats of `ink.css` §1, the 44 px power rule in `transport-controls.css`.
+
+### SOLID, the light angle and the shine
+- **CARD STYLE · SOLID**: the opaque pane in the tint's colour (HUE picks it, TINT is its saturation, BRIGHT its lightness), with faces in the pane's colour and the relief mixed from it.
+- **One light**: LIGHT ANGLE (an arc), SHADOW DISTANCE and SOFTNESS, SHINE and SHINE SOFT. The pane shadow falls away from the light, the shine (additive, on rack cards) sits toward it, and the controls' relief turns with it (`--neu-raise` / `--neu-inset` read `--light-sin` / `--light-cos`). FROST's light is from above; MORPH's upper-left.
+
+### SPACING
+- Josh: "the dock margins are too large … an option for 0". BASINS' three levels 0 · TIGHT · DEFAULT, and AIRY (this kit's): `--rack-gap` / `--rack-inset` / `--pane-pad` / `--rail-gap` = 0/0/6/0 · 3/3/6/2 · **6/6/8/4 (the default)** · 16/16/9/6. 0 is flush (square, one hairline, no shadow inside the slab).
+- The GUI window writes `--rail-gap` on `<html>`; the rail sheets read `var(--rail-gap, var(--rail-gap-derived))`, so the written value wins and a page with no GUI window derives it from `--rack-gap`.
+
+### `createApp`, `param` and the one stylesheet
+- **`mir/app.js`: `createApp(options)`** does the standard wiring an app wrote by hand, in the kit's order, and returns every piece: the rack and its float layer, the look, the language, the key table, modulation, the one clock and the transport bar (the main opener), the parameters, the pages, the notebook, FOLDERS, INFORMATIONAL and its greeting, the help view, the menus, the hints and the pressed look, describe. Each piece is still the kit's own constructor (`false` leaves one out).
+- **`makeParam` / `app.param(key, label, min, max)`**: one number becomes a kit control, a modulation target and a saved value; `value()` is the base, never the modulated reading.
+- **Modulation takes targets after the install**: `mod.add(param)`, `mod.remove(id)`, `mod.params()`; **`mod.route(source, id, depth)`** is a first route in one call.
+- **`mir/mir.css`**: one stylesheet that `@import`s every kit sheet in the kit's order (`tests/mir-css.node.mjs` fails if one is missing or doubled).
+- `greet(…, { first: true })` shows page 0 up to its first `---`; keys can be held (`up`); `rack.windows()` and `rack.keepClear()`; FOLDERS' first seat keeps clear of the racks and the bar; `describe()` carries the clock.
+- **The starter** is rewritten on these: one stylesheet link, `app.js` 69 lines (was 161); the transport bar is the opener, Space and ▶ are the one play.
+- **Apps can delete:** the per-sheet `<link>`s; a full-screen windows layer and its pointer rules; the hand law in every `onInput`; the seven-call first route; an up-front `params` list; a hand-placed FOLDERS seat; the start-up checklist.
+
+### Languages: plurals, context, whole sentences
+- **Plurals:** `tn(n, one, other, vars?, context?)`; a pack entry may hold `{ zero, one, two, few, many, other }`, chosen by `Intl.PluralRules`.
+- **Context:** one English word with two meanings is two keys (`t(en, vars, context)` or `context::English`); `name::X` is a name, never translated. Split: LIGHT, DARK, FROST, WINDOW, FULL, HOLD.
+- **Labels inside sentences:** `{:LABEL}` is that label, translated in turn (57 sentences). `phrase()` marks a string for the catalogue; `english()` gives a key's English. `kit.js` `hint()` and `placeholder()`; a native tooltip is translated too.
+- **The catalogue** writes notes (`// tr:`), names and each count's forms: 917 keys. The fragments the drafts could not translate are whole sentences.
+- **The packs** were carried onto the new keys by script (no translation written); `tests/i18n-packs.node.mjs` checks plural forms and reports covered / missing / review per pack.
+
+### The transport's sizes and work-bar form
+- **BASINS' new sizes** (Josh, BASINS ui-fixes 8–11): the tempo 18 px (was 12), BPM / Hz 8 px (was 7), the pill sized to its number; play's glyph 32 px (was 20) in a 40 × 40 seat with no face and no ring; to-start is one of the round seats. COMPACT: play 22 px, the tempo 14 px.
+- **`createTransport({ bar: 'work' })`**: the transport inside a work bar (BASINS' timeline-mounted form): 52 px tall, its seats the bar's button face at 34 × 34. `BARS`, `BAR_SEATS`.
+- Fixed: two bars on one page shared one paint job.
+
+### The notice
+- `notice()` is BASINS' toast by default (above); NEBULA's corner stack is `seat: 'corner'`; `offset` lifts the toast clear of a transport bar. 14 `--toast-*` tokens. FOLDERS and the boot card speak through it.
+- **Apps can delete:** BASINS' `toast()` and `#toast`.
+
+### Keys and the history list
+- **Keys can play over a control**: an action marked `overControls` runs even when a focused control owns its key, and the control gets neither the press nor its release (never in a text field unless `inFields`). BASINS' own Space handler can go.
+- **The history list takes a host's tools**: `historyList(h, host, { tools: false, count: false })` leaves UNDO / REDO and the count to the host; `state()`, `onChange(fn)`, `historyState(h)`.
+
+### The modulation window docked
+- Docked, the right work bar ends at the last device (or the run's right edge when it overflows), as floating (BASINS: "so it doesn't hang").
+- **A chip rail docked at the top or bottom sits tighter** (BASINS: "Reduce the padding on all the chips when docked"): each chip is its 48 px disc + `--rail-gap` along the rail, 8 px disc to disc where it was 21; the 62 px target across the rail is unchanged. `rail.setDock(dock)`; `createWindow` calls it, so every kit window's docked rail tightens.
+- A status message is no longer overwritten by the idle hint on a language change.
+
 ## 1.5.0-alpha.4 — 2026-10-01 · the look in tokens, the starter and the skill, ten draft languages, FROST by default, the transport bar, one play
 
 Not released: built on branch `worktree-mir-1.5`.

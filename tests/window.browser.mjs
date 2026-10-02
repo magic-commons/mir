@@ -190,18 +190,23 @@ try {
       const pick = (el, pseudo, list) => { const cs = getComputedStyle(el, pseudo); return Object.fromEntries(list.map((k) => [k, cs.getPropertyValue(k)])); };
       const D = ${JSON.stringify(PROPS)}, C = ['width', 'height', 'color', 'font-size', 'font-weight'];
       const pane = getComputedStyle(A.root);
-      return { ours: { ...pick(ours, '::before', D), chip: pick(ours, null, C), gap: getComputedStyle(A.rail.el).rowGap }, mod: { ...pick(mod, '::before', D), chip: pick(mod, null, C), gap: getComputedStyle(T.modRail).rowGap },
+      return { ours: { ...pick(ours, '::before', D), chip: pick(ours, null, C), gap: getComputedStyle(A.rail.el).rowGap, dock: A.rail.el.dataset.dock || null }, mod: { ...pick(mod, '::before', D), chip: pick(mod, null, C), gap: getComputedStyle(T.modRail).rowGap },
         pane: { bg: pane.backgroundColor, filter: pane.backdropFilter } };`);
     const seat = `${theme}/${card}${frost ? '/frost' : ''}`;
     if (s.ours['background-color'] !== s.pane.bg || s.ours['backdrop-filter'] !== s.pane.filter) { follows = false; notes.push(`disc ≠ pane in ${seat}: ${s.ours['background-color']} ${s.ours['backdrop-filter']} vs ${s.pane.bg} ${s.pane.filter}`); }
     for (const k of PROPS) if (s.ours[k] !== s.mod[k]) { (mismatch[k] ||= []).push(`${seat}: ours ${s.ours[k]} · modulation ${s.mod[k]}`); if (GEOM.includes(k)) geomOk = false; }
-    for (const k of ['width', 'height', 'font-size', 'font-weight']) if (s.ours.chip[k] !== s.mod.chip[k]) { geomOk = false; (mismatch['chip ' + k] ||= []).push(`${seat}: ${s.ours.chip[k]} vs ${s.mod.chip[k]}`); }
+    /* A is docked at the bottom here, so its rail sits tighter (1.5.0-alpha.5, BASINS: each chip is its disc + --rail-gap along
+       the rail, the chips --rail-gap apart); the modulation rail in this fixture floats.  Along a docked rail: disc + gap. */
+    const along = s.ours.dock === 'top' || s.ours.dock === 'bottom' ? 'width' : s.ours.dock ? 'height' : null;
+    const tight = along && parseFloat(s.ours.chip[along]) === parseFloat(s.ours.width) + parseFloat(s.ours.gap) && parseFloat(s.ours.gap) < parseFloat(s.mod.gap);
+    if (along && !tight) { geomOk = false; (mismatch['chip ' + along] ||= []).push(`${seat}: docked ${s.ours.chip[along]} ≠ disc ${s.ours.width} + gap ${s.ours.gap}`); }
+    for (const k of ['width', 'height', 'font-size', 'font-weight']) if (k !== along && s.ours.chip[k] !== s.mod.chip[k]) { geomOk = false; (mismatch['chip ' + k] ||= []).push(`${seat}: ${s.ours.chip[k]} vs ${s.mod.chip[k]}`); }
     if (s.ours.chip.color !== s.mod.chip.color) (mismatch['chip color'] ||= []).push(`${seat}: ours ${s.ours.chip.color} · modulation ${s.mod.chip.color}`);
-    if (s.ours.gap !== s.mod.gap) { geomOk = false; (mismatch.gap ||= []).push(`${seat}: ${s.ours.gap} vs ${s.mod.gap}`); }
+    if (!along && s.ours.gap !== s.mod.gap) { geomOk = false; (mismatch.gap ||= []).push(`${seat}: ${s.ours.gap} vs ${s.mod.gap}`); }
   }
   await run(`document.body.dataset.theme = 'dark'; document.body.dataset.card = 'tinted'; document.body.classList.remove('frost'); return 0;`);
   check('chip material: in all 8 seats the disc wears its own pane\'s fill and filter (lab.css §56)', follows, notes.join(' | '));
-  check('chip geometry matches the modulation rail in all 8 seats: target, disc, border, radius, gap, type', geomOk, JSON.stringify(Object.fromEntries(Object.entries(mismatch).filter(([k]) => GEOM.includes(k) || k.startsWith('chip ') && k !== 'chip color' || k === 'gap'))));
+  check('chip geometry matches the modulation rail in all 8 seats: target, disc, border, radius, gap, type (docked: disc + --rail-gap along the rail)', geomOk, JSON.stringify(Object.fromEntries(Object.entries(mismatch).filter(([k]) => GEOM.includes(k) || k.startsWith('chip ') && k !== 'chip color' || k === 'gap'))));
   for (const [k, v] of Object.entries(mismatch)) if (!GEOM.includes(k)) console.log(`INFO  differs from the modulation rail · ${k}: ${[...new Set(v.map((x) => x.replace(/^[^:]+: /, '')))].join('  /  ')}  (in ${v.length} of 8 seats)`);
 
   /* ── the idle law ──────────────────────────────────────────────────────────────────────────────────────── */

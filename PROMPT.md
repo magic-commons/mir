@@ -1,6 +1,7 @@
 > **Superseded for starting a new app (1.5.0-alpha.4).** A new app now starts from `starter/` and `LLM.md`, or the
 > `mir-builder` skill that carries both (`docs/LLM-MODS.md`). This page is the 1.4 prompt, kept until Josh decides
-> whether to delete it; its adopt sentence still describes adopting the kit into an existing app.
+> whether to delete it; its adopt sentence still describes adopting the kit into an existing app. A look is a vanilla theme
+> (FROST · MORPH · CLASSIC · SWIFT · AURORA · NEON, with tones) or a 'name'-spec (rules or art outside the settings).
 
 # Starting an app on MIR — the prompt
 

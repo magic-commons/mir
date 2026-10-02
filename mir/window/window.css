@@ -34,7 +34,7 @@
      --rack-gap (gui.js writes it on <html>): two thirds of it, at most 4 px — 4 at the default (6), 2 at tight (3), 0 flush. */
   --rail-gap-max: 4px;
   --rail-gap-share: .667;
-  --rail-gap: min(var(--rail-gap-max), calc(var(--rack-gap, 6px) * var(--rail-gap-share)));
+  --rail-gap-derived: min(var(--rail-gap-max), calc(var(--rack-gap, 6px) * var(--rail-gap-share)));   /* the fallback: SPACING writes --rail-gap on <html> (the look engine), and that wins */
 }
 body[data-theme="light"] .mir-rail { --chip-rim: hsl(214 30% 40% / .34); }
 body:is([data-card="tinted"], [data-card="solid"]) .mir-rail { --chip-fill: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
@@ -70,11 +70,11 @@ body.frost.frost-hold[data-card="refractive"] .mir-rail { --chip-filter: none; -
 }
 .mir-rail:is([data-side="top"], [data-side="bottom"]) { flex-direction: row; }
 /* docked at the top or bottom: tighter ALONG the rail; across it the 62 px target stays (the dock lane is measured from it) */
-.mir-rail:is([data-dock="top"], [data-dock="bottom"]) { gap: var(--rail-gap); }
+.mir-rail:is([data-dock="top"], [data-dock="bottom"]) { gap: var(--rail-gap, var(--rail-gap-derived)); }
 .mir-rail:is([data-dock="top"], [data-dock="bottom"]):not([data-side="top"], [data-side="bottom"]) > .mir-chip {
-  flex-basis: calc(var(--chrome-chip-disc) + var(--rail-gap)); height: calc(var(--chrome-chip-disc) + var(--rail-gap)); }
+  flex-basis: calc(var(--chrome-chip-disc) + var(--rail-gap, var(--rail-gap-derived))); height: calc(var(--chrome-chip-disc) + var(--rail-gap, var(--rail-gap-derived))); }
 .mir-rail:is([data-dock="top"], [data-dock="bottom"]):is([data-side="top"], [data-side="bottom"]) > .mir-chip {
-  flex-basis: calc(var(--chrome-chip-disc) + var(--rail-gap)); width: calc(var(--chrome-chip-disc) + var(--rail-gap)); }
+  flex-basis: calc(var(--chrome-chip-disc) + var(--rail-gap, var(--rail-gap-derived))); width: calc(var(--chrome-chip-disc) + var(--rail-gap, var(--rail-gap-derived))); }
 
 /* ── THE CHIP: a 62 px target around a 48 px disc ─────────────────────────────────────────────────────────── */
 .mir-chip {

@@ -28,6 +28,9 @@
   ".MD": ".MD",
   ".mir or picture": ".mir or picture",
   "0% solid · 100% glass. The transition uses color burn in dark mode and color dodge in light mode.": "0% solid · 100% glass. The transition uses color burn in dark mode and color dodge in light mode.",
+  "16 px between rack windows and from the edge": "16 px between rack windows and from the edge",
+  "3 px between rack windows and from the edge": "3 px between rack windows and from the edge",
+  "6 px between rack windows and from the edge": "6 px between rack windows and from the edge",
   "60 Hz": "60 Hz",
   "A": "A",
   "A file the app needs did not load.": "A file the app needs did not load.",
@@ -40,6 +43,7 @@
   "ADD LFO": "ADD LFO",
   "ADD MACRO": "ADD MACRO",
   "ADD ROUTE": "ADD ROUTE",
+  "AIRY": "AIRY",
   "ALWAYS": "ALWAYS",
   "AMOUNT": "AMOUNT",
   "ANCHOR": "ANCHOR",
@@ -425,6 +429,7 @@
   "ROOT": "ROOT",
   "RUN": "RUN",
   "Rack presets, in folders: {factory} ships with the app, the rest are yours": "Rack presets, in folders: {factory} ships with the app, the rest are yours",
+  "Rack windows flush to each other and to the screen’s edge": "Rack windows flush to each other and to the screen’s edge",
   "Raise {name}": "Raise {name}",
   "Raised controls and wells, lit by {:LIGHT ANGLE}": "Raised controls and wells, lit by {:LIGHT ANGLE}",
   "Recording cancelled": "Recording cancelled",
@@ -540,6 +545,7 @@
   "THEME": "THEME",
   "THIS CONTROL IS HELD BY {n} MACROS  ·  which one the outer arc edits": "THIS CONTROL IS HELD BY {n} MACROS  ·  which one the outer arc edits",
   "TIER": "TIER",
+  "TIGHT": "TIGHT",
   "TIME": "TIME",
   "TINT": "TINT",
   "TINTED": "TINTED",
@@ -566,7 +572,6 @@
   "The library is full: {count} saved, {need} needed of {cap}.  This save was NOT stored.  Delete projects yourself, or make room — the oldest go first.": "The library is full: {count} saved, {need} needed of {cap}.  This save was NOT stored.  Delete projects yourself, or make room — the oldest go first.",
   "The mean frame time over 30 frames after the last change": "The mean frame time over 30 frames after the last change",
   "The pane’s hairline rim": "The pane’s hairline rim",
-  "The rack’s air: between its windows, from the screen’s edge and inside each window. 0% is flush.": "The rack’s air: between its windows, from the screen’s edge and inside each window. 0% is flush.",
   "The shadow’s blur": "The shadow’s blur",
   "The shine’s blur": "The shine’s blur",
   "The view moved since the picture was made — capture it again.": "The view moved since the picture was made — capture it again.",
@@ -1106,6 +1111,15 @@
   "0% solid · 100% glass. The transition uses color burn in dark mode and color dodge in light mode.": [
    "mir/shell/gui.js"
   ],
+  "16 px between rack windows and from the edge": [
+   "mir/shell/gui.js"
+  ],
+  "3 px between rack windows and from the edge": [
+   "mir/shell/gui.js"
+  ],
+  "6 px between rack windows and from the edge": [
+   "mir/shell/gui.js"
+  ],
   "60 Hz": [
    "mir/shell/transport.js"
   ],
@@ -1141,6 +1155,9 @@
   ],
   "ADD ROUTE": [
    "mir/modulation/window.js"
+  ],
+  "AIRY": [
+   "mir/shell/gui.js"
   ],
   "ALWAYS": [
    "mir/shell/gui.js"
@@ -2320,6 +2337,9 @@
   "Rack presets, in folders: {factory} ships with the app, the rest are yours": [
    "mir/modulation/modwindow/modwindow.js"
   ],
+  "Rack windows flush to each other and to the screen’s edge": [
+   "mir/shell/gui.js"
+  ],
   "Raise {name}": [
    "mir/modulation/modwindow/modwindow.js"
   ],
@@ -2671,6 +2691,9 @@
   "TIER": [
    "mir/shell/gui.js"
   ],
+  "TIGHT": [
+   "mir/shell/gui.js"
+  ],
   "TIME": [
    "mir/modulation/modwindow/modwindow.js"
   ],
@@ -2749,9 +2772,6 @@
    "mir/shell/gui.js"
   ],
   "The pane’s hairline rim": [
-   "mir/shell/gui.js"
-  ],
-  "The rack’s air: between its windows, from the screen’s edge and inside each window. 0% is flush.": [
    "mir/shell/gui.js"
   ],
   "The shadow’s blur": [

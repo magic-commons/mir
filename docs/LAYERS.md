@@ -183,6 +183,10 @@ Every state also has 1 new element, `#m2-dead-send-warning.m2predead.off`, which
 
 **What an adopting app must expect, in one line:** every rule of the app that a kit rule used to out-specify now wins. On the modulation window that means every app rule that lost to modhost's `#modwin` ladder. Delete the ones that were dead, and keep the ones that were meant.
 
+### 6.1 The host seat an app may write into: `@layer mir.kit.plugin.host`
+
+An app that **replaces the modulation window's ink ladder** (BASINS' `ink.css` §3b: 35 generated rungs) may wrap those rules in `@layer mir.kit.plugin.host { … }`. That is blessed: in that layer they beat modhost.css's theme arms (same layer, later in the order) and lose to modhost's `#modwin` rules on specificity, exactly as they did in 1.4.3. Use it only for rules that stand in for the plugin's own; everything else an app writes stays unlayered, and an app's own layers are never named `mir.*` (see `docs/ADOPTING-1.5.md` §4).
+
 ## 7. The tools
 
 - **`tools/stylehash.mjs`** walks every grouping rule, so tokens inside `@layer` are seen (it already recursed into `cssRules`, and this is now stated). New: `--media name=value,…` emulates media features for a whole capture (reduced motion, reduced transparency, contrast). That is how the `mir.a11y` layer and modhost's accessibility arms are proved.

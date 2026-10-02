@@ -71,6 +71,8 @@ Every block is headed `/* FROST · values */` and closed by `/* ── end of th
 | `mir/notes/notes.css` | `@media (pointer: coarse) → .nb-shelfface` | `--nt-h` |
 | `mir/shell/gui.css` | `.mir-gui` | `--gui-col` `--gui-col-narrow` `--gui-about-w` `--gui-about-w-narrow` `--gui-gap` `--gui-grp-r` `--gui-grp-pad` `--gui-logo-h` `--gui-step-b` |
 | `mir/shell/parts.css` | `.mir-busy` | `--busy-turn` `--busy-breathe` `--busy-ease` `--busy-low` `--busy-ring` |
+| `mir/shell/parts.css` | `.mir-toast` | `--toast-fill` `--toast-ink` `--toast-edge` `--toast-shadow` `--toast-radius` `--toast-size` `--toast-weight` `--toast-lh` `--toast-tracking` |
+| `mir/shell/parts.css` | `body[data-theme="light"] .mir-toast` | `--toast-fill` `--toast-ink` |
 | `mir/info/info.css` | `.mir-info` | `--info-ink` `--info-paper` `--info-paper-soft` `--info-halo` `--info-line-w` `--info-halo-w` `--info-lh` `--info-size-body` `--info-size-label` `--info-size-title` `--info-size-h1` `--info-size-h2` `--info-measure` `--info-measure-narrow` `--info-pane-pad` `--info-block-measure` `--info-dim` `--info-travel` `--info-pin-time` `--info-weight-display` `--info-weight-heading` `--info-weight-strong` |
 | `mir/info/info.css` | `[data-theme="light"] .mir-info` | `--info-ink` `--info-paper` `--info-paper-soft` |
 | `mir/fx/fx.css` | `:where([data-light])` | `--light-r` `--light-ink` `--light-strength` `--light-blend` |

@@ -156,7 +156,9 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
       if (!deferred) { deferred = true; settled(root).then(() => { deferred = false; layout(); }); }
       return box;
     }
-    const L = windowLayout(P, env());
+    rail.setDock(P.dock && dock ? P.dock : null);                  // the docked rail sits tighter (window.css --rail-gap)
+    let L = windowLayout(P, env());
+    if ((L.docked || null) !== (P.dock && dock ? P.dock : null)) { rail.setDock(L.docked); L = windowLayout(P, env()); }
     box = L.box;
     setAttr(root, 'data-dock', L.docked);
     if (animate) {

@@ -42,7 +42,42 @@ attribute for `w|k`, so the two collided. The kit's chips now use `data-glyph`; 
 `mir-plugins/kwin/kwin.js` (lines 252, 294, 299). Those become `dataset.glyph`. `adaptive-ink.js` and `ink.css` use
 `data-ink` for `w|k` and stay as they are.
 
-## 3. (other lanes' entries go here)
+## 3. An app's resting rule now beats the kit's pressed and focus states
+
+An unlayered app rule beats every kit layer, whatever the state. So the kit's `:active` and `:focus-visible` rules inside an adopted or plugin window lose to **any** app rule on the same property, even a resting one: a pressed button can lose its press wash, and a focused one shows the app's own outline instead of the kit's accent ring. In BASINS this hits `#savewin`, `#timelinewin`, `#patternwin` and `#modwin` (`skin.css` `.m2-workspace-switch`). The fix is the app's: scope the resting rule with `:not(:active):not(:focus-visible)`, or drop it.
+
+## 4. Layers, CSSOM copies and the names the kit now reads
+
+- **A script that clones the kit's rules from the CSSOM** (BASINS' `adoptMaterial()` in `mir-plugins/kwin/kwin.js`) must descend into `@layer mir…` blocks and re-issue each rule inside a layer of the same name; descending only into `@media` / `@supports` copies nothing now.
+- **An app's own layers must not be named `mir.*`**: they would sit inside the kit's `mir` layer and beat the whole kit. Rename them `app.*` and put one order statement, `@layer app, mir;`, before `base.css`.
+- **The modulation window's ink ladder** may be replaced inside `@layer mir.kit.plugin.host` (`docs/LAYERS.md` §6.1).
+- **`--surface-shadow` on `<body>` is read by the kit's panes** (and `--surface-*` generally, `docs/TIERS.md`). An app that already wrote that name now reaches the kit; it must never write `none` there (a switched-off shadow is `0 0 0 0 transparent`).
+
+## 5. A floating window's whole rect is UI space
+
+An app's picture gestures (wheel zoom, drag to pan, a click that places something) must treat a floating window's **whole rect** as UI space: its gaps between parts and its round corners included, not only the elements under the pointer. Test the rect, not `event.target`: `rack.keepClear()` gives the rects of the racks and the transport bar, and each kit window's `rect()` its own. Inside the rack's float layer (`rack.el.floats`, where `createApp` mounts the kit's windows) the layer is `pointer-events: none` and each window `auto`, so a window takes the pointer; a press in a window's gap must still not reach the picture.
+
+## 6. Behaviour that changed under an app in 1.5.0-alpha.5
+
+- **The notice is BASINS' toast by default**: one centred pill above the bottom, a new message replaces the old. An app that relied on NEBULA's corner stack passes `seat: 'corner'`.
+- **INFORMATIONAL's hold-still is the I key; Space is the app's one play.**
+- **The GUI window's `shadow` is an amount (0–2)**, not a switch (the switch is `dropShadow`); a stored alpha.4 value is migrated. `LOOK_PRESETS` holds the themes; `LOOK_PRESETS.light` is gone (SWIFT).
+- **SPACING's default is tighter** (rack gap and inset 6 px, pane padding 8; 1.4 was 10 / 10 / 7).
+- **English keys changed** (contexts, `{:LABEL}`, whole sentences): an app's own language pack keyed on kit strings must move to the new keys (`mir/locales/en.json`).
+
+## 7. What BASINS can delete now
+
+Gathered from the lanes that harvested BASINS' parts into the kit (each is a kit part with BASINS' design; delete BASINS' copy when the adoption reaches it):
+
+- **Settings › LOOK** (VANILLA): in `skin.js`, `setFaces`, `setFaceBlend`, `setText`, `setMaterial`, `setMaterialPreset`, `applyGlass`, `setBlur` and the pane part of `setUIDropShadow`, with their prefs keys; `surface-material.js` + `.css`; the glass-face, popover, glass-knob and window-edge rules of `material.css`; the TEXT seats of `ink.css` §1 (body and forced; `adaptive-ink.js` stays); its own rack gaps (SPACING).
+- **The toast** (shell parts): `toast()` and `#toast` (`notice()` is BASINS' toast).
+- **Keys** (keys lane): its own Space handler for playing over a focused control (`overControls` in the key table); the history list's own UNDO / REDO and count wiring (`historyList(…, { tools: false, count: false })`, `state()`, `onChange()`).
+- **The transport** (transport lane): the `transport.js` bar (all but the macro rail), `transport-controls.js` / `.css` (including its 44 px power rule `#modwin.mir-modwindow .modxport.mir-mod-power`: the kit draws the seat), `transport-dodge.js`, the stage and rack seats of `transport-placement.js`, the `#transport` rules in `skin.css` / `lab.css`. The kit now has BASINS' ui-fix sizes (tempo 18 px, play 32 px) and the work-bar form (`bar: 'work'`).
+- **The docked chip rail and the modulation window docked** (modulation lane): any app rule that tightened docked chips or clipped the docked work bar (`rail.setDock`, `--rail-gap`).
+- **The start-up** (EASE): the per-sheet `<link>`s (one `mir/mir.css`); a full-screen windows layer and its `pointer-events` rules (mount kit windows in `rack.el.floats`); the hand law in each control's `onInput` and the `isModulated ? baseOf : get` in a save (`makeParam`); the seven-call first route (`mod.route`); a hand-placed FOLDERS seat (`createFolders({ rack })`).
+
+Waiting: **the timeline's keys** cannot move into the key table until `timeline-editor.js`'s surface-gated handlers are handed over (one action per row, a `when()` reading the surface focus, the help sheet from `keys.helpRows()`).
+
 
 ## Check
 

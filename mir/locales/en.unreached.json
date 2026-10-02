@@ -103,13 +103,13 @@
  },
  {
   "file": "mir/modulation/window.js",
-  "line": 1041,
+  "line": 1046,
   "why": "fragment",
   "text": "px,"
  },
  {
   "file": "mir/modulation/window.js",
-  "line": 1863,
+  "line": 1868,
   "why": "fragment",
   "text": " failed to build"
  },

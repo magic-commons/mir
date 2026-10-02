@@ -123,7 +123,7 @@ The full table is `docs/INTENT.md`.
 
 - **A key:** a row in `createApp({ keys: [...] })`: `{ id: 'rotate', label: 'ROTATE', group: 'GAME', keys: ['ArrowUp', 'X'], run: rotate }`. Menus show it with `app.keys.menuItem('rotate')`. Space is already the one play; I holds the words on the picture still.
 - **A menu row:** `createApp({ menus: { EDIT: () => [['UNDO', undo]] } })`; FILE, WINDOW, ABOUT, LANGUAGE and GUI are the kit's unless you pass your own.
-- **A setting:** an engine option goes in a window built with `settingsRows(body, rows)`. A look option (theme, accent, glass) is the GUI window's, never yours. Preferences never go in a project.
+- **A setting:** an engine option goes in a window built with `settingsRows(body, rows)`. A look option is the GUI window's, never yours: a **vanilla theme** (FROST · MORPH · CLASSIC · SWIFT · AURORA · NEON, each with tones) is a named set of the built-in settings; anything needing rules or art outside them is a **'name'-spec**, a separate MIR build. Preferences never go in a project.
 - **A saved thing:** every `app.param()` is saved already. Anything else: `registerProjectPart('board', { capture: () => board.slice(), restore: (v) => load(v || EMPTY) })`. `restore(null)` is NEW.
 
 ## 7. A skin
