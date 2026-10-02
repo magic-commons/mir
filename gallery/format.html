@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>MIR · format</title>
+<!-- THE FORMAT, PLAYABLE: one portable file for everything a person carries between MIR apps (docs/FORMAT.md).
+     Drop or paste a .mir/.json file, a packed 'mir1.' text, a .md page, or a PNG that carries one: the page says its
+     kind and the checker's verdict, and a skin's values go on this page (with UNDO).  SAVE SPEC PICTURE writes a small
+     PNG with a spec inside it; drop it straight back.  Every look is the kit's; the page's rules only lay it out. -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<style>
+  html, body { height: auto; min-height: 100%; overflow: auto; margin: 0; background: #070a0f; }
+  body[data-theme="light"] { background: #eef1f6; }
+  .g-page { max-width: 820px; margin: 0 auto; padding: 32px 16px 80px; display: flex; flex-direction: column; gap: 18px; }
+  .g-note { font-size: var(--fs-small); color: var(--ink-faint); line-height: 1.5; max-width: 70ch; }
+  .g-drop { min-height: 150px; display: grid; place-items: center; text-align: center; padding: 18px; border-radius: var(--r-md);
+    box-shadow: var(--relief-well, var(--neu-inset)); color: var(--dim); font-size: var(--fs-base); cursor: pointer; }
+  .g-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .g-verdict { font-size: var(--fs-base); color: var(--fg-soft); line-height: 1.55; min-height: 3em; }
+  .g-verdict b { color: var(--fg); letter-spacing: var(--tr-wide); }
+  .g-verdict .g-ok { color: var(--ok); } .g-verdict .g-bad { color: var(--bad); } .g-verdict .g-warn { color: var(--warn); }
+  .g-verdict code { font-family: var(--font-mono); font-size: var(--fs-small); }
+  .g-verdict ul { margin: 6px 0 0; padding-left: 18px; }
+  .g-swatch { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+  .g-swatch > div { height: 48px; border-radius: var(--r-sm); display: grid; place-items: center; font-size: var(--fs-tiny); color: var(--acc-ink); }
+  @media (pointer: coarse) { .g-row .trig { min-height: 32px; } }
+</style>
+</head>
+<body class="disconnected" data-card="tinted" data-theme="dark">
+<div class="g-page" id="page"></div>
+<script type="module">
+import { el, device, trig, seg } from '../mir/kit.js';
+import { installPress } from '../mir/core/pointer.js';
+import { wrap, stringify, pack, skinValues } from '../mir/core/envelope.js';
+import { embed } from '../mir/core/png.js';
+import { createIntake } from '../mir/core/intake.js';
+
+const tokens = await (await fetch('../mir/tokens.json')).json();
+const page = document.getElementById('page');
+installPress({ selector: 'button' });
+const card = (id, eyebrow, status) => { const d = device({ id, eyebrow, status, loadingMark: false }); page.appendChild(d.root); return d; };
+
+/* ── 1 · THE WAY IN ── */
+const inn = card('format-in', 'FORMAT · THE WAY IN', 'envelope.js · intake.js · png.js');
+el('div', 'g-note', inn.body, 'Drop a file or a picture here, paste one anywhere on the page, or open one. A .mir or .json envelope, a packed "mir1." text, a .md page, or a PNG that carries an envelope. Nothing is applied unless the checker passes it; a picture carries data, never code.');
+const drop = el('div', 'g-drop', inn.body, 'DROP A FILE OR A PICTURE · OR PASTE');
+drop.id = 'drop'; drop.tabIndex = 0;
+const row = el('div', 'g-row', inn.body);
+const verdict = el('div', 'g-verdict', inn.body);
+verdict.id = 'verdict';
+
+/* ── the applied skin: inline custom properties on <body>, and the way back ── */
+let applied = null;                                   // { values, prev: { name: old inline value } }
+const theme = () => document.body.dataset.theme || 'dark';
+function applySkin(data) {
+  undoSkin();
+  const values = skinValues(data, theme()), prev = {};
+  for (const [k, v] of Object.entries(values)) { prev[k] = document.body.style.getPropertyValue(k); document.body.style.setProperty(k, v); }
+  applied = { data, values, prev };
+  undo.root.disabled = false;
+}
+function undoSkin() {
+  if (!applied) return;
+  for (const [k, v] of Object.entries(applied.prev)) { if (v) document.body.style.setProperty(k, v); else document.body.style.removeProperty(k); }
+  applied = null; undo.root.disabled = true;
+}
+
+function show(r) {
+  verdict.textContent = '';
+  const head = el('div', '', verdict);
+  if (r.ok) {
+    el('b', '', head, r.envelope.kind.toUpperCase());
+    el('span', 'g-ok', head, '  passes the checker');
+    if (r.envelope.name) el('span', '', head, ` · "${r.envelope.name}"`);
+    el('span', '', head, ` · from ${r.source}`);
+  } else { el('b', '', head, 'REFUSED'); el('span', 'g-bad', head, `  from ${r.source}; nothing was applied`); }
+  const list = el('ul', '', verdict);
+  for (const e of r.errors) { const li = el('li', 'g-bad', list); el('code', '', li, e.path || '(file)'); li.append(' ' + e.why); }
+  for (const w of r.warnings) { const li = el('li', 'g-warn', list); el('code', '', li, w.path || '(file)'); li.append(' ' + w.why); }
+  if (r.ok && r.envelope.kind === 'page') { const li = el('li', '', list); li.textContent = `a page: "${r.envelope.data.title}", ${r.envelope.data.md.length} characters of markdown`; }
+}
+
+const intake = createIntake({
+  target: drop, accept: ['skin', 'spec', 'settings', 'page', 'project'], check: { tokens },
+  onEnvelope(env, r) {
+    window.__F.last = r; show(r);
+    const skin = env.kind === 'skin' ? env.data : env.kind === 'spec' ? env.data.skin : null;
+    if (skin) applySkin(skin);
+  },
+  onReject(r) { window.__F.last = r; show(r); }
+});
+drop.addEventListener('click', () => intake.pick());
+drop.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); intake.pick(); } });
+
+const SAMPLE = wrap('skin', { tokens: { '--hue-acc': '28', '--hue-acc2': '160', '--glass-hue': '24', '--glass-blur': '14px', '--r-md': '3px', '--card-r': '4px' } }, { name: 'ember' });
+const HOSTILE = { mir: 1, kind: 'skin', kit: '1.5.0-alpha.3', made: '2026-10-01', name: 'hostile', data: { tokens: { '--hue-acc': '0', '--acc': 'red</style><script>alert(1)<' + '/script>', '--glass-sheen': 'url(https://example.com/x.png)', '--fg': 'var(--not-a-token)' } } };
+row.append(trig({ label: 'OPEN FILE', onFire: () => intake.pick() }).root);
+row.append(trig({ label: 'TRY A SKIN', onFire: () => intake.ingest(stringify(SAMPLE), { source: 'sample' }) }).root);
+row.append(trig({ label: 'TRY A HOSTILE SKIN', onFire: () => intake.ingest(JSON.stringify(HOSTILE), { source: 'sample' }) }).root);
+const undo = trig({ label: 'UNDO SKIN', onFire: () => { undoSkin(); verdict.textContent = 'The skin is off.'; } });
+undo.root.disabled = true; row.append(undo.root);
+row.append(seg({ value: 'dark', options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], onChange: (v) => { document.body.dataset.theme = v; if (applied) applySkin(applied.data); } }).root);
+
+/* ── 2 · A PICTURE THAT CARRIES A SPEC ── */
+const out = card('format-out', 'FORMAT · THE PICTURE', 'a PNG with a spec inside');
+el('div', 'g-note', out.body, 'SAVE SPEC PICTURE draws a small picture and writes a spec into it (the skin on this page now, a key, a language). Drop the file back on the well above and the spec comes back. A screenshot of it, or the picture sent through a chat app, loses the data: those re-encode the picture.');
+const sw = el('div', 'g-swatch', out.body);
+for (const v of ['--acc', '--acc2', '--fg', '--glass-border-color']) { const d = el('div', '', sw, v); d.style.background = `var(${v})`; }
+const orow = el('div', 'g-row', out.body);
+const packed = el('div', 'g-note', out.body);
+function currentSpec() {
+  return wrap('spec', { skin: applied ? applied.data : SAMPLE.data, keys: { 'window.close': 'Ctrl+W' }, language: 'en' }, { name: 'gallery-spec' });
+}
+async function specPicture(spec = currentSpec()) {
+  const c = document.createElement('canvas'); c.width = 240; c.height = 120;
+  const g = c.getContext('2d'), cs = getComputedStyle(document.body);
+  const grad = g.createLinearGradient(0, 0, 240, 120);
+  grad.addColorStop(0, cs.getPropertyValue('--acc').trim() || '#3cf'); grad.addColorStop(1, cs.getPropertyValue('--acc2').trim() || '#c6f');
+  g.fillStyle = grad; g.fillRect(0, 0, 240, 120);
+  g.fillStyle = 'rgba(0,0,0,.55)'; g.font = '600 16px sans-serif'; g.fillText('MIR · SPEC', 16, 66);
+  const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
+  return embed(new Uint8Array(await blob.arrayBuffer()), spec);
+}
+orow.append(trig({ label: 'SAVE SPEC PICTURE', onFire: async () => {
+  const bytes = await specPicture(); if (!bytes) return;
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([bytes], { type: 'image/png' })); a.download = 'mir-spec.png'; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+} }).root);
+orow.append(trig({ label: 'COPY PACKED TEXT', onFire: async () => {
+  const t = await pack(currentSpec()); packed.textContent = `${t.length} characters: ${t}`;
+  try { await navigator.clipboard.writeText(t); } catch (_) {}
+} }).root);
+
+window.__F = { intake, specPicture, currentSpec, last: null, applied: () => applied, ready: true };
+</script>
+</body>
+</html>
