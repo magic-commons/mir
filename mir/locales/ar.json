@@ -1013,7 +1013,21 @@
   "{what} {i} name — type your own": "اسم {what} {i} — اكتب اسمك الخاص",
   "{why} — what was open before is back": "{why} — عاد ما كان مفتوحًا من قبل",
   "{why}, and putting back what was open before failed too ({back})": "{why}، وفشلت أيضًا إعادة ما كان مفتوحًا من قبل ({back})",
-  "© 2026 Joshua Hosain · Magic Commons. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": "© 2026 Joshua Hosain · Magic Commons. بُني بواسطة وكلاء برمجة بالذكاء الاصطناعي — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI)."
+  "© 2026 Joshua Hosain · Magic Commons. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": "© 2026 Joshua Hosain · Magic Commons. بُني بواسطة وكلاء برمجة بالذكاء الاصطناعي — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).",
+  "Capture image": "التقاط صورة",
+  "Download image — capture first": "تنزيل الصورة — التقط أولًا",
+  "Download image — {name}, {size}": "تنزيل الصورة — {name}، {size}",
+  "Download {name} · {w} × {h}": "تنزيل {name} · {w} × {h}",
+  "Each label’s ink from the picture under it (this app’s sampler)": "حبر كل تسمية من الصورة تحتها (أداة أخذ العينات في هذا التطبيق)",
+  "GALLERY": "المعرض",
+  "Gallery — browse saved projects": "المعرض — تصفح المشاريع المحفوظة",
+  "LINK": "LINK",
+  "Making image": "جارٍ إنشاء الصورة",
+  "RELIEF ANGLE": "زاوية التجسيم",
+  "RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})": "زاوية التجسيم — مكان ضوء عناصر التحكم: بروزها وتجاويفها تدور معه (الألواح تتبع {:ANGLE})",
+  "The controls take the panes’ light: one {:ANGLE} for everything": "عناصر التحكم تأخذ ضوء الألواح: {:ANGLE} واحدة للجميع",
+  "The {panel} panel could not be built: {why}": "تعذّر بناء لوحة {panel}: {why}",
+  "text ink::SAMPLED": "مأخوذ بالعينة"
  },
  "review": {}
 }

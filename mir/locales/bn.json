@@ -973,7 +973,21 @@
   "{why} — what was open before is back": "{why} — আগে যা খোলা ছিল তা ফিরে এসেছে",
   "{why}, and putting back what was open before failed too ({back})": "{why}, এবং আগে যা খোলা ছিল তা ফিরিয়ে আনাও ব্যর্থ হয়েছে ({back})",
   "© 2026 Joshua Hosain · Magic Commons. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": "© 2026 Joshua Hosain · Magic Commons. AI কোডিং এজেন্টদের তৈরি — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI)।",
-  "type a name first — the field beside {:SAVE}": "আগে একটি নাম লিখুন — {:SAVE}-এর পাশের ঘর"
+  "type a name first — the field beside {:SAVE}": "আগে একটি নাম লিখুন — {:SAVE}-এর পাশের ঘর",
+  "Capture image": "ছবি ক্যাপচার করুন",
+  "Download image — capture first": "ছবি ডাউনলোড করুন — আগে ক্যাপচার করুন",
+  "Download image — {name}, {size}": "ছবি ডাউনলোড করুন — {name}, {size}",
+  "Download {name} · {w} × {h}": "{name} ডাউনলোড করুন · {w} × {h}",
+  "Each label’s ink from the picture under it (this app’s sampler)": "প্রতিটি লেবেলের কালি তার নিচের ছবি থেকে (এই অ্যাপের স্যাম্পলার)",
+  "GALLERY": "গ্যালারি",
+  "Gallery — browse saved projects": "গ্যালারি — সংরক্ষিত প্রজেক্ট ঘুরে দেখুন",
+  "LINK": "LINK",
+  "Making image": "ছবি তৈরি হচ্ছে",
+  "RELIEF ANGLE": "উঁচু-নিচু কোণ",
+  "RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})": "উঁচু-নিচু কোণ — কন্ট্রোলের আলো কোথায়: তাদের উঁচু ভাব ও খাঁজ তার সঙ্গে ঘোরে (প্যানগুলো {:ANGLE} অনুসরণ করে)",
+  "The controls take the panes’ light: one {:ANGLE} for everything": "কন্ট্রোলগুলো প্যানের আলো নেয়: সবকিছুর জন্য একটি {:ANGLE}",
+  "The {panel} panel could not be built: {why}": "{panel} প্যানেল তৈরি করা যায়নি: {why}",
+  "text ink::SAMPLED": "স্যাম্পল করা"
  },
  "review": {}
 }
