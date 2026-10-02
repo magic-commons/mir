@@ -100,6 +100,107 @@
  */
 @layer mir.kit.plugin.host {
 
+/* FROST · values ─ every look value of this sheet, as a token (MIR 1.5.0-alpha.4; docs/SKINS-MODULATION.md).  A skin is a set
+   of values for these names; the rules below this block read tokens only.  @default is declared on the plugin's own roots, so
+   a value with a var() in it resolves there, against the window's accent (docs/TIERS.md); @dark and @light are the theme arms
+   (gated with :where(), so they weigh what the roots weigh); @outside holds the var()-free values the plugin paints on the
+   HOST's controls (the rings, spans and range bars live outside its roots), and @own the few such values that read a var(),
+   declared on the very elements that paint them. */
+/* @default */ .mir-modwindow, .kwin-chiprail, .m2ghost {
+  --m2-face-w18: hsl(0 0% 100% / 0.18);
+  --m2-head-wash: linear-gradient(180deg, hsl(0 0% 100% / 0.06), transparent);
+  --m2-face-tint-97: hsl(var(--glass-tint) / 0.97);
+  --m2-dialink-b-wash: repeating-conic-gradient(var(--glass-groove) 0deg 1.6deg, transparent 1.6deg 30deg), radial-gradient(circle at 35% 30%, hsl(0 0% 100% / .07), transparent 62%), hsl(var(--glass-tint) / 1);
+  --m2-face-w06: hsl(0 0% 100% / 0.06);
+  --m2-fill-tint-100: hsl(var(--glass-tint) / 1);
+  --m2-face-w10: hsl(0 0% 100% / .10);
+  --m2-matrix-face: #171b22;
+  --m2-face-tint-100: hsl(var(--glass-tint) / 1);
+  --m2-face-tint-94: hsl(var(--glass-tint) / .94);
+  --m2-aud-range-low-face: color-mix(in srgb,var(--acc) 19%,transparent);
+  --m2-aud-range-high-face: color-mix(in srgb,var(--acc) 30%,transparent);
+  --m2-aud-range-zone-face: color-mix(in srgb,var(--acc2) 18%,transparent);
+  --m2-face-tint-96: hsl(var(--glass-tint) / .96);
+  --m2-face-tint-18: hsl(var(--glass-tint) / .18);
+}
+/* @dark */ :where(body[data-theme="dark"]) .mir-modwindow, :where(body[data-theme="dark"]) .kwin-chiprail, :where(body[data-theme="dark"]) .m2ghost {
+  --m2-ink-a94: hsl(0 0% 88% / 0.94);
+  --m2-ink-a92: hsl(0 0% 88% / 0.92);
+  --m2-ink-a90: hsl(0 0% 88% / 0.9);
+  --m2-ink-a88: hsl(0 0% 88% / 0.88);
+  --m2-ink-a85: hsl(0 0% 88% / 0.85);
+  --m2-ink-a82: hsl(0 0% 88% / 0.82);
+  --m2-ink-a78: hsl(0 0% 88% / 0.78);
+  --m2-ink-a72: hsl(0 0% 88% / 0.72);
+  --m2-ink-a70: hsl(0 0% 88% / 0.7);
+  --m2-ink-a68: hsl(0 0% 88% / 0.68);
+  --m2-ink-a66: hsl(0 0% 88% / 0.66);
+  --m2-ink-a62: hsl(0 0% 88% / 0.62);
+  --m2-ink-a60: hsl(0 0% 88% / 0.6);
+  --m2-ink-a58: hsl(0 0% 88% / 0.58);
+  --m2-ink-a56: hsl(0 0% 88% / 0.56);
+  --m2-ink-a55: hsl(0 0% 88% / 0.55);
+  --m2-ink-a54: hsl(0 0% 88% / 0.54);
+  --m2-ink-a52: hsl(0 0% 88% / 0.52);
+  --m2-ink-a50: hsl(0 0% 88% / 0.5);
+  --m2-ink-a48: hsl(0 0% 88% / 0.48);
+  --m2-ink-a46: hsl(0 0% 88% / 0.46);
+  --m2-ink-a44: hsl(0 0% 88% / 0.44);
+  --m2-ink-a42: hsl(0 0% 88% / 0.42);
+  --m2-ink-a40: hsl(0 0% 88% / 0.4);
+  --m2-ink-a38: hsl(0 0% 88% / 0.38);
+  --m2-ink-a34: hsl(0 0% 88% / 0.34);
+  --m2-ink-a32: hsl(0 0% 88% / 0.32);
+  --m2-ink-a30: hsl(0 0% 88% / 0.3);
+  --m2-ink-a28: hsl(0 0% 88% / 0.28);
+  --m2-wash-a44: hsl(0 0% 88% / 0.44);
+  --m2-wash-a42: hsl(0 0% 88% / 0.42);
+  --m2-wash-a30: hsl(0 0% 88% / 0.3);
+  --m2-wash-a25: hsl(0 0% 88% / 0.25);
+  --m2-wash-a24: hsl(0 0% 88% / 0.24);
+  --m2-wash-a20: hsl(0 0% 88% / 0.2);
+  --m2-face-k10: hsl(0 0% 0% / .10);
+}
+/* @light */ :where(body[data-theme="light"]) .mir-modwindow, :where(body[data-theme="light"]) .kwin-chiprail, :where(body[data-theme="light"]) .m2ghost {
+  --m2-ink-a94: hsl(214 20% 18% / 0.94);
+  --m2-ink-a92: hsl(214 20% 18% / 0.92);
+  --m2-ink-a90: hsl(214 20% 18% / 0.9);
+  --m2-ink-a88: hsl(214 20% 18% / 0.88);
+  --m2-ink-a85: hsl(214 20% 18% / 0.85);
+  --m2-ink-a82: hsl(214 20% 18% / 0.82);
+  --m2-ink-a78: hsl(214 20% 18% / 0.78);
+  --m2-ink-a72: hsl(214 20% 18% / 0.72);
+  --m2-ink-a70: hsl(214 20% 18% / 0.7);
+  --m2-ink-a68: hsl(214 20% 18% / 0.68);
+  --m2-ink-a66: hsl(214 20% 18% / 0.66);
+  --m2-ink-a62: hsl(214 20% 18% / 0.62);
+  --m2-ink-a60: hsl(214 20% 18% / 0.6);
+  --m2-ink-a58: hsl(214 20% 18% / 0.58);
+  --m2-ink-a56: hsl(214 20% 18% / 0.56);
+  --m2-ink-a55: hsl(214 20% 18% / 0.55);
+  --m2-ink-a54: hsl(214 20% 18% / 0.54);
+  --m2-ink-a52: hsl(214 20% 18% / 0.52);
+  --m2-ink-a50: hsl(214 20% 18% / 0.5);
+  --m2-ink-a48: hsl(214 20% 18% / 0.48);
+  --m2-ink-a46: hsl(214 20% 18% / 0.46);
+  --m2-ink-a44: hsl(214 20% 18% / 0.44);
+  --m2-ink-a42: hsl(214 20% 18% / 0.42);
+  --m2-ink-a40: hsl(214 20% 18% / 0.4);
+  --m2-ink-a38: hsl(214 20% 18% / 0.38);
+  --m2-ink-a34: hsl(214 20% 18% / 0.34);
+  --m2-ink-a32: hsl(214 20% 18% / 0.32);
+  --m2-ink-a30: hsl(214 20% 18% / 0.3);
+  --m2-ink-a28: hsl(214 20% 18% / 0.28);
+  --m2-wash-a44: hsl(214 20% 18% / 0.44);
+  --m2-wash-a42: hsl(214 20% 18% / 0.42);
+  --m2-wash-a30: hsl(214 20% 18% / 0.3);
+  --m2-wash-a25: hsl(214 20% 18% / 0.25);
+  --m2-wash-a24: hsl(214 20% 18% / 0.24);
+  --m2-wash-a20: hsl(214 20% 18% / 0.2);
+  --m2-macadd-face: hsl(214 30% 40% / 0.09);
+}
+/* FROST · end */
+
 /* ══ 1.5.0 · RE-ASSERTED: house rules that reached into the plugin in 1.4 ══ */
 /* ⟲ skin.css · `body.frost .dev, body.frost .glass` (0,2,1) out-specified the artifact's glass recipe (0,2,0) on
    the plugin's own .glass surfaces; with the artifact a layer above the house it would not.  Narrowed to the plugin by
@@ -344,7 +445,7 @@ body[data-theme="light"] .m2ghost {
        `.m2envprogress`, `.m2envminprog`, `.m2audiolife .m2statuslamp`, `.m2audminleds i` — are
        readouts, not chrome.  Restyling a meter is restyling the data.  Left exactly as they are. */
 #modwin.mir-modwindow .m2deadrow                        { background: var(--m2-mat-chassis); }              /*  1 */
-#modwin.mir-modwindow .m2slots::-webkit-scrollbar-thumb { background: hsl(0 0% 100% / 0.18); }              /*  2 */
+#modwin.mir-modwindow .m2slots::-webkit-scrollbar-thumb { background: var(--m2-face-w18); }              /*  2 */
 /* RETIRED wave 105 — 3: entry 53 re-declares this exact selector list with `transparent`, later. */
 #modwin.mir-modwindow .m2val:active                     { background: var(--state-press, var(--m2-st-press)); }                 /*  4 */
 /* RETIRED wave 105 — 5: `m2empty` is added by no JS in the tree — it exists only in the artifact's sheet. */
@@ -397,7 +498,7 @@ body[data-theme="light"] .m2ghost {
 /* THE THREE INSIDE THE OFFICIATION BLOCK.  Already correct in KIND — a wash, a wash, a shade — and
    they only need their alphas moved in step with --m2-mat-inner and the state ramp. */
 #modwin.mir-modwindow .m2dev .m2head {
-  background-image: var(--surface-sheen, linear-gradient(180deg, hsl(0 0% 100% / 0.06), transparent));
+  background-image: var(--surface-sheen, var(--m2-head-wash));
   box-shadow: inset 0 -1px 0 hsl(0 0% 100% / 0.09); }
 /* RETIRED wave 105 — the officiation .m2hero wash: the plot box is ONE element carrying `m2edit m2hero`
    (modwindow.js:824) and entry 72 sets `background-image: none` on `.m2edit, .m2hero`, later. */
@@ -499,7 +600,7 @@ body[data-theme="light"] .m2ghost {
 #modwin.mir-modwindow .m2pick,
 #modwin.mir-modwindow .m2ppick.glass,
 #modwin.mir-modwindow .m2deadpick.glass {
-  background-color: var(--surface-fill, hsl(var(--glass-tint) / 0.97));
+  background-color: var(--surface-fill, var(--m2-face-tint-97));
   background-image: none;
   border: var(--surface-edge-width, var(--glass-border)) solid var(--surface-edge, var(--glass-border-color));
   box-shadow: var(--surface-shadow, var(--glass-shadow));
@@ -535,26 +636,26 @@ body[data-theme="light"] .mir-modwindow .m2audsx { color: var(--m2-ink); }
 body[data-theme="light"] .mir-modwindow .m2prename,
 body[data-theme="light"] .mir-modwindow .m2prename::placeholder,
 body[data-theme="light"] .mir-modwindow .m2vname,
-body[data-theme="light"] .mir-modwindow .m2name { color: hsl(214 20% 18% / 0.94); }
-body[data-theme="light"] .mir-modwindow .m2mac { color: hsl(214 20% 18% / 0.92); }
-body[data-theme="light"] .mir-modwindow .m2num { color: hsl(214 20% 18% / 0.9); }
-body[data-theme="light"] .mir-modwindow .m2vnum { color: hsl(214 20% 18% / 0.88); }
+body[data-theme="light"] .mir-modwindow .m2name { color: var(--m2-ink-a94); }
+body[data-theme="light"] .mir-modwindow .m2mac { color: var(--m2-ink-a92); }
+body[data-theme="light"] .mir-modwindow .m2num { color: var(--m2-ink-a90); }
+body[data-theme="light"] .mir-modwindow .m2vnum { color: var(--m2-ink-a88); }
 body[data-theme="light"] .mir-modwindow .m2trig,
-body[data-theme="light"] .mir-modwindow .m2grab:active i { color: hsl(214 20% 18% / 0.85); }
-body[data-theme="light"] .mir-modwindow .m2zoom { color: hsl(214 20% 18% / 0.82); }
+body[data-theme="light"] .mir-modwindow .m2grab:active i { color: var(--m2-ink-a85); }
+body[data-theme="light"] .mir-modwindow .m2zoom { color: var(--m2-ink-a82); }
 body[data-theme="light"] .mir-modwindow .m2sw .m2flipb,
-body[data-theme="light"] .mir-modwindow .m2audsbtn { color: hsl(214 20% 18% / 0.78); }
+body[data-theme="light"] .mir-modwindow .m2audsbtn { color: var(--m2-ink-a78); }
 body[data-theme="light"] .mir-modwindow .m2prenav,
 body[data-theme="light"] .mir-modwindow .m2presave,
 body[data-theme="light"] .mir-modwindow .m2predel,
 body[data-theme="light"] .mir-modwindow .m2predead,
 body[data-theme="light"] #modwin.mir-modwindow .m2dev .m2dial .m2kcap,
-body[data-theme="light"] .mir-modwindow .m2audsrc { color: hsl(214 20% 18% / 0.72); }
-body[data-theme="light"] .mir-modwindow .m2pow { color: hsl(214 20% 18% / 0.7); }
+body[data-theme="light"] .mir-modwindow .m2audsrc { color: var(--m2-ink-a72); }
+body[data-theme="light"] .mir-modwindow .m2pow { color: var(--m2-ink-a70); }
 body[data-theme="light"] .mir-modwindow .m2route.m2one,
-body[data-theme="light"] .mir-modwindow .m2dev.audio.m2min .m2minname { color: hsl(214 20% 18% / 0.68); }
+body[data-theme="light"] .mir-modwindow .m2dev.audio.m2min .m2minname { color: var(--m2-ink-a68); }
 body[data-theme="light"] .m2clr,
-body[data-theme="light"] .mir-modwindow .m2audshead { color: hsl(214 20% 18% / 0.66); }
+body[data-theme="light"] .mir-modwindow .m2audshead { color: var(--m2-ink-a66); }
 body[data-theme="light"] .mir-modwindow .m2macdel,
 body[data-theme="light"] .mir-modwindow .m2mclr,
 body[data-theme="light"] .mir-modwindow .m2dev.m2min .m2minname,
@@ -563,46 +664,46 @@ body[data-theme="light"] .mir-modwindow .m2chk,
 body[data-theme="light"] .mir-modwindow .m2prowdel,
 body[data-theme="light"] .mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcmd,
 body[data-theme="light"] .modwin.mir-modwindow .m2hold,
-body[data-theme="light"] .mir-modwindow .m2audslab { color: hsl(214 20% 18% / 0.62); }
+body[data-theme="light"] .mir-modwindow .m2audslab { color: var(--m2-ink-a62); }
 body[data-theme="light"] .mir-modwindow .m2ab,
-body[data-theme="light"] .mir-modwindow .m2kcap { color: hsl(214 20% 18% / 0.6); }
+body[data-theme="light"] .mir-modwindow .m2kcap { color: var(--m2-ink-a60); }
 body[data-theme="light"] .mir-modwindow .m2lfostatus,
 body[data-theme="light"] .mir-modwindow .m2envstatus,
-body[data-theme="light"] .mir-modwindow .m2audname { color: hsl(214 20% 18% / 0.58); }
-body[data-theme="light"] .mir-modwindow .m2audout { color: hsl(214 20% 18% / 0.56); }
+body[data-theme="light"] .mir-modwindow .m2audname { color: var(--m2-ink-a58); }
+body[data-theme="light"] .mir-modwindow .m2audout { color: var(--m2-ink-a56); }
 body[data-theme="light"] .mir-modwindow .m2chev,
 body[data-theme="light"] .mir-modwindow .m2move,
-body[data-theme="light"] .mir-modwindow .m2x { color: hsl(214 20% 18% / 0.55); }
-body[data-theme="light"] .mir-modwindow .m2audgrip { color: hsl(214 20% 18% / 0.54); }
-body[data-theme="light"] .mir-modwindow .m2audiostatus { color: hsl(214 20% 18% / 0.52); }
+body[data-theme="light"] .mir-modwindow .m2x { color: var(--m2-ink-a55); }
+body[data-theme="light"] .mir-modwindow .m2audgrip { color: var(--m2-ink-a54); }
+body[data-theme="light"] .mir-modwindow .m2audiostatus { color: var(--m2-ink-a52); }
 body[data-theme="light"] .mir-modwindow .m2note,
-body[data-theme="light"] .mir-modwindow .m2hint { color: hsl(214 20% 18% / 0.5); }
+body[data-theme="light"] .mir-modwindow .m2hint { color: var(--m2-ink-a50); }
 body[data-theme="light"] .mir-modwindow .m2colhead,
-body[data-theme="light"] .mir-modwindow .m2dev.env .m2envstage { color: hsl(214 20% 18% / 0.48); }
+body[data-theme="light"] .mir-modwindow .m2dev.env .m2envstage { color: var(--m2-ink-a48); }
 body[data-theme="light"] .mir-modwindow .m2dev.m2min .m2minstatus,
 body[data-theme="light"] .mir-modwindow .m2audioheadstate,
 body[data-theme="light"] .mir-modwindow .m2dev.audio .m2note,
-body[data-theme="light"] .mir-modwindow .m2audsleg { color: hsl(214 20% 18% / 0.46); }
+body[data-theme="light"] .mir-modwindow .m2audsleg { color: var(--m2-ink-a46); }
 body[data-theme="light"] .mir-modwindow .m2maccap,
-body[data-theme="light"] .mir-modwindow .m2dev.audio.m2min .m2audminout { color: hsl(214 20% 18% / 0.44); }
-body[data-theme="light"] .mir-modwindow .m2grab i { color: hsl(214 20% 18% / 0.42); }
-body[data-theme="light"] .mir-modwindow .m2dev.lfo .m2macbox::before { color: hsl(214 20% 18% / 0.4); }
+body[data-theme="light"] .mir-modwindow .m2dev.audio.m2min .m2audminout { color: var(--m2-ink-a44); }
+body[data-theme="light"] .mir-modwindow .m2grab i { color: var(--m2-ink-a42); }
+body[data-theme="light"] .mir-modwindow .m2dev.lfo .m2macbox::before { color: var(--m2-ink-a40); }
 body[data-theme="light"] .mir-modwindow .m2modelabel,
 body[data-theme="light"] .mir-modwindow .m2kends,
 body[data-theme="light"] .mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcap,
-body[data-theme="light"] .mir-modwindow .m2dev.env .m2mac::before { color: hsl(214 20% 18% / 0.38); }
-body[data-theme="light"] .mir-modwindow .m2dev.m2min .m2minnum.m2nomac { color: hsl(214 20% 18% / 0.34); }
-body[data-theme="light"] .mir-modwindow .m2drive { color: hsl(214 20% 18% / 0.32); }
+body[data-theme="light"] .mir-modwindow .m2dev.env .m2mac::before { color: var(--m2-ink-a38); }
+body[data-theme="light"] .mir-modwindow .m2dev.m2min .m2minnum.m2nomac { color: var(--m2-ink-a34); }
+body[data-theme="light"] .mir-modwindow .m2drive { color: var(--m2-ink-a32); }
 body[data-theme="light"] .mir-modwindow .m2bank span,
 body[data-theme="light"] .mir-modwindow .m2bank .m2bslash,
-body[data-theme="light"] .mir-modwindow .m2audslot { color: hsl(214 20% 18% / 0.3); }
-body[data-theme="light"] .mir-modwindow .m2route { color: hsl(214 20% 18% / 0.28); }
-body[data-theme="light"] .mir-modwindow .m2vfill { background-color: hsl(214 20% 18% / 0.44); }
-body[data-theme="light"] .mir-modwindow .m2pad.m2empty .m2padin { background-color: hsl(214 20% 18% / 0.42); }
-body[data-theme="light"] .mir-modwindow .m2slots::-webkit-scrollbar-thumb { background-color: hsl(214 20% 18% / 0.3); }
-body[data-theme="light"] .mir-modwindow .m2statuslamp { background-color: hsl(214 20% 18% / 0.25); }
-body[data-theme="light"] .mir-modwindow .m2audiolife:not(.on):not(.bad) .m2statuslamp { background-color: hsl(214 20% 18% / 0.24); }
-body[data-theme="light"] .mir-modwindow .m2signal::before { background-color: hsl(214 20% 18% / 0.2); }
+body[data-theme="light"] .mir-modwindow .m2audslot { color: var(--m2-ink-a30); }
+body[data-theme="light"] .mir-modwindow .m2route { color: var(--m2-ink-a28); }
+body[data-theme="light"] .mir-modwindow .m2vfill { background-color: var(--m2-wash-a44); }
+body[data-theme="light"] .mir-modwindow .m2pad.m2empty .m2padin { background-color: var(--m2-wash-a42); }
+body[data-theme="light"] .mir-modwindow .m2slots::-webkit-scrollbar-thumb { background-color: var(--m2-wash-a30); }
+body[data-theme="light"] .mir-modwindow .m2statuslamp { background-color: var(--m2-wash-a25); }
+body[data-theme="light"] .mir-modwindow .m2audiolife:not(.on):not(.bad) .m2statuslamp { background-color: var(--m2-wash-a24); }
+body[data-theme="light"] .mir-modwindow .m2signal::before { background-color: var(--m2-wash-a20); }
 body[data-theme="light"] .mir-modwindow .m2dev.m2min .m2meter { background-color: transparent; }
 body[data-theme="light"] .mir-modwindow .m2envprogress,
 body[data-theme="light"] .mir-modwindow .m2dev.audio.m2min .m2audminleds i { background-color: transparent; }
@@ -652,26 +753,26 @@ body[data-theme="dark"] .mir-modwindow .m2audsx { color: var(--m2-ink); }
 body[data-theme="dark"] .mir-modwindow .m2prename,
 body[data-theme="dark"] .mir-modwindow .m2prename::placeholder,
 body[data-theme="dark"] .mir-modwindow .m2vname,
-body[data-theme="dark"] .mir-modwindow .m2name { color: hsl(0 0% 88% / 0.94); }
-body[data-theme="dark"] .mir-modwindow .m2mac { color: hsl(0 0% 88% / 0.92); }
-body[data-theme="dark"] .mir-modwindow .m2num { color: hsl(0 0% 88% / 0.9); }
-body[data-theme="dark"] .mir-modwindow .m2vnum { color: hsl(0 0% 88% / 0.88); }
+body[data-theme="dark"] .mir-modwindow .m2name { color: var(--m2-ink-a94); }
+body[data-theme="dark"] .mir-modwindow .m2mac { color: var(--m2-ink-a92); }
+body[data-theme="dark"] .mir-modwindow .m2num { color: var(--m2-ink-a90); }
+body[data-theme="dark"] .mir-modwindow .m2vnum { color: var(--m2-ink-a88); }
 body[data-theme="dark"] .mir-modwindow .m2trig,
-body[data-theme="dark"] .mir-modwindow .m2grab:active i { color: hsl(0 0% 88% / 0.85); }
-body[data-theme="dark"] .mir-modwindow .m2zoom { color: hsl(0 0% 88% / 0.82); }
+body[data-theme="dark"] .mir-modwindow .m2grab:active i { color: var(--m2-ink-a85); }
+body[data-theme="dark"] .mir-modwindow .m2zoom { color: var(--m2-ink-a82); }
 body[data-theme="dark"] .mir-modwindow .m2sw .m2flipb,
-body[data-theme="dark"] .mir-modwindow .m2audsbtn { color: hsl(0 0% 88% / 0.78); }
+body[data-theme="dark"] .mir-modwindow .m2audsbtn { color: var(--m2-ink-a78); }
 body[data-theme="dark"] .mir-modwindow .m2prenav,
 body[data-theme="dark"] .mir-modwindow .m2presave,
 body[data-theme="dark"] .mir-modwindow .m2predel,
 body[data-theme="dark"] .mir-modwindow .m2predead,
 body[data-theme="dark"] #modwin.mir-modwindow .m2dev .m2dial .m2kcap,
-body[data-theme="dark"] .mir-modwindow .m2audsrc { color: hsl(0 0% 88% / 0.72); }
-body[data-theme="dark"] .mir-modwindow .m2pow { color: hsl(0 0% 88% / 0.7); }
+body[data-theme="dark"] .mir-modwindow .m2audsrc { color: var(--m2-ink-a72); }
+body[data-theme="dark"] .mir-modwindow .m2pow { color: var(--m2-ink-a70); }
 body[data-theme="dark"] .mir-modwindow .m2route.m2one,
-body[data-theme="dark"] .mir-modwindow .m2dev.audio.m2min .m2minname { color: hsl(0 0% 88% / 0.68); }
+body[data-theme="dark"] .mir-modwindow .m2dev.audio.m2min .m2minname { color: var(--m2-ink-a68); }
 body[data-theme="dark"] .m2clr,
-body[data-theme="dark"] .mir-modwindow .m2audshead { color: hsl(0 0% 88% / 0.66); }
+body[data-theme="dark"] .mir-modwindow .m2audshead { color: var(--m2-ink-a66); }
 body[data-theme="dark"] .mir-modwindow .m2macdel,
 body[data-theme="dark"] .mir-modwindow .m2mclr,
 body[data-theme="dark"] .mir-modwindow .m2dev.m2min .m2minname,
@@ -680,46 +781,46 @@ body[data-theme="dark"] .mir-modwindow .m2chk,
 body[data-theme="dark"] .mir-modwindow .m2prowdel,
 body[data-theme="dark"] .mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcmd,
 body[data-theme="dark"] .modwin.mir-modwindow .m2hold,
-body[data-theme="dark"] .mir-modwindow .m2audslab { color: hsl(0 0% 88% / 0.62); }
+body[data-theme="dark"] .mir-modwindow .m2audslab { color: var(--m2-ink-a62); }
 body[data-theme="dark"] .mir-modwindow .m2ab,
-body[data-theme="dark"] .mir-modwindow .m2kcap { color: hsl(0 0% 88% / 0.6); }
+body[data-theme="dark"] .mir-modwindow .m2kcap { color: var(--m2-ink-a60); }
 body[data-theme="dark"] .mir-modwindow .m2lfostatus,
 body[data-theme="dark"] .mir-modwindow .m2envstatus,
-body[data-theme="dark"] .mir-modwindow .m2audname { color: hsl(0 0% 88% / 0.58); }
-body[data-theme="dark"] .mir-modwindow .m2audout { color: hsl(0 0% 88% / 0.56); }
+body[data-theme="dark"] .mir-modwindow .m2audname { color: var(--m2-ink-a58); }
+body[data-theme="dark"] .mir-modwindow .m2audout { color: var(--m2-ink-a56); }
 body[data-theme="dark"] .mir-modwindow .m2chev,
 body[data-theme="dark"] .mir-modwindow .m2move,
-body[data-theme="dark"] .mir-modwindow .m2x { color: hsl(0 0% 88% / 0.55); }
-body[data-theme="dark"] .mir-modwindow .m2audgrip { color: hsl(0 0% 88% / 0.54); }
-body[data-theme="dark"] .mir-modwindow .m2audiostatus { color: hsl(0 0% 88% / 0.52); }
+body[data-theme="dark"] .mir-modwindow .m2x { color: var(--m2-ink-a55); }
+body[data-theme="dark"] .mir-modwindow .m2audgrip { color: var(--m2-ink-a54); }
+body[data-theme="dark"] .mir-modwindow .m2audiostatus { color: var(--m2-ink-a52); }
 body[data-theme="dark"] .mir-modwindow .m2note,
-body[data-theme="dark"] .mir-modwindow .m2hint { color: hsl(0 0% 88% / 0.5); }
+body[data-theme="dark"] .mir-modwindow .m2hint { color: var(--m2-ink-a50); }
 body[data-theme="dark"] .mir-modwindow .m2colhead,
-body[data-theme="dark"] .mir-modwindow .m2dev.env .m2envstage { color: hsl(0 0% 88% / 0.48); }
+body[data-theme="dark"] .mir-modwindow .m2dev.env .m2envstage { color: var(--m2-ink-a48); }
 body[data-theme="dark"] .mir-modwindow .m2dev.m2min .m2minstatus,
 body[data-theme="dark"] .mir-modwindow .m2audioheadstate,
 body[data-theme="dark"] .mir-modwindow .m2dev.audio .m2note,
-body[data-theme="dark"] .mir-modwindow .m2audsleg { color: hsl(0 0% 88% / 0.46); }
+body[data-theme="dark"] .mir-modwindow .m2audsleg { color: var(--m2-ink-a46); }
 body[data-theme="dark"] .mir-modwindow .m2maccap,
-body[data-theme="dark"] .mir-modwindow .m2dev.audio.m2min .m2audminout { color: hsl(0 0% 88% / 0.44); }
-body[data-theme="dark"] .mir-modwindow .m2grab i { color: hsl(0 0% 88% / 0.42); }
-body[data-theme="dark"] .mir-modwindow .m2dev.lfo .m2macbox::before { color: hsl(0 0% 88% / 0.4); }
+body[data-theme="dark"] .mir-modwindow .m2dev.audio.m2min .m2audminout { color: var(--m2-ink-a44); }
+body[data-theme="dark"] .mir-modwindow .m2grab i { color: var(--m2-ink-a42); }
+body[data-theme="dark"] .mir-modwindow .m2dev.lfo .m2macbox::before { color: var(--m2-ink-a40); }
 body[data-theme="dark"] .mir-modwindow .m2modelabel,
 body[data-theme="dark"] .mir-modwindow .m2kends,
 body[data-theme="dark"] .mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcap,
-body[data-theme="dark"] .mir-modwindow .m2dev.env .m2mac::before { color: hsl(0 0% 88% / 0.38); }
-body[data-theme="dark"] .mir-modwindow .m2dev.m2min .m2minnum.m2nomac { color: hsl(0 0% 88% / 0.34); }
-body[data-theme="dark"] .mir-modwindow .m2drive { color: hsl(0 0% 88% / 0.32); }
+body[data-theme="dark"] .mir-modwindow .m2dev.env .m2mac::before { color: var(--m2-ink-a38); }
+body[data-theme="dark"] .mir-modwindow .m2dev.m2min .m2minnum.m2nomac { color: var(--m2-ink-a34); }
+body[data-theme="dark"] .mir-modwindow .m2drive { color: var(--m2-ink-a32); }
 body[data-theme="dark"] .mir-modwindow .m2bank span,
 body[data-theme="dark"] .mir-modwindow .m2bank .m2bslash,
-body[data-theme="dark"] .mir-modwindow .m2audslot { color: hsl(0 0% 88% / 0.3); }
-body[data-theme="dark"] .mir-modwindow .m2route { color: hsl(0 0% 88% / 0.28); }
-body[data-theme="dark"] .mir-modwindow .m2vfill { background-color: hsl(0 0% 88% / 0.44); }
-body[data-theme="dark"] .mir-modwindow .m2pad.m2empty .m2padin { background-color: hsl(0 0% 88% / 0.42); }
-body[data-theme="dark"] .mir-modwindow .m2slots::-webkit-scrollbar-thumb { background-color: hsl(0 0% 88% / 0.3); }
-body[data-theme="dark"] .mir-modwindow .m2statuslamp { background-color: hsl(0 0% 88% / 0.25); }
-body[data-theme="dark"] .mir-modwindow .m2audiolife:not(.on):not(.bad) .m2statuslamp { background-color: hsl(0 0% 88% / 0.24); }
-body[data-theme="dark"] .mir-modwindow .m2signal::before { background-color: hsl(0 0% 88% / 0.2); }
+body[data-theme="dark"] .mir-modwindow .m2audslot { color: var(--m2-ink-a30); }
+body[data-theme="dark"] .mir-modwindow .m2route { color: var(--m2-ink-a28); }
+body[data-theme="dark"] .mir-modwindow .m2vfill { background-color: var(--m2-wash-a44); }
+body[data-theme="dark"] .mir-modwindow .m2pad.m2empty .m2padin { background-color: var(--m2-wash-a42); }
+body[data-theme="dark"] .mir-modwindow .m2slots::-webkit-scrollbar-thumb { background-color: var(--m2-wash-a30); }
+body[data-theme="dark"] .mir-modwindow .m2statuslamp { background-color: var(--m2-wash-a25); }
+body[data-theme="dark"] .mir-modwindow .m2audiolife:not(.on):not(.bad) .m2statuslamp { background-color: var(--m2-wash-a24); }
+body[data-theme="dark"] .mir-modwindow .m2signal::before { background-color: var(--m2-wash-a20); }
 body[data-theme="dark"] .mir-modwindow .m2dev.m2min .m2meter { background-color: transparent; }
 body[data-theme="dark"] .mir-modwindow .m2envprogress,
 body[data-theme="dark"] .mir-modwindow .m2dev.audio.m2min .m2audminleds i { background-color: transparent; }
@@ -764,7 +865,7 @@ body[data-theme="dark"] .mir-modwindow .m2audout { background-color: transparent
   z-index: calc(var(--z-win) + 4);
   max-width: min(560px, 92%); padding: 7px 14px;
   border: var(--glass-border) solid var(--glass-border-color); border-radius: var(--r-pill);
-  background-color: hsl(var(--glass-tint) / 0.97); box-shadow: var(--surface-shadow, var(--glass-shadow));
+  background-color: var(--m2-face-tint-97); box-shadow: var(--surface-shadow, var(--glass-shadow));
   color: var(--fg); font: 500 10.5px/1.35 var(--font-sans); letter-spacing: var(--label-tracking, var(--tr-tight));
   text-align: center; white-space: normal;
   animation: m2-say-in var(--t-fast) ease both; }
@@ -1103,9 +1204,7 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 
 #modwin.mir-modwindow .m2dialink::before {
   background:
-    repeating-conic-gradient(var(--glass-groove) 0deg 1.6deg, transparent 1.6deg 30deg),
-    radial-gradient(circle at 35% 30%, hsl(0 0% 100% / .07), transparent 62%),
-    hsl(var(--glass-tint) / 1); }                                                                      /* 59 */
+    var(--m2-dialink-b-wash); }                                                                      /* 59 */
 
 
 #modwin.mir-modwindow .m2pt,
@@ -1183,10 +1282,10 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 
 #modwin.mir-modwindow .m2macadd,
 #modwin.mir-modwindow .m2macdel {
-  border: 0; background: hsl(0 0% 100% / 0.06); }
+  border: 0; background: var(--m2-face-w06); }
 body[data-theme="light"] #modwin.mir-modwindow .m2macadd,
 body[data-theme="light"] #modwin.mir-modwindow .m2macdel {
-  border: 0; background: hsl(214 30% 40% / 0.09); }
+  border: 0; background: var(--m2-macadd-face); }
 #modwin.mir-modwindow .m2macadd:active:not(:disabled) { background: var(--acc2-soft); }
 #modwin.mir-modwindow .m2macdel:active:not(:disabled) { background: var(--state-press, var(--glass-press)); }  /* 70 */
 
@@ -1195,7 +1294,7 @@ body[data-theme="light"] #modwin.mir-modwindow .m2macdel {
 #modwin.mir-modwindow .m2tn,
 #modwin.mir-modwindow .m2dev.env .m2pt,
 #modwin.mir-modwindow .m2dev.env .m2tn {
-  fill: hsl(var(--glass-tint) / 1); pointer-events: all; stroke-width: 2; }
+  fill: var(--m2-fill-tint-100); pointer-events: all; stroke-width: 2; }
 #modwin.mir-modwindow .m2dev.env .m2pt,
 #modwin.mir-modwindow .m2dev.env .m2tn { stroke: var(--m2-env-ink); }
 /* the SELECTED node is the one place a joint fills, because "this is the handle you are editing" is
@@ -1249,9 +1348,9 @@ body[data-theme="light"] #modwin.mir-modwindow .m2macdel {
 body.frost .kwin-chiprail[data-mir-rail] .crail-chip::before,
 body.frost .kwin-chiprail[data-mir-rail] .crail-chip::before {
   -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter)); backdrop-filter: var(--surface-filter, var(--frost-filter));
-  background-color: hsl(0 0% 100% / .10); }
+  background-color: var(--m2-face-w10); }
 body.frost[data-theme="dark"] .kwin-chiprail[data-mir-rail] .crail-chip::before {
-  background-color: hsl(0 0% 0% / .10); }
+  background-color: var(--m2-face-k10); }
 body.frost.frost-hold .kwin-chiprail[data-mir-rail] .crail-chip::before {
   -webkit-backdrop-filter: none; backdrop-filter: none; }                                              /* 78 */
 
@@ -1580,7 +1679,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
    same tint at the same .97, the same edge, the same float, and `--fg` with it so the sheet's ink is
    readable on both themes.  Its rows and its ± seats already read the plugin's ink through the flip. */
 #modwin.mir-modwindow .m2audsheet {
-  background-color: hsl(var(--glass-tint) / 0.97);
+  background-color: var(--m2-face-tint-97);
   background-image: none;
   border: var(--surface-edge-width, var(--glass-border)) solid var(--surface-edge, var(--glass-border-color));
   box-shadow: var(--surface-shadow, var(--glass-shadow));
@@ -1702,14 +1801,14 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 .k-route-depth.k { position:absolute; bottom:0; right:0; width:24px; min-width:24px; height:24px; padding:0; z-index:3; }
 .k-route-depth .k-dial { width:22px; height:22px; }
 .k-route-depth .k-lbl, .k-route-depth .k-val { display:none; }
-.mod-matrix { background:var(--pane, #171b22); }
+.mod-matrix { background:var(--pane, var(--m2-matrix-face)); }
 
 
-#modwin .mod-matrix { position:fixed; margin:auto; inset:0; background:hsl(var(--glass-tint) / 1); color:var(--fg); border-color:var(--glass-hairline); font-size:12px; }
+#modwin .mod-matrix { position:fixed; margin:auto; inset:0; background:var(--m2-face-tint-100); color:var(--fg); border-color:var(--glass-hairline); font-size:12px; }
 #modwin .mod-matrix-bars { position:relative; inset:auto; height:64px; display:flex; gap:12px; margin:8px 0; overflow:auto; }
 #modwin .mod-matrix-bars .m2pre { display:flex; flex:0 0 auto; position:relative; height:48px; }
 #modwin .mod-matrix-bars .m2prebar { position:relative; height:48px; flex:0 0 auto; }
-#modwin .mod-matrix input,#modwin .mod-matrix select,#modwin .mod-matrix button { color:var(--fg); background:hsl(var(--glass-tint) / 1); border:1px solid var(--glass-hairline); border-radius:var(--r-sm); }
+#modwin .mod-matrix input,#modwin .mod-matrix select,#modwin .mod-matrix button { color:var(--fg); background:var(--m2-face-tint-100); border:1px solid var(--glass-hairline); border-radius:var(--r-sm); }
 
 /* Audio response mixer. Full mode uses four equal horizontal channels. Compact
    turns those same controls upright without changing their model or gestures. */
@@ -1723,15 +1822,15 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin .aud-range-name[aria-pressed=true] { color:var(--acc2); }
 #modwin .aud-range-full { display:none; }
 #modwin .aud-range-short { display:inline; }
-#modwin .aud-range-value { position:absolute;z-index:6;right:3px;top:50%;transform:translateY(calc(-50% + 2px));padding:2px 4px;border:0;border-radius:3px;background:hsl(var(--glass-tint) / .94);font:600 7.5px/1 var(--font-num);color:var(--fg-soft);font-variant-numeric:tabular-nums;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity var(--t-fast) ease,transform var(--t-fast) ease; }
+#modwin .aud-range-value { position:absolute;z-index:6;right:3px;top:50%;transform:translateY(calc(-50% + 2px));padding:2px 4px;border:0;border-radius:3px;background:var(--m2-face-tint-94);font:600 7.5px/1 var(--font-num);color:var(--fg-soft);font-variant-numeric:tabular-nums;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity var(--t-fast) ease,transform var(--t-fast) ease; }
 #modwin .aud-range-row:hover .aud-range-value,
 #modwin .aud-range-row:focus-within .aud-range-value,
 #modwin .aud-range-row.editing .aud-range-value { opacity:1;transform:translateY(-50%); }
 #modwin .aud-range-track { position:relative;grid-area:1 / 2;width:100%;height:24px;min-width:0;border:0;border-radius:2px;background:transparent;box-shadow:none;touch-action:none;cursor:ew-resize;overflow:hidden; }
 #modwin .aud-range-low,#modwin .aud-range-high,#modwin .aud-range-zone { position:absolute;inset-block:0;pointer-events:none; }
-#modwin .aud-range-low { left:0;background:color-mix(in srgb,var(--acc) 19%,transparent); }
-#modwin .aud-range-high { background:color-mix(in srgb,var(--acc) 30%,transparent); }
-#modwin .aud-range-zone { background:color-mix(in srgb,var(--acc2) 18%,transparent); }
+#modwin .aud-range-low { left:0;background:var(--m2-aud-range-low-face); }
+#modwin .aud-range-high { background:var(--m2-aud-range-high-face); }
+#modwin .aud-range-zone { background:var(--m2-aud-range-zone-face); }
 #modwin .aud-range-output { position:absolute;left:0;top:50%;height:2px;margin-top:-1px;background:var(--aud-live);box-shadow:0 0 5px color-mix(in srgb,var(--aud-live) 45%,transparent);pointer-events:none; }
 #modwin .aud-range-input { display:none; }
 #modwin .aud-range-handle { position:absolute; z-index:3; top:0; bottom:0; width:14px; padding:0; transform:translateX(-50%); border:0; background:transparent; color:var(--acc); cursor:ew-resize; touch-action:none; }
@@ -1747,7 +1846,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin .aud-level-mix-dial .m2deptharc { stroke:var(--acc); }
 #modwin .aud-level-mix-core.m2num { width:14px;height:14px;border-color:transparent;background:transparent; }
 #modwin .aud-level-mix-dial:focus-visible { outline:0;box-shadow:0 0 0 1px color-mix(in srgb,var(--acc) 50%,transparent); }
-#modwin .aud-level-mix-value { position:absolute;left:50%;bottom:calc(100% + 3px);z-index:5;transform:translate(-50%,2px);padding:2px 4px;border-radius:3px;background:hsl(var(--glass-tint) / .96);color:var(--fg-soft);font:600 7px/1 var(--font-num);opacity:0;pointer-events:none;white-space:nowrap; }
+#modwin .aud-level-mix-value { position:absolute;left:50%;bottom:calc(100% + 3px);z-index:5;transform:translate(-50%,2px);padding:2px 4px;border-radius:3px;background:var(--m2-face-tint-96);color:var(--fg-soft);font:600 7px/1 var(--font-num);opacity:0;pointer-events:none;white-space:nowrap; }
 #modwin .aud-level-mix:hover .aud-level-mix-value,
 #modwin .aud-level-mix:focus-within .aud-level-mix-value,
 #modwin .aud-level-mix-dial.drag + .aud-level-mix-value,
@@ -1758,13 +1857,13 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin .audio-ranges .m2audsheet { overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; }
 #modwin .aud-setting-input { width:100%; min-width:0; border:0; color:var(--fg); background:transparent; text-align:center; font:inherit; font-variant-numeric:tabular-nums; }
 #modwin .audio-ranges .m2audsheet { bottom:6px; }
-#modwin .audio-ranges .m2audshead { flex-shrink:0; position:sticky; top:0; background:hsl(var(--glass-tint) / 1); z-index:1; }
+#modwin .audio-ranges .m2audshead { flex-shrink:0; position:sticky; top:0; background:var(--m2-face-tint-100); z-index:1; }
 #modwin .audio-ranges .m2audsleg { flex-shrink:0; }
 #modwin .aud-range-name b { pointer-events:none; }
 
 /* The shared rate puck is centered independently of its transient value label. */
 #modwin .m2-native-rate { position:relative;overflow:visible; }
-#modwin .m2-native-rate .k-val { position:absolute;top:100%;left:50%;transform:translate(-50%,2px);margin:0;padding:2px 6px;white-space:nowrap;z-index:10;background:hsl(var(--glass-tint) / .96);border-radius:var(--r-pill);box-shadow:var(--neu-flat);pointer-events:none; }
+#modwin .m2-native-rate .k-val { position:absolute;top:100%;left:50%;transform:translate(-50%,2px);margin:0;padding:2px 6px;white-space:nowrap;z-index:10;background:var(--m2-face-tint-96);border-radius:var(--r-pill);box-shadow:var(--neu-flat);pointer-events:none; }
 #modwin .m2-native-rate:hover .k-val,
 #modwin .m2-native-rate:focus-within .k-val,
 #modwin .m2-native-rate.drag .k-val { transform:translate(-50%,0); }
@@ -1908,7 +2007,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin.mir-modwindow .m2audsheet { gap: 2px; padding: 8px; border-radius: var(--surface-radius, var(--r-lg)); }
 #modwin.mir-modwindow .m2audshead { min-height: 36px; padding-left: 5px; }
 #modwin.mir-modwindow .m2audsrow { min-height: 40px; border-radius: 7px; padding: 0 3px; }
-#modwin.mir-modwindow .m2audsrow:nth-of-type(even) { background: hsl(var(--glass-tint) / .18); }
+#modwin.mir-modwindow .m2audsrow:nth-of-type(even) { background: var(--m2-face-tint-18); }
 #modwin.mir-modwindow .m2audscontinuous .m2audsbtn { display: none; }
 #modwin.mir-modwindow .m2audscontinuous .m2audsval {
   display: grid; grid-template-columns: minmax(72px, 1fr) 58px; align-items: center; gap: 8px; }
@@ -2018,12 +2117,12 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin.mir-modwindow .m2macadd,
 #modwin.mir-modwindow .m2devadd {
   flex:1 1 0;min-width:0;height:44px;min-height:44px;padding:0 5px;border:0;
-  border-radius:7px;background:hsl(0 0% 100% / .06);color:var(--acc2);
+  border-radius:7px;background:var(--m2-face-w06);color:var(--acc2);
   font:700 8px/1 var(--font-sans);letter-spacing:var(--label-tracking, .08em);white-space:nowrap;
   transition:scale var(--t-fast) ease,background-color var(--t-fast) ease,box-shadow var(--t-fast) ease; }
 body[data-theme="light"] #modwin.mir-modwindow .m2macadd,
 body[data-theme="light"] #modwin.mir-modwindow .m2devadd {
-  background:hsl(214 30% 40% / .09); }
+  background:var(--m2-macadd-face); }
 #modwin.mir-modwindow .m2macadd:hover:not(:disabled),
 #modwin.mir-modwindow .m2devadd:hover:not(:disabled) {
   background:var(--state-hover, var(--m2-hover)); }
