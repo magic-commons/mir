@@ -14,6 +14,14 @@
 /* the two halves of "slide, then stop painting": visibility turns on at the start of a show and off at the end of a hide */
 :is(.mir-rack, .mir-rack-transport) { --rack-step-show: step-start; --rack-step-hide: step-end; }
 .mir-rack { --rack-flush-radius: 0px; --rack-flush-shadow: 0 0 0 0 transparent; }   /* SPACING at 0: square, and no pane shadow inside the slab */
+/* THE RACK'S MOTION (BASINS rack-motion.js RACK_MOTION: 320 ms, cubic-bezier(.22, 1, .36, 1) = the core's structural
+   duration and ease-out).  On every rack the kit runs, its own or an app's adopted one ([data-mir-rack]); read by
+   shell/rack.js where the motion starts.  The flat tier's 0 ms structural reaches it, so flat jumps. */
+[data-mir-rack] { --rack-motion: var(--motion-structural); --rack-ease: var(--ease-out); }
+/* a card whose height is travelling clips what it is growing into (BASINS lab.css:977); a disconnected card's parts
+   carry their own shadows, so it does not clip them (BASINS material.css:216) */
+[data-mir-rack] > .dev.rack-sizing { overflow: clip; }
+body.disconnected:not(.phone) [data-mir-rack] > .dev.rack-sizing { overflow: visible; }
 
 /* ── THE COLUMNS ─────────────────────────────────────────────────────────────────────────────────────────── */
 .mir-rack {

@@ -5,7 +5,7 @@ Five small modules in `mir/core/` and one sheet. No dependency between them exce
 ## The laws
 
 1. **One writer per element.** While a motion holds an element, nothing else places it. `owns(el)` says so; `settled(el)` resolves after the *last* motion on it lands. A caller with a new placement does `if (owns(el)) settled(el).then(place); else place();`.
-2. **No layout animation.** Movement animates `translate`/`scale` only. `tweenRect` writes the layout once, when it lands; `flip` measures the layout the caller's `mutate` made.
+2. **No layout animation.** Movement animates `translate`/`scale` only. `tweenRect` writes the layout once, when it lands; `flip` measures the layout the caller's `mutate` made. **One ruled exception:** a rack card's height (`shell/rack.js`, BASINS' rack motion, Josh 2026-10-02: "Yes to basins animated drag and drop"). It goes through `own(el, anim)`, is skipped under reduced / off / flat, and keeps law 1 (docs/MOTION-LAW.md, "The rack's cards").
 3. **Idle is zero work.** With nothing queued, the frame books no rAF and no timer; `__MIR.perf` shows zero writes, reads and frames (gated by `tests/core.browser.mjs`).
 4. **Cancel always rolls back.** A drag ends by release (the last sample is flushed first) or by cancel (pointercancel, lost capture, window blur, a hidden page, Escape), and a cancel calls the rollback. A proximity guide clears on the same events.
 5. **Every motion is interruptible.** Called again mid-flight, it starts from the current *visual* state and lands exactly on the newest target. Ten calls end on the tenth. No timers: endings ride `Animation.finished`.
@@ -28,7 +28,7 @@ Five small modules in `mir/core/` and one sheet. No dependency between them exce
 - `tweenRect(el, rect, { duration, easing, commit })` — a positioned box to a viewport rect by transform; `commit(el, to, layoutRect)` lands it (default `commitRect`: shifts inline left/top/width/height by the difference, right for fixed or absolute). `tweenRect(el, el.getBoundingClientRect())` stops a motion where it is.
 - `presence(el, show, { duration })` — toggles `hidden`: shown before the entrance, hidden after the exit.
 - `sequence(steps)` → `{ finished: Promise<boolean>, cancel() }` — each step returns an Animation, a promise or nothing.
-- `owns(el)`, `settled(el)`. Every motion returns a promise: `true` when it landed, `false` when superseded.
+- `owns(el)`, `settled(el)`. `own(el, anim)` — a motion made elsewhere (the rack's) joins the registry, so `owns` / `settled` see it. Every motion returns a promise: `true` when it landed, `false` when superseded.
 
 **`core/pointer.js`**
 - `drag(el, { slop = 4, button = 0, onStart, onMove, onEnd, onCancel })` → `{ cancel(), destroy(), active }`. A sample is `{ x, y, x0, y0, dx, dy, shiftKey, altKey, ctrlKey, metaKey, pointerType, pointerId }`; a modifier pressed mid-drag sends a move. A press that never passes the slop is a click and calls nothing. Give the handle `touch-action: none`.

@@ -120,7 +120,8 @@ It creates these ids only when they are absent, so an app's existing elements ar
 |---|---|---|
 | 1 | A window is built on first open; a closed one sleeps, a powered-off one frees | `register` stores a name; `build` runs once; close → `onClose`/`onSleep`, power → `onPower(false)`, fold → `onFold` (it keeps running: EARTH's law) |
 | 2 | One gesture, one writer | one `core/pointer.js` `drag` on an off-screen grip; a header press is handed to it only after the hand moves 3 px (or a finger holds 400 ms), so clicks, double-clicks and header buttons keep their own events |
-| 3 | Move by transform; commit layout once | the held window moves by `translate`; neighbours `flip`; release writes `left/top` (or the DOM order) once and the transform goes in the same task |
+| 3 | BASINS' animated drag and drop (ruled 2026-10-02) | BASINS' `rack-motion.js`, harvested whole (`createRackMotion`). Any change to a card (fold, open, close, content growing, a window dropped in or lifted out) animates its height, and every moved card travels by transform from where it was seen: 320 ms, `cubic-bezier(.22, 1, .36, 1)`. The held card follows the hand by `translate` and settles into its slot on release. A floating window still moves by transform and commits `left/top` once. Reduced motion, `off` and the flat tier jump |
+| 3a | The title bar decides (ruled 2026-10-02) | a carried window goes above another window as soon as the middle of its title bar is above that window's middle, and below it as soon as the middle is below. This holds in the rack and when a floating window is dropped over one (`reorderIndex`, `insertionIndex`) |
 | 4 | The drop shows where it lands | a docked window being carried: the slot it holds is drawn (`core/proximity.js`, solid); the rack's detach edge brightens as it nears; a floating window over a rack: the insertion slot, brightening with nearness, solid when release would land |
 | 5 | Cancel leaves everything where it began | Escape, pointercancel, lost capture, blur, a hidden page: order, rack, float state and transforms all return; tested reversed halfway |
 | 6 | Hide costs nothing, by one path | `setHidden` writes `body.rack-hidden` only; `window-activity.js` reads it; racks slide by transform and stop painting by a delayed `visibility`; H is `display: none` |
@@ -142,7 +143,7 @@ The brief asked for survey C's 65-item rack list. Survey C has no numbered list 
 | 2 | A float layer `#floats` | kept |
 | 3 | `body.rack-l` when the left rack has cards (BASINS) | not built: CSS `:has()` or the app can do it; nothing in the kit read it |
 | 4 | Drag a header to reorder; the held card follows the hand vertically | kept (BASINS) |
-| 5 | Neighbours swap 8 px past a middle and travel (FLIP) | kept, through `core/motion.js` `flip` |
+| 5 | Neighbours swap once the held card's CENTRE is 8 px past their middle, and travel (FLIP) | changed by Josh's ruling: the held card's TITLE BAR middle decides, with no hysteresis (none is needed); the travel is BASINS' own motion |
 | 6 | The held card stays attached until it clears the rack by 12 px | kept |
 | 7 | Then it floats where the hand is, and the same gesture carries it | kept |
 | 8 | A floating window drags by its header | kept, by transform with one commit (was `left/top` per frame) |
@@ -211,7 +212,7 @@ The brief asked for survey C's 65-item rack list. Survey C has no numbered list 
 | 71 | `copyDigest` / `digest` (COPY a window's readouts) | not built: an app verb, not the rack's |
 | 72 | `resetLayout` | not built as a verb: `apply({ cards: [] })` docks everything, and an app's RESET can open its defaults |
 | 73 | The rack's own scrollbar seated at the card column (BASINS `rack-scrollbars.js`) | not built: the native thin accent scrollbar on the inner edge is kept. BASINS keeps its file |
-| 74 | Rack height motion when a card folds (BASINS animates height) | changed: neighbours travel by `flip`; heights snap (no layout animation, CORE law 2) |
+| 74 | Rack height motion when a card folds (BASINS animates height) | kept (ruled 2026-10-02): BASINS' motion, height included, the one sanctioned layout animation (MOTION-LAW, "The rack's cards") |
 
 ## What an adopting app deletes
 
@@ -261,7 +262,7 @@ The recipe for BASINS, and for any app whose rack predates the kit. It goes in f
   - `dockTransport` stays the transport's.
 - **Deletes:**
   - in `rack.js`: the float layer, the verbs, the drag and its two pumps, the peek, the phone crossing and `wire()` (about 450 of its 618 lines);
-  - `createRackMotion` (`rack-motion.js` 1–135);
+  - `createRackMotion` (`rack-motion.js` 1–135). The kit's rack motion IS it: the same observers, the same refresh, the same height and FLIP animations, the same hold / follow / release, 320 ms `cubic-bezier(.22, 1, .36, 1)`. Tested on BASINS' markup (`tests/rack-motion.browser.mjs`). `createLayoutMotion` (136–204, the modulation shelf) stays until the modulation window moves;
   - the `.rack-drop` rule.
 
 **3. The `+` and ☆ menus.** Set `chrome: true`. `#rackToggle`, `#rackAdd`, `#rackFav` and their lists are found by id and keep their look.
@@ -275,7 +276,11 @@ The recipe for BASINS, and for any app whose rack predates the kit. It goes in f
 ### What BASINS' rack does that the kit still does not
 
 Each item is exact. "Stays" means it stays in BASINS until the kit has it.
-1. **Height motion.** `createRackMotion` animates a card's height and FLIPs its neighbours on ANY size change (a ResizeObserver: a body growing, a section opening). The kit animates only its own acts: open, close, fold, move and drag. A height change inside a window jumps. Kit law forbids layout animation (CORE law 2), so this needs a ruling: drop it, or animate the neighbours only.
+1. ~~Height motion~~: **done** (ruled 2026-10-02). What still differs in motion:
+   - **The reorder rule.** It is the title bar's middle against the neighbour's middle, by Josh's ruling. BASINS compares the card's centre, ± 8 px.
+   - **The entrance.** BASINS' `.dev-enter` keyframe is 6 px up over `.22s cubic-bezier(.23, 1, .32, 1)`. The kit's is the same 6 px over `--motion-ui` (160 ms) and `--ease-out`.
+   - **A reduced-motion switch mid-session.** BASINS re-runs a refresh when `prefers-reduced-motion` changes. The kit reads the policy at every refresh, so the next change uses the new policy.
+   - **The lift.** The carried card keeps the house sheet's `.dev.dragging` scale (1.012), where BASINS' `material.css` sets `transform: none`. That is the sheet lane's, not the motion's.
 2. **The scrollbar seat** (`rack-scrollbars.js`, 62 lines). Stays, fed by the kit's span.
 3. **The touch-tablet clamp.** On a coarse pointer wider than 700 px, BASINS clamps a float fully inside the visual viewport (`clampFloat(…, touchTablet)`). The kit's clamp is the desktop one everywhere.
 4. **Retired ids** (`retired: { old: heir }`). The kit drops unknown ids. BASINS maps its old ids before `apply`.
@@ -286,6 +291,14 @@ Each item is exact. "Stays" means it stays in BASINS until the kit has it.
 9. **`body.rack-l`.** BASINS sets it when the left rack has children, and nothing in BASINS reads it now. Not built.
 
 ## Proofs
+
+- `tests/rack-motion.browser.mjs`, on `gallery/rack.html` and on BASINS' markup (`tests/fixtures/rack-basins.html`). 8 checks:
+  - a real click folds a window: its height animates and the window below travels with it, 38 sampled frames, 15 distinct positions, no step over a third of the 145-px travel, ending exactly;
+  - a drag that moved the others, reversed halfway, then Escape: exactly where it began;
+  - reduced motion jumps;
+  - idle is zero rAF;
+  - **the title bar decides** at three heights of the dragged window (about 200, 400 and 600 px): 2 px below the neighbour's middle it stays below, 2 px above it goes above, and the slot is drawn there.
+- Plates: `docs/plates/rack/rack-motion-mid-fold.png`, `rack-motion-mid-drag.png`.
 
 - `tests/rack.node.mjs`: the pure part (7 groups).
 - `tests/rack.browser.mjs` on `tests/fixtures/rack.html`, with real CDP input and every press hit-tested with `elementFromPoint`. 23 checks:

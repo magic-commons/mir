@@ -80,6 +80,10 @@ function hold(el, anim, land) {
     release(el); return true;
   }, () => { if (held.get(el) === rec) release(el); return false; });
 }
+/** own(el, anim) — a motion made elsewhere joins the one-writer registry: owns(el) is true until it lands and
+ *  settled(el) waits for it.  For the rack's card motion (shell/rack.js, BASINS' rack-motion.js: a card's height and
+ *  its neighbours' travel — the one sanctioned layout animation, docs/MOTION-LAW.md).  → Promise<boolean>, as above */
+export const own = (el, anim) => hold(el, anim);
 const animates = () => motionPolicy() === 'full' && typeof Element !== 'undefined' && !!Element.prototype.animate;
 const opts = (o, dur, ease) => ({ duration: o.duration ?? motionToken(dur), easing: o.easing ?? motionToken(ease) });
 

@@ -71,6 +71,26 @@ keyframes `mir-turn-0` … `mir-turn-8`, rebuilt only when a turn starts after t
   hover and colour `ease` · constant motion `linear`. **Never `ease-in` on UI** — it delays the frame the user's
   attention is already on.
 
+## The rack's cards: the one layout animation (ruled 2026-10-02)
+
+Josh: **"Yes to basins animated drag and drop."** So the rack (`mir/shell/rack.js`) moves exactly as BASINS'
+`rack-motion.js` does, and that includes the one thing the kit otherwise forbids: **a rack card's HEIGHT animates.**
+When a card folds, opens, closes, grows with its content, or a window is dropped in or lifted out, its height travels
+from the old value to the new one, while `.rack-sizing` clips it. Every card that moved travels by transform from
+where it was seen.
+
+The exception is this one case and no other. It keeps every other motion law:
+- **Timing.** BASINS' numbers: 320 ms, `cubic-bezier(.22, 1, .36, 1)`. These are `--rack-motion` / `--rack-ease` on `[data-mir-rack]` (`rack.css`), which are the core's `--motion-structural` / `--ease-out`.
+- **When it jumps.** Under reduced motion, `off` and the flat tier (structural 0 ms), it jumps: nothing animates, and the layout is simply there.
+- **One writer per element per frame.** The rack's motion is the only thing that animates a rack card. Every animation joins `core/motion.js`'s registry (`own`), so `owns()` and `settled()` see it.
+- **Reversal lands exactly.** A new change mid-motion is rebuilt from where the cards are seen, so it lands exactly.
+- **No loop.** It is driven by a ResizeObserver and two MutationObservers, so idle costs zero frames.
+
+**The title bar decides** (same ruling: *"Let the windows title bar be the deciding factor whether a window goes above
+or below something"*). A carried window goes above another window as soon as the middle of its title bar is above
+that window's middle, and below it as soon as the middle is below. This holds in the rack and when a floating window
+is dropped over one.
+
 ## Interruption
 - Anything retriggerable faster than about twice a second (the busy mark, FROST, toggles, the tooltip) uses
   **transitions, not keyframes**, so a new trigger retargets from the current state instead of snapping to a start.

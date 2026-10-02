@@ -36,7 +36,7 @@
  * and the openers); keepClear() gives the rects a new floating window should not land on (FOLDERS' first seat).  The pure helpers are exported for node tests. */
 import { el, device, chip, ariaLabel } from '../kit.js';
 import { drag } from '../core/pointer.js';
-import { flip, sequence, motionPolicy, motionToken } from '../core/motion.js';
+import { sequence, motionPolicy, motionToken, own, parseDuration } from '../core/motion.js';
 import { createProximity } from '../core/proximity.js';
 import { frame } from '../core/frame.js';
 import { setVar, setAttr } from '../core/perf.js';
@@ -47,7 +47,6 @@ import { glyphEl, hasGlyph } from '../glyph.js';
 export const SIDES = Object.freeze(['left', 'right']);
 /** the numbers the rack keeps (BASINS and λWAVES measured them) */
 export const RACK = Object.freeze({
-  hyst: 8,          // a held window swaps with a neighbour 8 px past its middle (BASINS rack.js:465)
   detach: 12,       // … and comes off the rack once it has cleared the column by 12 px (BASINS rack.js:501)
   slot: 4,          // the insertion slot's thickness
   peekNear: 44,     // a hidden rack peeks when the pointer is this near its edge (BASINS rack.js:397) …
@@ -64,17 +63,22 @@ const PRESSABLE = 'button, input, select, textarea, a[href], label, [role="butto
 
 /* ── the pure part ─────────────────────────────────────────────────────────────────────────────────────────── */
 const mid = (b) => b.top + b.height / 2;
-/** reorderIndex(boxes, at, center, hyst) — the live reorder (BASINS): boxes are the rack's visible windows in order,
- *  the held one at `at`; its centre `center` has crossed a neighbour once it is `hyst` px past that neighbour's middle.
- *  → the index the held window should take. */
-export function reorderIndex(boxes, at, center, hyst = RACK.hyst) {
+/** reorderIndex(boxes, at, bar) — THE TITLE BAR DECIDES (Josh, 2026-10-02: "Let the windows title bar be the deciding
+ *  factor whether a window goes above or below something").  boxes are the rack's visible windows in order, the held
+ *  one at `at`; `bar` is the middle of the held window's title bar.  It goes above a window as soon as `bar` is above
+ *  that window's middle, and below it as soon as `bar` is below.  (BASINS compared the held window's CENTRE with the
+ *  neighbour's middle, ± 8 px.)  No hysteresis is needed: once it has passed a window, that window's middle moves the
+ *  held window's height away.  → the index the held window should take */
+export function reorderIndex(boxes, at, bar) {
   if (!boxes[at]) return at;
   let to = at;
-  if (center < mid(boxes[at])) { for (let i = at - 1; i >= 0; i--) { if (center < mid(boxes[i]) - hyst) to = i; else break; } }
-  else for (let i = at + 1; i < boxes.length; i++) { if (center > mid(boxes[i]) + hyst) to = i; else break; }
+  for (let i = at - 1; i >= 0; i--) { if (bar < mid(boxes[i])) to = i; else break; }
+  if (to !== at) return to;
+  for (let i = at + 1; i < boxes.length; i++) { if (bar > mid(boxes[i])) to = i; else break; }
   return to;
 }
-/** insertionIndex(boxes, y) — where a window dropped at height y lands among `boxes` (which do not include it) */
+/** insertionIndex(boxes, bar) — where a carried window lands among `boxes` (which do not include it): above the first
+ *  window whose middle is below `bar`, the middle of its title bar (the same rule as reorderIndex) */
 export function insertionIndex(boxes, y) {
   for (let i = 0; i < boxes.length; i++) if (y < mid(boxes[i])) return i;
   return boxes.length;
@@ -162,6 +166,138 @@ export function localStore(key, view = globalThis) {
   };
 }
 
+/* ── THE RACK'S MOTION: BASINS' app/rack-motion.js createRackMotion, harvested (Josh, 2026-10-02: "Yes to basins
+ *    animated drag and drop") ─────────────────────────────────────────────────────────────────────────────────────
+ * It observes the cards, not the verbs: a ResizeObserver on every card's head and body, a MutationObserver on the
+ * racks' membership and on the classes that change a card's layout (folded, closed, compact, floating, hidden).  Any
+ * change — fold, open, close, content growing, a window dropped in or lifted out — is ONE refresh: the last layout's
+ * VISUAL positions are rebuilt (a running motion included), the new layout is read, and
+ *   · a card whose height changed animates its HEIGHT from the old to the new (`.rack-sizing` clips it meanwhile) —
+ *     the one sanctioned layout animation in the kit (docs/MOTION-LAW.md, "the rack's cards");
+ *   · every card that moved travels by transform from where it was SEEN to its new place (FLIP);
+ *   · the card in the hand is held (hold/follow/release): it follows the pointer by `translate`, is never FLIPped,
+ *     and settles into its slot on release.
+ * BASINS' numbers: 320 ms, cubic-bezier(.22, 1, .36, 1) — the kit's --motion-structural and --ease-out, the same
+ * values (core.css), read from the tokens.  Reduced motion, `off` and the flat tier (durations 0) jump.  Every
+ * animation joins core/motion.js's registry (own), so one writer per element holds and settled() waits for it;
+ * a change mid-motion starts from where the cards are seen, so a reversal lands exactly.  No loop: idle is zero. */
+export function createRackMotion(hosts, view = globalThis) {
+  let previous = new Map(), syncing = false, signature = '', held = null;
+  const heights = new Map(), moves = new Map(), observed = new Map();
+  const live = () => motionPolicy() === 'full' && timing().duration > 0;
+  /* rack.css's values (--rack-motion, --rack-ease on [data-mir-rack]), the core's tokens when a page has no rack.css */
+  const timing = () => {
+    const cs = hosts[0] ? view.getComputedStyle(hosts[0]) : null, d = cs && cs.getPropertyValue('--rack-motion').trim(), e = cs && cs.getPropertyValue('--rack-ease').trim();
+    return { duration: d ? parseDuration(d, motionToken('structural')) : motionToken('structural'), easing: e || motionToken('out') };
+  };
+  const cards = () => hosts.flatMap((h) => [...h.children].filter((c) => c.classList.contains('dev')));
+  const visible = (c) => !c.hidden && !c.classList.contains('closed') && c.getClientRects().length && c.getBoundingClientRect().height > 0;
+  const cancel = (map, c) => { const a = map.get(c); if (a) a.cancel(); map.delete(c); };
+  const translation = (c) => {
+    if (held && held.card === c) return { x: held.x, y: held.y };
+    if (!moves.has(c)) return { x: 0, y: 0 };
+    const cs = view.getComputedStyle(c), m = new view.DOMMatrixReadOnly(cs.transform), t = String(cs.translate).split(' ');
+    return { x: m.m41 + (parseFloat(t[0]) || 0), y: m.m42 + (parseFloat(t[1]) || 0) };
+  };
+  const rectOf = (c) => {
+    const h = c.parentElement, r = c.getBoundingClientRect(), hr = h.getBoundingClientRect();
+    const t = held && held.card === c ? held : { x: 0, y: 0 };
+    return { host: h, x: r.left - t.x - hr.left + h.scrollLeft, y: r.top - t.y - hr.top + h.scrollTop, height: r.height, width: r.width };
+  };
+  const screen = (r) => { const h = r.host, p = h.getBoundingClientRect(); return { x: p.left + r.x - h.scrollLeft, y: p.top + r.y - h.scrollTop }; };
+  function animate(map, c, frames, sizing = false) {
+    cancel(map, c);
+    if (sizing) c.classList.add('rack-sizing');
+    const a = c.animate(frames, timing());
+    map.set(c, a); own(c, a);
+    a.finished.then(() => { if (map.get(c) !== a) return; map.delete(c); if (sizing) c.classList.remove('rack-sizing'); }).catch(() => {});
+  }
+  function refresh() {
+    if (syncing) return;
+    const all = cards();
+    const stamp = all.map((c) => [hosts.indexOf(c.parentElement), c.dataset.id, c.hidden, ['folded', 'closed', 'compact', 'floating'].filter((k) => c.classList.contains(k)).join(','),
+      c.getBoundingClientRect().width, ...[...c.children].filter((n) => n.matches('.dev-head, .dev-body')).map((n) => n.getBoundingClientRect().height)].join(':')).join('|');
+    if (stamp === signature) return;
+    signature = stamp; syncing = true;
+    /* the last layout, as it is SEEN now: a running move's offset and a part-done height included */
+    const oldScreen = new Map(), oldHeights = new Map();
+    for (const host of hosts) {
+      let shift = 0;
+      for (const [c, p] of previous) {
+        if (p.host !== host) continue;
+        const t = translation(c), pos = screen(p);
+        oldScreen.set(c, { x: pos.x + t.x, y: pos.y + shift + t.y });
+        const h = heights.has(c) ? c.getBoundingClientRect().height : p.height;
+        oldHeights.set(c, h); shift += h - p.height;
+      }
+    }
+    for (const c of heights.keys()) { cancel(heights, c); c.classList.remove('rack-sizing'); }
+    for (const c of moves.keys()) cancel(moves, c);
+    const next = new Map(all.filter(visible).map((c) => [c, rectOf(c)]));
+    if (live()) {
+      for (const [c, p] of next) {
+        const old = previous.get(c), h = oldHeights.get(c);
+        if (old && Math.abs(h - p.height) > 0.5 && Math.abs(old.width - p.width) < 0.5) animate(heights, c, [{ height: h + 'px' }, { height: p.height + 'px' }], true);
+      }
+      /* read after the height motions have started: the initial flow, so translation carries only the moves */
+      for (const [c] of next) {
+        if (held && held.card === c) continue;
+        const from = oldScreen.get(c); if (!from) continue;
+        const r = c.getBoundingClientRect(), dx = from.x - r.left, dy = from.y - r.top;
+        if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) animate(moves, c, [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'translate(0px, 0px)' }]);
+      }
+    }
+    previous = next;
+    if (observed.size !== all.length || all.some((c) => !observed.has(c))) {
+      attributes.disconnect();
+      for (const [c, nodes] of observed) if (!all.includes(c)) { nodes.forEach((n) => sizes.unobserve(n)); observed.delete(c); }
+      for (const c of all) {
+        if (!observed.has(c)) { const nodes = [...c.children].filter((n) => n.matches('.dev-head, .dev-body')); nodes.forEach((n) => sizes.observe(n)); observed.set(c, nodes); }
+        attributes.observe(c, { attributes: true, attributeOldValue: true, attributeFilter: ['class', 'hidden'] });
+      }
+    }
+    syncing = false;
+  }
+  const sizes = new view.ResizeObserver(refresh);
+  const attributes = new view.MutationObserver((records) => {
+    /* only the classes that change a card's layout; not our own sizing flag, an entrance, a value, a power */
+    if (records.some((r) => r.attributeName === 'hidden' || ['folded', 'closed', 'compact', 'floating'].some((k) =>
+      (r.oldValue || '').split(' ').includes(k) !== r.target.classList.contains(k)))) refresh();
+  });
+  const membership = new view.MutationObserver(refresh);
+  hosts.forEach((h) => membership.observe(h, { childList: true }));
+  refresh();
+  return {
+    refresh,
+    /** hold(card) — the hand takes it: no FLIP for it, its place is the hand's */
+    hold(c) { cancel(moves, c); held = { card: c, x: 0, y: 0 }; },
+    /** follow(card, x, y) — the card's top-left SEEN at (x, y); x undefined keeps it at its own column */
+    follow(c, x, y) {
+      if (!held || held.card !== c) return;
+      const r = c.getBoundingClientRect();
+      if (x !== undefined) held.x = x - (r.left - held.x);
+      held.y = y - (r.top - held.y);
+      setVar(c, 'translate', `${held.x}px ${held.y}px`);
+    },
+    /** release(card, settle) — the hand lets go: it travels from where it is seen into its slot (settle) or stays */
+    release(c, settle = true) {
+      if (!held || held.card !== c) return;
+      const from = `${held.x}px ${held.y}px`;
+      held = null; setVar(c, 'translate', null);
+      signature = ''; refresh();
+      if (settle && live()) animate(moves, c, [{ translate: from }, { translate: '0px 0px' }]);
+    },
+    get holding() { return held ? held.card : null; },
+    destroy() {
+      if (held) setVar(held.card, 'translate', null); held = null;
+      sizes.disconnect(); attributes.disconnect(); membership.disconnect();
+      for (const c of heights.keys()) { cancel(heights, c); c.classList.remove('rack-sizing'); }
+      for (const c of moves.keys()) cancel(moves, c);
+      previous.clear();
+    },
+  };
+}
+
 /* ── the rack ──────────────────────────────────────────────────────────────────────────────────────────────── */
 /** createRack({ host, sides, key, store, favourites, transport, seats, phone, chrome, handle, onChange }) → api
  *    host        where the racks, the float layer and the chrome are appended (λWAVES/BASINS: #lab)
@@ -199,12 +335,13 @@ export function createRack({ host = globalThis.document && document.body, sides 
   /* ── the DOM: the racks, the float layer, the grip, the chrome ── */
   const racks = {};
   for (const side of SIDES) if (sides.includes(side)) {
-    const r = take(RACK_ID[side], 'div', 'mir-rack'); r.dataset.side = side; r.tabIndex = -1;
+    const r = take(RACK_ID[side], 'div', 'mir-rack'); r.dataset.side = side; r.dataset.mirRack = ''; r.tabIndex = -1;
     r.setAttribute('role', 'region'); ariaLabel(r, side === 'left' ? 'the left rack' : 'the rack');   // tr: the RACK: the column of docked windows at the screen’s edge (not the SHELF, where notes are kept)
     racks[side] = r;
   }
   const rackOf = (side) => racks[side] || racks.right || racks.left;
   const isRack = (n) => !!n && (n === racks.left || n === racks.right);
+  const motion = createRackMotion(Object.values(racks), view);       // BASINS' animated drag and drop (above)
   const floats = take('floats', 'div', 'mir-rack-floats');
   const grip = el('div', 'mir-rack-grip', host); grip.setAttribute('aria-hidden', 'true'); made.push(grip);
   const btn = (id, kind, text, label) => { const b = take(id, 'button', 'glass mir-rack-btn'); b.type = 'button'; b.dataset.rackBtn = kind; if (text) b.textContent = text; b.setAttribute('aria-label', label); b.title = label; return b; };
@@ -347,12 +484,12 @@ export function createRack({ host = globalThis.document && document.body, sides 
   }
   const sideFor = (root) => { const st = floatState.get(root.dataset.id); if (st) return st.home.side; if (root.dataset.phoneFrom) return root.dataset.phoneFrom; return root.parentElement && root.parentElement.dataset.side || root.dataset.home; };
 
-  /* the entrance: the neighbours make room (flip), the window settles 6 px into its seat — translate only, no fade */
+  /* the entrance (BASINS basins-pane-enter): the neighbours make room (the rack's motion), the window rises 6 px into
+     its seat — translate only, no fade */
   function enter(root) {
     if (motionPolicy() !== 'full' || typeof root.animate !== 'function') return;
-    root.animate([{ translate: '0px -6px' }, { translate: '0px 0px' }], { duration: motionToken('ui'), easing: motionToken('out') });
+    own(root, root.animate([{ translate: '0px 6px' }, { translate: '0px 0px' }], { duration: motionToken('ui'), easing: motionToken('out') }));
   }
-  const neighbours = (rk) => () => cards(rk);
 
   /** open(id, { side, index }) — build it if it never was, then into a rack (default: the one it was in, at the top) */
   function open(id, o = {}) {
@@ -364,7 +501,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
     else {
       const rk = phoneOn ? rackOf('right') : o.side ? rackOf(o.side) : isRack(root.parentElement) ? root.parentElement : rackOf(w.spec.side);
       if (phoneOn && o.side === 'left') root.dataset.phoneFrom = 'left';
-      flip(neighbours(rk), () => { root.classList.remove('closed'); const list = cards(rk).filter((c) => c !== root); rk.insertBefore(root, list[Math.max(0, Math.min(o.index ?? 0, list.length))] || null); });
+      root.classList.remove('closed'); const list = cards(rk).filter((c) => c !== root); rk.insertBefore(root, list[Math.max(0, Math.min(o.index ?? 0, list.length))] || null);
       enter(root);
     }
     root.dispatchEvent(new CustomEvent('devopen', { bubbles: true }));
@@ -377,7 +514,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
     const root = w.dev.root; if (root.classList.contains('closed')) return true;
     if (G && G.card === root) drg.cancel();
     const rk = root.parentElement;
-    if (isRack(rk)) flip(neighbours(rk), () => root.classList.add('closed')); else root.classList.add('closed');
+    root.classList.add('closed');
     root.dispatchEvent(new CustomEvent('devclose', { bubbles: true }));
     call(w, 'onClose'); call(w, 'onSleep');
     save(); return true;
@@ -389,8 +526,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
     const w = reg.get(id); if (!w || !w.dev) return false;
     const root = w.dev.root, now = root.classList.contains('folded'), next = want === undefined ? !now : !!want;
     if (next === now) return true;
-    const rk = root.parentElement;
-    if (isRack(rk)) flip(neighbours(rk), () => w.dev.fold(next)); else w.dev.fold(next);
+    w.dev.fold(next);
     call(w, 'onFold', next); save(); return true;
   }
   /** raise(id) — open it, unfold it, show the rack, and bring it to the top of its rack (or the front, floating) */
@@ -399,7 +535,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
     open(id); const root = w.dev.root;
     if (root.classList.contains('folded')) fold(id, false);
     if (root.classList.contains('floating')) { raiseFloat(root); if (root.classList.contains('compact')) setCompact(id, false); }
-    else { const rk = root.parentElement; if (cards(rk)[0] !== root) flip(neighbours(rk), () => rk.insertBefore(root, cards(rk)[0] || null)); rk.scrollTop = 0; setHidden(false); }
+    else { const rk = root.parentElement; if (cards(rk)[0] !== root) rk.insertBefore(root, cards(rk)[0] || null); rk.scrollTop = 0; setHidden(false); }
     save(); return true;
   }
   /** move(id, { side, index }) — to a place in a rack (the keyboard's move, and a host's) */
@@ -408,7 +544,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
     const root = w.dev.root, from = root.parentElement, to = phoneOn ? rackOf('right') : side ? rackOf(side) : from;
     const list = cards(to).filter((c) => c !== root), at = Math.max(0, Math.min(index ?? 0, list.length));
     if (from === to && cards(to).indexOf(root) === at) return true;
-    flip(() => [...cards(from), ...cards(to)], () => to.insertBefore(root, list[at] || null));
+    to.insertBefore(root, list[at] || null); motion.refresh();
     save(); return true;
   }
 
@@ -437,12 +573,11 @@ export function createRack({ host = globalThis.document && document.body, sides 
     popFace(root); railFace(root);
     return st;
   }
-  /** float(id, at) — take a window off its rack onto the stage (it travels there) */
+  /** float(id, at) — take a window off its rack onto the stage */
   function float(id, at) {
     const w = reg.get(id); if (!w || !w.dev || phoneOn) return false;
     const root = w.dev.root; if (root.classList.contains('floating')) { raiseFloat(root); return true; }
-    const rk = root.parentElement;
-    flip(() => [root, ...cards(rk)], () => floatNow(id, at || {}));
+    floatNow(id, at || {});                                           // BASINS popOut: it comes off at once; the rack closes the gap
     save(); return true;
   }
   /** the DOM change of docking a floating window: into `side` at `index`, or home */
@@ -458,11 +593,10 @@ export function createRack({ host = globalThis.document && document.body, sides 
     floatState.delete(id);
     popFace(root); railFace(root);
   }
-  /** dock(id, { side, index }) — put a floating window back (home, unless told where); it travels into its slot */
+  /** dock(id, { side, index }) — put a floating window back (home, unless told where) */
   function dock(id, drop) {
     const w = reg.get(id); if (!w || !w.dev || !floatState.has(id)) return false;
-    const rk = rackOf(phoneOn ? 'right' : drop && drop.side || floatState.get(id).home.side);
-    flip(() => [w.dev.root, ...cards(rk)], () => dockNow(id, drop));
+    dockNow(id, drop);                                                // BASINS dockWindow: it lands at once; the rack makes room
     save(); return true;
   }
   const toggleFloat = (id) => (floatState.has(id) ? dock(id) : float(id));
@@ -526,10 +660,12 @@ export function createRack({ host = globalThis.document && document.body, sides 
     onStart() {
       const p = pending; pending = null; if (!p) return;
       const card = p.card, id = card.dataset.id, r = card.getBoundingClientRect(), floating = card.classList.contains('floating');
+      const head = card.querySelector('.dev-head') || card;
       G = { card, id, mode: floating ? 'float' : 'reorder', ax: p.x - r.left, ay: p.y - r.top, w: r.width, h: r.height, cols: columns(),
+        headH: head.offsetHeight || 0,                              // THE TITLE BAR DECIDES (Josh 2026-10-02): its middle is the probe
         origin: floating ? { float: { ...floatState.get(id) } } : { rk: card.parentElement, next: card.nextElementSibling } };
       card.classList.add('dragging');
-      if (floating) raiseFloat(card);
+      if (floating) raiseFloat(card); else motion.hold(card);
     },
     onMove(s) { if (!G) return; if (G.mode === 'reorder') reorderMove(s); else floatMove(s); },
     onEnd() {
@@ -537,13 +673,12 @@ export function createRack({ host = globalThis.document && document.body, sides 
       G = null; g.card.classList.remove('dragging');
       if (g.mode === 'reorder') {
         edgeProx.end(); landProx.end();
-        flip([g.card], () => setVar(g.card, 'translate', null));
+        motion.release(g.card);                                       // BASINS: it settles from the hand into its slot
       } else {
         edgeProx.end();
         const m = landProx.end(), st = floatState.get(g.id);
         if (m && m.captured) {
-          const rk = rackOf(m.captured.id);
-          flip(() => [g.card, ...cards(rk)], () => dockNow(g.id, { side: m.captured.id, index: m.captured.index }));
+          dockNow(g.id, { side: m.captured.id, index: m.captured.index });   // BASINS: it lands in the slot; the rack makes room
         } else if (st && g.at) {                                       // ONE layout commit: left/top land, the transform goes
           st.x = g.at.x; st.y = g.at.y; setVar(g.card, 'translate', null); placeFloat(g.card, st);
         }
@@ -558,28 +693,26 @@ export function createRack({ host = globalThis.document && document.body, sides 
       const card = g.card;
       if (g.origin.rk) {                                               // it began in a rack: back to its rack and its place
         const rk = g.origin.rk, next = g.origin.next && g.origin.next.parentElement === rk ? g.origin.next : null;
-        flip(() => [card, ...cards(rk)], () => {
-          if (floatState.has(g.id)) dockNow(g.id, { side: rk.dataset.side, index: 0 });
-          setVar(card, 'translate', null); rk.insertBefore(card, next);
-        });
-      } else flip([card], () => setVar(card, 'translate', null));   // it began floating: its left/top were never written
+        if (floatState.has(g.id)) { dockNow(g.id, { side: rk.dataset.side, index: 0 }); motion.hold(card); }
+        rk.insertBefore(card, next); motion.refresh();
+        motion.release(card);                                         // BASINS endDrag on cancel: back in its place, settling there
+      } else setVar(card, 'translate', null);                         // it began floating: its left/top were never written
       save();
     },
   });
 
   function reorderMove(s) {
     const card = G.card, rk = card.parentElement, col = G.cols.find((c) => c.rk === rk) || { rk, rest: restOf(rk), left: 0, right: 0, top: 0, bottom: 0 };
-    let list = boxes(col);
-    const at = list.findIndex((b) => b.el === card), center = s.y - G.ay + G.h / 2;
-    const to = reorderIndex(list, at, center);
+    const list = boxes(col);
+    const at = list.findIndex((b) => b.el === card), bar = s.y - G.ay + G.headH / 2;   // the middle of the title bar in the hand
+    const to = reorderIndex(list, at, bar);
     if (to !== at && at >= 0) {
-      const ref = to < at ? list[to].el : list[to].el.nextElementSibling;
-      flip(() => cards(rk).filter((c) => c !== card), () => rk.insertBefore(card, ref));
-      list = boxes(col);
+      rk.insertBefore(card, to < at ? list[to].el : list[to].el.nextElementSibling);
+      motion.refresh();                                               // BASINS: the others make room, travelling (FLIP)
     }
     /* the held window follows the hand vertically at its own x; its layout place is the slot it will land in */
     const top = col.rest.top + card.offsetTop - rk.scrollTop, left = col.rest.left + card.offsetLeft;
-    setVar(card, 'translate', `0px ${Math.round(s.y - G.ay - top)}px`);
+    motion.follow(card, undefined, s.y - G.ay);
     const proj = s.x - G.ax;
     if (!phoneOn && col.right > col.left && detached(proj, G.w, col)) { toFloat(s, proj); return; }
     landProx.update({ x: s.x, y: s.y }, [{ id: col.side || 'home', rect: { left, top, width: G.w, height: card.offsetHeight }, hit: { left: col.left, top: 0, width: col.right - col.left, height: view.innerHeight }, shape: 'rect' }]);
@@ -592,8 +725,8 @@ export function createRack({ host = globalThis.document && document.body, sides 
   function toFloat(s, proj) {
     const card = G.card, rk = card.parentElement;
     edgeProx.cancel(); landProx.cancel();
-    setVar(card, 'translate', null);
-    flip(() => cards(rk).filter((c) => c !== card), () => floatNow(G.id, { x: proj, y: s.y - G.ay, w: G.w, home: { side: rk.dataset.side, index: Math.max(0, cards(rk).indexOf(card)) } }));
+    motion.release(card, false);                                      // BASINS: let go without settling, then off the rack
+    floatNow(G.id, { x: proj, y: s.y - G.ay, w: G.w, home: { side: rk.dataset.side, index: Math.max(0, cards(rk).indexOf(card)) } });
     G.mode = 'float'; G.cols = columns();
     floatMove(s);
   }
@@ -603,7 +736,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
     G.at = want;
     setVar(G.card, 'translate', `${want.x - st.x}px ${want.y - st.y}px`);
     const targets = G.cols.map((col) => {
-      const bx = boxes(col, G.card), index = insertionIndex(bx, s.y);
+      const bx = boxes(col, G.card), index = insertionIndex(bx, s.y - G.ay + G.headH / 2);   // the title bar decides here too
       return { id: col.side, index, rect: slotRect(col, bx, index), hit: { left: col.left, top: 0, width: col.right - col.left, height: view.innerHeight }, shape: 'slot' };
     });
     landProx.update({ x: s.x, y: s.y }, targets);
@@ -933,7 +1066,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
     sync: syncPhone,
     destroy() {
       if (spanObs) spanObs.destroy();
-      drg.cancel(); drg.destroy(); landProx.destroy(); edgeProx.destroy(); life.abort(); activity.disconnect();
+      motion.destroy(); drg.cancel(); drg.destroy(); landProx.destroy(); edgeProx.destroy(); life.abort(); activity.disconnect();
       if (run) run.cancel(); frame.cancel('mir-rack:save');
       for (const w of reg.values()) if (w.dev) w.dev.root.remove();
       for (const n of made) n.remove();

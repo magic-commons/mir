@@ -1,4 +1,4 @@
-/* rack.node.mjs — the rack's pure part: the live reorder (BASINS' 8-px hysteresis), the insertion index and the slot it
+/* rack.node.mjs — the rack's pure part: the live reorder (the title bar decides), the insertion index and the slot it
  * draws, the detach test, the float clamp, the peek (near, hold, the armed dismiss), the transport's seat, the
  * SHIFT-queue's order, the ☆ slot choice, and the layout repair (unknown ids dropped, λWAVES/BASINS records read). */
 import assert from 'node:assert/strict';
@@ -11,17 +11,26 @@ const pass = (name, detail) => { n++; console.log(`PASS ${name}${detail ? ` — 
 const B = [{ top: 0, height: 100 }, { top: 110, height: 100 }, { top: 220, height: 100 }];
 
 {
-  assert.equal(reorderIndex(B, 0, 50), 0, 'at rest');
-  assert.equal(reorderIndex(B, 0, 160 + RACK.hyst), 0, 'exactly at the hysteresis: not yet');
-  assert.equal(reorderIndex(B, 0, 160 + RACK.hyst + 1), 1, 'past it: swaps one');
+  /* THE TITLE BAR DECIDES: the probe is the middle of the held window's title bar (a 34-px bar: 17 px below its top) */
+  assert.equal(reorderIndex(B, 0, 17), 0, 'at rest: the bar is in its own window');
+  assert.equal(reorderIndex(B, 0, 160), 0, 'exactly on the neighbour\'s middle: not yet');
+  assert.equal(reorderIndex(B, 0, 160.5), 1, 'past it: below it');
   assert.equal(reorderIndex(B, 0, 300), 2, 'past two middles: two');
-  assert.equal(reorderIndex(B, 2, 100), 1, 'upward');
+  assert.equal(reorderIndex(B, 2, 159.5), 1, 'upward: above the middle, above the window');
+  assert.equal(reorderIndex(B, 2, 160), 2, 'on the middle upward: not yet');
   assert.equal(reorderIndex(B, 2, 0), 0, 'to the top');
-  assert.equal(reorderIndex(B, 1, 150), 1, 'a small wobble does nothing');
-  pass('reorderIndex: a held window swaps 8 px past a neighbour\'s middle, either way, several at once');
+  assert.equal(reorderIndex(B, 1, 117), 1, 'its own bar at rest');
+  /* a TALL held window: its centre would be far below its bar — only the bar counts */
+  const T = [{ top: 0, height: 100 }, { top: 110, height: 600 }];
+  assert.equal(reorderIndex(T, 1, 60), 1, 'the bar 10 px below the neighbour\'s middle: stays below, however tall');
+  assert.equal(reorderIndex(T, 1, 49), 0, 'the bar above the neighbour\'s middle: above it');
+  /* no hysteresis needed: after the swap the neighbour's middle has moved the held window's height away */
+  const after = [{ top: 0, height: 600 }, { top: 610, height: 100 }];
+  assert.equal(reorderIndex(after, 0, 49), 0, 'swapped: the same bar is now well above the neighbour\'s new middle (660)');
+  pass('reorderIndex: the title bar\'s middle decides — above a window once above its middle, below once below; tall windows alike, stable after a swap');
 }
 {
-  assert.equal(insertionIndex(B, -40), 0); assert.equal(insertionIndex(B, 49), 0); assert.equal(insertionIndex(B, 51), 1);
+  assert.equal(insertionIndex(B, -40), 0); assert.equal(insertionIndex(B, 49), 0); assert.equal(insertionIndex(B, 51), 1, 'the carried window\'s title bar below the first middle: below it');
   assert.equal(insertionIndex(B, 400), 3); assert.equal(insertionIndex([], 10), 0);
   const col = { left: 900, right: 1200, top: 0 };
   assert.deepEqual(slotRect(col, B, 1), { left: 900, top: 103, width: 300, height: 4 }, 'centred in the 10-px gap');
