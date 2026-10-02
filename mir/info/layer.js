@@ -26,17 +26,24 @@
  *
  * COORDINATES: subject() and features() answer in the stage's own CSS pixels (0,0 = the stage's top-left).
  *
- * createInfoLayer({ stage, host, subject, features, style, follow, lines })
- *   → { addLabel({ anchor, title, md }), addBlock({ md, hold }), setStyle(s), setFollow(on), setLines(on),
- *       setEdit(on), freeze(on), viewChanged(), replay(), clear(kind?), debug(), destroy(), root }
- *   anchor: a feature id (looked up in features() every view change), { x, y, r }, or () => { x, y, r }.
- *   Each add returns { el, remove(), id }. */
+ * GONE: an anchor that resolves to null, or a feature or place off the stage, hides its labels and line (they take no
+ * part in the force while hidden) and brings them back on their seats when it returns.  SEATS: which side of its
+ * anchor a label rests on is chosen by info/seats.js, under the force.  CONTROLS: `ui:name` anchors follow an element
+ * anywhere in the document; their lines are drawn on THE OVERLAY (below).
+ *
+ * createInfoLayer({ stage, host, subject, features, style, follow, lines, parallax, drift, pane, controls })
+ *   → { addLabel({ anchor, title, md, line, control }), addBlock({ md, hold, pane }), setStyle(s), setFollow(on),
+ *       setLines(on), setEdit(on), setPane(on), setParallax(on), setDrift(on), freeze(on), viewChanged(), replay(),
+ *       clear(kind?), debug(), destroy(), root, stage }
+ *   anchor: a feature id (looked up in features() every view change), 'ui:name' (a control), { x, y, r }, or
+ *   () => { x, y, r } | null.  Each add returns { el, remove(), id }.  Pages: info/page.js. */
 import { frame } from '../core/frame.js';
 import { motionPolicy, motionToken } from '../core/motion.js';
 import { drag } from '../core/pointer.js';
 import { setVar, setAttr, rect } from '../core/perf.js';
 import { leader, comb, toPath } from './leader.js';
 import { createBody, createRunner, resolveRests, PHYS } from './bodies.js';
+import { chooseSeat } from './seats.js';
 import { renderNotebook } from '../shell/notebook-render.js';
 import { loadRenderer } from '../shell/notebook.js';
 
@@ -47,6 +54,7 @@ export const INFO = Object.freeze({
   enter: { dot: 140, lineAt: 60, line: 260, textAt: 200, perLine: 30, maxLines: 6, stagger: 55, maxStagger: 5, block: 340, blockLine: 45 },
   exit: { text: 120, lineAt: 70, line: 120, dot: 90, stagger: 25 },
   fade: 120, travel: 96,
+  reseat: 1400,                                                     // ms a label's seat holds after it changed (the seat chooser)
   block: { k: 34, zeta: 0.72 },
   /* PARALLAX against the cursor (px of travel at the stage's edge, per kind; eased over tau seconds) and DRIFT, a
      slow bob that never stops while it is on (Josh, 10-01: "everything moving and floaty") */
@@ -74,7 +82,7 @@ const spring = () => {
   return (SPRING = ok ? s : { easing: motionToken('out'), ms: 300 });
 };
 
-export function createInfoLayer({ stage, host = stage.parentElement, subject = null, features = null, style = 'auto', follow = true, lines = true, parallax = true, drift = false } = {}) {
+export function createInfoLayer({ stage, host = stage.parentElement, subject = null, features = null, style = 'auto', follow = true, lines = true, parallax = true, drift = false, pane = false, controls = null } = {}) {
   const doc = stage.ownerDocument, win = doc.defaultView;
   const root = doc.createElement('div'); root.className = 'mir-info';
   root.dataset.style = style; root.dataset.lines = lines ? 'on' : 'off';
@@ -89,7 +97,7 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
   const ready = loadRenderer().catch(() => false);
 
   /* ── the bodies ─────────────────────────────────────────────────────────────────────────────────────────── */
-  const bodies = () => items.filter((i) => i.measured).map((i) => i.body);
+  const bodies = () => items.filter((i) => i.measured && !(i.group && i.group.gone)).map((i) => i.body);
   const par = { x: 0, y: 0 };                                       // the pointer's place, −1…1 from the stage's middle, eased
   let envT = 0;
   const env = () => {
@@ -128,6 +136,7 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
     setVar(root, 'left', px(s.left - h.left - host.clientLeft + host.scrollLeft) + 'px');
     setVar(root, 'top', px(s.top - h.top - host.clientTop + host.scrollTop) + 'px');
     setVar(root, 'width', px(W) + 'px'); setVar(root, 'height', px(H) + 'px');
+    if (overG) setAttr(overG, 'transform', `translate(${px(s.left)} ${px(s.top)})`);   // the overlay draws in stage px too
   }
   function readSubject() {
     const r = subject && subject();
@@ -136,41 +145,61 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
       Object.assign(S, { has: true, left, top, right: left + w, bottom: top + h, w, h, cx: left + w / 2, cy: top + h / 2 });
       return;
     }
-    const as = [...groups.values()].map((g) => g.A).filter(Boolean);   // no subject: the anchors stand in for it
+    const as = [...groups.values()].filter((g) => !g.gone && !g.isControl).map((g) => g.A).filter(Boolean);   // no subject: the anchors stand in for it
     if (!as.length) { S.has = false; return; }
     const left = Math.min(...as.map((a) => a.x - a.r)), right = Math.max(...as.map((a) => a.x + a.r));
     const top = Math.min(...as.map((a) => a.y - a.r)), bottom = Math.max(...as.map((a) => a.y + a.r));
     Object.assign(S, { has: true, left, top, right, bottom, w: right - left, h: bottom - top, cx: (left + right) / 2, cy: (top + bottom) / 2 });
   }
-  function resolveAnchor(spec) {
+  function resolveAnchor(spec, g) {
     let a = null;
+    if (typeof spec === 'string' && spec.startsWith('ui:')) return controlAnchor(spec.slice(3), g && g.control);
     if (typeof spec === 'string') a = features ? (features() || []).find((f) => f.id === spec) : null;
     else if (typeof spec === 'function') a = spec();
     else a = spec;
     return a ? { x: a.x, y: a.y, r: a.r || 0 } : null;
   }
+  /* A CONTROL ANCHOR — `ui:name`: the element with data-info~="name" (or id="name") anywhere in the document, or what
+     the label's own `control` (a function name → element, or a node to search) answers.  Read live, in stage px. */
+  function controlAnchor(name, own) {
+    const el = findControl(name, own || controls);
+    if (!el || !el.isConnected) return null;
+    const r = rect(el); if (r.width < 1 && r.height < 1) return null;   // hidden (display: none, a folded window)
+    const sb = stageBox || rect(stage), x = r.left - sb.left, y = r.top - sb.top;
+    return { x: x + r.width / 2, y: y + r.height / 2, r: Math.min(r.width, r.height) / 2, box: { x, y, w: r.width, h: r.height }, control: true };
+  }
+  function findControl(name, how) {
+    if (typeof how === 'function') return how(name) || null;
+    const scope = how && how.querySelector ? how : doc, q = globalThis.CSS && CSS.escape ? CSS.escape(name) : name;
+    for (const el of scope.querySelectorAll(`[data-info~="${q}"]`)) if (!root.contains(el)) return el;
+    const byId = doc.getElementById(name);
+    return byId && !root.contains(byId) && (scope === doc || scope.contains(byId)) ? byId : null;
+  }
 
-  /* where each body belongs: blocks at their seat, labels off their anchors, then the seat pass */
+  /* where each body belongs: blocks at their seat, labels off their anchors (on the seat the chooser picks), then the
+     rest pass.  An anchor that is gone (null, or a feature or place off the stage) hides its labels and line. */
   function computeRests() {
-    for (const g of groups.values()) g.A = resolveAnchor(g.spec) || g.A;
-    readSubject();
     for (const g of groups.values()) {
-      const A = g.A; if (!A) continue;
-      const ls = g.labels.filter((l) => l.measured); if (!ls.length) continue;
-      /* the side: away from the subject's middle, with a little hysteresis so a label on the centre line does not flip */
-      const hx = S.has ? 0.12 * S.w / 2 : 0, hy = S.has ? 0.12 * S.h / 2 : 0;
-      if (!g.sx || (S.has && Math.abs(A.x - S.cx) > hx)) g.sx = !S.has ? 1 : A.x >= S.cx ? 1 : -1;
-      if (!g.sy || (S.has && Math.abs(A.y - S.cy) > hy)) g.sy = !S.has ? -1 : A.y <= S.cy ? -1 : 1;
-      const escape = S.has ? Math.max(0, g.sx > 0 ? S.right - A.x : A.x - S.left) : 0;
-      const dx = escape + INFO.out + A.r, dy = INFO.rise + Math.min(40, 0.2 * escape);
-      let Ly = A.y + g.sy * dy, prev = null;
-      for (const l of ls) {
-        if (l.offset) { placeLabel(l, A.x + l.offset.dx, A.y + l.offset.dy, sgn(l.offset.dx)); continue; }
-        if (prev) Ly = g.sy < 0 ? Ly - prev.titleH - (l.h - l.titleH) - INFO.comb : Ly + (prev.h - prev.titleH) + l.titleH + INFO.comb;
-        placeLabel(l, A.x + g.sx * dx, Ly, g.sx); prev = l;
-      }
+      const A = resolveAnchor(g.spec, g);
+      const off = !A || (!A.control && (A.x < -A.r || A.x > W + A.r || A.y < -A.r || A.y > H + A.r));
+      if (g.gone && !off) g.back = true;                            // it returns: it lands on its seat, it does not fly in
+      g.gone = off; if (A) g.A = A;
     }
-    for (const it of items) if (it.kind === 'block' && it.measured) placeBlock(it);
+    readSubject();
+    placeBlocks();
+    const obs = { boxes: items.filter((i) => i.kind === 'block' && i.measured).map((i) => box(i.body)), segs: [] };
+    for (const g of groups.values()) if (g.A && !g.gone) obs.boxes.push({ ...anchorBox(g.A), solid: false });
+    if (S.has) obs.boxes.push({ x: S.left, y: S.top, w: S.w, h: S.h, solid: false });   // words never rest on the subject
+    /* who chooses first: a label the hand placed (it does not move), then by how deep the anchor lies inside the
+       subject's box, in coarse steps of 40 px so the order does not shuffle while the view moves: an anchor near an
+       edge has one short way out, the one in the middle can leave by any edge, so it chooses last */
+    const depth = (A) => (S.has ? Math.max(0, Math.min(A.x - S.left, S.right - A.x, A.y - S.top, S.bottom - A.y)) : 0);
+    const order = [...groups.values()].filter((g) => g.A && !g.gone).map((g, i) => ({ g, k: (g.labels.some((l) => l.offset || l.body.held) ? 0 : 1000 + 100 * Math.min(9, Math.floor(depth(g.A) / 40))) + i }));
+    order.sort((a, b) => a.k - b.k);                                 // stable: the order never shuffles while the view moves
+    for (const { g } of order) {
+      const ls = g.labels.filter((l) => l.measured); if (!ls.length) continue;
+      seatGroup(g, g.A, ls, obs);
+    }
     const list = bodies();
     resolveRests(list, new Set(items.filter((i) => i.kind === 'block').map((i) => i.body.id)));
     for (const b of list) {                                          // and inside the stage
@@ -178,28 +207,98 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
       b.rx = Math.max(INFO.margin, Math.min(b.rx, W - INFO.margin - b.w));
       b.ry = Math.max(INFO.margin, Math.min(b.ry, H - INFO.margin - b.h));
     }
+    for (const g of groups.values()) if (g.back && !g.gone) {
+      g.back = false;
+      for (const l of g.labels) { const b = l.body; b.x = b.rx + b.ox; b.y = b.ry + b.oy; b.vx = b.vy = 0; }
+    }
   }
-  function placeLabel(l, Lx, Ly, side) {
-    const b = l.body;
-    if (b.held) return;
-    b.rx = side > 0 ? Lx + INFO.pad : Lx - INFO.pad - l.w;
-    b.ry = Ly - l.titleH;
+  const box = (b) => ({ x: b.rx, y: b.ry, w: b.w, h: b.h });
+  const anchorBox = (A) => A.box || { x: A.x - A.r, y: A.y - A.r, w: 2 * A.r, h: 2 * A.r };
+  /** the seats an anchor's labels may take, and the one the chooser keeps.  Each seat: mode 'h' (beside: the 45° run
+   *  then flat) or 'v' (above or below: the 45° run then vertical), and the quadrant (sx, sy). */
+  function seatGroup(g, A, ls, obs) {
+    /* the natural side: away from the subject's middle, with a little hysteresis so a label on the centre line does
+       not flip; a control's labels face the stage's middle */
+    if (g.isControl) { g.sx = A.x > W / 2 ? -1 : 1; g.sy = A.y > H / 2 ? -1 : 1; }
+    else {
+      const hx = S.has ? 0.12 * S.w / 2 : 0, hy = S.has ? 0.12 * S.h / 2 : 0;
+      if (!g.sx || (S.has && Math.abs(A.x - S.cx) > hx)) g.sx = !S.has ? 1 : A.x >= S.cx ? 1 : -1;
+      if (!g.sy || (S.has && Math.abs(A.y - S.cy) > hy)) g.sy = !S.has ? -1 : A.y <= S.cy ? -1 : 1;
+    }
+    const inside = S.has && A.x > S.left && A.x < S.right && A.y > S.top && A.y < S.bottom;
+    const quad = (m) => [[m, g.sx, g.sy], [m, g.sx, -g.sy], [m, -g.sx, g.sy], [m, -g.sx, -g.sy]];
+    /* a control's seats are straight off it, above or below (toward the stage's middle first): a seat beside it would
+       sit on the bar or window the control lives in, which the layer cannot see */
+    const seats = g.isControl ? quad('v') : inside ? [...quad('h'), ...quad('v')] : quad('h');
+    const free = ls.some((l) => !l.offset && !l.body.held);
+    const now = performance.now(), cur = seats.findIndex((seat) => seat.join() === g.seat);
+    let pick = 0;
+    if (cur >= 0 && now - g.seatAt < INFO.reseat) pick = cur;      // a seat that just changed waits for its label to land
+    else if (free && seats.length > 1) {
+      const cands = seats.map((seat, i) => {
+        const at = layoutSeat(g, A, ls, seat);
+        return { boxes: ls.map((l, k) => ({ x: at[k].rx, y: at[k].ry, w: l.w, h: l.h })), segs: segsOf(g, A, ls, at), natural: i === 0, current: seat.join() === g.seat };
+      });
+      pick = chooseSeat(cands, obs, { bounds: { left: INFO.margin, top: INFO.margin, right: W - INFO.margin, bottom: H - INFO.margin }, subject: S.has ? { x: S.left, y: S.top, w: S.w, h: S.h } : null });
+    }
+    if (seats[pick].join() !== g.seat) { g.seat = seats[pick].join(); g.seatAt = now; }
+    const at = layoutSeat(g, A, ls, seats[pick]);
+    obs.boxes.push(...ls.map((l, k) => ({ x: at[k].rx, y: at[k].ry, w: l.w, h: l.h }))); obs.segs.push(...segsOf(g, A, ls, at));
+    ls.forEach((l, k) => { if (!l.body.held) { l.body.rx = at[k].rx; l.body.ry = at[k].ry; } });
+  }
+  /** the rest boxes of a group's labels on one seat (a label the hand dropped keeps its place) */
+  function layoutSeat(g, A, ls, [mode, sx, sy]) {
+    const out = [];
+    let Lx, Ly;
+    if (mode === 'h') {
+      const escape = S.has && !g.isControl ? Math.max(0, sx > 0 ? S.right - A.x : A.x - S.left) : 0;
+      Lx = A.x + sx * (escape + INFO.out + A.r); Ly = A.y + sy * (INFO.rise + Math.min(40, 0.2 * escape));
+    } else {                                                         // straight out of the nearest free edge, then up or down
+      const edge = g.isControl || !S.has ? A.r : Math.max(A.r, sy < 0 ? A.y - S.top : S.bottom - A.y);
+      Lx = A.x + sx * (INFO.out / 2 + A.r); Ly = A.y + sy * (edge + INFO.rise * (g.isControl ? 2 : 1));
+      if (g.isControl && sy < 0) Ly -= ls[0].h - ls[0].titleH;      // the whole label clears the control, not only its title
+    }
+    let prev = null;
+    for (const l of ls) {
+      if (l.offset) { out.push(seatOf(l, A.x + l.offset.dx, A.y + l.offset.dy, sgn(l.offset.dx))); continue; }
+      if (prev) Ly = sy < 0 ? Ly - prev.titleH - (l.h - l.titleH) - INFO.comb : Ly + (prev.h - prev.titleH) + l.titleH + INFO.comb;
+      out.push(seatOf(l, Lx, Ly, sx)); prev = l;
+    }
+    return out;
+  }
+  const seatOf = (l, Lx, Ly, side) => ({ rx: side > 0 ? Lx + INFO.pad : Lx - INFO.pad - l.w, ry: Ly - l.titleH });
+  /** the line a seat would draw (the same grammar paint() draws) */
+  function segsOf(g, A, ls, at) {
+    const pts = ls.map((l, k) => { const cx = at[k].rx + l.w / 2, side = cx >= A.x ? 1 : -1; return { x: side > 0 ? at[k].rx - INFO.pad : at[k].rx + l.w + INFO.pad, y: at[k].ry + l.titleH, side }; });
+    const styles = ls.map((l) => lineOf(l, g)), under = ls.map((l, i) => (styles[i] === 'flat-first' ? 0 : INFO.pad + l.titleW));
+    return ls.length === 1 ? leader(A, pts[0], { style: styles[0], under: under[0], side: pts[0].side }).segs : comb(A, pts, { under }).segs;
+  }
+  /* the blocks of a page (a `---` separates them) stand in one column per seat, in reading order */
+  function placeBlocks() {
+    const list = items.filter((i) => i.kind === 'block' && i.measured), cols = new Map(), G = INFO.gap / 2;
+    for (const it of list) { placeBlock(it); const k = it.seat; if (!cols.has(k)) cols.set(k, []); cols.get(k).push(it); }
+    for (const [k, col] of cols) {
+      if (col.length < 2 || col.some((i) => i.body.held)) continue;
+      const total = col.reduce((t, i) => t + i.h, 0) + G * (col.length - 1);
+      let y = k[0] === 'x' ? S.cy - total / 2 : k === 'y-1' ? col[0].body.ry + col[0].h - total : col[0].body.ry;
+      for (const it of col) { it.body.ry = y; y += it.h + G; }
+    }
   }
   function placeBlock(it) {
     const b = it.body;
-    if (!S.has) { b.rx = (W - it.w) / 2; b.ry = H * 0.12; return; }
+    if (!S.has) { b.rx = (W - it.w) / 2; b.ry = H * 0.12; it.seat = 'y1'; return; }
     /* beside the subject when a side has room for it, else above or below it (a phone, a tall picture) */
     const room = (s) => (s > 0 ? W - S.right : S.left) - INFO.gap - INFO.margin >= it.w;
     it.axis = room(1) || room(-1) ? 'x' : 'y';
     if (it.axis === 'x') {
       const side = room(it.side) ? it.side : -it.side;
       b.rx = side > 0 ? S.right + INFO.gap : S.left - INFO.gap - it.w;
-      b.ry = S.cy - it.h / 2;
+      b.ry = S.cy - it.h / 2; it.seat = 'x' + side;
     } else {
       const fits = (s) => (s > 0 ? H - S.bottom : S.top) - INFO.gap - INFO.margin >= it.h;
       const side = fits(it.side) || !fits(-it.side) ? it.side : -it.side;
       b.rx = Math.max(INFO.margin, Math.min(S.cx - it.w / 2, W - INFO.margin - it.w));
-      b.ry = side > 0 ? S.bottom + INFO.gap : S.top - INFO.gap - it.h;
+      b.ry = side > 0 ? S.bottom + INFO.gap : S.top - INFO.gap - it.h; it.seat = 'y' + side;
     }
   }
   /** a label's attach point and side from where its body is NOW (mid-flight too) */
@@ -220,8 +319,10 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
     }
     const show = root.dataset.lines === 'on';
     for (const g of groups.values()) {
+      setAttr(g.g, 'data-gone', g.gone ? '' : null);
+      for (const l of g.labels) setAttr(l.el, 'data-gone', g.gone ? '' : null);
       const ls = g.labels.filter((l) => l.measured);
-      if (!g.A || !ls.length) continue;
+      if (!g.A || !ls.length || g.gone) continue;
       const pts = ls.map((l) => attach(l, g.A));
       for (const [i, l] of ls.entries()) setAttr(l.el, 'data-side', pts[i].side > 0 ? 'right' : 'left');
       if (!show) continue;
@@ -260,7 +361,11 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
     root.appendChild(el);
     const it = { kind, id, el, text, pin, body: createBody({ id, x: 0, y: 0, w: 0, h: 0 }), measured: false, w: 0, h: 0, titleH: 0, titleW: 0,
       side: 0, offset: null, title: o.title || '', md: o.md || '', pinned: false, holdUntil: 0, anims: [] };
-    if (kind === 'block') { it.body.k = INFO.block.k; it.body.zeta = INFO.block.zeta; it.side = 1; it.holdUntil = performance.now() + (o.hold || 0); }
+    if (kind === 'block') {
+      it.body.k = INFO.block.k; it.body.zeta = INFO.block.zeta; it.side = 1; it.holdUntil = performance.now() + (o.hold || 0);
+      it.pane = typeof o.pane === 'boolean' ? o.pane : null;          // null: the layer's default (setPane)
+      if (it.pane ?? paneAll) el.setAttribute('data-pane', '');
+    }
     /* how far it leans from the cursor, and its own slow bob: each item a little different, so they read as layers */
     const n = items.length;
     it.depth = kind === 'block' ? INFO.par.block : INFO.par.label + INFO.par.step * (n % 3);
@@ -317,17 +422,53 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
 
   /* ── groups (one per anchor: the dot and the line) ──────────────────────────────────────────────────────── */
   const keyOf = (spec) => (typeof spec === 'string' ? 'f:' + spec : spec);
-  function groupFor(spec) {
+  function groupFor(spec, control) {
     const key = keyOf(spec);
     if (groups.has(key)) return groups.get(key);
+    const isControl = typeof spec === 'string' && spec.startsWith('ui:');
     const g = doc.createElementNS(SVG, 'g'); g.classList.add('mir-info-leader');
     const mk = (tag, cls) => { const e = doc.createElementNS(SVG, tag); e.classList.add(cls); g.appendChild(e); return e; };
     const halo = mk('path', 'mir-info-halo'), ink = mk('path', 'mir-info-ink'), dot = mk('circle', 'mir-info-dot');
     halo.setAttribute('pathLength', '1'); ink.setAttribute('pathLength', '1'); dot.setAttribute('r', '3');
-    svg.appendChild(g);
-    const grp = { key, spec, g, halo, ink, dot, labels: [], A: resolveAnchor(spec), sx: 0, sy: 0 };
+    (isControl ? overlay() : svg).appendChild(g);
+    const grp = { key, spec, g, halo, ink, dot, labels: [], A: null, sx: 0, sy: 0, isControl, control: control || null, gone: false, seat: '', seatAt: 0 };
+    grp.A = resolveAnchor(spec, grp);
     groups.set(key, grp);
+    if (isControl) watchControls();
     return grp;
+  }
+
+  /* ── THE OVERLAY: a control's line ─────────────────────────────────────────────────────────────────────────────
+     A control usually sits outside the stage, in a window or the rack, which paint over the stage.  So a control's
+     line (and its dot) is drawn on a second, document-wide root: `position: fixed`, full window, above the chrome,
+     `pointer-events: none`.  Its SVG is translated by the stage's offset, so every path stays in stage px and the
+     grammar is the same one.  The label itself stays on the stage (it is a word on the picture), inside the walls.
+     A control is read again on every viewChanged(), on any style or class change outside the layer (a window dragged,
+     folded, the rack scrolled), at the end of a transition or an animation, and on scroll: no poller. */
+  let over = null, overG = null, watching = null;
+  function overlay() {
+    if (overG) return overG;
+    over = doc.createElement('div'); over.className = 'mir-info mir-info-over'; over.dataset.lines = root.dataset.lines;
+    const s2 = doc.createElementNS(SVG, 'svg'); s2.classList.add('mir-info-lines'); s2.setAttribute('aria-hidden', 'true');
+    overG = doc.createElementNS(SVG, 'g'); s2.appendChild(overG); over.appendChild(s2); doc.body.appendChild(over);
+    stageBox = stageBox || rect(stage); overG.setAttribute('transform', `translate(${px(stageBox.left)} ${px(stageBox.top)})`);
+    return overG;
+  }
+  const mine = (n) => root.contains(n) || (over && over.contains(n));
+  function watchControls() {
+    if (watching || !win.MutationObserver) return;
+    watching = new AbortController();
+    const again = () => { if ([...groups.values()].some((g) => g.isControl)) { stageBox = null; api.viewChanged(); } };
+    const mo = new win.MutationObserver((recs) => { if (recs.some((r) => !mine(r.target))) again(); });
+    mo.observe(doc.body, { subtree: true, attributes: true, attributeFilter: ['style', 'class', 'hidden', 'open'] });
+    watching.signal.addEventListener('abort', () => mo.disconnect());
+    const o = { signal: watching.signal, capture: true, passive: true };
+    for (const t of ['transitionend', 'animationend']) doc.addEventListener(t, (e) => { if (!mine(e.target)) again(); }, o);
+    win.addEventListener('scroll', again, o);
+  }
+  function unwatchControls() {
+    if (!watching || [...groups.values()].some((g) => g.isControl)) return;
+    watching.abort(); watching = null;
   }
 
   /* ── the entrance and the exit ──────────────────────────────────────────────────────────────────────────── */
@@ -514,28 +655,36 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
           const i = items.indexOf(it); if (i >= 0) items.splice(i, 1);
           if (it.drag) it.drag.destroy();
           it.el.remove();
-          if (it.group) { it.group.labels = it.group.labels.filter((l) => l !== it); if (!it.group.labels.length) { it.group.g.remove(); groups.delete(it.group.key); } }
+          if (it.group) { it.group.labels = it.group.labels.filter((l) => l !== it); if (!it.group.labels.length) { it.group.g.remove(); groups.delete(it.group.key); unwatchControls(); } }
           computeRests(); kick(); schedule();
         });
       },
     };
   }
   const api = {
-    root,
-    addLabel({ anchor, title = '', md = '', id, line = 'auto' } = {}) {
-      const it = make('label', { title, md, id }), g = groupFor(anchor);
+    root, stage,
+    /** addLabel({ anchor, title, md, line, control }) — anchor: a feature id, 'ui:name' (a control), { x, y, r }, or
+     *  () => ({ x, y, r }) | null.  control: how to find a 'ui:' anchor's element (name → element, or a node to search) */
+    addLabel({ anchor, title = '', md = '', id, line = 'auto', control = null } = {}) {
+      const it = make('label', { title, md, id }), g = groupFor(anchor, control);
       it.line = line;
       it.group = g; g.labels.push(it); draggable(it);
       return handle(it);
     },
-    addBlock({ md = '', hold = 0, id } = {}) { return handle(make('block', { md, hold, id })); },
+    /** addBlock({ md, hold, pane }) — pane: true on a glass pane, false bare, omitted: the layer's default */
+    addBlock({ md = '', hold = 0, id, pane } = {}) { return handle(make('block', { md, hold, id, pane })); },
+    /** setPane(on) — the default for blocks that did not choose: bare (the soft darkness) or on a glass pane */
+    setPane(v) {
+      paneAll = !!v;
+      for (const it of items) if (it.kind === 'block' && it.pane === null) { it.el.toggleAttribute('data-pane', paneAll); if (it.measured) queueMeasure(it, false); }
+    },
     /** setStyle('auto' | 'diagonal-first' | 'flat-first') — 'auto' lets each label's job choose its line */
     setStyle(s) { root.dataset.style = s === 'flat-first' || s === 'diagonal-first' ? s : 'auto'; schedule(); },
     setFollow(v) { follow = !!v; if (!follow) { win.clearTimeout(dwellTimer); dwellTimer = 0; } kick(); },
     /** setParallax(on) — everything leans away from the cursor; setDrift(on) — a slow bob that keeps the frame on */
     setParallax(v) { parallax = !!v; kick(); },
     setDrift(v) { drift = !!v; kick(); },
-    setLines(v) { root.dataset.lines = v ? 'on' : 'off'; schedule(); },
+    setLines(v) { root.dataset.lines = v ? 'on' : 'off'; if (over) over.dataset.lines = root.dataset.lines; schedule(); },
     setEdit(v) { edit = !!v; setAttr(root, 'data-edit', edit ? '' : null); },
     freeze(v) { userFrozen = !!v; applyFreeze(); },
     /** viewChanged() — the picture moved: anchors and subject are read again and the labels follow on the spring */
@@ -559,17 +708,18 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
       return {
         subject: { ...S }, running: runner.running, frozen, size: { W, H },
         items: items.map((i) => ({ id: i.id, kind: i.kind, x: i.body.x, y: i.body.y, rx: i.body.rx, ry: i.body.ry, ox: i.body.ox, oy: i.body.oy, w: i.w, h: i.h, side: i.side, titleH: i.titleH, measured: i.measured })),
-        groups: [...groups.values()].map((g) => ({ key: String(g.key), A: g.A, d: g.ink.getAttribute('d') || '' })),
+        groups: [...groups.values()].map((g) => ({ key: String(g.key), A: g.A, seat: g.seat, gone: g.gone, d: g.ink.getAttribute('d') || '' })),
       };
     },
     destroy() {
       destroyed = true; runner.destroy(); life.abort();
       win.clearTimeout(dwellTimer); win.clearTimeout(pressTimer); win.clearTimeout(touchTimer);
       for (const it of items) { stopAnims(it); if (it.drag) it.drag.destroy(); }
-      root.remove();
+      if (watching) watching.abort();
+      root.remove(); if (over) over.remove();
     },
   };
-  let pendingView = false;
+  let pendingView = false, paneAll = !!pane;
   if (win.ResizeObserver) { const ro = new win.ResizeObserver(() => api.viewChanged()); ro.observe(stage); life.signal.addEventListener('abort', () => ro.disconnect()); }
   return api;
 }

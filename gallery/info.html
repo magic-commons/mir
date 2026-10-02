@@ -5,8 +5,10 @@
 <meta name="color-scheme" content="light dark">
 <title>MIR · informational</title>
 <!-- INFORMATIONAL, PLAYABLE: words on a moving picture, with no window.  A trefoil turns slowly in a colour field
-     (plain 2D canvas, no GPU); a greeting block keeps to the far side of the shape from your pointer; labels hang off
-     the shape's features on lines that are only ever flat, 45° and vertical, and trail the shape on a spring.
+     (plain 2D canvas, no GPU).  The words are PAGES: plain .md files in gallery/pages/, read through the pages model
+     (mir/shell/pages.js) and put on the picture by mir/info/page.js.  Page 0 is the greeting; a label is an Obsidian
+     callout `> [!mir|anchor]` on a feature the picture names (nucleus, tip-0 …), a place in the shape's own turning
+     plane (@0.39+0.68i, in units of R), or a control on this page (ui:float, ui:page-next).
      Click the shape to label it; paste text with $…$ to pin it where your pointer is; hold Space to hold still;
      drag the picture to move the shape; EDIT lets you drag a label while its neighbours yield. -->
 <link rel="stylesheet" href="../mir/css/base.css">
@@ -23,6 +25,7 @@
   .g-strip { position: fixed; left: 50%; bottom: 14px; translate: -50% 0; z-index: 5; box-sizing: border-box; width: max-content; max-width: calc(100vw - 32px);
     padding: 8px 10px; border-radius: 14px; display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; justify-content: center; }
   .g-strip .segw { min-width: 0; }
+  .g-page { align-self: center; min-width: 9em; max-width: 16em; padding: 0 4px; font-size: var(--fs-small); color: var(--fg-soft); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .g-hint { position: fixed; left: 50%; bottom: calc(14px + var(--strip-h, 64px) + 6px); translate: -50% 0; z-index: 5; width: max-content; max-width: calc(100vw - 32px);
     font-size: var(--fs-small); color: var(--ink-faint); text-align: center; pointer-events: none; text-shadow: 0 0 6px var(--g-hint-halo, #000); }
   body[data-theme="light"] .g-hint { --g-hint-halo: #fff; }
@@ -32,7 +35,7 @@
 </head>
 <body class="disconnected" data-card="tinted" data-theme="dark">
 <div class="g-host" id="host"><canvas id="stage" aria-label="a trefoil turning slowly in a colour field"></canvas></div>
-<div class="g-hint" id="hint">click the shape to label it · paste text with $…$ · hold <b>Space</b> to hold still · drag the picture</div>
+<div class="g-hint" id="hint">‹ › turn the page · click the shape to label it · paste text with $…$ · hold <b>Space</b> to hold still · drag the picture</div>
 <div class="g-strip glass" id="strip"></div>
 <script type="module">
 import { seg, sw, trig } from '../mir/kit.js';
@@ -40,6 +43,8 @@ import { frame } from '../mir/core/frame.js';
 import { installPress, drag } from '../mir/core/pointer.js';
 import { motionPolicy } from '../mir/core/motion.js';
 import { createInfoLayer } from '../mir/info/layer.js';
+import { showPage, greet } from '../mir/info/page.js';
+import { createPages, pageFromFile } from '../mir/shell/pages.js';
 
 const canvas = document.getElementById('stage'), host = document.getElementById('host');
 const ctx = canvas.getContext('2d');
@@ -133,24 +138,20 @@ const subjectRect = () => { const r = P.R * 1.24; return { left: P.cx - r, top: 
 resize();
 const layer = createInfoLayer({ stage: canvas, host, subject: subjectRect, features: feats, drift: true });
 window.__INFO = layer;
-const greeting = String.raw`# Informational
-Words on the picture that keep out of your way. Move past the shape and I cross to its far side; reach for me and I stay.
 
-$$r(\theta) = R\,\bigl(1 + \varepsilon\cos 3\theta\bigr)$$`;
-layer.addBlock({ md: greeting, hold: 2500 });
-layer.addLabel({ anchor: 'nucleus', title: 'The nucleus', md: String.raw`Period $p = 3$, at $c \approx -0.1226 + 0.7449i$.` });
-layer.addLabel({ anchor: 'tip-0', title: 'A lobe', md: String.raw`$r(\theta) = R\,(1 + \varepsilon\cos 3\theta)$` });
-layer.addLabel({ anchor: 'tip-1', title: 'The tip', md: String.raw`Curvature $\kappa \approx 2.6/R$` });
-layer.addLabel({ anchor: 'tip-1', title: 'Its twins', md: String.raw`Turned by $2\pi/3$ and $4\pi/3$` });
+/* a PAGE's place anchors (@a+bi) are in the shape's own plane: units of R, turning with it, so a label at the waist
+   stays at the waist */
+function placeAt(text) {
+  const m = /^\s*([+-]?\d*\.?\d+)\s*([+-])\s*(\d*\.?\d+)\s*i\s*$/.exec(text); if (!m) return null;
+  const a = +m[1], b = (m[2] === '-' ? -1 : 1) * +m[3], c = Math.cos(P.phi), s = Math.sin(P.phi);
+  return { x: P.cx + P.R * (a * c - b * s), y: P.cy + P.R * (a * s + b * c), r: 4 };
+}
 
 /* a PLACE on the shape: kept in the shape's own polar coordinates, so the label turns with it */
 function place(x, y) {
   const rho = Math.hypot(x - P.cx, y - P.cy) / P.R, alpha = Math.atan2(y - P.cy, x - P.cx) - P.phi;
   return { rho, alpha, at: () => ({ x: P.cx + rho * P.R * Math.cos(alpha + P.phi), y: P.cy + rho * P.R * Math.sin(alpha + P.phi), r: 4 }) };
 }
-/* the two lines are for two jobs: a NAMED feature gets diagonal-first (the shelf underlines its name), a NOTE at a
-   place gets flat-first.  The four labels above are named features; this one is a note at a place. */
-{ const p = place(P.cx - 0.2 * P.R, P.cy + 0.42 * P.R); layer.addLabel({ anchor: p.at, md: String.raw`A note at a place: $\rho = ${p.rho.toFixed(2)}R$. It turns with the shape.` }); }
 const added = [];
 const keep = (h) => { added.push(h); if (added.length > 8) added.shift().remove(); };
 const deg = (a) => Math.round(((a * 180) / Math.PI % 360 + 360) % 360);
@@ -193,10 +194,17 @@ canvas.addEventListener('dblclick', () => { view.tx = 0; view.ty = 0; });
 
 /* ── THE STRIP ─────────────────────────────────────────────────────────────────────────────────────────────── */
 const strip = document.getElementById('strip');
-strip.append(
+const prev = trig({ label: '‹', title: 'the previous page', onFire: () => turn(-1) }).root, next = trig({ label: '›', title: 'the next page', onFire: () => turn(1) }).root;
+prev.dataset.info = 'page-prev'; next.dataset.info = 'page-next';
+const pageName = document.createElement('div'); pageName.className = 'g-page'; pageName.setAttribute('aria-live', 'polite');
+const float = sw({ label: 'FLOAT', value: true, title: 'a slow drift, so nothing ever sits quite still', onChange: (v) => layer.setDrift(v) }).root;
+float.dataset.info = 'float';
+const paneSeg = seg({ label: 'WORDS', value: 'bare', options: [{ id: 'bare', label: 'BARE', title: 'ink on a soft darkness, no window' }, { id: 'pane', label: 'PANE', title: 'the same words on a glass pane' }], onChange: (v) => layer.setPane(v === 'pane') }).root;
+paneSeg.dataset.info = 'pane';
+strip.append(prev, pageName, next, paneSeg,
   seg({ label: 'LINE', value: 'auto', options: [{ id: 'auto', label: 'BY JOB', title: 'a named feature gets diagonal-first, a note at a place gets flat-first' }, { id: 'diagonal-first', label: 'DIAGONAL', title: 'all: thing → 45° → flat, the flat part underlining the title' }, { id: 'flat-first', label: 'FLAT', title: 'all: thing → flat → 45° → text' }], onChange: (v) => layer.setStyle(v) }).root,
   sw({ label: 'FOLLOW CURSOR', value: true, title: 'everything leans away from your pointer, and the greeting keeps to the far side of the shape', onChange: (v) => layer.setFollow(v) }).root,
-  sw({ label: 'FLOAT', value: true, title: 'a slow drift, so nothing ever sits quite still', onChange: (v) => layer.setDrift(v) }).root,
+  float,
   sw({ label: 'LINES', value: true, onChange: (v) => layer.setLines(v) }).root,
   sw({ label: 'EDIT', value: false, title: 'drag a label; its neighbours yield', onChange: (v) => layer.setEdit(v) }).root,
   trig({ label: 'REPLAY ENTRANCE', onFire: () => layer.replay() }).root,
@@ -204,6 +212,26 @@ strip.append(
   seg({ label: 'THEME', value: 'dark', options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], onChange: (v) => { document.body.dataset.theme = v; } }).root,
 );
 const hint = document.getElementById('hint');
+
+/* ── THE PAGES: plain .md files, read into the pages model; page 0 greets ─────────────────────────────────────── */
+const FILES = ['Informational.md', 'The trefoil.md', 'Its motion.md'];
+const pages = createPages();
+let at = 0, greeting = null;
+function show(i) {
+  const list = pages.list(); if (!list.length) return;
+  at = (i + list.length) % list.length;
+  showPage(layer, list[at], { place: placeAt });                     // the page on show (the greeting too) leaves first
+  if (greeting) { const g = greeting; greeting = null; g.dismiss(); } // and the greeting stops listening
+  pageName.textContent = `${at + 1} / ${list.length} · ${list[at].title}`;
+}
+const turn = (d) => show(at + d);
+window.__PAGES = pages;
+(async () => {
+  const texts = await Promise.all(FILES.map((f) => fetch('pages/' + encodeURIComponent(f)).then((r) => (r.ok ? r.text() : '')).catch(() => '')));
+  FILES.forEach((f, i) => pages.add(pageFromFile(f, texts[i])));
+  greeting = greet(layer, pages, { place: placeAt, onDismiss: () => { if (greeting) { greeting = null; show(1); } } });
+  if (greeting.shown) pageName.textContent = `1 / ${FILES.length} · ${pages.list()[0].title}`; else { greeting = null; show(1); }
+})();
 new ResizeObserver(() => { document.documentElement.style.setProperty("--strip-h", strip.offsetHeight + "px"); }).observe(strip);
 
 /* ── THE LOOP: the picture's own, and it drives the kit's one frame (one animation frame per display frame) ── */

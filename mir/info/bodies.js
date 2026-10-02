@@ -16,6 +16,9 @@
  *   neighbours: their RESTS are kept 18 px apart (gap); in flight they push only when closer than 2 px (bump),
  *            520 s⁻² per px, along the shallower axis — so two bodies whose leans differ a little can still
  *            reach their places and rest, instead of leaning on each other until the cap
+ *   transit: a free body more than 48 px from home is travelling, and travelling bodies pass through each other
+ *            (a held body still pushes everything, so a carried label's neighbours yield).  Two labels whose
+ *            seats swap, or a label crossing a column of blocks, would otherwise wedge against each other for good
  *   pointer: reach 260 px, push 5200 px/s² at contact (≈ 74 px of give) fading as (1 − d/reach)², and with time
  *            since the last move (τ 0.9 s) — a still pointer lets go slowly, and labels drift home under it
  *   reaching is not fleeing: heading straight at a body (or sitting on it) pushes nothing; the push grows as
@@ -35,7 +38,7 @@
 
 export const PHYS = Object.freeze({
   k: 70, zeta: 0.6, gap: 18, bump: 2, push: 520, reach: 260, pointer: 5200, tau: 0.9,
-  wall: 900, margin: 10, vEps: 6, dEps: 0.4, cap: 300, maxDt: 1 / 30, sub: 1 / 120,
+  wall: 900, margin: 10, vEps: 6, dEps: 0.4, cap: 300, maxDt: 1 / 30, sub: 1 / 120, transit: 48,
 });
 
 /** createBody({ id, x, y, w, h, k, zeta }) — at rest where it starts */
@@ -86,8 +89,10 @@ function sub(bodies, h, env, P) {
     }
     if (b.lift) ay[i] += b.lift;                                     // a caller's own nudge (a block crossing the subject)
   }
+  const away2 = (b) => (b.x - b.rx - b.ox) ** 2 + (b.y - b.ry - b.oy) ** 2, far = (P.transit ?? Infinity) ** 2;
   for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {     // neighbours: a short-range push apart
     const a = bodies[i], b = bodies[j]; if (!a.solid || !b.solid) continue;
+    if (!a.held && !b.held && (away2(a) > far || away2(b) > far)) continue;   // travelling: they pass through
     const o = overlap(a, a.x, a.y, b, b.x, b.y, P.bump ?? P.gap); if (!o) continue;
     const horizontal = o.ox < o.oy;
     const dir = horizontal ? Math.sign((b.x + b.w / 2) - (a.x + a.w / 2)) || 1 : Math.sign((b.y + b.h / 2) - (a.y + a.h / 2)) || 1;

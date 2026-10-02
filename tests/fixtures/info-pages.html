@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MIR · info pages fixture</title>
+<!-- a STILL stage, offset inside the window, with a "rack" beside it that paints over nothing of the stage: a page with a
+     feature label, a place label and a control label (ui:knob, a button in the rack), shown through info/page.js -->
+<link rel="stylesheet" href="../../mir/css/base.css">
+<link rel="stylesheet" href="../../mir/css/skin.css">
+<link rel="stylesheet" href="../../mir/core/core.css">
+<link rel="stylesheet" href="../../mir/info/faces.css">
+<link rel="stylesheet" href="../../mir/info/info.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0c14; }
+  #host { position: fixed; left: 40px; top: 30px; width: 940px; height: 740px; }
+  #stage { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, #6a3dbb, #101426 70%); }
+  #subject { position: absolute; left: 370px; top: 270px; width: 200px; height: 200px; border-radius: 50%; background: #e0a040; }
+  #rack { position: fixed; left: 1000px; top: 30px; width: 260px; height: 740px; z-index: 40; }
+</style>
+<script>
+  window.__rafCalls = 0;
+  const raf0 = window.requestAnimationFrame.bind(window);
+  window.requestAnimationFrame = (f) => { window.__rafCalls++; return raf0(f); };
+</script>
+</head>
+<body data-theme="dark" data-card="tinted">
+<div id="host"><div id="stage"><div id="subject"></div></div></div>
+<div id="rack" class="glass"><button id="knob-btn" type="button" data-info="knob other" style="position:absolute;left:90px;top:300px;width:64px;height:64px">K</button></div>
+<script type="module">
+import { frame } from '../../mir/core/frame.js';
+import * as motion from '../../mir/core/motion.js';
+import { perf } from '../../mir/core/perf.js';
+import { createInfoLayer } from '../../mir/info/layer.js';
+import { showPage, greet, parsePage } from '../../mir/info/page.js';
+import { createPages } from '../../mir/shell/pages.js';
+
+const stage = document.getElementById('stage');
+const F = { a: { id: 'a', x: 562, y: 300, r: 6 } };
+const PL = { p1: { x: 380, y: 450, r: 4 } };                        // the app's own places, by text
+const place = (text) => PL[text] || null;
+const layer = createInfoLayer({ stage, subject: () => ({ left: 370, top: 270, width: 200, height: 200 }), features: () => Object.values(F) });
+const ONE = String.raw`# Page one
+A block, on the far side.
+
+> [!mir|a] Feature A
+> Period $p = 3$
+
+> [!mir|@p1]
+> A note at a place.
+
+> [!mir|ui:knob] The knob
+> Turn it.`;
+const TWO = String.raw`# Page two
+Only words, $e^{i\pi} + 1 = 0$.`;
+window.__T = { layer, frame, motion, perf, F, PL, place, showPage, greet, parsePage, createPages, ONE, TWO };
+window.__ready = true;
+</script>
+</body>
+</html>
