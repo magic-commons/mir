@@ -165,9 +165,10 @@ try {
   /* ── 6 · ONE CLOCK: the window's first work-bar seat is modulation's POWER; the dot follows the app's clock ── */
   {
     r = await run(`const x = win.querySelector('.modxport');
-      return { face: x.dataset.face, power: x.classList.contains('mir-mod-power'), ring: !!x.querySelector('.mir-power-ring'), pressed: x.getAttribute('aria-pressed'), on: mod.power(),
+      const b = document.createElement('i'); b.style.color = 'var(--acc2)'; x.parentNode.appendChild(b); const accB = getComputedStyle(b).color; b.remove();
+      return { face: x.dataset.face, ink: getComputedStyle(x).color === accB && getComputedStyle(x.querySelector('svg')).color === accB && getComputedStyle(x.querySelector('.mir-power-ring')).stroke === accB, power: x.classList.contains('mir-mod-power'), ring: !!x.querySelector('.mir-power-ring'), pressed: x.getAttribute('aria-pressed'), on: mod.power(),
         hit: hits(x), noPlay: !win.querySelector('polygon') && ![...win.querySelectorAll('[aria-label], [title]')].some((n) => /\\bplay\\b/i.test((n.getAttribute('aria-label') || '') + ' ' + (n.title || ''))) };`);
-    check('power: the work bar\'s first seat is BASINS\' power button (lit while on, aria-pressed), and nothing in the window is a play', r.face === 'power' && r.power && r.ring && r.pressed === 'true' && r.on && r.hit && r.noPlay, JSON.stringify(r));
+    check('power: the work bar\'s first seat is BASINS\' power button (lit in accent B while on, aria-pressed), and nothing in the window is a play', r.face === 'power' && r.ink && r.power && r.ring && r.pressed === 'true' && r.on && r.hit && r.noPlay, JSON.stringify(r));
     r = await run(`const lfo = M.sourceList().find((s) => s.kind === 'lfo').id; const c1 = api.curve(lfo); await wait(300); const c2 = api.curve(lfo);
       const x = (c) => c.dot[0], expect = (c) => +(${'c.pad'} + c.headU * (c.w - 2 * c.pad)).toFixed(2);
       return { lfo, moved: Math.abs(x(c1) - x(c2)) > 0.5, onCurve: Math.abs(x(c2) - expect(c2)) < 1.5 || Math.abs(x(c2) - expect(c1)) < 30, a: c1.dot, b: c2.dot, head: c2.head };`);
