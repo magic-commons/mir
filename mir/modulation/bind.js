@@ -92,7 +92,8 @@ export function rootsOf(params) { return [...new Set(params.map((p) => String(p.
  *   storageKey   default 'mir.modulation'
  *   presetKey    the preset store's key (default mod.js PRESET_LS) — two apps on one origin must not share one
  *   audio        the app's audio capture factory, createAudioCapture({ onState }) (lab/audio.js); absent: no AUDIO
- *   dock, copy, targets, routeGlow   passed to the window (window.js createModulation's port)
+ *   dock, copy, targets, routeGlow, toast   passed to the window (window.js createModulation's port; toast(msg): where a
+ *                refusal is said — absent, the window's own status line)
  *   enabled      modulation's power at first boot, when the store has none (default true)
  *   showWidgets  paint routed widgets from the registry each tick (default true; law 4b)
  */
@@ -107,7 +108,7 @@ export function installModulation(o) {
   let view = null, lastTick = 0, feedMs = 0, saveTimer = 0, rebasing = false, looping = false, disposed = false;
   let cadence = prefs.modCadence === 120 ? 120 : 60;
   let armed = prefs.modArm === undefined ? o.enabled !== false : prefs.modArm !== false;
-  let audioCap = null;
+  let audioCap = null, timelineRef = null;
   params = params.slice();                                         // the live list: add() and remove() change it
   const byId = new Map(params.map((p) => [p.id, p])), armWatchers = new Set();
   const available = typeof o.available === 'function' ? o.available : () => true;
@@ -250,7 +251,7 @@ export function installModulation(o) {
     opened: () => { host.clock.setPresentationActive(true); if (onWindow) onWindow(true); requestLoop(); },
     closed: () => { host.clock.setPresentationActive(false); if (onWindow) onWindow(false); },
     persist: persistNow,
-    presetKey: o.presetKey, copy: o.copy, dock: o.dock, targets: o.targets || ROUTABLE, routeGlow: o.routeGlow,
+    presetKey: o.presetKey, copy: o.copy, dock: o.dock, targets: o.targets || ROUTABLE, routeGlow: o.routeGlow, toast: o.toast,
     audio: typeof o.audio === 'function' ? {
       state: audioState, support: () => capture().support(),
       start: (id) => capture().start(id === undefined ? (store.read().audioDevice || '') : id)
@@ -357,6 +358,11 @@ export function installModulation(o) {
     running: () => host.clock.isRunning(),
     bpm: () => M.transport.bpm,
     syncBases, persist: persistNow, paintWidgets,
+    /** setTimeline(tl) — the timeline this modulation works with (installTimeline's result, or { editor, model }): → TL
+     *  appears on every LFO and ENV head, and the PATTERN's sequencer reads its pattern clips.  null takes it away. */
+    setTimeline(tl) { timelineRef = tl || null; if (view) view.setTimeline(timelineRef); return timelineRef; },
+    /** the attached timeline, or null */
+    timeline: () => timelineRef,
     /** the AUTOMATION sampling grid (see the module's setAutomationGrid) */
     setAutomationGrid(g) { const now = host.clock.setAutomationGrid(g); persistSoon(); if (present) present(); requestLoop(); return now; },
     automationGrid: () => host.clock.automationGrid(),

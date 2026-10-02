@@ -2448,4 +2448,15 @@ body.mod-arming :is(.sw, .seg, .trig, .k:not([data-param]), .fd:not([data-param]
   color: var(--acc2); background: var(--acc2-soft); }
 /* CHOSEN (INTENT): the ON face and its rim, the label in the accent — accent B, the route's */
 .mod-mchip.on { background: var(--state-on, var(--glass-raise)); box-shadow: var(--state-on-rim, var(--neu-flat)); font-weight: var(--w-bold); }
+
+/* PATT ON THE ENV FACE (1.5.0-alpha.12, BASINS pattern.css): Full — a fourth seat after ↑ FIT ↓ (↑ and ↓ give up 8 px
+   each, BASINS' 36 · 44 · 36 · 44); Compact — beside OUT / TRIG IN, a third of the row (zoom and FIT stay absent by law);
+   never on the minimised strip.  ON is the window's own: the label in the accent and a thin accent rim. */
+#modwin.mir-modwindow .m2dev.env.m2haspatt:not(.m2cmp):not(.m2min) .m2col { grid-template-columns: 36px 44px 36px 44px minmax(0, 1fr); }
+#modwin.mir-modwindow .m2dev.m2cmp.env.m2haspatt .m2col { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 2px; }
+#modwin.mir-modwindow .m2dev.m2cmp.env .m2zoom.m2patt { display: block; order: 2; width: 100%; height: 100%; min-height: 0; }
+#modwin.mir-modwindow .m2dev .m2zoom.m2patt { --m2-patt-on-rim: inset 0 0 0 1px color-mix(in srgb, var(--acc) 55%, transparent); }
+#modwin.mir-modwindow .m2dev .m2zoom.m2patt.on { color: var(--acc); box-shadow: var(--m2-patt-on-rim); }
+/* → TL on an LFO or ENV head (only while a timeline is attached) */
+#modwin.mir-modwindow .m2dev .m2ab.m2tl { width: 30px; }
 }   /* end @layer mir.kit.plugin.host */

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MIR · pattern fixture</title>
+<!-- tests/pattern.browser.mjs: the modulation window (four LFOs and an ENV, so the device run scrolls), the PATTERN
+     window (mir/pattern/window.js installPattern) and one registered parameter.  A 2D page, no GPU. -->
+<link rel="stylesheet" href="../../mir/mir.css">
+<link rel="stylesheet" href="../../mir/pattern/pattern.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0e14; }
+  #card { position: fixed; left: 8px; top: 8px; width: 120px; padding: 10px; }
+  #floats { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  #floats > * { pointer-events: auto; }
+</style>
+</head>
+<body data-theme="dark">
+<div id="card" class="glass"></div>
+<div id="floats"></div>
+<script type="module">
+import { knob } from '../../mir/kit.js';
+import { installModulation } from '../../mir/modulation/bind.js';
+import { installPattern } from '../../mir/pattern/window.js';
+import { createHistory } from '../../mir/history/history.js';
+import { createPatternModel } from '../../mir/pattern/model.js';
+try { for (const k of Object.keys(localStorage)) if (k.startsWith('mir.test.pattern')) localStorage.removeItem(k); } catch (_) {}
+const S = { size: 0.5 };
+const w = knob({ label: 'SIZE', min: 0, max: 1, value: S.size, onInput: (v) => { S.size = v; } });
+document.getElementById('card').appendChild(w.root);
+const params = [{ id: 'scene.size', label: 'SIZE', min: 0, max: 1, map: 'linear', get: () => S.size, set: (v) => { S.size = v; }, widget: w }];
+const mod = installModulation({ mount: document.getElementById('floats'), params, storageKey: 'mir.test.pattern.mod', presetKey: 'mir.test.pattern.presets' });
+/* the rack: LFO, ENV (the window's two), then three more LFOs so the device run is wider than the window can be */
+for (let i = 0; i < 3; i++) mod.M.addSource('lfo');
+mod.view.rebuild();
+const history = createHistory();
+const pattern = installPattern({ mount: document.getElementById('floats'), mod, history, model: createPatternModel(), storageKey: 'mir.test.pattern.win' });
+window.__P = { mod, pattern, history, S };
+window.__ready = true;
+</script>
+</body>
+</html>

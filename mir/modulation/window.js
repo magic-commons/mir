@@ -49,6 +49,9 @@ import { tweenRect, presence, owns, settled } from '../core/motion.js';
 import { createProximity } from '../core/proximity.js';
 import { rect as rectOf } from '../core/perf.js';
 import { t, tn, phrase, onLanguage } from '../core/i18n.js';
+import { clipKinds } from '../timeline/kinds.js';
+import { normalizeTimelinePoints } from '../timeline/source.js';
+import { STEP_BEATS } from '../pattern/model.js';
 
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const pct = (u) => (100 * clamp01(u)).toFixed(2) + '%';
@@ -394,7 +397,7 @@ export function createModulation(host, port) {
     if (rackEl.root) rackEl.root.style.setProperty('--m2-view-h', (GEOM.CARD_FULL.h - CARD_TRIM) + 'px');
     if (animate && !root.hidden) {
       const tw = tweenRect(root, box); moving = tw;
-      tw.then(() => { if (moving !== tw) return; moving = null; placeLane(); seatRail(false); });
+      tw.then(() => { if (moving !== tw) return; moving = null; placeLane(); seatRail(false); geometryChanged(); });
     } else {
       moving = null;
       root.style.left = box.left + 'px'; root.style.top = box.top + 'px';
@@ -405,7 +408,20 @@ export function createModulation(host, port) {
     /* WAVE 81 · AND THE HOST IS TOLD WHERE THIS WINDOW NOW IS.  The plugin does not reach out and restyle the
        host's transport; it REPORTS its rect, and the host decides whether its own playhead is in the way. */
     if (port.moved) { try { port.moved({ ...box }); } catch (_) {} }
+    if (P.open) geometryChanged();
   }
+  /* THE SEAT ABOVE THE DEVICES (BASINS modwindow.js §391; the PATTERN window docks there): every place, landing, open and
+     close is told to the watchers, and `seatBox` reads the device run and the content box (the rack and the work bars
+     that show) back.  An animation after a place is the watcher's to follow (pattern/window.js follows for 450 ms). */
+  const geometryWatchers = new Set();
+  function geometryChanged() { for (const fn of geometryWatchers) { try { fn(P.open); } catch (e) { (globalThis.reportError || console.error)(e); } } }
+  function contentBox() {
+    const r = rackEl.root.getBoundingClientRect();
+    const a = P.lane !== 'hidden' ? foot.prebar.getBoundingClientRect() : r;
+    const b = P.lane !== 'hidden' ? foot.pre.getBoundingClientRect() : r;
+    return { left: r.left, right: r.right, top: Math.min(r.top, a.top, b.top), bottom: Math.max(r.bottom, a.bottom, b.bottom) };
+  }
+  const seatBox = () => (P.open ? { run: rackEl.run.getBoundingClientRect(), content: contentBox() } : null);
   /** the rail on its seat for the state as it stands (after a landing, when the rack's offset is measured again) */
   function seatRail(animate) { if (P.open) rail.seat(layoutOf(P).seat, { animate }); }
 
@@ -1881,6 +1897,7 @@ export function createModulation(host, port) {
       }
     }
     for (const s of devOrder()) { const rec = devRows.get(s.id); if (rec) setDeviceMode(rec.dev, modeOf(s.id)); }
+    syncPatt(); { const pt = patternOf(); if (pt) pt.model.rackChanged(); }
     if (broken.length) status(tn(broken.length, 'One device could not be built and is not on the rack: {list}. The rest of the rack is unaffected.',
       '{n} devices could not be built and are not on the rack: {list}. The rest of the rack is unaffected.', { list: broken.join(', ') }), 'warn');
   }
@@ -1916,6 +1933,12 @@ export function createModulation(host, port) {
       if (!w) { say(rec, t('{a} and {b} patches cannot be pasted across — they are different devices', { a: KIND_WORD[clip.kind] || String(clip.kind), b: KIND_WORD[s.kind] || s.kind })); return; }
       apply(); sync();
     });
+    /* → TL (BASINS LANE P): this device as a clip on the timeline at the playhead — only while a timeline is attached */
+    if (dev.kind !== 'audio' && timelineOf()) {
+      const tl = label(el('button', 'm2ab m2tl'), '→TL'); tl.type = 'button'; dev.pst.after(tl); dev.tl = tl;   // tr: → TL: send to the timeline
+      tl.title = 'Send to the timeline: one cycle of the LFO, the ENV\'s stages, or its live pattern row';
+      tl.addEventListener('click', () => { const msg = sendToTimeline(s); if (msg) say(rec, msg); });
+    }
     /* THE RUN ORDER IS THE FIRE ORDER, and the ◂ ▸ buttons that say so are `display: none` in
        both modes in the source (`anim.js:2597 / 2107`).  They are wired anyway, exactly as
        BASINS wires them, because the defect is the CSS's and it travels as it is. */
@@ -2005,6 +2028,20 @@ export function createModulation(host, port) {
         M.setSource(s.id, { timeScale: Math.min(M.ENV_MAX_S, Math.max(0.25, envDrawn(s) * 1.15)) });
         paint(true); say(rec, t('fitted to {s} s', { s: s.timeScale.toFixed(2) }));
       });
+      /* PATT (BASINS LANE P): this ENV's step row in the PATTERN window — on, the row drives it (and the window opens);
+         off, the row is kept.  On the Full face after ↑ FIT ↓, on Compact beside OUT / TRIG IN, never on the minimised
+         strip (Josh 10-01: "ALL modes 'Compact' and 'Full' EXCEPT for the minimized mode").  Only with a pattern attached. */
+      if (patternOf()) {
+        const patt = label(el('button', 'm2zoom m2fit m2seat44 m2patt'), 'PATT'); patt.type = 'button'; zout.after(patt); dev.patt = patt;   // tr: PATT: pattern — the ENV's step row
+        dev.root.classList.add('m2haspatt');
+        patt.title = 'Pattern: drive this envelope from its step row in the PATTERN window';
+        patt.addEventListener('click', () => {
+          const pt = patternOf(); if (!pt) return;
+          const on = !pt.model.isLive(s.id); pt.model.setLive(s.id, on);
+          if (on && pt.show) pt.show(s.id);
+          say(rec, on ? t('pattern on — its row drives this envelope') : t('pattern off — the row is kept'));
+        });
+      }
     }
 
     /* ── WAVE 102 · THE AUDIO FACE ────────────────────────────────────────────────────────────
@@ -2267,6 +2304,56 @@ export function createModulation(host, port) {
   }
 
   let clip = null;
+
+  /* ═══ THE PATTERN AND THE TIMELINE, ATTACHED (1.5.0-alpha.12) ═══════════════════════════════
+     Two plugins the window works with when the app has them: the PATTERN (pattern/window.js installPattern attaches
+     { model, show(envId) }) puts PATT on every ENV face; the TIMELINE (installModulation's setTimeline, or
+     port.timeline()) puts → TL on every LFO and ENV head.  Neither is imported for its own sake: absent, nothing shows. */
+  let patternHost = null, timelineHost = null;
+  const patternOf = () => patternHost;
+  const timelineOf = () => timelineHost || (typeof port.timeline === 'function' ? port.timeline() : null);
+  let offPattern = null;
+  /** PATT's lamp follows the pattern model (the window, a project restore, an undo) */
+  function syncPatt() {
+    const pt = patternOf();
+    for (const rec of devRows.values()) if (rec.dev.patt) { const on = !!pt && pt.model.isLive(rec.id); rec.dev.patt.classList.toggle('on', on); rec.dev.patt.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+  }
+  /* → TL, THE EXPERIMENT (BASINS LANE P): an LFO = one cycle of its shape, an ENV = its stages over timeScale seconds, an ENV
+     with a live lit row = a PATTERN clip of that row.  It lands at the playhead's beat on the timeline's active lane
+     (editor.addClip); a curve clip targets the device's first live route. */
+  const routedTarget = (s) => { for (const m of M.macroList()) if (m.sourceId === s.id) for (const r of M.routesOfMacro(m.id)) if (!r.dormant && registry.has(r.targetId)) return r.targetId; return null; };
+  const hexInk = (rec) => { const m = rec && /rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/.exec(getComputedStyle(rec.dev.ed.path).stroke || ''); return m ? '#' + [m[1], m[2], m[3]].map((v) => (+v).toString(16).padStart(2, '0')).join('') : undefined; };
+  const warn = (msg) => { if (typeof port.toast === 'function') port.toast(msg); else status(msg, 'warn'); return null; };
+  function sendToTimeline(s) {
+    const tlh = timelineOf(); if (!tlh) return warn(t('add the timeline first — a device is sent to it'));
+    const T = M.transport, bpm = T.bpm, start = Math.max(0, Math.floor(T.beats + 1e-9)), rec = devRows.get(s.id);
+    const editor = tlh.editor, name = (s.label || (KIND_WORD[s.kind] ? KIND_WORD[s.kind].t : s.kind)) + ' ' + s.id;   // a clip's name is data: the English kind, as BASINS saves it
+    const add = (kind, source, o) => (editor && editor.addClip ? editor.addClip(kind, source, { start, ...o })
+      : tlh.model.create({ targetId: o.targetId || kind + ':' + s.id, name: o.name, value: 0, start, duration: o.duration, source: kind === 'curve' ? source : { ...source, kind } }));
+    const done = (id, what, beats) => { if (!id) return warn(t('No room on the timeline for {what} — add a lane or move the playhead', { what }));
+      return t('{what} → timeline · {beats} beats at beat {start}', { what, beats: +beats.toFixed(3), start }); };
+    const pt = patternOf();
+    if (s.kind === 'env' && pt && pt.model.isLive(s.id) && pt.model.lit(s.id)) {
+      if (!clipKinds().includes('pattern')) return warn(t('pattern clips arrive with the timeline lane'));
+      const steps = pt.model.steps(s.id), beats = steps.length * STEP_BEATS;
+      return done(add('pattern', { envId: s.id, steps, name, color: hexInk(rec) }, { duration: beats, name }), t('the pattern'), beats);
+    }
+    const targetId = routedTarget(s);
+    if (!targetId) return warn(t('Route {name} to a control first — its clip needs a target', { name }));
+    let points, beats;
+    if (s.kind === 'env') { points = M.envPoints(s); beats = s.timeScale * bpm / 60; }
+    else {
+      const hz = M.lfoHz(s);
+      beats = s.sync ? M.beatsPerCycle(s) : hz > 0 ? bpm / (60 * hz) : 0;
+      points = s.shapeMode === 'curve' ? s.points.map((p) => ({ t: p.t, v: p.v, tension: p.tension || 0 }))
+        : Array.from({ length: 64 }, (_, i) => ({ t: i / 63, v: M.waveAt(s.wave, i / 63, { cycles: 0, seed: s.rseed }), tension: 0 }));
+    }
+    if (s.invert) points = points.map((p) => ({ ...p, v: 1 - p.v }));
+    points = normalizeTimelinePoints(points);
+    if (!points || !(beats > 0)) return warn(t('This device has no shape to send'));
+    const d = registry.describe().find((x) => x.id === targetId);
+    return done(add('curve', { points, color: hexInk(rec) }, { duration: beats, targetId, name: (d && d.label) || targetId }), s.kind === 'env' ? t('the envelope') : t('one cycle'), beats);
+  }
 
 
   const say = (rec, msg) => {
@@ -3181,7 +3268,7 @@ export function createModulation(host, port) {
     closePop(); closePresets(); closeDead();
     if (matrix.open) closeMatrix();
     if (was && port.moved) { try { port.moved(null); } catch (_) {} }
-    persist();
+    persist(); geometryChanged();
     return true;
   }
   root.hidden = true; rail.el.hidden = true;
@@ -3316,7 +3403,9 @@ export function createModulation(host, port) {
     presets: () => M.presetList().map((p) => ({ id: p.id, name: p.name, folder: p.folder, factory: !!p.factory })),
     presetKey: () => (M.presetStoreState ? M.presetStoreState().key : null),
     dead: () => M.dormantRoutes().map((r) => ({ id: r.id, macro: r.macroId, target: r.targetId })),
-    performance: () => ({ calls: paintCalls, paints: paintRuns, ms: paintMs, averageMs: paintRuns ? paintMs / paintRuns : 0 })
+    performance: () => ({ calls: paintCalls, paints: paintRuns, ms: paintMs, averageMs: paintRuns ? paintMs / paintRuns : 0 }),
+    /** → TL for one device (the PATTERN row menu's SEND TO TIMELINE): the sentence said, or null (refused out loud) */
+    sendToTimeline: (id) => { const s = M.sourceOf(id); return s ? sendToTimeline(s) : null; }
   };
 
 
@@ -3327,6 +3416,18 @@ export function createModulation(host, port) {
 
   return {
     root, rail: rail.el, chipRail: rail, api, paint, sync, rebuild, presentation, restore, setAccent,
+    /** the seat above the devices: { run, content } viewport rects while open (null closed), and the notice of every
+     *  place, landing, open and close: onGeometry(fn(open)) → off */
+    seatBox, onGeometry(fn) { geometryWatchers.add(fn); return () => geometryWatchers.delete(fn); },
+    /** setPattern({ model, show(envId) } | null) — PATT on every ENV face (pattern/window.js installPattern calls it) */
+    setPattern(p) {
+      if (offPattern) { offPattern(); offPattern = null; }
+      patternHost = p && p.model ? p : null;
+      if (patternHost) offPattern = patternHost.model.subscribe(syncPatt);
+      rebuild(); if (P.open) paint(true);
+    },
+    /** setTimeline({ editor, model } | null) — → TL on every LFO and ENV head (installModulation's setTimeline calls it) */
+    setTimeline(tl) { timelineHost = tl || null; rebuild(); if (P.open) paint(true); },
     /** the host's road to the window's ONE line of prose — the same seat every message takes */
     say: (msg, cls) => status(msg, cls),
     resumeSentence,
@@ -3336,6 +3437,7 @@ export function createModulation(host, port) {
     wake() { rebuild(); paint(true); },
     dispose() {
       if (liveApi === api) liveApi = null;
+      if (offPattern) { offPattern(); offPattern = null; } geometryWatchers.clear();
       off(); offLanguage(); if (ro) { ro.disconnect(); ro = null; } if (boxRO) boxRO.disconnect();
       document.removeEventListener('pointerdown', armTap, true);
       document.removeEventListener('pointerdown', popAway, true);

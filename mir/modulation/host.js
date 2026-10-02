@@ -216,6 +216,12 @@ export function createModClock(opts) {
   let prevWall = null;              /* null: the next dt is NOT a dt (their prevTs = 0) */
   let realtimeOwner = null;        /* a scrub owns advancement, never Play/BASE/HOLD */
   const demands = new Set();        /* things that want the clock without owning a route */
+  /* THE ADVANCE NOTICE (1.5.0-alpha.12): a client that must see every move of musical time — the pattern sequencer, which
+     fires on beat crossings — hears it here, after the model moved and the routes applied: 'tick' (the realtime pump),
+     'step' (the recorder's deterministic door) and 'seek'.  One call site per move, so live play and a recording fire
+     exactly the same crossings; no client needs a loop of its own. */
+  const advanceWatchers = new Set();
+  const advanced = (kind) => { for (const fn of advanceWatchers) { try { fn(kind); } catch (e) { (globalThis.reportError || console.error)(e); } } };
   let automation = null;           /* optional beat-sampled moving baseline, never an authored write */
   let modulationEnabled = true;    /* deterministic clients may drive automation without macro routes */
   let exactResume = !!o.exactResume; /* arrangements can own an exact play cursor; legacy ships */
@@ -449,6 +455,7 @@ export function createModClock(opts) {
       stats.seconds += dt;
       M.advance(dt, w);
       if (applyAll(false)) requestPresentation('modulation-output');
+      if (advanceWatchers.size) advanced('tick');
       return dt;
     },
 
@@ -470,6 +477,7 @@ export function createModClock(opts) {
         applyAll(false);
         requestPresentation(running ? 'modulation-output' : 'manual-step');
       } finally { stepping--; exactStep--; }
+      if (advanceWatchers.size) advanced('step');
       return d;
     },
 
@@ -520,6 +528,8 @@ export function createModClock(opts) {
     isModulationEnabled: () => modulationEnabled,
     setExactResume(on) { exactResume = !!on; return exactResume; },
     isExactResume: () => exactResume,
+    /** onAdvance(fn(kind)) → off: fn after every move of musical time — 'tick', 'step' or 'seek' (see the notice above) */
+    onAdvance(fn) { advanceWatchers.add(fn); return () => advanceWatchers.delete(fn); },
     /** the sampling grid in beats: 0 (FRAME), 1/32, 1/16 or 1/8; anything else is 0.  → the grid now */
     setAutomationGrid(g) { automationGrid = AUTOMATION_GRIDS.includes(+g) ? +g : 0; applyAll(true); requestPresentation('automation-grid'); return automationGrid; },
     automationGrid: () => automationGrid,
@@ -535,6 +545,7 @@ export function createModClock(opts) {
       const previewStep = !automationHold || running;
       if (previewStep) stepping++;
       try { applyAll(true); requestPresentation('transport-seek'); } finally { if (previewStep) stepping--; }
+      if (advanceWatchers.size) advanced('seek');
       return M.transport.beats;
     },
 
