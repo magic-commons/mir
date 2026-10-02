@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>MIR · themes</title>
+<!-- THE VANILLA THEMES, AS A WALL.  Every theme × every one of its tones, each a live miniature of the same small scene (a
+     rack with two windows: a knob, a fader, a switch on and off, a segmented row, a trigger; a floating window; a 2D
+     picture), so they can be compared at a glance.  A miniature is this page in its scene mode (?scene&theme=…&tone=…
+     &mode=…), in an iframe, with the theme applied through the kit's look store and nothing stored.  Clicking one applies
+     it to this whole page (the GUI window's store: open it from GUI › MIR OPTIONS to see the options it set).  The rules
+     below only lay the page out and paint the picture's ground; every look is the kit's. -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/css/tokens.css">
+<link rel="stylesheet" href="../mir/shell/shell.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<link rel="stylesheet" href="../mir/window/window.css">
+<link rel="stylesheet" href="../mir/shell/rack.css">
+<link rel="stylesheet" href="../mir/shell/gui.css">
+<link rel="stylesheet" href="../mir/fx/fx.css">
+<style>
+  html, body { margin: 0; height: 100%; background: #070a0f; }
+  body[data-theme="light"] { background: #eef1f6; }
+  #ground { position: fixed; inset: 0; width: 100%; height: 100%; }
+  #lab { position: fixed; inset: 0; }
+  #floats { position: fixed; inset: 0; z-index: 40; pointer-events: none; }
+  /* the wall */
+  body.wall { overflow: auto; }
+  .w-page { position: relative; z-index: 10; padding: 56px 24px 32px; display: flex; flex-direction: column; gap: 22px; }
+  .w-row { display: flex; flex-direction: column; gap: 8px; }
+  .w-name { font: 700 11px/1 var(--font-ui); letter-spacing: var(--tr-wider); color: var(--fg); display: flex; gap: 14px; align-items: baseline; }
+  .w-name small { font-weight: 400; letter-spacing: var(--tr-wide); color: var(--fg-soft); }
+  .w-tiles { display: flex; flex-wrap: wrap; gap: 14px; }
+  .w-tile { position: relative; width: 312px; height: 195px; border-radius: 12px; overflow: hidden; cursor: pointer; padding: 0; border: 0; background: none;
+    outline-offset: 3px; }
+  .w-tile iframe { width: 960px; height: 600px; border: 0; transform: scale(.325); transform-origin: 0 0; pointer-events: none; }   /* the scene at 960 × 600, a third of it */
+  .w-tile > span { position: absolute; left: 8px; bottom: 7px; font: 700 9px/1 var(--font-ui); letter-spacing: var(--tr-wider); color: #fff; text-shadow: 0 1px 2px #000; }
+  .w-tile.on { outline: 2px solid var(--acc); }
+  .w-tile:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); }
+  .w-modes { position: fixed; right: 18px; top: 12px; z-index: 50; display: flex; gap: 8px; }
+  /* the scene */
+  body.scene { overflow: hidden; }
+  .s-note { margin: 0; font-size: var(--fs-small); line-height: 1.5; color: var(--fg-soft); }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted">
+<canvas id="ground" aria-hidden="true"></canvas>
+<div id="lab"></div>
+<div id="floats"></div>
+<script type="module">
+import { el, knob, fader, seg, sw, trig } from '../mir/kit.js';
+import { createRack } from '../mir/shell/rack.js';
+import { createWindow } from '../mir/window/window.js';
+import { createPrefs } from '../mir/core/prefs.js';
+import { createGui, lookSchema } from '../mir/shell/gui.js';
+import { THEMES, themeValues, toneValues, matchTone } from '../mir/shell/themes.js';
+import { wordmark } from '../mir/shell/wordmark.js';
+import { createMenubar } from '../mir/shell/menubar.js';
+
+const $ = (id) => document.getElementById(id), q = new URLSearchParams(location.search);
+
+/* the picture: a 2D canvas (a WebGPU canvas screenshots black headless) */
+function paintGround(light) {
+  const c = $('ground'), g = c.getContext('2d'), w = c.width = innerWidth, h = c.height = innerHeight;
+  g.fillStyle = light ? '#e9edf4' : '#070a0f'; g.fillRect(0, 0, w, h);
+  for (const [x, y, col] of [[.2, .3, '#2f7de1'], [.7, .22, '#d0479b'], [.48, .78, '#f0a531'], [.9, .7, '#38c7a8'], [.08, .85, '#7a4ee0']]) {
+    const r = Math.max(w, h) * .36, gr = g.createRadialGradient(x * w, y * h, 0, x * w, y * h, r);
+    gr.addColorStop(0, col + (light ? '99' : 'dd')); gr.addColorStop(1, col + '00'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  }
+}
+
+if (q.has('scene')) {
+  /* ── THE SCENE: one theme, one tone, one mode, nothing stored ── */
+  document.body.classList.add('scene');
+  const P = createPrefs({ key: 'scene', schema: lookSchema(), storage: null, presets: {} });
+  const theme = q.get('theme') || 'frost', mode = q.get('mode') === 'light' ? 'light' : 'dark';
+  P.set({ ...themeValues(theme), ...(q.get('tone') ? toneValues(theme, q.get('tone')) : {}), theme: mode, glow: false, parallax: false });
+  P.apply({ now: true });
+  paintGround(mode === 'light');
+  const rack = createRack({ host: $('lab'), store: { get: () => null, set() {} }, chrome: false });
+  rack.register({ id: 'a', title: 'CONTROLS', side: 'right', open: true, build(b) {
+    const r1 = el('div', 'row', b); r1.append(knob({ label: 'GAIN', min: 0, max: 1, value: .62 }).root, knob({ label: 'HUE', min: 0, max: 360, value: 200, wrap: true, cls: 'accent-dial' }).root);
+    r1.lastChild.style.setProperty('--accent-sweep', '200deg');
+    b.append(fader({ label: 'MIX', min: 0, max: 1, value: .4 }).root);
+    const r2 = el('div', 'row', b); r2.append(sw({ label: 'ON', value: true }).root, sw({ label: 'OFF', value: false }).root);
+  } });
+  rack.register({ id: 'b', title: 'MODE', side: 'right', open: true, build(b) {
+    b.append(seg({ label: 'SHAPE', value: 'b', options: [{ id: 'a', label: 'SINE' }, { id: 'b', label: 'SAW' }, { id: 'c', label: 'NOISE' }] }).root);
+    const r = el('div', 'row', b); r.append(trig({ label: 'RANDOM' }).root, trig({ label: 'RESET' }).root);
+  } });
+  rack.start();
+  const W = createWindow({ id: 'scene-win', title: 'NOTE', host: $('floats'), size: { w: 230, h: 120 }, body: (b) => { el('p', 's-note', b, 'A floating window over the picture.'); b.append(trig({ label: 'TRIGGER' }).root); } });
+  W.place({ x: 28, y: 150 }); W.open();
+  wordmark($('lab'), { word: 'MIR', sub: (THEMES.find((t) => t.id === theme) || {}).name || '' });
+  window.__ready = true;
+} else {
+  /* ── THE WALL ── */
+  document.body.classList.add('wall');
+  const gui = createGui({ host: $('floats'), app: { name: 'MIR THEMES' }, about: { fonts: '../fonts/' } });
+  const mode = () => gui.prefs.env().theme;
+  paintGround(mode() === 'light');
+  const page = el('div', 'w-page', document.body);
+  const tiles = [];
+  const build = () => {
+    page.replaceChildren(); tiles.length = 0;
+    for (const t of THEMES) {
+      const row = el('section', 'w-row', page), name = el('div', 'w-name', row, t.name);
+      el('small', '', name, t.tones.map((o) => o.name).join(' · '));
+      const wrap = el('div', 'w-tiles', row);
+      for (const o of t.tones) {
+        const b = el('button', 'w-tile', wrap); b.type = 'button'; b.dataset.theme = t.id; b.dataset.tone = o.id; b.setAttribute('aria-label', `${t.name} · ${o.name}`);
+        const f = el('iframe', '', b); f.loading = 'lazy'; f.tabIndex = -1; f.title = `${t.name} ${o.name}`; f.src = `./themes.html?scene&theme=${t.id}&tone=${o.id}&mode=${mode()}`;
+        el('span', '', b, `${t.name} · ${o.name}`);
+        b.addEventListener('click', () => { gui.applyTheme(t.id); gui.applyTone(o.id); });
+        tiles.push(b);
+      }
+    }
+    mark();
+  };
+  const mark = () => { const s = gui.prefs.all(), t = gui.prefs.preset(), o = matchTone(s, t); for (const b of tiles) b.classList.toggle('on', b.dataset.theme === t && b.dataset.tone === o); };
+  build();
+  gui.prefs.subscribe((s, changed) => { if (changed.includes('theme')) { paintGround(mode() === 'light'); build(); } else mark(); });
+  const modes = el('div', 'w-modes', document.body);
+  modes.append(seg({ label: '', value: gui.prefs.get('theme'), options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], onChange: (v) => gui.prefs.set('theme', v) }).root,
+    trig({ label: 'MIR OPTIONS', onFire: () => gui.open('options') }).root);
+  const title = wordmark($('lab'), { word: 'MIR', sub: 'THEMES' });
+  createMenubar({ opener: title, host: $('lab'), menus: { GUI: () => [['MIR OPTIONS', () => gui.open('options')], ['MIR OPTIONS 2', () => gui.open('options:2')], ['MIR ABOUT', () => gui.open('about')]] } });
+  window.__T = { gui, tiles };
+  window.__ready = true;
+}
+</script>
+</body>
+</html>
