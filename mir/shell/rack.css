@@ -46,6 +46,9 @@ html[data-flush] .mir-rack > .dev + .dev { border-top-color: transparent; }
 .mir-rack[data-side="right"] > * { direction: ltr; }
 .mir-rack:focus { outline: none; }
 @media (min-width: 861px) { .mir-rack { --rack-shadow-gutter: 48px; } }
+/* BASINS material.css:244 gives the gutter on `body:not(.phone)` only: a landscape phone wider than 860 px has none
+   (the phone draws its own rack below, and nothing that reads the gutter — the span, the scrollbar — sees one) */
+body.phone .mir-rack { --rack-shadow-gutter: 0px; }
 /* a window carried in a rack, and its header as a keyboard handle */
 .mir-rack .dev-head:focus-visible, .mir-rack-floats .dev-head:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
 .mir-rack > .dev.dragging, .mir-rack-floats > .dev.dragging { opacity: 1; }   /* the carried pane keeps its blur (see the law) */
@@ -62,6 +65,32 @@ body.rack-hidden:not(.rack-peek-right) .mir-rack[data-side="right"] > .dev > *,
 body.rack-hidden:not(.rack-peek-left) .mir-rack[data-side="left"] > .dev > * { visibility: inherit; }
 /* H: the whole interface out of paint */
 body.ui-hidden :is(.mir-rack, .mir-rack-floats, .mir-rack-btn, .mir-rack-list) { display: none; }
+
+/* ── THE SCROLLBAR AT THE CARD COLUMN (BASINS rack-scrollbars.js + skin.css:657-667; shell/rack-scrollbar.js) ──────
+   createRack({ scrollbar: true }): the native bar is off on a wide screen and a transparent 12-px track stands beside
+   the cards, at the gutter's inner edge, with a 3-px accent thumb.  The class names are BASINS'. */
+@media (min-width: 861px) {
+  body.rack-scrollbars:not(.phone) [data-mir-rack] { scrollbar-width: none; }
+  body.rack-scrollbars:not(.phone) [data-mir-rack]::-webkit-scrollbar { width: 0; }
+}
+.rack-scrollbar {
+  --rack-scrollbar-w: 12px; --rack-scrollbar-thumb-w: 3px; --rack-scrollbar-thumb-x: 4px;
+  --rack-scrollbar-rest: .65; --rack-scrollbar-fade: 150ms; --rack-scrollbar-ease: ease;
+  --rack-scrollbar-focus-r: 6px;
+  position: absolute; z-index: calc(var(--z-chrome) + 1); width: var(--rack-scrollbar-w); background: transparent; border: 0; touch-action: none; cursor: default;
+}
+.rack-scrollbar[hidden] { display: none; }
+.rack-scrollbar-thumb {
+  position: absolute; left: var(--rack-scrollbar-thumb-x); width: var(--rack-scrollbar-thumb-w); border-radius: var(--r-pill);
+  background: var(--acc); opacity: var(--rack-scrollbar-rest); transition: opacity var(--rack-scrollbar-fade) var(--rack-scrollbar-ease);
+}
+.rack-scrollbar:hover .rack-scrollbar-thumb, .rack-scrollbar.drag .rack-scrollbar-thumb { opacity: 1; }
+.rack-scrollbar:focus-visible { outline: 1px solid var(--acc); outline-offset: -2px; border-radius: var(--rack-scrollbar-focus-r); }   /* BASINS: inside the 12-px track */
+:root:is([data-motion="reduced"], [data-motion="off"]) .rack-scrollbar-thumb { transition: none; }
+body.ui-hidden .rack-scrollbar { display: none; }
+
+/* ── COPY (rack.copyDigest): BASINS lab.css:29, the word from t() (data-copied) so it is translated ── */
+.dev.copied .dev-stat::after { content: ' · ' attr(data-copied); color: var(--acc); }
 
 /* ── THE FLOAT LAYER ─────────────────────────────────────────────────────────────────────────────────────── */
 .mir-rack-floats { position: absolute; inset: 0; z-index: calc(var(--z-chrome) + 2); pointer-events: none; }

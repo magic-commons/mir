@@ -28,9 +28,13 @@
  *   6. KEYBOARD AND TOUCH ARE FIRST-CLASS.  A window's header is focusable: ↑ ↓ move it in its rack, ← → move it to the
  *      other rack, Enter floats or docks it (arrows nudge a floating one).  A finger holds the header 400 ms to lift it.
  *   7. IDLE COSTS NOTHING: no poller, no rAF while nothing moves; peek reads one cached width per pointer move.
- *   8. THE LAYOUT IS DATA.  capture() → { v, hidden, phoneShown, cards: [{ id, side, open, folded, off, float }] } in
+ *   8. THE LAYOUT IS DATA.  capture() → { v, hidden, phoneShown, cards: [{ id, side, open, folded, off, float }], nb? } in
  *      rack order, through an injected store; readLayout() repairs anything it is handed (unknown ids are dropped,
- *      never thrown on), and reads λWAVES' and BASINS' saved layouts (side 'L'/'R', `closed`) as they are.
+ *      never thrown on), and reads λWAVES' and BASINS' saved layouts (side 'L'/'R', `closed`) as they are.  A retired
+ *      id resolves to its heir (`retired`), and a ☆ layout keeps the notebook's size (`nb`), as BASINS' did.
+ *   9. BASINS' LEFTOVERS (1.5.0-alpha.12): the scrollbar seated at the card column (shell/rack-scrollbar.js,
+ *      `scrollbar: true`), the touch-tablet float clamp (`tabletClamp`), RESET LAYOUT (`resetLayout()`), and COPY a
+ *      window's readouts (`digest(id)`, `copyDigest(id)`, with BASINS' flash).
  *
  * createRack(options) → api — see docs/RACK.md.  windows() lists the windows with their titles and state (for describe()
  * and the openers); keepClear() gives the rects a new floating window should not land on (FOLDERS' first seat).  The pure helpers are exported for node tests. */
@@ -43,6 +47,8 @@ import { setVar, setAttr } from '../core/perf.js';
 import { createWindowActivity } from '../window-activity.js';
 import { observeSpan } from '../window/dock.js';
 import { glyphEl, hasGlyph } from '../glyph.js';
+import { t } from '../core/i18n.js';
+import { createRackScrollbars } from './rack-scrollbar.js';
 
 export const SIDES = Object.freeze(['left', 'right']);
 /** the numbers the rack keeps (BASINS and λWAVES measured them) */
@@ -56,6 +62,9 @@ export const RACK = Object.freeze({
   nudge: 24,        // an arrow nudges a floating window this far (the window rail's Shift+arrow)
   favourites: 4,    // ☆ layout slots (λWAVES LAYOUT_SLOTS)
   seatTop: 52, seatBottom: 60,   // the transport's two seats (λWAVES seatRect)
+  tabletEdge: 8,    // on a touch tablet a float stays this far inside the visual viewport (BASINS clampFloat)
+  tabletMin: 701,   // … a touch tablet is a coarse pointer at least this wide, and not the phone
+  copied: 900,      // COPY's flash on the window's status, ms (BASINS copyDigest)
 });
 const RACK_ID = { left: 'rackL', right: 'rack' };
 /* what a header press must leave alone: its own buttons and anything a hand edits */
@@ -101,6 +110,12 @@ export function clampFloat(x, y, w, view, head = 44) {
   const keep = Math.min(120, w);
   return { x: Math.round(Math.max(keep - w, Math.min(view.width - keep, x))), y: Math.round(Math.max(0, Math.min(Math.max(0, view.height - head), y))) };
 }
+/** clampFloatTablet(x, y, w, h, vv, edge) — BASINS' touch-tablet clamp: the WHOLE floating window stays inside the
+ *  visual viewport, `edge` px in.  vv = { width (the layout width), height (innerHeight), top (offsetTop), vh (its height) } */
+export function clampFloatTablet(x, y, w, h, vv, edge = RACK.tabletEdge) {
+  const top = Math.max(0, vv.top || 0), bottom = Math.min(vv.height, top + (vv.vh ?? vv.height));
+  return { x: Math.round(Math.max(edge, Math.min(Math.max(edge, vv.width - w - edge), x))), y: Math.round(Math.max(top + edge, Math.min(Math.max(top + edge, bottom - h - edge), y))) };
+}
 /** detached(left, width, col, margin) — the carried window has cleared the column by `margin` on either side */
 export const detached = (left, width, col, m = RACK.detach) => left > col.right + m || left + width < col.left - m;
 /** peekSide({ x, width, left, right, current, near, hold }) — which hidden rack peeks.  left/right are the widths of
@@ -134,22 +149,38 @@ export function favSlot(m, n = RACK.favourites) {
   return o;
 }
 const sideOf = (s) => (s === 'left' || s === 'L' ? 'left' : 'right');
-/** readLayout(raw, known) — the one layout shape, repaired: every field checked, unknown and repeated ids dropped.
- *  Accepts λWAVES' and BASINS' records (side 'L'/'R', `closed`).  Never throws. */
-export function readLayout(raw, known) {
+/** readLayout(raw, known, retired) — the one layout shape, repaired: every field checked, unknown and repeated ids
+ *  dropped.  Accepts λWAVES' and BASINS' records (side 'L'/'R', `closed`).  `retired` ({ oldId: heirId }, BASINS'
+ *  RETIRED): an old id stands for its heir — unless the layout names the heir itself, when the old record is dropped.
+ *  `nb` (the notebook's [w, h], BASINS / λWAVES) is kept when it is a size.  Never throws. */
+export function readLayout(raw, known, retired) {
   const out = { v: 1, hidden: false, phoneShown: false, cards: [] };
   if (!raw || typeof raw !== 'object') return out;
   out.hidden = raw.hidden === true || raw.rackHidden === true; out.phoneShown = raw.phoneShown === true;
   if (Number.isFinite(raw.at)) out.at = raw.at;
+  if (Array.isArray(raw.nb) && Number.isFinite(raw.nb[0]) && raw.nb[0] > 0) out.nb = [Math.round(raw.nb[0]), Number.isFinite(raw.nb[1]) ? Math.round(raw.nb[1]) : 0];
+  const list = Array.isArray(raw.cards) ? raw.cards : [];
+  const named = new Set(list.map((c) => c && c.id)), heirOf = (id) => (retired && Object.hasOwn(retired, id) && typeof retired[id] === 'string' ? retired[id] : null);
   const seen = new Set(), num = (v, f) => (Number.isFinite(v) ? Math.round(v) : f);
-  for (const c of Array.isArray(raw.cards) ? raw.cards : []) {
-    if (!c || typeof c.id !== 'string' || seen.has(c.id) || (known && !known.has(c.id))) continue;
-    seen.add(c.id);
+  for (const c of list) {
+    if (!c || typeof c.id !== 'string') continue;
+    const heir = heirOf(c.id); if (heir && named.has(heir)) continue;   // BASINS: the heir's own record wins
+    const id = heir || c.id;
+    if (seen.has(id) || (known && !known.has(id))) continue;
+    seen.add(id);
     const f = c.float && typeof c.float === 'object' ? { x: num(c.float.x, 0), y: num(c.float.y, 0), w: Math.max(120, num(c.float.w, 300)),
       compact: c.float.compact === true, z: num(c.float.z, 0), index: Math.max(0, num(c.float.index, 0)) } : null;
-    out.cards.push({ id: c.id, side: sideOf(c.side), open: typeof c.open === 'boolean' ? c.open : c.closed === false, folded: c.folded === true, off: c.off === true, float: f });
+    out.cards.push({ id, side: sideOf(c.side), open: typeof c.open === 'boolean' ? c.open : c.closed === false, folded: c.folded === true, off: c.off === true, float: f });
   }
   return out;
+}
+/** digestText({ name, title, status, rows, at }) — COPY's text (BASINS rack.js digest): a head line, the status, then
+ *  one tab-separated line per readout [label, value, sub] */
+export function digestText({ name = '', title = '', status = '', rows = [], at = new Date() }) {
+  const lines = [[name, title, at.toISOString()].filter(Boolean).join(' · ')];
+  if (status) lines.push('status\t' + status);
+  for (const r of rows) lines.push(r.join('\t'));
+  return lines.join('\n');
 }
 /** layoutLabel(layout, slot) — what a ☆ row says (λWAVES): the slot, how many windows, which racks, floating, the time */
 export function layoutLabel(L, slot) {
@@ -311,9 +342,15 @@ export function createRackMotion(hosts, view = globalThis) {
  *    look        'auto' (default): nodes the rack creates wear the kit's look (rack.css), nodes the app already had
  *                (#rack, #rackL, #floats, #rackAdd …, found by id) keep the app's; 'kit': the kit's look on both
  *    onChange    (layout) after every persisted change
+ *    scrollbar   true: the scrollbar seated at the card column (shell/rack-scrollbar.js, BASINS'); default false
+ *    tabletClamp true (default, BASINS): on a touch tablet a float is clamped fully inside the visual viewport
+ *    retired     { oldId: heirId }: saved layouts that name an old window open its heir
+ *    notebook    the notebook ({ size() → { w, h, custom } | [w, h], resize(w, h) }) or () => it: ☆ layouts keep its size
+ *    name        the app's name, the head of COPY's text (BASINS: 'BASINS REDUX')
  *  An app that already has a rack adopts it in place: see docs/RACK.md "Adopting into an app that has a rack". */
 export function createRack({ host = globalThis.document && document.body, sides = SIDES, key = 'mir.rack', store, favourites = RACK.favourites,
-  transport = null, seats = { top: RACK.seatTop, bottom: RACK.seatBottom }, phone, chrome = true, handle = 'coarse', look = 'auto', onChange } = {}) {
+  transport = null, seats = { top: RACK.seatTop, bottom: RACK.seatBottom }, phone, chrome = true, handle = 'coarse', look = 'auto', onChange,
+  scrollbar = false, tabletClamp = true, retired = null, notebook = null, name = '' } = {}) {
   const doc = host.ownerDocument, view = doc.defaultView, body = doc.body;
   const life = new AbortController(), on = { signal: life.signal }, passive = { passive: true, signal: life.signal };
   const S = store || localStore(key, view);
@@ -555,7 +592,17 @@ export function createRack({ host = globalThis.document && document.body, sides 
     stack.push(root); stack.forEach((r, k) => setVar(r, 'z-index', String(1 + k)));
     return true;
   }
-  const placeFloat = (root, st) => { const c = clampFloat(st.x, st.y, st.w, viewSize()); st.x = c.x; st.y = c.y; setVar(root, 'left', c.x + 'px'); setVar(root, 'top', c.y + 'px'); };
+  /* the touch tablet (BASINS isTouchTablet): a coarse pointer wider than 700 px that is not the phone */
+  const tabletMq = tabletClamp && view.matchMedia ? view.matchMedia(`(any-pointer: coarse) and (min-width: ${RACK.tabletMin}px)`) : null;
+  const isTablet = () => !!tabletMq && tabletMq.matches && !phoneOn && !body.classList.contains('phone');
+  /** clampAt(root, x, y, w) — the one clamp for a float: on a touch tablet the whole window inside the visual viewport
+   *  (its drawn size), elsewhere 120 px across and the header below the top */
+  function clampAt(root, x, y, w) {
+    if (!isTablet()) return clampFloat(x, y, w, viewSize());
+    const r = root.getBoundingClientRect(), vv = view.visualViewport;
+    return clampFloatTablet(x, y, r.width, r.height, { width: view.innerWidth, height: view.innerHeight, top: vv ? vv.offsetTop : 0, vh: vv ? vv.height : view.innerHeight });
+  }
+  const placeFloat = (root, st) => { const c = clampAt(root, st.x, st.y, st.w); st.x = c.x; st.y = c.y; setVar(root, 'left', c.x + 'px'); setVar(root, 'top', c.y + 'px'); };
   const restOf = (rk) => { const r = rk.getBoundingClientRect(), m = new view.DOMMatrixReadOnly(view.getComputedStyle(rk).transform); return { left: r.left - m.m41, top: r.top - m.m42, width: r.width, height: r.height }; };
   /** the DOM change of floating a window, no motion (the drag and the pop chip each bring their own) */
   function floatNow(id, at = {}) {
@@ -733,7 +780,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
   }
   function floatMove(s) {
     const st = floatState.get(G.id); if (!st) return;
-    const want = clampFloat(s.x - G.ax, s.y - G.ay, st.w, viewSize());
+    const want = clampAt(G.card, s.x - G.ax, s.y - G.ay, st.w);
     G.at = want;
     setVar(G.card, 'translate', `${want.x - st.x}px ${want.y - st.y}px`);
     const targets = G.cols.map((col) => {
@@ -800,7 +847,9 @@ export function createRack({ host = globalThis.document && document.body, sides 
     }
   }, passive);
   view.addEventListener('blur', () => setPeek(''), on);
-  view.addEventListener('resize', () => { rackW = 0; trBox = null; for (const root of stack) { const st = floatState.get(root.dataset.id); if (st) placeFloat(root, st); } syncPhone(); }, passive);
+  const refit = () => { for (const root of stack) { const st = floatState.get(root.dataset.id); if (st) placeFloat(root, st); } };
+  view.addEventListener('resize', () => { rackW = 0; trBox = null; refit(); syncPhone(); }, passive);
+  if (tabletMq && view.visualViewport) view.visualViewport.addEventListener('resize', refit, passive);   // BASINS fitFloats: the keyboard and the pinch move the visual viewport
   view.addEventListener('orientationchange', () => syncPhone(), passive);
 
   /* ── the transport's dodge: two seats, a sequence that waits on each animation (no timers) ── */
@@ -912,11 +961,24 @@ export function createRack({ host = globalThis.document && document.body, sides 
     const rec = (root, side, f) => out.push({ id: root.dataset.id, side, open: !root.classList.contains('closed'), folded: root.classList.contains('folded'), off: root.classList.contains('off'), float: f });
     for (const side of SIDES) if (racks[side]) for (const root of cards(racks[side], true)) rec(root, root.dataset.phoneFrom || side, null);
     for (const root of stack) { const st = floatState.get(root.dataset.id); if (st) rec(root, st.home.side, { x: st.x, y: st.y, w: st.w, compact: !!st.compact, z: stack.indexOf(root), index: st.home.index }); }
-    return { v: 1, at: Date.now(), hidden: phoneOn ? !!(phoneMem && phoneMem.hidden) : isHidden(), phoneShown, cards: out };
+    const L = { v: 1, at: Date.now(), hidden: phoneOn ? !!(phoneMem && phoneMem.hidden) : isHidden(), phoneShown, cards: out };
+    const nb = nbSize(); if (nb) L.nb = nb;                            // λWAVES rack.js:3551, BASINS captureLayout: a layout keeps the notebook's size
+    return L;
   }
-  /** apply(layout) — arrange every registered window as the layout says; an id it does not know is ignored */
-  function apply(raw) {
-    const L = readLayout(raw, new Set([...reg.keys(), ...appCards().keys()]));
+  /* the notebook, when the app gave one: its size as [w, h] (null at its default size, as BASINS' unset style), and its resize */
+  const nbOf = () => { try { return typeof notebook === 'function' ? notebook() : notebook; } catch { return null; } };
+  function nbSize() {
+    const n = nbOf(); if (!n || typeof n.size !== 'function') return null;
+    const z = n.size(); if (Array.isArray(z)) return z[0] ? [Math.round(z[0]), Math.round(z[1] || 0)] : null;
+    return z && z.w && z.custom !== false ? [Math.round(z.w), Math.round(z.h || 0)] : null;
+  }
+  const known = () => new Set([...reg.keys(), ...appCards().keys()]);
+  /** apply(layout) — arrange every registered window as the layout says (a retired id opens its heir; an id it does not
+   *  know is ignored), and size the notebook as the layout kept it (BASINS applyLayout) */
+  const apply = (raw) => arrange(raw, true);
+  function arrange(raw, sizeNotebook) {
+    const L = readLayout(raw, known(), retired);
+    if (sizeNotebook && L.nb) { const n = nbOf(); if (n && typeof n.resize === 'function') { try { n.resize(L.nb[0], L.nb[1]); } catch (err) { console.warn('rack: notebook size', err); } } }   // λWAVES rack.js:3612
     dockAll(false);
     const named = new Set();
     for (const c of L.cards) {
@@ -954,11 +1016,62 @@ export function createRack({ host = globalThis.document && document.body, sides 
   function layouts() {
     const m = favs();
     return Object.keys(m).map(Number).filter((n) => n >= 1 && n <= favourites && m[n]).sort((a, b) => a - b)
-      .map((slot) => ({ slot, label: layoutLabel(readLayout(m[slot]), slot), at: m[slot].at }));
+      .map((slot) => ({ slot, label: layoutLabel(readLayout(m[slot], null, retired), slot), at: m[slot].at }));
   }
   function saveLayout(slot) { const m = favs(); const n = +slot || favSlot(m, favourites); m[n] = capture(); writeFavs(m); return n; }
   function loadLayout(slot) { const m = favs(); if (!m[slot]) return false; apply(m[slot]); return true; }
   function forgetLayout(slot) { const m = favs(); delete m[slot]; writeFavs(m); return true; }
+
+  /** resetLayout() — RESET LAYOUT (BASINS layout.resetLayout, its Settings button): every float docked home, every
+   *  window opened, powered on and unfolded, every window back in its home rack (the right rack's order kept, the left
+   *  rack's windows that are not left-homed appended to it, then every left-homed window into the left rack, in that
+   *  order), and the rack shown.  An app card (`card: true`, or a .dev the app never registered) keeps its place and
+   *  its state: it is the app's (BASINS docks its transport card itself). */
+  function resetLayout() {
+    if (G) drg.cancel();
+    dockAll(false);
+    if (phoneOn) phoneMem = { ...(phoneMem || {}), floats: {} };
+    const app = (d) => { const w = reg.get(d.dataset.id); return !w || w.spec.card; };
+    for (const w of reg.values()) {
+      if (w.spec.card) continue;
+      build(w.spec.id); const root = w.dev.root;
+      if (root.classList.contains('closed')) { root.classList.remove('closed'); call(w, 'onOpen'); }   // as apply() opens one
+      if (w.dev.off) w.dev.setOff(false);
+      if (root.classList.contains('folded')) { w.dev.fold(false); call(w, 'onFold', false); }
+    }
+    const R = rackOf('right'), Lr = racks.left && racks.left !== R ? racks.left : null;
+    if (Lr) for (const d of cards(Lr, true)) if (!app(d)) R.appendChild(d);
+    for (const d of cards(R, true)) {
+      if (app(d)) continue;
+      const left = sideOf(d.dataset.home) === 'left';
+      if (phoneOn) { if (left && racks.left) d.dataset.phoneFrom = 'left'; else delete d.dataset.phoneFrom; }
+      else if (left && Lr) Lr.appendChild(d);
+    }
+    setHidden(false);
+    save(); return true;
+  }
+
+  /** digest(id) — a window's readouts as text (BASINS layout.digest): the app's name, the title and the time, the
+   *  status, then every readout row (`.ro`: label, value, sub) tab-separated */
+  function digest(id) {
+    const w = reg.get(id), root = w && w.dev ? w.dev.root : appCards().get(id); if (!root) return '';
+    const txt = (n) => (n ? n.textContent.trim() : '');
+    return digestText({ name, title: txt(root.querySelector('.dev-title')), status: txt(root.querySelector('.dev-stat')),
+      rows: [...root.querySelectorAll('.ro')].map((ro) => [txt(ro.querySelector('.ro-lbl')), txt(ro.querySelector('.ro-val')), txt(ro.querySelector('.ro-sub'))]) });
+  }
+  /** copyDigest(id) — COPY: the digest to the clipboard, and BASINS' flash (· COPIED on the status for 900 ms) → the text */
+  const flashes = new Map();
+  async function copyDigest(id) {
+    const text = digest(id);
+    try { await view.navigator.clipboard.writeText(text); } catch { /* a refused clipboard: the text is still returned */ }
+    const w = reg.get(id), root = w && w.dev ? w.dev.root : appCards().get(id);
+    if (root && !life.signal.aborted) {
+      const st = root.querySelector('.dev-stat'); if (st) st.dataset.copied = t('COPIED');   // tr: the flash on a window's status after COPY put its readouts on the clipboard
+      root.classList.add('copied'); view.clearTimeout(flashes.get(root));
+      flashes.set(root, view.setTimeout(() => { root.classList.remove('copied'); flashes.delete(root); }, RACK.copied));
+    }
+    return text;
+  }
 
   /* ── the phone: one rack, nothing floats, the crossing is reversible (λWAVES waves 51, 59) ── */
   function syncPhone() {
@@ -1015,12 +1128,13 @@ export function createRack({ host = globalThis.document && document.body, sides 
   function start() {
     if (started) return api;
     const raw = S.get();
-    saved = readLayout(raw && raw.layout, new Set([...reg.keys(), ...appCards().keys()]));
+    saved = readLayout(raw && raw.layout, known(), retired);
     syncPhone();
+    /* the reload: the notebook keeps its own size (only a ☆ load or a host's apply() resizes it) */
     if (raw && raw.layout) {
       const listed = new Set(saved.cards.map((c) => c.id));
-      apply({ ...saved, cards: [...saved.cards, ...[...reg.values()].filter((w) => !listed.has(w.spec.id) && w.spec.open).map((w) => ({ id: w.spec.id, side: w.spec.side, open: true }))] });
-    } else apply({ v: 1, hidden: isHidden(), cards: [...reg.values()].filter((w) => w.spec.open && !w.spec.el).map((w) => ({ id: w.spec.id, side: w.spec.side, open: true })) });   // an adopted window is already where the app put it
+      arrange({ ...saved, cards: [...saved.cards, ...[...reg.values()].filter((w) => !listed.has(w.spec.id) && w.spec.open).map((w) => ({ id: w.spec.id, side: w.spec.side, open: true }))] }, false);
+    } else arrange({ v: 1, hidden: isHidden(), cards: [...reg.values()].filter((w) => w.spec.open && !w.spec.el).map((w) => ({ id: w.spec.id, side: w.spec.side, open: true })) }, false);   // an adopted window is already where the app put it
     started = true; save();
     return api;
   }
@@ -1054,7 +1168,9 @@ export function createRack({ host = globalThis.document && document.body, sides 
     order: (side) => cards(rackOf(side)).map((c) => c.dataset.id),
     floating: () => stack.map((r) => r.dataset.id),
     floatOf: (id) => (floatState.has(id) ? { ...floatState.get(id), home: { ...floatState.get(id).home } } : null),
-    capture, apply, layouts, saveLayout, loadLayout, forgetLayout,
+    capture, apply, layouts, saveLayout, loadLayout, forgetLayout, resetLayout, digest, copyDigest,
+    /** the scrollbar seated at the card column (`scrollbar: true`), or null */
+    get scrollbar() { return bars; },
     addMenu: { open: () => { if (addBtn && addList.hidden) addBtn.click(); return !!addBtn; }, close: () => { addShown(false); return true; }, get shown() { return !!addList && !addList.hidden; }, get queued() { return queue.slice(); }, commit: flushQueue },
     favMenu: { open: () => { if (favBtn && favList.hidden) favBtn.click(); return !!favBtn; }, close: () => { favShown(false); return true; }, get shown() { return !!favList && !favList.hidden; } },
     get dragging() { return !!G; },
@@ -1066,6 +1182,8 @@ export function createRack({ host = globalThis.document && document.body, sides 
     el: { racks: { ...racks }, floats, grip, toggle: toggleBtn, add: addBtn, addList, fav: favBtn, favList, handles: handles.slice() },
     sync: syncPhone,
     destroy() {
+      if (bars) { bars.destroy(); bars = null; }
+      for (const [root, id] of flashes) { view.clearTimeout(id); root.classList.remove('copied'); } flashes.clear();
       if (spanObs) spanObs.destroy();
       motion.destroy(); drg.cancel(); drg.destroy(); landProx.destroy(); edgeProx.destroy(); life.abort(); activity.disconnect();
       if (run) run.cancel(); frame.cancel('mir-rack:save');
@@ -1076,5 +1194,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
       reg.clear(); floatState.clear(); stack.length = 0;
     },
   };
+  /* BASINS installs its scrollbars with the rack; they follow the page's one dock span through a rack's slide */
+  let bars = scrollbar ? createRackScrollbars({ host, racks: Object.values(racks), span: api.span(), view }) : null;
   return api;
 }
