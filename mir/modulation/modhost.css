@@ -223,7 +223,7 @@ body.frost .glass:where(.mir-modwindow, .mir-modwindow *, .kwin-chiprail, .kwin-
   --glass-sheen:        var(--m2-mat-inner);     /* `.glass` reads this as `inset 0 .6px 0 <sheen>` — the Fresnel top */
   --glass-raise:  hsl(0 0% 0% / 0.06);           /* the NON-officiated buttons match L3 */
   --m2-hover:     hsl(0 0% 100% / 0.10);         /* INTENT: hover is a LIGHTER face (read as var(--state-hover, var(--m2-hover))) */
-  --m2-on-rim:    inset 0 0 0 1px var(--state-on-rim, var(--m2-mat-edge));   /* INTENT: ON's thin rim, in the pane's own edge colour (themed through --m2-mat-edge, on this element) */
+  --m2-on-rim:    var(--state-on-rim, inset 0 0 0 1px var(--m2-mat-edge));   /* INTENT: ON's thin rim, in the pane's own edge colour (themed through --m2-mat-edge, on this element) */
   --bar-raise:    var(--glass-raise);
   --glass-press:  var(--m2-st-press);
   --glass-groove-hot: hsl(0 0% 100% / 0.18);
@@ -2050,9 +2050,9 @@ body[data-theme="light"] #modwin.mir-modwindow .m2devadd {
 #modwin.mir-modwindow .m2rail.m2railmin .m2devadd {
   font-size:0;letter-spacing:0; }
 #modwin.mir-modwindow .m2rail.m2railmin .m2macadd::after {
-  content:"+ MACRO";font:700 8px/1 var(--font-sans);letter-spacing:var(--label-tracking, .04em); }
+  content:attr(data-cap);font:700 8px/1 var(--font-sans);letter-spacing:var(--label-tracking, .04em); }
 #modwin.mir-modwindow .m2rail.m2railmin .m2devadd::after {
-  content:"+ DEVICE";font:700 8px/1 var(--font-sans);letter-spacing:var(--label-tracking, .04em); }
+  content:attr(data-cap);font:700 8px/1 var(--font-sans);letter-spacing:var(--label-tracking, .04em); }
 #modwin.mir-modwindow .m2rail.m2railmin .m2namerow:not([hidden]) {
   display:flex;left:4px;right:4px;top:9px; }
 
@@ -2079,10 +2079,10 @@ body[data-theme="light"] #modwin.mir-modwindow .m2devadd {
   box-shadow: var(--m2-on-rim), inset 0 -2px 0 hsl(var(--hue-acc) var(--sat-acc) 66% / .64); }
 /* L30 · the compact LFO's command: the same, and its accent border becomes the rim */
 #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcmd.on {
-  background: var(--state-on, var(--m2-mat-frost)); border-color: var(--state-on-rim, var(--m2-mat-edge)); }
+  background: var(--state-on, var(--m2-mat-frost)); border-color: var(--m2-mat-edge); }
 /* L28 · a CHOSEN preset: the ON face, its glyph in the accent (entry 46 strokes it) — never an accent fill */
 #modwin.mir-modwindow .m2dev.lfo .m2preset.on {
-  background: var(--state-on, var(--m2-mat-frost)); border-color: var(--state-on-rim, var(--m2-mat-edge)); }
+  background: var(--state-on, var(--m2-mat-frost)); border-color: var(--m2-mat-edge); }
 /* L41 · HOVER is a lighter face on every plugin button, not ink alone and not a ring */
 @media (hover: hover) {
   #modwin.mir-modwindow button:not(:disabled):not(.on):not(:active):hover,
@@ -2113,4 +2113,66 @@ html body :where(.crail.crail-float)[data-mir-rail="modulation"] .crail-chip:whe
 .m2ghost { font: 700 11px var(--font-sans); }
 
 /* ══ end of the re-asserted artifact rules ══ */
+
+/* ══ 1.5.0-alpha.3 · THE WINDOW SET, THE ROUTE, THE FADER ═════════════════════════════════════════════════════════
+   The controller is the kit's now (modulation/window.js), so the paint it needs outside the window is the kit's too —
+   the badge, pop-over and arming rules every app wrote for itself (λWAVES lab.css §405, NEBULA and SOLEIL with
+   :root ladders) are here once, in this layer, so an app's plain rule still beats them. */
+
+/* THE RAIL ON FOUR EDGES.  window/rail.js seats it on the left, right, top or bottom; on a top or bottom seat the
+   chips lie in a row (the rail measures one orientation and turns it). */
+.kwin-chiprail[data-mir-rail="modulation"]:is([data-side="top"], [data-side="bottom"]) {
+  flex-direction: row; width: auto; height: var(--chrome-chip-target); }
+
+/* ROUTING SHOWS WHERE IT WILL LAND (core/proximity.js).  The glow's overlays live in .m2route-glow, where the accent
+   is accent B — a route is a relationship — so core.css draws them in it without a rule of its own. */
+/* --acc2-glow: accent B's bloom, the twin of the house --acc-glow, declared where it is spent (a skin may set it) */
+.m2route-glow { --acc2-glow: 0 0 8px color-mix(in srgb, var(--acc2) 55%, transparent); --acc: var(--acc2); --acc-glow: var(--acc2-glow);
+  position: absolute; left: 0; top: 0; width: 0; height: 0; pointer-events: none; }   /* absolute, z auto: no stacking context, so the guides' own --z-prox rides above the app's racks */
+/* while a route is live every routable control is marked, and the rest of the page recedes (it has no socket) */
+body.mod-arming :is(.k, .fd)[data-param].mod-drop { position: relative; }
+body.mod-arming .k[data-param].mod-drop > .k-lbl,
+body.mod-arming .fd[data-param].mod-drop > .fd-lbl { color: var(--acc2); }
+body.mod-arming :is(.sw, .seg, .trig, .k:not([data-param]), .fd:not([data-param])) { opacity: .45; }
+
+/* A FADER CARRIES A ROUTE AS A RANGE BAR: the selected route's span along the track (window.js writes the two
+   numbers), a band on the fader's floor in accent B.  Dormant, it is the faint ink. */
+.fd > .m2fdrange { position: absolute; left: calc(var(--m2-route-lo, 0) * 100%); width: calc(var(--m2-route-span, 0) * 100%);
+  bottom: 0; height: 3px; background: var(--acc2); pointer-events: none; }
+.fd > .m2fdrange[hidden] { display: none; }
+.fd > .m2fdrange.is-dormant { background: var(--ink-faint); }
+/* its value line is the knob's needle: accent A while routed, accent B while its macro or source is chosen */
+.fd.has-ring > .fd-edge { background: var(--acc); }
+.fd.has-ring.mod-selected > .fd-edge { background: var(--acc2); }
+
+/* THE ROUTED CONTROL'S TWO BADGES, ONE CONTROL AT A TIME.  A routed knob stays under its label; the control the
+   hand last touched (.ring-focus) shows its range dial at the top-right corner and a × at the top-left, both outside
+   the arc.  A fader lets them out of its box only while it wears them. */
+.k.has-ring > .k-dial { transform: none; }
+.k.has-ring, .fd.has-ring { position: relative; }
+.k-route-depth.k { display: none; top: -8px; right: -10px; bottom: auto; transform: none; width: 22px; min-width: 22px; height: 22px; z-index: 4; }
+:is(.k, .fd).ring-focus > .k-route-depth.k { display: flex; }
+.k-route-depth .k-dial { width: 20px; height: 20px; }
+.k-route-x { display: none; position: absolute; top: -8px; left: -10px; width: 22px; height: 22px; padding: 0; border-radius: 50%; z-index: 4;
+  border: var(--glass-border) solid var(--glass-hairline); background: var(--glass-raise); color: var(--ink-key);
+  font-size: var(--fs-lead); line-height: 1; cursor: pointer; }
+:is(.k, .fd).ring-focus > .k-route-x { display: grid; place-items: center; }
+.k-route-x:is(:hover, :active) { color: var(--bad); }
+.fd.has-ring.ring-focus { overflow: visible; }
+.fd.has-ring.ring-focus > :is(.fd-fill, .m2fdrange) { clip-path: inset(0 round var(--r-sm)); }
+
+/* THE POP-OVER — a held press or the right button; one menu, two doors */
+.mod-pop { position: fixed; z-index: calc(var(--z-banner) + 4); min-width: 210px; max-width: 280px;
+  display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-3); border-radius: var(--r-md);
+  box-shadow: var(--surface-shadow, var(--glass-shadow)); }   /* the material is the house .glass (window.js builds it .mod-pop.glass) */
+.mod-poph { display: flex; align-items: baseline; gap: var(--sp-2); }
+.mod-poph > b { font-size: var(--fs-small); letter-spacing: var(--label-tracking, var(--tr-wide)); color: var(--fg); font-weight: var(--w-med); }
+.mod-poph > span { font-size: var(--fs-micro); letter-spacing: var(--label-tracking, var(--tr-wider)); color: var(--acc2); }
+.mod-poprts { display: flex; flex-wrap: wrap; gap: var(--sp-1); }
+.mod-poprts > .grp-lbl { flex: 1 0 100%; }
+.mod-mchip { flex: 0 0 auto; max-width: 74px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  padding: 2px 6px; border-radius: var(--r-pill); border: 0; cursor: pointer; font: inherit; font-size: var(--fs-micro);
+  color: var(--acc2); background: var(--acc2-soft); }
+/* CHOSEN (INTENT): the ON face and its rim, the label in the accent — accent B, the route's */
+.mod-mchip.on { background: var(--state-on, var(--glass-raise)); box-shadow: var(--state-on-rim, var(--neu-flat)); font-weight: var(--w-bold); }
 }   /* end @layer mir.kit.plugin.host */

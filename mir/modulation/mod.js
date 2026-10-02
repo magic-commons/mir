@@ -9,6 +9,8 @@
  *              1/8  the PRESET_LS storage namespace                        (wave 52)
  *              2/8 … 6/8  the BIPOLAR route — flag, anchor, patch, save, load   (wave 61)
  *              7/8, 8/8  MOD_STATE_V and MOD_STATE_READS                   (wave 63)
+ *              MIR 1.5.1: the preset key became an option (setPresetKey; PRESET_LS is its default).
+ *              λWAVES' byte gate (§16) that held it back stays on the frozen 1.4 line.
  *              THE COUNT ON THIS LINE IS GATED.  It said "1 edit" for a whole wave after
  *              five more went in under it, and it could, because tests/mir.test.mjs §16
  *              strips exactly this header before it compares — the one sentence in the
@@ -2619,6 +2621,19 @@ export const FACTORY_PRESETS = [
    BASINS identity, and the boundary law is that MIR never carries a Card's.
    Our house namespace is lambdawaves.q0.* (lab/rack.js LS_EXP / SETTINGS_KEY). */
 export const PRESET_LS = 'lambdawaves.q0.modpresets';
+/* MIR 1.5.1 · THE PRESET KEY IS AN OPTION.  PRESET_LS stays the default (every reader shipped with it); an app
+   names its own store with setPresetKey(key) — window.js passes port.presetKey — so two apps on one origin never
+   share presets.  Blocked on the 1.4 line by λWAVES' byte gate on this file; λWAVES is frozen on 1.4. */
+let presetKey = PRESET_LS;
+/** setPresetKey(key) — the localStorage key of this app's presets; '' or a non-string restores PRESET_LS.  The live
+ *  store is re-read from the new key on its next use.  → the key now in force */
+export function setPresetKey(key) {
+  const k = typeof key === 'string' && key.trim() ? key.trim() : PRESET_LS;
+  if (k !== presetKey) { presetKey = k; pstore = null; pRefusedRaw = null; pRefusedKey = null; pError = null; }
+  return presetKey;
+}
+/** the preset key in force */
+export function presetKeyOf() { return presetKey; }
 export const PRESET_FORMAT_V = 1;
 export const PRESET_NAME_MAX = 24;
 
@@ -2665,7 +2680,7 @@ function validPreset(p) {
 function presetStore() {
   if (pstore) return pstore;
   pError = null; pRefusedRaw = null;
-  const raw = presetLsGet(PRESET_LS);
+  const raw = presetLsGet(presetKey);
   let o = null;
   try { o = JSON.parse(raw || 'null'); } catch (_) { o = null; }
   if (o && typeof o === 'object' && o.formatVersion === PRESET_FORMAT_V &&
@@ -2687,7 +2702,7 @@ function presetStore() {
            PRESET_FORMAT_V + ' — the file is left untouched and this session runs on the ' +
            'factory presets')
         : ('the stored modulation presets are unreadable — left in place; the first save will ' +
-           'move them to "' + PRESET_LS + '.refused-<time>" and start a fresh set');
+           'move them to "' + presetKey + '.refused-<time>" and start a fresh set');
     }
     pstore = { seq: 0, presets: [] };
   }
@@ -2701,11 +2716,11 @@ function presetSetAsideRefused() {
     const s = globalThis.localStorage;
     for (let i = 0; s && i < s.length; i++) {
       const k = s.key(i);
-      if (k && k.indexOf(PRESET_LS + '.refused-') === 0 && presetLsGet(k) === raw) { key = k; break; }
+      if (k && k.indexOf(presetKey + '.refused-') === 0 && presetLsGet(k) === raw) { key = k; break; }
     }
   } catch (_) {}
   if (!key) {
-    key = PRESET_LS + '.refused-' + Date.now();
+    key = presetKey + '.refused-' + Date.now();
     presetLsSet(key, raw);          // a quota throw here reaches the caller: nothing was overwritten
     if (presetLsGet(key) !== raw) {
       throw new Error('could not set the unreadable presets aside — nothing was overwritten');
@@ -2719,7 +2734,7 @@ function presetSetAsideRefused() {
 
 function presetPersist() {
   if (pRefusedRaw != null) presetSetAsideRefused();
-  presetLsSet(PRESET_LS, JSON.stringify({ formatVersion: PRESET_FORMAT_V,
+  presetLsSet(presetKey, JSON.stringify({ formatVersion: PRESET_FORMAT_V,
                                           modV: MOD_STATE_V,
                                           seq: pstore.seq, presets: pstore.presets }));
 }
@@ -2920,8 +2935,8 @@ export function presetStoreReload() {
 
 export function presetStoreState() {
   const st = presetStore();
-  const raw = presetLsGet(PRESET_LS);
-  return { key: PRESET_LS, formatVersion: PRESET_FORMAT_V, modV: MOD_STATE_V,
+  const raw = presetLsGet(presetKey);
+  return { key: presetKey, formatVersion: PRESET_FORMAT_V, modV: MOD_STATE_V,
            reads: MOD_STATE_READS.slice(),
            factories: FACTORY_PRESETS.length, users: st.presets.length,
            folders: presetFolders(),

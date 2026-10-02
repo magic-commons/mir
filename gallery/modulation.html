@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>MIR · modulation</title>
+<!-- THE MODULATION PLUGIN, PLAYABLE.  A 2D scene drawn from six parameters — four knobs and two faders in the rack on
+     the left — and the kit's modulation window, mounted by one call (mir/modulation/bind.js installModulation).  An LFO
+     drives MACRO 1, which is routed onto SIZE (a knob) and BRIGHT (a fader); press play in the window's timing bar.
+     Drag a macro's ✥ toward any control: the nearest one glows by distance and catches the drop.  Move the window by
+     its grip, dock it near the top or bottom (the dotted guide is where it lands), and move its chips to any edge with
+     Shift-drag, a long press, or the keyboard.  SECOND INSTANCE opens the same page with another presetKey: the two
+     preset stores are separate.  Every look is the kit's sheets; this page's own rules only lay out the page. -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/modulation/modwindow/modwindow.css">
+<link rel="stylesheet" href="../mir/modulation/modhost.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<link rel="stylesheet" href="../mir/locales/locales.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #070a0f; }
+  body[data-theme="light"] { background: #eef1f6; }
+  #scene { position: fixed; inset: 0; width: 100%; height: 100%; }
+  #rack { position: fixed; left: 8px; top: 8px; width: 252px; z-index: 20; padding: 10px 12px 12px; box-sizing: border-box; border-radius: 14px;
+    display: flex; flex-direction: column; gap: 10px; }
+  .g-knobs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 6px; justify-items: center; padding-top: 6px; }
+  .g-faders { display: flex; flex-direction: column; gap: 10px; }
+  #floats { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  #floats > * { pointer-events: auto; }
+  #bar { position: fixed; z-index: 25; right: 8px; bottom: 8px; display: flex; gap: 8px; align-items: end; flex-wrap: wrap; justify-content: end;
+    padding: 8px 10px; border-radius: 14px; max-width: calc(100vw - 280px); }
+  #second { position: fixed; inset: 32px; z-index: 70; width: calc(100% - 64px); height: calc(100% - 64px); border: 0; border-radius: 14px; }
+  #second[hidden] { display: none; }
+  body.embed #bar, body.embed .g-second { display: none; }
+</style>
+</head>
+<body data-card="tinted" data-theme="dark">
+<canvas id="scene" aria-hidden="true"></canvas>
+<div id="rack" class="glass"></div>
+<div id="floats"></div>
+<div id="bar" class="glass"></div>
+<iframe id="second" title="Second instance" hidden></iframe>
+<script type="module">
+import { el, knob, fader, seg, sw, trig, group } from '../mir/kit.js';
+import { installModulation } from '../mir/modulation/bind.js';
+import { observeSpan } from '../mir/window/dock.js';
+import { frame } from '../mir/core/frame.js';
+import { setLanguage } from '../mir/core/i18n.js';
+import * as motion from '../mir/core/motion.js';
+
+const q = new URLSearchParams(location.search);
+const instance = q.get('instance') === 'b' ? 'b' : 'a';
+const storageKey = 'mir.gallery.modulation.' + instance, presetKey = storageKey + '.presets';
+if (q.has('fresh')) { try { localStorage.removeItem(storageKey); localStorage.removeItem(presetKey); } catch (_) { /* private mode */ } }
+if (q.has('embed')) document.body.classList.add('embed');
+
+/* ── the scene: six numbers, drawn once per change (idle costs nothing) ── */
+const S = { size: 0.42, hue: 200, spin: 0.25, blur: 0.0, bright: 0.7, spread: 0.5 };
+const canvas = document.getElementById('scene');
+function draw() {
+  const dpr = devicePixelRatio || 1, w = innerWidth, h = innerHeight;
+  if (canvas.width !== w * dpr || canvas.height !== h * dpr) { canvas.width = w * dpr; canvas.height = h * dpr; }
+  const g = canvas.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const light = document.body.dataset.theme === 'light';
+  g.fillStyle = light ? '#eef1f6' : '#070a0f'; g.fillRect(0, 0, w, h);
+  const cx = w * 0.58, cy = h * 0.5, R = Math.min(w, h) * 0.45;
+  for (let i = 0; i < 9; i++) {
+    const a = S.spin * Math.PI * 2 + i * (Math.PI * 2 / 9), d = R * S.spread * (0.4 + 0.6 * ((i % 3) / 2));
+    const x = cx + Math.cos(a) * d, y = cy + Math.sin(a) * d, r = 20 + R * 0.4 * S.size * (0.6 + 0.4 * ((i + 1) % 2));
+    const grad = g.createRadialGradient(x, y, r * S.blur * 0.9, x, y, r);
+    grad.addColorStop(0, `hsla(${(S.hue + i * 14) % 360} 80% ${30 + 40 * S.bright}% / .85)`); grad.addColorStop(1, `hsla(${(S.hue + i * 14) % 360} 80% 40% / 0)`);
+    g.fillStyle = grad; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+  }
+}
+const present = () => frame.coalesce('gallery:scene', draw);
+addEventListener('resize', present); present();
+
+/* ── the rack: four knobs and two faders, each a parameter the window can route ── */
+const rack = document.getElementById('rack');
+group(rack, 'SCENE');
+const knobs = el('div', 'g-knobs', rack), faders = el('div', 'g-faders', rack);
+let mod = null;
+/* the hand law: on a routed control the hand moves the BASE (mod.hand); otherwise it writes the scene */
+const handed = (id, key) => (v) => { if (!(mod && mod.hand(id, v))) { S[key] = v; present(); } };
+const P = [
+  { id: 'scene.size', key: 'size', label: 'SIZE', min: 0.05, max: 1, map: 'linear', make: knob },
+  { id: 'scene.hue', key: 'hue', label: 'HUE', unit: '°', min: 0, max: 360, map: 'wrap', make: knob, wrap: true },
+  { id: 'scene.spin', key: 'spin', label: 'SPIN', min: 0, max: 1, map: 'wrap', make: knob, wrap: true },
+  { id: 'scene.blur', key: 'blur', label: 'SOFT', min: 0, max: 1, map: 'linear', make: knob },
+  { id: 'scene.bright', key: 'bright', label: 'BRIGHT', min: 0, max: 1, map: 'linear', make: fader },
+  { id: 'scene.spread', key: 'spread', label: 'SPREAD', min: 0.1, max: 1, map: 'linear', make: fader },
+];
+const params = P.map((p) => {
+  const fmt = p.unit === '°' ? (v) => v.toFixed(0) + '°' : (v) => v.toFixed(2);
+  const widget = p.make({ label: p.label, min: p.min, max: p.max, value: S[p.key], wrap: p.wrap, fmt, onInput: handed(p.id, p.key) });
+  (p.make === knob ? knobs : faders).appendChild(widget.root);
+  return { id: p.id, label: p.label, unit: p.unit || '', min: p.min, max: p.max, map: p.map, def: S[p.key],
+    get: () => S[p.key], set: (v) => { S[p.key] = v; present(); }, widget };
+});
+
+/* ── THE PLUGIN: one call ── */
+const span = observeSpan({ left: rack });
+mod = installModulation({ mount: document.getElementById('floats'), params, present, storageKey, presetKey, dock: { span } });
+
+/* first visit: an LFO drives MACRO 1, routed onto a knob (SIZE) and a fader (BRIGHT); the ENV drives MACRO 2 → HUE */
+const M = mod.M;
+if (!M.routeList().length) {
+  const [lfo, env] = M.sourceList().filter((s) => s.kind === 'lfo' || s.kind === 'env');
+  const [m1, m2] = M.macroList();
+  if (m1 && lfo) { M.setMacro(m1.id, { sourceId: lfo.id }); M.addRoute(m1.id, 'scene.size', 0, 0.4); M.addRoute(m1.id, 'scene.bright', 0, 0.3); }
+  if (m2 && env) { M.setMacro(m2.id, { sourceId: env.id }); M.addRoute(m2.id, 'scene.hue', 0, 0.25); }
+  mod.host.clock.recomputeRunning(); mod.view.rebuild();
+}
+if (!mod.isOpen) { mod.view.restore({ ...mod.view.presentation(), x: 340, y: 132, open: true }); }
+if (instance === 'b') document.title = 'MIR · modulation (second instance)';
+
+/* ── the bar ── */
+const bar = document.getElementById('bar');
+bar.appendChild(seg({ label: 'THEME', value: 'dark', options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], onChange: (v) => { document.body.dataset.theme = v; present(); } }).root);
+bar.appendChild(seg({ label: 'CARD', value: 'tinted', options: [{ id: 'tinted', label: 'TINTED' }, { id: 'refractive', label: 'REFRACTIVE' }], onChange: (v) => { document.body.dataset.card = v; } }).root);
+bar.appendChild(sw({ label: 'FROST', value: false, onChange: (v) => document.body.classList.toggle('frost', v) }).root);
+bar.appendChild(seg({ label: 'LANGUAGE', value: 'en', options: [{ id: 'en', label: 'EN' }, { id: 'qps', label: 'QPS' }], onChange: (v) => setLanguage(v) }).root);
+bar.appendChild(trig({ label: 'MODULATION', title: 'open or close the modulation window', onFire: () => mod.toggle() }).root);
+const second = document.getElementById('second');
+const secondBtn = trig({ label: 'SECOND INSTANCE', title: 'the same page with another presetKey, in a frame', onFire: () => {
+  if (second.hidden) { second.src = 'modulation.html?instance=b&embed=1'; second.hidden = false; } else { second.hidden = true; second.src = 'about:blank'; } } });
+secondBtn.root.classList.add('g-second'); bar.appendChild(secondBtn.root);
+bar.appendChild(trig({ label: 'RESET', title: 'forget the saved rack, window and presets', onFire: () => { try { localStorage.removeItem(storageKey); localStorage.removeItem(presetKey); } catch (_) { /* private mode */ } location.search = ''; } }).root);
+
+window.__MOD = { mod, M, params, S, span, setLanguage, motion, frame, instance, presetKey, second };
+window.__ready = true;
+</script>
+</body>
+</html>

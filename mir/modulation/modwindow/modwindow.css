@@ -1416,7 +1416,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   border: 1px solid transparent; border-radius: var(--r-sm); }
 /* .m2dev.lfo .m2preset.on's accent fill and accent border (INTENT L28) are deleted: CHOSEN is the ON face, drawn by modhost.css. */
 .mir-modwindow .m2dev.lfo .m2preset .m2gl { stroke-width: 1.5; }
-.mir-modwindow .m2dev.lfo .m2macbox::before { content: "OUT"; position: absolute; z-index: 1;
+.mir-modwindow .m2dev.lfo .m2macbox::before { content: attr(data-cap); position: absolute; z-index: 1;
   left: 0; right: 0; top: 4px; text-align: center; pointer-events: none;
   font: 700 6.5px var(--font-sans); letter-spacing: var(--label-tracking, .10em); color: hsl(0 0% 100% / .40); }
 .mir-modwindow .m2dev.lfo .m2mac { height: 44px; min-height: 44px; padding-top: 8px;
@@ -1485,10 +1485,11 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2dev.env .m2macbox { height: 44px; margin: 0; gap: 2px; }
 .mir-modwindow .m2dev.env .m2mac { position: relative; height: 44px; min-height: 44px; margin: 0;
   padding-top: 9px; border-radius: var(--r-sm); background: hsl(0 0% 100% / .035); }
-.mir-modwindow .m2dev.env .m2mac::before { content: "OUT"; position: absolute; left: 0; right: 0; top: 4px;
+.mir-modwindow .m2dev.env .m2mac::before { content: attr(data-cap); position: absolute; left: 0; right: 0; top: 4px;
   text-align: center; pointer-events: none; font: 700 6px var(--font-sans);
   letter-spacing: var(--label-tracking, .08em); color: hsl(0 0% 100% / .38); }
-.mir-modwindow .m2dev.env .m2mac.m2bus::before { content: "TRIG IN"; }
+/* 1.5.4: the captions are words, so the builder writes them into data-cap through t() (OUT, TRIG IN) and the sheet
+   draws the attribute; the bus's own data-cap is TRIG IN, so it needs no rule of its own. */
 .mir-modwindow .m2dev.env .m2zoom { font-size: var(--fs-lead); }
 .mir-modwindow .m2dev.env .m2zoom.m2fit { font-size: 8px; }
 .mir-modwindow .m2dev.env .m2chk { justify-content: center; gap: 3px; overflow: hidden;

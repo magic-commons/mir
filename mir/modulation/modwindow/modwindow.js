@@ -34,6 +34,29 @@
 /* ── THE NAMESPACE ──────────────────────────────────────────────────────── */
 
 import { setGlyph as setHouseGlyph } from '../../glyph.js';
+import { label as kitLabel, ariaLabel as kitAria } from '../../kit.js';
+import { t, onLanguage } from '../../core/i18n.js';
+
+/* ── THE WORDS (1.5.4).  Every word the tree shows goes through the kit's choke points: label() for a node that holds
+   only its words, ariaLabel() for a name, and two small helpers for the two places label() cannot reach — the leading
+   text of a node that also holds children (the MACROS head, the CONDITIONING head: label() would replace the
+   children), and a CSS caption, which the sheets now draw from data-cap (`content: attr(data-cap)`) instead of an
+   English `content:` string.  One language pass, here, rewrites those two; kit.js rewrites the rest. */
+const firstText = (node) => [...node.childNodes].find((n) => n.nodeType === 3) || null;
+function leadText(node, word) {
+  node.dataset.tLead = word.t;
+  const tn = firstText(node) || node.insertBefore(document.createTextNode(''), node.firstChild);
+  tn.nodeValue = t(word.t);
+  return node;
+}
+function cap(node, word) { node.dataset.tCap = word.t; node.dataset.cap = t(word.t); return node; }
+if (typeof document !== 'undefined') onLanguage(() => {
+  for (const n of document.querySelectorAll('[data-t-lead]')) { const tn = firstText(n); if (tn) tn.nodeValue = t(n.dataset.tLead); }
+  for (const n of document.querySelectorAll('[data-t-cap]')) n.dataset.cap = t(n.dataset.tCap);
+});
+/** the words for a device kind and an audio output, so no code upper-cases an id */
+const KIND_WORD = { lfo: { t: 'LFO' }, env: { t: 'ENV' }, audio: { t: 'AUDIO' } };
+const OUT_WORD = { level: { t: 'LEVEL' }, low: { t: 'LOW' }, mid: { t: 'MID' }, high: { t: 'HIGH' }, hit: { t: 'HIT' } };
 
 /** The one class modwindow.css scopes on.  It goes on the window root and on
  *  nothing else. */
@@ -180,11 +203,8 @@ export const COPY = {
   presetOpenLabel: 'Open the preset list — {factory} ships with the app, ' +
     'the rest are yours',
   /* anim.js:3932 — the hint line, verbatim, U+2019 apostrophes and all. */
-  hint: 'Drag ✥ onto a slider or knob to route it (a PAD’s ✥ makes that ' +
-    'control get hit) · drop it there again to release · ' +
-    'a macro bar: drag sideways to set, double-tap to reset, tap to rename or unassign · ' +
-    'number ring: up/down = master depth, double-tap = 100% · route ring: up/down = depth, ' +
-    'sideways = direction.',
+  /* one literal, not a sum: it is one sentence to a translator (1.5.4) */
+  hint: 'Drag ✥ onto a slider or knob to route it (a PAD’s ✥ makes that control get hit) · drop it there again to release · a macro bar: drag sideways to set, double-tap to reset, tap to rename or unassign · number ring: up/down = master depth, double-tap = 100% · route ring: up/down = depth, sideways = direction.',
   chips: [
     { id: 'compact', glyph: 'compact', label: 'COMPACT' },
     { id: 'workbars', glyph: 'barsTop', label: 'Work bars: bottom' },
@@ -293,7 +313,7 @@ export function setGlyph(el, name, opts) {
   el.textContent = '';
   el.appendChild(s);
   el.setAttribute('data-gly', name);
-  if (o.label) el.setAttribute('aria-label', o.label);
+  if (o.label) kitAria(el, o.label, o.vars);
   return s;
 }
 
@@ -405,7 +425,7 @@ export function createModWindow(host) {
   root.id = id;
   root.dataset.windowKind = 'persistent';
   root.setAttribute('role', 'group');
-  root.setAttribute('aria-label', title);
+  kitAria(root, title);
   root.hidden = true;
   /* .m2retired hides the retired tab strip: `.modwin.m2retired .kwin-tabs
      { display: none }`.  anim.js:1115 puts it on the window root and 1116 on
@@ -418,10 +438,10 @@ export function createModWindow(host) {
      is .kwin-chips-only.  `.kwin.kwin-chips-only > .kwin-bar` then hides it. */
   const bar = m2mk('div', 'kwin-bar', root);
   const titleEl = m2mk('span', 'kwin-title', bar);
-  titleEl.textContent = title;
+  kitLabel(titleEl, title);
   const close = m2mk('button', 'kwin-close', bar);
   close.type = 'button';
-  close.setAttribute('aria-label', 'Close ' + title);
+  kitAria(close, 'Close {name}', { name: { t: title } });
   close.dataset.glyph = 'close';
   const closeInk = glyphEl('close', 'crail-ink gly-close', 26);
   if (closeInk) close.appendChild(closeInk);
@@ -435,7 +455,7 @@ export function createModWindow(host) {
   tab.setAttribute('aria-selected', 'true');
   tab.tabIndex = 0;
   tab.dataset.tab = 'mod';
-  tab.textContent = copy.tab;
+  kitLabel(tab, copy.tab);
 
   const body = m2mk('div', 'kwin-body', root);
   const panel = m2mk('div', 'kwin-panel on', body);
@@ -450,7 +470,7 @@ export function createModWindow(host) {
   const rack = buildRack(panel, copy);
   const foot = buildPresetStrip(panel, copy);
   const hint = m2mk('div', 'm2hint', panel);
-  hint.textContent = copy.hint;
+  kitLabel(hint, copy.hint);
 
   /* THE BARLESS SWAP, done here rather than deferred: the timing bar's DOM
      order is pure install order, which is why the strip reads
@@ -544,17 +564,17 @@ function buildRack(panel, copy) {
 
   const rail = m2mk('div', 'm2rail', root);
   const railhead = m2mk('div', 'm2railhead', rail);
-  railhead.textContent = copy.railHead;
+  leadText(railhead, { t: copy.railHead });
   const slots = m2mk('div', 'm2slots', rail);
   /* PINNED OUTSIDE THE SCROLLER, at the rail's foot, so "the button that grows
      the rail can never be pushed out of view by growing the rail". */
   const macrow = m2mk('div', 'm2macrow', rail);
   const macadd = m2mk('button', 'm2macadd', macrow);
   macadd.type = 'button';
-  macadd.textContent = 'ADD MACRO';
+  kitLabel(macadd, 'ADD MACRO'); cap(macadd, { t: '+ MACRO' });
   const devadd = m2mk('button', 'm2devadd', macrow);
   devadd.type = 'button';
-  devadd.textContent = 'ADD DEVICE';
+  kitLabel(devadd, 'ADD DEVICE'); cap(devadd, { t: '+ DEVICE' });
 
   const run = m2mk('div', 'm2run', root);
   run.dataset.inputOwner = 'rack-scroll';
@@ -592,32 +612,33 @@ function buildPresetStrip(panel, copy) {
   const prebar = m2mk('div', 'm2workbar m2prebar glass', foot);
   const core = m2mk('div', 'm2precore', prebar);
 
-  const navBtn = (cls, glyph, size, label, parent) => {
+  const navBtn = (cls, glyph, size, label, parent, vars) => {
     const b = m2mk('button', cls, parent || core);
     b.type = 'button';
-    if (glyph && GLYPHS[glyph]) setGlyph(b, glyph, { size, label });
-    else { if (glyph) b.textContent = glyph; b.setAttribute('aria-label', label); }
+    if (glyph && GLYPHS[glyph]) setGlyph(b, glyph, { size, label, vars });
+    else { if (glyph) b.textContent = glyph; kitAria(b, label, vars); }
     return b;
   };
 
   /* the ▾: dirNext turned a quarter turn by the stylesheet — glyph.js carries
      no chevron-down, and a drawing rotated is still a drawing. */
   const open = navBtn('m2prenav m2preopen', 'chevronDown', 15,
-    copy.presetOpenLabel.replace('{factory}', copy.factory));
+    copy.presetOpenLabel, null, { factory: copy.factory });
   open.setAttribute('aria-haspopup', 'listbox');
   open.setAttribute('aria-expanded', 'false');
   open.title = 'PRESETS';
 
   const save = navBtn('m2presave', null, 20, 'Save this rack as a preset');
-  setHouseGlyph(save, 'save', { size: 20, label: 'Save this rack as a preset' });
+  setHouseGlyph(save, 'save', { size: 20 });
+  kitAria(save, 'Save this rack as a preset');
   save.title = 'SAVE';
 
   const name = m2mk('input', 'm2prename', core);
   name.type = 'text';
   name.spellcheck = false;
-  name.placeholder = copy.presetPlaceholder;
+  name.placeholder = t(copy.presetPlaceholder);
   name.setAttribute('autocapitalize', 'characters');
-  name.setAttribute('aria-label', 'Preset name — type one, then tap SAVE');
+  kitAria(name, 'Preset name — type one, then tap SAVE');
 
   const prev = navBtn('m2prenav', 'dirPrev', 15, 'Previous preset');
   const next = navBtn('m2prenav', 'dirNext', 15, 'Next preset');
@@ -669,7 +690,7 @@ function buildTimingBar(pre, copy) {
   const tap = m2mk('button', 'modtap', pre);
   tap.type = 'button';
   tap.id = IDS.tap;
-  tap.textContent = copy.tap;
+  kitLabel(tap, copy.tap);
 
   const sync = m2mk('button', 'modsync', pre);
   sync.type = 'button';
@@ -684,7 +705,7 @@ function buildTimingBar(pre, copy) {
   const holds = copy.hold.map((label) => {
     const b = m2mk('button', 'm2hold', pre);
     b.type = 'button';
-    b.textContent = label;
+    kitLabel(b, label);
     b.setAttribute('aria-pressed', 'false');
     b.title = label;
     return b;
@@ -749,7 +770,7 @@ function mkEditRow(root, what, index) {
   name.maxLength = 24;
   name.spellcheck = false;
   name.setAttribute('autocapitalize', 'characters');
-  name.setAttribute('aria-label', what + ' ' + index + ' name — type your own');
+  kitAria(name, '{what} {n} name — type your own', { what: { t: what }, n: index });
   const clr = m2mk('button', 'm2mclr', row);
   clr.type = 'button';
   setGlyph(clr, 'clear', { size: 16 });
@@ -783,7 +804,7 @@ export function buildMacroSlot(slotbox, m, index) {
   gripIcon(reorder);
   const del = m2mk('button', 'm2slotx', tools);
   del.type = 'button';
-  setGlyph(del, 'close', { size: 14, label: 'Delete ' + (trigger ? 'trigger ' : 'macro ') + index });
+  setGlyph(del, 'close', { size: 14, label: trigger ? 'Delete trigger {n}' : 'Delete macro {n}', vars: { n: index } });
 
   const ed = mkEditRow(root, trigger ? 'Trigger' : 'Macro', index);
 
@@ -812,11 +833,11 @@ function statusCapsule(parent, o) {
   const main = m2mk('span', 'm2statusmain ' + o.mainClass, root);
   m2mk('i', 'm2statuslamp', main);
   const text = m2mk('b', null, main);
-  text.textContent = o.text;
+  text.textContent = t(o.text);
   const middle = o.middleClass ? m2mk('span', o.middleClass, root) : null;
-  if (middle) middle.textContent = o.middleText;
+  if (middle) middle.textContent = t(o.middleText);
   const out = m2mk('span', o.outClass, root);
-  out.textContent = o.outText;
+  out.textContent = t(o.outText);
   return { root, main, text, middle, out };
 }
 
@@ -884,15 +905,15 @@ function buildAudioMeter(ed) {
     flash: m2svg('rect', 'm2audflash', g, { x: -10, y: -10, width: 8, height: 8, rx: 1.5 }),
     labels: []
   };
-  for (const t of ['LOW', 'MID', 'HIGH']) {
+  for (const w of [OUT_WORD.low, OUT_WORD.mid, OUT_WORD.high]) {
     const e = m2svg('text', 'm2audtxt', g, { x: 2, y: 0 });
-    e.textContent = t;
+    kitLabel(e, w.t);
     m.labels.push(e);
   }
   m.scale = m2svg('text', 'm2audtxt', g, { x: 2, y: 0 });
-  m.scale.textContent = 'LEVEL';
+  kitLabel(m.scale, 'LEVEL');
   m.hitLabel = m2svg('text', 'm2audtxt m2audhitlabel', g, { x: 0, y: 0 });
-  m.hitLabel.textContent = 'HIT';
+  kitLabel(m.hitLabel, 'HIT');
   return m;
 }
 
@@ -907,15 +928,15 @@ function mkKnob(parent, o, arcFn) {
     span: o.bounded === false ? 1 : 300 / 360,
     start: o.bounded === false ? 0 : -150
   });
-  const cap = m2mk('div', 'm2kcap', root);
-  cap.textContent = o.cap;
+  const capEl = m2mk('div', 'm2kcap', root);
+  kitLabel(capEl, o.cap);
   const val = m2mk('div', 'm2kval', root);
   const ends = m2mk('div', 'm2kends', root);      // display:none inside #modwin
   const e1 = m2mk('span', null, ends);
-  e1.textContent = o.lo === undefined ? 'MIN' : o.lo;
+  e1.textContent = o.lo === undefined ? t('MIN') : o.lo;
   const e2 = m2mk('span', null, ends);
-  e2.textContent = o.hi === undefined ? 'MAX' : o.hi;
-  return { root, dial, cap, val, ends, e1, e2, arc, id: o.id, label: o.cap };
+  e2.textContent = o.hi === undefined ? t('MAX') : o.hi;
+  return { root, dial, cap: capEl, val, ends, e1, e2, arc, id: o.id, label: o.cap };
 }
 
 /** anim.js:5910 m2mkCheck.  The lamp is a 9 px `i.m2dot`, all CSS. */
@@ -923,9 +944,9 @@ function mkCheck(parent, label, aria) {
   const b = m2mk('button', 'm2chk m2seat44', parent);
   b.type = 'button';
   m2mk('i', 'm2dot', b);
-  const t = m2mk('span', null, b);                // NO class
-  t.textContent = label;
-  if (aria) b.setAttribute('aria-label', aria);
+  const lbl = m2mk('span', null, b);              // NO class
+  kitLabel(lbl, label);
+  if (aria) kitAria(b, aria);
   b.setAttribute('aria-pressed', 'false');
   return b;
 }
@@ -962,18 +983,18 @@ export function buildDevice(run, add, src, copyIn) {
   fold.setAttribute('aria-expanded', 'true');
   m2mk('i', 'm2chev', fold);                      // empty; a CSS triangle
   const kindEl = m2mk('span', 'm2kind', fold);
-  kindEl.textContent = kind.toUpperCase();
+  kitLabel(kindEl, KIND_WORD[kind] ? KIND_WORD[kind].t : String(kind));
   const modeLabel = m2mk('span', 'm2modelabel', fold);
-  modeLabel.textContent = 'FULL';
+  modeLabel.textContent = t('FULL');
 
   /* .m2headc is present on all three kinds. */
   const headc = m2mk('div', 'm2headc', head);
   const lfoWave = kind === 'lfo' ? m2mk('span', 'm2lfowave', headc) : null;
-  if (lfoWave) lfoWave.textContent = 'SINE';
+  if (lfoWave) lfoWave.textContent = t('SINE');
   const envStage = kind === 'env' ? m2mk('span', 'm2envstage', headc) : null;
-  if (envStage) envStage.textContent = 'IDLE';
+  if (envStage) envStage.textContent = t('IDLE');
   const audioState = kind === 'audio' ? m2mk('span', 'm2audioheadstate', headc) : null;
-  if (audioState) audioState.textContent = 'OFF';
+  if (audioState) audioState.textContent = t('OFF');
 
   const bank = m2mk('button', 'm2bank', headc);
   bank.type = 'button';
@@ -982,9 +1003,9 @@ export function buildDevice(run, add, src, copyIn) {
   const bankB = m2mk('span', 'm2bb', bank); bankB.textContent = 'B';
 
   const cpy = m2mk('button', 'm2ab', headc);
-  cpy.type = 'button'; cpy.textContent = 'COPY';
+  cpy.type = 'button'; kitLabel(cpy, 'COPY');
   const pst = m2mk('button', 'm2ab', headc);
-  pst.type = 'button'; pst.textContent = 'PASTE';
+  pst.type = 'button'; kitLabel(pst, 'PASTE');
 
   /* back into .m2headl: the macro numeral, the vertical bay, the status line */
   const minNum = m2mk('button', 'm2minnum', headl);
@@ -1025,7 +1046,7 @@ export function buildDevice(run, add, src, copyIn) {
   let trig = null;
   if (kind === 'env') {
     trig = m2mk('button', 'm2trig', headr);
-    trig.type = 'button'; trig.textContent = 'TRIG';
+    trig.type = 'button'; kitLabel(trig, 'TRIG');
   }
   const pow = m2mk('button', 'm2pow', headr);
   pow.type = 'button';
@@ -1039,7 +1060,7 @@ export function buildDevice(run, add, src, copyIn) {
   const body = m2mk('div', 'm2body', root);
   const col = m2mk('div', 'm2col', body);
   const colhead = m2mk('div', 'm2colhead', col);
-  colhead.textContent = copy.colHead[kind];
+  kitLabel(colhead, copy.colHead[kind]);
 
   const presets = {};
   const zoom = [];
@@ -1054,13 +1075,13 @@ export function buildDevice(run, add, src, copyIn) {
       /* the `d` is SAMPLED FROM THE PRESET ITSELF by the host's curve maths,
          so the button can never draw a shape the engine would not produce. */
       const p = m2svg('path', 'm2gl', s, { d: '' });
-      b.setAttribute('aria-label', label);
+      kitAria(b, label);
       presets[name] = { btn: b, path: p };
     }
   } else if (kind === 'audio') {
     const wrap = m2mk('div', 'm2aud', col);
     const srcBtn = m2mk('button', 'm2audsrc', wrap);
-    srcBtn.type = 'button'; srcBtn.textContent = 'AUDIO IN';
+    srcBtn.type = 'button'; srcBtn.textContent = t('AUDIO IN');
     srcBtn.setAttribute('aria-pressed', 'false');
     /* its OWN class, not .m2audout: the five routable outputs are counted by
        a gate, and a LIVE lamp in that count is a sixth output that does not
@@ -1068,18 +1089,18 @@ export function buildDevice(run, add, src, copyIn) {
     const live = m2mk('div', 'm2audlive', wrap);
     const liveLed = m2mk('i', 'm2audled', live);
     const liveTxt = m2mk('span', null, live);     // NO class
-    liveTxt.textContent = 'OFF';
+    liveTxt.textContent = t('OFF');
     const setBtn = m2mk('button', 'm2audsrc', wrap);
-    setBtn.type = 'button'; setBtn.textContent = 'SET';
+    setBtn.type = 'button'; kitLabel(setBtn, 'SET');
     const note = m2mk('div', 'm2audnote', col);
-    note.textContent = 'OFF';
+    note.textContent = t('OFF');
     aud = { srcBtn, setBtn, live, liveLed, liveTxt, note, outs: {}, meter: null, sheet: null };
   } else {
     /* FIT is spelled out because a magnifier glyph reads as zoom. */
     for (const glyph of copy.zoom) {
       const b = m2mk('button', 'm2zoom m2seat44' + (glyph === 'FIT' ? ' m2fit' : ''), col);
       b.type = 'button';
-      b.textContent = glyph;
+      if (glyph === 'FIT') kitLabel(b, 'FIT'); else b.textContent = glyph;
       zoom.push(b);
     }
   }
@@ -1087,20 +1108,20 @@ export function buildDevice(run, add, src, copyIn) {
   /* AUDIO has no .m2macbox and no .m2capbox at all. */
   let macbox = null, mac = null, bus = null, capbox = null;
   if (kind !== 'audio') {
-    macbox = m2mk('div', 'm2macbox', col);
-    mac = m2mk('button', 'm2mac', macbox);
+    macbox = cap(m2mk('div', 'm2macbox', col), { t: 'OUT' });
+    mac = cap(m2mk('button', 'm2mac', macbox), { t: 'OUT' });
     mac.type = 'button'; mac.textContent = '--'; mac.title = 'MACRO';
     capbox = m2mk('div', 'm2capbox', col);
     /* the captions "OUT" and "TRIG IN" are pseudo-elements on .m2mac; these
        two divs are the SEPARATE caption row .m2capbox carries. */
     const macCap = m2mk('div', 'm2maccap m2capgone', capbox);
-    macCap.textContent = 'MACRO';
+    kitLabel(macCap, 'MACRO');
     macCap.setAttribute('aria-hidden', 'true');
     if (kind === 'env') {
-      bus = m2mk('button', 'm2mac m2bus', macbox);
+      bus = cap(m2mk('button', 'm2mac m2bus', macbox), { t: 'TRIG IN' });
       bus.type = 'button'; bus.textContent = '--'; bus.title = 'TRIG';
       const busCap = m2mk('div', 'm2maccap', capbox);
-      busCap.textContent = 'TRIG';
+      kitLabel(busCap, 'TRIG');
     }
   }
 
@@ -1114,12 +1135,12 @@ export function buildDevice(run, add, src, copyIn) {
   if (kind === 'lfo') {
     const swBox = m2mk('div', 'm2sw', rt);
     sw.trig = m2mk('button', 'm2swb m2seat44', swBox);
-    sw.trig.type = 'button'; sw.trig.textContent = 'TRIG';
+    sw.trig.type = 'button'; kitLabel(sw.trig, 'TRIG');
     sw.trig.setAttribute('aria-pressed', 'false');
     flipBtn = m2mk('button', 'm2flipb m2seat44', swBox);
-    flipBtn.type = 'button'; flipBtn.textContent = 'FLIP';
+    flipBtn.type = 'button'; kitLabel(flipBtn, 'FLIP');
     sw.off = m2mk('button', 'm2swb m2seat44', swBox);
-    sw.off.type = 'button'; sw.off.textContent = 'OFF';
+    sw.off.type = 'button'; kitLabel(sw.off, 'OFF');
     sw.off.setAttribute('aria-pressed', 'false');
     const cks = m2mk('div', 'm2chks', rt);
     for (const [key, label] of copy.lfoChecks) checks[key] = mkCheck(cks, label);
@@ -1136,7 +1157,7 @@ export function buildDevice(run, add, src, copyIn) {
       boxBtn.type = 'button';
       boxBtn.dataset.child = '';
       const nm = m2mk('span', 'm2audname', boxBtn);
-      nm.textContent = k.toUpperCase();
+      kitLabel(nm, OUT_WORD[k] ? OUT_WORD[k].t : String(k));
       const slot = m2mk('span', 'm2audslot', boxBtn);
       slot.textContent = '--';
       aud.outs[k] = { row: rowEl, grip, led, box: boxBtn, name: nm, slot };
@@ -1161,15 +1182,15 @@ export function buildDevice(run, add, src, copyIn) {
     const zone = m2mk('div', 'm2lfocmpzone', root);
     const shape = m2mk('button', 'm2lfocmpcmd m2lfocmpshape', zone);
     shape.type = 'button';
-    const shapeCap = m2mk('span', 'm2lfocmpcap', shape); shapeCap.textContent = 'WAVE';
+    const shapeCap = kitLabel(m2mk('span', 'm2lfocmpcap', shape), 'WAVE');
     const shapeSvg = m2svg('svg', null, shape,
       { viewBox: '0 0 52 14', preserveAspectRatio: 'none', 'aria-hidden': 'true' });
     const shapePath = m2svg('path', null, shapeSvg, {});
-    const shapeValue = m2mk('span', 'm2lfocmpvalue', shape); shapeValue.textContent = 'SINE';
+    const shapeValue = m2mk('span', 'm2lfocmpvalue', shape); shapeValue.textContent = t('SINE');
 
     const macroBtn = m2mk('button', 'm2lfocmpcmd m2lfocmpmacro', zone);
     macroBtn.type = 'button';
-    m2mk('span', 'm2lfocmpcap', macroBtn).textContent = 'OUT';
+    kitLabel(m2mk('span', 'm2lfocmpcap', macroBtn), 'OUT');
     const macroValue = m2mk('span', 'm2lfocmpvalue', macroBtn); macroValue.textContent = '--';
 
     const toggles = {};
@@ -1177,13 +1198,13 @@ export function buildDevice(run, add, src, copyIn) {
       const b = m2mk('button', 'm2lfocmpcmd m2lfocmptoggle', zone);
       b.type = 'button';
       b.setAttribute('aria-pressed', 'false');
-      m2mk('span', 'm2lfocmplabel', b).textContent = label;
+      kitLabel(m2mk('span', 'm2lfocmplabel', b), label);
       toggles[key] = b;
     }
     const copyCmd = m2mk('button', 'm2lfocmpcmd m2lfocmpclip', zone);
-    copyCmd.type = 'button'; copyCmd.textContent = 'COPY';
+    copyCmd.type = 'button'; kitLabel(copyCmd, 'COPY');
     const pasteCmd = m2mk('button', 'm2lfocmpcmd m2lfocmpclip', zone);
-    pasteCmd.type = 'button'; pasteCmd.textContent = 'PASTE';
+    pasteCmd.type = 'button'; kitLabel(pasteCmd, 'PASTE');
     compactLfo = {
       root: zone, shape, shapeCap, shapeSvg, shapePath, shapeValue,
       macro: macroBtn, macroValue, toggles, copy: copyCmd, paste: pasteCmd
@@ -1218,7 +1239,7 @@ export function setDeviceMode(dev, mode, anatomy) {
   d.root.dataset.anatomy = an === 'C' ? 'compact' : 'full';
   d.root.classList.toggle('m2cmp', want === 'C');
   d.root.classList.toggle('m2min', want === 'M');
-  if (d.modeLabel) d.modeLabel.textContent = an === 'C' ? 'CMP' : 'FULL';
+  if (d.modeLabel) d.modeLabel.textContent = an === 'C' ? t('CMP') : t('FULL');
   return want;
 }
 
@@ -1230,29 +1251,29 @@ export function buildAudioSheet(dev, copyIn) {
   const root = m2mk('div', 'm2audsheet', dev.root);
   root.hidden = true;
   const head = m2mk('div', 'm2audshead', root);
-  head.textContent = 'CONDITIONING';              // set FIRST; children after
+  leadText(head, { t: 'CONDITIONING' });          // set FIRST; children after
   const input = m2mk('select', 'm2audinput', head);
-  input.setAttribute('aria-label', 'Audio input device');
+  kitAria(input, 'Audio input device');
   const opt = document.createElement('option');
   opt.value = '';
-  opt.textContent = 'SYSTEM DEFAULT';
+  kitLabel(opt, 'SYSTEM DEFAULT');
   input.appendChild(opt);
   const x = m2mk('button', 'm2audsx', head);
   x.type = 'button';
   x.textContent = '×';
-  x.setAttribute('aria-label', 'Close the conditioning sheet');
+  kitAria(x, 'Close the conditioning sheet');
   const rows = {};
   for (const [key, label] of copy.audioSheetRows) {
     const row = m2mk('div', 'm2audsrow', root);
     const lab = m2mk('div', 'm2audslab', row);
-    lab.textContent = label;
+    kitLabel(lab, label);
     const dn = m2mk('button', 'm2audsbtn', row);
     dn.type = 'button'; dn.textContent = '−';
-    dn.setAttribute('aria-label', 'Lower ' + label);
+    kitAria(dn, 'Lower {name}', { name: { t: label } });
     const val = m2mk('div', 'm2audsval', row);
     const up = m2mk('button', 'm2audsbtn', row);
     up.type = 'button'; up.textContent = '+';
-    up.setAttribute('aria-label', 'Raise ' + label);
+    kitAria(up, 'Raise {name}', { name: { t: label } });
     const leg = m2mk('div', 'm2audsleg', root);   // ← the sheet root, not `row`
     rows[key] = { row, lab, dn, val, up, leg };
   }
@@ -1318,11 +1339,11 @@ export function buildSpan(hostEl, shape) {
     };
   }
   /* the two caps are SIBLINGS of the band, children of the host. */
-  const cap = m2mk('i', 'm2spancap ' + shape, hostEl);
-  cap.setAttribute('aria-hidden', 'true');
+  const spanCap = m2mk('i', 'm2spancap ' + shape, hostEl);
+  spanCap.setAttribute('aria-hidden', 'true');
   const liveCap = m2mk('i', 'm2spanlivecap ' + shape, hostEl);
   liveCap.setAttribute('aria-hidden', 'true');
-  return { shape, root, cap, liveCap, arc: null, base: null, live: null };
+  return { shape, root, cap: spanCap, liveCap, arc: null, base: null, live: null };
 }
 
 /** anim.js:5114 m2ensureClear. */
@@ -1337,7 +1358,7 @@ export function buildClear(hostEl, targetId) {
 /** anim.js:4932.  Appended to document.body, outside every window. */
 export function buildGhost(text) {
   const g = m2mk('div', 'm2ghost', document.body);
-  g.textContent = String(text === undefined ? 'MACRO' : text).slice(0, 12);
+  g.textContent = String(text === undefined ? t('MACRO') : text).slice(0, 12);
   return g;
 }
 
@@ -1354,7 +1375,7 @@ export function buildDevicePick(windowRoot, copyIn) {
   for (const [kind, label] of copy.devicePick) {
     const b = m2mk('button', 'm2pickb', root);
     b.type = 'button';
-    b.textContent = label;
+    kitLabel(b, label);
     btns[kind] = b;
   }
   root.hidden = true;          // born closed, so the first tap SHOWS
@@ -1369,7 +1390,7 @@ export function buildMacroPick(windowRoot, copyIn) {
   for (const [kind, label] of copy.macroPick) {
     const b = m2mk('button', 'm2pickb', root);
     b.type = 'button';
-    b.textContent = label;
+    kitLabel(b, label);
     btns[kind] = b;
   }
   root.hidden = true;
@@ -1382,7 +1403,7 @@ export function buildPresetSheet(windowRoot, copyIn) {
   const copy = Object.assign({}, COPY, copyIn || {});
   const root = m2mk('div', 'm2ppick glass', windowRoot);
   root.setAttribute('role', 'listbox');
-  root.setAttribute('aria-label', copy.presetSheetLabel.replace('{factory}', copy.factory));
+  kitAria(root, copy.presetSheetLabel, { factory: copy.factory });
   root.hidden = true;
   return { root, group: (name, shut, on) => buildPresetGroup(root, name, shut, on) };
 }
@@ -1418,7 +1439,7 @@ function buildPresetGroup(sheet, name, shut, on) {
       const nm = m2mk('span', 'm2prowname', b);
       nm.textContent = preset;
       const rtag = m2mk('span', 'm2prowtag', b);
-      rtag.textContent = o.factory ? 'FACTORY' : (o.stale ? 'OLDER MODEL' : '');
+      rtag.textContent = o.factory ? t('FACTORY') : (o.stale ? t('OLDER MODEL') : '');
       if (o.factory) return { wrap, btn: b, name: nm, tag: rtag, del: null };
       const del = m2mk('button', 'm2prowdel', wrap);
       del.type = 'button';
@@ -1433,7 +1454,7 @@ export function buildDeadInspector(windowRoot) {
   const root = m2mk('div', 'm2deadpick glass', windowRoot);
   root.id = IDS.deadInspector;
   root.setAttribute('role', 'dialog');
-  root.setAttribute('aria-label', 'Dead-send inspector');
+  kitAria(root, 'Dead-send inspector');
   root.hidden = true;
   root.dataset.side = 'below';
   const head = m2mk('div', 'm2deadhead', root);
@@ -1441,7 +1462,7 @@ export function buildDeadInspector(windowRoot) {
   const close = m2mk('button', 'm2deadclose', head);
   close.type = 'button';
   close.textContent = '×';
-  close.setAttribute('aria-label', 'Close dead-send inspector');
+  kitAria(close, 'Close dead-send inspector');
   const list = m2mk('div', 'm2deadlist', root);
   list.setAttribute('role', 'list');
   return {
@@ -1465,7 +1486,7 @@ export function buildDeadInspector(windowRoot) {
       const remove = m2mk('button', 'm2deadremove', r);
       remove.type = 'button';
       if (o.routeId !== undefined) remove.dataset.routeId = String(o.routeId);
-      remove.textContent = 'REMOVE';
+      kitLabel(remove, 'REMOVE');
       return { root: r, source, target, why, trail, remove };
     }
   };
