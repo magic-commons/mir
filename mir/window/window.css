@@ -14,6 +14,30 @@
  * Motion is the core's tokens (--motion-micro, --ease-out).  Everything is in mir.kit.house, after skin.css. */
 @layer mir.kit.house {
 
+/* FROST · values ───────────────────────────────────────────────────────────────────────────────────────────────────
+   1.5.0-alpha.4 · every look value of this sheet, in one place (docs/SKINS.md).  The chip's material is declared on
+   the rail and re-pointed seat by seat (theme × card × frost) on the selectors it always had, in the order it always
+   had; the rules below read names only. */
+:root { --chip-hover-scale: 1.06; --chip-press-scale: .92; }     /* HOVER grows the disc 6 %, PRESS sinks it to 92 % */
+.mir-rail {
+  /* the disc's material, seat by seat below — the same ladder skin.css §14c gives the pane (L64/L65 change both) */
+  --chip-fill: hsl(var(--glass-tint) / var(--glass-opacity));
+  --chip-filter: var(--glass-filter);
+  --chip-lift: hsl(0 0% 100% / .16);
+  --chip-rim: hsl(0 0% 100% / .30);
+  --chip-sink: inset 0 2px 5px hsl(0 0% 0% / .30), inset 0 0 0 1px var(--chip-rim);
+  /* ON reads the semantic tier (a skin may set it); the fallbacks are §56's: the plugin's frost at its default blend */
+  --chip-on: var(--state-on, hsl(0 0% 100% / .086));
+  --chip-on-rim: var(--state-on-rim, inset 0 0 0 1px var(--chip-rim), inset 0 1px 0 hsl(0 0% 100% / .12));
+}
+body[data-theme="light"] .mir-rail { --chip-rim: hsl(214 30% 40% / .34); }
+body[data-card="tinted"] .mir-rail { --chip-fill: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
+body[data-card="refractive"] .mir-rail { --chip-fill: var(--surface-veil, transparent); }
+body.frost[data-card="refractive"] .mir-rail { --chip-filter: var(--surface-filter, var(--frost-filter)); }
+body.frost[data-card="refractive"][data-theme="dark"] .mir-rail { --chip-fill: var(--surface-veil, var(--frost-veil-dark)); }
+body.frost.frost-hold[data-card="refractive"] .mir-rail { --chip-filter: none; --chip-fill: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }   /* FROST · STILL: the chip holds with its pane (skin.css) */
+/* ── end of the values ── */
+
 /* ── THE PANE ─────────────────────────────────────────────────────────────────────────────────────────────── */
 .mir-win {
   position: fixed; box-sizing: border-box; display: flex; flex-direction: column; min-width: 0; overflow: hidden;
@@ -35,25 +59,10 @@
 .mir-rail {
   --chrome-chip-disc: calc(48px * var(--ui-scale));
   --chrome-chip-target: max(var(--touch), calc(62px * var(--ui-scale)));
-  /* the disc's material, seat by seat below — the same ladder skin.css §14c gives the pane (L64/L65 change both) */
-  --chip-fill: hsl(var(--glass-tint) / var(--glass-opacity));
-  --chip-filter: var(--glass-filter);
-  --chip-lift: hsl(0 0% 100% / .16);
-  --chip-rim: hsl(0 0% 100% / .30);
-  --chip-sink: inset 0 2px 5px hsl(0 0% 0% / .30), inset 0 0 0 1px var(--chip-rim);
-  /* ON reads the semantic tier (a skin may set it); the fallbacks are §56's: the plugin's frost at its default blend */
-  --chip-on: var(--state-on, hsl(0 0% 100% / .086));
-  --chip-on-rim: var(--state-on-rim, inset 0 0 0 1px var(--chip-rim), inset 0 1px 0 hsl(0 0% 100% / .12));
   position: fixed; display: flex; flex-direction: column; align-items: center; gap: var(--sp-3);
   margin: 0; padding: 0; pointer-events: auto;
 }
 .mir-rail:is([data-side="top"], [data-side="bottom"]) { flex-direction: row; }
-body[data-theme="light"] .mir-rail { --chip-rim: hsl(214 30% 40% / .34); }
-body[data-card="tinted"] .mir-rail { --chip-fill: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
-body[data-card="refractive"] .mir-rail { --chip-fill: var(--surface-veil, transparent); }
-body.frost[data-card="refractive"] .mir-rail { --chip-filter: var(--surface-filter, var(--frost-filter)); }
-body.frost[data-card="refractive"][data-theme="dark"] .mir-rail { --chip-fill: var(--surface-veil, hsl(0 0% 0% / .10)); }
-body.frost.frost-hold[data-card="refractive"] .mir-rail { --chip-filter: none; --chip-fill: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }   /* FROST · STILL: the chip holds with its pane (skin.css) */
 
 /* ── THE CHIP: a 62 px target around a 48 px disc ─────────────────────────────────────────────────────────── */
 .mir-chip {
@@ -61,7 +70,7 @@ body.frost.frost-hold[data-card="refractive"] .mir-rail { --chip-filter: none; -
   width: var(--chrome-chip-target); height: var(--chrome-chip-target); margin: 0; padding: 0;
   display: flex; align-items: center; justify-content: center; overflow: visible;
   border: 0; border-radius: 50%; background: transparent; color: var(--ink-key);
-  font: 700 var(--fs-small)/1 var(--font-ui); cursor: pointer; outline: none;
+  font: var(--w-heavy) var(--fs-small)/1 var(--font-ui); cursor: pointer; outline: none;
   touch-action: manipulation; -webkit-tap-highlight-color: transparent;
   transition: color var(--motion-micro) var(--ease-out);
 }
@@ -95,13 +104,13 @@ body.frost.frost-hold[data-card="refractive"] .mir-rail { --chip-filter: none; -
 /* HOVER — a lighter face and a small lift, only where there is a hover */
 @media (hover: hover) {
   .mir-chip:hover { color: var(--fg); }
-  .mir-chip:hover::before { background-image: linear-gradient(var(--chip-lift), var(--chip-lift)); transform: translate(-50%, -50%) scale(1.06); }
+  .mir-chip:hover::before { background-image: linear-gradient(var(--chip-lift), var(--chip-lift)); transform: translate(-50%, -50%) scale(var(--chip-hover-scale)); }
 }
 /* PRESS — it sinks, for a mouse (:active) and for a finger (.press, core/pointer.js installPress) */
 .mir-chip:is(:active, .press) { color: var(--fg); }
 .mir-chip:is(:active, .press)::before {
   background-image: linear-gradient(var(--glass-press), var(--glass-press)); box-shadow: var(--chip-sink);
-  transform: translate(-50%, -50%) scale(.92);
+  transform: translate(-50%, -50%) scale(var(--chip-press-scale));
 }
 
 }   /* end @layer mir.kit.house */
