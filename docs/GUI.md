@@ -89,7 +89,7 @@ Every control on MIR OPTIONS changes what is drawn through a hook a kit sheet or
 | | BLUR 0–24 px | dial | `--glass-blur` on `<html>` (it feeds `--frost-filter` there), always written; 0 writes `--surface-filter: none`, never `blur(0)`. BASINS' range is 0–20 (20 is the WebKit ceiling); it reaches 22 so CLASSIC is 1.4's blur exactly. Disabled below FULL and under SOLID | FROST: 11 |
 | | VEIL 0–60 % | dial | `--surface-veil` on `<body>`: BASINS' veil, the theme's signed whiteness (white on light, black on dark) plus ½·BRIGHT, coloured toward HUE by TINT (`core/look.js glassVeil`). Disabled unless REFRACTIVE at FULL | the house veils |
 | | SATURATION 0–200 % | dial | `--surface-filter: blur(Npx) saturate(s)` on `<body>`, and it multiplies the tint's chroma (BASINS). Disabled below FULL and under SOLID | 100 % |
-| | CORNERS 0–24 px | dial | `--surface-radius` on `<body>`: rack cards, kit windows, the notebook, menus, popovers, the transport, the modulation panes | 14 px |
+| | CORNERS 0–24 px | dial | `--surface-radius` on `<body>`: rack cards, kit windows, the notebook, menus, popovers, the modulation panes, an app pane with `data-mir-surface` (the transport bar keeps its own 16 px, as BASINS) | 14 px |
 | | BRIGHT −100…+100 · HUE 0–360° (an arc, drawn in its hue) · TINT 0–100 % | dials | `--glass-tint` on `<body>` (the tinted and solid pane, every solid face), BASINS' `applyGlass` exactly: lightness + 40·BRIGHT, hue → HUE and saturation → 70 % by TINT, times SATURATION, from the theme's own tint. HUE is disabled while TINT is 0 | BRIGHT 0, TINT 0 |
 | CONTROLS | RELIEF default · flat | seg | `--relief-raise`, `--relief-well` = `0 0 0 0 transparent` on `<html>`; at default the relief turns with LIGHT ANGLE | default |
 | | FACES glass · solid | seg | `<body data-faces="glass">`: under REFRACTIVE or FROST the faces are clear glass with a hairline (BASINS `material.css` §1) | solid (FROST: glass) |
@@ -163,6 +163,24 @@ The **page turner** is the same stepper as SKIN. It sits above both pages, with 
 - While the pointer is on it, the tiles cycle the logo's own nine colours, 240 ms a step, as BASINS' About does. This is a stepped Web Animation: no timer, nothing at rest, never on touch or under reduced motion.
 - MIR's description is quoted from magic-commons.com (the λWAVES About page). Then the licence, each shipped font's licence, the logo's typeface credit, and the app's credits.
 - The GitHub link shows only when the app passes `about.github`: the kit's README names none.
+
+## An app's own panes: `data-mir-surface`
+
+The look reaches every pane the kit draws. An app's own pane (a card of its own window, its own bar, a round button) takes the same material with one attribute:
+
+| `data-mir-surface` | What the element becomes |
+|---|---|
+| `pane` (or empty) | a pane at pane height: the edge (`--pane-edge` · `--surface-edge`), CORNERS (`--surface-radius`), the pane shadow, and the fill by CARD STYLE (the tinted fill and sheen, the refractive veil, SOLID), with FROST's blur and saturation and FROST · STILL's hold |
+| `float` | the same at the floating window's height |
+| `menu` | the same at the menu's height |
+| `chip` | the material at pane height, keeping the element's own corner (a bar, a round button) |
+| `island` | paintless while joined (the same box: a transparent 1 px edge), and a pane while DISCONNECTED, as a window's body card is |
+
+It is the very rules a kit pane is in, at no weight of its own, so an app's sheet that paints the same property still wins: delete the app's own material rules for that pane. `tests/themes.browser.mjs` proves a `pane` computes what a kit card beside it computes in every card style × frost × tier.
+
+## TEXT with an app's own ink sampler
+
+An app that samples the picture under each label (BASINS' `adaptive-ink.js`) creates the window with `createGui({ inkSampler: true })`: TEXT then offers **SAMPLED**, which writes no `data-text` at all, so the app's per-label ink decides. The app keeps its sampler and the CSS that turns its per-label attribute into the ink ladder; the kit's AUTO (the mode's ladder under glass, a SOLID pane's lightness, the house ladder on a tinted pane) stays for apps with no sampler. To start a user on it: `createGui({ inkSampler: true, defaults: { text: 'sampled' } })`.
 
 ## The pointer helpers
 

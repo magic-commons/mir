@@ -1033,6 +1033,13 @@ body[data-theme="dark"] .mir-modwindow .m2audout { background-color: transparent
 /* THE SURFACES.  Same edge, same corner, same shadow — BASINS' own finding about their bar and card
    was that the ONLY difference between the two is the FILL.  These are the objects; they paint, they
    float, and they are the only things a finger can land on. */
+/* 1.5.0-alpha.7 · the pickers under REFRACTIVE with FROST are BASINS' glass: the theme's .10 frost veil (or VEIL) and the
+   blur; FROST · STILL holds them like a pane */
+body.frost[data-card="refractive"] #modwin.mir-modwindow :is(.m2pick, .m2ppick, .m2deadpick) {
+  background-color: var(--surface-veil, var(--frost-veil-light)); -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter)); backdrop-filter: var(--surface-filter, var(--frost-filter)); }
+body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow :is(.m2pick, .m2ppick, .m2deadpick) { background-color: var(--surface-veil, var(--frost-veil-dark)); }
+body.frost.frost-hold[data-card="refractive"] #modwin.mir-modwindow :is(.m2pick, .m2ppick, .m2deadpick) {
+  background-color: var(--surface-fill, var(--m2-face-tint-97)); -webkit-backdrop-filter: none; backdrop-filter: none; }
 #modwin.mir-modwindow .m2workbar,
 #modwin.mir-modwindow .m2rail,
 #modwin.mir-modwindow .m2dev,

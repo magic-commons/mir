@@ -197,6 +197,9 @@ body[data-theme="dark"] #notebook::before { display: none; }
 /* 1.5.0-alpha.5 · CARD STYLE · SOLID: the notebook is the opaque pane too (no blur, no shade over it) */
 body[data-card="solid"] #notebook { background: var(--surface-fill, var(--nb-phone-fill)); -webkit-backdrop-filter: none; backdrop-filter: none; }
 body[data-card="solid"] #notebook::before { display: none; }
+/* 1.5.0-alpha.7 · under REFRACTIVE with FROST a menu is BASINS' glass: the theme's .10 frost veil (or VEIL), the blur, no sheen */
+body.frost[data-card="refractive"] #menubar .mb-list { background: var(--surface-veil, var(--frost-veil-light)); }
+body.frost[data-card="refractive"][data-theme="dark"] #menubar .mb-list { background: var(--surface-veil, var(--frost-veil-dark)); }
 body[data-card="refractive"] #menubar .mb-list { background: var(--surface-sheen, var(--glass-sheen)), var(--surface-veil, var(--mb-list-veil));
   -webkit-backdrop-filter: var(--surface-filter, blur(var(--glass-blur))); backdrop-filter: var(--surface-filter, blur(var(--glass-blur))); }
 }

@@ -59,7 +59,7 @@
 .mir-transport {
   position: fixed; left: 50%; right: auto; top: auto; bottom: var(--xport-bottom); transform: translateX(-50%); z-index: var(--z-chrome);
   box-sizing: border-box; min-width: min(var(--xport-w), calc(100vw - 24px)); max-width: calc(100vw - 24px); height: var(--xport-h); padding: 2px 7px 3px;
-  display: flex; align-items: center; gap: 2px; border-radius: var(--surface-radius, var(--xport-radius));
+  display: flex; align-items: center; gap: 2px; border-radius: var(--xport-radius);   /* its own corner, as BASINS' bar keeps 16 px under any CORNERS (1.5.0-alpha.7) */
   box-shadow: var(--surface-shadow, var(--glass-shadow)); touch-action: manipulation; user-select: none; -webkit-user-select: none;
 }
 .mir-transport[data-seat="top"] { top: var(--xport-top); bottom: auto; }

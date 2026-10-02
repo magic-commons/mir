@@ -168,6 +168,32 @@ try {
   report.push('wall DARK/LIGHT control (over the plain ground): ' + JSON.stringify(wall));
 } finally { await p.close(); }
 
+/* ── BASINS parity (tests/fixtures/parity.html): the surface hook, glass faces, a pane shadow written as `none` ── */
+p = await launch({ width: 1440, height: 900 });
+try {
+  await p.goto(`${BASE}/tests/fixtures/parity.html`, 800); await ready();
+  const PX = ['background-color', 'background-image', 'backdrop-filter', 'border-top-color', 'border-top-left-radius', 'box-shadow'];
+  const seats = [];
+  for (const card of ['tinted', 'refractive', 'solid']) for (const frost of ['off', 'always']) for (const quality of ['full', 'balanced', 'light']) {
+    const r = JSON.parse(await p.eval(`(async () => { __T.P.set({ card: '${card}', frost: '${frost}', quality: '${quality}' }); __T.P.apply({ now: true }); await new Promise((r) => setTimeout(r, 120));
+      const a = getComputedStyle(document.querySelector('#hook-pane')), b = getComputedStyle(__T.d.root), px = ${JSON.stringify(PX)};
+      const fl = getComputedStyle(document.querySelector('#hook-float')).boxShadow, i = document.createElement('i'); i.style.boxShadow = 'var(--surface-shadow-float)'; document.body.appendChild(i); const want = getComputedStyle(i).boxShadow; i.remove();
+      return JSON.stringify({ diff: px.filter((x) => a.getPropertyValue(x) !== b.getPropertyValue(x)).map((x) => x + ': ' + a.getPropertyValue(x) + ' vs ' + b.getPropertyValue(x)), float: fl === want }); })()`));
+    if (r.diff.length || !r.float) seats.push(`${card}/${frost}/${quality}: ${r.diff.join('; ')}${r.float ? '' : ' (float height)'}`);
+  }
+  check('the surface hook: an app pane with data-mir-surface computes what a kit card beside it computes, in every card style × frost × tier (and "float" at the floating height)', seats.length === 0, seats.join(' | '));
+  let r = JSON.parse(await p.eval(`(async () => { __T.P.set({ card: 'refractive', frost: 'always', quality: 'full', faces: 'glass' }); __T.P.apply({ now: true }); await new Promise((r) => setTimeout(r, 150));
+    const bg = (n) => getComputedStyle(n).backgroundColor, bc = (n) => getComputedStyle(n).borderTopColor;
+    return JSON.stringify({ chosen: bg(document.querySelector('.dev .seg-b.on')), swOff: bc(__T.sOff.root), trig: bc(__T.tr.root), fd: bc(__T.fd.root), arc: bc(__T.arc.root.querySelector('.k-dial')), knobImg: getComputedStyle(__T.k.root.querySelector('.k-dial')).backgroundImage }); })()`));
+  const hair = 'rgba(255, 255, 255, 0.08)';
+  check('GLASS faces as BASINS draws them: the chosen segment is clear, a knob has no image, and the switch, trigger, own-colour fader and arc knob wear the .08 white hairline', r.chosen === 'rgba(0, 0, 0, 0)' && r.knobImg === 'none' && [r.swOff, r.trig, r.fd, r.arc].every((c) => c === hair), JSON.stringify(r));
+  r = JSON.parse(await p.eval(`(async () => { document.body.style.setProperty('--surface-shadow', 'none'); document.body.style.setProperty('--surface-shadow-float', 'none'); document.body.style.setProperty('--surface-shadow-menu', 'none');
+    __T.d.root.classList.add('dragging'); await new Promise((r) => setTimeout(r, 80)); const cs = getComputedStyle(__T.d.root);
+    const out = { carriedRing: cs.outlineStyle + ' ' + cs.outlineWidth, dragShadow: cs.boxShadow, pane: getComputedStyle(document.querySelector('#hook-pane')).boxShadow };
+    __T.d.root.classList.remove('dragging'); for (const n of ['--surface-shadow', '--surface-shadow-float', '--surface-shadow-menu']) document.body.style.removeProperty(n); return JSON.stringify(out); })()`));
+  check('a pane shadow an app writes as `none` breaks nothing: the carried window keeps its ring (an outline), the panes draw no shadow', r.carriedRing === 'solid 1px' && r.dragShadow === 'none' && r.pane === 'none', JSON.stringify(r));
+} finally { await p.close(); }
+
 /* ── the modulation plugin: the power seat, and a skin's focus ring ── */
 p = await launch({ width: 1440, height: 900 });
 try {

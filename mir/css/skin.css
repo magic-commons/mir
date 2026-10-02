@@ -62,6 +62,7 @@
   --neu-inset: inset calc(-1.4142px * var(--light-sin)) calc(1.4142px * var(--light-cos)) 3px hsl(0 0% 0% / .48),
     inset calc(1.4142px * var(--light-sin)) calc(-1.4142px * var(--light-cos)) 2px hsl(0 0% 100% / .04);                 /* a well cut into the card */
   --neu-flat: 0 0 0 1px hsl(0 0% 100% / .05);                     /* a resting seat, neither up nor down */
+  --seat-edge: 1px solid hsl(0 0% 100% / .05);                    /* the same seat as an outline, beside a pane shadow (the tooltip, the badge) */
   --fg: #f2f5f7; --fg-soft: hsl(0 0% 88%); --dim: hsl(0 0% 72%); --ink-key: hsl(0 0% 74%); --ink-faint: hsl(0 0% 64%);  /* all ≥ 4.5:1 on the card, see skin-notes */
   --ink-shadow: 0 1px 1px hsl(0 0% 0% / .5);
   --hue-acc: 188; --sat-acc: 80%; --lum-acc: 70.6%;               /* the house cyan, #78e1f0 to within one level of green */
@@ -233,7 +234,8 @@ html[data-shine] body {
 }
 /* the values that read another token, declared on the element that draws them, so each resolves where it always did */
 .dev, .dev-head, .dev-body {
-  --dev-carried-ring: 0 0 0 1px color-mix(in srgb, var(--acc) 35%, transparent);   /* CARRIED: the accent ring beside the float */
+  --dev-carried-ring: 0 0 0 1px color-mix(in srgb, var(--acc) 35%, transparent);   /* CARRIED: the accent ring beside the float (as a shadow, for a skin) */
+  --dev-carried-edge: 1px solid color-mix(in srgb, var(--acc) 35%, transparent);     /* … drawn as an outline, outside the pane shadow's list */
   --dev-tab-ring: color-mix(in srgb, var(--acc) 70%, transparent);                   /* the TAB-cycle mark */
 }
 .k-dial, .trig { --state-hover-wash: inset 0 0 0 99px var(--state-hover, var(--glass-raise)); }   /* HOVER: a full inset wash, a lighter face */
@@ -286,7 +288,7 @@ html[data-shine] body {
    base.css's outline and fade and this sheet's scale and upward shadow are gone (L51–L53). */
 .dev.dragging { cursor: grabbing; z-index: 5;
   transition: none;                                                           /* wave 67: the lift is INSTANT — see the note on .dev's transition */
-  box-shadow: var(--state-carried, var(--surface-shadow-float, var(--glass-shadow)), var(--dev-carried-ring)); }
+  box-shadow: var(--state-carried, var(--surface-shadow-float, var(--glass-shadow))); outline: var(--dev-carried-edge); outline-offset: 0; }   /* the ring is an outline: a pane shadow an app writes as `none` never takes it with it */
 .dev.dragging * { pointer-events: none; }                                     /* nothing inside catches the pointer mid-drag */
 .dev-eyebrow { opacity: 1; }                                                   /* the eyebrow IS the name now; the long title is the header's hover hint */
 .dev:hover .dev-eyebrow, .dev.tab-hot .dev-eyebrow { opacity: 1; }
@@ -331,7 +333,7 @@ html[data-shine] body {
 .k-needle { background: var(--fg-soft); box-shadow: none; }
 .k.live .k-needle, .k.drag .k-needle, .k.active .k-needle { background: var(--acc); box-shadow: var(--acc-glow); }   /* LIVE: a glow in accent A (L46) */
 .k-val { opacity: 0; transform: translateY(2px); pointer-events: none;        /* the value is a tooltip: hidden at rest … */
-  padding: 1px 6px; border-radius: var(--r-pill); color: var(--fg); background: var(--k-val-fill); box-shadow: var(--neu-flat), var(--surface-shadow-menu, var(--glass-shadow));   /* a tooltip is a popover: height 4 (INTENT O4) */
+  padding: 1px 6px; border-radius: var(--r-pill); color: var(--fg); background: var(--k-val-fill); box-shadow: var(--surface-shadow-menu, var(--glass-shadow)); outline: var(--seat-edge); outline-offset: 0;   /* a tooltip is a popover: height 4 (INTENT O4) */
   transition: opacity var(--t-soft) var(--ease-std) var(--t-linger), transform var(--t-soft) var(--ease-std) var(--t-linger); }  /* … and lingers after the hand leaves */
 .k:hover .k-val, .k.drag .k-val, .k.active .k-val, .k[data-live] .k-val, .k:focus-within .k-val { opacity: 1; transform: none;
   transition: opacity var(--t-fast), transform var(--t-fast); }               /* in fast, no delay */
@@ -359,8 +361,14 @@ html[data-shine] body {
 select.sel { border-color: transparent; background: var(--glass-well); box-shadow: var(--relief-well, var(--neu-inset)); color: var(--fg-soft); }
 /* CONTROL FACES · GLASS: the outline a clear face loses with its fill is the hairline (BASINS material.css §1).  ON and
    pressed keep their own (later, heavier) rules. */
-:where(body:is([data-faces="glass"], [data-faces="blend"]):is([data-card="refractive"], .frost):not([data-card="solid"])) :is(.k-dial, .trig, .sw, .seg, select.sel, .fd, .ro) { border-color: var(--glass-hairline); }
-:where(body[data-faces="glass"]:is([data-card="refractive"], .frost):not([data-card="solid"])) .badge { background: transparent; }
+/* 1.5.0-alpha.7 · BASINS' GLASS FACES, exactly (material.css §1): every neutral face is clear in every state — a chosen
+   segment, a hovered switch or segment, a pressed trigger included — and the outline it loses is the hairline.  ON
+   (.sw.on, .trig.on, an expanded or pressed trigger) keeps its own face.  Heavy on purpose: it must beat the hover,
+   press and chosen rules above, as BASINS' ladder did.  The relief, the rims, the scale and the accent label stay. */
+body[data-faces="glass"]:is([data-card="refractive"], .frost):not([data-card="solid"]) :is(.k-dial, .trig:not(.on):not([aria-expanded="true"]):not([aria-pressed="true"]),
+  .seg, .seg-b, .sw:not(.on), select.sel, .fd, .ro, .dev-power, .native-info-button, .badge) { background-color: transparent; background-image: none; }
+body:is([data-faces="glass"], [data-faces="blend"]):is([data-card="refractive"], .frost):not([data-card="solid"]) :is(.k-dial, .trig:not(.on):not([aria-expanded="true"]):not([aria-pressed="true"]),
+  .sw:not(.on), .seg, select.sel, .fd, .ro) { border-color: var(--glass-hairline); }
 /* … and BLEND's crossing layer, over the face, under the label (BASINS material.css BLEND) */
 :where(body[data-faces="blend"]:is([data-card="refractive"], .frost):not([data-card="solid"])) :is(.trig, .seg, .sw, select.sel, .fd, .ro) {
   background-image: linear-gradient(var(--faces-transition-source), var(--faces-transition-source)); background-blend-mode: var(--faces-transition-mode); }
@@ -400,8 +408,16 @@ select.sel { border-color: transparent; background: var(--glass-well); box-shado
 .calc-row { border-bottom-color: var(--glass-hairline); }
 
 /* ── 10. chrome over the stage: the title, badges, sheet, keyboard hint ─── */
-.glass { border-color: var(--pane-edge, var(--surface-edge, var(--glass-border-color))); background: transparent; box-shadow: var(--surface-shadow, var(--glass-shadow)); }   /* the pane is CARD STYLE's, §14c */
-.badge { min-height: 24px; padding: 2px 9px; border-color: transparent; box-shadow: var(--neu-flat), var(--surface-shadow, var(--glass-shadow));   /* a pane's height (L13) */
+.glass, :where([data-mir-surface]:not([data-mir-surface="island"])) { border-color: var(--pane-edge, var(--surface-edge, var(--glass-border-color))); background: transparent; box-shadow: var(--surface-shadow, var(--glass-shadow)); }
+/* 1.5.0-alpha.7 · THE SURFACE HOOK (docs/GUI.md): an app's own pane takes the kit's material with one attribute,
+   data-mir-surface = pane (the default) · float · menu (its height) · chip (pane height, its own corner) · island (a
+   pane only while DISCONNECTED, paintless joined, like a window's body card).  The hook is in every rule a .glass pane
+   is, at no weight of its own (:where), so an app's sheet still wins where it paints the same thing. */
+:where([data-mir-surface]:not([data-mir-surface="chip"]):not([data-mir-surface="island"])) { border-radius: var(--surface-radius, var(--card-r)); }
+:where([data-mir-surface="float"]) { box-shadow: var(--surface-shadow-float, var(--glass-shadow)); }
+:where([data-mir-surface="menu"]) { box-shadow: var(--surface-shadow-menu, var(--glass-shadow)); }
+:where([data-mir-surface="island"]) { border: var(--surface-edge-width, var(--glass-border)) solid transparent; }   /* joined: paintless, the same box it has as an island */   /* the pane is CARD STYLE's, §14c */
+.badge { min-height: 24px; padding: 2px 9px; border-color: transparent; box-shadow: var(--surface-shadow, var(--glass-shadow)); outline: var(--seat-edge); outline-offset: 0;   /* a pane's height (L13) */
   color: var(--ink-key);
   background: hsl(var(--glass-tint) / var(--glass-opacity)); max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .badge:hover { color: var(--fg-soft); }
@@ -443,9 +459,9 @@ body[data-theme="light"] .badge { color: var(--dim); }
 /* 1.5.0-alpha.2 · THE TWO MATERIALS, BY NAME.  TINTED reads --surface-sheen over --surface-fill; REFRACTIVE reads
    --surface-veil; the blur, wherever it is drawn, reads --surface-filter.  Each falls back to the exact 1.4 value, so
    nothing changes until a skin or the tier (mir/css/tokens.css) sets one. */
-body[data-card="refractive"] .dev, body[data-card="refractive"] .glass
+body[data-card="refractive"] .dev, body[data-card="refractive"] .glass, body[data-card="refractive"] :where([data-mir-surface]:not([data-mir-surface="island"]))
   { background: var(--surface-veil, transparent); }                           /* the blur alone */
-body:is([data-card="tinted"], [data-card="solid"]) .dev, body:is([data-card="tinted"], [data-card="solid"]) .glass
+body:is([data-card="tinted"], [data-card="solid"]) .dev, body:is([data-card="tinted"], [data-card="solid"]) .glass, body:is([data-card="tinted"], [data-card="solid"]) :where([data-mir-surface]:not([data-mir-surface="island"]))
   { background: var(--surface-sheen, var(--glass-sheen)), var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }    /* the tinted pane: no filter, so no compositor cost — the shipped default since 2026-09-10 */
 
 /* CARD STYLE owns the pane even with FROST on. An enabled FROST policy otherwise
@@ -454,12 +470,12 @@ body:is([data-card="tinted"], [data-card="solid"]) .dev, body:is([data-card="tin
 /* 1.5.0-alpha.3 · TWO MATERIALS, ONE BLUR (INTENT rule 4, L64–L68): TINTED never blurs, so FROST reaches only the
    REFRACTIVE pane.  The tinted pane keeps its own --card-opacity under FROST: the .58 thinning that let a blur show
    through it is gone with the blur. */
-body.frost[data-card="refractive"] .dev, body.frost[data-card="refractive"] .glass { -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter)); backdrop-filter: var(--surface-filter, var(--frost-filter)); }
-body.frost[data-card="refractive"][data-theme="dark"] .dev, body.frost[data-card="refractive"][data-theme="dark"] .glass { background: var(--surface-veil, var(--frost-veil-dark)); }
+body.frost[data-card="refractive"] .dev, body.frost[data-card="refractive"] .glass, body.frost[data-card="refractive"] :where([data-mir-surface]:not([data-mir-surface="island"])) { -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter)); backdrop-filter: var(--surface-filter, var(--frost-filter)); }
+body.frost[data-card="refractive"][data-theme="dark"] .dev, body.frost[data-card="refractive"][data-theme="dark"] .glass, body.frost[data-card="refractive"][data-theme="dark"] :where([data-mir-surface]:not([data-mir-surface="island"])) { background: var(--surface-veil, var(--frost-veil-dark)); }
 /* FROST · STILL (`body.frost-hold`, set while the picture moves): a REFRACTIVE pane stops blurring and wears the tinted
    fill for as long as the hold lasts — the surface the lite tier gives it — so STILL differs from ALWAYS.  Only the
    pixels of the hold change; the moment it lifts, the blur and the veil are back. */
-body.frost.frost-hold[data-card="refractive"] .dev, body.frost.frost-hold[data-card="refractive"] .glass {
+body.frost.frost-hold[data-card="refractive"] .dev, body.frost.frost-hold[data-card="refractive"] .glass, body.frost.frost-hold[data-card="refractive"] :where([data-mir-surface]:not([data-mir-surface="island"])) {
   -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
 
 /* A live WebGPU canvas makes every blurred/inset child shadow in a translucent rack a recurring
@@ -478,7 +494,7 @@ body.disconnected:not(.phone) .dev > * { visibility: visible; pointer-events: au
    what BASINS measured about their own bar and card ("every mode: SAME backdrop-filter, SAME border, SAME
    radius, SAME shadow.  THE ONLY DIFFERENCE IS THE FILL"). */
 body.disconnected:not(.phone) .dev > .dev-head,
-body.disconnected:not(.phone) .dev > .dev-body {
+body.disconnected:not(.phone) .dev > .dev-body, body.disconnected:not(.phone) :where([data-mir-surface="island"]) {
   border: var(--surface-edge-width, var(--glass-border)) solid var(--pane-edge, var(--surface-edge, var(--glass-border-color))); border-radius: var(--surface-radius, var(--disc-r)); box-shadow: var(--surface-shadow, var(--glass-shadow)); }
 
 
@@ -487,19 +503,19 @@ body.disconnected:not(.phone) .dev > .dev-head { background: var(--glass-raise);
   -webkit-backdrop-filter: var(--surface-lift, var(--disc-chip-lift));
   backdrop-filter: var(--surface-lift, var(--disc-chip-lift)); }
 /* THE BODY-CARD wears whatever CARD STYLE says the pane is — REFRACTIVE leaves it the field itself. */
-body.disconnected:is([data-card="tinted"], [data-card="solid"]):not(.phone) .dev > .dev-body { background: var(--surface-sheen, var(--glass-sheen)), var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
+body.disconnected:is([data-card="tinted"], [data-card="solid"]):not(.phone) .dev > .dev-body, body.disconnected:is([data-card="tinted"], [data-card="solid"]):not(.phone) :where([data-mir-surface="island"]) { background: var(--surface-sheen, var(--glass-sheen)), var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
 /* FROST reaches the constellation the same way it reaches a joined card: the veil, then the filter, and the
    filter alone answers `frost-hold`.  The chip keeps its own lighter fill — the difference is the point. */
-body.disconnected.frost[data-card="refractive"]:not(.phone) .dev > .dev-body { background: var(--surface-veil, var(--frost-veil-light)); }
-body.disconnected.frost[data-card="refractive"][data-theme="dark"]:not(.phone) .dev > .dev-body { background: var(--surface-veil, var(--frost-veil-dark)); }
-body.disconnected.frost[data-card="refractive"]:not(.phone) .dev > .dev-body { -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter)); backdrop-filter: var(--surface-filter, var(--frost-filter)); }
+body.disconnected.frost[data-card="refractive"]:not(.phone) .dev > .dev-body, body.disconnected.frost[data-card="refractive"]:not(.phone) :where([data-mir-surface="island"]) { background: var(--surface-veil, var(--frost-veil-light)); }
+body.disconnected.frost[data-card="refractive"][data-theme="dark"]:not(.phone) .dev > .dev-body, body.disconnected.frost[data-card="refractive"][data-theme="dark"]:not(.phone) :where([data-mir-surface="island"]) { background: var(--surface-veil, var(--frost-veil-dark)); }
+body.disconnected.frost[data-card="refractive"]:not(.phone) .dev > .dev-body, body.disconnected.frost[data-card="refractive"]:not(.phone) :where([data-mir-surface="island"]) { -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter)); backdrop-filter: var(--surface-filter, var(--frost-filter)); }
 /* the WHOLE chain is the fallback: a set --surface-filter replaces it, so `none` is the whole value, never `none brightness(…)` */
 body.disconnected.frost[data-card="refractive"]:not(.phone) .dev > .dev-head {
   -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter) var(--disc-chip-lift));
   backdrop-filter: var(--surface-filter, var(--frost-filter) var(--disc-chip-lift)); }
 body.disconnected.frost.frost-hold:not(.phone) .dev > .dev-head,
-body.disconnected.frost.frost-hold:not(.phone) .dev > .dev-body { -webkit-backdrop-filter: none; backdrop-filter: none; }
-body.disconnected.frost.frost-hold[data-card="refractive"]:not(.phone) .dev > .dev-body { background: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
+body.disconnected.frost.frost-hold:not(.phone) .dev > .dev-body, body.disconnected.frost.frost-hold:not(.phone) :where([data-mir-surface="island"]) { -webkit-backdrop-filter: none; backdrop-filter: none; }
+body.disconnected.frost.frost-hold[data-card="refractive"]:not(.phone) .dev > .dev-body, body.disconnected.frost.frost-hold[data-card="refractive"]:not(.phone) :where([data-mir-surface="island"]) { background: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
 /* A COMPACT window is one rail and nothing else: the body is gone, so there is no constellation and the
    chip is the whole window.  A FOLDED one is the same shape, and both fall out of `display: none` on the
    body without a rule — stated here only so the next reader does not go looking for one.
@@ -519,7 +535,7 @@ body.disconnected:not(.phone) .dev.floating > .dev-head,
 body.disconnected:not(.phone) .dev.floating > .dev-body { box-shadow: var(--surface-shadow-float, var(--glass-shadow)); }
 body.disconnected:not(.phone) .dev.dragging > .dev-head,
 body.disconnected:not(.phone) .dev.dragging > .dev-body {
-  box-shadow: var(--state-carried, var(--surface-shadow-float, var(--glass-shadow)), var(--dev-carried-ring)); }
+  box-shadow: var(--state-carried, var(--surface-shadow-float, var(--glass-shadow))); outline: var(--dev-carried-edge); outline-offset: 0; }
 
 /* (LIGHT · THE VIVID SHELL SET, wave 46, is in the FROST block at the top) */
 

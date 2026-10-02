@@ -108,7 +108,7 @@ try {
       const probe = (v) => { const i = document.createElement('i'); i.style.backgroundColor = v; document.body.appendChild(i); const c = getComputedStyle(i).backgroundColor; i.remove(); return c; };
       const wells = (el) => drawn(cs(el).boxShadow).filter((d) => d.inset && d.blur > 0).length, raised = (el) => drawn(cs(el).boxShadow).filter((d) => !d.inset && d.blur > 0).length;
       const dial = cs(__T.k.root.querySelector('.k-dial'));
-      return JSON.stringify({ card: document.body.dataset.card, angle: getComputedStyle(document.documentElement).getPropertyValue('--light-angle').trim() || '0deg', toward,
+      return JSON.stringify({ card: document.body.dataset.card, faces: document.body.dataset.faces || '', angle: getComputedStyle(document.documentElement).getPropertyValue('--light-angle').trim() || '0deg', toward,
         heights: { pane: h('[data-id="pane"]'), float: h('[data-id="float"]'), menu: h('.mb-list') },
         rest: { raised: raised(__T.before.root), wells: wells(__T.before.root) }, on: { frost: probe('var(--state-on)'), sw: cs('.sw.on').backgroundColor, seg: cs('.seg-b.on').backgroundColor, swWells: wells('.sw.on'), segWells: wells('.seg-b.on'), trWells: wells(__T.trOn.root) },
         track: wells('.seg'), disabled: drawn(dial.boxShadow).length }); })()`));
@@ -116,7 +116,8 @@ try {
     check(`${L}: every pane shadow falls away from the light (${t.angle})`, t.toward.length === 0, t.toward.join(' ; '));
     check(`${L}: the heights still stack (pane < floating window < menu)`, t.heights.pane < t.heights.float && t.heights.float < t.heights.menu, JSON.stringify(t.heights));
     check(`${L}: a resting trigger stands proud and is not a well (not "already pressed")`, t.rest.raised > 0 && t.rest.wells === 0, JSON.stringify(t.rest));
-    check(`${L}: ON and CHOSEN wear the frost face and are not wells; the track is the well`, t.on.sw === t.on.frost && t.on.seg === t.on.frost && !t.on.swWells && !t.on.segWells && !t.on.trWells && t.track > 0, JSON.stringify({ on: t.on, track: t.track }));
+    /* under GLASS faces a chosen segment is clear, as BASINS draws it (its rim and accent label stay): docs/THEMES.md */
+    check(`${L}: ON wears the frost face, CHOSEN the frost face (clear under GLASS faces, as BASINS), neither is a well; the track is the well`, t.on.sw === t.on.frost && (t.on.seg === t.on.frost || (t.faces === 'glass' && t.on.seg === 'rgba(0, 0, 0, 0)')) && !t.on.swWells && !t.on.segWells && !t.on.trWells && t.track > 0, JSON.stringify({ on: t.on, track: t.track }));
     check(`${L}: disabled has no relief`, t.disabled === 0, String(t.disabled));
   }
   check('no page errors', !p.logs.some((l) => /EXCEPTION/.test(l)), p.logs.join(' | '));

@@ -31,7 +31,9 @@
  *   accent     a shell/accent.js engine (default: one is made); ACCENT A/B/VIVID drive it
  *   about      { github, credits: [line…], fonts: href-prefix } — extras for the ABOUT page (shell/about.js richText lines)
  *   moving(b)  the app says the picture is moving: under FROST · STILL the frost is held (body.frost-hold) while it moves
- *   dropGuides() the DROP GUIDES switch, for createWindow({ dock: { guide: gui.dropGuides } }) */
+ *   dropGuides() the DROP GUIDES switch, for createWindow({ dock: { guide: gui.dropGuides } })
+ *   inkSampler true: the app samples the picture under each label itself; TEXT offers SAMPLED, which writes no
+ *              data-text and leaves the ink to it */
 import { el, knob, seg, sw, trig, readout, label, ariaLabel } from '../kit.js';
 import { phrase } from '../core/i18n.js';
 import { createWindow } from '../window/window.js';
@@ -108,9 +110,11 @@ export function lookSchema() {
       { on: 'body', prop: '--faces-transition-alpha', map: (v, s) => (s.faces === 'solid' && v > 0 && v < 1 ? (Math.sin(Math.PI * v) * 0.22).toFixed(3) : null) }] },
     /* TEXT — AUTO · LIGHT · DARK (BASINS skin.js setText): white or black ink everywhere, or AUTO (core/look.js autoInk):
        under glass BASINS' unsampled seat, the pure ladder in the mode's polarity (white in dark, black in light); on a
-       SOLID pane the pane's lightness; on a TINTED pane the house ladder.  No sampling: BASINS' sampler is the app's */
-    { key: 'text', type: 'enum', values: ['theme', 'light', 'dark'], default: 'theme', apply: [{ on: 'body', attr: 'data-text',
-      map: (v, s, e) => (v !== 'theme' ? v : autoInk(s, e.theme)) }] },
+       SOLID pane the pane's lightness; on a TINTED pane the house ladder.  No sampling: BASINS' sampler is the app's.
+       SAMPLED leaves the ink to the app: no data-text at all, so an app's own sampler (BASINS' adaptive-ink.js, which
+       writes its own w | k ink on each label) decides; the GUI window offers it only to an app that says it has one */
+    { key: 'text', type: 'enum', values: ['theme', 'light', 'dark', 'sampled'], default: 'theme', apply: [{ on: 'body', attr: 'data-text',
+      map: (v, s, e) => (v === 'sampled' ? null : v !== 'theme' ? v : autoInk(s, e.theme)) }] },
     { key: 'relief', type: 'enum', values: ['default', 'flat'], default: 'default', apply: [
       { on: 'html', prop: '--relief-raise', map: (v) => (v === 'flat' ? ZERO_SHADOW : null) },
       { on: 'html', prop: '--relief-well', map: (v) => (v === 'flat' ? ZERO_SHADOW : null) }] },
@@ -231,7 +235,7 @@ const SHEETS = { theme: 1, accent: 1, material: 2, controls: 3, text: 3, quality
 const PAGE_OF = { theme: 1, accent: 1, material: 1, controls: 1, text: 1, quality: 1, motion: 1, light: 2, windows: 2 };
 const SHEET_COUNT = 5;
 
-export function createGui({ host, prefs, app = {}, about = {}, accent, defaults = {}, storageKey = 'mir.gui' } = {}) {
+export function createGui({ host, prefs, app = {}, about = {}, accent, defaults = {}, storageKey = 'mir.gui', inkSampler = false } = {}) {
   const doc = host.ownerDocument, win = doc.defaultView;
   const life = new AbortController(), on = { signal: life.signal };
   const appName = app.name || 'This app';
@@ -294,7 +298,8 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
 
   /* TEXT — BASINS' TEXT seg (AUTO here follows the theme; BASINS' AUTO samples the picture), then what shows */
   g = groupEl('text', phrase('TEXT'));
-  line(g).append(segOf('text', phrase('INK'), [['theme', phrase('AUTO'), phrase('Follow the theme (on a {:SOLID} pane, its lightness)')], ['light', phrase('LIGHT', 'text ink'), phrase('White text on every label')], ['dark', phrase('DARK', 'text ink'), phrase('Black text on every label')]]).root);
+  line(g).append(segOf('text', phrase('INK'), [['theme', phrase('AUTO'), phrase('Follow the theme (on a {:SOLID} pane, its lightness)')], ['light', phrase('LIGHT', 'text ink'), phrase('White text on every label')], ['dark', phrase('DARK', 'text ink'), phrase('Black text on every label')],
+    ...(inkSampler ? [['sampled', phrase('SAMPLED', 'text ink'), phrase('Each label’s ink from the picture under it (this app’s sampler)')]] : [])]).root);
   const shows = el('div', 'segw gui-show', line(g)); label(el('div', 'k-lbl', shows), 'SHOW');
   el('div', 'gui-line gui-sws gui-col', shows).append(swOf('hints', phrase('HINTS'), phrase('Hover hints on controls')).root, swOf('help', phrase('HELP'), phrase('The ⓘ panels on windows')).root);
 

@@ -37,7 +37,7 @@ const TABLE = [   // tr: names
      Refractive on and frost always."  BASINS' ABOUT GLASS draws no pane edge (material.css), so EDGE is off.  The white
      text belongs to dark mode: TEXT is AUTO, which under glass is BASINS' pure ladder in the mode's polarity — white in
      dark (the recipe, exactly), black in light. */
-  { id: 'frost', name: 'FROST', values: { card: 'refractive', frost: 'always', blur: 11, veil: 0, saturation: 1.3, corners: 24, faces: 'glass', text: 'theme', edge: false, shadow: 2, spacing: 'default' },
+  { id: 'frost', name: 'FROST', values: { card: 'refractive', frost: 'always', blur: 11, veil: 0, saturation: 1.3, corners: 24, faces: 'glass', text: 'theme', edge: false, lightAngle: 0, shadow: 2, spacing: 'default' },
     tones: [tone('clear', 'CLEAR', 0, 0, 0, 30, 300, 0.1), tone('rose', 'ROSE', 340, 0.22, 0, 345, 300, 0.25), tone('azure', 'AZURE', 205, 0.28, 0, 200, 280, 0.25)] },
   /* MORPH — neumorphism: the SOLID pane, the light at the upper left, a drop shadow bottom-right and the shine upper-left
      (Josh: "So bottom right shadow, upper left shine"), faces the pane's colour, soft corners, no edge. */

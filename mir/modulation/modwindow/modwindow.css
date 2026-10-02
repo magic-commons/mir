@@ -205,7 +205,8 @@
   --m2-rail-edge-shadow: inset -1px 0 0 var(--m2-mat-inner);
   --m2-rail-face: hsl(var(--m2-mat-hue) 12% var(--m2-mat-chassis-lum) / calc(.24 + var(--m2-blend) * .20));
   --m2-railhead-font: 700 10.5px var(--font-sans);
-  --m2-resizing-shadow: var(--surface-shadow, var(--glass-shadow)), 0 0 0 1px hsl(var(--hue-acc) var(--sat-acc) 68% / 0.55);
+  --m2-resizing-shadow: var(--surface-shadow, var(--glass-shadow));
+  --m2-resizing-edge: 1px solid hsl(var(--hue-acc) var(--sat-acc) 68% / 0.55);   /* the resize ring, an outline beside the pane shadow (1.5.0-alpha.7) */
   --m2-span-alpha: 0.7;
   --m2-span-font: 700 12px var(--font-num);
   --m2-spanlive-halo: drop-shadow(0 0 1.5px hsl(var(--hue-acc2, 288) var(--sat-acc2, 75%) 68% / .18));
@@ -418,7 +419,7 @@
 }
 /* index.html:3210-3213   was:  .kwin.resizing, .jwin.resizing  */
 .kwin.mir-modwindow.resizing {
-  box-shadow: var(--m2-resizing-shadow);
+  box-shadow: var(--m2-resizing-shadow); outline: var(--m2-resizing-edge); outline-offset: 0;
 }
 
 /* THE BAR IS HIDDEN BY THIS ONE LINE in every skin. barlessAlways still empties it into .m2pre; this is what stops the empty box showing. */

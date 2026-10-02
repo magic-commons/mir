@@ -128,6 +128,43 @@ BASINS (the adoption worktree, served read-only) at Josh's recipe — `setMateri
 
 Every other difference found on the first pass was a defect and was fixed: the knob, trigger and seg faces were still solid (the glass tokens were declared before the faces'), the menu kept the tinted pane's sheen, menus and popovers lost BASINS' rim when EDGE went off (EDGE is now the window panes' alone), and the cast carried a transparent shine layer when SHINE was 0.
 
+## BASINS parity, 1.5.0-alpha.7
+
+BASINS tried its look settings on this engine and found four structural gaps. Each is closed:
+
+| Gap | Closed by |
+|---|---|
+| BASINS' own panes lost the ABOUT material | `data-mir-surface` (`docs/GUI.md`): an app pane computes what a kit pane computes, every card style × frost × tier |
+| TEXT · AUTO overrode BASINS' per-label sampler | TEXT · SAMPLED (offered with `createGui({ inkSampler: true })`) writes no `data-text` |
+| GLASS faces were not BASINS' | BASINS' `material.css` §1 list exactly: every neutral face clear in every state, the hairline on knobs, triggers, switches, tracks, fields, faders and readouts |
+| Menus and pickers lost the .10 veil | under REFRACTIVE + FROST they wear the theme's frost veil (or VEIL) and the blur, no sheen |
+
+Also: a pane shadow written as `none` breaks nothing (the carried ring, the tooltip's and the badge's seat and the modulation window's resize ring are outlines now), and the transport bar keeps its own 16 px corner under CORNERS, as BASINS' does.
+
+**The comparison** (`.tmp/W7/V/kit-parity.mjs` against BASINS at Josh's recipe, served read-only): the same for a COLOUR-style card (`island`, joined), the bar with the hook, the switch off, the trigger, the knob and the picker. What differs, and why:
+
+| Element | Differs | Why |
+|---|---|---|
+| a rack button | ink .96 vs 1 | the button's own ink is the app's (`.mir-rack-btn` sets `--fg-soft` too) |
+| chosen segment | thin rim, not raised; the accent's colour | INTENT **Chosen** (ruled: never raised); BASINS' accent engine. Its face is clear, as BASINS' |
+| segment track | corner 8 vs 9 px | BASINS' app sheet (`skin.css` 532), not a setting |
+| switch on | frost face + rim + LED vs accent fill + well | INTENT **ON** (ruled) |
+| own-colour fader, arc knob | border 1 px vs 0, the kit's relief vs none, corner | BASINS' COLOUR lanes are their own components (`colour.css` sets `border: 0`, `box-shadow: none`); the hairline colour is the same |
+| menu | its shadow at the menu height | INTENT **A pane floats** (ruled: four heights); the darkness is BASINS' |
+
+**GLASS faces against INTENT's wording.** INTENT's states were ruled for the solid faces; under GLASS faces BASINS' drawing is the design, and it differs here:
+
+| State | INTENT says | Under GLASS faces (BASINS) |
+|---|---|---|
+| Hover | a lighter face | a switch's, a segment's and a field's face stays clear (a knob and a trigger still lighten by their inset wash) |
+| Pressed | the press wash and the scale | a trigger's face stays clear: the scale alone (and the raise goes) |
+| Chosen | the frost face and rim, the label in accent A | clear: the rim and the accent label only |
+| Rest | the face in the tint | clear, with a .08 hairline; a knob loses its groove texture and sheen |
+| ON | the frost face, rim and light | unchanged (BASINS paints its own ON) |
+| Disabled | one fade, no relief | unchanged |
+
+**The light, for Josh's decision.** FROST's angle is one value in `mir/shell/themes.js` (`lightAngle: 0`). One angle cannot reproduce BASINS: BASINS has two lights, its panes cast straight down (`0 2px 8px`) and its controls down-right (`2px 2px` / `1px 1px`, the 1.4 relief). At 315° the kit draws BASINS' controls exactly but its panes fall bottom-right; at 0° its panes are BASINS' and its controls cast straight down. Matching BASINS exactly needs a second setting (a relief angle beside LIGHT ANGLE, the relief reading it, FROST at 0° and 315°): that is the real answer to INTENT's O2.
+
 ## What an app can delete
 
 - **BASINS:** Settings › LOOK's implementation in `skin.js` (`setFaces`, `setFaceBlend`, `setText`, `setMaterial`, `setMaterialPreset`, `applyGlass`, `setBlur`, `setUIDropShadow`'s pane part, and their prefs keys), `surface-material.js` + `surface-material.css`, the glass-face and popover rules of `material.css` (§1, §2, §4 and the window-edge rule), the TEXT seats of `ink.css` (§1's body and forced seats; the per-cell sampler `adaptive-ink.js` stays the app's), and the work bar's `.modxport.mir-mod-power` 44 px rule in `transport-controls.css`.

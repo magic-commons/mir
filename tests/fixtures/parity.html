@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MIR · BASINS parity fixture</title>
+<!-- tests/themes.browser.mjs and the FROST-against-BASINS comparison: the kit's elements of each kind BASINS listed, under
+     the look store.  An app pane takes the kit's material through data-mir-surface; the inline sizes below are the app's
+     own shape (BASINS' 14 px COLOUR card, its 16 px bar, its round rack button), nothing else. -->
+<link rel="stylesheet" href="../../mir/css/base.css">
+<link rel="stylesheet" href="../../mir/css/skin.css">
+<link rel="stylesheet" href="../../mir/css/tokens.css">
+<link rel="stylesheet" href="../../mir/shell/shell.css">
+<link rel="stylesheet" href="../../mir/core/core.css">
+<link rel="stylesheet" href="../../mir/window/window.css">
+<link rel="stylesheet" href="../../mir/shell/rack.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b1020; }
+  #ground { position: fixed; inset: 0; width: 100%; height: 100%; }
+  #lab { position: fixed; inset: 0; }
+  #wrap { position: fixed; left: 20px; top: 60px; display: flex; gap: 16px; align-items: flex-start; z-index: 20; }
+  #wrap > .dev { width: 280px; }
+  .app-card { width: 160px; height: 90px; border-radius: 14px; }
+  .app-bar { width: 260px; height: 46px; border-radius: 16px; }
+  .app-btn { width: 30px; height: 30px; border-radius: 50%; padding: 0; }
+  .app-pane { width: 160px; height: 90px; }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted">
+<canvas id="ground" aria-hidden="true"></canvas>
+<div id="lab"></div>
+<div id="wrap"></div>
+<script type="module">
+import { el, knob, fader, seg, sw, trig, device } from '../../mir/kit.js';
+import { createPrefs } from '../../mir/core/prefs.js';
+import { lookSchema } from '../../mir/shell/gui.js';
+import { themeValues } from '../../mir/shell/themes.js';
+import { wordmark } from '../../mir/shell/wordmark.js';
+import { createMenubar } from '../../mir/shell/menubar.js';
+
+const g = document.getElementById('ground'); g.width = innerWidth; g.height = innerHeight;
+const c = g.getContext('2d'); for (let i = 0; i < 40; i++) { c.fillStyle = `hsl(${i * 37} 70% 45%)`; c.fillRect((i * 97) % innerWidth, (i * 53) % innerHeight, 160, 120); }
+const P = createPrefs({ key: 'parity', schema: lookSchema(), storage: null });
+P.set({ ...themeValues('frost'), glow: false, parallax: false }); P.apply({ now: true });
+
+const wrap = document.getElementById('wrap');
+const d = device({ id: 'kit', eyebrow: 'KIT CARD' }); wrap.append(d.root);
+const r1 = d.row(); const sOn = sw({ label: 'ON', value: true }), sOff = sw({ label: 'OFF', value: false }); r1.append(sOn.root, sOff.root);
+const r2 = d.row(); const sg = seg({ value: 'b', options: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }] }); const tr = trig({ label: 'GO' }); r2.append(sg.root, tr.root);
+const r3 = d.row(); const k = knob({ label: 'K', min: 0, max: 1, value: .5 }); const arc = knob({ label: 'ARC', min: 0, max: 360, value: 120, wrap: true, cls: 'accent-dial' }); r3.append(k.root, arc.root);
+const fd = fader({ label: 'LANE', min: 0, max: 1, value: .5 }); fd.root.classList.add('pop'); fd.root.style.setProperty('--nc', 'hsl(30 90% 60%)'); d.body.append(fd.root);
+/* an app's own panes, with the hook */
+const card = el('div', 'app-card', wrap); card.dataset.mirSurface = 'island'; card.id = 'hook-island';
+const pane = el('div', 'app-pane', wrap); pane.dataset.mirSurface = ''; pane.id = 'hook-pane';
+const bar = el('div', 'app-bar', wrap); bar.dataset.mirSurface = 'chip'; bar.id = 'hook-bar';
+const btn = el('button', 'app-btn', wrap); btn.dataset.mirSurface = 'chip'; btn.id = 'hook-btn'; btn.type = 'button';
+const fl = el('div', 'app-pane', wrap); fl.dataset.mirSurface = 'float'; fl.id = 'hook-float';
+const title = wordmark(document.getElementById('lab'), { word: 'MIR' });
+createMenubar({ opener: title, host: document.getElementById('lab'), menus: { FILE: () => [['NEW'], ['OPEN']] } });
+window.__T = { P, d, sOn, sOff, sg, tr, k, arc, fd };
+window.__ready = true;
+</script>
+</body>
+</html>

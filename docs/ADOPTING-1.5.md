@@ -79,6 +79,13 @@ Gathered from the lanes that harvested BASINS' parts into the kit (each is a kit
 Waiting: **the timeline's keys** cannot move into the key table until `timeline-editor.js`'s surface-gated handlers are handed over (one action per row, a `when()` reading the surface focus, the help sheet from `keys.helpRows()`).
 
 
+## 8. Your own panes, your own ink, and what you may write onto the look (1.5.0-alpha.7)
+
+- **Your own panes take the kit's material with one attribute**, `data-mir-surface` (`docs/GUI.md`, "An app's own panes"): `pane` (or empty) · `float` · `menu` (the height) · `chip` (pane height, your own corner) · `island` (a pane only while DISCONNECTED). Delete your own material rules for them (in BASINS: `surface-material.css`, the pane and button rules of `material.css`); your sheet is unlayered and still wins wherever it paints the same property.
+- **An ink sampler of your own**: `createGui({ inkSampler: true })` and TEXT · SAMPLED writes no `data-text`, so your per-label ink (BASINS' `adaptive-ink.js` and its seats in `ink.css`) decides.
+- **What you may write onto the look tokens.** The kit's engine writes the shadows as `0 0 0 0 transparent` when they are off, never `none`. You may write either on `--surface-shadow`, `--surface-shadow-float` and `--surface-shadow-menu`: since alpha.7 no kit rule puts them in a list with another layer except the modulation window's own pane and rail, which add an inner light that is transparent unless the plugin's chassis is lit (`none` there costs that light, nothing else). Inside a list of your own, write `0 0 0 0 transparent`. A blur that is off is the whole filter `none` (`--surface-filter: none`), never `blur(0)`.
+- **What your own sheets still beat.** The kit is layered and your sheets are not: a rule of yours that paints the same property on the same control wins over the kit's look setting (BASINS' COLOUR lanes set `border: 0`, `border-radius: 0` and `box-shadow: none` on their faders and arc knobs, and its segments a 9 px corner and the raise on the chosen one). Keep such a rule only where it is your component's design, not the material.
+
 ## Check
 
 `npm test` in the kit; in your app, load once and confirm the chips keep their material (the stylehash neutrality
