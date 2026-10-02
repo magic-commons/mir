@@ -6,7 +6,8 @@
 <title>MIR · modulation</title>
 <!-- THE MODULATION PLUGIN, PLAYABLE.  A 2D scene drawn from six parameters — four knobs and two faders in the rack on
      the left — and the kit's modulation window, mounted by one call (mir/modulation/bind.js installModulation).  An LFO
-     drives MACRO 1, which is routed onto SIZE (a knob) and BRIGHT (a fader); press play in the window's timing bar.
+     drives MACRO 1, which is routed onto SIZE (a knob) and BRIGHT (a fader); press the page's PLAY (top centre: the app's one clock; the window's
+     first work-bar button is modulation's POWER, which bypasses or restores the routes and never starts or stops time).
      Drag a macro's ✥ toward any control: the nearest one glows by distance and catches the drop.  Move the window by
      its grip, dock it near the top or bottom (the dotted guide is where it lands), and move its chips to any edge with
      Shift-drag, a long press, or the keyboard.  SECOND INSTANCE opens the same page with another presetKey: the two
@@ -29,7 +30,9 @@
   #floats > * { pointer-events: auto; }
   #bar { position: fixed; z-index: 25; right: 8px; bottom: 8px; display: flex; gap: 8px; align-items: end; flex-wrap: wrap; justify-content: end;
     padding: 8px 10px; border-radius: 14px; max-width: calc(100vw - 280px); }
-  #second { position: fixed; inset: 32px; z-index: 70; width: calc(100% - 64px); height: calc(100% - 64px); border: 0; border-radius: 14px; }
+  #appplay { position: fixed; z-index: 25; left: 50%; top: 8px; transform: translateX(-50%); display: flex; gap: 8px; align-items: center;
+    padding: 6px 10px; border-radius: 14px; }
+  #second { position: fixed; left: 32px; top: 32px; z-index: 70; width: calc(100% - 64px); height: calc(100% - 136px);   /* the bar stays reachable below it */ border: 0; border-radius: 14px; }
   #second[hidden] { display: none; }
   body.embed #bar, body.embed .g-second { display: none; }
 </style>
@@ -39,6 +42,7 @@
 <div id="rack" class="glass"></div>
 <div id="floats"></div>
 <div id="bar" class="glass"></div>
+<div id="appplay" class="glass" role="group" aria-label="the app's clock"></div>
 <iframe id="second" title="Second instance" hidden></iframe>
 <script type="module">
 import { el, knob, fader, seg, sw, trig, group } from '../mir/kit.js';
@@ -115,6 +119,13 @@ if (!mod.isOpen) { mod.view.restore({ ...mod.view.presentation(), x: 340, y: 132
 if (instance === 'b') document.title = 'MIR · modulation (second instance)';
 
 /* ── the bar ── */
+/* ── THE APP'S ONE PLAY, outside the window: it starts and stops time; the window's POWER only bypasses the routes ── */
+const playBtn = trig({ label: 'PLAY', title: 'the app’s one clock: start or stop time', onFire: () => mod.togglePlay() });
+playBtn.root.classList.add('g-play');
+document.getElementById('appplay').appendChild(playBtn.root);
+const showPlay = (on) => { playBtn.on = on; playBtn.setLabel(on ? 'PAUSE' : 'PLAY'); };
+mod.onPlay(showPlay); showPlay(mod.playing());
+
 const bar = document.getElementById('bar');
 bar.appendChild(seg({ label: 'THEME', value: 'dark', options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], onChange: (v) => { document.body.dataset.theme = v; present(); } }).root);
 bar.appendChild(seg({ label: 'CARD', value: 'tinted', options: [{ id: 'tinted', label: 'TINTED' }, { id: 'refractive', label: 'REFRACTIVE' }], onChange: (v) => { document.body.dataset.card = v; } }).root);

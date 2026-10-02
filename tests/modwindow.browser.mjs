@@ -3,8 +3,9 @@
  * window lands in, and the landing travels and ends exactly; a drag cancelled by Escape or by pointercancel puts the
  * window back exactly; the chips relocate by Shift-drag and by the keyboard.  Routing: a macro dragged toward a knob
  * lights it (core/proximity.js) and routes onto it, even from beside it; a route onto a fader moves the fader's value.
- * Two instances with different presetKeys keep separate presets.  The play dot follows the transport (and a paused
- * seek).  Under the pseudo-language the plugin's words are translated.  Idle after a drag is zero frames.
+ * Two instances with different presetKeys keep separate presets.  ONE CLOCK: the window's first seat is modulation's
+ * POWER (BASINS'), not a play; the dot follows the app's clock while power is on (and a paused seek); power off returns
+ * every target to its base and leaves the app's clock running; the app's play never changes the power; a reload keeps it.  Under the pseudo-language the plugin's words are translated.  Idle after a drag is zero frames.
  * Clickable things are hit-tested with elementFromPoint.  MIR_PLATES=1 also writes docs/plates/modulation/*.png.
  * Standalone: MIR_BASE=http://127.0.0.1:8802 node tests/modwindow.browser.mjs */
 import { launch, sleep } from '../tools/cdp.mjs';
@@ -153,27 +154,45 @@ try {
     r = await run(`await frames(2); const f = document.querySelector('.fd[data-param="scene.spread"]'), bar = f.querySelector('.m2fdrange');
       return { route: M.routeList().some((x) => x.targetId === 'scene.spread'), ring: f.classList.contains('has-ring'), bar: !!bar && !bar.hidden && getComputedStyle(bar).display !== 'none', span: bar ? +bar.style.getPropertyValue('--m2-route-span') : 0 };`);
     check('fader: a macro dropped on a kit fader() routes onto it, and the fader wears its range bar', r.route && r.ring && r.bar && r.span > 0, JSON.stringify(r));
-    const play = await at(`document.querySelector('#modwin .modxport')`);
+    const play = await at(`document.querySelector('#appplay .trig')`);      // the APP's play, outside the window
     await click(play.x, play.y);
     r = await run(`await wait(250); const f = document.querySelector('.fd[data-param="scene.spread"]'), a = +f.style.getPropertyValue('--fill'), sa = G.S.spread;
       await wait(400); const b = +f.style.getPropertyValue('--fill'), sb = G.S.spread;
       return { playing: mod.host.clock.isPlaying(), a, b, sa, sb, mod: f.classList.contains('mod'), base: mod.baseOf('scene.spread') };`);
-    check('fader: while the transport plays, the routed fader shows the moving value over its base (fader().show)', r.playing && r.mod && Math.abs(r.a - r.b) > 1e-3 && Math.abs(r.sa - r.sb) > 1e-3, JSON.stringify(r));
+    check('fader: while the app plays, the routed fader shows the moving value over its base (fader().show)', r.playing && r.mod && Math.abs(r.a - r.b) > 1e-3 && Math.abs(r.sa - r.sb) > 1e-3, JSON.stringify(r));
   }
 
-  /* ── 6 · the play dot follows the transport — and a paused seek ── */
+  /* ── 6 · ONE CLOCK: the window's first work-bar seat is modulation's POWER; the dot follows the app's clock ── */
   {
+    r = await run(`const x = win.querySelector('.modxport');
+      return { face: x.dataset.face, power: x.classList.contains('mir-mod-power'), ring: !!x.querySelector('.mir-power-ring'), pressed: x.getAttribute('aria-pressed'), on: mod.power(),
+        hit: hits(x), noPlay: !win.querySelector('polygon') && ![...win.querySelectorAll('[aria-label], [title]')].some((n) => /\\bplay\\b/i.test((n.getAttribute('aria-label') || '') + ' ' + (n.title || ''))) };`);
+    check('power: the work bar\'s first seat is BASINS\' power button (lit while on, aria-pressed), and nothing in the window is a play', r.face === 'power' && r.power && r.ring && r.pressed === 'true' && r.on && r.hit && r.noPlay, JSON.stringify(r));
     r = await run(`const lfo = M.sourceList().find((s) => s.kind === 'lfo').id; const c1 = api.curve(lfo); await wait(300); const c2 = api.curve(lfo);
       const x = (c) => c.dot[0], expect = (c) => +(${'c.pad'} + c.headU * (c.w - 2 * c.pad)).toFixed(2);
       return { lfo, moved: Math.abs(x(c1) - x(c2)) > 0.5, onCurve: Math.abs(x(c2) - expect(c2)) < 1.5 || Math.abs(x(c2) - expect(c1)) < 30, a: c1.dot, b: c2.dot, head: c2.head };`);
-    check('play dot: while playing, the LFO’s dot moves along its curve (and the play line with it)', r.moved && r.onCurve && Math.abs(r.head - r.b[0]) < 0.01, JSON.stringify(r));
-    const play = await at(`document.querySelector('#modwin .modxport')`);
-    await click(play.x, play.y);
+    check('play dot: power on and the app playing, the LFO’s dot moves along its curve (and the play line with it)', r.moved && r.onCurve && Math.abs(r.head - r.b[0]) < 0.01, JSON.stringify(r));
+    /* power OFF (a real press on the window's power): every target back on its base, the app's clock still running */
+    const pow = await at(`document.querySelector('#modwin .modxport')`);
+    await click(pow.x, pow.y);
+    r = await run(`await wait(200); const f = document.querySelector('.fd[data-param="scene.spread"]'), b0 = M.transport.beats; await wait(300);
+      return { power: mod.power(), pressed: win.querySelector('.modxport').getAttribute('aria-pressed'), lit: win.querySelector('.modxport').classList.contains('on'),
+        playing: mod.playing(), beats: M.transport.beats - b0, held: ['scene.size', 'scene.bright', 'scene.spread'].filter((id) => mod.isModulated(id)),
+        spread: G.S.spread, base: mod.baseOf('scene.spread'), faderMod: f.classList.contains('mod') };`);
+    check('power off: every routed target returns to its base, and the app\'s clock keeps running', !r.power && r.pressed === 'false' && !r.lit && r.playing && r.beats > 0 && r.held.length === 0 && Math.abs(r.spread - r.base) < 1e-9 && !r.faderMod, JSON.stringify(r));
+    const play = await at(`document.querySelector('#appplay .trig')`);
+    await click(play.x, play.y);                                               // the app pauses
+    r = await run(`await wait(120); return { off: { playing: mod.playing(), power: mod.power() } };`);
+    const played = await run(`return 1;`);
+    await click(play.x, play.y); const r2 = await run(`await wait(120); return { playing: mod.playing(), power: mod.power() };`);
+    await click(play.x, play.y); const r3 = await run(`await wait(120); return { playing: mod.playing(), power: mod.power() };`);
+    check('app play does not change the power (pause, play, pause: power stays off)', !r.off.playing && !r.off.power && r2.playing && !r2.power && !r3.playing && !r3.power, JSON.stringify({ r, r2, r3, played }));
+    await click(pow.x, pow.y);                                                 // power back on, the app paused
     r = await run(`await wait(120); const lfo = M.sourceList().find((s) => s.kind === 'lfo').id, s = M.sourceOf(lfo);
       M.setSource(lfo, { sync: 1, anchor: 1 }); mod.host.clock.recomputeRunning();
       const a = api.curve(lfo).dot[0]; mod.host.clock.seek((M.transport.beats || 0) + 0.37); await frames(4); const b = api.curve(lfo).dot[0];
-      return { playing: mod.host.clock.isPlaying(), a, b };`);
-    check('play dot: paused, a seek moves the model and the dot follows (one paint, no loop)', !r.playing && Math.abs(r.a - r.b) > 0.5, JSON.stringify(r));
+      return { playing: mod.host.clock.isPlaying(), power: mod.power(), a, b };`);
+    check('play dot: the app paused and power on, a seek moves the model and the dot follows (one paint, no loop)', !r.playing && r.power && Math.abs(r.a - r.b) > 0.5, JSON.stringify(r));
   }
 
   /* ── 7 · two instances, two presetKeys, two preset stores ── */
@@ -217,6 +236,18 @@ try {
     await press(g.x, g.y, 60, 40); await mouse('mouseReleased', g.x + 60, g.y + 40);
     r = await run(`await rest(); await wait(400); const n0 = window.__raf; await wait(1000); return { frames: window.__raf - n0, playing: mod.host.clock.isPlaying(), frame: G.frame.state() };`);
     check('idle: a second after a drag lands, with the transport paused, the page books zero animation frames', r.frames === 0 && !r.playing && !r.frame.scheduled, JSON.stringify(r));
+  }
+  /* ── 10 · a reload keeps the power state ── */
+  {
+    const pow = await at(`document.querySelector('#modwin .modxport')`);
+    await click(pow.x, pow.y);
+    await run(`await wait(400); return 1;`);                                     // the store writes 180 ms after the change
+    const before = await run(`return { power: mod.power() };`);
+    await p.goto(BASE + '/gallery/modulation.html', 1200);
+    for (let i = 0; i < 50 && !(await p.eval('!!window.__ready')); i++) await sleep(100);
+    r = await run(`await rest(); const x = win.querySelector('.modxport'); return { power: mod.power(), pressed: x.getAttribute('aria-pressed'), lit: x.classList.contains('on'), enabled: mod.host.clock.isModulationEnabled(), playing: mod.playing() };`);
+    check('reload: the power state is kept (off before, off after; the clock is not played by it)', !before.power && !r.power && r.pressed === 'false' && !r.lit && !r.enabled && !r.playing, JSON.stringify({ before, after: r }));
+    await shot('power-off');
   }
   check('no page errors', p.logs.filter((l) => /EXCEPTION|error/i.test(l)).length === 0, p.logs.slice(0, 4).join(' | '));
 } catch (e) {

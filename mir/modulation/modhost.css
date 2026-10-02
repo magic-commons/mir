@@ -168,6 +168,21 @@
   --m2-tr-035: .035em;
   --m2-w-800: 800;
   --m2-win-font: 700 11px var(--font-sans);
+  /* 1.5.0-alpha.4 · modulation's POWER (BASINS transport-controls.css, its numbers): the drawing's weight and size, the
+     halo at rest and lit, the ring's gap while off, and the press motion */
+  --m2-power-sw: 1.9;
+  --m2-power-icon: 28px;
+  --m2-power-halo-sw: .6;
+  --m2-power-halo-rest: .12;
+  --m2-power-halo-on: .45;
+  --m2-power-ring-dash: 48;
+  --m2-power-ring-off: 8;
+  --m2-power-ring-off-alpha: .55;
+  --m2-power-motion: 220ms;
+  --m2-power-ring-motion: 260ms;
+  --m2-power-ease: cubic-bezier(.2, .8, .2, 1);
+  --m2-power-hover-scale: 1.08;
+  --m2-power-press-scale: .94;
 }
 /* @dark */ :where(body[data-theme="dark"]) .mir-modwindow, :where(body[data-theme="dark"]) .kwin-chiprail, :where(body[data-theme="dark"]) .m2ghost {
   --m2-face-k10: hsl(0 0% 0% / .10);
@@ -1572,6 +1587,23 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
   color: var(--acc); background: var(--state-on, var(--m2-mat-frost)); box-shadow: var(--m2-on-rim); }   /* INTENT L29 */
 #modwin.mir-modwindow .m2workbar .modxport svg {
   fill: currentColor; stroke: currentColor; }                                                          /* 92 */
+/* 1.5.0-alpha.4 · THE POWER, NOT A PLAY (Josh: one clock — the timeline has the true play).  BASINS' drawing and its
+   motion: off, the ring opens and dims; on, the halo lights — and the seat wears ON as INTENT draws it (the frost face,
+   its rim, the ink in accent A: the .on rule above). */
+#modwin.mir-modwindow .m2workbar .modxport svg.mir-power-icon {
+  width: var(--m2-power-icon); height: var(--m2-power-icon); display: block; margin: auto; fill: none; color: inherit; stroke: currentColor;
+  pointer-events: none; overflow: visible; transition: transform var(--m2-power-motion) var(--m2-power-ease); }
+#modwin.mir-modwindow .modxport .mir-power-halo {
+  stroke-width: var(--m2-power-halo-sw); opacity: var(--m2-power-halo-rest); transition: opacity var(--m2-power-motion) var(--m2-ease); }
+#modwin.mir-modwindow .modxport .mir-power-ring {
+  stroke-dasharray: var(--m2-power-ring-dash); stroke-dashoffset: 0;
+  transition: stroke-dashoffset var(--m2-power-ring-motion) var(--m2-ease), opacity var(--m2-power-motion) var(--m2-ease); }
+#modwin.mir-modwindow .modxport:not(.on) .mir-power-ring { stroke-dashoffset: var(--m2-power-ring-off); opacity: var(--m2-power-ring-off-alpha); }
+#modwin.mir-modwindow .modxport.on .mir-power-halo { opacity: var(--m2-power-halo-on); }
+@media (hover: hover) { #modwin.mir-modwindow .modxport:hover .mir-power-icon { transform: scale(var(--m2-power-hover-scale)); } }
+#modwin.mir-modwindow .modxport:active .mir-power-icon { transform: scale(var(--m2-power-press-scale)); }
+@media (prefers-reduced-motion: reduce) {
+  #modwin.mir-modwindow .modxport :is(.mir-power-icon, .mir-power-halo, .mir-power-ring) { transition: none; transform: none; } }
 
 
 #modwin.mir-modwindow .modtempo {

@@ -34,6 +34,9 @@ const mod = installModulation({
   audio: createAudioCapture,                                      // optional: the app's microphone edge (lab/audio.js)
 });
 menuItem('MODULATION', () => mod.toggle());
+playButton.onclick = () => mod.togglePlay();      // the app's ONE play: it starts and stops time
+modPowerButton.onclick = () => mod.togglePower(); // the transport bar's MOD power: the same power as the window's
+mod.onPower((on) => modPowerButton.classList.toggle('on', on));
 ```
 
 That is the whole seam. `installModulation` registers every parameter as a target, writes `data-param` on each widget (the routing's one hook) and its `setBase` road, runs the clock through the one frame while it plays, paints routed widgets from the registry each tick, persists the rack and the window, and mounts the window.
@@ -60,7 +63,7 @@ That is the whole seam. `installModulation` registers every parameter as a targe
 | `enabled` | the MOD arm at first boot | `true` |
 | `showWidgets` | paint routed widgets from the registry each tick | `true` |
 
-It returns `{ host, view, registry, M, open(), close(), toggle(), isOpen, arm(on), armed(), onArm(fn), isModulated(id), baseOf(id), currentOf(id), hand(id, v), running(), bpm(), syncBases(), paintWidgets(), persist(), dispose() }`. The stored record is `{ modulationState, modwin, modArm, modCadence, audioDevice }` — the same shape SOLEIL and NEBULA already write, so their settings carry over.
+It returns `{ host, view, registry, M, open(), close(), toggle(), isOpen, power(), setPower(on), togglePower(), onPower(fn) → off, play(on), togglePlay(), playing(), onPlay(fn) → off, isModulated(id), baseOf(id), currentOf(id), hand(id, v), running(), bpm(), syncBases(), paintWidgets(), persist(), dispose() }`. The stored record is `{ modulationState, modwin, modArm, modCadence, audioDevice }` — the same shape SOLEIL and NEBULA already write, so their settings carry over. `arm(on)`, `armed()` and `onArm(fn)` are the 1.4 names of `setPower`, `power` and `onPower`, kept as aliases.
 
 ### `createModulation(host, port)` — `mir/modulation/window.js`
 
@@ -81,6 +84,7 @@ For an app that builds its own seam (λWAVES' rack does). `port` is `{ M, regist
 | **The hand owns the base** | On a routed control the hand writes the registry's base (`mod.hand(id, v)` → true); the app's own number is the base wherever nothing drives it (`syncBases`). |
 | **Storage is the app's to name** | `storageKey` and `presetKey`. Two apps on one origin never share presets. |
 | **Strings are not code** | Every word goes through `t()` / `label()` / `ariaLabel()`; the sheets' captions are `content: attr(data-cap)`; no `toUpperCase()`; nothing is found by its label. |
+| **One clock** | Time is the app's. `mod.play(on)` starts and stops the clock, and only the app's play button calls it (the timeline's; the transport bar's play part until there is one). The window's first work-bar seat is **modulation's power**, drawn and behaving as BASINS' is: it never plays or pauses. Power never plays; play never powers. |
 | **Idle costs nothing** | The clock ticks through `core/frame.js` only while it plays or the microphone is live. |
 
 Kept as they were: every law in `modwindow/ACCEPTANCE.md` and `modwindow/host-contract.md`, the FL curve gestures (`curve-gesture.js`), the macro reorder and rename, the preset folders, the dead-send inspector, the matrix, and Sol's automation, exact resume and runtime capture in `host.js` and `mod.js`.
@@ -96,7 +100,22 @@ Kept as they were: every law in `modwindow/ACCEPTANCE.md` and `modwindow/host-co
 
 Any other app that copied λWAVES' controller deletes it the same way.
 
+## One clock: what power and play each do
+
+As BASINS has it (`modulation.js setArm` → `host.clock.setModulationEnabled`; `transport-controller.js play` → `clock.play / pause`):
+
+| | the app plays | the app is paused |
+|---|---|---|
+| **power on** | the clock advances; every source moves; every routed target follows its routes | the clock stands still; sources hold their phase; with the pause law BASE (the default) every target sits on its base (HOLD keeps the last modulated value); a seek moves the model and the window repaints once |
+| **power off** | the clock still advances and every source still moves (the curves' dots keep going), but every route is bypassed: every target is back on its base and the hand owns it; power on picks the routes up in time, with no jump in phase | as paused, with every target on its base |
+
+- **The work bar beside the power** — BPM (the field and its drag), TAP, WALL / FREE, 60 / 120 HZ, HOLD 1/4 and HOLD 1 — acts on the clock exactly as before, whether the power is on or off. A HOLD latched while power is off is still latched when it comes on.
+- **A restored project / a reload** keeps the power (`modArm` in the stored record) and never plays: time starts only when the app's play is pressed.
+- `host.js` is unchanged: exact resume, automation and the realtime scrub keep their laws (their node tests pass). The power uses `clock.setModulationEnabled`; `clock.setEnabled` (the 1.4 "arm", which stopped the clock) is no longer called by the plugin.
+
 ## What changed from 1.4
+
+- **BEHAVIOUR CHANGE (1.5.0-alpha.4): the window's play button is modulation's POWER button.** Josh, 2026-10-01: *"we're making modulation a power button and no longer a play button because it will remove the confusion between 'two' clocks. Timeline will have the true play while Modulation will now have a power button like Basins."* An app that relied on the window's play to start time must now give the user its own play (`mod.play`); an app that used `arm` / `setEnabled` to stop modulation now gets a bypass that leaves time running. BASINS' glyph (halo, ring, stem), its open-ring-when-off motion and its `aria-pressed`; ON is drawn as INTENT has it (the frost face, its rim, the glyph in accent A).
 
 - **New:** `window.js` (the controller) and `bind.js` (the seam). `mod.js` `setPresetKey(key)` / `presetKeyOf()`; `PRESET_LS` is now the default, not the only key.
 - **The rail** is `createRail`, re-classed with the plugin's material. Its grip is a `<button>` (it was a `<div>`): it takes focus, arrows move the seat, Enter keeps, Escape restores, Shift+arrows nudge. A long press shows the four seats. On a top or bottom seat the chips lie in a row.
@@ -108,10 +127,10 @@ Any other app that copied λWAVES' controller deletes it the same way.
 
 ## Proofs
 
-- `tests/modwindow.browser.mjs` on `gallery/modulation.html`, real pointer and keyboard, hit-tested with `elementFromPoint`: in each of the four rail seats the guide's rect equals the landing rect (Δ 0 px), the landing travels and ends exactly; Escape and pointercancel put a drag back exactly; Shift-drag and the keyboard relocate the chips; a route dragged beside a knob lights it (accent B) and lands; a route onto a fader moves the fader; two presetKeys keep separate presets; the play dot follows the transport and a paused seek; under `qps` the labels, chip names, captions and painted words translate; a second after a drag the page books zero frames.
+- `tests/modwindow.browser.mjs` on `gallery/modulation.html`, real pointer and keyboard, hit-tested with `elementFromPoint`: in each of the four rail seats the guide's rect equals the landing rect (Δ 0 px), the landing travels and ends exactly; Escape and pointercancel put a drag back exactly; Shift-drag and the keyboard relocate the chips; a route dragged beside a knob lights it (accent B) and lands; a route onto a fader moves the fader; two presetKeys keep separate presets; the window's first seat is BASINS' power (no play anywhere in the window); with power on, the curve's dot follows the app's clock and a paused seek; power off returns every target to its base and leaves the app's clock running; the app's play never changes the power; a reload keeps the power; under `qps` the labels, chip names, captions and painted words translate; a second after a drag the page books zero frames.
 - `tests/modwindow.node.mjs`: the preset key, the window-set imports (no hand copy), no `toUpperCase()`, no English in `content:`.
 - Neutrality: the resting window under λWAVES' own controller and under the kit's, on the same kit, `tools/stylehash.mjs` over 8 seats: 0 changed elements, 0 pixels. The only element differences are the grip's tag (`div` → `button`; its one differing property is `text-align`, which draws nothing) and the routing glow's empty layer.
-- Plates: `docs/plates/modulation/` — the rail in each seat (`rail-left/right/top/bottom.png`) and a route mid-drag with SPIN lit (`route-lit.png`).
+- Plates: `docs/plates/modulation/` — the rail in each seat (`rail-left/right/top/bottom.png`) a route mid-drag with SPIN lit (`route-lit.png`), the power off after a reload (`power-off.png`: the ring open and dim, the targets on their bases, the page's own PLAY above) and the light theme with the power on (`light-on.png`).
 
 ## Not done
 

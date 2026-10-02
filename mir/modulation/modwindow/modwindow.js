@@ -217,6 +217,12 @@ export const COPY = {
 export const SVG_PAUSE = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="width:14px;height:14px;display:block;margin:auto;stroke-width:var(--m2-xport-sw)"><rect x="6" y="4" width="3.5" height="16" rx="1"/><rect x="14.5" y="4" width="3.5" height="16" rx="1"/></svg>';
 export const SVG_PLAY = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="width:14px;height:14px;display:block;margin:auto;stroke-width:var(--m2-xport-sw)"><polygon points="6 4 20 12 6 20 6 4"/></svg>';
 
+/* 1.5.0-alpha.4 · THE WORK BAR'S FIRST SEAT IS MODULATION'S POWER, NOT A PLAY (Josh, 2026-10-01: one clock — the timeline
+   has the true play, modulation a power button like BASINS').  The drawing is BASINS' own (transport-controls.js
+   mountModulationPower): a faint halo, the ring, the stem; its weight is a token.  SVG_PLAY / SVG_PAUSE stay exported
+   for callers that still draw them; the window no longer does. */
+export const SVG_POWER = '<svg class="mir-power-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="stroke-width:var(--m2-power-sw)"><circle class="mir-power-halo" cx="12" cy="12" r="10.5"/><path class="mir-power-ring" d="M6.7 5.7a8.2 8.2 0 1 0 10.6 0"/><path class="mir-power-stem" d="M12 2.5v9"/></svg>';
+
 /* ── THE TWO ELEMENT HELPERS (anim.js:1042, 3313) ───────────────────────── */
 
 const SVGNS = 'http://www.w3.org/2000/svg';
@@ -668,10 +674,13 @@ function buildPresetStrip(panel, copy) {
  *  the order IS the strip: each installer appends to the barless bar, whose
  *  querySelector('.kwin-close') is null there. */
 function buildTimingBar(pre, copy) {
-  const xport = m2mk('button', 'modxport', pre);
+  const xport = m2mk('button', 'modxport mir-mod-power', pre);
   xport.type = 'button';
   xport.id = IDS.xport;
-  xport.innerHTML = SVG_PLAY;
+  xport.innerHTML = SVG_POWER;
+  xport.dataset.face = 'power';
+  xport.setAttribute('aria-pressed', 'false');
+  kitAria(xport, 'Modulation on or off');
 
   const tempo = m2mk('button', 'modtempo', pre);
   tempo.type = 'button';

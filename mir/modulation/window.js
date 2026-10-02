@@ -28,13 +28,15 @@
  *   5. STRINGS ARE NOT CODE.  Every word this file shows goes through t() / label() / ariaLabel(); case is the
  *      string's, never toUpperCase(); nothing is found by its label text.
  *   6. IDLE COSTS NOTHING.  No interval and no rAF of its own: the host's clock calls paint().
+ *   7. ONE CLOCK (1.5.0-alpha.4).  The work bar's first seat is modulation's POWER (BASINS' drawing and behaviour), not a
+ *      play: a press flips port.arm, which bypasses or restores the routes; the window never plays or pauses time.
  * Kept as they were: every law in modwindow/ACCEPTANCE.md and host-contract.md, the FL curve gestures
  * (curve-gesture.js), Sol's automation / exact resume / runtime capture in host.js and mod.js.
  */
 import { el, seg, trig, knob, tapWatcher, gripDots, label, ariaLabel } from '../kit.js';
 import { bindSliderKeys } from '../slider-keys.js';
 import { createModWindow, setDeviceMode, setWorkLane, sizeLaw, GEOM,
-         SVG_PLAY, SVG_PAUSE, buildGhost, buildAudioSheet, COPY } from './modwindow/modwindow.js';
+         buildGhost, buildAudioSheet, COPY } from './modwindow/modwindow.js';
 import { evaluate as curveEval, curveHash, curveInfo, presetPoints, presetMirror,
          pointsEqual, PRESET_LABEL } from './curve.js';
 import { svgPoint, curveHit, curveAction, pointDrag, pointAddValue, tensionDelta,
@@ -152,7 +154,7 @@ const along = (p, lo, size, next) => (p < lo ? lo : p > lo + size ? lo + size - 
  *   knobOf(id)             the widget a target id drives ({ root, paint }), or null (then the DOM's [data-param])
  *   persist(presentation)  store the window's own state (position, dock, chip side, card modes …)
  *   cadence(), setCadence(hz)   the modulation update rate, 60 | 120
- *   armed(), arm(on)       the host's MOD arm
+ *   armed(), arm(on)       modulation's power (bind.js power / setPower); absent: clock.setModulationEnabled
  *   audio                  the audio capture edge ({ state, support, start, stop, sync, devices }), or absent
  *   rateControl()          a widget to seat in the timing bar, or absent
  *   moved(rect | null)     where the window now is (null when it closes), for a transport dodge
@@ -537,20 +539,21 @@ export function createModulation(host, port) {
   window.addEventListener('resize', onResize, { passive: true });
   const unSpan = dockOpt && dockOpt.span && dockOpt.span.subscribe ? dockOpt.span.subscribe(() => { if (P.open && P.dock) place(); }) : null;
 
-  /* ═══ THE TRANSPORT STRIP — play · tempo · TAP · SYNC · CADENCE · HOLD 1/4 · HOLD 1 ═════ */
+  /* ═══ THE WORK BAR — MOD power · tempo · TAP · SYNC · CADENCE · HOLD 1/4 · HOLD 1 ═════════
+     1.5.0-alpha.4 · ONE CLOCK (Josh, 2026-10-01).  The first seat is MODULATION'S POWER, as BASINS has it, and no
+     longer a play: the window never starts or stops time — the app's one play does (the timeline's, the transport
+     bar's until then).  Off, every route is bypassed and every target is back on its base (host.js
+     setModulationEnabled); the clock, the sources, the tempo and the HOLDs carry on, so power on picks up in time.
+     The host owns the flag and its persistence (port.armed / port.arm — bind.js power / setPower). */
+  const powered = () => (port.armed ? !!port.armed() : clock.isModulationEnabled());
+  const setPower = (on) => { if (port.arm) port.arm(!!on); else clock.setModulationEnabled(!!on); };
   transport.xport.addEventListener('click', () => {
-    /* WAVE 65 · THE WINDOW'S PLAYHEAD ARMS THE RACK RATHER THAN DOING NOTHING.  MOD lives on the
-       λWAVES transport, because this window's timing bar is the artifact's and is not ours to grow —
-       so the press that most obviously means "I want modulation" asks the host to arm, and the lamp
-       out on the transport lights.  The host owns the flag, the glow and the persistence. */
-    const armed = port.armed ? port.armed() : true;
-    if (!armed && port.arm) { port.arm(true); status(t('MOD is on — the arm is the small button beside the transport’s own play'), ''); }
-    const r = clock.toggle(performance.now() / 1000);
-    if (!r.ok) status(t('nothing is routed — the transport has nothing to do'), 'warn');
-    else if (armed) status(r.playing ? resumeSentence() : '', '');
+    const on = !powered();
+    setPower(on);
+    status(on ? t('MOD on') : t('MOD off'), '');
     sync();
   });
-  transport.xport.title = 'Play or pause modulation';
+  transport.xport.title = 'Enable or bypass modulation';
 
   const nativeRate = port.rateControl && port.rateControl();
   if (nativeRate) { nativeRate.root.classList.add('m2-native-rate'); transport.xport.parentNode.insertBefore(nativeRate.root, transport.tempo); }
@@ -2855,13 +2858,10 @@ export function createModulation(host, port) {
     const T = M.transport;
     if (nativeRate) nativeRate.set(registry.state('transport.rate').current);
 
-    /* ── the transport strip ── */
-    const playing = clock.isPlaying();
-    if (transport.xport.dataset.face !== (playing ? 'pause' : 'play')) {
-      transport.xport.dataset.face = playing ? 'pause' : 'play';
-      transport.xport.innerHTML = playing ? SVG_PAUSE : SVG_PLAY;
-    }
-    transport.xport.classList.toggle('on', clock.isRunning());
+    /* ── the work bar: the power is lit while modulation is on, whatever the app's clock is doing ── */
+    const on = powered();
+    transport.xport.classList.toggle('on', on);
+    attr(transport.xport, 'aria-pressed', on);
     transport.tempoNum.textContent = T.bpm.toFixed(T.bpm < 100 ? 1 : 0);
 
 

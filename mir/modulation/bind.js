@@ -7,8 +7,9 @@
  * and the window in the app's settings, and mounts the window (window.js createModulation).  Until 1.5 every app
  * wrote this seam for itself (SOLEIL lab/modulation.js, NEBULA lab/modulation.js, λWAVES' rack.js wiring); this is
  * those seams with their differences as options.
- *   installModulation({ mount, params, … }) → { host, view, registry, M, open, close, toggle, isOpen, arm, armed,
- *     onArm, isModulated, baseOf, currentOf, hand, running, bpm, syncBases, persist, dispose }
+ *   installModulation({ mount, params, … }) → { host, view, registry, M, open, close, toggle, isOpen,
+ *     power, setPower, togglePower, onPower (arm, armed, onArm: the same, 1.4 names), play, togglePlay, playing, onPlay,
+ *     isModulated, baseOf, currentOf, hand, running, bpm, syncBases, paintWidgets, persist, dispose }
  *
  * THE LAWS IT KEEPS
  *   1. THE HAND OWNS THE BASE.  A hand on a routed control writes the registry's base (hand(id, v) → true); the
@@ -18,6 +19,10 @@
  *   3. IDLE COSTS NOTHING.  The clock ticks through core/frame.js only while it runs or the microphone is live; a
  *      paused change (a seek, a preset, a hand on a routed knob) asks for ONE paint of the open window, so the play
  *      dot and the rings follow the model without a loop.
+ *   0. ONE CLOCK (1.5.0-alpha.4).  Time is the app's: play(on) starts and stops the clock, and only the app's play
+ *      button calls it.  Modulation's POWER is a bypass, as BASINS has it: off, every route lets go and every target is
+ *      back on its base, while the clock, the sources, the tempo and the HOLDs carry on; on, the routes drive again in
+ *      time.  Power never plays; play never powers.
  *   4. A HIDDEN PAGE STOPS THE CLOCK (host.js setHidden) and the microphone; visible, it re-anchors and goes on.
  *   4b. A ROUTED WIDGET SHOWS ITS VALUE.  A knob or a fader whose parameter a route drives keeps the hand's base
  *      (set) and paints the modulated value over it (show) on every tick — so a route onto a fader moves the fader,
@@ -60,7 +65,7 @@ export function rootsOf(params) { return [...new Set(params.map((p) => String(p.
  *   presetKey    the preset store's key (default mod.js PRESET_LS) — two apps on one origin must not share one
  *   audio        the app's audio capture factory, createAudioCapture({ onState }) (lab/audio.js); absent: no AUDIO
  *   dock, copy, targets, routeGlow   passed to the window (window.js createModulation's port)
- *   enabled      the MOD arm at first boot (default true)
+ *   enabled      modulation's power at first boot, when the store has none (default true)
  *   showWidgets  paint routed widgets from the registry each tick (default true; law 4b)
  */
 export function installModulation(o) {
@@ -77,7 +82,9 @@ export function installModulation(o) {
   const byId = new Map(params.map((p) => [p.id, p])), armWatchers = new Set();
   const available = typeof o.available === 'function' ? o.available : () => true;
 
-  const host = createModHost({ roots: o.roots || rootsOf(params), available, presentationActive: false, enabled: armed,
+  /* ONE CLOCK (1.5.0-alpha.4): the clock is always enabled — the app's play starts and stops it; modulation's POWER is
+     host.js setModulationEnabled, which bypasses the routes and leaves time alone (BASINS modulation.js setArm) */
+  const host = createModHost({ roots: o.roots || rootsOf(params), available, presentationActive: false, enabled: true,
     present: () => { if (present) present(); requestLoop(); paintSoon(); } });
 
   host.install(params.map((p) => ({
@@ -168,13 +175,30 @@ export function installModulation(o) {
     if (disposed || !view || active()) return;
     frame.coalesce(PAINT, () => { paintWidgets(); if (view && view.isOpen) view.paint(true); });
   }
+  /** MODULATION'S POWER, as BASINS has it: off bypasses every route (each target returns to its base) and leaves the
+   *  clock, the sources, the tempo and the HOLDs running, so power on picks up in time; on puts the routes back.  It
+   *  never plays or pauses.  Stored as modArm (the record's old name).  Watchers hear every change (onPower). */
   function setArm(on, options) {
-    armed = !!on; host.clock.setEnabled(armed);
+    const was = armed;
+    armed = !!on; host.clock.setModulationEnabled(armed);
     if (view) view.sync();
-    for (const fn of armWatchers) fn(armed);
+    paintWidgets();
+    if (was !== armed || (options && options.announce)) for (const fn of armWatchers) { try { fn(armed); } catch (e) { (globalThis.reportError || console.error)(e); } }
     if (!(options && options.quiet)) persistSoon();
+    if (present) present();
     requestLoop(); return armed;
   }
+  /** THE APP'S ONE PLAY.  The window never calls it; the app's play button (the transport bar's, the timeline's) does. */
+  function play(on) {
+    const w = performance.now() / 1000;
+    const r = on ? host.clock.play(w) : host.clock.pause(w);
+    if (view) view.sync();
+    if (present) present();
+    requestLoop(); paintSoon();
+    for (const fn of playWatchers) { try { fn(host.clock.isPlaying()); } catch (e) { (globalThis.reportError || console.error)(e); } }
+    return r;
+  }
+  const playWatchers = new Set();
 
   const port = {
     M, registry: host.registry, targets: host.targets, clock: host.clock,
@@ -198,7 +222,7 @@ export function installModulation(o) {
   };
   view = createModulation(mount, port);
   try { view.restore(prefs.modwin); } catch (_) { /* a record this window cannot read */ }
-  setArm(armed, { quiet: true });
+  setArm(armed, { quiet: true, announce: true });
 
   const onVisibility = () => { host.clock.setHidden(document.hidden); if (audioCap) audioCap.setHidden(document.hidden); if (!document.hidden) requestLoop(); };
   document.addEventListener('visibilitychange', onVisibility);
@@ -208,8 +232,15 @@ export function installModulation(o) {
     host, view, registry: host.registry, M,
     open: () => view.open(), close: () => view.close(), toggle: () => view.toggle(),
     get isOpen() { return view.isOpen; },
+    /** the power (1.5.0-alpha.4): power() reads it, setPower(on) sets it, togglePower() flips it, onPower(fn) → off hears
+     *  every change.  arm / armed / onArm are the same three under their 1.4 names, kept as aliases. */
+    power: () => armed, setPower: (on) => setArm(on), togglePower: () => setArm(!armed),
+    onPower(fn) { armWatchers.add(fn); return () => armWatchers.delete(fn); },
     arm: setArm, armed: () => armed,
     onArm(fn) { armWatchers.add(fn); return () => armWatchers.delete(fn); },
+    /** the app's one clock: play(on), togglePlay(), playing(), onPlay(fn) → off */
+    play, togglePlay: () => play(!host.clock.isPlaying()), playing: () => host.clock.isPlaying(),
+    onPlay(fn) { playWatchers.add(fn); return () => playWatchers.delete(fn); },
     isModulated: (id) => host.registry.isModulated(id),
     baseOf: (id) => host.registry.baseOf(id),
     currentOf: (id) => host.registry.state(id).current,
