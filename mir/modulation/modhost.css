@@ -108,21 +108,13 @@
    declared on the very elements that paint them. */
 /* @default */ .mir-modwindow, .kwin-chiprail, .m2ghost {
   --m2-aud-level-mix-value-font: 600 7px/1 var(--font-num);
-  --m2-aud-mix-focus-shadow: 0 0 0 1px color-mix(in srgb,var(--acc) 50%,transparent);
   --m2-aud-range-handle-a-alpha: .82;
-  --m2-aud-range-high-face: color-mix(in srgb,var(--acc) 30%,transparent);
-  --m2-aud-range-low-face: color-mix(in srgb,var(--acc) 19%,transparent);
   --m2-aud-range-name-font: 700 8px/1 var(--font-ui);
   --m2-aud-range-value-font: 600 7.5px/1 var(--font-num);
-  --m2-aud-range-zone-face: color-mix(in srgb,var(--acc2) 18%,transparent);
-  --m2-audled-on-glow: 0 0 6px color-mix(in srgb,var(--acc) 55%,transparent);
   --m2-audsreadout-font: 650 var(--fs-tiny) var(--font-num);
   --m2-chip-ink-drop: drop-shadow(0 1px 0 var(--glass-raise));
-  --m2-chip-ring: 1px solid var(--fg-soft);
   --m2-chk-on-shadow: var(--m2-on-rim), inset 0 -2px 0 hsl(var(--hue-acc) var(--sat-acc) 66% / .64);
   --m2-dialink-b-wash: repeating-conic-gradient(var(--glass-groove) 0deg 1.6deg, transparent 1.6deg 30deg), radial-gradient(circle at 35% 30%, hsl(0 0% 100% / .07), transparent 62%), hsl(var(--glass-tint) / 1);
-  --m2-dialink-drag-shadow: var(--relief-raise, var(--neu-raise)), 0 0 0 1px var(--acc);
-  --m2-dot-on-glow: 0 0 6px var(--acc), 0 0 2px var(--acc);
   --m2-ease: ease;
   --m2-face-tint-18: hsl(var(--glass-tint) / .18);
   --m2-face-tint-94: hsl(var(--glass-tint) / .94);
@@ -162,7 +154,6 @@
   --m2-r-7: 7px;
   --m2-r-14: 14px;
   --m2-rail-shadow: inset 0 1px 0 var(--m2-mat-inner), var(--surface-shadow, var(--glass-shadow));
-  --m2-reorder-shadow: inset 0 0 0 1px var(--acc2);
   --m2-say-font: 500 10.5px/1.35 var(--font-sans);
   --m2-slotx-alpha: .75;
   --m2-sw-1: 1;
@@ -265,6 +256,39 @@
 }
 /* @own */ .k.has-ring.mod-selected > .k-dial {
   --m2-ring-dial-sel-shadow: var(--relief-raise, var(--neu-raise)),0 0 0 1px color-mix(in srgb,var(--acc2) 75%,transparent);
+}
+/* @own */ #modwin .aud-level-mix-dial:focus-visible {
+  --m2-aud-mix-focus-shadow: 0 0 0 1px color-mix(in srgb,var(--acc) 50%,transparent);
+}
+/* @own */ #modwin .aud-range-high {
+  --m2-aud-range-high-face: color-mix(in srgb,var(--acc) 30%,transparent);
+}
+/* @own */ #modwin .aud-range-low {
+  --m2-aud-range-low-face: color-mix(in srgb,var(--acc) 19%,transparent);
+}
+/* @own */ #modwin .aud-range-zone {
+  --m2-aud-range-zone-face: color-mix(in srgb,var(--acc2) 18%,transparent);
+}
+/* @own */ #modwin.mir-modwindow .m2dev.audio .m2audout.on .m2audled {
+  --m2-audled-on-glow: 0 0 6px color-mix(in srgb,var(--acc) 55%,transparent);
+}
+/* @own */ :where(.crail.crail-float).kwin-chiprail[data-mir-rail="modulation"] .crail-chip:where(:focus-visible) {
+  --m2-chip-ring: 1px solid var(--fg-soft);
+}
+/* @own */ #modwin.mir-modwindow .m2dialink.drag::before, #modwin.mir-modwindow .m2kd.drag .m2dialink::before {
+  --m2-dialink-drag-shadow: var(--relief-raise, var(--neu-raise)), 0 0 0 1px var(--acc);
+}
+/* @own */ #modwin.mir-modwindow .m2dev .m2chk.on .m2dot, #modwin.mir-modwindow .m2dev .m2swb.on .m2dot {
+  --m2-dot-on-glow: 0 0 6px var(--acc), 0 0 2px var(--acc);
+}
+/* @own */ #modwin.mir-modwindow .m2dev .m2swb.on::before, #modwin.mir-modwindow .m2dev .m2flipb.on::before {
+  --m2-dot-on-glow: 0 0 6px var(--acc), 0 0 2px var(--acc);
+}
+/* @own */ #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle.on::before {
+  --m2-dot-on-glow: 0 0 6px var(--acc), 0 0 2px var(--acc);
+}
+/* @own */ #modwin.mir-modwindow .m2slot.m2reorder {
+  --m2-reorder-shadow: inset 0 0 0 1px var(--acc2);
 }
 /* FROST · end */
 

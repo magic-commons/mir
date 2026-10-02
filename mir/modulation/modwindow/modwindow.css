@@ -15,14 +15,10 @@
    HOST's controls (the rings, spans and range bars live outside its roots), and @own the few such values that read a var(),
    declared on the very elements that paint them. */
 /* @default */ .mir-modwindow, .kwin-chiprail, .m2ghost {
-  --m2-add-edge: 2px solid var(--acc);
   --m2-add-font: 300 24px var(--font-sans);
-  --m2-arm-shadow: inset 0 0 0 1px var(--bad);
   --m2-aud-level-mix-value-font: 600 7px/1 var(--font-num);
   --m2-aud-range-handle-a-alpha: .82;
   --m2-audhyst-alpha: .16;
-  --m2-audio-audminleds-focus-ring: 1px solid var(--acc);
-  --m2-audminled-glow: 0 0 4px color-mix(in srgb,var(--acc) 38%,transparent);
   --m2-audq-alpha: .64;
   --m2-audsbtn-font: 600 var(--fs-lead) var(--font-sans);
   --m2-audsleg-font: 500 8px var(--font-sans);
@@ -31,7 +27,6 @@
   --m2-audsreadout-font: 650 var(--fs-tiny) var(--font-num);
   --m2-audtxt-font: 700 6.5px var(--font-num);
   --m2-body-alpha: 0.42;
-  --m2-button-focus-ring: 1px solid var(--fg);
   --m2-button-focus-shadow: 0 0 0 1px hsl(0 0% 100% / .20);
   --m2-button-hover-shadow: inset 0 1px 0 hsl(0 0% 100% / .10);
   --m2-button-off-filter: saturate(.34);
@@ -40,7 +35,6 @@
   --m2-chev-edge-2: 4px solid transparent;
   --m2-chip-font: 700 var(--fs-small)/1 ui-monospace, SFMono-Regular, Menlo, monospace;
   --m2-chip-on-shadow: inset 0 0 0 1px hsl(0 0% 100% / .22), inset 0 1px 0 hsl(0 0% 100% / .12);
-  --m2-chip-ring: 1px solid var(--fg-soft);
   --m2-chip-shadow: inset 0 1px 0 var(--m2-mat-inner), 0 3px 12px hsl(0 0% 0% / .20);
   --m2-chk-on-line: inset 0 -2px 0 hsl(var(--hue-acc) var(--sat-acc) 66% / .64);
   --m2-colhead-font: 600 8.5px var(--font-sans);
@@ -51,7 +45,6 @@
   --m2-dev-shadow: inset 0 1px 0 var(--m2-mat-inner);
   --m2-dialink-rim: inset 0 0 0 1px hsl(0 0% 100% / .14);
   --m2-dialink-well: inset 0 0 0 1px var(--m2-mat-edge), inset 0 2px 4px hsl(0 0% 0% / .25);
-  --m2-dot-on-halo: 0 0 5px var(--acc-soft);
   --m2-dot-on-shadow: inset 0 0 0 1px hsl(0 0% 100% / .18);
   --m2-dot-shadow: inset 0 0 0 1px hsl(0 0% 100% / 0.34);
   --m2-ease: ease;
@@ -116,7 +109,6 @@
   --m2-gridtxt-font: 8.5px var(--font-num);
   --m2-head-rule: inset 0 -1px 0 hsl(0 0% 100% / .055);
   --m2-head-wash-2: linear-gradient(180deg, hsl(0 0% 100% / .035), transparent);
-  --m2-held-shadow: inset 0 0 0 1px var(--acc), inset 0 0 11px rgba(255,255,255,0.30);
   --m2-hero-shadow: inset 0 1px 3px hsl(0 0% 0% / .32), inset 0 1px 0 var(--m2-mat-inner);
   --m2-hint-font: 400 var(--fs-tiny) var(--font-sans);
   --m2-ink-env: hsl(calc(var(--hue-acc) - 52) calc(var(--sat-acc) + 3%) 66%);
@@ -151,7 +143,6 @@
   --m2-ink-w94: rgba(255,255,255,0.94);
   --m2-ink-w100: #fff;
   --m2-kctl-alpha: .92;
-  --m2-kctl-focus-ring: 1px dashed var(--fg);
   --m2-kctl-sel-filter: brightness(1.16) saturate(1.08);
   --m2-kctl-sel-shadow: 0 0 0 1.5px hsl(var(--hue-acc) calc(var(--sat-acc) + 8%) 64% / 0.85), 0 2px 16px -2px hsl(var(--hue-acc) calc(var(--sat-acc) + 8%) 52% / 0.35);
   --m2-kctl-shadow: inset 0 0 0 1px hsl(0 0% 100% / .26);
@@ -187,7 +178,6 @@
   --m2-mintdot-alpha: 0.32;
   --m2-mintfill-alpha: 0.10;
   --m2-modtap-font: 700 calc(8.5px * var(--ui-scale)) var(--font-sans);
-  --m2-modxport-on-halo: 0 0 8px var(--acc);
   --m2-name-font: 500 9.5px var(--font-sans);
   --m2-note-font: 500 var(--fs-tiny) var(--font-sans);
   --m2-num-edge: 1.2px solid rgba(255,255,255,0.55);
@@ -246,7 +236,6 @@
   --m2-sw-3: 3;
   --m2-sw-4: 4;
   --m2-sw-6: 6;
-  --m2-swaphot-ring: 2px dashed var(--acc2);
   --m2-t-140: 140ms;
   --m2-t-240: 240ms;
   --m2-t-300: 300ms;
@@ -317,6 +306,48 @@
 }
 /* @own */ .m2ringn {
   --m2-ringn-font: 700 var(--fs-tiny) var(--font-num);
+}
+/* @own */ .mir-modwindow .m2add {
+  --m2-add-edge: 2px solid var(--acc);
+}
+/* @own */ .mir-modwindow .m2prowdel.m2arm {
+  --m2-arm-shadow: inset 0 0 0 1px var(--bad);
+}
+/* @own */ .mir-modwindow .m2dev.audio.m2min .m2audminleds:focus-visible {
+  --m2-audio-audminleds-focus-ring: 1px solid var(--acc);
+}
+/* @own */ .mir-modwindow .m2dev.audio.m2min .m2audminleds i::after {
+  --m2-audminled-glow: 0 0 4px color-mix(in srgb,var(--acc) 38%,transparent);
+}
+/* @own */ #modwin.mir-modwindow button:focus-visible, #modwin.mir-modwindow input:focus-visible, #modwin.mir-modwindow [role="slider"]:focus-visible {
+  --m2-button-focus-ring: 1px solid var(--fg);
+}
+/* @own */ .mir-modwindow .m2audsrc:focus-visible {
+  --m2-button-focus-ring: 1px solid var(--fg);
+}
+/* @own */ .mir-modwindow .m2audinput:focus-visible {
+  --m2-button-focus-ring: 1px solid var(--fg);
+}
+/* @own */ .crail.crail-float.kwin-chiprail[data-mir-rail="modulation"] .crail-chip:focus-visible {
+  --m2-chip-ring: 1px solid var(--fg-soft);
+}
+/* @own */ .mir-modwindow .m2chk.on .m2dot {
+  --m2-dot-on-halo: 0 0 5px var(--acc-soft);
+}
+/* @own */ #modwin.mir-modwindow .m2chk.on .m2dot {
+  --m2-dot-on-halo: 0 0 5px var(--acc-soft);
+}
+/* @own */ .modwin.mir-modwindow .m2hold.held {
+  --m2-held-shadow: inset 0 0 0 1px var(--acc), inset 0 0 11px rgba(255,255,255,0.30);
+}
+/* @own */ #modwin.mir-modwindow .kctl.ctl-frozen:focus-visible {
+  --m2-kctl-focus-ring: 1px dashed var(--fg);
+}
+/* @own */ .modwin.mir-modwindow .modxport.on {
+  --m2-modxport-on-halo: 0 0 8px var(--acc);
+}
+/* @own */ .mir-modwindow .m2dev.m2swaphot {
+  --m2-swaphot-ring: 2px dashed var(--acc2);
 }
 /* FROST · end */
 
