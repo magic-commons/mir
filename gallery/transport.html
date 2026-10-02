@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>MIR · transport</title>
+<!-- THE BASIC TRANSPORT BAR, THE MAIN OPENER (mir/shell/transport.js).  On a first visit the bar is the only thing on
+     screen: every window opens from it.  ▶ plays the page's clock (the rings turn at the tempo).  MOD lights while
+     modulation is armed and opens the modulation window.  The BPM pill: drag up or down (the digit under the pointer is
+     the step: tens, ones, tenths), the wheel, ↑ ↓, double-click or Enter to type; TAP four times.  TONE and MIX are rack
+     windows, FOLDERS and GUI the kit's windows, DRIFT a floating window: drag it over the bar and the bar gives way.
+     A right click (or a long press) on the bar chooses its seat: BOTTOM, TOP, COMPACT, remembered.  Space plays,
+     B hides the rack, H hides the interface (on a touch screen the bar keeps its way back).
+     ?fresh (forget everything: a first run) · ?theme=light · ?lang=qps -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/css/tokens.css">
+<link rel="stylesheet" href="../mir/shell/shell.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<link rel="stylesheet" href="../mir/window/window.css">
+<link rel="stylesheet" href="../mir/shell/rack.css">
+<link rel="stylesheet" href="../mir/folders/folders.css">
+<link rel="stylesheet" href="../mir/shell/gui.css">
+<link rel="stylesheet" href="../mir/modulation/modwindow/modwindow.css">
+<link rel="stylesheet" href="../mir/modulation/modhost.css">
+<link rel="stylesheet" href="../mir/shell/transport.css">
+<link rel="stylesheet" href="../mir/locales/locales.css">
+<style>
+  /* the page's own: the picture and the window layer */
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  #ground { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #winlayer { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
+  #winlayer > * { pointer-events: auto; }
+  .g-note { font-size: var(--fs-small); color: var(--fg-soft); line-height: 1.5; margin: 0 0 6px; }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted" class="disconnected">
+<div id="lab">
+  <div id="stage"><canvas id="ground" aria-hidden="true"></canvas></div>
+  <div id="winlayer"></div>
+</div>
+<script type="module">
+import { el, knob, fader } from '../mir/kit.js';
+import { createTransport, firstRun, rackOpeners, transportActions } from '../mir/shell/transport.js';
+import { createRack } from '../mir/shell/rack.js';
+import { createWindow } from '../mir/window/window.js';
+import { createFolders } from '../mir/folders/folders.js';
+import { createGui } from '../mir/shell/gui.js';
+import { installModulation } from '../mir/modulation/bind.js';
+import { createKeys } from '../mir/shell/keys.js';
+import { installPress } from '../mir/core/pointer.js';
+import { frame } from '../mir/core/frame.js';
+import { perf } from '../mir/core/perf.js';
+import { setLanguage, addLocales } from '../mir/core/i18n.js';
+import * as motion from '../mir/core/motion.js';
+import * as M from '../mir/modulation/mod.js';
+
+const q = new URLSearchParams(location.search);
+const $ = (id) => document.getElementById(id);
+if (q.has('fresh')) try { for (const k of Object.keys(localStorage)) if (k.startsWith('mir.gallery.transport')) localStorage.removeItem(k); } catch {}
+
+/* THE OPENER LAW: asked before anything is made.  Nothing saved → a first run → every window stays closed. */
+const first = firstRun('mir.gallery.transport', 'mir.gallery.transport.rack');
+
+/* ── the picture: rings that turn at the tempo while the clock plays (a 2D canvas; idle draws nothing) ── */
+const ground = $('ground');
+let beats = 0;
+function draw() {
+  const dpr = devicePixelRatio || 1, w = innerWidth, h = innerHeight;
+  if (ground.width !== w * dpr || ground.height !== h * dpr) { ground.width = w * dpr; ground.height = h * dpr; }
+  const g = ground.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const light = document.body.dataset.theme === 'light';
+  g.fillStyle = light ? '#e9edf4' : '#070a0f'; g.fillRect(0, 0, w, h);
+  const cx = w / 2, cy = h * 0.44, R = Math.min(w, h) * 0.3;
+  const beat = beats % 1, which = Math.floor(beats) % 8;
+  for (let ring = 0; ring < 3; ring++) {
+    const r = R * (0.45 + ring * 0.28), turn = beats * (Math.PI / 4) / (ring + 1);
+    for (let i = 0; i < 8; i++) {
+      const a = turn + i * Math.PI / 4, x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+      const lit = ring === 0 && i === which, s = (lit ? 26 * (1 - beat) + 10 : 8) + ring * 3;
+      const hue = (200 + ring * 60 + i * 12) % 360;
+      const gr = g.createRadialGradient(x, y, 0, x, y, s * 2.2);
+      gr.addColorStop(0, `hsla(${hue} 85% ${light ? 50 : 62}% / ${lit ? .95 : .6})`); gr.addColorStop(1, `hsla(${hue} 85% 50% / 0)`);
+      g.fillStyle = gr; g.beginPath(); g.arc(x, y, s * 2.2, 0, Math.PI * 2); g.fill();
+    }
+  }
+}
+addEventListener('resize', () => frame.coalesce('gallery:draw', draw));
+
+/* ── the page's clock: { play, pause, isPlaying, onChange } — it ticks through the one frame only while playing ── */
+const clock = (() => {
+  let playing = false, last = 0; const subs = new Set();
+  const tick = (now) => { if (!playing) return; if (last) beats += Math.min(0.5, (now - last) / 1000) * M.transport.bpm / 60; last = now; draw(); frame.coalesce('gallery:tick', tick); };
+  const tell = () => { for (const f of subs) f(playing); };
+  return {
+    play() { if (!playing) { playing = true; last = 0; frame.coalesce('gallery:tick', tick); tell(); } return { ok: true, playing }; },
+    pause() { if (playing) { playing = false; frame.coalesce('gallery:draw', draw); tell(); } return { ok: true, playing }; },
+    isPlaying: () => playing,
+    onChange(fn) { subs.add(fn); return () => subs.delete(fn); },
+  };
+})();
+
+/* ── the modulation seam: the MOD lamp is its opener (its window reports where it is, so the bar gives way) ── */
+let tr = null, rack = null;
+const SIZE = { v: 0.5 };
+const mod = installModulation({ mount: $('winlayer'), storageKey: 'mir.gallery.transport.mod', presetKey: 'mir.gallery.transport.mod.presets',
+  params: [{ id: 'scene.size', label: 'SIZE', min: 0, max: 1, map: 'linear', get: () => SIZE.v, set: (v) => { SIZE.v = v; } }],
+  moved: (r) => tr && tr.moved(r) });
+
+/* ── one key table: Space plays (the bar's own row), B hides the rack, H the interface ── */
+const keys = createKeys({ actions: [...transportActions(() => tr),
+  { id: 'rack', label: 'HIDE / SHOW THE RACK', group: 'VIEW', keys: ['KeyB'], run: () => rack.toggleHidden() },
+  { id: 'ui', label: 'HIDE THE INTERFACE', group: 'VIEW', keys: ['KeyH'], run: () => rack.setInterface(document.body.classList.contains('ui-hidden')) }] });
+
+/* ── THE BAR, the main opener.  The rack is made right after it (it needs the bar's element), so it is handed over
+      as a getter; the openers are read again whenever the bar paints. ── */
+const opens = [];
+tr = createTransport({ host: $('lab'), clock, mod, keys, rack: () => rack, key: 'mir.gallery.transport', opener: true,
+  openers: () => [...(rack ? rackOpeners(rack, { glyphs: { tone: 'tune', mix: 'sliders' } })() : []), ...opens] });
+
+/* ── the rack: two windows, registered by name; on a first run neither is open ── */
+rack = createRack({ host: $('lab'), key: 'mir.gallery.transport.rack', transport: tr.root, favourites: 0, chrome: false, handle: 'always' });
+const note = (b, s) => el('p', 'g-note', b, s);
+rack.register({ id: 'tone', title: 'TONE', side: 'right', open: !first, glyph: 'tune', hint: 'a rack window',
+  build(b) { note(b, 'A rack window. Close it with × and its latch on the bar goes dark.'); const r = el('div', 'row', b); r.append(knob({ label: 'GAIN', min: 0, max: 1, value: .6 }).root, knob({ label: 'TILT', min: -1, max: 1, value: 0 }).root); } });
+rack.register({ id: 'mix', title: 'MIX', side: 'right', glyph: 'sliders', hint: 'another rack window',
+  build(b) { b.append(fader({ label: 'WET', min: 0, max: 1, value: .3 }).root, fader({ label: 'DRY', min: 0, max: 1, value: .8 }).root); } });
+rack.start();
+
+/* ── FOLDERS, GUI and DRIFT: the kit's windows; FOLDERS and DRIFT report where they are, so the bar gives way ── */
+const folders = createFolders({ host: $('winlayer'), app: 'mir-transport-demo', store: 'mir.gallery.transport.folders', adapter: { thumbnail: () => ground },
+  onMoved: (r) => tr.moved(r) });
+const gui = createGui({ host: $('winlayer'), app: { name: 'MIR TRANSPORT' }, about: { fonts: '../fonts/' }, storageKey: 'mir.gallery.transport.gui' });
+if (q.get('theme') === 'light') gui.prefs.set('theme', 'light');
+gui.prefs.subscribe(() => frame.coalesce('gallery:draw', draw));
+const drift = createWindow({ id: 'drift', title: 'DRIFT', host: $('winlayer'), size: { w: 300, h: 150 }, emptyDrag: true,
+  body: (b) => note(b, 'A floating window. Drag me over the transport bar: it moves to its other seat, and back when I leave.'),
+  onMoved: (r) => tr.moved(r) });
+opens.push(
+  { id: 'folders', label: 'FOLDERS', glyph: 'folder', key: 'S', open: () => folders.open(), close: () => folders.close(), isOpen: () => folders.isOpen() },
+  { id: 'gui', label: 'GUI', glyph: 'invertColors', open: () => gui.open(), close: () => gui.close(), isOpen: () => gui.window.isOpen() },
+  { id: 'drift', label: 'DRIFT', glyph: 'expand', open: () => drift.open(), close: () => drift.close(), isOpen: () => drift.isOpen() });
+installPress({ selector: '.sw, .seg-b, .trig, .tbtn, .mir-rack-btn' });
+tr.sync();
+frame.coalesce('gallery:draw', draw);   // after the GUI's preferences have painted the theme
+
+if (q.get('lang')) { addLocales(new URL('../mir/locales/', location.href).href); await setLanguage(q.get('lang')); }
+window.__T = { tr, rack, mod, folders, gui, drift, clock, keys, perf, motion, M, first, get beats() { return beats; } };
+window.__ready = true;
+</script>
+</body>
+</html>
