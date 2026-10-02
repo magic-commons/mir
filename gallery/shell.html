@@ -7,11 +7,21 @@
 <title>MIR · shell</title>
 <!-- A FRESH APP ON MIR, AND NOTHING ELSE: the wordmark, the menubar it opens, and the notebook with its ABOUT face,
      every node built by mir/shell/*.js and every rule from mir/css/base.css, mir/css/skin.css and mir/shell/shell.css.
+     By default the notebook also has a project's PAGES (tabs, mir/shell/pages.css) and THE SHELF (mir/notes/).
      ?as=lambdawaves fills it with λWAVES' own words so tools/shell-parity.mjs can prove the two draw the same. -->
 <link rel="stylesheet" href="../mir/css/base.css">
 <link rel="stylesheet" href="../mir/css/skin.css">
 <link rel="stylesheet" href="../mir/shell/shell.css">
 <link rel="stylesheet" href="../mir/shell/stage.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<link rel="stylesheet" href="../mir/shell/pages.css">
+<link rel="stylesheet" href="../mir/notes/notes.css">
+<style>
+  /* the gallery's own: the one button that plays "open another project" (it is not part of the kit) */
+  .demo-project { position: absolute; left: 14px; bottom: 14px; z-index: 31; height: 30px; padding: 0 14px; border-radius: 8px; border: 1px solid hsl(0 0% 100% / .35);
+    background: hsl(0 0% 100% / .18); color: var(--fg-soft); font: 700 10px var(--font-ui); letter-spacing: var(--tr-wider); cursor: pointer; }
+  .demo-project:hover { color: var(--acc); }
+</style>
 </head>
 <body data-theme="light" data-card="tinted" class="disconnected">
 <div id="lab">

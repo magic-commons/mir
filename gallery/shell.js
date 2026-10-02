@@ -2,12 +2,18 @@
  *   default         a fresh app called MIR, with the ABOUT basics every app on the kit gets
  *   ?as=lambdawaves λWAVES' own wordmark, menus and ABOUT words, for tools/shell-parity.mjs
  *   ?theme=dark     start dark (the page starts LIGHT, as λWAVES ships)
- * Hover the wordmark for the menus; J opens the notebook; the ⓘ on the notebook flips to ABOUT. */
+ *   ?pages=0        no pages and no shelf (the default page has both; ?as=lambdawaves never has them)
+ * Hover the wordmark for the menus; J opens the notebook; the ⓘ on the notebook flips to ABOUT, the ▤ to THE SHELF.
+ * The notebook's tabs are a project's pages: YOURS first, then a greeting and two more.  OPEN ANOTHER PROJECT (bottom
+ * left) swaps in a second project's pages, as FOLDERS would, so you can see the tabs change and the shelf stay. */
 import { wordmark } from '../mir/shell/wordmark.js';
 import { createMenubar } from '../mir/shell/menubar.js';
 import { createNotebook } from '../mir/shell/notebook.js';
 import { createAccent } from '../mir/shell/accent.js';
 import { kitType, gplLicence } from '../mir/shell/about.js';
+import { createPages } from '../mir/shell/pages.js';
+import { createShelf } from '../mir/notes/shelf.js';
+import { notesFace } from '../mir/notes/face.js';
 
 const q = new URLSearchParams(location.search);
 const AS_LW = q.get('as') === 'lambdawaves';
@@ -71,6 +77,29 @@ const MIR_ABOUT = {
   home: { label: 'RETURN HOME', href: 'https://magic-commons.com/' },
 };
 
+/* ── two projects' pages and a shelf, for the default page (an app gets its pages from FOLDERS: registerProjectPart) ── */
+const WITH_PAGES = !AS_LW && q.get('pages') !== '0';
+const PROJECTS = {
+  A: { v: 1, showOnOpen: true, pages: [
+    { id: 'p1', title: 'The Mandelbrot set', md: '| | |\n|---|---|\n| saved | 2026-10-01 |\n| place | $c = -0.7436 + 0.1318i$ |\n\nThe set of $c$ for which $z_{n+1} = z_n^2 + c$ stays bounded from $z_0 = 0$.\n\n$$|z_n| \\le 2 \\quad \\forall n$$', shared: true },
+    { id: 'p2', title: 'Tour', md: '# A short tour\n\n1. Open the ▤ shelf.\n2. Drag a tab to reorder it.\n3. Press the eye to share a page with a visiting model.' },
+    { id: 'p3', title: 'Field notes', md: 'Period-3 bulb near $c \\approx -0.1226 + 0.7449i$.' },
+  ] },
+  B: { v: 1, showOnOpen: false, pages: [
+    { id: 'p1', title: 'Hydrogen 2p', md: 'The $2p$ orbital: $\\psi_{21m} \\propto r\\,e^{-r/2a_0}\\,Y_1^m$.' },
+    { id: 'p2', title: 'Spectrum', md: '$$E_n = -\\frac{13.6\\,\\text{eV}}{n^2}$$' },
+  ] },
+};
+const pages = WITH_PAGES ? createPages() : null;
+let project = 'A';
+if (pages) pages.restore(PROJECTS.A);
+const shelf = WITH_PAGES ? createShelf({ key: 'mir.gallery.notes' }) : null;
+if (shelf && !shelf.list().length) {
+  shelf.save('Ideas', { title: 'Ideas', md: '- a ghost preview tier at depth\n- labels as callouts' });
+  shelf.save('maths/Fixed points', { title: 'Fixed points', md: 'A fixed point of $f_c(z) = z^2 + c$ satisfies $z^2 - z + c = 0$.' });
+  shelf.save('maths/Trace formula', { title: 'Trace formula', md: '$$\\sum_\\gamma h(r_\\gamma) = \\frac{\\mu(F)}{4\\pi}\\int h(r)\\,r\\tanh(\\pi r)\\,dr + \\dots$$' });
+}
+
 const menubar = createMenubar({ opener: title, host: lab, menus: AS_LW ? LW_MENUS : MIR_MENUS });
 notebook = createNotebook({
   host: stage,
@@ -80,9 +109,19 @@ notebook = createNotebook({
   projectsNote: AS_LW,
   about: AS_LW ? LW_ABOUT : MIR_ABOUT,
   faces: AS_LW ? [{ id: 'projects', glyph: '▤', label: 'projects', title: 'projects: save, open, folders, recent',
-    build(face) { const e = document.createElement('div'); e.className = 'ab-eyebrow'; e.textContent = 'PROJECTS'; face.appendChild(e); } }] : [],
+    build(face) { const e = document.createElement('div'); e.className = 'ab-eyebrow'; e.textContent = 'PROJECTS'; face.appendChild(e); } }]
+    : WITH_PAGES ? [notesFace({ store: shelf })] : [],
+  pages,
   onLogo: () => accent.paintMarks(),
 });
+/* "open another project": capture this one's pages, restore the other's — what FOLDERS does through core/project.js */
+const openProject = (k) => { notebook.flush(); PROJECTS[project] = pages.capture(); project = k; pages.restore(PROJECTS[k]); };
+if (pages) {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'demo-project'; b.textContent = 'OPEN ANOTHER PROJECT';
+  b.title = 'swap in the other demo project\'s pages — the tabs change, YOURS and the shelf do not';
+  b.addEventListener('click', () => openProject(project === 'A' ? 'B' : 'A'));
+  stage.appendChild(b);
+}
 accent.apply();
 accent.turn();
 
@@ -99,5 +138,6 @@ window.__MIR_SHELL = {
   theme: (t) => setTheme(t),
   menu: (name) => (name ? menubar.openGroup(name) : menubar.close()),
   notebook: (face) => (face ? notebook.open(face) : notebook.close()),
-  parts: { accent, menubar, notebook },
+  parts: { accent, menubar, notebook, pages, shelf },
+  openProject,
 };

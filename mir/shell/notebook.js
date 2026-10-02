@@ -33,10 +33,37 @@
  *   logo          () => the wordmark element the ABOUT logo is cloned from (default #title)
  *   onLogo        () => void, after the logo is cloned (shell/accent.js paintMarks)
  *   dump          () => string, what COPY DUMP adds after the ABOUT face's own text
- *   keyLabel      the notebook's key, for the close button's title (λWAVES: 'J') */
+ *   keyLabel      the notebook's key, for the close button's title (λWAVES: 'J')
+ *   pages         a shell/pages.js model: the notebook gets TABS (below).  Absent, nothing below exists and the
+ *                 notebook is λWAVES' node for node (tests/shell.browser.mjs, tools/shell-parity.mjs).
+ *   A face that carries `store` (notes/face.js notesFace) is THE SHELF: the notebook's COPY TO SHELF writes there.
+ *
+ * THE TABS (with `pages`; mir/shell/pages.css draws them).  Josh, 2026-10-01: "the multiple pages … are really just
+ * different .mds."  The first tab is YOURS — the note open from your shelf, kept in this browser exactly as the
+ * notebook's text always was.  After a divider come the open project's pages, one tab each; page 0 (the greeting)
+ * carries a small 0.  The selected tab is what the title field, the text and the ◐ preview edit.
+ *   · A page's text is written to the model debounced 300 ms, and flushed at once on a tab switch, when the field
+ *     loses focus, on Ctrl/⌘+S or Ctrl/⌘+, (before the app's own key handler sees it), on pagehide and on destroy —
+ *     so a project capture never misses the last keystrokes.
+ *   · The model is the truth: its subscribe keeps the strip true when a project restores or another part (the
+ *     INFORMATIONAL stage) edits a page.  A restore drops the old project's tabs; YOURS and the shelf never change.
+ *   · Per tab: rename (double-click or F2), delete with an inline "delete? yes / no" (never window.confirm), reorder
+ *     by drag (core/pointer.js drag, core/motion.js flip, the drop slots through core/proximity.js) and by
+ *     Ctrl/⌘+←/→, an EYE that flips `shared` (a page is hidden from a visiting model unless its eye is open).
+ *   · The strip is a real tablist: roving tabindex, ←/→/Home/End move and select, F2 renames, Delete asks.  Many
+ *     tabs scroll sideways inside the strip, the selected one kept in view; the notebook never scrolls sideways.
+ *   · The foot gains SHOW ON OPEN (only while the greeting is selected), .MD (export the tab as a file), IMPORT .MD,
+ *     and COPY TO SHELF (a project page) or COPY TO PROJECT (yours).  A .md dropped on the notebook becomes a page.
+ *     Every copy is a copy: the two never share an object, so editing one never changes the other.
+ *   api adds: pages, shelf, selected, select(id|'yours'), yours → { title, md }, openNote({ title, md }), flush() */
 import { el } from '../kit.js';
 import { aboutFace } from './about.js';
 import { renderNotebook } from './notebook-render.js';
+import { pageFile, pageFromFile } from './pages.js';
+import { drag } from '../core/pointer.js';
+import { flip } from '../core/motion.js';
+import { createProximity } from '../core/proximity.js';
+import { setText, setAttr, setVar } from '../core/perf.js';
 
 const VENDOR = new URL('./vendor/', import.meta.url).href;
 let vendorLoad = null;
@@ -103,9 +130,13 @@ export function createNotebook(options = {}) {
   const flushPaint = () => { if (raf) { cancelAnimationFrame(raf); raf = 0; } const f = next; next = null; if (f) f(); };
 
   /* ── title and subtitle ── */
-  titleIn.addEventListener('input', () => store(K.title, titleIn.value));
+  let tabs = null;                                                  // the tabs, when the app hands over `pages`
+  const onPage = () => !!tabs && tabs.sel !== 'yours';
+  titleIn.addEventListener('input', () => { if (onPage()) tabs.edit('title', titleIn.value); else store(K.title, titleIn.value); if (tabs) tabs.relabel(); });
   titleIn.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); subIn.hidden = false; subIn.focus(); subIn.select(); }
+    if (onPage() && e.key === 'Enter') { e.preventDefault(); ta.focus(); }   // a page has no subtitle: Enter goes to its text
+    else if (e.key === 'Enter') { e.preventDefault(); subIn.hidden = false; subIn.focus(); subIn.select(); }
+    if (tabs && APP_KEY(e)) tabs.flush();
     if (e.key === 'ArrowDown' && !subIn.hidden) { e.preventDefault(); subIn.focus(); }
     if (!APP_KEY(e)) e.stopPropagation();
   });
@@ -126,9 +157,10 @@ export function createNotebook(options = {}) {
   const setMode = (m) => { nb.dataset.mode = m; if (m === 'view') render(); else ta.focus(); };
   nb.dataset.mode = 'edit';
   modeBtn.addEventListener('click', () => setMode(nb.dataset.mode === 'view' ? 'edit' : 'view'));
-  ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); setMode('view'); } if (!APP_KEY(e)) e.stopPropagation(); });
-  const count = () => { countEl.textContent = ta.value.trim() ? ta.value.trim().split(/\s+/).length + ' words · kept in this browser' : 'empty · kept in this browser'; };
-  ta.addEventListener('input', () => { store(K.text, ta.value); count(); });
+  ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); setMode('view'); } if (tabs && APP_KEY(e)) tabs.flush(); if (!APP_KEY(e)) e.stopPropagation(); });
+  const where = () => (onPage() ? ' · in the project' : ' · kept in this browser');
+  const count = () => { countEl.textContent = ta.value.trim() ? ta.value.trim().split(/\s+/).length + ' words' + where() : 'empty' + where(); };
+  ta.addEventListener('input', () => { if (onPage()) tabs.edit('md', ta.value); else store(K.text, ta.value); count(); });
   copyBtn.addEventListener('click', async () => { try { await navigator.clipboard.writeText(ta.value); } catch (_) {} });
 
   /* ── size and place ── */
@@ -157,7 +189,7 @@ export function createNotebook(options = {}) {
       if (!moved) { nb.style.left = 'calc(50% - ' + Math.round(w / 2) + 'px)'; nb.style.top = '12%'; }
     }
     const f = extra.find((x) => x.id === face); if (f && f.show) f.show(faces[face], api);
-    if (face === 'notes') ta.focus();
+    if (face === 'notes') { if (tabs) tabs.reveal(); ta.focus(); }
   };
   if (aboutBtn) aboutBtn.addEventListener('click', () => show(nb.dataset.face === 'about' ? 'notes' : 'about'));
   for (const f of extra) f.btn.addEventListener('click', () => show(nb.dataset.face === f.id ? 'notes' : f.id));
@@ -186,6 +218,267 @@ export function createNotebook(options = {}) {
   for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) head.addEventListener(type, nend);
   count();
 
+  /* ── THE TABS: yours, then the open project's pages (only when the app hands over `pages`) ── */
+  function mountTabs(P) {
+    const shelf = (extra.find((f) => f.store) || {}).store || null;
+    const T = { sel: 'yours' };
+    let yours = null;                     // yours' fields, held while a page is selected
+    let pend = null, ptimer = 0;          // { id, patch }: a page edit not yet written to the model
+    const PH = { yours: ta.placeholder, page: 'this page — markdown, $inline$ and $$display$$ maths — saved in the project' };
+    notes.id = 'nb-tabpanel'; notes.setAttribute('role', 'tabpanel');
+    const strip = el('div', 'nb-tabs'); notes.insertBefore(strip, notes.firstChild);
+    const list = el('div', 'nb-tablist', strip); list.setAttribute('role', 'tablist'); list.setAttribute('aria-label', 'pages');
+    const addBtn = el('button', 'nb-tab-add', strip, '+'); addBtn.type = 'button'; addBtn.setAttribute('aria-label', 'add a page'); addBtn.title = 'add a page to the project';
+
+    const EYE_OPEN = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.8" fill="currentColor"/></svg>';
+    const EYE_SHUT = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M4.5 19.5l15-15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>';
+    const mkTab = (key) => {
+      const w = el('div', 'nb-tab'); w.setAttribute('role', 'presentation'); w.dataset.tab = key;
+      const b = el('button', 'nb-tab-b', w); b.type = 'button'; b.setAttribute('role', 'tab'); b.tabIndex = -1; b.setAttribute('aria-controls', notes.id);
+      const mark = el('span', 'nb-tab-mark', b, '0'); mark.hidden = true; mark.title = 'page 0 — the greeting, shown when the project opens';
+      const name = el('span', 'nb-tab-name', b);
+      const t = { key, w, b, mark, name };
+      b.addEventListener('click', (e) => { select(key); b.focus(); if (e.detail === 2) rename(t); });
+      return t;
+    };
+    const mine = mkTab('yours'); mine.w.classList.add('nb-tab-mine'); mine.b.title = 'yours — the note open from your shelf, kept in this browser';
+    list.appendChild(mine.w);
+    const div = el('span', 'nb-tab-div', list); div.setAttribute('role', 'none'); div.setAttribute('aria-hidden', 'true');
+    const tabFor = new Map();
+    const pageTab = (id) => {
+      const t = mkTab(id);
+      t.eye = el('button', 'nb-tab-eye', t.w); t.eye.type = 'button'; t.eye.tabIndex = -1;
+      t.eye.addEventListener('click', () => { const p = P.get(id); if (p) P.update(id, { shared: !p.shared }); });
+      t.x = el('button', 'nb-tab-x', t.w, '×'); t.x.type = 'button'; t.x.tabIndex = -1; t.x.setAttribute('aria-label', 'delete this page'); t.x.title = 'delete this page';
+      t.x.addEventListener('click', () => ask(t));
+      t.drag = drag(t.b, { onStart: () => carryStart(t), onMove: (s) => carryMove(t, s), onEnd: (s) => carryEnd(t, s), onCancel: () => carryEnd(t, null) });
+      return t;
+    };
+    const tabs = () => [mine, ...P.list().map((r) => tabFor.get(r.id)).filter(Boolean)];
+    const nodes = () => tabs().map((t) => t.w);
+
+    /* the strip, made true from the model: kept nodes (so flip can move them), created and removed by id */
+    function paint() {
+      const rows = P.list(), ids = new Set(rows.map((r) => r.id));
+      for (const [id, t] of tabFor) if (!ids.has(id)) { t.drag.destroy(); t.w.remove(); tabFor.delete(id); }
+      let prev = div;
+      rows.forEach((r, i) => {
+        let t = tabFor.get(r.id); if (!t) { t = pageTab(r.id); tabFor.set(r.id, t); }
+        if (prev.nextSibling !== t.w) list.insertBefore(t.w, prev.nextSibling);
+        prev = t.w;
+        setText(t.name, (r.id === T.sel ? titleIn.value : r.title) || 'Untitled');
+        t.mark.hidden = i !== 0; setAttr(t.w, 'data-greeting', i === 0 ? '' : null);
+        if (setAttr(t.eye, 'aria-pressed', String(r.shared))) {
+          t.eye.innerHTML = r.shared ? EYE_OPEN : EYE_SHUT;
+          t.eye.setAttribute('aria-label', r.shared ? 'shared with a visiting model — hide it' : 'hidden from a visiting model — share it');
+          t.eye.title = r.shared ? 'shared: a visiting model may read this page' : 'hidden: a visiting model cannot read this page';
+        }
+      });
+      setText(mine.name, (T.sel === 'yours' ? titleIn.value : yours.title) || 'NOTEBOOK');
+      setAttr(div, 'data-empty', rows.length ? null : '');
+      paintSel(); paintFoot();
+    }
+    function paintSel() {
+      let on = null;
+      for (const t of tabs()) { const s = t.key === T.sel; setAttr(t.b, 'aria-selected', String(s)); t.b.tabIndex = s ? 0 : -1; setAttr(t.w, 'data-sel', s ? '' : null); if (s) on = t.w; }
+      setAttr(nb, 'data-tab', T.sel === 'yours' ? 'yours' : 'page');
+      if (on) inView(on);
+    }
+    function inView(w) {                                           // a tab kept in view, inside the strip
+      const l = w.offsetLeft, r = l + w.offsetWidth;
+      if (l < list.scrollLeft) list.scrollLeft = Math.max(0, l - 6);
+      else if (r > list.scrollLeft + list.clientWidth) list.scrollLeft = r - list.clientWidth + 6;
+    }
+    const relabel = () => { const t = T.sel === 'yours' ? mine : tabFor.get(T.sel); if (t) setText(t.name, titleIn.value || (t === mine ? 'NOTEBOOK' : 'Untitled')); };
+
+    /* edits: debounced into the model, flushed whenever they must be there */
+    function flushPage() { if (ptimer) { clearTimeout(ptimer); ptimer = 0; } if (pend) { const p = pend; pend = null; P.update(p.id, p.patch); } }
+    function edit(field, v) {
+      if (pend && pend.id !== T.sel) flushPage();
+      if (!pend) pend = { id: T.sel, patch: {} };
+      pend.patch[field] = v;
+      if (!ptimer) ptimer = setTimeout(flushPage, 300);
+    }
+    function fill() {
+      if (T.sel === 'yours') {
+        titleIn.value = yours.title; ta.value = yours.text; subIn.value = yours.sub; subIn.hidden = !yours.subShown; yours = null; ta.placeholder = PH.yours;
+      } else {
+        const p = P.get(T.sel); titleIn.value = p.title; ta.value = p.md; subIn.hidden = true; ta.placeholder = PH.page;
+      }
+      count(); if (nb.dataset.mode === 'view') render();
+    }
+    /** select(key): 'yours' or a page id.  A page that is gone selects yours. */
+    function select(key) {
+      if (key !== 'yours' && !P.get(key)) key = 'yours';
+      if (key === T.sel && key === 'yours') { paintSel(); return; }
+      if (key !== T.sel) { flushPage(); if (T.sel === 'yours') yours = { title: titleIn.value, text: ta.value, sub: subIn.value, subShown: !subIn.hidden }; }
+      T.sel = key; fill(); paint();
+    }
+    const yoursPage = () => (T.sel === 'yours' ? { title: titleIn.value, md: ta.value } : { title: yours.title, md: yours.text });
+    function openNote(page) {
+      select('yours');
+      titleIn.value = String(page.title ?? ''); ta.value = String(page.md ?? ''); subIn.value = ''; subIn.hidden = true;
+      store(K.title, titleIn.value); store(K.text, ta.value); try { localStorage.removeItem(K.subtitle); } catch (_) {}
+      count(); relabel(); show('notes'); if (nb.dataset.mode === 'view') render();
+    }
+
+    /* rename in place */
+    function rename(t) {
+      if (t.w.dataset.renaming !== undefined) return;
+      const cur = t.key === 'yours' ? yoursPage().title : (t.key === T.sel ? titleIn.value : P.get(t.key).title);
+      t.w.dataset.renaming = '';
+      const inp = el('input', 'nb-tab-in'); inp.value = cur; inp.spellcheck = false; inp.setAttribute('aria-label', 'rename this tab');
+      t.w.insertBefore(inp, t.b.nextSibling); inView(t.w); inp.focus(); inp.select();
+      let done = false;
+      const end = (keep) => {
+        if (done) return; done = true;
+        const v = inp.value; inp.remove(); delete t.w.dataset.renaming;
+        if (keep && v !== cur) {
+          if (t.key === T.sel) { titleIn.value = v; titleIn.dispatchEvent(new Event('input')); flushPage(); }
+          else if (t.key === 'yours') { yours.title = v; store(K.title, v); paint(); }
+          else P.update(t.key, { title: v });
+        }
+        t.b.focus();
+      };
+      inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); end(true); } else if (e.key === 'Escape') { e.preventDefault(); end(false); } if (!APP_KEY(e)) e.stopPropagation(); });
+      inp.addEventListener('blur', () => end(true));
+    }
+    /* delete, after an inline "delete? yes / no" on the tab itself */
+    function ask(t) {
+      if (t.w.dataset.asking !== undefined) return;
+      t.w.dataset.asking = '';
+      const q = el('span', 'nb-tab-ask', t.w); el('span', 'nb-tab-q', q, 'delete?');
+      const yes = el('button', 'nb-tab-yes', q, 'yes'); yes.type = 'button';
+      const no = el('button', 'nb-tab-no', q, 'no'); no.type = 'button';
+      let shut = false;
+      const close = () => { if (shut) return; shut = true; delete t.w.dataset.asking; q.remove(); };   // removing the focused button fires focusout: once only
+      yes.addEventListener('click', () => { close(); removePage(t.key); });
+      no.addEventListener('click', () => { close(); t.b.focus(); });
+      q.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); close(); t.b.focus(); } if (!APP_KEY(e)) e.stopPropagation(); });
+      q.addEventListener('focusout', (e) => { if (!q.contains(e.relatedTarget)) close(); });
+      inView(t.w); no.focus();
+    }
+    function removePage(id) {
+      const rows = P.list(), i = rows.findIndex((r) => r.id === id); if (i < 0) return;
+      if (T.sel === id) { if (pend && pend.id === id) { clearTimeout(ptimer); ptimer = 0; pend = null; } const n = rows[i + 1] || rows[i - 1]; select(n ? n.id : 'yours'); }
+      flip(nodes, () => P.remove(id));
+      const t = tabFor.get(T.sel) || mine; t.b.focus();
+    }
+    function addPage(page, at) { flushPage(); const p = P.add(page, at); select(p.id); return p; }
+    function move(id, to) { flushPage(); return flip(nodes, () => P.move(id, to)); }
+
+    /* reorder by drag: the carried tab rides the pointer one height up; the drop slots are proximity targets */
+    const prox = createProximity({ layer: document.body, reach: 64, capture: 28 });
+    let carry = null;
+    function carryStart(t) {
+      flushPage();
+      const ws = P.list().map((r) => tabFor.get(r.id).w), from = ws.indexOf(t.w);
+      const R = ws.map((w) => w.getBoundingClientRect()), gap = R.length > 1 ? Math.max(0, R[1].left - R[0].right) : 4;
+      const slots = [];
+      for (let i = 0; i <= R.length; i++) {
+        if (i === from || i === from + 1) continue;               // the places it already is
+        const x = i < R.length ? R[i].left - gap / 2 : R[R.length - 1].right + gap / 2, r = R[Math.min(i, R.length - 1)];
+        const rect = { left: x - 1, top: r.top + 3, width: 2, height: r.height - 6 };
+        slots.push({ id: 's' + i, i, rect, hit: rect, shape: 'slot' });
+      }
+      carry = { t, from, slots };
+      t.w.dataset.carried = '';
+    }
+    function carryMove(t, s) { if (!carry) return; setVar(t.w, 'translate', s.dx + 'px 0px'); prox.update({ x: s.x, y: s.y }, carry.slots); }
+    function carryEnd(t, s) {
+      if (!carry) return;
+      const c = carry; carry = null;
+      const m = s ? prox.end() : (prox.cancel(), null), hit = m && m.captured;
+      const to = hit ? (hit.i > c.from ? hit.i - 1 : hit.i) : c.from;
+      flip(nodes, () => { setVar(t.w, 'translate', null); delete t.w.dataset.carried; if (to !== c.from) P.move(t.key, to); });
+    }
+
+    /* the strip's keys: a real tablist */
+    list.addEventListener('keydown', (e) => {
+      const b = e.target.closest && e.target.closest('.nb-tab-b'); if (!b) return;
+      const all = tabs(), i = all.findIndex((t) => t.b === b), t = all[i], mod = e.ctrlKey || e.metaKey;
+      const go = (j) => { const n = all[Math.max(0, Math.min(all.length - 1, j))]; select(n.key); n.b.focus(); };
+      if (mod && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) { if (t.key !== 'yours') move(t.key, P.index(t.key) + (e.key === 'ArrowLeft' ? -1 : 1)); t.b.focus(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') go(i + (e.key === 'ArrowLeft' ? -1 : 1));
+      else if (e.key === 'Home' || e.key === 'End') go(e.key === 'Home' ? 0 : all.length - 1);
+      else if (e.key === 'F2') rename(t);
+      else if ((e.key === 'Delete' || e.key === 'Backspace') && t.key !== 'yours') ask(t);
+      else return;
+      e.preventDefault(); e.stopPropagation();
+    });
+    list.addEventListener('wheel', (e) => {                        // a mouse wheel scrolls the strip sideways
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX) || list.scrollWidth <= list.clientWidth) return;
+      e.preventDefault(); list.scrollLeft += e.deltaY;
+    }, { passive: false, signal: life.signal });
+    addBtn.addEventListener('click', () => { addPage({ title: 'Untitled', md: '' }); titleIn.focus(); titleIn.select(); });
+
+    /* the foot: SHOW ON OPEN · .MD · IMPORT .MD · COPY TO SHELF | COPY TO PROJECT */
+    const acts = el('span', 'nb-pageacts'); foot.insertBefore(acts, copyBtn);
+    const fbtn = (cls, text, title) => { const b = el('button', cls, acts, text); b.type = 'button'; b.title = title; return b; };
+    const greetBtn = fbtn('nb-pg-greet', 'SHOW ON OPEN', 'show this greeting when the project opens');
+    const mdBtn = fbtn('nb-pg-md', '.MD', 'save this tab as a markdown file');
+    const impBtn = fbtn('nb-pg-import', 'IMPORT .MD', 'add markdown files as pages of the project');
+    const copyTo = fbtn('nb-pg-copy', 'COPY TO SHELF', '');
+    function paintFoot() {
+      const g = P.greeting(), onGreet = !!g && g.id === T.sel;
+      greetBtn.hidden = !onGreet; setAttr(greetBtn, 'aria-pressed', String(P.showOnOpen));
+      const toShelf = T.sel !== 'yours';
+      setText(copyTo, toShelf ? 'COPY TO SHELF' : 'COPY TO PROJECT');
+      copyTo.title = toShelf ? 'copy this page onto your shelf (a copy: the two never change each other)' : 'copy your note into the project as a new page (a copy)';
+      copyTo.hidden = toShelf && !shelf;
+    }
+    const say = (s) => setText(countEl, s);
+    greetBtn.addEventListener('click', () => { P.showOnOpen = !P.showOnOpen; });
+    mdBtn.addEventListener('click', () => {
+      flushPage(); const f = pageFile(T.sel === 'yours' ? yoursPage() : P.copyOut(T.sel));
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([f.text], { type: 'text/markdown' })); a.download = f.name; a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000); say('saved ' + f.name);
+    });
+    const MD = /\.(md|markdown|txt)$/i;
+    async function addFiles(files) {
+      const md = [...files].filter((f) => MD.test(f.name) || /^text\/(markdown|plain)$/.test(f.type));
+      let last = null;
+      for (const f of md) last = addPage(pageFromFile(f.name, await f.text()));
+      if (last) say(md.length === 1 ? 'added the page ' + last.title : 'added ' + md.length + ' pages');
+      return md.length;
+    }
+    impBtn.addEventListener('click', () => {
+      const f = document.createElement('input'); f.type = 'file'; f.multiple = true; f.accept = '.md,.markdown,.txt,text/markdown,text/plain';
+      f.addEventListener('change', () => { if (f.files) addFiles(f.files); }); f.click();
+    });
+    copyTo.addEventListener('click', () => {
+      if (T.sel === 'yours') { const y = yoursPage(); addPage({ title: y.title, md: y.md }); say('copied into the project'); return; }
+      flushPage(); const page = P.copyOut(T.sel); if (!shelf || !page) return;
+      const path = shelf.save(shelf.freePath(page.title || 'Untitled'), page);
+      say(path ? 'copied to the shelf as ' + path : shelf.error);
+    });
+    /* a .md dropped anywhere on the notebook becomes a page */
+    const isFiles = (e) => !!e.dataTransfer && [...e.dataTransfer.types].includes('Files');
+    nb.addEventListener('dragover', (e) => { if (!isFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; setAttr(nb, 'data-drop', ''); }, on);
+    nb.addEventListener('dragleave', (e) => { if (!nb.contains(e.relatedTarget)) setAttr(nb, 'data-drop', null); }, on);
+    nb.addEventListener('drop', (e) => { setAttr(nb, 'data-drop', null); if (!isFiles(e)) return; e.preventDefault(); addFiles(e.dataTransfer.files); }, on);
+
+    for (const f of [ta, titleIn]) f.addEventListener('focusout', flushPage, on);
+    window.addEventListener('pagehide', flushPage, on);
+    const off = P.subscribe((what, id) => {
+      if (what === 'restore') {                                     // another project: its tabs, never yours
+        if (ptimer) clearTimeout(ptimer); ptimer = 0; pend = null;
+        if (T.sel !== 'yours') { T.sel = 'yours'; fill(); const g = P.greeting(); if (g) { select(g.id); return; } }   // a page was open: the new greeting, else yours
+      } else if (what === 'update' && id === T.sel && !(pend && pend.id === id)) {
+        const p = P.get(id); if (titleIn.value !== p.title) titleIn.value = p.title;
+        if (ta.value !== p.md) { ta.value = p.md; count(); if (nb.dataset.mode === 'view') render(); }
+      } else if (what === 'remove' && id === T.sel) { T.sel = 'yours'; fill(); }
+      paint();
+    });
+    paint();
+    return {
+      get sel() { return T.sel; }, edit, relabel, flush: flushPage, select, openNote, addFiles, shelf,
+      reveal: () => paintSel(),                                    // the face was hidden, so the strip could not be measured
+      get yours() { return yoursPage(); },
+      destroy() { flushPage(); off(); prox.destroy(); for (const t of tabFor.values()) t.drag.destroy(); },
+    };
+  }
+
   const api = {
     root: nb,
     open: (face = 'notes') => show(face), close: () => { nb.hidden = true; }, toggle: () => { if (nb.hidden) show('notes'); else nb.hidden = true; },
@@ -194,12 +487,26 @@ export function createNotebook(options = {}) {
     resize(w, h) { const r = resize(w, h); saveSize(); return r; },
     size() { const w = Math.round(parseFloat(nb.style.width) || NOTES_DEF_W), h = Math.round(parseFloat(nb.style.height) || NOTES_DEF_H); return { w, h, custom: w !== NOTES_DEF_W || h !== NOTES_DEF_H }; },
     dump: dumpText,
-    destroy() { flush(); life.abort(); if (raf) cancelAnimationFrame(raf); nb.remove(); },
+    destroy() { if (tabs) tabs.destroy(); flush(); life.abort(); if (raf) cancelAnimationFrame(raf); nb.remove(); },
     get text() { return ta.value; }, set text(v) { ta.value = v; ta.dispatchEvent(new Event('input')); },
     get title() { return titleIn.value; }, set title(v) { titleIn.value = v; titleIn.dispatchEvent(new Event('input')); },
     get subtitle() { return subIn.value; }, set subtitle(v) { subIn.value = v; subIn.hidden = !v; subIn.dispatchEvent(new Event('input')); },
     get mode() { return nb.dataset.mode; }, setMode, render: o.render, get html() { return view.innerHTML; },
+    /* the tabs (null / 'yours' / no-ops without `pages`) */
+    pages: o.pages || null,
+    get shelf() { return tabs ? tabs.shelf : ((extra.find((f) => f.store) || {}).store || null); },
+    get selected() { return tabs ? tabs.sel : 'yours'; },
+    select: (key) => { if (tabs) tabs.select(key); },
+    get yours() { return tabs ? tabs.yours : { title: titleIn.value, md: ta.value }; },
+    /** openNote({ title, md }): a shelf note into the YOURS tab, which is selected and shown */
+    openNote(page) {
+      if (tabs) return tabs.openNote(page);
+      titleIn.value = String(page.title ?? ''); ta.value = String(page.md ?? ''); store(K.title, titleIn.value); store(K.text, ta.value); count(); show('notes');
+    },
+    addFiles: (files) => (tabs ? tabs.addFiles(files) : Promise.resolve(0)),
+    flush() { if (tabs) tabs.flush(); flush(); },
   };
+  if (o.pages) tabs = mountTabs(o.pages);
   for (const f of extra) if (f.build) f.build(faces[f.id], api);
   return api;
 }
