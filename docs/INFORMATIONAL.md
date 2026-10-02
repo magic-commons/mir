@@ -100,6 +100,7 @@ A control usually sits outside the stage, in a window or the rack, and those pai
 | Law | As built |
 |---|---|
 | **The line grammar** | From the edge of the thing (centre + r) to the label's attach point. If \|dx\| ≥ \|dy\|: a 45° run of \|dy\|, then flat. Otherwise: a 45° run of \|dx\|, then vertical. **Diagonal first:** the flat part runs on to underline the title. **Flat first:** the 45° run arrives at the title's near corner. **Comb:** one 45° run, a vertical spine, one flat branch per label. This is legal at every frame, including mid-flight and under the hand |
+| **A line never crosses words** | A leader never runs through a block of words: not its own label's title or body, not another label's, not a block's. A line that arrives vertically keeps 16 px from the words it passes (6 px of pad plus 10 px of clearance, eased in as the arrival turns vertical, so the line never jumps mid-flight). It crosses the subject only when no seat avoids it, and then by the shortest way out. The line ends beside the title on the side facing the anchor, and the text grows away from it. The chooser enforces this; it is proven on every gallery page in both themes, bare and on a pane |
 | **Two lines, two jobs** | **diagonal-first** names a feature the app knows (a titled label on a feature id). **flat-first** is a note: at a place, on a control, or with no title. The callout's line word, `addLabel({ line })`, or `setStyle` (for all) overrides it. Each label carries `data-line` |
 | **The seat chooser** | Under the force, a small chooser picks which side of its anchor a label (or a comb) rests on. See "The seat chooser" below |
 | **Gone** | An anchor that resolves to null, or a feature or place outside the stage, hides its labels and line (`data-gone`). Hidden labels take no part in the force. When the anchor returns, they land on their seats rather than flying in. A control is never "off the stage" (it usually is), only gone when it is |
@@ -123,13 +124,15 @@ A control usually sits outside the stage, in a window or the rack, and those pai
 
 Plan §2.6 said: "if labels end up overlapping in practice, a simple chooser of resting places is added underneath. One system before two." They did (a label pushed between a comb's members crossed its spine), so `info/seats.js` is that chooser. The force still moves the bodies; the chooser only decides where home is.
 
+- **Judged where it will sit.** Each seat's labels are first pushed inside the walls, exactly as their rests will be. A seat whose label a wall would push back across its own anchor is a seat whose line runs through its own words, and the score sees it.
 - **The seats.** An anchor outside the subject gets the four quadrants beside it (`h`: a 45° run, then flat). An anchor inside the subject's box gets those four plus four straight above or below it (`v`: a 45° run, then vertical), so it can leave by the nearest free edge. A control gets only the four above or below.
 - **The order.** Labels the hand placed are seated first (they do not move). The rest follow by how deep their anchor lies inside the subject's box, in 40 px steps so the order never shuffles while the view moves. An anchor near an edge has one short way out; the one in the middle can leave by any edge, so it chooses last.
 - **The score** (lower is better). Each seat is scored against the blocks, the anchors, the subject's box, and the labels and lines already seated.
 
   | Term | Weight |
   |---|---|
-  | A crossing: its line through another line or label, or another line through its label | 100 000 each |
+  | A crossing: its line through another line, through any label's words (its own too) or a block (each grown by 3 px), or another line through its label | 100 000 each |
+  | Pushed back inside the walls (a seat that does not really exist) | 1000 × the px |
   | Overlap with a block, a label, an anchor or the subject (boxes grown by 6 px) | 3 × the area |
   | Outside the walls | 6 × the area |
   | Its line inside the subject | 90 × the length |
@@ -154,6 +157,7 @@ Plan §2.6 said: "if labels end up overlapping in practice, a simple chooser of 
 | Label offset | out = escape from the subject + 46 + r; rise = 34 + min(40, 0.2·escape). Above or below (`v`): 23 + r across, and out of the subject's edge + 34 (a control: r + 68, and the whole label clears it) | Comb members stack 14 px apart |
 | Block seat | 36 px from the subject, centred on it; a page's blocks stack 18 px apart | |
 | Seat hold | 1.4 s after a seat changes | |
+| Line clearance | 6 px (pad) beside a title; + 10 px when the line arrives vertically past the body | |
 | Entrance | dot 140 ms (spring) · line from 60 ms over 260 ms (ease-out) · text from 200 ms, 30 ms per line (spring, k 300 c 22, ~330 ms, as CSS `linear()`) · labels stagger 55 ms outward from the subject (max 5) | About 0.7 s for a screenful |
 | Exit | text 120 ms · line from 70 ms over 120 ms · dot 90 ms, ease-in, 25 ms stagger | About 0.3 s |
 | Gone | opacity out over `--motion-ui`, then hidden | |
@@ -181,6 +185,7 @@ Plan §2.6 said: "if labels end up overlapping in practice, a simple chooser of 
 ## Proofs
 
 - `tests/info-page.node.mjs` (12 checks): `parsePage` over labels with and without titles, the line word, the three anchor kinds, other callouts left alone, `---` splitting (and not inside a fence), maths untouched, CRLF, a BOM and front matter, a leading rule that is not front matter. The chooser: the geometry, the natural seat kept when free and left when a comb is in the way, stickiness, an anchor inside the subject leaving by the shorter way.
+- `tests/info-words.browser.mjs` on `gallery/info.html?still` (13 checks): checks every page, bare and on a pane, in both themes, once at rest. No leader segment, on the stage or the overlay, runs through any label's or block's words (real rects, real paths through `getScreenCTM`). A vertical run beside words keeps at least 10 px. Run against the previous build it fails on the two cases it was written for: "Next page" (28 px through its own sentence) and "The centre" (7 px from its own body). `?still` stops the picture's clock and the drift so the bodies rest.
 - `tests/info-leader.node.mjs`: 8,000 random leaders in both styles and 3,000 combs. Every segment is 0°, 45° or 90°, each path is connected, starts on the edge and ends at the label.
 - `tests/info-bodies.node.mjs` (17 checks): rest is exact; overlapping bodies separate; the rest pass leaves no overlap; the energy cut-off; the cap and its reset; the pointer parts but a reach does not; a held body does not yield; reduced motion; walls.
 - `tests/info.browser.mjs` on `tests/fixtures/info.html` (21 checks, real pointer): the far side after the dwell and not before; the pin; reaching never moves the block; a dragged line is legal at 44 sampled frames and the neighbour yields; the drop is kept; following lags and lands exactly; reduced motion is a fade; Space holds; click-through; the idle law; lines by job.

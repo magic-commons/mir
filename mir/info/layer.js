@@ -54,7 +54,8 @@ export const INFO = Object.freeze({
   enter: { dot: 140, lineAt: 60, line: 260, textAt: 200, perLine: 30, maxLines: 6, stagger: 55, maxStagger: 5, block: 340, blockLine: 45 },
   exit: { text: 120, lineAt: 70, line: 120, dot: 90, stagger: 25 },
   fade: 120, travel: 96,
-  reseat: 1400,                                                     // ms a label's seat holds after it changed (the seat chooser)
+  reseat: 1400,
+  clear: 10,                                                        // px more between a line that arrives vertically and the words it passes                                                     // ms a label's seat holds after it changed (the seat chooser)
   block: { k: 34, zeta: 0.72 },
   /* PARALLAX against the cursor (px of travel at the stage's edge, per kind; eased over tau seconds) and DRIFT, a
      slow bob that never stops while it is on (Josh, 10-01: "everything moving and floaty") */
@@ -237,7 +238,8 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
     else if (free && seats.length > 1) {
       const cands = seats.map((seat, i) => {
         const at = layoutSeat(g, A, ls, seat);
-        return { boxes: ls.map((l, k) => ({ x: at[k].rx, y: at[k].ry, w: l.w, h: l.h })), segs: segsOf(g, A, ls, at), natural: i === 0, current: seat.join() === g.seat };
+        return { boxes: ls.map((l, k) => ({ x: at[k].rx, y: at[k].ry, w: l.w, h: l.h })), segs: segsOf(g, A, ls, at), natural: i === 0, current: seat.join() === g.seat, shove: at.shove || 0,
+          words: ls.flatMap((l, k) => wordsOf(l, at[k].rx, at[k].ry, at[k].rx + l.w / 2 >= A.x ? 1 : -1)) };
       });
       pick = chooseSeat(cands, obs, { bounds: { left: INFO.margin, top: INFO.margin, right: W - INFO.margin, bottom: H - INFO.margin }, subject: S.has ? { x: S.left, y: S.top, w: S.w, h: S.h } : null });
     }
@@ -264,13 +266,37 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
       if (prev) Ly = sy < 0 ? Ly - prev.titleH - (l.h - l.titleH) - INFO.comb : Ly + (prev.h - prev.titleH) + l.titleH + INFO.comb;
       out.push(seatOf(l, Lx, Ly, sx)); prev = l;
     }
+    /* inside the walls, as the rest will be: a seat is judged where its label will really sit (a label pushed back
+       across its own anchor by a wall is a seat whose line runs through its own words) */
+    for (const [k, l] of ls.entries()) {
+      if (l.body.held) continue;
+      const x = Math.max(INFO.margin, Math.min(out[k].rx, W - INFO.margin - l.w)), y = Math.max(INFO.margin, Math.min(out[k].ry, H - INFO.margin - l.h));
+      out.shove = (out.shove || 0) + Math.abs(x - out[k].rx) + Math.abs(y - out[k].ry);
+      out[k].rx = x; out[k].ry = y;
+    }
     return out;
   }
   const seatOf = (l, Lx, Ly, side) => ({ rx: side > 0 ? Lx + INFO.pad : Lx - INFO.pad - l.w, ry: Ly - l.titleH });
+  /** where a label's line ends: beside its title on the side facing the anchor (the text grows away from the line).
+   *  A line that arrives vertically runs past the label's body, so it keeps INFO.clear more room, eased in so the
+   *  line never jumps mid-flight. */
+  function edgeOf(A, rx, ry, l, side) {
+    const x0 = side > 0 ? rx : rx + l.w, y = ry + l.titleH;
+    const t = Math.max(0, Math.min(1, (Math.abs(y - A.y) - Math.abs(x0 - A.x)) / 20));
+    const gap = INFO.pad + INFO.clear * t;
+    return { x: x0 - side * gap, y, side, gap };
+  }
+  /** the rects of a label's words, for the law "a line never crosses words": the title (to just above the shelf that
+   *  underlines it) and the body below it */
+  function wordsOf(l, rx, ry, side) {
+    const out = [{ x: side > 0 ? rx : rx + l.w - l.titleW, y: ry, w: l.titleW, h: Math.max(0, l.titleH - 2) }];
+    if (l.h - l.titleH > 4) out.push({ x: rx, y: ry + l.titleH + 2, w: l.w, h: l.h - l.titleH - 2 });
+    return out;
+  }
   /** the line a seat would draw (the same grammar paint() draws) */
   function segsOf(g, A, ls, at) {
-    const pts = ls.map((l, k) => { const cx = at[k].rx + l.w / 2, side = cx >= A.x ? 1 : -1; return { x: side > 0 ? at[k].rx - INFO.pad : at[k].rx + l.w + INFO.pad, y: at[k].ry + l.titleH, side }; });
-    const styles = ls.map((l) => lineOf(l, g)), under = ls.map((l, i) => (styles[i] === 'flat-first' ? 0 : INFO.pad + l.titleW));
+    const pts = ls.map((l, k) => edgeOf(A, at[k].rx, at[k].ry, l, at[k].rx + l.w / 2 >= A.x ? 1 : -1));
+    const styles = ls.map((l) => lineOf(l, g)), under = ls.map((l, i) => (styles[i] === 'flat-first' ? 0 : pts[i].gap + l.titleW));
     return ls.length === 1 ? leader(A, pts[0], { style: styles[0], under: under[0], side: pts[0].side }).segs : comb(A, pts, { under }).segs;
   }
   /* the blocks of a page (a `---` separates them) stand in one column per seat, in reading order */
@@ -305,8 +331,7 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
   function attach(l, A) {
     const b = l.body, cx = b.x + l.w / 2;
     if (!l.side || Math.abs(cx - A.x) > 0.15 * l.w) l.side = cx >= A.x ? 1 : -1;
-    const x = l.side > 0 ? b.x - INFO.pad : b.x + l.w + INFO.pad;
-    return { x, y: b.y + l.titleH, side: l.side };
+    return edgeOf(A, b.x, b.y, l, l.side);
   }
 
   /* ── painting: transforms, attributes, one path per anchor ─────────────────────────────────────────────── */
@@ -328,7 +353,7 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
       if (!show) continue;
       const styles = ls.map((l) => lineOf(l, g));
       for (const [i, l] of ls.entries()) setAttr(l.el, 'data-line', styles[i]);
-      const under = ls.map((l, i) => (styles[i] === 'flat-first' ? 0 : INFO.pad + l.titleW));
+      const under = ls.map((l, i) => (styles[i] === 'flat-first' ? 0 : pts[i].gap + l.titleW));
       let segs, start;
       if (ls.length === 1) ({ segs, start } = leader(g.A, pts[0], { style: styles[0], under: under[0], side: pts[0].side }));
       else ({ segs, start } = comb(g.A, pts, { under }));

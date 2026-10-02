@@ -136,7 +136,9 @@ const subjectRect = () => { const r = P.R * 1.24; return { left: P.cx - r, top: 
 
 /* ── THE LAYER ─────────────────────────────────────────────────────────────────────────────────────────────── */
 resize();
-const layer = createInfoLayer({ stage: canvas, host, subject: subjectRect, features: feats, drift: true });
+/* ?still: the picture holds still and nothing floats, so every body comes to rest (the proofs use it) */
+const STILL = new URLSearchParams(location.search).has('still');
+const layer = createInfoLayer({ stage: canvas, host, subject: subjectRect, features: feats, drift: !STILL });
 window.__INFO = layer;
 
 /* a PAGE's place anchors (@a+bi) are in the shape's own plane: units of R, turning with it, so a label at the waist
@@ -197,7 +199,7 @@ const strip = document.getElementById('strip');
 const prev = trig({ label: '‹', title: 'the previous page', onFire: () => turn(-1) }).root, next = trig({ label: '›', title: 'the next page', onFire: () => turn(1) }).root;
 prev.dataset.info = 'page-prev'; next.dataset.info = 'page-next';
 const pageName = document.createElement('div'); pageName.className = 'g-page'; pageName.setAttribute('aria-live', 'polite');
-const float = sw({ label: 'FLOAT', value: true, title: 'a slow drift, so nothing ever sits quite still', onChange: (v) => layer.setDrift(v) }).root;
+const float = sw({ label: 'FLOAT', value: !STILL, title: 'a slow drift, so nothing ever sits quite still', onChange: (v) => layer.setDrift(v) }).root;
 float.dataset.info = 'float';
 const paneSeg = seg({ label: 'WORDS', value: 'bare', options: [{ id: 'bare', label: 'BARE', title: 'ink on a soft darkness, no window' }, { id: 'pane', label: 'PANE', title: 'the same words on a glass pane' }], onChange: (v) => layer.setPane(v === 'pane') }).root;
 paneSeg.dataset.info = 'pane';
@@ -240,7 +242,7 @@ frame.drive(() => {});
 let t0 = performance.now(), last = t0, clock = 0;
 function loop(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  clock += dt * (motionPolicy() === 'full' ? 1 : 0.25);
+  clock += STILL ? 0 : dt * (motionPolicy() === 'full' ? 1 : 0.25);
   const k = 1 - Math.exp(-dt * 14);                                   // the hand's offset, eased
   view.ox += (view.tx - view.ox) * k; view.oy += (view.ty - view.oy) * k;
   P.R = Math.max(70, Math.min(W, H) * 0.165);

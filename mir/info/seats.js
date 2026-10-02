@@ -1,6 +1,8 @@
 /* info/seats.js — THE SEAT CHOOSER under the force: which side of its anchor a label (or a comb of them) rests on.
  *
- * THE LAW IT KEEPS: A LINE NEVER CROSSES ANOTHER LINE OR ANOTHER LABEL WHEN A FREE SEAT EXISTS.  Plan §2.6: "this is
+ * THE LAW IT KEEPS: A LINE NEVER CROSSES WORDS — its own label's, another label's, a block's (each grown by SEAT.pad)
+ * — NOR ANOTHER LINE, WHEN A FREE SEAT EXISTS.  It crosses the subject only when no seat avoids it, and then by the
+ * shortest way out (SEAT.inside per px, far below a crossing).  Plan §2.6: "this is
  * tried alone first … if labels end up overlapping in practice, a simple chooser of resting places is added
  * underneath.  One system before two."  They did (a label dropped or pushed between a comb's members crossed its
  * spine), so this is that chooser — and nothing more.  The layer offers a few seats per anchor (the four quadrants,
@@ -11,10 +13,12 @@
  * rest pass still keeps boxes apart; the chooser only decides where "home" is.  Pure: no DOM, node-tested.
  *
  *   THE SCORE (lower is better; px and px²)
- *     a crossing — one of its segments through another anchor's line or label, or another line through its label —
+ *     a crossing — one of its segments through another anchor's line, any label's words (its own too: cand.words)
+ *     or a block, or another line through its label —
  *                                      SEAT.cross each   (the law: effectively never, when there is a choice)
  *     its labels over a block, another label, or the anchor itself (boxes grown by SEAT.gap)  SEAT.over × the area
  *     outside the stage's walls                                                                 SEAT.wall × the area
+ *     pushed back inside the walls (cand.shove, px: the seat does not really exist)             SEAT.shove × the px
  *     its line inside the subject     SEAT.inside × the length (so an anchor inside the subject leaves by the nearest
  *                                     free side)
  *     not the natural seat            + SEAT.alt          the seat it has now   − SEAT.keep  (hysteresis: no flicker)
@@ -24,7 +28,7 @@
  *   chooseSeat(cands, obs, opts) → index     each cand may carry `natural` and `current`
  *   segCrossesSeg, segHitsBox, clipLength, overlapArea — the geometry, exported for the proofs */
 
-export const SEAT = Object.freeze({ cross: 1e5, gap: 6, over: 3, wall: 6, inside: 90, alt: 800, keep: 2500, trouble: 6000 });
+export const SEAT = Object.freeze({ cross: 1e5, gap: 6, pad: 3, over: 3, shove: 1000, wall: 6, inside: 90, alt: 800, keep: 2500, trouble: 6000 });
 
 const EPS = 1e-6;
 /** do two segments cross (touching at an end does not count) */
@@ -47,6 +51,7 @@ export function clipLength(s, b) {
 }
 /** does a segment pass through a box (more than a pixel of it) */
 export const segHitsBox = (s, b) => clipLength(s, b) > 1;
+const grow = (b, d) => ({ x: b.x - d, y: b.y - d, w: b.w + 2 * d, h: b.h + 2 * d });
 /** the area two boxes share once both are grown by `gap` */
 export function overlapArea(a, b, gap = 0) {
   const w = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x) + gap, h = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y) + gap;
@@ -65,10 +70,12 @@ export function troubleOf(cand, obs, { bounds = null, subject = null } = {}, P =
   for (const g of cand.segs) {
     if (subject) s += P.inside * clipLength(g, subject);
     for (const o of obs.segs) if (segCrossesSeg(g, o)) s += P.cross;
-    for (const b of obs.boxes) if (b.solid !== false && segHitsBox(g, b)) s += P.cross;
+    for (const b of obs.boxes) if (b.solid !== false && segHitsBox(g, grow(b, P.pad))) s += P.cross;
+    for (const w of cand.words || []) if (segHitsBox(g, w)) s += P.cross;      // through its own words
   }
+  s += P.shove * (cand.shove || 0);                                  // a seat the walls had to push its label back into
   for (const b of cand.boxes) {
-    for (const o of obs.segs) if (segHitsBox(o, b)) s += P.cross;
+    for (const o of obs.segs) if (segHitsBox(o, grow(b, P.pad))) s += P.cross;
     for (const o of obs.boxes) s += P.over * overlapArea(b, o, P.gap);
     s += P.wall * outside(b, bounds);
   }
