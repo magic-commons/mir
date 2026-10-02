@@ -4,8 +4,9 @@
  * THE LAWS IT DRAWS (docs/INTENT.md)
  *   · A DIALOG IS A PANE AT MENU HEIGHT AND NOTHING ELSE: no scrim, no dimming, no dark layer behind it (rule 7).
  *     It wears CARD STYLE's material through `.glass` (TINTED: the tint, never a blur; REFRACTIVE: the veil and blur).
- *   · A NOTICE floats at menu height in one corner and never takes the stage: the stack is `pointer-events: none`,
- *     only a notice itself takes a press.
+ *   · A NOTICE is BASINS' toast by default: one centred pill 84 px above the bottom (--toast-bottom), a new one replacing
+ *     it.  NEBULA's corner stack is the other seat (`seat: 'corner'`); its box is `pointer-events: none`, only a
+ *     notice itself takes a press.
  *   · THE LOADING MARK IS THE 3×3 DIAMOND (rule 6).  Its squares carry the palette and TRAVEL ROUND THE RING, so the
  *     colours turn through the mark — by `translate` and `opacity` only, which the compositor runs; nothing animates a
  *     fill or a colour.  Reduced motion keeps the breath and drops the travel; motion off stills it.
@@ -25,6 +26,19 @@
   --busy-low: .42;
   --busy-ring: calc(var(--busy-turn) * 2);
 }
+/* the toast: BASINS' pill (basins.css:6-11) — its own fill and ink, kept out of the glass passes as BASINS keeps it */
+.mir-toast {
+  --toast-fill: color-mix(in srgb, hsl(var(--glass-tint)) 82%, transparent);
+  --toast-ink: var(--fg);
+  --toast-edge: var(--glass-border-color);
+  --toast-shadow: var(--surface-shadow, var(--glass-shadow));
+  --toast-radius: var(--r-pill);
+  --toast-size: 11px;
+  --toast-weight: 500;
+  --toast-lh: 1.4;
+  --toast-tracking: .04em;
+}
+body[data-theme="light"] .mir-toast { --toast-fill: hsl(0 0% 100% / .86); --toast-ink: #071114; }
 /* ── end of the values ── */
 
 /* ── the dialog ─────────────────────────────────────────────────────────────────────────────────────────── */
@@ -53,7 +67,23 @@
 /* the caution sign: a triangle in accent A with the "!" knocked out of it (λWAVES' sign, without its picture) */
 .mir-caution { --caution-size: 72px; width: var(--caution-size); height: auto; display: block; color: var(--acc); }
 
-/* ── the notice ─────────────────────────────────────────────────────────────────────────────────────────── */
+/* ── the notice: the toast (the default, BASINS') ───────────────────────────────────────────────────────── */
+.mir-toast {
+  --toast-bottom: 84px;
+  --toast-w: 560px;
+  --toast-max: 90vw;
+  --toast-pad: 8px 14px;
+  --toast-z: calc(var(--z-banner) + 8);
+  position: fixed; inset-inline: 0; bottom: var(--toast-bottom); margin-inline: auto; z-index: var(--toast-z);
+  width: fit-content; max-width: min(var(--toast-w), var(--toast-max)); display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--toast-pad); border: 1px solid var(--toast-edge); border-radius: var(--toast-radius);
+  background: var(--toast-fill); box-shadow: var(--toast-shadow); color: var(--toast-ink);
+  font: var(--toast-weight) var(--toast-size) / var(--toast-lh) var(--font-ui); letter-spacing: var(--toast-tracking);
+}
+.mir-toast .mir-notice-text { overflow-wrap: anywhere; }
+.mir-toast .trig { flex: 0 0 auto; }
+
+/* ── the notice: the corner stack (seat: 'corner', NEBULA's) ────────────────────────────────────────────── */
 .mir-notices {
   --notice-w: 22em;
   --notice-inset: 16px;
@@ -63,21 +93,21 @@
   width: min(var(--notice-w), calc(100vw - 2 * var(--notice-inset))); display: flex; flex-direction: column; gap: var(--notice-gap);
   pointer-events: none;
 }
-.mir-notice {
+.mir-notices > .mir-notice {
   --notice-pad: 9px 8px 9px 12px;
   --notice-bar: 3px;
   --notice-x: 24px;
   pointer-events: auto; display: flex; align-items: center; gap: var(--sp-3); padding: var(--notice-pad);
   border-radius: var(--r-md); color: var(--fg); font: var(--fs-small) / var(--lh) var(--font-ui);
 }
-.mir-notice.glass { box-shadow: var(--surface-shadow-menu, var(--glass-shadow)); }
+.mir-notices > .mir-notice.glass { box-shadow: var(--surface-shadow-menu, var(--glass-shadow)); }
 .mir-notice-text { flex: 1 1 auto; overflow-wrap: anywhere; }
 /* the kind is a short bar at the start edge in its own ink; the words stay ink (a state said with material, not colour) */
-.mir-notice::before { content: ""; align-self: stretch; flex: 0 0 var(--notice-bar); border-radius: var(--r-pill); background: var(--glass-hairline); }
-.mir-notice[data-kind="ok"]::before { background: var(--ok); }
-.mir-notice[data-kind="warn"]::before { background: var(--warn); }
-.mir-notice[data-kind="error"]::before { background: var(--bad); }
-.mir-notice .trig { flex: 0 0 auto; }
+.mir-notices > .mir-notice::before { content: ""; align-self: stretch; flex: 0 0 var(--notice-bar); border-radius: var(--r-pill); background: var(--glass-hairline); }
+.mir-notices > .mir-notice[data-kind="ok"]::before { background: var(--ok); }
+.mir-notices > .mir-notice[data-kind="warn"]::before { background: var(--warn); }
+.mir-notices > .mir-notice[data-kind="error"]::before { background: var(--bad); }
+.mir-notices > .mir-notice .trig { flex: 0 0 auto; }
 .mir-notice-x { flex: 0 0 auto; min-width: var(--notice-x); min-height: var(--notice-x); border: 0; border-radius: var(--r-sm); background: transparent; color: var(--dim); }
 .mir-notice-x:hover { background: var(--state-hover, var(--glass-raise)); color: var(--fg); }
 .mir-notice-x:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }

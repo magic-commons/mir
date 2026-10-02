@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <title>MIR · shell parts</title>
-<!-- THE SMALL SHELL PARTS, LIVE, over a 2D picture: the dialog and the confirm (no scrim), three kinds of notice, the busy
+<!-- THE SMALL SHELL PARTS, LIVE, over a 2D picture: the dialog and the confirm (no scrim), the notice in its two seats (BASINS' toast, NEBULA's corner), the busy
      mark in its three seats, a boot card that walks its steps and one that fails, a strobe caught by the flash guard
      with its route named, a share link made and read back, and a settings panel built from eight rows of data.
      Docs: docs/SHELL-PARTS.md.   ?theme=light · ?lang=qps -->
@@ -81,9 +81,13 @@ btn(b1, 'DIALOG', async () => {
   out1.textContent = 'dialog → ' + JSON.stringify(r);
 });
 btn(b1, 'CONFIRM', async () => { const r = await confirmDialog('Delete this project? It cannot be undone.', { yes: 'DELETE', no: 'KEEP', danger: true }); out1.textContent = 'confirm → ' + r; });
-btn(b1, 'INFO', () => notice('The project was saved in this browser.'));
-btn(b1, 'OK', () => notice('Copied 3 windows to the clipboard.', { kind: 'ok', action: { label: 'UNDO', run: () => notice('Undone.') } }));
-btn(b1, 'ERROR', () => notice('The file could not be read: it is not a MIR file.', { kind: 'error' }));
+/* the notice in its two seats: the TOAST (the default, BASINS': one centred pill, a new one replaces it) and the
+   CORNER (seat: 'corner', NEBULA's: a stack with a × each) */
+btn(b1, 'TOAST', () => notice('Position copied.'));
+btn(b1, 'TOAST + UNDO', () => notice('Copied 3 windows to the clipboard.', { kind: 'ok', action: { label: 'UNDO', run: () => notice('Undone.') } }));
+btn(b1, 'CORNER', () => notice('The project was saved in this browser.', { seat: 'corner' }));
+btn(b1, 'CORNER OK', () => notice('Copied 3 windows to the clipboard.', { seat: 'corner', kind: 'ok', action: { label: 'UNDO', run: () => notice('Undone.', { seat: 'corner' }) } }));
+btn(b1, 'CORNER ERROR', () => notice('The file could not be read: it is not a MIR file.', { seat: 'corner', kind: 'error' }));
 
 /* ── BUSY: the card overlay, the pointer, the logo ── */
 const d2 = device({ id: 'busy', eyebrow: 'BUSY MARK', loadingMark: false }); left.appendChild(d2.root);

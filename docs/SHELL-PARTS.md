@@ -11,7 +11,7 @@ Try them all: `gallery/parts.html` (`?theme=light`, `?lang=qps`). Plates, dark a
 | Module | What it is | Taken from |
 |---|---|---|
 | `mir/shell/dialog.js` | a dialog and a confirm, with no scrim | NEBULA, SOLEIL, AUTOMATA, EARTH (hand-rolled `<dialog>`s), λWAVES' photosensitivity trap |
-| `mir/shell/notice.js` | the toast: stacked, polite, leaves by itself | NEBULA's `#notice` and `safe()` |
+| `mir/shell/notice.js` | the notice: BASINS' toast by default, NEBULA's corner stack as an option | BASINS' `#toast`; NEBULA's `#notice` and `safe()` |
 | `mir/shell/busy.js` | the loading mark: the 3×3 diamond in three seats | λWAVES (`#busyMark`, the card overlay, the logo turn) |
 | `mir/shell/boot.js` | the boot card and the boot failure in plain words | NEBULA's `#bootStatus`, EARTH's link-failure voice |
 | `mir/shell/flash-guard.js` | the flash limiter, the field judge, the photosensitivity notice | POLAR and EARTH (the route-naming guard), λWAVES (the notice) |
@@ -55,27 +55,34 @@ if (await confirmDialog('Delete this project? It cannot be undone.', { yes: 'DEL
 
 ## 2. Notice — `mir/shell/notice.js`
 
-A short message in the bottom corner (the end side) that leaves by itself.
+A short message that leaves by itself, in one of two seats.
+
+| Seat | Whose | What it is |
+|---|---|---|
+| **the toast** (the default) | **BASINS'** `#toast` (`app/overlay.js` `toast()`, `basins.css`) | one centred pill, 84 px above the bottom, at most 560 px wide (90 vw on a phone); a new message **replaces** the one showing; no ×; 3 s |
+| **the corner** (`seat: 'corner'`, or `stack: true`) | **NEBULA's** `#notice` (copied into SOLEIL, AUTOMATA, EARTH) | a stack in the bottom end corner, at most four (the oldest goes first), each with a ×; 5 s, 9 s for an error; the kind drawn as a bar in `--ok` / `--warn` / `--bad` |
 
 ```js
 import { notice, guarded } from './mir/shell/notice.js';
-notice('The project was saved in this browser.');
-notice('Copied 3 windows.', { kind: 'ok', action: { label: 'UNDO', run: undo } });
-notice('The file could not be read.', { kind: 'error' });      // 9 s; others 5 s; ms: 0 stays until closed
-guarded(() => engine.set(id, v));                               // a throw becomes an error notice (NEBULA's safe())
+notice('Position copied.');                                              // the toast, 3 s
+notice('Copied 3 windows.', { kind: 'ok', action: { label: 'UNDO', run: undo } });   // the action sits inside the one seat
+notice('Saved.', { offset: 120 });                                       // an app whose transport sits higher lifts the toast
+notice('The file could not be read.', { seat: 'corner', kind: 'error' }); // NEBULA's stack, for an app that has it
+guarded(() => engine.set(id, v));                                        // a throw becomes an error notice (NEBULA's safe())
 ```
 
 | Law | How |
 |---|---|
-| Nothing blocks the stage | the stack is `pointer-events: none`; only a notice takes a press |
-| Polite | the stack is `role=status`, `aria-live=polite` |
-| Leaves by itself; hover or focus holds it | the time left pauses while the pointer is on it or the focus is in it |
-| Stacked | newest nearest the corner, at most four (the oldest goes first) |
+| Nothing blocks the stage | only the message takes a press; the corner stack's box is `pointer-events: none` |
+| Polite | the seat is `role=status`, `aria-live=polite` |
+| Leaves by itself; hover or focus holds it | the time left pauses while the pointer is on it or the focus is in it; `ms: 0` stays until closed |
+| One at a time (the toast) | a new notice takes the same seat: the old one's text, timer and action go |
+| Above the transport | `--toast-bottom` is BASINS' 84 px, chosen with its bar in mind; the kit's bar (docs/TRANSPORT.md) is 46 px tall, 60 px up, so an app that keeps the bar clear passes `offset` (e.g. `offset: 112`) |
 | Reduced motion fades | through `core/motion.js presence` |
 
-The kind is a short bar at the start edge in `--ok`, `--warn` or `--bad`; the words stay ink. `notice()` returns `{ close(), root }`.
+`kind` (`info` · `ok` · `warn` · `error`) is on the element as `data-kind` in both seats; the toast does not draw it, as BASINS does not. Both seats carry the class `mir-notice`. `notice()` returns `{ close(), root }`. The toast's look is in the sheet's FROST values block: `--toast-fill`, `--toast-ink`, `--toast-edge`, `--toast-shadow`, `--toast-radius`, `--toast-size`, `--toast-weight`, `--toast-lh`, `--toast-tracking` (light: fill `hsl(0 0% 100% / .86)`, ink `#071114`, BASINS' own).
 
-**An app deletes:** `#notice`, `#noticeText`, `#noticeClose` and their CSS (NEBULA, SOLEIL, AUTOMATA, EARTH: the same lines in each), `showMessage()`, `safe()`, BASINS' `#toast`.
+**An app deletes:** BASINS' `#toast` and `toast()`; `#notice`, `#noticeText`, `#noticeClose` and their CSS (NEBULA, SOLEIL, AUTOMATA, EARTH: the same lines in each), `showMessage()`, `safe()`.
 
 ## 3. Busy mark — `mir/shell/busy.js`
 
@@ -240,4 +247,4 @@ Every look value is a token declared on the part's own root in `parts.css` (grou
 |---|---|
 | `tests/share-link.node.mjs` | the round trip; only what differs; typed by the defaults; cut short at every length, edited, or garbage → `null`, never a throw; versions; the length report |
 | `tests/flash-guard.node.mjs` | a 10 Hz square wave comes out at ≤ 3 flashes in every second and the trip names its route and its 10 Hz; a slow sine passes untouched; routes are judged apart; the field judge trips and lets go |
-| `tests/parts.browser.mjs` | real pointer and keys, hit-tested with `elementFromPoint`: the dialog traps and returns focus, resolves, is dismissed by Escape and by a press outside that never reaches the stage, and paints no scrim; a notice holds under the pointer and leaves; the busy mark animates only translate and opacity and writes nothing when stopped; the boot card fails into a readable message; a switch row changes its value; `sync()` during a fader drag leaves the fader alone; everything reads in the pseudo-language |
+| `tests/parts.browser.mjs` | real pointer and keys, hit-tested with `elementFromPoint`: the dialog traps and returns focus, resolves, is dismissed by Escape and by a press outside that never reaches the stage, and paints no scrim; the toast is one seat, centred within 1 px, 84 px up (or an app's offset), with no ×, a second replaces the first, it holds under the pointer and leaves, and the corner seat still stacks; the busy mark animates only translate and opacity and writes nothing when stopped; the boot card fails into a readable message; a switch row changes its value; `sync()` during a fader drag leaves the fader alone; everything reads in the pseudo-language |
