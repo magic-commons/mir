@@ -1,8 +1,8 @@
 /* intent.browser.mjs — the rulings of docs/INTENT.md a machine can see, on the kit's house sheets (tests/fixtures/intent.html).
  *   ONE LIGHT, FROM ABOVE: no drop shadow on a kit pane (card, floating window, carried window, menu, glass, badge)
  *     has a negative y, in either theme · ON IS NEVER AN ACCENT FILL: .sw.on, .trig.on and .seg-b.on wear the frost
- *     face (--state-on), not --acc-soft · TWO MATERIALS, ONE BLUR: under FROST a TINTED pane has backdrop-filter none
- *     and a REFRACTIVE one blurs; a TINTED menu never blurs · FOCUS: Tab onto a switch draws a ring OUTSIDE it (an
+ *     face (--state-on), not --acc-soft · TWO MATERIALS (O12, 2026-10-02): under FROST a TINTED pane thins to .58 and
+ *     blurs as a REFRACTIVE one does, SOLID never; at BLUR 0 there is no filter at all · FOCUS: Tab onto a switch draws a ring OUTSIDE it (an
  *     outline, offset ≥ 0) · PRESSED: a held trigger scales to --state-press-scale · DISABLED: one fade (.38) and no
  *     relief on the knob's puck.  Everything clicked or Tabbed is hit-tested with elementFromPoint.
  *   THE VANILLA THEMES KEEP IT: under FROST and MORPH (shell/themes.js, applied through the look store), in both themes,
@@ -44,22 +44,31 @@ try {
   check('ON: .sw.on, .trig.on and .seg-b.on wear the frost face, not the accent fill', [on.sw, on.trig, on.seg].every((c) => c === on.frost && c !== on.acc), JSON.stringify(on));
   check('ON: the switch LED is lit with a glow; a chosen segment’s label is in accent A', on.led !== 'none' && on.segInk === on.accInk, `${on.led} · ${on.segInk}`);
 
-  /* ── two materials, one blur ── */
-  const mat = JSON.parse(await ev(`(async () => { const f = (sel) => getComputedStyle(document.querySelector(sel)).backdropFilter;
-    document.body.dataset.card = 'tinted'; const tinted = f('[data-id="pane"]'), menuT = f('.mb-list');
-    document.body.dataset.card = 'refractive'; const refr = f('[data-id="pane"]'), menuR = f('.mb-list');
-    document.body.dataset.card = 'tinted'; return JSON.stringify({ tinted, menuT, refr, menuR }); })()`));
-  check('material: under FROST a TINTED pane has backdrop-filter none, a REFRACTIVE one blurs', mat.tinted === 'none' && /blur/.test(mat.refr), JSON.stringify(mat));
-  check('material: a TINTED menu never blurs; a REFRACTIVE one does', mat.menuT === 'none' && /blur/.test(mat.menuR), JSON.stringify(mat));
-  /* FROST · STILL: while the hold lasts a joined REFRACTIVE pane stops blurring and wears the tinted fill; then it is back */
+  /* ── two materials (rule 4, O12 ruled 2026-10-02: "tinted can blur") ── */
+  const mat = JSON.parse(await ev(`(async () => { const f = (sel) => getComputedStyle(document.querySelector(sel)).backdropFilter, a = (sel) => getComputedStyle(document.querySelector(sel)).backgroundColor;
+    const b = document.body; b.dataset.card = 'tinted'; const tinted = f('[data-id="pane"]'), menuT = f('.mb-list'), fillT = a('[data-id="pane"]');
+    b.classList.remove('frost'); const offT = f('[data-id="pane"]'), fillOff = a('[data-id="pane"]'); b.classList.add('frost');
+    b.dataset.card = 'refractive'; const refr = f('[data-id="pane"]'), menuR = f('.mb-list');
+    b.dataset.card = 'solid'; const solid = f('[data-id="pane"]');
+    /* BLUR 0: the look engine writes the filter as the whole value none */
+    b.dataset.card = 'tinted'; b.style.setProperty('--surface-filter', 'none'); const zero = f('[data-id="pane"]'), zeroMenu = f('.mb-list'), zeroFill = a('[data-id="pane"]'); b.style.removeProperty('--surface-filter');
+    return JSON.stringify({ tinted, menuT, fillT, offT, fillOff, refr, menuR, solid, zero, zeroMenu, zeroFill }); })()`));
+  const alpha = (c) => { const m = /rgba?\(([^)]*)\)/.exec(c || ''); const v = m ? m[1].split(',').map(parseFloat) : []; return v.length > 3 ? v[3] : 1; };
+  check('material: under FROST a TINTED pane thins to .58 and blurs, as a REFRACTIVE one blurs; SOLID never does',
+    /blur/.test(mat.tinted) && Math.abs(alpha(mat.fillT) - 0.58) < 0.005 && /blur/.test(mat.refr) && mat.solid === 'none', JSON.stringify(mat));
+  check('material: FROST off, a TINTED pane is its full tint with no filter', mat.offT === 'none' && alpha(mat.fillOff) > 0.8, JSON.stringify(mat));
+  check('material: a TINTED menu blurs under FROST, as a REFRACTIVE one does', /blur/.test(mat.menuT) && /blur/.test(mat.menuR), JSON.stringify(mat));
+  check('material: at BLUR 0 a TINTED pane and menu have no filter at all (none, never blur(0)) and the pane stays at .58',
+    mat.zero === 'none' && mat.zeroMenu === 'none' && Math.abs(alpha(mat.zeroFill) - 0.58) < 0.005, JSON.stringify(mat));
+  /* FROST · STILL: while the hold lasts a joined pane stops blurring and wears the full tinted fill; then it is back */
   const hold = JSON.parse(await ev(`(() => { const b = document.body, pane = document.querySelector('[data-id="pane"]'), cs = () => getComputedStyle(pane);
-    const was = b.dataset.card; b.dataset.card = 'tinted'; const tintFill = cs().backgroundColor;
+    const was = b.dataset.card; b.dataset.card = 'tinted'; b.classList.add('frost-hold'); const tintFill = cs().backgroundColor, tintHeld = cs().backdropFilter; b.classList.remove('frost-hold');
     b.dataset.card = 'refractive'; const always = { f: cs().backdropFilter, bg: cs().backgroundColor };
     b.classList.add('frost-hold'); const held = { f: cs().backdropFilter, bg: cs().backgroundColor };
     b.classList.remove('frost-hold'); const after = cs().backdropFilter; b.dataset.card = was;
-    return JSON.stringify({ frost: b.classList.contains('frost'), disc: b.classList.contains('disconnected'), tintFill, always, held, after }); })()`));
-  check('FROST · STILL: a held REFRACTIVE pane has no blur and the tinted fill; the blur returns when the hold lifts',
-    hold.frost && /blur/.test(hold.always.f) && hold.held.f === 'none' && hold.held.bg === hold.tintFill && hold.held.bg !== hold.always.bg && /blur/.test(hold.after), JSON.stringify(hold));
+    return JSON.stringify({ frost: b.classList.contains('frost'), disc: b.classList.contains('disconnected'), tintFill, tintHeld, always, held, after }); })()`));
+  check('FROST · STILL: a held pane (REFRACTIVE or TINTED) has no blur and the full tinted fill; the blur returns when the hold lifts',
+    hold.frost && /blur/.test(hold.always.f) && hold.held.f === 'none' && hold.tintHeld === 'none' && alpha(hold.tintFill) > 0.8 && hold.held.bg === hold.tintFill && hold.held.bg !== hold.always.bg && /blur/.test(hold.after), JSON.stringify(hold));
 
   /* ── keyboard focus: a ring outside ── */
   check('focus: the switch is the element under its own centre', await hits('.sw.on'));

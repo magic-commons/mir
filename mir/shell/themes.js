@@ -43,8 +43,10 @@ const TABLE = [   // tr: names
      (Josh: "So bottom right shadow, upper left shine"), faces the pane's colour, soft corners, no edge. */
   { id: 'morph', name: 'MORPH', values: { card: 'solid', corners: 20, edge: false, lightAngle: 315, reliefLink: true, shadow: 1.4, shadowDist: 6, shadowSoft: 14, shine: 0.7, shineSoft: 14, glow: false, parallax: false, spacing: 'airy' },
     tones: [tone('clay', 'CLAY', 24, 0.16, 0, 30, 300, 0.1), tone('mint', 'MINT', 150, 0.18, 0, 140, 300, 0.1), tone('lilac', 'LILAC', 268, 0.2, 0, 280, 30, 0.1), tone('slate', 'SLATE', 0, 0, 0, 30, 300, 0.1)] },
-  /* CLASSIC — the 1.4 spirit: the tinted pane, solid faces, the relief, the house corner and veil, and 1.4's 22 px blur. */
-  { id: 'classic', name: 'CLASSIC', values: { blur: 22 },
+  /* CLASSIC — the 1.4 spirit: the tinted pane, solid faces, the relief, the house corner and veil, and 1.4's 22 px blur.
+     FROST is 1.4's own default, OFF (STYLE-LOCK: "FROST OFF, GLASS BLUR 22px"): a still tinted pane, no filter.  Since
+     1.5.0-alpha.11 (INTENT O12) turning FROST on thins the pane to .58 and blurs it at those 22 px, as 1.4 did. */
+  { id: 'classic', name: 'CLASSIC', values: { frost: 'off', blur: 22 },
     tones: [tone('house', 'HOUSE', 0, 0, 0, 30, 300, 0.1), tone('ink', 'INK', 214, 0.2, 0, 200, 300, 0.1), tone('ember', 'EMBER', 18, 0.18, 0, 20, 300, 0.15)] },
   /* SWIFT — the high-performance one: SOLID, no blur, no shadow, no shine, flat controls, motion off, pointer glow and
      parallax off, the flat tier.  (It replaces the preset called LIGHT: the name was ambiguous with the light theme.) */

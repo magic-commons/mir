@@ -202,6 +202,10 @@ body.frost[data-card="refractive"] #menubar .mb-list { background: var(--surface
 body.frost[data-card="refractive"][data-theme="dark"] #menubar .mb-list { background: var(--surface-veil, var(--frost-veil-dark)); }
 body[data-card="refractive"] #menubar .mb-list { background: var(--surface-sheen, var(--glass-sheen)), var(--surface-veil, var(--mb-list-veil));
   -webkit-backdrop-filter: var(--surface-filter, blur(var(--glass-blur))); backdrop-filter: var(--surface-filter, blur(var(--glass-blur))); }
+/* 1.5.0-alpha.11 · TINTED CAN BLUR (INTENT O12): under FROST the tinted list thins to .58 with every tinted pane
+   (--card-opacity, skin.css) and takes the frost filter, as BASINS draws it; FROST · STILL holds it */
+body.frost:not(.frost-hold)[data-card="tinted"] #menubar .mb-list {
+  -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter)); backdrop-filter: var(--surface-filter, var(--frost-filter)); }
 }
 
 /* ── kit additions (not from λWAVES) ── */

@@ -209,6 +209,17 @@ try {
     const c = getComputedStyle(document.querySelector('#hook-island')); const out = { image: c.backgroundImage, fill: c.backgroundColor };
     __T.P.set({ card: 'refractive', disconnected: false }); __T.P.apply({ now: true }); return JSON.stringify(out); })()`));
   check('an island under TINTED is the tinted fill with no 160° sheen (BASINS)', r.image === 'none' && r.fill !== 'rgba(0, 0, 0, 0)', JSON.stringify(r));
+  /* CLASSIC (INTENT O12): FROST off is its 1.4 default, the still tinted pane; FROST on thins it to .58 and blurs at 22 px; BLUR 0 is no filter */
+  r = JSON.parse(await p.eval(`(async () => { const { themeValues } = await import('/mir/shell/themes.js'); const tick = () => new Promise((r) => setTimeout(r, 150));
+    const read = () => { const c = getComputedStyle(__T.d.root); return { fill: c.backgroundColor, filter: c.backdropFilter }; };
+    __T.P.set({ ...themeValues('classic'), glow: false, parallax: false }); __T.P.apply({ now: true }); await tick(); const off = read(), frost = themeValues('classic').frost;
+    __T.P.set({ frost: 'always' }); __T.P.apply({ now: true }); await tick(); const on = read();
+    __T.P.set({ blur: 0 }); __T.P.apply({ now: true }); await tick(); const zero = read();
+    __T.P.set({ ...themeValues('frost'), glow: false, parallax: false }); __T.P.apply({ now: true });
+    return JSON.stringify({ frost, off, on, zero }); })()`));
+  const al = (c) => { const v = (/\(([^)]*)\)/.exec(c) || [, ''])[1].split(',').map(parseFloat); return v.length > 3 ? v[3] : 1; };
+  check('CLASSIC: FROST off (1.4) is the still tinted pane; FROST on thins it to .58 and blurs at 22 px; at BLUR 0 the filter is none',
+    r.frost === 'off' && r.off.filter === 'none' && al(r.off.fill) > 0.8 && /blur\(22px\)/.test(r.on.filter) && Math.abs(al(r.on.fill) - 0.58) < 0.005 && r.zero.filter === 'none' && Math.abs(al(r.zero.fill) - 0.58) < 0.005, JSON.stringify(r));
   r = JSON.parse(await p.eval(`(async () => { document.body.style.setProperty('--surface-shadow', 'none'); document.body.style.setProperty('--surface-shadow-float', 'none'); document.body.style.setProperty('--surface-shadow-menu', 'none');
     __T.d.root.classList.add('dragging'); await new Promise((r) => setTimeout(r, 80)); const cs = getComputedStyle(__T.d.root);
     const out = { carriedRing: cs.outlineStyle + ' ' + cs.outlineWidth, dragShadow: cs.boxShadow, pane: getComputedStyle(document.querySelector('#hook-pane')).boxShadow };

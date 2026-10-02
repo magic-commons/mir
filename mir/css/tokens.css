@@ -69,6 +69,9 @@
   --surface-shadow-float: 0 1px 2px hsl(0 0% 0% / .16);
   --surface-shadow-menu: 0 1px 2px hsl(0 0% 0% / .16);
 }
+:where(html[data-ui-tier="lite"], html[data-ui-tier="flat"]) :where(body.frost[data-card="tinted"]) {
+  --card-opacity: var(--glass-opacity);  /* no blur is drawn, so the tinted pane does not thin for one (skin.css, INTENT O12) */
+}
 :where(html[data-ui-tier="lite"], html[data-ui-tier="flat"]) :where(body[data-theme="light"]) {
   --surface-shadow: 0 1px 2px hsl(214 40% 20% / .09);
   --surface-shadow-float: 0 1px 2px hsl(214 40% 20% / .09);
@@ -85,6 +88,7 @@
     --surface-shadow-float: 0 1px 2px hsl(0 0% 0% / .16);
     --surface-shadow-menu: 0 1px 2px hsl(0 0% 0% / .16);
   }
+  :where(body.frost[data-card="tinted"]) { --card-opacity: var(--glass-opacity); }
   :where(body[data-theme="light"]) {
     --surface-shadow: 0 1px 2px hsl(214 40% 20% / .09);
     --surface-shadow-float: 0 1px 2px hsl(214 40% 20% / .09);

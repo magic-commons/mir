@@ -1489,6 +1489,11 @@ body.frost .kwin-chiprail[data-mir-rail] .crail-chip::before {
   background-color: var(--surface-veil, var(--m2-face-w10)); }                                         /* VEIL reaches the chips (VEIL 0: clear) */
 body.frost[data-theme="dark"] .kwin-chiprail[data-mir-rail] .crail-chip::before {
   background-color: var(--surface-veil, var(--m2-face-k10)); }
+/* 1.5.0-alpha.11 · TINTED CAN BLUR (INTENT O12): under TINTED + FROST the disc is the thinned tinted pane, .58 (the
+   --card-opacity skin.css thins), with the filter above — BASINS' discs on every rail (lab.css §56) */
+body.frost[data-card="tinted"] .kwin-chiprail[data-mir-rail] .crail-chip::before,
+body.frost[data-card="tinted"][data-theme="dark"] .kwin-chiprail[data-mir-rail] .crail-chip::before {
+  background-color: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
 body.frost.frost-hold .kwin-chiprail[data-mir-rail] .crail-chip::before {
   -webkit-backdrop-filter: none; backdrop-filter: none; }                                              /* 78 */
 
@@ -1499,6 +1504,8 @@ body.frost.frost-hold .kwin-chiprail[data-mir-rail] .crail-chip::before {
    same fill, same `frost-hold` release.  One material, stated once per surface that cannot inherit it. */
 body.frost #modwin.mir-modwindow .m2workbar {
   -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter)); backdrop-filter: var(--surface-filter, var(--frost-filter)); }
+body.frost[data-card="tinted"] #modwin.mir-modwindow .m2workbar {                                 /* alpha.11: the bar thins with the panes (.58), as BASINS' does; the chassis keeps its full tint */
+  background: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
 body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
   -webkit-backdrop-filter: none; backdrop-filter: none; }                                              /* 78b */
 

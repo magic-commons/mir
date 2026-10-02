@@ -35,6 +35,15 @@ try {
     check(`${theme} · the dial wears the house's one raised relief`, r.dial === r.raise, `${r.dial} vs ${r.raise}`);
     check(`${theme} · no bevel token is left on the window`, r.bevel.trim() === '', r.bevel);
   }
+  /* TINTED + FROST (INTENT O12, 2026-10-02): the work bar and the rail's discs thin to .58 and blur, as BASINS'; the chassis keeps its tint */
+  const tf = JSON.parse(await p.eval(`(async () => { window.__GALLERY.setTheme('dark'); const b = document.body, was = { card: b.dataset.card, frost: b.classList.contains('frost') };
+    b.dataset.card = 'tinted'; b.classList.add('frost'); await new Promise((r) => setTimeout(r, 200));
+    const q = (s) => [...document.querySelectorAll(s)].find((n) => n.getClientRects().length);
+    const bar = q('#modwin .m2workbar'), chip = q('.kwin-chiprail[data-mir-rail] .crail-chip:not(.on)');
+    const out = { bar: bar && [getComputedStyle(bar).backgroundColor, getComputedStyle(bar).backdropFilter], chip: chip && [getComputedStyle(chip, '::before').backgroundColor, getComputedStyle(chip, '::before').backdropFilter] };
+    b.dataset.card = was.card; b.classList.toggle('frost', was.frost); return JSON.stringify(out); })()`));
+  const a58 = (x) => !!x && /, 0\.58\)$/.test(x[0]) && /blur/.test(x[1]);
+  check('TINTED + FROST: the work bar and a rail disc are the .58 tint with the blur (O12)', (!tf.bar || a58(tf.bar)) && (!tf.chip || a58(tf.chip)) && !!(tf.bar || tf.chip), JSON.stringify(tf));
   /* a real press on ADD MACRO, hit-tested first */
   const c = JSON.parse(await p.eval(`(() => { const e = document.querySelector('.m2macadd'); const b = e.getBoundingClientRect(); const x = b.left + b.width / 2, y = b.top + b.height / 2;
     return JSON.stringify({ x, y, hit: document.elementFromPoint(x, y) === e || e.contains(document.elementFromPoint(x, y)) }); })()`));

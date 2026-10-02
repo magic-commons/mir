@@ -92,6 +92,16 @@ try {
     if (frost) check(`gallery ${theme}-${card}-frost on${disc ? '-disconnected' : '-joined'} · full really has backdrop filters to remove`, r.d.filt.length > 0, 'none at full');
   }
 
+  /* ── TINTED + FROST (INTENT O12): full thins the pane to .58 for its blur; lite draws no blur, so the pane is the full tint again ── */
+  {
+    await p.eval(`window.__GALLERY.setTheme('dark'); document.body.dataset.card = 'tinted'; document.body.classList.add('frost'); document.body.classList.remove('disconnected'); true`);
+    const a = () => p.eval(`(() => { const n = [...document.querySelectorAll('.dev')].find((x) => x.getClientRects().length); const m = /rgba?\\(([^)]*)\\)/.exec(getComputedStyle(n).backgroundColor); const v = m ? m[1].split(',').map(parseFloat) : []; return v.length > 3 ? v[3] : 1; })()`);
+    await tier(null); await settle(); const full = await a();
+    await tier('lite'); await settle(); const lite = await a();
+    await tier(null); await settle();
+    check('TINTED + FROST: full thins a card to .58; lite returns it to the full tint (no blur, no thinning)', Math.abs(full - 0.58) < 0.005 && lite > 0.8, `full ${full} · lite ${lite}`);
+  }
+
   /* ── the shell page: the notebook and a menu carry the house's literal blurs ── */
   await p.goto(BASE + '/gallery/shell.html', 1200);
   for (let i = 0; i < 40 && !(await p.eval('!!window.__MIR_SHELL')); i++) await sleep(100);

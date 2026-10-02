@@ -215,7 +215,11 @@ try {
     if (!along && s.ours.gap !== s.mod.gap) { geomOk = false; (mismatch.gap ||= []).push(`${seat}: ${s.ours.gap} vs ${s.mod.gap}`); }
   }
   await run(`document.body.dataset.theme = 'dark'; document.body.dataset.card = 'tinted'; document.body.classList.remove('frost'); return 0;`);
-  check('chip material: in all 8 seats the disc wears its own pane\'s fill and filter (lab.css §56)', follows, notes.join(' | '));
+  check('chip material: in all 8 seats the disc wears its own pane\'s fill and filter (lab.css §56; TINTED + FROST: .58 and the blur, INTENT O12)', follows, notes.join(' | '));
+  r = await run(`document.body.dataset.card = 'solid'; document.body.classList.add('frost'); await wait(160);
+    const f = getComputedStyle(A.rail.chip('sort'), '::before').backdropFilter; document.body.classList.add('frost-hold'); await wait(40);
+    const held = getComputedStyle(A.rail.chip('sort'), '::before').backdropFilter; document.body.classList.remove('frost', 'frost-hold'); document.body.dataset.card = 'tinted'; return { f, held };`);
+  check('chip material: under FROST the disc takes the chip filter for every card style, SOLID too (BASINS\' rails); FROST · STILL releases it', /blur/.test(r.f) && r.held === 'none', JSON.stringify(r));
   check('chip geometry matches the modulation rail in all 8 seats: target, disc, border, radius, gap, type (docked: disc + --rail-gap along the rail)', geomOk, JSON.stringify(Object.fromEntries(Object.entries(mismatch).filter(([k]) => GEOM.includes(k) || k.startsWith('chip ') && k !== 'chip color' || k === 'gap'))));
   for (const [k, v] of Object.entries(mismatch)) if (!GEOM.includes(k)) console.log(`INFO  differs from the modulation rail · ${k}: ${[...new Set(v.map((x) => x.replace(/^[^:]+: /, '')))].join('  /  ')}  (in ${v.length} of 8 seats)`);
 

@@ -93,7 +93,9 @@ export function lookSchema() {
       map: (v, s) => (!full(s) ? null : s.blur === 0 ? 'none' : v === HOME.saturation ? null : `blur(${s.blur}px) saturate(${v.toFixed(2)})`) },
       /* … and the 1.4 name, so a sheet (an app's, or the plugin's) that reads --frost-filter gets SATURATION too (BASINS: its
          --frost-filter is blur and saturate) */
-      { on: 'html', prop: '--frost-filter', map: (v, s) => (!full(s) || s.blur === 0 || v === HOME.saturation ? null : `blur(${s.blur}px) saturate(${v.toFixed(2)})`) }] },
+      { on: 'html', prop: '--frost-filter', map: (v, s) => (!full(s) ? null : s.blur === 0 ? 'none' : v === HOME.saturation ? null : `blur(${s.blur}px) saturate(${v.toFixed(2)})`) }] },
+    /* BLUR 0 is no blur: both names are the whole value `none`, never `blur(0px)` (INTENT rule 4).  BASINS writes
+       `blur(0px) saturate(1.3)` there, which still saturates what is behind; the kit's pane stays at its FROST fill */
     { key: 'corners', type: 'number', step: 1, min: 0, max: 24, default: 24, apply: [{ on: 'body', prop: '--surface-radius', map: (v) => (v === HOME.corners ? null : Math.round(v) + 'px') }] },
     /* BRIGHT, HUE, TINT — BASINS' glass knobs, onto the kit's --glass-tint on <body> (the tinted and solid pane, every
        solid face); SATURATION multiplies the tint's chroma, as BASINS' does */

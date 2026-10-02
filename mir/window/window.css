@@ -46,9 +46,10 @@
 body[data-theme="light"] .mir-rail { --chip-rim: hsl(214 30% 40% / .34); }
 body:is([data-card="tinted"], [data-card="solid"]) .mir-rail { --chip-fill: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
 body[data-card="refractive"] .mir-rail { --chip-fill: var(--surface-veil, transparent); }
-body.frost[data-card="refractive"] .mir-rail { --chip-filter: var(--surface-filter, var(--frost-filter)); }
+body.frost .mir-rail { --chip-filter: var(--surface-filter, var(--frost-filter)); }   /* every card style, as BASINS' rails (lab.css §56); TINTED's fill thins with --card-opacity */
 body.frost[data-card="refractive"][data-theme="dark"] .mir-rail { --chip-fill: var(--surface-veil, var(--frost-veil-dark)); }
-body.frost.frost-hold[data-card="refractive"] .mir-rail { --chip-filter: none; --chip-fill: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }   /* FROST · STILL: the chip holds with its pane (skin.css) */
+body.frost.frost-hold .mir-rail { --chip-filter: none; }
+body.frost.frost-hold[data-card="refractive"] .mir-rail { --chip-fill: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }   /* FROST · STILL: the chip holds with its pane (skin.css) */
 /* ── end of the values ── */
 /* THE MATERIAL'S RULES (eight; the values are above and in skin.css) */
 .mir-rail[data-mir-material="modulation"] .mir-chip { letter-spacing: var(--m2-rail-track); }

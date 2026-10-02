@@ -31,6 +31,7 @@
   --folders-zoom: 1.08;                              /* the picture's rest scale inside its tile … */
   --folders-zoom-hot: 1.13;                          /* … and hovered or chosen */
 }
+.mir-folders { --folders-gap: 6px; --folders-tool-gap: 4px; }   /* BASINS' SAVE: 6 px between the wrap's rows, the fields and the grid; 4 px between tools (1.5.0-alpha.11) */
 .sv-ghost { --folders-thumb-ground: hsl(0 0% 0%); --folders-carry-scale: .5; --folders-ghost-fade: .92; }
 /* ── end of the values ── */
 
@@ -52,10 +53,10 @@
   font: var(--w-med) var(--fs-micro)/1.5 var(--font-ui); color: var(--fg-soft); touch-action: none; }
 .mir-folders .fo-status[data-tone="warn"] { color: var(--bad); }
 
-.mir-folders .sv-wrap { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: var(--sp-2); container-type: inline-size; }
+.mir-folders .sv-wrap { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: var(--folders-gap); container-type: inline-size; }
 
 /* ── the verbs: kit triggers, raised at rest, one row (two rows when the window is narrow) ───────────────────── */
-.mir-folders .sv-toolbar { display: grid; grid-template-columns: repeat(var(--sv-verbs, 6), minmax(0, 1fr)); gap: var(--sp-1); }
+.mir-folders .sv-toolbar { display: grid; grid-template-columns: repeat(var(--sv-verbs, 6), minmax(0, 1fr)); gap: var(--folders-tool-gap); }   /* the gap sets the tool's width: six tools at 4 px = BASINS' 55 px */
 @container (max-width: 285px) { .mir-folders .sv-toolbar { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .mir-folders .sv-toolbar :is(.trig, .sv-options) { display: flex; align-items: center; justify-content: center; box-sizing: border-box;
   width: 100%; min-width: 0; height: 44px; min-height: 44px; padding: 0; }
@@ -79,21 +80,21 @@
 .mir-folders .sv-part.sw { box-sizing: border-box; width: 100%; min-width: 0; justify-content: center; padding: 0 var(--sp-1); }
 
 /* ── name and destination: fields are wells ──────────────────────────────────────────────────────────────── */
-.mir-folders .sv-fields { display: flex; gap: var(--sp-2); }
+.mir-folders .sv-fields { display: flex; gap: var(--folders-gap); }
 .mir-folders .sv-field { display: flex; flex: 1 1 0; min-width: 0; align-items: center; }
 .mir-folders .sv-flabel { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .mir-folders .sv-input { flex: 1 1 auto; min-width: 0; min-height: 40px; box-sizing: border-box; padding: 0 var(--sp-4); border: 1px solid var(--glass-hairline);
   border-radius: var(--r-sm); background: var(--glass-well); box-shadow: var(--relief-well, var(--neu-inset)); color: var(--fg); font: var(--w-med) var(--fs-base)/1.2 var(--font-ui); }
 .mir-folders .sv-input::placeholder { color: var(--ink-faint); }
 .mir-folders .sv-input:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
-.mir-folders .sv-count { flex: 0 0 auto; display: flex; justify-content: flex-end; padding: 0; margin-right: -9px; touch-action: none;   /* BASINS' geometry: flush to the explorer's inset */
+.mir-folders .sv-count { flex: 0 0 16px; display: flex; align-items: center; justify-content: flex-end; padding: 0; margin-right: -9px; touch-action: none;   /* BASINS' geometry: flush to the explorer's inset */
   font: var(--w-semi) var(--fs-micro)/1.3 var(--font-ui); letter-spacing: var(--tr-wide); color: var(--ink-faint); }
 
 /* ── the explorer ─────────────────────────────────────────────────────────────────────────────────────────── */
 .mir-folders .sv-explorer { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; min-width: 0; padding: 9px 9px 0; border-radius: var(--r-lg); }   /* BASINS' geometry */
 .mir-folders .sv-explorer-scroll { flex: 1 1 auto; min-height: 0; overflow: hidden auto; overscroll-behavior: contain;
   scrollbar-width: thin; scrollbar-color: var(--glass-hairline) transparent; touch-action: pan-y; }
-.mir-folders .sv-grid { display: flex; flex-direction: column; gap: var(--sp-2); }
+.mir-folders .sv-grid { display: flex; flex-direction: column; gap: var(--folders-gap); }
 .mir-folders .sv-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }
 .mir-folders .sv-crumb { max-width: 100%; white-space: normal; overflow-wrap: anywhere; min-height: 30px; padding: 4px 6px; border: 0;
   border-radius: var(--r-sm); background: none; color: var(--acc); font: var(--w-semi) var(--fs-micro)/1 var(--font-ui); letter-spacing: var(--tr-wide); cursor: pointer; }
@@ -137,7 +138,8 @@
 .mir-folders .sv-folder-shot:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: -3px; }
 .mir-folders .sv-folder.has-cover .sv-folder-shot { color: var(--folders-over-ink); }
 /* the cover is BASINS': the picture under the wash, as the button's own inline background-image (gallery.js) */
-.mir-folders .sv-folder.has-cover .sv-folder-shot { background-color: var(--folders-thumb-ground); background-position: center; background-size: cover; background-repeat: no-repeat; }
+.mir-folders .sv-folder.has-cover .sv-folder-shot { background-color: var(--glass-well);   /* BASINS' folder button ground (.22), not the picture's black (1.5.0-alpha.11) */
+  background-position: center; background-size: cover; background-repeat: no-repeat; }
 .mir-folders .sv-folder-glyph { flex: 0 0 auto; display: flex; color: var(--acc); }
 .mir-folders .sv-folder-files { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 2px; color: var(--ink-faint); font: var(--w-semi) var(--fs-micro)/1 var(--font-mono); }
 .mir-folders .sv-folder.has-cover .sv-folder-files { color: var(--folders-over-ink); }
