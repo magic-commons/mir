@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MIR · GUI fixture</title>
+<link rel="stylesheet" href="../../mir/css/base.css">
+<link rel="stylesheet" href="../../mir/css/skin.css">
+<link rel="stylesheet" href="../../mir/css/tokens.css">
+<link rel="stylesheet" href="../../mir/shell/shell.css">
+<link rel="stylesheet" href="../../mir/core/core.css">
+<link rel="stylesheet" href="../../mir/window/window.css">
+<link rel="stylesheet" href="../../mir/shell/gui.css">
+<link rel="stylesheet" href="../../mir/fx/fx.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b1020; }
+  :root { --rack-w: 0px; }
+  #lab, #stage { position: fixed; inset: 0; }
+  #floats { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  /* the specimens: a strip along the bottom, below where the GUI window sits */
+  #strip { position: fixed; left: 8px; right: 8px; bottom: 8px; height: 96px; display: flex; gap: 10px; align-items: flex-end; z-index: 20; }
+  #strip > .dev { width: 160px; }
+  .tile { width: 90px; height: 90px; border-radius: 12px; display: grid; place-items: center; }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted">
+<div id="lab"><div id="stage"></div></div>
+<div id="strip"></div>
+<div id="floats"></div>
+<script type="module">
+import { el, knob, sw, device } from '../../mir/kit.js';
+import { wordmark } from '../../mir/shell/wordmark.js';
+import { createMenubar } from '../../mir/shell/menubar.js';
+import { createWindow } from '../../mir/window/window.js';
+import { observeSpan } from '../../mir/window/dock.js';
+import { installControlHelp, infoPanel } from '../../mir/control-help.js';
+import { createGui } from '../../mir/shell/gui.js';
+import * as motion from '../../mir/core/motion.js';
+import { perf } from '../../mir/core/perf.js';
+
+const $ = (id) => document.getElementById(id), strip = $('strip');
+const gui = createGui({ host: $('floats'), app: { name: 'FIXTURE' } });
+
+/* specimens: a card (.dev), a pane (.glass), a knob (relief), a hinted control, an ⓘ, a lit tile, a deep tile */
+const card = device({ id: 'spec', eyebrow: 'CARD' }); strip.append(card.root);
+const pane = el('div', 'tile glass', strip); pane.id = 'pane';
+const k = knob({ label: 'K', min: 0, max: 1, value: .5 }); k.root.id = 'knob'; strip.append(k.root);
+const hinted = sw({ label: 'HINTED' }); hinted.root.id = 'hinted'; hinted.root.dataset.help = 'a hint'; strip.append(hinted.root);
+const info = el('div'); info.textContent = 'info'; const holder = el('div', '', strip); holder.append(info); infoPanel(info, 'Info');
+const lit = el('div', 'tile glass', strip); lit.id = 'lit'; lit.dataset.light = '';
+const deep = el('div', 'tile glass', strip); deep.id = 'deep'; const layer = el('span', '', deep, 'D'); layer.id = 'layer'; layer.dataset.parallax = '10';
+
+/* a docking window: DROP GUIDES drives its guide */
+const span = observeSpan({});
+const D = createWindow({ id: 'dock', title: 'DOCK', host: $('floats'), size: { w: 200, h: 44 }, dock: { span, guide: gui.dropGuides }, body: (b) => { b.textContent = 'dock me'; },
+  persist: { read: () => ({ x: 1060, y: 74, w: 200, h: 44, chipSide: 'top' }), write() {} } });   // above the GUI window, its rail on top
+D.open();
+
+const title = wordmark($('stage'), { word: 'MIR' });
+const menubar = createMenubar({ opener: title, host: $('lab'), menus: {
+  FILE: () => [['NEW']], EDIT: () => [['UNDO']], VIEW: () => [['FULL SCREEN']], WINDOW: () => [['DOCK', () => D.toggle()]],
+  ABOUT: () => [['ABOUT MIR', () => gui.open('about')]], LANGUAGE: () => [['ENGLISH', null, () => true]],
+  GUI: () => [['MIR OPTIONS', () => gui.open('options')], ['MIR ABOUT', () => gui.open('about')]] } });
+installControlHelp(document);
+
+window.__T = { gui, D, menubar, motion, perf };
+window.__ready = true;
+</script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+/* core/prefs.js — one store for the LOOK: what this browser's user chose, applied through the hooks the kit reads.
+ *
+ * THE LAW IT KEEPS: A LOOK OPTION IS A PREFERENCE.  It lives in this browser (one localStorage key), never in a project,
+ * a link or the history (λWAVES' three-scope law; BASINS' prefs/project split).  Each option is a row of a SCHEMA that
+ * says its type, its range, its default and HOW IT IS APPLIED — an attribute or a class on <html>/<body> that a kit
+ * sheet already reads, a custom property, or a call — so nothing about the look is decided in two places.
+ *
+ * And four rules:
+ *   1. NOTHING IS THROWN AT THE USER.  A stored value that is unknown, of the wrong type or out of range is repaired to
+ *      the row's default; a key the schema does not know is dropped; a storage that throws (a private window) is a store
+ *      that keeps nothing.
+ *   2. APPLYING IS ONE WRITE.  `resolve(state)` turns the whole state into a list of writes (pure, node-tested); `apply()`
+ *      performs them in one coalesced job of the one frame (core/frame.js), through core/perf.js so an identical write
+ *      is skipped.  `apply({ now: true })` performs them at once, for the first paint before anything is drawn.
+ *   3. A ROW THAT IS AT ITS HOME WRITES NOTHING.  A `map` that returns null removes the property or attribute, so the
+ *      kit's own 1.4 value stands, and an app that never changes an option never sees a write from it.
+ *   4. PRESETS ARE NAMED OPTION SETS.  `preset()` names the preset whose every option matches the state, or 'custom'.
+ *
+ * createPrefs({ key, schema, presets, storage, doc, context }) → { get, set, reset, all, subscribe, apply, preset,
+ *                                                                  applyPreset, resolve, destroy }
+ *   schema   [{ key, type: 'enum' | 'bool' | 'number', values?, min?, max?, step?, wrap?, default, apply: [spec…] }]
+ *            spec = { on: 'html' | 'body', attr, map? }      an attribute; map(v, state, env) → string | null
+ *                 | { on, cls, when? }                       a class, present while when(v, state, env) (default: !!v)
+ *                 | { on, prop, map? }                      a custom (or any style) property; null removes it
+ *                 | { run(v, state, env, context) }         a call, for an engine the kit already has (the accent,
+ *                                                           the motion policy); it runs inside the same frame job
+ *   presets  { id: { key: value, … } }
+ *   storage  { getItem, setItem, removeItem } (default localStorage);  doc (default document);  context: passed to run()
+ *   env      what a map is told: { theme: 'dark' | 'light' } — the resolved theme (SYSTEM asks the OS)
+ * Pure exports for tests: repair(raw, schema), defaults(schema), resolve(state, schema, env), matchPreset(state, presets). */
+import { frame } from './frame.js';
+import { setVar, setAttr } from './perf.js';
+
+const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+
+/** valid(row, v) — does v belong to this row? */
+export function valid(row, v) {
+  if (row.type === 'bool') return typeof v === 'boolean';
+  if (row.type === 'enum') return (row.values || []).includes(v);
+  if (row.type === 'number') return typeof v === 'number' && Number.isFinite(v) && v >= row.min && v <= row.max;
+  return false;
+}
+/** defaults(schema) — every row at its default */
+export function defaults(schema) { const o = {}; for (const r of schema) o[r.key] = r.default; return o; }
+/** repair(raw, schema) — a stored blob to a whole, valid state: bad or missing values take the default, unknown keys go */
+export function repair(raw, schema) {
+  const src = isObj(raw) ? raw : {}, o = {};
+  for (const r of schema) o[r.key] = valid(r, src[r.key]) ? src[r.key] : r.default;
+  return o;
+}
+/** coerce(row, v) — a value a control hands in: a number is rounded to the row's `step`, then clamped (or wrapped) into range; anything else must be valid */
+export function coerce(row, v) {
+  if (row.type === 'number' && typeof v === 'number' && Number.isFinite(v)) {
+    if (row.step) v = Math.round(v / row.step) * row.step, v = +v.toFixed(6);       // a dial's drag lands on the row's grid
+    if (row.wrap) { const span = row.max - row.min; return row.min + ((((v - row.min) % span) + span) % span); }
+    return Math.min(row.max, Math.max(row.min, v));
+  }
+  return valid(row, v) ? v : undefined;
+}
+
+/** resolve(state, schema, env) → [{ kind: 'attr' | 'class' | 'prop' | 'run', on, name, value, row, spec }] — every
+ *  write the state asks for, in schema order.  A null value means "remove". */
+export function resolve(state, schema, env = {}) {
+  const out = [];
+  for (const r of schema) {
+    const v = state[r.key];
+    for (const s of r.apply || []) {
+      if (s.run) out.push({ kind: 'run', row: r.key, spec: s, value: v });
+      else if (s.attr) out.push({ kind: 'attr', on: s.on || 'body', name: s.attr, row: r.key, value: s.map ? s.map(v, state, env) : (v === null || v === undefined ? null : String(v)) });
+      else if (s.cls) out.push({ kind: 'class', on: s.on || 'body', name: s.cls, row: r.key, value: !!(s.when ? s.when(v, state, env) : v) });
+      else if (s.prop) out.push({ kind: 'prop', on: s.on || 'body', name: s.prop, row: r.key, value: s.map ? s.map(v, state, env) : (v === null || v === undefined ? null : String(v)) });
+    }
+  }
+  return out;
+}
+/** matchPreset(state, presets) → the id of the first preset whose every option equals the state, or 'custom' */
+export function matchPreset(state, presets = {}) {
+  for (const [id, p] of Object.entries(presets)) if (Object.entries(p).every(([k, v]) => state[k] === v)) return id;
+  return 'custom';
+}
+
+export function createPrefs({ key = 'mir.gui', schema = [], presets = {}, storage, doc, context } = {}) {
+  const D = doc || globalThis.document || null;
+  const S = storage !== undefined ? storage : (() => { try { return globalThis.localStorage || null; } catch (_) { return null; } })();
+  const rows = new Map(schema.map((r) => [r.key, r]));
+  const read = () => { try { const t = S && S.getItem(key); return t ? JSON.parse(t) : null; } catch (_) { return null; } };
+  const write = () => { try { if (S) S.setItem(key, JSON.stringify(state)); } catch (_) {} };
+  let state = repair(read(), schema);
+  const subs = new Set();
+
+  /* SYSTEM asks the OS, and follows it while it is chosen */
+  const MQ = D && D.defaultView && D.defaultView.matchMedia ? D.defaultView.matchMedia('(prefers-color-scheme: light)') : null;
+  const env = () => ({ theme: state.theme === 'system' ? (MQ && MQ.matches ? 'light' : 'dark') : (state.theme === 'light' ? 'light' : 'dark') });
+  const onScheme = () => { if (state.theme === 'system') apply(); };
+  if (MQ && MQ.addEventListener) MQ.addEventListener('change', onScheme);
+
+  function perform() {
+    if (!D) return;
+    const target = { html: D.documentElement, body: D.body };
+    const e = env();
+    for (const w of resolve(state, schema, e)) {
+      if (w.kind === 'run') { w.spec.run(w.value, state, e, context); continue; }
+      const t = target[w.on]; if (!t) continue;
+      if (w.kind === 'attr') setAttr(t, w.name, w.value);
+      else if (w.kind === 'prop') setVar(t, w.name, w.value);
+      else if (w.kind === 'class') { if (t.classList.contains(w.name) !== w.value) t.classList.toggle(w.name, w.value); }
+    }
+  }
+  /** apply({ now }) — the whole state onto the page: one coalesced frame job, or at once */
+  function apply({ now = false } = {}) {
+    if (now) { frame.cancel('mir.prefs'); perform(); return; }
+    frame.coalesce('mir.prefs', perform);
+  }
+  const notify = (changed) => { for (const f of subs) { try { f(state, changed); } catch (_) {} } };
+
+  /** set(key, value) or set({ key: value, … }) — values a control hands in are clamped into range; an unknown key or
+   *  an invalid value is ignored.  → the keys that changed */
+  function set(k, v) {
+    const patch = isObj(k) ? k : { [k]: v }, changed = [];
+    for (const [name, raw] of Object.entries(patch)) {
+      const r = rows.get(name); if (!r) continue;
+      const c = coerce(r, raw); if (c === undefined || c === state[name]) continue;
+      state = { ...state, [name]: c }; changed.push(name);
+    }
+    if (changed.length) { write(); apply(); notify(changed); }
+    return changed;
+  }
+  return {
+    get: (k) => state[k],
+    all: () => ({ ...state }),
+    set,
+    /** reset() — every option home; the stored key is removed */
+    reset() { const was = state; state = defaults(schema); try { if (S) S.removeItem(key); } catch (_) {} apply(); notify(Object.keys(state).filter((k) => was[k] !== state[k])); return { ...state }; },
+    /** subscribe(fn(state, changedKeys)) → unsubscribe */
+    subscribe(fn) { subs.add(fn); return () => subs.delete(fn); },
+    apply,
+    /** preset() — the preset the options match now, or 'custom' */
+    preset: () => matchPreset(state, presets),
+    /** applyPreset(id) — set that preset's options (an unknown id changes nothing) */
+    applyPreset: (id) => (presets[id] ? set(presets[id]) : []),
+    presets,
+    resolve: () => resolve(state, schema, env()),
+    env,
+    destroy() { subs.clear(); frame.cancel('mir.prefs'); if (MQ && MQ.removeEventListener) MQ.removeEventListener('change', onScheme); },
+  };
+}

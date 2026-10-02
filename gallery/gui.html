@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>MIR · GUI</title>
+<!-- THE GUI WINDOW, PLAYABLE.  A rack-less app on a 2D picture: the wordmark opens FILE · EDIT · VIEW · WINDOW · ABOUT ·
+     LANGUAGE · GUI, and GUI opens MIR OPTIONS (every look option the kit has) and MIR ABOUT.  Around it: a kit window with
+     a few controls, two cards, and tiles marked `data-light` (the pointer glow) and `data-parallax` (the drift), so every
+     switch can be seen working.  ?open=options|about opens the window at load.  Every look is the kit's sheets; the rules
+     below only lay the page out and paint the picture's ground. -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/css/tokens.css">
+<link rel="stylesheet" href="../mir/shell/shell.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<link rel="stylesheet" href="../mir/window/window.css">
+<link rel="stylesheet" href="../mir/shell/gui.css">
+<link rel="stylesheet" href="../mir/fx/fx.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #070a0f; }
+  body[data-theme="light"] { background: #eef1f6; }
+  :root { --rack-w: 0px; }
+  #ground { position: fixed; inset: 0; width: 100%; height: 100%; }
+  #lab, #stage { position: fixed; inset: 0; }
+  #floats { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  .g-cards { position: fixed; left: 24px; bottom: 24px; display: flex; gap: 14px; align-items: flex-end; z-index: 20; }
+  .g-cards > .dev { width: 236px; }
+  .g-tiles { position: fixed; right: 24px; bottom: 24px; display: grid; grid-template-columns: repeat(3, 92px); gap: 12px; z-index: 20; }
+  .g-tile { height: 92px; border-radius: 14px; display: grid; place-items: center; overflow: hidden; }
+  .g-tile > span { font: 700 9px/1 var(--font-ui); letter-spacing: var(--tr-wider); color: var(--fg-soft); }
+  .g-note { margin: 0 0 8px; font-size: var(--fs-small); line-height: 1.5; color: var(--fg-soft); }
+  @media (max-width: 720px) { .g-cards { display: none; } .g-tiles { grid-template-columns: repeat(3, 72px); } .g-tile { height: 72px; } }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted">
+<canvas id="ground" aria-hidden="true"></canvas>
+<div id="lab"><div id="stage"></div></div>
+<div class="g-cards" id="cards"></div>
+<div class="g-tiles" id="tiles"></div>
+<div id="floats"></div>
+<script type="module">
+import { el, knob, seg, sw, trig, device } from '../mir/kit.js';
+import { wordmark } from '../mir/shell/wordmark.js';
+import { createMenubar } from '../mir/shell/menubar.js';
+import { createWindow } from '../mir/window/window.js';
+import { observeSpan } from '../mir/window/dock.js';
+import { installControlHelp, infoPanel } from '../mir/control-help.js';
+import { createGui } from '../mir/shell/gui.js';
+import * as motion from '../mir/core/motion.js';
+import { perf } from '../mir/core/perf.js';
+
+const $ = (id) => document.getElementById(id);
+
+/* ── the picture: a 2D canvas (a WebGPU canvas screenshots black headless) ── */
+function paintGround() {
+  const c = $('ground'), g = c.getContext('2d'), w = c.width = innerWidth, h = c.height = innerHeight;
+  const light = gui.prefs.env().theme === 'light';
+  g.fillStyle = light ? '#e9edf4' : '#070a0f'; g.fillRect(0, 0, w, h);
+  const blobs = [[.22, .3, '#2f7de1'], [.72, .25, '#d0479b'], [.5, .75, '#f0a531'], [.86, .7, '#38c7a8'], [.1, .8, '#7a4ee0']];
+  for (const [x, y, col] of blobs) {
+    const r = Math.max(w, h) * .32, gr = g.createRadialGradient(x * w, y * h, 0, x * w, y * h, r);
+    gr.addColorStop(0, col + (light ? '88' : 'cc')); gr.addColorStop(1, col + '00');
+    g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  }
+  g.strokeStyle = light ? 'rgba(20,30,50,.10)' : 'rgba(255,255,255,.06)'; g.lineWidth = 1;
+  for (let x = 0; x < w; x += 48) { g.beginPath(); g.moveTo(x + .5, 0); g.lineTo(x + .5, h); g.stroke(); }
+  for (let y = 0; y < h; y += 48) { g.beginPath(); g.moveTo(0, y + .5); g.lineTo(w, y + .5); g.stroke(); }
+}
+
+/* ── the GUI window: the look, as a browser preference ── */
+const gui = createGui({ host: $('floats'), app: { name: 'MIR GALLERY' }, about: { fonts: '../fonts/' } });
+paintGround();
+gui.prefs.subscribe((s, changed) => { if (changed.includes('theme')) paintGround(); });
+addEventListener('resize', paintGround);
+
+/* ── a kit window with a few controls: hints, an ⓘ, a dock with the guide ── */
+const span = observeSpan({});
+const A = createWindow({ id: 'specimen', title: 'SPECIMEN', host: $('floats'), size: { w: 300, h: 236 }, emptyDrag: true,
+  dock: { span, guide: gui.dropGuides },
+  body: (b) => {
+    const note = el('p', 'g-note', b, 'A kit window. Hover a control for its hint; drag the grip near the top edge for the drop guide.');
+    const k = knob({ label: 'GAIN', min: 0, max: 1, value: .4 }); k.root.dataset.help = 'A plain amount: a solid dial';
+    const s = sw({ label: 'LIVE', value: true }); s.root.dataset.help = 'A switch';
+    const g = seg({ label: 'MODE', options: [{ id: 'a', label: 'ONE' }, { id: 'b', label: 'TWO' }], value: 'a' });
+    const row = el('div', 'row', b); row.append(k.root, s.root);
+    b.append(g.root);
+    const info = el('div', 'g-info'); info.textContent = 'The ⓘ panel: HELP in the GUI window hides every one.'; row.append(info); infoPanel(info, 'About this window');
+  } });
+A.place({ x: 40, y: 64 }); A.open();
+
+/* ── two cards: what DISCONNECTED and CORNERS reach ── */
+for (const [id, name] of [['one', 'CARD ONE'], ['two', 'CARD TWO']]) {
+  const d = device({ id, eyebrow: name });
+  d.root.querySelector('.dev-head').dataset.light = '';
+  const r = d.row(); r.append(trig({ label: 'TRIGGER' }).root, sw({ label: 'ON', value: id === 'one' }).root);
+  $('cards').append(d.root);
+}
+
+/* ── tiles: the light and the parallax ── */
+const tiles = $('tiles');
+for (let i = 0; i < 6; i++) {
+  const t = el('div', 'g-tile glass', tiles); t.dataset.light = '';
+  const s = el('span', '', t, i < 3 ? 'LIGHT' : 'DEPTH ' + (i - 1) * 4); if (i >= 3) s.dataset.parallax = String((i - 1) * 4);
+}
+
+/* ── the shell: FILE · EDIT · VIEW · WINDOW · ABOUT · LANGUAGE · GUI ── */
+const title = wordmark($('stage'), { word: 'MIR', sub: 'GUI' });
+const menubar = createMenubar({ opener: title, host: $('lab'), menus: {
+  FILE: () => [['NEW'], ['OPEN…'], ['SAVE\tCtrl+S']],
+  EDIT: () => [['UNDO\tCtrl+Z', null, () => true], ['REDO\tCtrl+Shift+Z', null, () => true]],
+  VIEW: () => [['FULL SCREEN / back\tF', () => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()).catch(() => {})]],
+  WINDOW: () => [['SPECIMEN', () => A.toggle()]],
+  ABOUT: () => [['ABOUT MIR', () => gui.open('about')]],
+  LANGUAGE: () => [['ENGLISH', null, () => true, 'the language pack comes in 1.5.4']],
+  GUI: () => [['MIR OPTIONS', () => gui.open('options')], ['MIR ABOUT', () => gui.open('about')]],
+} });
+installControlHelp(document);
+
+const q = new URLSearchParams(location.search);
+if (q.get('open')) gui.open(q.get('open'));
+
+window.__T = { gui, A, menubar, motion, perf, span };
+window.__ready = true;
+</script>
+</body>
+</html>
