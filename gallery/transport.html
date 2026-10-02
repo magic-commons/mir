@@ -5,14 +5,16 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <title>MIR · transport</title>
-<!-- THE BASIC TRANSPORT BAR, THE MAIN OPENER (mir/shell/transport.js).  On a first visit the bar is the only thing on
-     screen: every window opens from it.  ▶ plays the page's clock (the rings turn at the tempo).  MOD lights while
-     modulation is armed and opens the modulation window.  The BPM pill: drag up or down (the digit under the pointer is
-     the step: tens, ones, tenths), the wheel, ↑ ↓, double-click or Enter to type; TAP four times.  TONE and MIX are rack
-     windows, FOLDERS and GUI the kit's windows, DRIFT a floating window: drag it over the bar and the bar gives way.
-     A right click (or a long press) on the bar chooses its seat: BOTTOM, TOP, COMPACT, remembered.  Space plays,
-     B hides the rack, H hides the interface (on a touch screen the bar keeps its way back).
-     ?fresh (forget everything: a first run) · ?theme=light · ?lang=qps -->
+<!-- THE TRANSPORT, FROM PARTS (mir/shell/transport.js).  Two layouts from the same parts — BASINS' basic bar and
+     λWAVES' transport in its own arrangement — and the switch at the top left flips between them.  On a first visit
+     the bar is the only thing on screen: every window opens from it.  ▶ is the ONE play: it runs the page's clock (the
+     rings turn at the tempo).  The power ring is modulation's power (on: accent B); it never plays.  The BPM pill: drag
+     up or down (the digit under the pointer is the step), the wheel, ↑ ↓ ← →; a click opens the tempo panel (TAP,
+     WALL, the bends, HOLD); a double click types it.  TONE and MIX are rack windows, FOLDERS and GUI the kit's windows,
+     DRIFT a floating window: drag it over the bar and the bar gives way.  The MIR mark opens the modulation window; the
+     dock chip moves the bar into the rack.  ⠿ (or a right click, or a long press) chooses BOTTOM, TOP or COMPACT.
+     Space plays, B hides the rack, H hides the interface.
+     ?fresh (a first run) · ?layout=lambdawaves · ?theme=light · ?lang=qps -->
 <link rel="stylesheet" href="../mir/css/base.css">
 <link rel="stylesheet" href="../mir/css/skin.css">
 <link rel="stylesheet" href="../mir/css/tokens.css">
@@ -27,22 +29,25 @@
 <link rel="stylesheet" href="../mir/shell/transport.css">
 <link rel="stylesheet" href="../mir/locales/locales.css">
 <style>
-  /* the page's own: the picture and the window layer */
+  /* the page's own: the picture, the window layer, the layout switch */
   html, body { margin: 0; height: 100%; overflow: hidden; }
   #ground { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   #winlayer { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
   #winlayer > * { pointer-events: auto; }
   .g-note { font-size: var(--fs-small); color: var(--fg-soft); line-height: 1.5; margin: 0 0 6px; }
+  #layoutSwitch { position: absolute; left: 12px; top: 12px; z-index: 31; padding: 6px 10px; border-radius: var(--r-lg); }
 </style>
 </head>
 <body data-theme="dark" data-card="tinted" class="disconnected">
 <div id="lab">
   <div id="stage"><canvas id="ground" aria-hidden="true"></canvas></div>
+  <div id="layoutSwitch" class="glass"></div>
+  <div id="transport"></div>
   <div id="winlayer"></div>
 </div>
 <script type="module">
-import { el, knob, fader } from '../mir/kit.js';
-import { createTransport, firstRun, rackOpeners, transportActions } from '../mir/shell/transport.js';
+import { el, knob, fader, readout, seg } from '../mir/kit.js';
+import { createTransport, firstRun, rackOpeners, transportActions, barButton, BASINS_LAYOUT, LAMBDAWAVES_LAYOUT } from '../mir/shell/transport.js';
 import { createRack } from '../mir/shell/rack.js';
 import { createWindow } from '../mir/window/window.js';
 import { createFolders } from '../mir/folders/folders.js';
@@ -65,7 +70,7 @@ const first = firstRun('mir.gallery.transport', 'mir.gallery.transport.rack');
 
 /* ── the picture: rings that turn at the tempo while the clock plays (a 2D canvas; idle draws nothing) ── */
 const ground = $('ground');
-let beats = 0;
+let beats = 0, rate = 1;
 function draw() {
   const dpr = devicePixelRatio || 1, w = innerWidth, h = innerHeight;
   if (ground.width !== w * dpr || ground.height !== h * dpr) { ground.width = w * dpr; ground.height = h * dpr; }
@@ -88,36 +93,52 @@ function draw() {
 }
 addEventListener('resize', () => frame.coalesce('gallery:draw', draw));
 
-/* ── the page's clock: { play, pause, isPlaying, onChange } — it ticks through the one frame only while playing ── */
+/* ── THE ONE CLOCK: { play, pause, isPlaying, onChange, seek } — the page's timeline; it ticks only while playing ── */
 const clock = (() => {
   let playing = false, last = 0; const subs = new Set();
-  const tick = (now) => { if (!playing) return; if (last) beats += Math.min(0.5, (now - last) / 1000) * M.transport.bpm / 60; last = now; draw(); frame.coalesce('gallery:tick', tick); };
   const tell = () => { for (const f of subs) f(playing); };
+  const tick = (now) => { if (!playing) return; if (last) beats += Math.min(0.5, (now - last) / 1000) * M.transport.bpm / 60 * rate; last = now; draw(); tell(); frame.coalesce('gallery:tick', tick); };
   return {
     play() { if (!playing) { playing = true; last = 0; frame.coalesce('gallery:tick', tick); tell(); } return { ok: true, playing }; },
     pause() { if (playing) { playing = false; frame.coalesce('gallery:draw', draw); tell(); } return { ok: true, playing }; },
+    seek(b) { beats = Math.max(0, b); frame.coalesce('gallery:draw', draw); tell(); return beats; },
     isPlaying: () => playing,
     onChange(fn) { subs.add(fn); return () => subs.delete(fn); },
   };
 })();
 
-/* ── the modulation seam: the MOD lamp is its opener (its window reports where it is, so the bar gives way) ── */
+/* ── modulation: its POWER is on the bar; its window opens from the MIR mark ── */
 let tr = null, rack = null;
 const SIZE = { v: 0.5 };
 const mod = installModulation({ mount: $('winlayer'), storageKey: 'mir.gallery.transport.mod', presetKey: 'mir.gallery.transport.mod.presets',
   params: [{ id: 'scene.size', label: 'SIZE', min: 0, max: 1, map: 'linear', get: () => SIZE.v, set: (v) => { SIZE.v = v; } }],
   moved: (r) => tr && tr.moved(r) });
 
-/* ── one key table: Space plays (the bar's own row), B hides the rack, H the interface ── */
+/* ── one key table: Space is the one play (the bar's row), B hides the rack, H the interface ── */
 const keys = createKeys({ actions: [...transportActions(() => tr),
   { id: 'rack', label: 'HIDE / SHOW THE RACK', group: 'VIEW', keys: ['KeyB'], run: () => rack.toggleHidden() },
   { id: 'ui', label: 'HIDE THE INTERFACE', group: 'VIEW', keys: ['KeyH'], run: () => rack.setInterface(document.body.classList.contains('ui-hidden')) }] });
 
-/* ── THE BAR, the main opener.  The rack is made right after it (it needs the bar's element), so it is handed over
-      as a getter; the openers are read again whenever the bar paints. ── */
+/* ── λWAVES' own seats on its bar (lab/rack.js §25), here driving the page's clock: ‹ › step, the scrub, ⟳, two
+      readouts and RATE.  They are the app's nodes; the layout names them `app:<name>`. ── */
+const lw = (() => {
+  const back = barButton({ cls: 'transport-step-back', text: '‹', label: 'Step back', title: 'step back', run: () => clock.seek(Math.floor(beats - 1e-6)) });
+  const forward = barButton({ cls: 'transport-step-forward', text: '›', label: 'Step forward', title: 'step forward', run: () => clock.seek(Math.floor(beats) + 1) });
+  const jump = barButton({ cls: 'jump', text: '⟳', label: 'Jump to the next bar', title: 'jump to the next bar of eight', run: () => clock.seek(Math.ceil((beats + 1e-6) / 8) * 8) });
+  const scrub = fader({ label: 'SCRUB  beat / bar', min: 0, max: 1, value: 0, fmt: (v) => (v * 8).toFixed(2), onInput: (v) => clock.seek(Math.floor(beats / 8) * 8 + v * 8) });
+  const rateK = knob({ label: 'RATE', min: 0.25, max: 4, value: 1, log: true, fmt: (v) => v.toFixed(2) + '×', onInput: (v) => { rate = v; } });
+  const time = readout({ label: 'beat', value: '0.00', cls: 'time' }), period = readout({ label: 'BAR', value: '1 · 8', cls: 'period' });
+  clock.onChange(() => { time.set(beats.toFixed(2)); period.set((Math.floor(beats / 8) + 1) + ' · 8'); if (!scrub.dragging || !scrub.dragging()) scrub.set((beats % 8) / 8); });
+  return { back: back.root, forward: forward.root, jump: jump.root, scrub: scrub.root, rate: rateK.root, time: time.root, period: period.root };
+})();
+
+/* ── THE BAR, the main opener, in the chosen layout.  The rack is made right after it (it needs the bar's element). ── */
 const opens = [];
-tr = createTransport({ host: $('lab'), clock, mod, keys, rack: () => rack, key: 'mir.gallery.transport', opener: true,
-  openers: () => [...(rack ? rackOpeners(rack, { glyphs: { tone: 'tune', mix: 'sliders' } })() : []), ...opens] });
+const LAYOUTS = { basins: BASINS_LAYOUT, lambdawaves: LAMBDAWAVES_LAYOUT };
+let layoutName = q.get('layout') === 'lambdawaves' ? 'lambdawaves' : 'basins';
+const makeBar = () => createTransport({ root: $('transport'), layout: LAYOUTS[layoutName], nodes: lw, clock, mod, keys, rack: () => rack,
+  key: 'mir.gallery.transport', opener: true, openers: () => [...(rack ? rackOpeners(rack, { glyphs: { tone: 'tune', mix: 'sliders' } })() : []), ...opens] });
+tr = makeBar();
 
 /* ── the rack: two windows, registered by name; on a first run neither is open ── */
 rack = createRack({ host: $('lab'), key: 'mir.gallery.transport.rack', transport: tr.root, favourites: 0, chrome: false, handle: 'always' });
@@ -143,10 +164,19 @@ opens.push(
   { id: 'drift', label: 'DRIFT', glyph: 'expand', open: () => drift.open(), close: () => drift.close(), isOpen: () => drift.isOpen() });
 installPress({ selector: '.sw, .seg-b, .trig, .tbtn, .mir-rack-btn' });
 tr.sync();
+
+/* ── the switch: the same parts, BASINS' layout or λWAVES' ── */
+const flip = (name) => {
+  if (name === layoutName) return; layoutName = name;
+  tr.destroy(); tr = makeBar(); tr.start();
+  const u = new URL(location.href); if (name === 'basins') u.searchParams.delete('layout'); else u.searchParams.set('layout', name); history.replaceState(null, '', u);
+  window.__T.tr = tr;
+};
+$('layoutSwitch').appendChild(seg({ label: 'LAYOUT', value: layoutName, options: [{ id: 'basins', label: 'BASINS' }, { id: 'lambdawaves', label: 'λWAVES' }], onChange: flip }).root);
 frame.coalesce('gallery:draw', draw);   // after the GUI's preferences have painted the theme
 
 if (q.get('lang')) { addLocales(new URL('../mir/locales/', location.href).href); await setLanguage(q.get('lang')); }
-window.__T = { tr, rack, mod, folders, gui, drift, clock, keys, perf, motion, M, first, get beats() { return beats; } };
+window.__T = { tr, rack, mod, folders, gui, drift, clock, keys, perf, motion, M, first, flip, get beats() { return beats; }, get layout() { return layoutName; } };
 window.__ready = true;
 </script>
 </body>

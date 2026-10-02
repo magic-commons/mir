@@ -1,127 +1,200 @@
-/* MIR · shell/transport.css — the basic transport bar (shell/transport.js): play, the MOD lamp, the BPM pill, TAP, the
- * window latches and the seat menu.  Load after the kit's sheets, mir/core/core.css and mir/shell/rack.css.
+/* MIR · shell/transport.css — the transport's parts and the bar they make (shell/transport.js).  Load after the kit's
+ * sheets, mir/core/core.css and mir/shell/rack.css.  Everything is in mir.kit.house; an app rule is unlayered and wins.
  *
- * The geometry is BASINS' `#transport.mini` (skin.css §12: a 46 px pane, 34 px round seats, the bar centred at the
- * bottom, 60 px up; the top seat 52 px down — the rack's seat numbers, RACK.seatTop / seatBottom).  The hooks are
- * BASINS' (`.tbtn`, `.play`, `.modb`, `.tempo-expand`, `.tempo-number`, `.tempo-unit`, `.tempo-hz`,
- * `.transport-tempo-input`), so an app sheet that styles them still matches; an app rule is unlayered and wins.
+ * WHOSE DESIGN.  BASINS' wherever BASINS has the part (app skin.css §12 and 441–465, transport-controls.css, lab.css
+ * 299–349): the 46 px bar 60 px up from the bottom, 34 px round seats that are flat until hovered, play's ink lighting
+ * in accent A, the power ring lighting in accent B, the 72 px BPM pill with its number in accent B, the tempo panel,
+ * the dock chip and the modulation door.  λWAVES' for what only λWAVES has on its bar (skin.css §12: the thin scrub
+ * line, the small RATE knob, the stacked readouts).  The kit's for what neither has (the latches, the seat menu, the
+ * COMPACT seat, the way back) — docs/TRANSPORT.md lists each line.
  *
- * THE LAWS IT DRAWS (docs/INTENT.md)
- *   · THE BAR IS A PANE: CARD STYLE's material through `.glass`, the pane height, the one light from above.
- *   · A SEAT ON THE BAR IS FLAT until it is hovered (a lighter face), pressed (the press wash and one scale) or ON.
- *   · ON IS THE FROST FACE AND A THIN RIM, its light in accent A: play's glyph, the MOD lamp's LED, a latch's label.
- *   · THE BPM PILL STANDS PROUD (the raised relief: "press me", drag me).  THE FIELD YOU TYPE THE TEMPO IN IS A WELL.
- *     BASINS' resting pill wore the inset and read as already pressed (INTENT fact 4); here it does not.
- *   · TIME IS ACCENT B: the tempo's number is a time, so it reads in accent B (as in BASINS).
- *   · THE WAY BACK: under H the bar leaves paint, except on a touch screen, where its one way-back button stays.
- * Every look value is a token declared on the bar, read with the 1.4 name as its fallback.  Everything is in
- * mir.kit.house. */
+ * THE DIFFERENCES INTENT RULES (docs/INTENT.md, Josh 2026-10-01)
+ *   · The resting BPM pill is not a well: BASINS drew it with --neu-inset on --glass-well and it read as already
+ *     pressed.  It wears its own face and the raised relief; the field you type the tempo in is the well.
+ *   · A button never wears a pane's float: BASINS' dock chip and door wore --glass-shadow; here they wear none.
+ *
+ * EVERY LOOK VALUE IS THE KIT'S, so the GUI window restyles the bar with no transport code: the bar is `.glass`
+ * (CARD STYLE, FROST and BLUR reach it through skin.css), its corner reads --surface-radius (CORNERS), the pill reads
+ * --relief-raise (RELIEF), the shadow --surface-shadow (SHADOW, the tier).  BASINS' own numbers are the tokens below. */
 @layer mir.kit.house {
 
-/* FROST · values ─────────────────────────────────────────────────────────────────────────────────────────────── */
+/* FROST · values (BASINS' numbers) ─────────────────────────────────────────────────────────────────────────────── */
 .mir-transport, .mir-transport-seats {
-  --tr-top: 52px;                 /* the top seat, px from the top (the rack's RACK.seatTop) */
-  --tr-bottom: 60px;              /* the bottom seat, px from the bottom (RACK.seatBottom) */
+  --tr-top: 52px;                 /* the top seat (the rack's RACK.seatTop; BASINS / λWAVES `.at-top`) */
+  --tr-bottom: 60px;              /* the bottom seat (RACK.seatBottom; BASINS skin.css:64) */
+  --tr-w: 640px;                  /* the bar's width (BASINS skin.css:456) */
   --tr-h: 46px;                   /* the bar's height (BASINS: the modulation work bar's) */
-  --tr-seat: 34px;                /* a round seat on the bar */
-  --tr-pill-w: 88px;              /* the BPM pill */
-  --tr-radius: 16px;              /* the bar's corner */
-  --tr-face: hsl(var(--glass-tint) / 1);   /* the pill's face: the trigger's, a control that stands proud */
-  --tr-led: 6px;                  /* the MOD lamp's light */
-  --tr-glyph-light: drop-shadow(0 0 3px var(--acc));               /* play's glyph, lit: accent A */
-  --tr-flat: 0 0 0 0 transparent;                                    /* no relief: a flat seat, a sunk pill */
-  --tr-hover-wash: inset 0 0 0 99px var(--state-hover, var(--glass-raise));   /* the pill's lighter face on hover */
+  --tr-seat: 34px;                /* a round seat (BASINS skin.css:78) */
+  --tr-power: 44px;               /* the power button's seat (BASINS transport-controls.css:17) */
+  --tr-pill-w: 72px;              /* the BPM pill (BASINS skin.css:447) */
+  --tr-pill-r: 10px;              /* its corner (BASINS skin.css:87) */
+  --tr-radius: 16px;              /* the bar's corner when CORNERS is at home (BASINS skin.css:66) */
+  --tr-num-size: 12px;            /* the tempo's number (BASINS skin.css:450) */
+  --tr-micro: 7px;                /* BPM and the Hz reading (BASINS skin.css:451–452) */
+  --tr-face: hsl(var(--glass-tint) / 1);                                   /* the pill's face: it stands proud */
+  --tr-pill-rim: var(--glass-hairline);                                    /* the pill's hairline (BASINS) */
+  --tr-pill-rim-hot: color-mix(in srgb, var(--acc2) 60%, transparent);     /* hovered / focused (BASINS skin.css:448) */
+  --tr-pill-rim-open: color-mix(in srgb, var(--acc2) 70%, transparent);    /* its panel open (BASINS skin.css:449) */
+  --tr-pill-glow: 0 0 7px color-mix(in srgb, var(--acc2) 24%, transparent);   /* … and its glow */
+  --tr-glyph-lift: drop-shadow(0 1px 0 var(--glass-raise));                /* the dock chip's and door's glyph (λWAVES lab.css:324) */
+  --tr-panel-fill: linear-gradient(180deg, var(--glass-well), transparent);   /* the tempo panel (BASINS skin.css:455) */
+  --tr-tile-size: 8.5px;          /* the panel's tiles (BASINS skin.css:481) */
+  --tr-tile-track: .04em;         /* … and their tracking */
+  --tr-line-r: 1px;               /* the scrub's fill (λWAVES skin.css:88) */
+  --tr-scrub-line: hsl(0 0% 100% / .14);                                   /* λWAVES' scrub line (skin.css:87) */
+  --tr-flat: 0 0 0 0 transparent;                                          /* no relief */
+  --tr-hover-wash: inset 0 0 0 99px var(--state-hover, var(--glass-raise)); /* a lighter face over a raise */
 }
 /* ── end of the values ── */
 
-/* ── the bar: a pane in a seat ─────────────────────────────────────────────────────────────────────────────── */
+/* ── the bar, on the stage (BASINS `#transport.mini`) ─────────────────────────────────────────────────────── */
 .mir-transport {
   position: fixed; left: 50%; right: auto; top: auto; bottom: var(--tr-bottom); transform: translateX(-50%); z-index: var(--z-chrome);
-  box-sizing: border-box; max-width: calc(100vw - 24px); height: var(--tr-h); padding: 2px 7px 3px;
-  display: flex; align-items: center; border-radius: var(--tr-radius);
+  box-sizing: border-box; min-width: min(var(--tr-w), calc(100vw - 24px)); max-width: calc(100vw - 24px); height: var(--tr-h); padding: 2px 7px 3px;
+  display: flex; align-items: center; gap: 2px; border-radius: var(--surface-radius, var(--tr-radius));
   box-shadow: var(--surface-shadow, var(--glass-shadow)); touch-action: manipulation; user-select: none; -webkit-user-select: none;
 }
 .mir-transport[data-seat="top"] { top: var(--tr-top); bottom: auto; }
-.mir-transport > .native-play-row { display: flex; align-items: center; gap: 2px; min-width: 0; flex-wrap: nowrap; }
+.mir-transport > .native-play-row { display: flex; align-items: center; gap: 2px; flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; }
 .mir-transport .tr-openers { display: flex; align-items: center; gap: 2px; min-width: 0; }
-.mir-transport .tr-sep { flex: 0 0 1px; align-self: stretch; margin: 8px 4px; background: var(--glass-hairline); }
-.mir-transport .tr-sep[hidden] { display: none; }
+.mir-transport .tr-openers:empty { display: none; }
+.mir-transport .tempo-seat { display: contents; }
 
-/* ── a seat on the bar: flat at rest, a lighter face on hover, the wash and a scale when pressed ───────────── */
+/* a round seat: flat until hovered (BASINS skin.css:78–79) */
 .mir-transport .tbtn {
-  flex: 0 0 auto; min-width: var(--tr-seat); height: var(--tr-seat); padding: 0 8px; margin: 0;
+  flex: 0 0 auto; min-width: var(--tr-seat); height: var(--tr-seat); padding: 0; margin: 0;
   display: inline-flex; align-items: center; justify-content: center; gap: 5px;
   border: 0; border-radius: var(--r-pill); background: transparent; box-shadow: var(--tr-flat); color: var(--ink-key, var(--fg-soft));
-  font: var(--w-bold) var(--fs-tiny) var(--font-ui); letter-spacing: var(--label-tracking, var(--tr-wide)); text-transform: var(--label-case, uppercase);
-  cursor: pointer; transition: background var(--t-fast), color var(--t-fast), scale var(--t-fast);
+  font: var(--w-bold) var(--fs-tiny) var(--font-ui); cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
 }
-.mir-transport .tbtn[hidden] { display: none; }
-.mir-transport .tbtn.play, .mir-transport .tr-seat { width: var(--tr-seat); padding: 0; }
+.mir-transport .tbtn[hidden], .mir-transport .mod-exp[hidden], .mir-transport .dock-btn[hidden] { display: none; }
 .mir-transport .tbtn svg { display: block; flex: none; pointer-events: none; }
-.mir-transport .tbtn:hover { background: var(--state-hover, var(--glass-raise)); color: var(--fg); }
-.mir-transport .tbtn:is(:active, .press) { background: var(--state-press, var(--glass-press)); scale: var(--state-press-scale, .96); }
-.mir-transport :is(.tbtn, .transport-tempo-input):focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
+.mir-transport .tbtn.transport-home svg { width: 13px; height: 13px; }
+.mir-transport .tbtn:hover { color: var(--fg); background: var(--state-hover, var(--glass-raise)); }
+.mir-transport :is(.tbtn, .dock-btn, .mod-exp, .transport-tempo-input):focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
 
-/* ON: the frost face and its thin rim; the light in accent A — play's glyph, a latch's label */
-.mir-transport .tbtn.on { background: var(--state-on, var(--glass-raise)); box-shadow: var(--state-on-rim, var(--neu-flat)); color: var(--acc); }
-.mir-transport .tbtn.play.on svg { filter: var(--tr-glyph-light); }
-.mir-transport .tr-open.on .tr-word { text-shadow: var(--state-on-light, var(--acc-glow)); }
+/* play: no face at all; its ink lights in accent A (BASINS transport-controls.css:3–14) */
+.mir-transport .tbtn.play { width: var(--tr-seat); color: var(--fg-soft); }
+.mir-transport .tbtn.play:is(.on, :hover) { background: transparent; color: var(--acc); }
+.mir-transport .tbtn.play svg { width: 20px; height: 20px; transition: transform var(--t-fast); }
+.mir-transport .tbtn.play:hover svg { transform: scale(1.08); }
+.mir-transport .tbtn.play:active svg { transform: scale(.94); }
 
-/* the MOD lamp: lit while modulation is armed — the frost face, and its LED in accent A */
-.mir-transport .modb .tr-led { width: var(--tr-led); height: var(--tr-led); border-radius: 50%; background: var(--glass-well); box-shadow: var(--relief-well, var(--neu-inset)); }
-.mir-transport .modb.on { color: var(--fg); }
-.mir-transport .modb.on .tr-led { background: var(--acc); box-shadow: var(--state-on-light, var(--acc-glow)); }
+/* modulation's POWER: the ring and stem; ON, the ring closes and lights in accent B (BASINS transport-controls.css:15–31) */
+.mir-transport .tbtn.mir-mod-power { width: var(--tr-power); height: var(--tr-power); min-height: var(--tr-power); background: transparent; color: var(--fg-soft); transition: color var(--t-fast); }
+.mir-transport .tbtn.mir-mod-power:hover { background: transparent; }
+.mir-transport .tbtn.mir-mod-power.on { color: var(--acc2); }
+.mir-transport .mir-power-icon { fill: none; overflow: visible; transition: transform var(--t-fast); }
+.mir-transport .mir-power-halo { stroke-width: .6; opacity: .12; transition: opacity var(--t-fast); }
+.mir-transport .mir-power-ring { stroke-dasharray: 48; stroke-dashoffset: 0; transition: stroke-dashoffset var(--t-fast), opacity var(--t-fast); }
+.mir-transport .mir-mod-power:not(.on) .mir-power-ring { stroke-dashoffset: 8; opacity: .55; }
+.mir-transport .mir-mod-power.on .mir-power-halo { opacity: .45; }
+.mir-transport .mir-mod-power:hover .mir-power-icon { transform: scale(1.08); }
+.mir-transport .mir-mod-power:active .mir-power-icon { transform: scale(.94); }
+.mir-transport .tbtn.mir-mod-power:focus-visible { outline: 1px solid var(--acc2); outline-offset: 2px; border-radius: var(--r-md); }
 
-/* ── the BPM pill: it stands proud (raised), its number is a time (accent B) ──────────────────────────────── */
-.mir-transport .tbtn.tempo-expand {
-  position: relative; flex: 0 0 var(--tr-pill-w); width: var(--tr-pill-w); padding: 4px 8px; margin: 0 3px;
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 1fr 1fr; column-gap: 6px; align-items: center;
-  border-radius: var(--r-md); background: var(--tr-face); box-shadow: var(--relief-raise, var(--neu-raise)); color: var(--fg-soft);
-  touch-action: none; cursor: ns-resize; text-transform: none;
+/* the dock chip and the door to the modulation window (λWAVES lab.css:320–326, BASINS lab.css:327–333; no pane float) */
+.mir-transport :is(.dock-btn, .mod-exp) {
+  flex: 0 0 auto; width: var(--tr-seat); height: var(--tr-seat); padding: 0; border-radius: 50%; cursor: pointer;
+  border: var(--glass-border) solid var(--glass-border-color); background: transparent; box-shadow: var(--tr-flat); color: var(--ink-key, var(--fg-soft));
+  display: inline-flex; align-items: center; justify-content: center;
 }
-.mir-transport .tbtn.tempo-expand:hover { box-shadow: var(--relief-raise, var(--neu-raise)), var(--tr-hover-wash); }
-.mir-transport .tbtn.tempo-expand:is(:active, .press, .drag) { background: var(--state-press, var(--glass-press)); box-shadow: var(--tr-flat); }
-.mir-transport .tbtn.tempo-expand[hidden] { display: none; }
-.mir-transport .tempo-number { grid-area: 1 / 1 / 3 / 2; justify-self: start; font: var(--w-bold) var(--fs-lead) / 1 var(--font-num); font-variant-numeric: tabular-nums; color: var(--acc2); }
-.mir-transport .tempo-unit { align-self: end; font: var(--w-bold) var(--fs-micro) / 1 var(--font-ui); letter-spacing: var(--label-tracking, var(--tr-wide)); color: var(--ink-key, var(--dim)); }
-.mir-transport .tempo-hz { align-self: start; font: var(--w-med) var(--fs-micro) / 1.1 var(--font-num); font-style: normal; font-variant-numeric: tabular-nums; color: var(--dim); white-space: nowrap; }
-/* the field you type the tempo in: a well, in the pill's own seat */
+.mir-transport :is(.dock-btn, .mod-exp) > svg { width: 13px; height: 13px; filter: var(--tr-glyph-lift); }
+.mir-transport .mod-exp > svg.mark { width: 16px; height: 16px; }
+.mir-transport :is(.dock-btn, .mod-exp):hover { color: var(--fg); }
+.mir-transport :is(.dock-btn, .mod-exp):active { background: var(--state-press, var(--glass-press)); }
+
+/* ── the BPM pill (BASINS skin.css:447–454); its rest is RAISED, not a well (INTENT, ruled) ─────────────────── */
+.mir-transport .tbtn.tempo-expand {
+  position: relative; order: 8; flex: 0 0 var(--tr-pill-w); width: var(--tr-pill-w); min-width: var(--tr-pill-w); height: var(--tr-seat); padding: 4px 15px 4px 7px;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 1fr 1fr; column-gap: 4px; align-items: center;
+  border: var(--glass-border) solid var(--tr-pill-rim); border-radius: var(--tr-pill-r);
+  background: var(--tr-face); box-shadow: var(--relief-raise, var(--neu-raise)); color: var(--fg-soft); touch-action: none; cursor: ns-resize;
+}
+.mir-transport .tbtn.tempo-expand:is(:hover, :focus-visible) { border-color: var(--tr-pill-rim-hot); box-shadow: var(--relief-raise, var(--neu-raise)), var(--tr-hover-wash); outline: 0; }
+.mir-transport .tbtn.tempo-expand[aria-expanded="true"] { border-color: var(--tr-pill-rim-open); box-shadow: var(--relief-raise, var(--neu-raise)), var(--tr-pill-glow); }
+.mir-transport .tbtn.tempo-expand.drag { box-shadow: var(--tr-flat); background: var(--state-press, var(--glass-press)); }
+.mir-transport .tempo-number { grid-area: 1 / 1 / 3 / 2; align-self: center; font: var(--w-bold) var(--tr-num-size) / 1 var(--font-num); font-variant-numeric: tabular-nums; color: var(--acc2); }
+.mir-transport .tempo-unit { align-self: end; font: var(--w-bold) var(--tr-micro) / 1 var(--font-ui); letter-spacing: var(--tr-wide); color: var(--ink-key, var(--dim)); }
+.mir-transport .tempo-hz { align-self: start; font: var(--w-med) var(--tr-micro) / 1.1 var(--font-num); font-style: normal; font-variant-numeric: tabular-nums; color: var(--dim); white-space: nowrap; }
+.mir-transport .tempo-chevron { position: absolute; right: 6px; top: 50%; width: 5px; height: 5px; margin-top: -4px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor;
+  transform: rotate(45deg); transition: transform var(--t-fast); color: var(--dim); }
+.mir-transport .tempo-expand[aria-expanded="true"] .tempo-chevron { transform: translateY(3px) rotate(225deg); }
+/* the field you type the tempo in: a well, in the pill's seat */
 .mir-transport .transport-tempo-input {
-  box-sizing: border-box; flex: none; margin: 0 3px; padding: 0 8px; border: 0; border-radius: var(--r-md);
+  box-sizing: border-box; order: 8; flex: none; padding: 0 6px; border: 0; border-radius: var(--tr-pill-r);
   background: var(--glass-well); box-shadow: var(--relief-well, var(--neu-inset)); color: var(--acc2);
-  font: var(--w-bold) var(--fs-lead) / 1 var(--font-num); font-variant-numeric: tabular-nums; text-align: center; user-select: text; -webkit-user-select: text;
+  font: var(--w-bold) var(--tr-num-size) / 1 var(--font-num); font-variant-numeric: tabular-nums; text-align: center; user-select: text; -webkit-user-select: text;
 }
 .mir-transport .transport-tempo-input[hidden] { display: none; }
 
-/* ── COMPACT: the small bar — glyphs only, no TAP, no Hz ───────────────────────────────────────────────────── */
-.mir-transport[data-form="compact"] { --tr-h: 40px; --tr-seat: 30px; --tr-pill-w: 52px; }
-.mir-transport[data-form="compact"] :is(.tap, .tempo-hz, .tempo-unit, .tr-open.has-glyph .tr-word) { display: none; }
-.mir-transport[data-form="compact"] .tbtn.tempo-expand { grid-template-columns: 1fr; }
-.mir-transport[data-form="compact"] .tempo-number { font-size: var(--fs-base); justify-self: center; }
+/* ── the tempo panel, below the play row when the pill opens it (BASINS skin.css:351–384, 455, 481) ────────── */
+.mir-transport.tempo-open { flex-wrap: wrap; height: auto; min-height: var(--tr-h); padding-bottom: 8px; }
+.mir-transport .native-tempo { order: 9; width: 100%; box-sizing: border-box; padding: 8px; border-top: 1px solid var(--glass-hairline);
+  border-radius: 0 0 var(--tr-pill-r) var(--tr-pill-r); background: var(--tr-panel-fill); }
+.mir-transport .native-tempo[hidden] { display: none; }
+.mir-transport .tempo-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.mir-transport .native-tempo .trig { min-width: 0; height: 44px; min-height: 44px; padding: 0 3px; justify-content: center; font-size: var(--tr-tile-size); letter-spacing: var(--tr-tile-track); }
+.mir-transport.mini > :is(.tr-openers, .tr-seat, .dock-btn, .mod-exp) { order: 3; }
 
-/* ── the seat menu: a menu (height 4) beside the bar ───────────────────────────────────────────────────────── */
+/* ── λWAVES' own seats on its bar (skin.css §12): the scrub a thin line, a small RATE knob, the readouts stacked ── */
+.mir-transport .fd { flex: 1 1 48px; min-width: 40px; height: 24px; border: 0; background: transparent; box-shadow: var(--tr-flat); border-radius: 0; cursor: ew-resize; overflow: visible; }
+.mir-transport .fd::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; margin-top: -.5px; background: var(--tr-scrub-line); }
+.mir-transport .fd-fill { top: 50%; bottom: auto; height: 2px; margin-top: -1px; border-radius: var(--tr-line-r); background: var(--acc); opacity: .85; }
+.mir-transport .fd-edge { top: 50%; bottom: auto; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--fg); box-shadow: var(--relief-raise, var(--neu-raise)); }
+.mir-transport :is(.fd-lbl, .fd-label, .k-lbl, .k-label, .ro-lbl, .ro-label, .ro-sub) { display: none; }
+.mir-transport .fd-val { right: 0; top: -14px; bottom: auto; font-size: var(--fs-micro); padding: 0 5px; border-radius: var(--r-pill); background: var(--tr-face); }
+.mir-transport .k { width: 34px; gap: 0; flex: 0 0 auto; }
+.mir-transport .k-dial { width: 30px; height: 30px; }
+.mir-transport .k-val { position: absolute; top: -22px; left: 50%; transform: translate(-50%, 2px); font-size: var(--fs-micro); display: none; }
+.mir-transport .k:is(:hover, :focus-within, .drag) .k-val { display: block; transform: translate(-50%, 0); }
+.mir-transport .ro { flex: 0 1 auto; min-width: 0; width: auto; padding: 0 2px; background: transparent; box-shadow: var(--tr-flat); text-align: right;
+  display: flex; flex-direction: column; justify-content: center; align-items: flex-end; gap: 0; overflow: hidden; }
+.mir-transport .ro.time { width: 58px; }
+.mir-transport .ro.period { width: 76px; }
+.mir-transport .ro-val { color: var(--ink-key, var(--fg-soft)); font-size: var(--fs-micro); line-height: 1.15; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── COMPACT (ruled 2026-10-01): glyphs only, no TAP, no Hz reading ───────────────────────────────────────── */
+.mir-transport[data-form="compact"] { --tr-w: 0px; --tr-h: 40px; --tr-seat: 30px; --tr-power: 36px; --tr-pill-w: 52px; }
+.mir-transport[data-form="compact"] :is(.tap, .tempo-hz, .tempo-unit, .tempo-chevron, .tr-open.has-glyph .tr-word, .fd, .ro, .k) { display: none; }
+.mir-transport[data-form="compact"] .tbtn.tempo-expand { grid-template-columns: 1fr; padding: 4px 6px; }
+.mir-transport[data-form="compact"] .tempo-number { justify-self: center; }
+
+/* ── DOCKED: the bar in the rack's TRANSPORT window (BASINS / λWAVES lab.css:317) ──────────────────────────── */
+.mir-transport.docked { position: static; transform: none; min-width: 0; max-width: none; width: auto; height: auto; flex-wrap: wrap; padding: 6px; gap: 6px;
+  border: 0; box-shadow: var(--tr-flat); background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.mir-transport.docked > .native-play-row { flex-wrap: wrap; }
+body.rack-hidden .mir-transport.mir-rack-transport.docked { translate: none; visibility: inherit; }
+
+/* ── the window latches (the kit's: neither app puts window buttons on its bar) ─────────────────────────────── */
+.mir-transport .tbtn.tr-open { padding: 0 8px; text-transform: var(--label-case, uppercase); letter-spacing: var(--label-tracking, var(--tr-wide)); }
+.mir-transport .tbtn.tr-open.on { background: var(--state-on, var(--glass-raise)); box-shadow: var(--state-on-rim, var(--neu-flat)); color: var(--acc); }
+.mir-transport .tr-open.on .tr-word { text-shadow: var(--state-on-light, var(--acc-glow)); }
+.mir-transport .tbtn.tr-seat { width: var(--tr-seat); }
+
+/* ── the seat menu: a menu (height 4) beside the bar (the kit's) ───────────────────────────────────────────── */
 .mir-transport-seats { position: fixed; z-index: calc(var(--z-chrome) + 3); display: flex; flex-direction: column; min-width: 180px; padding: 4px; border-radius: var(--r-lg);
   box-shadow: var(--surface-shadow-menu, var(--glass-shadow)); }
 .mir-transport-seats[hidden] { display: none; }
 .mir-transport-seats .mb-item.on { background: var(--state-on, var(--glass-raise)); box-shadow: var(--state-on-rim, var(--neu-flat)); color: var(--acc); }
 .mir-transport-seats .mb-item:disabled { opacity: var(--state-disabled, .38); pointer-events: none; }
 
-/* ── the way back: hidden until H on a touch screen ───────────────────────────────────────────────────────── */
+/* ── the way back: under H, on a touch screen, the main opener keeps this one button (the kit's) ────────────── */
 .mir-transport > .tr-back { display: none; width: var(--touch, 44px); height: var(--touch, 44px); padding: 0; border: 0; border-radius: 50%;
   background: transparent; color: var(--acc); cursor: pointer; align-items: center; justify-content: center; }
 .mir-transport > .tr-back:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
 body.ui-hidden .mir-transport { display: none; }
 @media (any-pointer: coarse) {
-  /* the bar is the main opener: under H a finger keeps one way back (beats the rack's hide of its transport) */
   body.ui-hidden .mir-transport.mir-rack-transport[data-opener], body.ui-hidden .mir-transport[data-opener] {
-    display: flex; height: auto; padding: 2px; translate: none; visibility: visible; }
-  body.ui-hidden .mir-transport[data-opener] > .native-play-row { display: none; }
+    display: flex; min-width: 0; height: auto; padding: 2px; translate: none; visibility: visible; }
+  body.ui-hidden .mir-transport[data-opener] > :not(.tr-back) { display: none; }
   body.ui-hidden .mir-transport[data-opener] > .tr-back { display: inline-flex; }
-  .mir-transport .tbtn { min-width: 32px; min-height: 32px; }
+  .mir-transport :is(.tbtn, .dock-btn, .mod-exp) { min-width: 32px; min-height: 32px; }
 }
 
-/* ── reduced motion: no scale on a press ───────────────────────────────────────────────────────────────────── */
-@media (prefers-reduced-motion: reduce) { .mir-transport .tbtn:is(:active, .press) { scale: none; } }
-:root[data-motion="off"] .mir-transport .tbtn:is(:active, .press) { scale: none; }
+/* ── reduced motion: no scale on a glyph (BASINS transport-controls.css:32–35) ──────────────────────────────── */
+@media (prefers-reduced-motion: reduce) { .mir-transport :is(.tbtn.play svg, .mir-power-icon, .mir-power-halo, .mir-power-ring) { transition: none; transform: none; } }
+:root[data-motion="off"] .mir-transport :is(.tbtn.play svg, .mir-power-icon) { transition: none; transform: none; }
 
 }   /* end @layer mir.kit.house */

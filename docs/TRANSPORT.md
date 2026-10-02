@@ -1,156 +1,155 @@
-# MIR · TRANSPORT — the basic transport bar, the main opener
+# MIR · TRANSPORT — the transport's parts, and the bar an app lays out from them
 
-`mir/shell/transport.js` and `mir/shell/transport.css`. The transport bar is the small floating bar at the bottom of every MIR app: **play**, the **MOD lamp**, the **BPM pill**, **TAP**, and one **latch** per main window. It is the first thing a person sees and the thing they open everything else from.
+`mir/shell/transport.js` and `mir/shell/transport.css`. The transport is the small floating bar every MIR app has: play, modulation's power, the BPM pill, the door to the modulation window, and (in 1.5) one latch per main window. It is the first thing a person sees and the thing they open everything else from.
 
-Josh ruled it on 2026-10-01: *"Always basic Transport Bar as the main opener."* and *"Let 30BPM be the default."*
+Josh's rulings, 2026-10-01:
+- *"Always basic Transport Bar as the main opener."* · *"Let 30BPM be the default."*
+- *"Prefer BASINS. However keep the Transports as they are per each app. If a feature is similar or the same on Basins/Lambdawaves, then use their design. Lambdawaves should have its same Transport layout but upgraded to be customizable by 1.5's crazy CSS settings."*
+- *"We're making modulation a power button and no longer a play button … Timeline will have the true play while Modulation will now have a power button like Basins."*
+- The kit's own choices (the COMPACT seat with no TAP and no Hz reading, the ⠿ seat menu, the way back under H, a latch press toggling its window) were approved as built.
 
-Every app carried its own bar (BASINS' `transport.js` was the best, λWAVES and the NEBULA ports had theirs). This module is BASINS' basic bar, moved into the kit. Try it at `gallery/transport.html` (`?fresh` forgets everything, so the page opens as a first run).
+So **the kit gives parts and the look; the layout is the app's.** Every part is an exported builder an app can place in its own arrangement; `createTransport({ layout })` assembles a bar from an ordered list. With no layout you get BASINS' basic bar. λWAVES' transport is the same parts in λWAVES' order. Try both at `gallery/transport.html` (the switch at the top left; `?fresh` opens a first run).
 
 Load `mir/shell/transport.css` after the kit's sheets, `mir/core/core.css` and `mir/shell/rack.css`. It sits in `@layer mir.kit.house`.
 
 ## Using it
 
 ```js
-import { createTransport, firstRun, rackOpeners, transportActions } from './mir/shell/transport.js';
-import { createRack } from './mir/shell/rack.js';
-import { createKeys } from './mir/shell/keys.js';
+import { createTransport, firstRun, rackOpeners, transportActions, BASINS_LAYOUT, LAMBDAWAVES_LAYOUT } from './mir/shell/transport.js';
 
-// 1. Ask first: is anything saved?  A first run leaves every window closed, so the bar is all there is.
-const first = firstRun('myapp.transport', 'myapp.rack');
-
-// 2. The key table: the bar's row gives Space to play (the bar is made below, so it is read through a getter).
+const first = firstRun('myapp.transport', 'myapp.rack');          // a first run: leave every window closed
 let tr = null, rack = null;
-const keys = createKeys({ actions: [...transportActions(() => tr), /* … the app's own … */] });
+const keys = createKeys({ actions: [...transportActions(() => tr), /* … */] });   // Space: the one play
 
-// 3. The bar, first.  The rack needs the bar's element, so the bar takes the rack as a getter.
 tr = createTransport({
-  opener: true,                       // the main opener (the default)
-  clock: mod.host.clock,              // or the app's own { play, pause, isPlaying, onChange }
-  mod,                                // installModulation's result: the MOD lamp
+  layout: BASINS_LAYOUT,                    // or the app's own list (below)
+  clock: timeline.clock,                    // THE ONE PLAY's clock: the timeline's, or the app's main clock
+  mod,                                      // installModulation's result: the power button, the door, the panel's clock tiles
   keys, rack: () => rack, key: 'myapp.transport',
-  openers: () => [...rackOpeners(rack)(),                       // the rack's windows, described once (in register)
-    { id: 'folders', label: 'FOLDERS', glyph: 'folder', key: 'S', open: () => folders.open(), close: () => folders.close(), isOpen: () => folders.isOpen() },
-    { id: 'gui', label: 'GUI', glyph: 'sliders', open: () => gui.open(), close: () => gui.close(), isOpen: () => gui.window.isOpen() }],
+  openers: () => [...rackOpeners(rack)(), { id: 'folders', label: 'FOLDERS', glyph: 'folder', open: () => folders.open(), close: () => folders.close(), isOpen: () => folders.isOpen() }],
 });
 rack = createRack({ key: 'myapp.rack', transport: tr.root });
-rack.register({ id: 'camera', title: 'CAMERA', open: !first, glyph: 'camera', build(b) { … } });
-
-// 4. Every floating window reports where it is to the bar: it hands the rect to the rack's dodge.
-createFolders({ …, onMoved: (r) => tr.moved(r) });
-installModulation({ …, moved: (r) => tr.moved(r) });
+createFolders({ …, onMoved: (r) => tr.moved(r) });               // every floating window reports where it is
 ```
+
+**A layout** is an array. Each entry is a part's name, `app:<name>` (one of the app's own nodes, passed in `nodes`), a DOM node, or a group `{ group: 'class names', items: [...] }`.
+
+| Part name | The part | Builder |
+|---|---|---|
+| `play` | the one true play | `playButton({ clock, onRefused })` |
+| `power` | modulation's power | `modPower({ mod })` |
+| `door` | the door to the modulation window | `modDoor({ mod })` |
+| `tempo` | the BPM pill (and the field you type it in) | `tempoPill({ tempo, panel })` |
+| `panel` | the tempo panel the pill opens | `tempoPanel({ tempo, mod })` |
+| `tap` | TAP as a seat of its own | `tapButton({ tempo })` |
+| `rewind` | seek to the beginning (needs `clock.seek`) | `barButton({ cls: 'transport-home', svg: SVG_REWIND, run })` |
+| `openers` | the window latches | `latch(opener)` each |
+| `seat` | ⠿, the seat menu | (createTransport) |
+| `dock` | the dock chip | (createTransport) |
+| — | the way back under H (always the bar's last child) | `wayBack({ run })` |
+
+```js
+BASINS_LAYOUT      = [{ group: 'native-play-row', items: ['play', 'power', 'rewind', 'tempo'] }, 'panel', 'openers', 'seat', 'dock', 'door'];
+LAMBDAWAVES_LAYOUT = [{ group: 'native-play-row', items: ['play', 'power', 'rewind', 'app:back', 'app:forward', 'app:scrub', 'app:jump',
+                       'app:time', 'app:period', 'app:rate', 'tempo'] }, 'panel', 'openers', 'seat', 'dock', 'door'];
+```
+
+λWAVES passes its own step buttons, scrub fader, ⟳ jump, readouts and RATE knob as `nodes` (they are the app's instruments). The gallery builds them from kit widgets on its own clock.
 
 ## The API, as built
 
-**`createTransport(options)`**
+**`createTransport(options)`** — `layout` (default `BASINS_LAYOUT`), `nodes`, `clock`, `mod`, `model` (`mir/modulation/mod.js`), `setBpm`, `persist`, `openers` (array or function), `rack` (or `() => rack`), `keys`, `store` / `key` (the seat), `opener` (default `true`), `onRefused`, `onInterface`, `host`, `root` (an element to adopt, e.g. BASINS' `#transport`), `id`.
 
-| Option | Default | What it is |
+It returns `{ root, layout, parts, el: { play, power, door, pill, field, panel, seat, dock, back, menu, openers }, toggle(), play(), pause(), setBpm(v), bpm, edit(), moved(rect | null), setSeat(seat), seat, dock(on), docked, seatMenu(show), sync(), refresh(), start(), destroy() }`. `destroy()` leaves an adopted root empty, so the app can build another layout on it (the gallery's switch does).
+
+**The parts** each return `{ root, sync(), destroy() }` and take a `signal` (an AbortSignal) that ends their listeners. **`createTempo({ model, setBpm, mod, persist })`** → `{ get, set(v), commit(), min, max, onChange(fn) }` is the one read and write every tempo part shares: it writes through the modulation clock's `setBpm` when there is one (it re-anchors, so the beat is continuous), else `model.setTransport`.
+
+**Pure helpers** (`tests/transport.node.mjs`): `formatBpm`, `clampBpm`, `digitStep`, `charAt`, `dragBpm`, `keyStep`, `parseBpm`, `seatOf`, `homeOf`, `seatRect`, `menuSide`, `firstRun`, `localSeatStore`, `menuRow`, `openerRows`, `isOpenOf`, `toggleOf`, `rackOpeners`, `transportActions`, `layoutNames`; `TRANSPORT`, `SEATS`, `DOCK_ID`, `SVG_REWIND`.
+
+## Whose design each piece is
+
+| Piece | Design |
+|---|---|
+| The bar on the stage: `#transport.mini`, 46 px tall, 60 px up from the bottom, centred, 640 px wide (wider when its parts need it), 2 px gaps | BASINS' |
+| The round seats: 34 px, flat, `--ink-key`; hover is a lighter face and `--fg` | BASINS' |
+| **Play**: no face; its ink lights in accent A while playing; the glyph swaps ▶ / ❚❚ and scales 1.08 on hover, .94 when pressed; `aria-label` "Play or pause" | BASINS' |
+| **Play is the only thing that starts or stops time** | ruled by Josh 2026-10-01 |
+| **Modulation's power**: the ring-and-stem glyph in a 44 px seat; off, the ring opens and dims; on, it closes and lights in accent B with its halo; a press is `mod.arm(!mod.armed())`, BASINS' `toggleModulation` | BASINS' (and ruled by Josh 2026-10-01: a power button, not a play) |
+| **The door** to the modulation window: the MIR mark in a 34 px round seat with a hairline (`.mod-exp.mod-logo`) | BASINS' / λWAVES' |
+| **The BPM pill**: 72 px, the number in accent B (12 px), BPM and the Hz reading (7 px), the chevron, a hairline that warms to accent B on hover and when the panel is open | BASINS' |
+| The pill's drag (the digit under the pointer is the step; 9 px a step, a finger 14 px in ones), its wheel (by the digit under the pointer), its keys (↑ → up, ↓ ← down, Shift a tenth, PageUp/PageDown ten) | BASINS' |
+| A click on the pill opens the **tempo panel**: TAP, WALL / FREE, the cadence, ÷2 ×2 ×4 (hold to bend, tap to latch), HOLD ¼, HOLD 1 | BASINS' (λWAVES has the same panel) |
+| **TAP's place**: in the tempo panel | BASINS' |
+| **The resting pill stands proud** (its own face and the raised relief), not a well | ruled by Josh 2026-10-01 (INTENT: BASINS' rested in a well and read as already pressed) |
+| A double click on the pill types the tempo, in a well in the pill's seat (Enter or leaving takes it, Escape does not) | the kit's (BASINS types the tempo only in its timeline form) |
+| **The dock chip** (`.dock-btn`, the north glyph): the bar goes into a rack window named TRANSPORT and back | BASINS' / λWAVES' |
+| The dock chip and the door wear no pane shadow | ruled (INTENT: a button never wears a pane's float; BASINS gave them `--glass-shadow`) |
+| The dodge: the bottom seat unless a floating window covers it, then the top | BASINS' / λWAVES' (the rack's `dodge`) |
+| **λWAVES' bar**: play, power, rewind, ‹ ›, the scrub as a thin line, ⟳, the stacked readouts, the small RATE knob, the pill, then dock and door | λWAVES' (lab/rack.js §25, skin.css §12), with its MOD word replaced by the power button (ruled) |
+| **The window latches** (a glyph and a word; lit with the frost face and the label in accent A; a press toggles the window) | ruled by Josh 2026-10-01 (the kit's) |
+| **The seats BOTTOM, TOP, COMPACT** and the ⠿ menu (a right click or a long press opens it too); COMPACT: glyphs only, no TAP, no Hz reading | ruled by Josh 2026-10-01 (the kit's) |
+| **The way back** under H on a touch screen | ruled by Josh 2026-10-01 (the kit's) |
+| The focus ring on the seats (`--state-focus`), and on the power button BASINS' 1 px accent-B outline | the kit's / BASINS' |
+
+## The two clocks become one
+
+λWAVES has two clocks today: the transport's play and the modulation window's MOD ▶ (with LINKED / SEPARATE). In 1.5 there is **one play**, the transport's, bound to the app's timeline (or main) clock, and **modulation has a power button**, BASINS' (Josh, 2026-10-01). The gallery's λWAVES layout shows it: one ▶, and the power ring where λWAVES had MOD. When λWAVES moves to 1.5, its MOD button becomes `power` and its MOD ▶ tile goes. (The modulation window's own play button is changed in `mir/modulation/`, not here.)
+
+## Customizable by 1.5's settings
+
+Every look value of the bar is the kit's, so the GUI window restyles it with no transport code:
+
+| Setting (GUI window) | What it changes on the bar | How |
 |---|---|---|
-| `opener` | `true` | this bar is the main opener: it is marked `data-opener`, and under H on a touch screen it keeps its way-back button |
-| `host` | `document.body` | where the bar and its seat menu are appended |
-| `root` | the element with `id`, else a new one | an existing element to adopt (BASINS' `#transport`) |
-| `id` | `'transport'` | the bar's id |
-| `clock` | `mod.host.clock` | `{ play(), pause(), isPlaying(), toggle?(), onChange?(fn) → off }`. No clock: no play button |
-| `mod` | — | the modulation seam (`installModulation`'s result): `armed()`, `onArm(fn)`, `toggle()`, `isOpen`. No `mod`: no MOD lamp |
-| `model` | `mir/modulation/mod.js` | the transport model: `transport.bpm`, `setTransport`, `tapTempo`, `BPM_MIN`, `BPM_MAX`, `BPM_DEFAULT` |
-| `setBpm` | `mod.host.clock.setBpm`, else `model.setTransport` | how a tempo is written (the modulation clock re-anchors so the beat is continuous) |
-| `persist` | `mod.persist()` | called once a tempo is committed: a drag let go, a wheel step, a key, a typed value, a tap |
-| `openers` | `[]` | `[{ id, label, glyph?, key?, action?, hint?, open(), close?(), toggle?(), isOpen }]`, or a function returning it (read again on every paint, so windows registered later appear). `isOpen` may be a function or a getter. `key` is a key cap shown in the hint; `action` names a key-table action instead |
-| `rack` | — | the rack, or `() => rack` |
-| `keys` | — | the app's key table (`shell/keys.js`): the bar writes its key hints from it |
-| `store` | localStorage under `key` | `{ get() → { v, seat } \| null, set(value) }` for the seat |
-| `key` | `'mir.transport'` | the default store's key |
-| `onRefused` | — | `(result)` when the clock refuses to play (the modulation clock does when nothing is routed); hand it to `notice()` |
-| `onInterface` | `rack.setInterface(true)` | the way back under H |
+| CARD STYLE | TINTED: the tint, never a blur; REFRACTIVE: the veil and the blur | the bar is `.glass` |
+| FROST | off: no blur anywhere | skin.css |
+| BLUR | the blur's radius | `--glass-blur` |
+| CORNERS | the bar's corner, the same as every pane's (BASINS' 16 px, `--tr-radius`, only where the 1.5 surface tokens are absent) | `border-radius: var(--surface-radius, var(--tr-radius))` |
+| RELIEF | flat: the pill loses its raise | `--relief-raise` |
+| SHADOW, the tier | flat tier: no shadow, no blur, no relief | `--surface-shadow`, the tier's tokens |
 
-It returns:
-
-| Member | What it does |
-|---|---|
-| `root` | the bar (`#transport.mir-transport.glass.mini`) |
-| `el` | `{ play, lamp, pill, field, tap, seat, back, menu, openers }`, the nodes |
-| `toggle()`, `play()`, `pause()` | the clock |
-| `setBpm(v)`, `bpm` | the tempo (clamped to the model's range, on the tenth; committed) |
-| `edit()`, `tap()` | type the tempo; one tap |
-| `moved(rect \| null)` | a floating window reports where it is; the rack's dodge moves the bar, and the latches re-read |
-| `setSeat('bottom' \| 'top' \| 'compact')`, `seat`, `seatMenu(show)` | the seat, chosen and remembered |
-| `sync()`, `refresh()` | paint now; paint in the next frame |
-| `destroy()` | removes every listener and every node it made (an adopted root is given back bare) |
-
-**Pure helpers** (node-tested in `tests/transport.node.mjs`): `formatBpm`, `clampBpm`, `digitStep(text, i)`, `charAt(boxes, x)`, `dragBpm`, `keyStep`, `parseBpm`, `seatOf`, `homeOf`, `seatRect`, `menuSide`, `firstRun(...stores)`, `localSeatStore`, `menuRow`, `openerRows`, `isOpenOf`, `toggleOf`, `rackOpeners(rack, { only, glyphs })`, `transportActions(get)`; the numbers `TRANSPORT` and `SEATS`.
-
-**The DOM it keeps** (BASINS' names, so its sheets keep matching): `#transport.mir-transport.glass.mini[data-opener][data-home][data-form][data-seat]` > `.native-play-row` > `button.tbtn.play`, `button.tbtn.modb.mir-transport-lamp` (`.tr-word`, `.tr-led`), `button.tbtn.tempo-expand[role=spinbutton]` (`b.tempo-number`, `span.tempo-unit`, `i.tempo-hz`), `input.transport-tempo-input`, `button.tbtn.tap`, `.tr-sep`, `.tr-openers` > `button.tbtn.tr-open[data-opener]`, `button.tbtn.tr-seat`; `button.tr-back`; the seat menu `.glass.mb-list.mir-transport-seats` > `button.mb-item[data-seat-choice]`. A latch that is open is `.on` with `aria-pressed="true"`.
-
-## The bar
-
-| Part | What it does |
-|---|---|
-| **▶ / ❚❚** | plays or pauses the clock the app passes. ON (playing) is the frost face and rim, its glyph lit in accent A. **Space** plays it through the app's key table (`transportActions`) |
-| **MOD** | the modulation window's opener. Its LED is lit in accent A while modulation is armed; a press opens or closes the window (`aria-expanded` says which) |
-| **The BPM pill** | the tempo, in accent B (time). **Drag up or down**: the digit under the pointer is the step (on `30.0`: the `3` steps by 10, the first `0` by 1, the last `0` by 0.1), one step per 9 px; a finger steps in ones, one per 14 px. **The wheel** steps by the digit under the pointer. **↑ ↓** step by one, **Shift** by a tenth, **PageUp / PageDown** by ten. **A double click, a double tap or Enter** types it: the pill gives its seat to a field; Enter or leaving the field takes the value, Escape does not. Escape during a drag puts the tempo back |
-| **TAP** | taps the tempo (`mod.js` `tapTempo`: four taps set it, a long gap starts a new count, a wild tap restarts the run) |
-| **The latches** | one per main window, from data. Lit (the frost face, the label in accent A) while its window is open, however it was closed |
-| **⠿** | the seat menu: **BOTTOM** (the default), **TOP**, **COMPACT**. A right click or a long press anywhere on the bar opens it too |
-
-With nothing saved the pill reads **30.0**: the model's `BPM_DEFAULT` (Josh, 2026-10-01).
+`tests/transport.browser.mjs` checks every row in both layouts. BASINS' own numbers (the bar's width and height, the seats, the pill) are `--tr-*` tokens declared on `.mir-transport`, so a skin can change them.
 
 ## The opener law
 
-1. **An app calls `createTransport({ opener: true })` first** and asks `firstRun(store, …)` before it opens anything. `firstRun` is true when none of the stores it names holds anything (a store is `{ get() }` or a localStorage key; a store that throws counts as empty).
-2. **On a first run the app leaves every window closed.** The bar is the only thing on screen, and every main window opens from one of its latches. (With the rack: register windows with `open: !first`. FOLDERS, GUI and the modulation window stay closed unless opened.)
-3. **The bar names every main window.** The app passes its main windows as openers: FOLDERS, MODULATION (the MOD lamp), TIMELINE, the rack's windows, the notebook, GUI. `rackOpeners(rack)` makes the rack's rows from the rack's own data (`rack.spec(id)` once the join lands; until then the WINDOW menu's rows), so a window is described once, in `register`.
-4. **Hiding the interface never strands a finger.** Under H (`body.ui-hidden`, `rack.setInterface(false)`) the bar leaves paint like everything else; on a touch screen (`any-pointer: coarse`) the main opener keeps one button, the way back (`.tr-back`), as well as the rack's edge handle.
+1. An app calls `createTransport({ opener: true })` first and asks `firstRun(store, …)` before it opens anything (true when none of the stores holds anything; a store is `{ get() }` or a localStorage key).
+2. On a first run the app leaves every window closed: the bar is the only thing on screen. With the rack, register windows `open: !first`.
+3. The app passes its main windows as openers (`rackOpeners(rack)` reads the rack's own registrations, the docked bar's window aside), so a window is described once.
+4. Under H, on a touch screen, the main opener keeps one button, the way back.
 
 ## The laws
 
 | # | Law | How |
 |---|---|---|
-| 1 | One dodge: the rack's | `moved(rect)` hands the rect to `rack.dodge`; the rack writes `data-seat` and runs its sequence (it waits on each animation, no timers). The bar writes `data-seat` only when there is no rack |
-| 2 | One writer per element per frame | the drag's moves come through `core/pointer.js` `drag` (coalesced in the one frame); every paint is `perf.setText` / `setAttr`, written only where it changed |
-| 3 | Latches say the truth | after any click or key on the page, on the rack's `devopen` / `devclose`, on the arm and on the clock's `onChange`, the bar books ONE paint in the next frame and re-reads every `isOpen`. No poller |
-| 4 | Idle costs nothing | no rAF and no timer at rest (tested: zero frames and zero rAF) |
-| 5 | A resting control is raised or flat; a field you type in is a well | the pill wears `--relief-raise` on its own face; the typed field `--relief-well` on `--glass-well`; the seats on the bar are flat until hovered, pressed or ON (INTENT fact 4) |
-| 6 | ON is the frost face and a thin rim, its light in accent A | play's glyph, the MOD lamp's LED, a latch's label |
-| 7 | Keyboard and touch are first-class | the bar is one tab stop (a roving `tabindex`: ← → Home End walk it, mirrored right to left); every seat is 32 px or more on a coarse pointer; a long press opens the seat menu where a mouse would right-click |
-| 8 | No English in a lookup | words through `label()` / `ariaLabel()`; parts found by class and `data-opener`, `data-seat-choice` |
+| 1 | One true play | only `playButton` starts or stops time; the power button is the arm; the door and the latches open windows |
+| 2 | One dodge: the rack's | `moved(rect)` → `rack.dodge`; the rack writes `data-seat`; docked, the bar does not dodge |
+| 3 | Latches say the truth; nothing polls | one paint in the next frame after a click or key on the page, `devopen`/`devclose`, the arm, the clock, the tempo. BASINS' 250 ms interval is gone |
+| 4 | Idle costs nothing | tested: zero frames, zero rAF |
+| 5 | Every look value is the kit's | the table above |
+| 6 | Keyboard and touch | one tab stop for the bar (← → Home End walk it; on the pill ← → step the tempo, as in BASINS); 32 px seats on a coarse pointer; a long press opens the seat menu |
+| 7 | No English in a lookup | words through `label()` / `ariaLabel()`; parts found by class and `data-opener`, `data-seat-choice` |
 
 ## What an adopting app deletes
 
 | App | Deletes |
 |---|---|
-| BASINS | `app/transport.js` lines 26–75 (play, the MOD power, the pill and its drag, wheel and keys) and 159–185 (the sync and its 250 ms `setInterval` poller); `app/transport-controls.js` and `app/transport-controls.css` (the play and power faces, stripped by layered `!important`); `app/tempo-editor.js` for the bar (the modulation work bar may keep it); `app/transport-dodge.js` (its 220/400/330 ms timers; the rack's dodge replaces it); the `stage` and `rack` seats of `transport-placement.js`; `skin.css` §12 and lines 441–465 (`#transport.mini` geometry, the pill's well at rest), `lab.css` 177–179, 299–349, 558 (the bar, its two transition timings), the hand-written WINDOW rows that open the main windows |
-| A NEBULA-port app (NEBULA-REDUX, SOLEIL, AUTOMATA, POLAR, EARTH) | the transport card and its play, tempo and window buttons in the port (`lab.js` / `rack.js`), its `#transport` rules in `lab.css` / `skin.css`, and the λWAVES `modDodge` copy |
-
-**What stays in the app:** the macro rail tiles and the CLOCK pane (WALL / FREE, the cadence, ÷2 ×2 ×4 bends, HOLD ¼ / 1), the 10ⁿ depth readout, the rewind, the dock chip, the timeline-mounted form, and the MIR diamond logo button. See below.
-
-## What differs from BASINS' bar, and why
-
-| Changed | Why |
-|---|---|
-| The resting BPM pill is **raised**, not a well | INTENT fact 4: BASINS' pill wore `--neu-inset` at rest and read as already pressed. A field you type in is a well; a control you press or drag stands proud |
-| A single click on the pill does nothing; a **double click / double tap or Enter** types it | Josh's brief. In BASINS a click opened the tempo panel (stage) or the editor (timeline) |
-| **TAP** is on the bar | BASINS kept TAP in the CLOCK pane behind the pill; on the basic bar it is one press away |
-| The MOD lamp **opens the modulation window**; its light says "armed" | the brief. BASINS' power glyph toggled the arm and the separate diamond logo opened the window. Arming stays in the modulation window |
-| ON is the frost face, rim and an accent-A light | INTENT. BASINS lit play with accent ink only and the MOD power in accent B |
-| **← →** walk the bar; ↑ ↓ (and pages) step the tempo | a roving tab stop (one Tab into the bar). BASINS stepped the tempo on ← → too |
-| No 250 ms `setInterval` sync | latches and the lamp re-read on the page's own events, coalesced to one frame (law 3) |
-| The dodge is the rack's sequence | BASINS' `transport-dodge.js` ran on `animationend` plus 220/400/330 ms belts and wrote `style.animation` from two files |
-| Window buttons are **latches from data** | BASINS' bar had only the modulation door; its windows opened from the menubar |
-| Seats: BOTTOM, TOP, COMPACT, chosen by the user and remembered | BASINS chose stage / rack / timeline by itself. The docked-in-rack seat is not built (below) |
+| BASINS | `app/transport.js` (the bar, the pill and its drag, wheel and keys, the tempo panel's clock tiles, the dock chip and the door, the 250 ms sync interval; the macro rail stays), `transport-controls.js` and `.css` (the play and power faces and their `!important` layer), `transport-dodge.js` (its timers; the rack's dodge replaces it), the stage and rack seats of `transport-placement.js`, the `#transport` rules in `skin.css` §12 and 441–490 and in `lab.css` 177–179, 299–349, 558 |
+| λWAVES (at 1.5) | the transport strip's play / MOD / rewind wiring in `lab/rack.js` §25, the tempo pill and panel in `native-ui.js`, the dock chip and the logo door, the `#transport` rules in `lab.css` / `skin.css`, and `modDodge`; it keeps its scrub, readouts, RATE and ⟳ and passes them as `nodes` |
+| A NEBULA-port app | its transport card and its `modDodge` copy |
 
 ## Left for later
 
-- **The timeline-mounted form** (BASINS `timeline-mounted`: the bar inside the TIMELINE's work bar, the tempo panel above or below it, the work-lane events).
-- **The macro rail tiles**: they need the modulation window's `buildMacroSlot` and its `api.wireGrip` / `wireDepth` / `moveMacro`, which `mir/modulation/window.js` keeps inside the window. A later step can expose them and put the rail back under the pill.
-- **The CLOCK pane**: WALL / FREE, the cadence, the ÷2 ×2 ×4 bends and HOLD. Each is one `trig` over the clock (`setSync`, `hold`, `release`); they were left off the basic bar.
-- **The CLOCK readout's deep-zoom parts** (BASINS' 10ⁿ decade, the rewind). The rewind is `clock.seek(0)`.
-- **The docked seat** (the bar as the first thing in the rack, BASINS' `docked`, λWAVES' phone `wTr` card). `RACK.md` lists it as not built.
-- **TOP needs one hunk in `rack.js`** (`setHome`, `dodgeSeat`'s `home`): until it lands, TOP is offered disabled whenever a rack is present (with no rack it works).
+- **The timeline-mounted form** (BASINS `timeline-mounted`).
+- **The macro rail** in the tempo panel: it needs the modulation window's `buildMacroSlot` and its `wireGrip` / `wireDepth` / `moveMacro`, which `mir/modulation/window.js` keeps inside the window.
+- **The cadence tile** shows only when the seam has `cadence()` / `setCadence()` (installModulation does not expose them yet).
+- **BASINS' 10ⁿ depth readout** (an app node: pass it in `nodes`).
+- **The door's hover motion** (BASINS cycles the mark's colours, λWAVES spins it): the kit's mark is static here.
+- **TOP with a rack** needs the rack's `setHome` (one hunk at the join); until then TOP is offered disabled when a rack is present.
 
 ## Proofs
 
-- `tests/transport.node.mjs`: the pure part (7 groups) — the step under the pointer, the clamp and the tenth, a drag's and a key's tempo, a typed tempo, the seats' geometry and repair, `firstRun`, the opener rows (from objects and from the rack's WINDOW menu), the key table's row.
-- `tests/transport.browser.mjs` on `gallery/transport.html`, real CDP pointer, wheel and keys, every press hit-tested with `elementFromPoint` (23 checks): a first load shows only the bar; the pill reads 30.0 with nothing saved; play toggles the clock and its light; a drag on the tens digit steps by 10, on the tenths by 0.1, on the ones by 1; the wheel by the digit under the pointer; ↑ ↓ Shift PageUp; the resting pill stands proud and the typed field is a well (computed style); Enter and a double click type it, Escape leaves it; four taps set it; a rack window's latch opens it and its own × unlatches it; GUI's latch and its own close chip; the MOD lamp opens the modulation window; the bar dodges a floating window and comes back with no animation left; H takes the bar out of paint and back; idle is zero frames and zero rAF; the seat menu and COMPACT; a reload keeps the seat; under `qps` every word and accessible name translates and the number does not; no exception.
-- Plates: `docs/plates/transport/transport-first-run.png`, `transport-dark.png`, `transport-light.png`. Retake them with `MIR_PLATES=1 MIR_BASE=… node tests/transport.browser.mjs`.
+- `tests/transport.node.mjs` (8 groups): the step under a pointer, the clamp and the tenth, BASINS' drag and keys, a typed tempo, the seats, `firstRun`, the openers, the key-table row, the two layouts (one play each, no second play), `createTempo`.
+- `tests/transport.browser.mjs` on `gallery/transport.html`, real CDP pointer, wheel and keys, every press hit-tested with `elementFromPoint`: first run; 30.0 and 72 px; play runs the clock; **the power button toggles modulation and never the clock, and play never the power**; the drag by tens, tenths and ones; the wheel; BASINS' keys; a click opens the tempo panel and TAP there sets the tempo; a double click types it; the resting pill is not a well and the field is; latches and closing from the window; the door; the dodge; the dock chip, in and out; **the settings check in both layouts** (card, frost, BLUR, CORNERS, RELIEF, the flat tier); the λWAVES layout from the switch, its one play; H; idle; the seat and the layout across a reload; `qps`.
+- Plates (`MIR_PLATES=1`): `docs/plates/transport/transport-first-run.png`, `transport-basins-dark.png`, `transport-basins-light.png`, `transport-lambdawaves-dark.png`, `transport-lambdawaves-light.png`.
 
-**Not proven:** the way back under H on a real touch screen (the rule is CSS on `any-pointer: coarse`; the headless run is a fine pointer); the long press (built, not driven); WebKit and a real iPad; a screen reader.
+**Not proven:** the way back on a real touch screen (the CSS rule is on `any-pointer: coarse`; the headless run is a fine pointer), the long press, WebKit and a real iPad, a screen reader.

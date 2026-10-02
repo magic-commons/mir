@@ -3,7 +3,7 @@
  * the opener rows (from objects, from the rack's WINDOW menu), and the key table's row for Space. */
 import assert from 'node:assert/strict';
 import { TRANSPORT, SEATS, formatBpm, clampBpm, digitStep, charAt, dragBpm, keyStep, parseBpm, seatOf, homeOf, seatRect, menuSide,
-  firstRun, menuRow, openerRows, isOpenOf, toggleOf, rackOpeners, transportActions } from '../mir/shell/transport.js';
+  firstRun, menuRow, openerRows, isOpenOf, toggleOf, rackOpeners, transportActions, layoutNames, createTempo, BASINS_LAYOUT, LAMBDAWAVES_LAYOUT } from '../mir/shell/transport.js';
 import { BPM_DEFAULT, BPM_MIN, BPM_MAX } from '../mir/modulation/mod.js';
 
 let n = 0;
@@ -35,10 +35,21 @@ const pass = (name) => { n++; console.log(`PASS ${name}`); };
   assert.equal(dragBpm(30, -TRANSPORT.pxPerStep, 1, false, R), 29, 'down is less');
   assert.equal(dragBpm(30, TRANSPORT.touchPxPerStep * 2, 10, true, R), 32, 'a finger steps in ones, 14 px a band');
   assert.equal(dragBpm(290, 900, 10, false, R), BPM_MAX, 'clamped');
-  assert.equal(keyStep('ArrowUp'), 1); assert.equal(keyStep('ArrowDown', true), -0.1); assert.equal(keyStep('PageUp'), 10); assert.equal(keyStep('PageDown', true), -10);
-  assert.equal(keyStep('ArrowLeft'), 0, '← → walk the bar, they do not step'); assert.equal(keyStep('KeyA'), 0);
+  assert.equal(keyStep('ArrowUp'), 1); assert.equal(keyStep('ArrowDown', true), -0.1); assert.equal(keyStep('PageUp'), 10); assert.equal(keyStep('PageDown', true), -0.1, 'BASINS: Shift wins over the page');
+  assert.equal(keyStep('ArrowRight'), 1, 'BASINS: → steps up'); assert.equal(keyStep('ArrowLeft'), -1, 'BASINS: ← steps down'); assert.equal(keyStep('KeyA'), 0);
   assert.equal(parseBpm(' 92.5 '), 92.5); assert.equal(parseBpm('92,5'), 92.5); assert.equal(parseBpm('fast'), null); assert.equal(parseBpm(''), null);
   pass('a drag, a key and a typed value each give the tempo BASINS\' law says');
+}
+{
+  assert.deepEqual(layoutNames(BASINS_LAYOUT), ['play', 'power', 'rewind', 'tempo', 'panel', 'openers', 'seat', 'dock', 'door']);
+  const lw = layoutNames(LAMBDAWAVES_LAYOUT);
+  assert.ok(lw.indexOf('play') < lw.indexOf('power') && lw.indexOf('power') < lw.indexOf('app:scrub') && lw.indexOf('app:rate') < lw.indexOf('tempo'), 'λWAVES order');
+  assert.equal(lw.filter((n) => n === 'play').length, 1, 'one play');
+  assert.ok(!lw.includes('app:modplay') && !layoutNames(BASINS_LAYOUT).includes('app:modplay'), 'no second play: modulation is a power button');
+  assert.deepEqual(layoutNames([{ group: 'a', items: ['play', { group: 'b', items: ['tempo'] }] }, 'door']), ['play', 'tempo', 'door']);
+  let bpm = 30; const tempo = createTempo({ model: { BPM_MIN: 20, BPM_MAX: 300, BPM_DEFAULT: 30, transport: { get bpm() { return bpm; } } }, setBpm: (b) => { bpm = b; } });
+  assert.equal(tempo.get(), 30); assert.equal(tempo.set(31.04), 31); assert.equal(tempo.set(999), 300);
+  pass('layouts: BASINS\' bar and λWAVES\' bar name the same parts in their own orders, with one play; createTempo clamps and writes');
 }
 {
   assert.deepEqual(SEATS, ['bottom', 'top', 'compact']);
