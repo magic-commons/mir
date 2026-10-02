@@ -191,6 +191,12 @@ BASINS' adoption log (rows 21–22) listed what still kept its look and its SAVE
 
 **The element table again** (`.tmp/W8/V/kit-parity.mjs`, boot and FROST): the COLOUR-style card (at FROST; at boot, disconnected, its corner is the fixture's own 14 px rule: an app's sheet beats the kit's layered rule, so BASINS keeps its card corner only joined), the bar, the switch off, the trigger, the knob and the picker compute BASINS'. Open, all ruled or BASINS' own components: the chosen segment (INTENT Chosen; BASINS' accent engine), the segment track's 9 px corner (BASINS' app sheet), the switch on (INTENT ON), the COLOUR lanes' fader and arc knob (BASINS' own components: `border: 0`, `box-shadow: none`), the menu's height (INTENT four heights), a rack button's ink (the app's).
 
+## BASINS parity, round three (1.5.0-alpha.9)
+
+With these, BASINS' SAVE window and the kit's FOLDERS window (`material: 'modulation'`) compute the same, element by element, at BASINS' boot, at Josh's FROST recipe and in the light TINTED seats (`.tmp/W9/V/savecmp.mjs`, BASINS read-only): the pane, the rail and every chip, the field, the non-toolbar trigger (the plugin's own button: corner, padding, ink, face, edge), the folder tile's ground (.22) and the resize corner. What still differs is ruled: the toolbar's triggers and the options button stand proud where BASINS draws wells (INTENT: a resting control is raised, not "already pressed"), a folder tile is flat where BASINS draws it as a well (a tile is pressed, not a well), and a TINTED pane carries the sheen (INTENT rule 4: tint + sheen).
+
+The light TINTED pane is .86 (it was .84: `--card-opacity` resolved at `:root`), as BASINS'. Under light TINTED the material keeps the light control ladder: that is what BASINS' live SAVE window computes.
+
 ## What an app can delete
 
 - **BASINS:** Settings › LOOK's implementation in `skin.js` (`setFaces`, `setFaceBlend`, `setText`, `setMaterial`, `setMaterialPreset`, `applyGlass`, `setBlur`, `setUIDropShadow`'s pane part, and their prefs keys), `surface-material.js` + `surface-material.css`, the glass-face and popover rules of `material.css` (§1, §2, §4 and the window-edge rule), the TEXT seats of `ink.css` (§1's body and forced seats; the per-cell sampler `adaptive-ink.js` stays the app's), and the work bar's `.modxport.mir-mod-power` 44 px rule in `transport-controls.css`.

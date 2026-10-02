@@ -53,7 +53,7 @@ const LOOK_SORTS = ['az', 'za', 'new', 'old'];
 export const FOLDERS_ACTIONS = Object.freeze(['save', 'saveAs', 'fresh', 'open', 'export']);
 export { DEFAULT_ACTIONS };
 /** the built-in first panel, as BASINS' SAVE window draws its chip */
-export const GALLERY_PANEL = Object.freeze({ id: 'gallery', label: 'GALLERY', glyph: 'gallery', hint: 'Gallery — browse saved projects' });
+export const GALLERY_PANEL = Object.freeze({ id: 'gallery', label: 'GALLERY', glyph: 'gallery', hint: 'Gallery — browse saved projects' });   // tr[GALLERY]: the panel of saved projects shown as pictures (an art gallery of the user's work) // tr[Gallery — browse saved projects]: the hint of that panel's chip
 
 /** localPrefs(storage, key) — the default window prefs: one JSON object under one key */
 export function localPrefs(storage, key) {
@@ -388,7 +388,7 @@ export function createFolders(options = {}) {
     state: () => ({ window: win.state(), gallery: gallery.state(), library: files.state(), current, dirty: gallery.dirty() }),
     destroy() { life.abort(); offLang(); if (unsub) unsub(); frame.cancel(MARK); intake.destroy(); for (const v of [...views]) v.destroy(); win.destroy(); },
   };
-  for (const p of extra) if (typeof p.build === 'function') { try { p.build(panelBodies.get(p.id), api); } catch (e) { say(t('The {panel} panel could not be built: {why}', { panel: p.label || p.id, why: String((e && e.message) || e) }), true); } }
+  for (const p of extra) if (typeof p.build === 'function') { try { p.build(panelBodies.get(p.id), api); } catch (e) { say(t('The {panel} panel could not be built: {why}', { panel: p.label || p.id, why: String((e && e.message) || e) }), true); } }   // tr: an error notice: {panel} is a panel's name (RENDER …), {why} the program's reason, left as it is
   { const tab0 = readPrefs().tab; if (tab0 && tab0 !== 'gallery' && panelSpecs.some((p) => p.id === tab0)) { active = tab0; win.tab(tab0); if (win.rail.chip(tab0)) win.setChip(tab0, true); } }
   return api;
 }

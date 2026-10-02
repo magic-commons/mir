@@ -54,6 +54,10 @@ body.frost.frost-hold[data-card="refractive"] .mir-rail { --chip-filter: none; -
 .mir-rail[data-mir-material="modulation"] .mir-chip { letter-spacing: var(--m2-rail-track); }
 .mir-rail[data-mir-material="modulation"] { --chip-on: var(--m2-mat-frost); --chip-on-rim: inset 0 0 0 1px var(--chip-rim); }
 .mir-win[data-mir-material="modulation"] .trig { font-size: var(--win-trig-size); letter-spacing: var(--win-trig-track); }
+/* a trigger that is not a toolbar verb is the modulation window's own button (its radius, padding and ink, from the
+   plugin's button reset through the shared values); ON keeps its accent label */
+.mir-win[data-mir-material="modulation"] .trig:not(.on):not(:where(.sv-toolbar *)) { border-radius: var(--m2-button-r); padding: var(--m2-button-pad); color: var(--fg);
+  border-color: var(--glass-border-color); background: var(--glass-raise); }   /* … and its face: the material's .06 and the pane's edge (GLASS faces still clear it) */
 .mir-win[data-mir-material="modulation"] .mir-win-resize {
   width: var(--win-corner); height: var(--win-corner); right: var(--win-corner-inset); bottom: var(--win-corner-inset); z-index: var(--win-corner-z);
   opacity: var(--win-corner-rest); transition: opacity var(--motion-micro) var(--ease-out);

@@ -261,7 +261,7 @@
   --m2-w-400: 400;
   --m2-w-800: 800;
   --m2-win-font: 700 11px var(--font-sans);
-  --m2-win-shadow: inset 0 1px 0 var(--m2-mat-inner), var(--surface-shadow, var(--m2-mat-shadow));
+  --m2-win-shadow: var(--surface-shadow, var(--m2-mat-shadow));   /* the pane shadow alone, as BASINS' material (1.5.0-alpha.9) */
   --m2-win-wash: linear-gradient(180deg, hsl(0 0% 100% / .025), hsl(0 0% 0% / .07));
   --m2-xport-sw: 1.6;
 }
@@ -363,6 +363,10 @@
 
 /* THE GLASS RECIPE. #modwin reads border-width/style from here; so do .m2ppick.glass, .m2deadpick.glass and the two .m2workbar.glass boxes. */
 /* index.html:1290   was:  .glass, .panel, .chip  */
+/* 1.5.0-alpha.9 · a transport mounted in a work bar (`bar: 'work'`) keeps the house's tinted pane and its shadow
+   inside a modulation window: its own pane (the tinted fill, no sheen, as BASINS'), and the house's shadow (revert-layer) */
+.mir-modwindow .glass.mir-transport[data-bar="work"] { background-color: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); background-image: none; box-shadow: revert-layer; }
+body[data-card="refractive"] .mir-modwindow .glass.mir-transport[data-bar="work"] { background-color: var(--surface-veil, transparent); }
 .glass.mir-modwindow, .mir-modwindow .glass {
   /* TWO LAYERS, and they are two layers rather than one on purpose: the
      background-COLOR is the scrim (the accessibility control), and the
@@ -574,8 +578,8 @@
   color: var(--fg);
   background: var(--glass-raise);
   border: var(--glass-border) solid var(--glass-border-color);
-  border-radius: var(--r-sm);
-  padding: var(--sp-2) 9px;
+  border-radius: var(--m2-button-r, var(--r-sm));
+  padding: var(--m2-button-pad, var(--sp-2) 9px);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }

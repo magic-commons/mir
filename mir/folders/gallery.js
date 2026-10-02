@@ -340,12 +340,12 @@ export function buildGallery(panel, opts) {
     if (locked() || !captureBtn) return;
     captureBtn.disabled = true;
     captureBtn.setAttribute('aria-busy', 'true');
-    kitAria(captureBtn, 'Making image');
+    kitAria(captureBtn, 'Making image');   // tr: the capture button's spoken name while it makes a still picture of the view (in progress)
     try {
       const held = await adapter.picture();
       if (held) { S.held = held; say(t('Picture made — {w}×{h}. Tap the download icon to keep it.', { w: held.w, h: held.h })); }
     } catch (e) { say(t('Could not make the picture: {why}', { why: String((e && e.message) || e) }), true); }
-    finally { captureBtn.removeAttribute('aria-busy'); captureBtn.disabled = typeof adapter.picture !== 'function'; kitAria(captureBtn, 'Capture image'); paintPicture(); }
+    finally { captureBtn.removeAttribute('aria-busy'); captureBtn.disabled = typeof adapter.picture !== 'function'; kitAria(captureBtn, 'Capture image'); paintPicture(); }   // tr: the button that takes a still picture of the current view
   }
   function paintPicture() {
     if (!downloadBtn) return;
@@ -353,8 +353,8 @@ export function buildGallery(panel, opts) {
     downloadBtn.disabled = !S.held || typeof adapter.savePicture !== 'function';
     downloadBtn.classList.toggle('sv-download-ready', !!S.held);
     /* BASINS' words on the button: what it will hand over, or that a capture comes first */
-    if (S.held) { kitAria(downloadBtn, 'Download image — {name}, {size}', { name: S.held.name, size: fmtBytes(S.held.bytes) }); downloadBtn.title = t('Download {name} · {w} × {h}', { name: S.held.name, w: S.held.w, h: S.held.h }); }
-    else { kitAria(downloadBtn, 'Download image — capture first'); downloadBtn.title = t(copy.download[2]); }
+    if (S.held) { kitAria(downloadBtn, 'Download image — {name}, {size}', { name: S.held.name, size: fmtBytes(S.held.bytes) }); downloadBtn.title = t('Download {name} · {w} × {h}', { name: S.held.name, w: S.held.w, h: S.held.h }); }   // tr[Download image — {name}, {size}]: saves the captured picture to the device: {name} its file name, {size} its file size (e.g. 2.4 MB) // tr[Download {name} · {w} × {h}]: the same button's hint: {w} × {h} the picture's width and height in pixels
+    else { kitAria(downloadBtn, 'Download image — capture first'); downloadBtn.title = t(copy.download[2]); }   // tr: the download button before any picture exists: capture one first, then download it
   }
   function savePicture() {
     if (!S.held) return;

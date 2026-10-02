@@ -306,7 +306,7 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   /* TEXT — BASINS' TEXT seg (AUTO here follows the theme; BASINS' AUTO samples the picture), then what shows */
   g = groupEl('text', phrase('TEXT'));
   line(g).append(segOf('text', phrase('INK'), [['theme', phrase('AUTO'), phrase('Follow the theme (on a {:SOLID} pane, its lightness)')], ['light', phrase('LIGHT', 'text ink'), phrase('White text on every label')], ['dark', phrase('DARK', 'text ink'), phrase('Black text on every label')],
-    ...(inkSampler ? [['sampled', phrase('SAMPLED', 'text ink'), phrase('Each label’s ink from the picture under it (this app’s sampler)')]] : [])]).root);
+    ...(inkSampler ? [['sampled', phrase('SAMPLED', 'text ink'), phrase('Each label’s ink from the picture under it (this app’s sampler)')]] : [])]).root);   // tr[SAMPLED]: TEXT (the label ink) set by the app itself, from the picture under each label: "measured", not "a sample" // tr[Each label’s ink from the picture under it (this app’s sampler)]: the app's own sampler reads the picture behind each word and picks white or black ink
   const shows = el('div', 'segw gui-show', line(g)); label(el('div', 'k-lbl', shows), 'SHOW');
   el('div', 'gui-line gui-sws gui-col', shows).append(swOf('hints', phrase('HINTS'), phrase('Hover hints on controls')).root, swOf('help', phrase('HELP'), phrase('The ⓘ panels on windows')).root);
 
@@ -366,9 +366,9 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   line(g, 'gui-knobs').append(kAngle.root, kShadow.root, kDist.root, kSoft.root);
   const kShine = knobOf('shine', phrase('SHINE'), { ...hundred, title: '{:SHINE} — the shadow’s opposite: a light across the pane’s edge toward the light, added to what is behind' });
   const kShineSoft = knobOf('shineSoft', phrase('SHINE SOFT'), { min: 0, max: 48, fmt: px, aria: 'SHINE SOFTNESS', title: 'The shine’s blur' });
-  const kRelief = knobOf('reliefAngle', phrase('RELIEF'), { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial', aria: 'RELIEF ANGLE', title: 'RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})' });
+  const kRelief = knobOf('reliefAngle', phrase('RELIEF'), { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial', aria: 'RELIEF ANGLE', title: 'RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})' });   // tr[RELIEF]: the controls' relief (their raised and sunken look), here the angle of its light // tr[RELIEF ANGLE]: the direction the controls' light comes from, in degrees // tr[RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})]: raise = a control standing out; wells = sunken tracks and fields; ANGLE is the panes' light angle
   const reliefArc = sweep(kRelief); reliefArc(P.get('reliefAngle'));
-  const swLink = swOf('reliefLink', phrase('LINK'), phrase('The controls take the panes’ light: one {:ANGLE} for everything'));
+  const swLink = swOf('reliefLink', phrase('LINK'), phrase('The controls take the panes’ light: one {:ANGLE} for everything'));   // tr[LINK]: a switch that joins the controls' light to the panes' light (link = tie together, not a web link) // tr[The controls take the panes’ light: one {:ANGLE} for everything]: the relief follows the pane light's ANGLE: one light for the whole interface
   swLink.root.classList.add('gui-link');
   line(g, 'gui-knobs').append(kShine.root, kShineSoft.root, kRelief.root, swLink.root);
 

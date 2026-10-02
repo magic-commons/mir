@@ -176,6 +176,12 @@ try {
   const zA = await run(`const z = (el) => +getComputedStyle(el).zIndex; return { a: z(A.root), ar: z(A.rail.el), b: z(B.root), br: z(B.rail.el), sort: A.rail.chip('sort').textContent };`);
   check('raise: a press on B lifts B and its rail above A and A\'s rail', zB.b > zB.ar && zB.br === zB.b + 1, JSON.stringify(zB));
   check('raise: a press on one of A\'s chips lifts A and its rail together (and the text chip cycled)', zA.a > zA.br && zA.ar === zA.a + 1 && zA.ar <= 4 && zA.sort === 'NEW', JSON.stringify(zA));
+  /* an app's own window law: windowOf(el) finds the pair from either element; raise() and stackAt(z) keep them together */
+  const law = await run(`const { windowOf } = await import('/mir/window/window.js'); const z = (el) => +getComputedStyle(el).zIndex;
+    const viaRail = windowOf(B.rail.el.querySelector('.mir-chip')) === B, viaBody = windowOf(B.body) === B; windowOf(B.rail.el).raise();
+    const r1 = { b: z(B.root), br: z(B.rail.el), a: z(A.root), ar: z(A.rail.el) }; A.stackAt(40); const r2 = { a: z(A.root), ar: z(A.rail.el) };
+    A.raise(); return { viaRail, viaBody, r1, r2, pair: A.pair.root === A.root && A.pair.rail === A.rail.el };`);
+  check("an app's window law: windowOf(el) finds the window from its rail or body, raise() lifts the pane and the rail together, stackAt(z) seats the rail at z + 1", law.viaRail && law.viaBody && law.pair && law.r1.b > law.r1.ar && law.r1.br === law.r1.b + 1 && law.r2.a === 40 && law.r2.ar === 41, JSON.stringify(law));
 
   /* ── the chip material: follows its pane, and against the modulation window's rail ─────────────────────── */
   const PROPS = ['width', 'height', 'border-top-width', 'border-radius', 'border-top-color', 'box-shadow', 'background-color', 'backdrop-filter'];

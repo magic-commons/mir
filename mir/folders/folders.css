@@ -60,7 +60,7 @@
 .mir-folders .sv-toolbar :is(.trig, .sv-options) { display: flex; align-items: center; justify-content: center; box-sizing: border-box;
   width: 100%; min-width: 0; height: 44px; min-height: 44px; padding: 0; }
 /* the options disclosure is BASINS' plain button: it wears a trigger's relief here (raised at rest, the ON face open) */
-.mir-folders .sv-toolbar .sv-options { border: 0; border-radius: var(--r-md); background: var(--glass-raise); box-shadow: var(--relief-raise, var(--neu-raise));
+.mir-folders .sv-toolbar .sv-options { border: 1px solid var(--glass-hairline); border-radius: var(--r-md); background: var(--glass-well);   /* BASINS' ground and hairline; raised, not a well (INTENT) */ box-shadow: var(--relief-raise, var(--neu-raise));
   color: var(--fg-soft); cursor: pointer; transition: scale var(--motion-micro) var(--ease-out); }
 .mir-folders .sv-toolbar .sv-options:hover { background: var(--state-hover, var(--glass-raise)); color: var(--fg); }
 .mir-folders .sv-toolbar .sv-options:is(:active, .press) { scale: var(--state-press-scale, .96); }
@@ -105,7 +105,7 @@
 
 /* a tile and a folder at rest are FLAT: a hairline round the picture, no relief */
 .mir-folders :is(.sv-folder, .sv-card) { position: relative; display: flex; flex-direction: column; min-width: 0; overflow: hidden;
-  border-radius: var(--r-lg); border: 1px solid var(--glass-hairline); background: transparent; }
+  border-radius: var(--r-lg); border: 1px solid var(--glass-hairline); background: var(--glass-well); }   /* the well's GROUND, as BASINS' (no inset relief: a tile is pressed, not a well, INTENT); GLASS faces clear it */
 .mir-folders .sv-folder { border-radius: var(--r-md); }
 .mir-folders .sv-projects { display: flex; flex-direction: column; gap: var(--sp-1); min-width: 0; }
 .mir-folders .sv-projects-heading { display: flex; align-items: center; gap: var(--sp-2); min-height: 18px; padding: 0 2px; touch-action: none;

@@ -111,6 +111,7 @@ body {
 }
 body[data-theme="light"] {
   --glass-hue: 214; --glass-sat-tint: 22%; --glass-lum: 93%; --glass-tint: 214 22% 93%; --glass-opacity: .86;
+  --card-opacity: var(--glass-opacity);                            /* .86, as the note on :root says it should be (it resolved at :root, .84); BASINS' tinted pane */
   --fg: hsl(214 30% 10%); --fg-soft: hsl(214 20% 18%); --dim: hsl(214 12% 36%); --ink-key: hsl(214 12% 30%); --ink-faint: hsl(214 10% 42%);
   --glass-border-color: hsl(214 30% 40% / .22); --glass-hairline: hsl(214 30% 30% / .16);
   --glass-sheen: linear-gradient(hsl(0 0% 100% / .55), hsl(0 0% 100% / .55));   /* the same flat white wash it always was — but as an IMAGE, so it is a legal background LAYER (§14c) */
@@ -256,9 +257,14 @@ html[data-shine] body {
 .mir-modwindow, .kwin-chiprail, .m2ghost, [data-mir-material="modulation"] {
   --m2-mat-frost: hsl(0 0% 100% / 0.13);                         /* the chip rail's ON face */
   --glass-hairline: hsl(0 0% 100% / 0.09);                       /* the controls' hairline, dark */
+  --glass-well: hsl(0 0% 0% / 0.22);                             /* the material's well (BASINS: the folder tile's ground, the options button) */
+  --glass-raise: hsl(0 0% 0% / 0.06);                            /* the material's button face (the plugin's button reset) */
   --m2-rail-track: 1.2px;                                         /* the chip rail's tracking (BASINS kwin) */
+  --m2-button-r: var(--r-sm);                                     /* the plugin's own button (modwindow.css: its button reset) … */
+  --m2-button-pad: var(--sp-2) 9px;                               /* … its padding */
 }
 body[data-theme="light"] :is(.mir-modwindow, .kwin-chiprail, .m2ghost, [data-mir-material="modulation"]) { --glass-hairline: hsl(214 30% 30% / .16); }   /* … light */
+
 /* CONTROL FACES · GLASS and BLEND on the faces that declare their own fill (after them, at their weight) */
 :where(body[data-faces="glass"]:is([data-card="refractive"], .frost):not([data-card="solid"])) .k-dial { --knob-face: transparent; --k-dial-sheen: transparent; --glass-groove: transparent; }
 :where(body[data-faces="glass"]:is([data-card="refractive"], .frost):not([data-card="solid"])) .trig { --trig-face: transparent; }
@@ -520,7 +526,8 @@ body.disconnected:not(.phone) .dev > .dev-head { background: var(--glass-raise);
   -webkit-backdrop-filter: var(--surface-lift, var(--disc-chip-lift));
   backdrop-filter: var(--surface-lift, var(--disc-chip-lift)); }
 /* THE BODY-CARD wears whatever CARD STYLE says the pane is — REFRACTIVE leaves it the field itself. */
-body.disconnected:is([data-card="tinted"], [data-card="solid"]):not(.phone) .dev > .dev-body, body.disconnected:is([data-card="tinted"], [data-card="solid"]):not(.phone) :where([data-mir-surface="island"]) { background: var(--surface-sheen, var(--glass-sheen)), var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
+body.disconnected:is([data-card="tinted"], [data-card="solid"]):not(.phone) .dev > .dev-body { background: var(--surface-sheen, var(--glass-sheen)), var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
+body.disconnected:is([data-card="tinted"], [data-card="solid"]):not(.phone) :where([data-mir-surface="island"]) { background: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }   /* an island: the tinted fill, no 160° sheen (BASINS' islands have none) */
 /* FROST reaches the constellation the same way it reaches a joined card: the veil, then the filter, and the
    filter alone answers `frost-hold`.  The chip keeps its own lighter fill — the difference is the point. */
 body.disconnected.frost[data-card="refractive"]:not(.phone) .dev > .dev-body, body.disconnected.frost[data-card="refractive"]:not(.phone) :where([data-mir-surface="island"]) { background: var(--surface-veil, var(--frost-veil-light)); }

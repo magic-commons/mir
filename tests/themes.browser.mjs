@@ -205,6 +205,10 @@ try {
   check('(e) a chip surface draws no edge with EDGE off', r.e === 'rgba(0, 0, 0, 0)', r.e);
   check("(f) under GLASS faces the well token stays (an app's own fader track keeps its .28)", r.f === 'hsl(0 0% 0% / .28)', r.f);
   check('(g) SHADOW 200 % does not reach the value tooltip', !/0\.4\)/.test(r.g.kval) && /0\.4\)/.test(r.g.pane), JSON.stringify(r.g));
+  r = JSON.parse(await p.eval(`(async () => { __T.P.set({ card: 'tinted', disconnected: true }); __T.P.apply({ now: true }); await new Promise((r) => setTimeout(r, 150));
+    const c = getComputedStyle(document.querySelector('#hook-island')); const out = { image: c.backgroundImage, fill: c.backgroundColor };
+    __T.P.set({ card: 'refractive', disconnected: false }); __T.P.apply({ now: true }); return JSON.stringify(out); })()`));
+  check('an island under TINTED is the tinted fill with no 160° sheen (BASINS)', r.image === 'none' && r.fill !== 'rgba(0, 0, 0, 0)', JSON.stringify(r));
   r = JSON.parse(await p.eval(`(async () => { document.body.style.setProperty('--surface-shadow', 'none'); document.body.style.setProperty('--surface-shadow-float', 'none'); document.body.style.setProperty('--surface-shadow-menu', 'none');
     __T.d.root.classList.add('dragging'); await new Promise((r) => setTimeout(r, 80)); const cs = getComputedStyle(__T.d.root);
     const out = { carriedRing: cs.outlineStyle + ' ' + cs.outlineWidth, dragShadow: cs.boxShadow, pane: getComputedStyle(document.querySelector('#hook-pane')).boxShadow };

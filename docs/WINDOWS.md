@@ -19,7 +19,11 @@ Three modules in `mir/window/` and one sheet. (The rack's windows, the `.dev` ca
 ## The API
 
 **`window/window.js`**
-- `createWindow({ id, title, host, chips, body | panels, size, min, resizable, emptyDrag, dock, persist, material, railGap, onMoved, onOpen, onClose })` returns `{ root, body, rail, panels, open(), close(), toggle(), isOpen(), rect(), place(rect | pos, { animate }), setChip(name, state), tab(name), raise(), state(), destroy() }`.
+- `createWindow({ id, title, host, chips, body | panels, size, min, resizable, emptyDrag, dock, persist, material, railGap, onMoved, onOpen, onClose })` returns `{ root, body, rail, panels, open(), close(), toggle(), isOpen(), rect(), place(rect | pos, { animate }), setChip(name, state), tab(name), raise(), pair, stackAt(z), state(), destroy() }`.
+  - **The pane and its rail are one window in the stack.** A kit window is two elements: the pane (`root`) and its chip rail (`rail.el`), which sits outside the pane. `raise()` brings both to the top together (a press on either does it). For an app with its **own window law** (BASINS' kwin `installWindowLaw`):
+    - `windowOf(el)` (exported from `window/window.js`) returns the window whose pane or rail is `el` (or holds it), so a law that raises by element calls `windowOf(el).raise()` and the rail comes with it;
+    - `pair` is `{ root, rail }`, the two elements, for a law that walks its windows;
+    - `stackAt(z)` puts the pane at z-index `z` and its rail at `z + 1`, for a law that keeps its own counter: the two never part.
   - `body` is a Node or `fn(bodyEl)`. `panels` is `[{ name, body }]`, one shown at a time; a radio chip named like a panel switches to it.
   - `dock` is `{ span, guide, anchor?, guideClass? }`.
     - `span` is `{ read(), subscribe(fn) }` (from `observeSpan`).

@@ -83,6 +83,14 @@ function raisePair(w) {
   STACK.push(w);
   STACK.forEach((x, k) => { setVar(x.root, 'z-index', String(1 + 2 * k)); setVar(x.rail, 'z-index', String(2 + 2 * k)); });
 }
+/* a window's pair, found from either of its two elements (an app's own window law holds elements, not the api) */
+const OWNER = new WeakMap();
+/** windowOf(el) → the api of the kit window whose root or rail is el (or contains it), or null.  An app's window law that
+ *  raises by element calls windowOf(el).raise(), and the rail comes with the pane. */
+export function windowOf(el) {
+  for (let n = el; n; n = n.parentElement) { const w = OWNER.get(n); if (w) return w; }
+  return null;
+}
 const pressed = new WeakSet();
 function installOnce(doc) { if (pressed.has(doc)) return; pressed.add(doc); installPress({ selector: '.mir-chip', root: doc.defaultView }); }
 
@@ -109,8 +117,11 @@ const along = (p, lo, size, next) => (p < lo ? lo : p > lo + size ? lo + size - 
  *               no CSS cloning), written as data-mir-material="modulation" on the window and its rail; window.css and skin.css key on that name
  *    railGap    the floating rail's gap from the pane, a number or { left, right, top, bottom } (default RAIL.gap: kwin's)
  *    persist    { read() → shape | null, write(shape) }
- *  → { root, body, rail, open(), close(), toggle(), isOpen(), rect(), place(rect | pos, { animate }), setChip, tab,
- *      raise(), state(), destroy() } */
+ *  → { root, body, rail, pair, open(), close(), toggle(), isOpen(), rect(), place(rect | pos, { animate }), setChip, tab,
+ *      raise(), stackAt(z), state(), destroy() }
+ *    raise()    brings the pane AND its rail to the top of the kit's stack, together (a press on either does it)
+ *    pair       { root, rail } — the window's two elements, for an app's own window law that stacks by element
+ *    stackAt(z) for an app law with its own counter: the pane at z, its rail at z + 1, so they never part */
 export function createWindow({ id, title = id, host, chips = [], body, panels, size = { w: 520, h: 360 }, min = { w: 240, h: 160 },
   resizable = false, emptyDrag = false, dock = null, persist = null, material = null, railGap = RAIL.gap, onMoved, onOpen, onClose } = {}) {
   const doc = host.ownerDocument, view = doc.defaultView;
@@ -331,7 +342,9 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
       }
       layout({ animate }); save();
     },
-    setChip: rail.setChip, tab, raise,
+    setChip: rail.setChip, tab, raise, pair,
+    /** stackAt(z) — the pane at z-index z and its rail just above it (an app's own stacking law) */
+    stackAt(z) { const n = Math.round(+z) || 0; setVar(root, 'z-index', String(n)); setVar(rail.el, 'z-index', String(n + 1)); },
     state: shape,
     destroy() {
       dead = true; api.close(); gripDrag.destroy(); if (cornerDrag) cornerDrag.destroy(); if (guide) guide.destroy();
@@ -344,5 +357,6 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
      and whatever the host builds right after the call (docs/WINDOWS.md) */
   let dead = false;
   if (wantOpen) queueMicrotask(() => { if (!dead && !P.open) api.open(); });
+  OWNER.set(root, api); OWNER.set(rail.el, api);
   return api;
 }

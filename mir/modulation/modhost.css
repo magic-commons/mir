@@ -154,7 +154,7 @@
   --m2-r-3: 3px;
   --m2-r-7: 7px;
   --m2-r-14: 14px;
-  --m2-rail-shadow: inset 0 1px 0 var(--m2-mat-inner), var(--surface-shadow, var(--glass-shadow));
+  --m2-rail-shadow: var(--surface-shadow, var(--glass-shadow));   /* the pane shadow alone, as BASINS' material (1.5.0-alpha.9) */
   --m2-say-font: 500 10.5px/1.35 var(--font-sans);
   --m2-slotx-alpha: .75;
   --m2-sw-1: 1;
@@ -433,13 +433,12 @@ body.frost .glass:where(.mir-modwindow, .mir-modwindow *, .kwin-chiprail, .kwin-
   --glass-border: 0.6px;
   --glass-border-color: var(--m2-mat-edge);
   --glass-sheen:        var(--m2-mat-inner);     /* `.glass` reads this as `inset 0 .6px 0 <sheen>` — the Fresnel top */
-  --glass-raise:  hsl(0 0% 0% / 0.06);           /* the NON-officiated buttons match L3 */
+  /* (--glass-raise .06, the NON-officiated buttons' face, is shared with the window material: mir/css/skin.css) */
   --m2-hover:     hsl(0 0% 100% / 0.10);         /* INTENT: hover is a LIGHTER face (read as var(--state-hover, var(--m2-hover))) */
   --m2-on-rim:    var(--state-on-rim, inset 0 0 0 1px var(--m2-mat-edge));   /* INTENT: ON's thin rim, in the pane's own edge colour (themed through --m2-mat-edge, on this element) */
   --bar-raise:    var(--glass-raise);
   --glass-press:  var(--m2-st-press);
   --glass-groove-hot: hsl(0 0% 100% / 0.18);
-  --glass-well:   hsl(0 0% 0% / 0.22);
 
   /* ── T6 · THE WASH.  The bevel and its six lights are retired (1.5.0-alpha.3, INTENT L61): they drew nothing.  The
      two-stop wash the artifact's .glass recipe reads stays, off. */
