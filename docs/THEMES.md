@@ -166,6 +166,31 @@ Also: a pane shadow written as `none` breaks nothing (the carried ring, the tool
 
 **The light.** One angle could not reproduce BASINS: its panes cast straight down and its controls down-right. Since alpha.7 there are two settings (above), and FROST is `lightAngle: 0, reliefAngle: 315` in `mir/shell/themes.js`: the knob, trigger, segment track, fader well and arc knob compute BASINS' 1.4 relief exactly, and the panes BASINS' straight-down shadow. Against alpha.4 on `gallery/index.html` and `intent.html` (stylehash) every control's relief is back where it was; what differs is alpha.5–7's own: the tooltip's, badge's and carried window's ring are outlines (the same pixels), no text emboss under glass (O3), a refractive menu under FROST wears the .10 veil and no sheen, and the 44 px power seat.
 
+## BASINS parity, round two (1.5.0-alpha.8)
+
+BASINS' adoption log (rows 21–22) listed what still kept its look and its SAVE window off the kit. Each is closed:
+
+| Gap | Closed by |
+|---|---|
+| (a) at SHADOW 100 % the pane shadow was the 1.4 glass shadow | the look engine always draws BASINS' material shadow (`html[data-cast]` is on whenever the store is): `inset 0 1px 0` white .12 / .55, `0 2px 8px` black .20 / .10 × SHADOW, `0 1px 2px` .12 / .06 × SHADOW. A page with no store keeps the 1.4 shadows |
+| (b) a `chip` surface missed SATURATION | it reads `--surface-filter`; and the engine also writes `--frost-filter` as blur + saturate, for any sheet (an app's, the plugin's) that reads the 1.4 name |
+| (c) a disconnected window head was not a pane | under the engine (`html[data-skin]`) the head wears its body's material: the fill by CARD STYLE, the blur, the shadow |
+| (d) islands and the modulation chip rail ignored VEIL | the chip rail's fill reads `--surface-veil` (VEIL 0: clear); islands already did |
+| (e) a `chip` surface drew the .14 edge with EDGE off | it reads `--pane-edge` (proved: transparent with EDGE off) |
+| (f) GLASS faces cleared an app's own fader track | the wells clear by rule now, not by emptying `--glass-well`, so an app's track keeps .28 |
+| (g) SHADOW's amount reached the value tooltip | under the cast the tooltip reads `--tip-shadow` (the 1.4 menu shadow); the tiers still reach it |
+
+**The window material** (`[data-mir-material]` on a kit window's root and its rail; the window lane's option sets it): the modulation window's rail, controls and corner, as BASINS' SAVE, TIMELINE and COLOUR windows wear them, with no cloning. **Eight rules and two value blocks:** the shared values (`--m2-mat-frost` .13, the controls' `--glass-hairline` .09 dark / .16 light, `--m2-rail-track` 1.2 px) live once in `mir/css/skin.css` and both the plugin's roots and a material window read them; `mir/window/window.css` adds the corner and trigger values and the rules: the chips' tracking, the ON face .13 with one rim (no second inset light), a trigger's 11 px type at 1.32 px, the 18 px resize corner 2 px in, drawn in `--ink-key` at 52–58 % and 70–76 %, opacity .5 (1 on hover or resizing), z 4. The rail's chip shadow is the pane shadow (the cast) and its filter the surface filter, so the settings drive both. BASINS' kwin.js `adoptMaterial` cloned about 1,250 rules for the same thing.
+
+**The SAVE window against FOLDERS with the material** (`.tmp/W8/V/savecmp.mjs`: BASINS read-only, its SAVE window open; `tests/fixtures/folders-basins.html`; BASINS' boot, its light boot and Josh's FROST recipe): the pane, the rail, every chip at rest and ON with their `::before`, the action chip, the grip dots, the field and its label and the resize corner compute the same in all three (the window's place and size aside: layout, not material). What differs:
+
+| Element | Differs | Why |
+|---|---|---|
+| a toolbar trigger | the raise, where BASINS draws a well | INTENT **Press me** (ruled): a resting control stands proud; a resting toolbar drawn as wells is the "already pressed" fault INTENT was written to stop |
+| the options button | a raised trigger face, where BASINS draws a well with a .09 hairline | the same ruling; FOLDERS draws its options button as a trigger (the gallery lane's DOM) |
+
+**The element table again** (`.tmp/W8/V/kit-parity.mjs`, boot and FROST): the COLOUR-style card (at FROST; at boot, disconnected, its corner is the fixture's own 14 px rule: an app's sheet beats the kit's layered rule, so BASINS keeps its card corner only joined), the bar, the switch off, the trigger, the knob and the picker compute BASINS'. Open, all ruled or BASINS' own components: the chosen segment (INTENT Chosen; BASINS' accent engine), the segment track's 9 px corner (BASINS' app sheet), the switch on (INTENT ON), the COLOUR lanes' fader and arc knob (BASINS' own components: `border: 0`, `box-shadow: none`), the menu's height (INTENT four heights), a rack button's ink (the app's).
+
 ## What an app can delete
 
 - **BASINS:** Settings › LOOK's implementation in `skin.js` (`setFaces`, `setFaceBlend`, `setText`, `setMaterial`, `setMaterialPreset`, `applyGlass`, `setBlur`, `setUIDropShadow`'s pane part, and their prefs keys), `surface-material.js` + `surface-material.css`, the glass-face and popover rules of `material.css` (§1, §2, §4 and the window-edge rule), the TEXT seats of `ink.css` (§1's body and forced seats; the per-cell sampler `adaptive-ink.js` stays the app's), and the work bar's `.modxport.mir-mod-power` 44 px rule in `transport-controls.css`.

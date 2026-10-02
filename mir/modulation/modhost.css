@@ -372,7 +372,6 @@ body.frost .glass:where(.mir-modwindow, .mir-modwindow *, .kwin-chiprail, .kwin-
      --m2-mat-edge below, so pointing the edge back at the house name would close a CYCLE (guaranteed-invalid).  So
      skin.css's card edge is copied here per theme.  If skin.css's card edge moves, this moves with it. */
   --m2-mat-edge:   hsl(0 0% 100% / .14);         /* = skin.css:12 --glass-border-color (dark) */
-  --m2-mat-frost:  hsl(0 0% 100% / 0.13);        /* the chip rail's ON face */
   /* 1.5.0-alpha.3 · INTENT L03/L04/L06: ONE PANE HEIGHT, THE HOUSE'S.  The plugin no longer quotes skin.css's float
      (with its upward term) per theme, nor re-points --glass-shadow: every pane reads var(--surface-shadow,
      var(--glass-shadow)) and gets the house's own value, whatever the house makes it.  The name is kept for the
@@ -433,7 +432,6 @@ body.frost .glass:where(.mir-modwindow, .mir-modwindow *, .kwin-chiprail, .kwin-
 
   --glass-border: 0.6px;
   --glass-border-color: var(--m2-mat-edge);
-  --glass-hairline:     hsl(0 0% 100% / 0.09);   /* dark; the light host overrides below */
   --glass-sheen:        var(--m2-mat-inner);     /* `.glass` reads this as `inset 0 .6px 0 <sheen>` — the Fresnel top */
   --glass-raise:  hsl(0 0% 0% / 0.06);           /* the NON-officiated buttons match L3 */
   --m2-hover:     hsl(0 0% 100% / 0.10);         /* INTENT: hover is a LIGHTER face (read as var(--state-hover, var(--m2-hover))) */
@@ -484,6 +482,7 @@ body.frost .glass:where(.mir-modwindow, .mir-modwindow *, .kwin-chiprail, .kwin-
   --chrome-chip-disc:    calc(48px * var(--ui-scale));
   --chrome-chip-target:  max(44px, calc(62px * var(--ui-scale)));
 }
+/* (1.5.0-alpha.8: --m2-mat-frost and the plugin's --glass-hairline are shared with the window material: mir/css/skin.css) */
 
 /* BASINS' 212, not the house's 214.  With the ladder re-pointed above this reaches exactly one
    surviving artifact rule — the `.m2rail` composition at modwindow.css:1908 — and reach-list item 13
@@ -528,7 +527,6 @@ body[data-theme="light"] .m2ghost {
   /* RETIRED wave 105 — --m2-ink-ghost (light): see the dark seat. */
   --m2-mat-edge:   hsl(214 30% 40% / .22);       /* = skin.css:270 --glass-border-color (light) */
   --m2-hover:      hsl(0 0% 100% / .55);         /* = skin.css --glass-raise (light): the house's lighter face */
-  --glass-hairline: hsl(214 30% 30% / .16);      /* = skin.css:270 — the INNER rules go dark on a pale card too */
   --m2-mat-inner:  transparent;
   /* THE RIM INVERTS, and it is physics rather than taste: a glass edge on a PALE ground reads as a
      DARK line, because what the edge refracts is darker than what surrounds it.  Keeping a white rim
@@ -1489,9 +1487,9 @@ body[data-theme="light"] #modwin.mir-modwindow .m2macdel {
 body.frost .kwin-chiprail[data-mir-rail] .crail-chip::before,
 body.frost .kwin-chiprail[data-mir-rail] .crail-chip::before {
   -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter)); backdrop-filter: var(--surface-filter, var(--frost-filter));
-  background-color: var(--m2-face-w10); }
+  background-color: var(--surface-veil, var(--m2-face-w10)); }                                         /* VEIL reaches the chips (VEIL 0: clear) */
 body.frost[data-theme="dark"] .kwin-chiprail[data-mir-rail] .crail-chip::before {
-  background-color: var(--m2-face-k10); }
+  background-color: var(--surface-veil, var(--m2-face-k10)); }
 body.frost.frost-hold .kwin-chiprail[data-mir-rail] .crail-chip::before {
   -webkit-backdrop-filter: none; backdrop-filter: none; }                                              /* 78 */
 

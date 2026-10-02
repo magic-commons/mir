@@ -187,6 +187,24 @@ try {
     return JSON.stringify({ chosen: bg(document.querySelector('.dev .seg-b.on')), swOff: bc(__T.sOff.root), trig: bc(__T.tr.root), fd: bc(__T.fd.root), arc: bc(__T.arc.root.querySelector('.k-dial')), knobImg: getComputedStyle(__T.k.root.querySelector('.k-dial')).backgroundImage }); })()`));
   const hair = 'rgba(255, 255, 255, 0.08)';
   check('GLASS faces as BASINS draws them: the chosen segment is clear, a knob has no image, and the switch, trigger, own-colour fader and arc knob wear the .08 white hairline', r.chosen === 'rgba(0, 0, 0, 0)' && r.knobImg === 'none' && [r.swOff, r.trig, r.fd, r.arc].every((c) => c === hair), JSON.stringify(r));
+  /* BASINS' list a–g (its adoption log, row 21), under the engine at BASINS' boot (SHADOW 100 %) and at FROST */
+  r = JSON.parse(await p.eval(`(async () => { const wait = (ms) => new Promise((r) => setTimeout(r, ms)), cs = (n, ps) => getComputedStyle(typeof n === 'string' ? document.querySelector(n) : n, ps || null);
+    const { themeValues } = await import('/mir/shell/themes.js');
+    __T.P.set({ ...themeValues('frost'), shadow: 1, veil: 0, disconnected: true }); __T.P.apply({ now: true }); await wait(200);
+    const head = __T.d.root.querySelector('.dev-head');
+    const out = { a: cs('#hook-pane').boxShadow, b: cs('#hook-bar').backdropFilter, c: { f: cs(head).backdropFilter, s: cs(head).boxShadow }, d: { island: cs('#hook-island').backgroundColor },
+      e: cs('#hook-btn').borderTopColor, f: getComputedStyle(document.body).getPropertyValue('--glass-well').trim() };
+    __T.P.set({ shadow: 2 }); __T.P.apply({ now: true }); await wait(150);
+    out.g = { kval: cs(__T.k.root.querySelector('.k-val')).boxShadow, pane: cs('#hook-pane').boxShadow };
+    __T.P.set({ disconnected: false }); __T.P.apply({ now: true }); return JSON.stringify(out); })()`));
+  const mat1 = 'rgba(255, 255, 255, 0.12) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.2) 0px 2px 8px 0px, rgba(0, 0, 0, 0.12) 0px 1px 2px 0px';
+  check("(a) at SHADOW 100 % the pane shadow is BASINS' material shadow", r.a === mat1, r.a);
+  check('(b) a chip surface takes the surface filter: SATURATION reaches it', r.b === 'blur(11px) saturate(1.3)', r.b);
+  check('(c) a disconnected window head is a pane under the engine: the blur and the shadow', /blur/.test(r.c.f) && r.c.s === mat1, JSON.stringify(r.c));
+  check('(d) an island honours VEIL: VEIL 0 is clear', r.d.island === 'rgba(255, 255, 255, 0)' || r.d.island === 'rgba(0, 0, 0, 0)', JSON.stringify(r.d));
+  check('(e) a chip surface draws no edge with EDGE off', r.e === 'rgba(0, 0, 0, 0)', r.e);
+  check("(f) under GLASS faces the well token stays (an app's own fader track keeps its .28)", r.f === 'hsl(0 0% 0% / .28)', r.f);
+  check('(g) SHADOW 200 % does not reach the value tooltip', !/0\.4\)/.test(r.g.kval) && /0\.4\)/.test(r.g.pane), JSON.stringify(r.g));
   r = JSON.parse(await p.eval(`(async () => { document.body.style.setProperty('--surface-shadow', 'none'); document.body.style.setProperty('--surface-shadow-float', 'none'); document.body.style.setProperty('--surface-shadow-menu', 'none');
     __T.d.root.classList.add('dragging'); await new Promise((r) => setTimeout(r, 80)); const cs = getComputedStyle(__T.d.root);
     const out = { carriedRing: cs.outlineStyle + ' ' + cs.outlineWidth, dragShadow: cs.boxShadow, pane: getComputedStyle(document.querySelector('#hook-pane')).boxShadow };

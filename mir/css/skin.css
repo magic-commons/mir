@@ -37,6 +37,7 @@
   --glass-shadow: inset 0 1px 0 hsl(0 0% 100% / .06), 0 1px 2px hsl(0 0% 0% / .16);
   --surface-shadow-float: inset 0 1px 0 hsl(0 0% 100% / .08), 0 6px 18px hsl(0 0% 0% / .30), 0 1px 3px hsl(0 0% 0% / .18);
   --surface-shadow-menu: inset 0 1px 0 hsl(0 0% 100% / .06), 0 10px 28px hsl(0 0% 0% / .38), 0 2px 6px hsl(0 0% 0% / .20);
+  --tip-shadow: inset 0 1px 0 hsl(0 0% 100% / .06), 0 10px 28px hsl(0 0% 0% / .38), 0 2px 6px hsl(0 0% 0% / .20);   /* the value tooltip's: SHADOW's amount never reaches it (BASINS) */
   /* THE STATES (INTENT's table), each one number or one drawing so a skin tunes one place.  ON is a frost face and a
      thin rim, never an accent fill; its light (an LED, a trigger's label) is accent A with its glow, read at the place
      of use as var(--state-on-light, var(--acc-glow)) because it reads the accent.  The values match the window rail's
@@ -117,6 +118,7 @@ body[data-theme="light"] {
   --glass-shadow: inset 0 1px 0 hsl(0 0% 100% / .8), 0 1px 2px hsl(214 40% 20% / .09);
   --surface-shadow-float: inset 0 1px 0 hsl(0 0% 100% / .8), 0 6px 18px hsl(214 40% 20% / .16), 0 1px 3px hsl(214 40% 20% / .10);
   --surface-shadow-menu: inset 0 1px 0 hsl(0 0% 100% / .8), 0 10px 28px hsl(214 40% 20% / .20), 0 2px 6px hsl(214 40% 20% / .10);
+  --tip-shadow: inset 0 1px 0 hsl(0 0% 100% / .8), 0 10px 28px hsl(214 40% 20% / .20), 0 2px 6px hsl(214 40% 20% / .10);
   --state-on: hsl(0 0% 100% / .62);                               /* on a light card a .086 white is invisible: the frost face is whiter */
   --state-on-rim: inset 0 0 0 1px hsl(214 30% 40% / .34), inset 0 1px 0 hsl(0 0% 100% / .12);
   --neu-raise: calc(1px * sqrt(2) * var(--relief-sin)) calc(-1px * sqrt(2) * var(--relief-cos)) 3px hsl(0 0% 100% / .9),
@@ -171,7 +173,7 @@ body[data-card="solid"][data-theme="light"] {
    switches, segments, fields, faders and readouts are clear glass.  The tokens their faces read go transparent; the
    outline a face loses with its fill comes back as the hairline (the rule in §6).  ON keeps its frost face and the
    chosen segment its face and accent label (INTENT); SOLID panes keep solid faces. */
-body[data-faces="glass"]:is([data-card="refractive"], .frost):not([data-card="solid"]) { --sw-fill: transparent; --glass-well: transparent; }
+body[data-faces="glass"]:is([data-card="refractive"], .frost):not([data-card="solid"]) { --sw-fill: transparent; }   /* the wells clear by rule, not by token: an app's own well (a fader's track) keeps --glass-well, as BASINS' does */
 /* … and under REFRACTIVE the menus and popovers lose the tinted pane's sheen: the blur and a rim, no fill (BASINS material.css §2) */
 body[data-faces="glass"][data-card="refractive"] { --surface-sheen: none; }
 /* CONTROL FACES · SOLID with BLEND between 0 and 100 % (body[data-faces="blend"], BASINS material.css "BLEND"): each
@@ -248,6 +250,15 @@ html[data-shine] body {
 .trig { --trig-face: hsl(var(--glass-tint) / 1); }
 .fd-fill { --fd-fill-color: color-mix(in srgb, var(--acc) 16%, transparent); }
 .native-info .native-info-content, .control-help { --popover-fill: hsl(var(--glass-tint) / .98); }
+/* 1.5.0-alpha.8 · THE MODULATION WINDOW'S MATERIAL, SHARED: one set of values, two readers — the plugin's roots
+   (mir/modulation/modhost.css) and a kit window that wears the material ([data-mir-material], mir/window/window.css).
+   Here, in the house, because both readers load this sheet and neither loads the other's. */
+.mir-modwindow, .kwin-chiprail, .m2ghost, [data-mir-material] {
+  --m2-mat-frost: hsl(0 0% 100% / 0.13);                         /* the chip rail's ON face */
+  --glass-hairline: hsl(0 0% 100% / 0.09);                       /* the controls' hairline, dark */
+  --m2-rail-track: 1.2px;                                         /* the chip rail's tracking (BASINS kwin) */
+}
+body[data-theme="light"] :is(.mir-modwindow, .kwin-chiprail, .m2ghost, [data-mir-material]) { --glass-hairline: hsl(214 30% 30% / .16); }   /* … light */
 /* CONTROL FACES · GLASS and BLEND on the faces that declare their own fill (after them, at their weight) */
 :where(body[data-faces="glass"]:is([data-card="refractive"], .frost):not([data-card="solid"])) .k-dial { --knob-face: transparent; --k-dial-sheen: transparent; --glass-groove: transparent; }
 :where(body[data-faces="glass"]:is([data-card="refractive"], .frost):not([data-card="solid"])) .trig { --trig-face: transparent; }
@@ -339,6 +350,7 @@ html[data-shine] body {
 .k-val { opacity: 0; transform: translateY(2px); pointer-events: none;        /* the value is a tooltip: hidden at rest … */
   padding: 1px 6px; border-radius: var(--r-pill); color: var(--fg); background: var(--k-val-fill); box-shadow: var(--surface-shadow-menu, var(--glass-shadow)); outline: var(--seat-edge); outline-offset: 0;   /* a tooltip is a popover: height 4 (INTENT O4) */
   transition: opacity var(--t-soft) var(--ease-std) var(--t-linger), transform var(--t-soft) var(--ease-std) var(--t-linger); }  /* … and lingers after the hand leaves */
+:where(html[data-cast]:not([data-ui-tier])) .k-val { box-shadow: var(--tip-shadow); }   /* SHADOW's cast never reaches the tooltip (BASINS' material leaves tooltips alone); the tiers still do */
 .k:hover .k-val, .k.drag .k-val, .k.active .k-val, .k[data-live] .k-val, .k:focus-within .k-val { opacity: 1; transform: none;
   transition: opacity var(--t-fast), transform var(--t-fast); }               /* in fast, no delay */
 .k.drag .k-val, .k.active .k-val { color: var(--acc); }
@@ -370,7 +382,8 @@ select.sel { border-color: transparent; background: var(--glass-well); box-shado
    (.sw.on, .trig.on, an expanded or pressed trigger) keeps its own face.  Heavy on purpose: it must beat the hover,
    press and chosen rules above, as BASINS' ladder did.  The relief, the rims, the scale and the accent label stay. */
 body[data-faces="glass"]:is([data-card="refractive"], .frost):not([data-card="solid"]) :is(.k-dial, .trig:not(.on):not([aria-expanded="true"]):not([aria-pressed="true"]),
-  .seg, .seg-b, .sw:not(.on), select.sel, .fd, .ro, .dev-power, .native-info-button, .badge) { background-color: transparent; background-image: none; }
+  .seg, .seg-b, .sw:not(.on), select.sel, .fd, .ro, .dev-power, .native-info-button, .badge,
+  .mir-folders :is(.sv-split, .sv-parts, .sv-field input, .sv-input, .sv-card, .sv-folder, .sv-context, .sr-section)) { background-color: transparent; background-image: none; }   /* FOLDERS' seats: BASINS' SAVE seats (material.css) */
 body:is([data-faces="glass"], [data-faces="blend"]):is([data-card="refractive"], .frost):not([data-card="solid"]) :is(.k-dial, .trig:not(.on):not([aria-expanded="true"]):not([aria-pressed="true"]),
   .sw:not(.on), .seg, select.sel, .fd, .ro) { border-color: var(--glass-hairline); }
 /* … and BLEND's crossing layer, over the face, under the label (BASINS material.css BLEND) */
@@ -520,6 +533,16 @@ body.disconnected.frost[data-card="refractive"]:not(.phone) .dev > .dev-head {
 body.disconnected.frost.frost-hold:not(.phone) .dev > .dev-head,
 body.disconnected.frost.frost-hold:not(.phone) .dev > .dev-body, body.disconnected.frost.frost-hold:not(.phone) :where([data-mir-surface="island"]) { -webkit-backdrop-filter: none; backdrop-filter: none; }
 body.disconnected.frost.frost-hold[data-card="refractive"]:not(.phone) .dev > .dev-body, body.disconnected.frost.frost-hold[data-card="refractive"]:not(.phone) :where([data-mir-surface="island"]) { background: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
+/* 1.5.0-alpha.8 · UNDER THE LOOK ENGINE (html[data-skin], written by the GUI window's store) a disconnected window's
+   head is a pane like its body, as BASINS draws it: the fill by CARD STYLE, the blur under FROST, the shadow.  A page
+   with no store keeps the 1.4 head (the lighter chip). */
+:where(html[data-skin]) body.disconnected:not(.phone) .dev > .dev-head { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+:where(html[data-skin]) body.disconnected:is([data-card="tinted"], [data-card="solid"]):not(.phone) .dev > .dev-head { background: var(--surface-sheen, var(--glass-sheen)), var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
+:where(html[data-skin]) body.disconnected.frost[data-card="refractive"]:not(.phone) .dev > .dev-head {
+  background: var(--surface-veil, var(--frost-veil-light)); -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter)); backdrop-filter: var(--surface-filter, var(--frost-filter)); }
+:where(html[data-skin]) body.disconnected.frost[data-card="refractive"][data-theme="dark"]:not(.phone) .dev > .dev-head { background: var(--surface-veil, var(--frost-veil-dark)); }
+:where(html[data-skin]) body.disconnected.frost.frost-hold:not(.phone) .dev > .dev-head { -webkit-backdrop-filter: none; backdrop-filter: none; }
+:where(html[data-skin]) body.disconnected.frost.frost-hold[data-card="refractive"]:not(.phone) .dev > .dev-head { background: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
 /* A COMPACT window is one rail and nothing else: the body is gone, so there is no constellation and the
    chip is the whole window.  A FOLDED one is the same shape, and both fall out of `display: none` on the
    body without a rule — stated here only so the next reader does not go looking for one.

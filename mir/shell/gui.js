@@ -41,7 +41,7 @@ import { createPrefs } from '../core/prefs.js';
 import { setMotionPolicy } from '../core/motion.js';
 import { frame } from '../core/frame.js';
 import { setText, setVar } from '../core/perf.js';
-import { glassTint as lookTint, glassVeil, lightIsHome, autoInk, solidRelief, spacingPx } from '../core/look.js';
+import { glassTint as lookTint, glassVeil, autoInk, solidRelief, spacingPx } from '../core/look.js';
 import { createAccent } from './accent.js';
 import { richText, safeHref } from './about.js';
 import { THEMES, themeById, themeValues, toneValues, matchTone } from './themes.js';
@@ -68,7 +68,6 @@ export function glassTint(bright, hue, tint, theme, saturation = 1) { return loo
 export function lookSchema() {
   const full = (s) => s.quality === 'full';
   const offShadow = (s) => s.shadow === 0 || !s.dropShadow;           // SHADOW at 0 %, or DROP SHADOW off: no pane shadow at all
-  const cast = (s) => !offShadow(s) && !lightIsHome(s);                 // a light setting off home: the sheets draw the cast
   return [
     { key: 'skin', type: 'enum', values: ['frost'], default: 'frost', apply: [{ on: 'html', attr: 'data-skin' }] },
     { key: 'theme', type: 'enum', values: ['dark', 'light', 'system'], default: 'dark', apply: [{ on: 'body', attr: 'data-theme', map: (v, s, e) => e.theme }] },
@@ -91,7 +90,10 @@ export function lookSchema() {
     { key: 'veil', type: 'number', step: 1, min: 0, max: 60, default: 0, apply: [{ on: 'body', prop: '--surface-veil',
       map: (v, s, e) => (!full(s) ? null : glassVeil(s, e.theme, HOME.veil)) }] },
     { key: 'saturation', type: 'number', step: 0.01, min: 0, max: 2, default: 1.3, apply: [{ on: 'body', prop: '--surface-filter',
-      map: (v, s) => (!full(s) ? null : s.blur === 0 ? 'none' : v === HOME.saturation ? null : `blur(${s.blur}px) saturate(${v.toFixed(2)})`) }] },
+      map: (v, s) => (!full(s) ? null : s.blur === 0 ? 'none' : v === HOME.saturation ? null : `blur(${s.blur}px) saturate(${v.toFixed(2)})`) },
+      /* … and the 1.4 name, so a sheet (an app's, or the plugin's) that reads --frost-filter gets SATURATION too (BASINS: its
+         --frost-filter is blur and saturate) */
+      { on: 'html', prop: '--frost-filter', map: (v, s) => (!full(s) || s.blur === 0 || v === HOME.saturation ? null : `blur(${s.blur}px) saturate(${v.toFixed(2)})`) }] },
     { key: 'corners', type: 'number', step: 1, min: 0, max: 24, default: 24, apply: [{ on: 'body', prop: '--surface-radius', map: (v) => (v === HOME.corners ? null : Math.round(v) + 'px') }] },
     /* BRIGHT, HUE, TINT — BASINS' glass knobs, onto the kit's --glass-tint on <body> (the tinted and solid pane, every
        solid face); SATURATION multiplies the tint's chroma, as BASINS' does */
@@ -135,7 +137,7 @@ export function lookSchema() {
     { key: 'shineSoft', type: 'number', step: 1, min: 0, max: 48, default: 12, apply: [{ on: 'html', prop: '--shine-soft', map: (v) => (v === 12 ? null : v + 'px') }] },
     /* DROP SHADOW — Display's switch (BASINS: "Display can switch it off"); off, or SHADOW at 0, is no pane shadow at all */
     { key: 'dropShadow', type: 'bool', default: true, apply: [
-      { on: 'html', attr: 'data-cast', map: (v, s) => (cast(s) ? '' : null) },
+      { on: 'html', attr: 'data-cast', map: (v, s) => (offShadow(s) ? null : '') },   // the engine always draws BASINS' material shadow (at 100 % too)
       { on: 'html', attr: 'data-shine', map: (v, s) => (s.shine > 0 ? '' : null) },
       ...['--surface-shadow', '--surface-shadow-float', '--surface-shadow-menu'].map((prop) => ({ on: 'body', prop, map: (v, s) => (offShadow(s) ? ZERO_SHADOW : null) }))] },
     { key: 'disconnected', type: 'bool', default: false, apply: [{ on: 'body', cls: 'disconnected' }] },

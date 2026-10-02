@@ -77,7 +77,7 @@ const mk = (storage) => createPrefs({ key: 'mir.gui', schema, presets: LOOK_PRES
   const at = (state, env = { theme: 'dark' }) => Object.fromEntries(resolve({ ...defaults(schema), ...state }, schema, env).filter((w) => w.kind !== 'run').map((w) => [w.on + ' ' + w.kind + ' ' + w.name, w.value]));
   const home = at(LOOK_PRESETS.classic);
   assert.equal(home['html prop --glass-blur'], '22px', 'BLUR is always written: CLASSIC is the kit\'s own 22'); assert.equal(home['body prop --surface-veil'], null); assert.equal(home['body prop --glass-tint'], null); assert.equal(home['body prop --surface-filter'], null);
-  assert.equal(home['html attr data-cast'], null, 'CLASSIC\'s light is at home: the kit\'s own shadows'); assert.equal(home['body attr data-text'], null); assert.equal(home['body attr data-faces'], null); assert.equal(home['body prop --pane-edge'], null);
+  assert.equal(home['html attr data-cast'], '', 'the engine always draws BASINS\' material shadow, at 100 % too'); assert.equal(home['body attr data-text'], null); assert.equal(home['body attr data-faces'], null); assert.equal(home['body prop --pane-edge'], null);
   assert.equal(home['html prop --rack-gap'], '6px', 'CLASSIC\'s SPACING is DEFAULT'); assert.equal(home['html prop --pane-pad'], '8px'); assert.equal(home['html prop --rail-gap'], '4px');
   assert.equal(home['body prop --surface-radius'], null); assert.equal(home['html prop --relief-raise'], null); assert.equal(home['body prop --surface-shadow'], null);
   assert.equal(home['html attr data-ui-tier'], null); assert.equal(home['body class frost'], false); assert.equal(home['body attr data-card'], 'tinted');
