@@ -22,8 +22,9 @@
 
 import { normalizeFolder, leafOf, inFolderTree } from './files.js';
 import * as kitDefault from '../kit.js';
+import { label as kitLabel, ariaLabel as kitAria, placeholder as kitPh } from '../kit.js';   // the kit's own words, whatever kit the app hands in
 import { glyphEl } from '../glyph.js';
-import { t } from '../core/i18n.js';
+import { t, tn, phrase, onLanguage } from '../core/i18n.js';
 import { drag, pointerField } from '../core/pointer.js';
 import { createProximity } from '../core/proximity.js';
 import { setVar, rect } from '../core/perf.js';
@@ -38,18 +39,18 @@ export const SORT_MODES = [
 ];
 
 export const GALLERY_COPY = {
-  capture: ['CAPTURE', 'make image', 'Capture this view as an image. Capture again to try another version.'],
-  download: ['DOWNLOAD', 'save image', 'Download the captured image to your photos or files.'],
-  project: ['PROJECT', 'in this gallery', 'Project — store what is on screen with a thumbnail, so opening it later restores it.'],
-  duplicate: ['DUPLICATE', 'selected project', 'Duplicate the selected saved project, including its thumbnail and settings.'],
-  fresh: ['NEW', 'start over', 'New — back to the start.'],
-  partsTitle: 'PROJECT COMPONENTS',
-  name: 'NAME', saveTo: 'SAVE TO', saveToPlaceholder: 'ROOT — or type a new folder path',
-  root: 'ROOT',
-  factory: 'RESTORE FACTORY GALLERY',
-  factoryNote: 'puts back what this app shipped with — adds only what is missing, and never touches anything you saved',
-  emptyRoot: 'Nothing is saved at ROOT yet.  Open a folder, or save what is on screen here.',
-  emptyFolder: 'This folder is empty.  Move a project here, or save what is on screen into it.'
+  capture: [phrase('CAPTURE'), phrase('make image'), phrase('Capture this view as an image. Capture again to try another version.')],
+  download: [phrase('DOWNLOAD'), phrase('save image'), phrase('Download the captured image to your photos or files.')],
+  project: [phrase('PROJECT'), phrase('in this gallery'), phrase('Project — store what is on screen with a thumbnail, so opening it later restores it.')],
+  duplicate: [phrase('DUPLICATE'), phrase('selected project'), phrase('Duplicate the selected saved project, including its thumbnail and settings.')],
+  fresh: [phrase('NEW'), phrase('start over'), phrase('New — back to the start.')],
+  partsTitle: phrase('PROJECT COMPONENTS'),
+  name: phrase('NAME'), saveTo: phrase('SAVE TO'), saveToPlaceholder: phrase('{:ROOT} — or type a new folder path'),
+  root: phrase('ROOT'),   // tr: ROOT: the top of the folder tree, the projects in no folder (not a route)
+  factory: phrase('RESTORE FACTORY GALLERY'),
+  factoryNote: phrase('puts back what this app shipped with — adds only what is missing, and never touches anything you saved'),
+  emptyRoot: phrase('Nothing is saved at {:ROOT} yet.  Open a folder, or save what is on screen here.'),
+  emptyFolder: phrase('This folder is empty.  Move a project here, or save what is on screen into it.')
 };
 
 const ARM_MS = 2600, LONG_MS = 560;
@@ -102,11 +103,11 @@ export function buildGallery(panel, opts) {
   /* The projects are the main surface. Keep the verbs in one fixed-height row. */
   const verbs = mk('div', 'sv-toolbar', wrap);
   const iconAction = (spec, cls, icon, fire) => {
-    const tr = kit.trig({ label: '', title: t(spec[2]), cls: 'sv-icon-action ' + cls, onFire: fire });
+    const tr = kit.trig({ label: '', title: spec[2], cls: 'sv-icon-action ' + cls, onFire: fire });
     const label = tr.root.querySelector('.trig-l');
     label.textContent = '';
     ink(label, icon, 20);
-    tr.root.setAttribute('aria-label', t(spec[0]) + ' — ' + t(spec[1]));
+    kitAria(tr.root, '{verb} — {what}', { verb: { t: spec[0] }, what: { t: spec[1] } });   // tr: a button's name: its label, then what it acts on (SAVE — this project)
     verbs.appendChild(tr.root);
     return tr.root;
   };
@@ -137,7 +138,7 @@ export function buildGallery(panel, opts) {
   const partsBox = live.length ? mk('section', 'sv-parts', wrap) : null;
   const partSw = {};
   if (partsBox) {
-    const optionsTrig = kit.trig({ label: '', cls: 'sv-options', title: t('Project options'), onFire: () => {
+    const optionsTrig = kit.trig({ label: '', cls: 'sv-options', title: 'Project options', onFire: () => {
       partsBox.hidden = !partsBox.hidden; optionsBtn.setAttribute('aria-expanded', String(!partsBox.hidden));
     } });
     const optionsBtn = optionsTrig.root;
@@ -152,7 +153,7 @@ export function buildGallery(panel, opts) {
     optionsBtn.setAttribute('aria-expanded', 'false');
     const partsGrid = mk('div', 'sv-partgrid', partsBox);
     for (const p of live) {
-      const s = kit.sw({ label: p.label, value: S.parts[p.id], cls: 'sv-part', title: t('Include {what} in the next save', { what: t(p.label).toLowerCase() }),
+      const s = kit.sw({ label: p.label, value: S.parts[p.id], cls: 'sv-part', title: ['Include {what} in the next save', { what: { t: p.label } }],   // tr: {what} is the name of a part of the project (LAYOUT, PICTURE …), as its switch is labelled
                          onChange: (v) => { S.parts[p.id] = v; paintParts(); persist(); } });
       s.root.dataset.part = p.id;
       partsGrid.appendChild(s.root);
@@ -166,17 +167,17 @@ export function buildGallery(panel, opts) {
   const fields = mk('div', 'sv-fields', wrap);
   const field = (label, cls, max, placeholder) => {
     const row = mk('label', 'sv-field', fields);
-    mk('span', 'sv-flabel', row, t(label));
+    kitLabel(mk('span', 'sv-flabel', row), label);
     const inp = mk('input', 'sv-input ' + cls, row);
     inp.type = 'text'; inp.maxLength = max; inp.spellcheck = false; inp.autocomplete = 'off';
-    if (placeholder) inp.placeholder = t(placeholder);
+    if (placeholder) kitPh(inp, placeholder);
     inp.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); save(); } }, on);
     return inp;
   };
-  const nameIn = field(copy.name, 'sv-name-input', 80, 'Name');
-  const toIn = field(copy.saveTo, 'sv-to-input', 320, 'ROOT / folder');
-  nameIn.setAttribute('aria-label', t('Project name'));
-  toIn.setAttribute('aria-label', t('Save to folder'));
+  const nameIn = field(copy.name, 'sv-name-input', 80, phrase('Name'));
+  const toIn = field(copy.saveTo, 'sv-to-input', 320, phrase('{:ROOT} / folder'));
+  kitAria(nameIn, 'Project name');
+  kitAria(toIn, 'Save to folder');
   const toList = mk('datalist', null, fields);
   toList.id = 'sv-folders-' + Math.random().toString(36).slice(2, 8);
   toIn.setAttribute('list', toList.id);
@@ -189,13 +190,13 @@ export function buildGallery(panel, opts) {
 
   /* ── EXPLORER ─────────────────────────────────────────────────────────── */
   const explorer = mk('section', 'sv-explorer', wrap);
-  explorer.setAttribute('aria-label', t('Saved projects and folders'));
+  kitAria(explorer, 'Saved projects and folders');
   const explorerScroll = mk('div', 'sv-explorer-scroll', explorer);
   const grid = mk('div', 'sv-grid', explorerScroll);
 
   const foot = mk('div', 'sv-foot', explorerScroll);
   if (typeof adapter.factory === 'function') {
-    const fac = kit.trig({ label: copy.factory, cls: 'sv-factory', title: t(copy.factoryNote), onFire: async () => {
+    const fac = kit.trig({ label: copy.factory, cls: 'sv-factory', title: copy.factoryNote, onFire: async () => {
       fac.root.disabled = true;
       try {
         const r = await adapter.factory();
@@ -382,7 +383,7 @@ export function buildGallery(panel, opts) {
   }
   function askBeforeFresh(d) {
     const b = askBox();
-    mk('div', 'sv-context-text', b, t(d.known ? 'NEW starts the empty project.' : 'NEW starts the empty project. What is on screen may be unsaved.'));
+    mk('div', 'sv-context-text', b, t(d.known ? '{:NEW} starts the empty project.' : '{:NEW} starts the empty project. What is on screen may be unsaved.'));
     const row = mk('div', 'sv-context-row', b);
     action(row, 'SAVE & NEW', async () => { const r = await save(); if (r.ok) { closeContext(); fresh({ force: true }); } else if (!r.full) say(t('Could not save: {why} — nothing was cleared.', { why: r.why || 'unknown' }), true); }, 'sv-primary');
     action(row, 'NEW WITHOUT SAVING', () => { closeContext(); fresh({ force: true }); }, 'sv-danger');
@@ -394,7 +395,7 @@ export function buildGallery(panel, opts) {
       { count: r.count, need: fmtBytes(r.needChars), cap: fmtBytes(r.capChars) }));
     const row = mk('div', 'sv-context-row', b);
     /* ONE commit, with the capture already in hand (audit A4) */
-    action(row, t('MAKE ROOM — delete oldest ("{name}") and save', { name: r.oldestName || '' }), () => {
+    action(row, t('MAKE ROOM — delete oldest (“{name}”) and save', { name: r.oldestName || '' }), () => {
       const c = r.captured;
       if (!c || !c.payload) { say(t('Nothing was captured to save — save again.'), true); closeContext(); return; }
       const res = files.saveMakingRoom({ name: r.name, folder: r.folder, payload: c.payload, thumb: c.thumb || '', facts: c.facts || {} }, { consent: true });
@@ -404,7 +405,8 @@ export function buildGallery(panel, opts) {
         revealEntry(res.entry);
         if (r.duplicate) S.selected = res.entry.id;
         closeContext();
-        say(t('{verb} — {name} · made room by deleting {n}', { verb: t(r.duplicate ? 'Duplicated' : 'Saved'), name: res.entry.name, n: res.evicted.length }));
+        say(r.duplicate ? tn(res.evicted.length, 'Duplicated — {name} · made room by deleting {n} project', 'Duplicated — {name} · made room by deleting {n} projects', { name: res.entry.name })
+          : tn(res.evicted.length, 'Saved — {name} · made room by deleting {n} project', 'Saved — {name} · made room by deleting {n} projects', { name: res.entry.name }));
         if (!r.duplicate && typeof o.onSaved === 'function') o.onSaved(res.entry);
         paint();
       } else say(t('Could not save: {why}', { why: res.why || 'unknown' }), true);
@@ -433,7 +435,7 @@ export function buildGallery(panel, opts) {
       for (const f of dests) { const a = action(list, f ? f : copy.root, () => moveTo(e, f)); a.root.dataset.folder = f; }
     }
     const row = mk('div', 'sv-context-row sv-move', b);
-    const inp = mk('input', 'sv-input', row); inp.type = 'text'; inp.value = e.folder; inp.placeholder = t('ROOT or folder path'); inp.spellcheck = false;
+    const inp = mk('input', 'sv-input', row); inp.type = 'text'; inp.value = e.folder; inp.placeholder = t('{:ROOT} or folder path'); inp.spellcheck = false;
     inp.setAttribute('aria-label', t('Move {name} to folder', { name: e.name }));
     inp.addEventListener('keydown', (ev) => ev.stopPropagation());
     action(row, 'MOVE', () => moveTo(e, inp.value));
@@ -452,14 +454,14 @@ export function buildGallery(panel, opts) {
       const r = files.renameFolder(path, inp.value);
       if (r.ok) {
         if (inFolderTree(S.folder, path)) { const tail = S.folder.slice(path.length).replace(/^\//, ''); S.folder = normalizeFolder(r.to + (tail ? '/' + tail : '')); }
-        say(t('Folder renamed to {to}', { to: r.to }) + (r.renamed.length ? ' · ' + t('{n} renamed to avoid a clash', { n: r.renamed.length }) : ''));
+        say(r.renamed.length ? tn(r.renamed.length, 'Folder renamed to {to} · {n} project renamed to avoid a clash', 'Folder renamed to {to} · {n} projects renamed to avoid a clash', { to: r.to }) : t('Folder renamed to {to}', { to: r.to }));
         closeContext(); paint();
       } else say(t('Could not rename: {why}', { why: r.why }), true);
     });
     const rm = action(b, 'REMOVE FOLDER', () => {
-      if (!rm.root.classList.contains('armed')) { rm.root.classList.add('armed'); rm.setLabel('MOVE CONTENTS TO ROOT?'); return; }
+      if (!rm.root.classList.contains('armed')) { rm.root.classList.add('armed'); rm.setLabel('MOVE CONTENTS TO {:ROOT}?'); return; }
       const r = files.deleteFolder(path);
-      if (r.ok) { if (inFolderTree(S.folder, path)) S.folder = ''; say(t('Folder removed — {n} moved to ROOT', { n: r.moved })); closeContext(); paint(); }
+      if (r.ok) { if (inFolderTree(S.folder, path)) S.folder = ''; say(tn(r.moved, 'Folder removed — {n} project moved to {:ROOT}', 'Folder removed — {n} projects moved to {:ROOT}')); closeContext(); paint(); }
       else say(t('Could not remove the folder: {why}', { why: r.why }), true);
     }, 'sv-danger');
     action(b, 'CLOSE', closeContext);
@@ -632,7 +634,7 @@ export function buildGallery(panel, opts) {
     const pages = pageSize ? Math.max(1, Math.ceil(direct.length / pageSize)) : 1;
     S.page = Math.max(0, Math.min(S.page, pages - 1));
     if (pager) {
-      pageLabel.textContent = t('PAGE {n} / {of}', { n: S.page + 1, of: pages });
+      pageLabel.textContent = t('PAGE {page} / {of}', { page: S.page + 1, of: pages });
       prevPage.disabled = S.page === 0;
       nextPage.disabled = S.page === pages - 1;
     }
@@ -656,7 +658,7 @@ export function buildGallery(panel, opts) {
       const meta = mk('div', 'sv-meta', card);
       const name = mk('div', 'sv-name', meta, e.name);
       name.title = e.name + ' · ' + fmtBytes(e.bytes);
-      const renameIt = () => { if (ro(e)) { say(t('{name} came with the app and cannot be renamed — DUPLICATE makes your own copy', { name: e.name }), true); return; } renameInline(name, e.name, (v) => files.rename(e.id, v)); };
+      const renameIt = () => { if (ro(e)) { say(t('{name} came with the app and cannot be renamed — {:DUPLICATE} makes your own copy', { name: e.name }), true); return; } renameInline(name, e.name, (v) => files.rename(e.id, v)); };
       const acts = mk('div', 'sv-acts', card);
       const info = ink(btn('sv-info', acts, null, t('Show the data for {name}', { name: e.name })), 'info', 18);
       info.addEventListener('click', () => { S.selected = e.id; paintExplorer(); if (typeof o.onInspect === 'function') o.onInspect(files.entry(e.id), { show: true }); });
@@ -673,7 +675,7 @@ export function buildGallery(panel, opts) {
       });
     }
     if (!direct.length) mk('div', 'sv-empty', projectGrid, t(S.folder ? copy.emptyFolder : copy.emptyRoot));
-    count.textContent = t('{p} PROJECTS · {f} FOLDERS', { p: direct.length, f: children.size });
+    count.textContent = tn(direct.length, '{n} PROJECT', '{n} PROJECTS') + ' · ' + tn(children.size, '{n} FOLDER', '{n} FOLDERS');
     if (S.selected && !direct.some((e) => e.id === S.selected)) { S.selected = null; if (typeof o.onInspect === 'function') o.onInspect(null, { show: false }); }
     if (duplicateBtn) duplicateBtn.disabled = !S.selected || busy;
   }
@@ -705,6 +707,7 @@ export function buildGallery(panel, opts) {
   const unsub = files.subscribe(() => { if (panel.isConnected && !carry && !(doc.activeElement && doc.activeElement.classList.contains('sv-inline'))) paint(); });
 
   paint();
+  const offLang = onLanguage(() => { if (panel.isConnected && !carry) paint(); });   // the words paint() writes come back in the new language
   const api = {
     root: wrap, toolbar: verbs, actions: actionEls, paint, save, fresh, openEntry, markClean, closeContext, box, action, say,
     go, folder: () => S.folder, selected: () => (S.selected ? files.entry(S.selected) : null),
@@ -717,7 +720,7 @@ export function buildGallery(panel, opts) {
     state: () => ({ page: S.page, pageSize, folder: S.folder, selected: S.selected, sort: SORTS[S.sort].id, parts: { ...S.parts },
                     held: S.held ? { w: S.held.w, h: S.held.h, bytes: S.held.bytes, name: S.held.name } : null,
                     count: count.textContent, contextOpen: !context.hidden, dirty: dirty(), carrying: !!carry }),
-    destroy() { life.abort(); unsub(); prox.destroy(); for (const off of tileLife) { try { off(); } catch (_) {} } tileLife = []; if (carry) drop(); wrap.remove(); }
+    destroy() { life.abort(); offLang(); unsub(); prox.destroy(); for (const off of tileLife) { try { off(); } catch (_) {} } tileLife = []; if (carry) drop(); wrap.remove(); }
   };
   return api;
 }

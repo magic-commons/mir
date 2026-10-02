@@ -401,7 +401,11 @@ export function setGlyph(el, name, opts) {
   el.textContent = '';
   el.appendChild(svg);
   el.setAttribute('data-gly', name);
-  if (label) { el.setAttribute('data-t-aria', label); el.setAttribute('aria-label', t(label)); }
+  if (label) {                                                  // the name a language pass rewrites (kit.js relabel): its English and its vars
+    el.setAttribute('data-t-aria', label);
+    if (o.vars) el.setAttribute('data-t-avars', JSON.stringify(o.vars)); else el.removeAttribute('data-t-avars');
+    el.setAttribute('aria-label', t(label, o.vars));
+  }
   return el;
 }
 

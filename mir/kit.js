@@ -85,25 +85,46 @@ export function el(tag, cls, parent, text) {
  * `ariaLabel()`.  Each translates now and KEEPS THE ENGLISH ON THE NODE (`data-t`, `data-t-aria`, `data-t-vars`),
  * so a language change is one pass over those attributes (`relabel()`) and costs nothing until it happens.
  * Nothing finds or styles a node by these attributes' VALUES: they are the English, which is text, not an id.
- * A `title` is NOT translated here: it becomes a hint at ONE hop (control-help.js), which translates it there. */
-export function label(node, en, vars) {
+ * A plain `title` is NOT translated here: it becomes a hint at ONE hop (control-help.js), which translates it there.
+ * A hint with {vars} is written with `hint()`, which keeps its English (`data-t-title`) for that hop and for relabel.
+ * `context` (optional, last) splits one English word with two meanings into two keys: label(n, 'LIGHT', null, 'theme mode'). */
+const keyOf = (en, context) => (context ? context + '::' + en : en);
+const json = (v) => { try { return v ? JSON.parse(v) : undefined; } catch (_) { return undefined; } };
+export function label(node, en, vars, context) {
   if (typeof en !== 'string' || en === '') { delete node.dataset.t; delete node.dataset.tVars; return mathText(node, en); }
-  node.dataset.t = en;
+  node.dataset.t = keyOf(en, context);
   if (vars) node.dataset.tVars = JSON.stringify(vars); else delete node.dataset.tVars;
-  return mathText(node, tx(en, vars));
+  return mathText(node, tx(node.dataset.t, vars));
 }
-export function ariaLabel(node, en, vars) {
+export function ariaLabel(node, en, vars, context) {
   if (typeof en !== 'string' || en === '') return node;
-  node.dataset.tAria = en;
-  if (vars) node.dataset.tVars = JSON.stringify(vars);
-  node.setAttribute('aria-label', mathPlain(tx(en, vars)));
+  node.dataset.tAria = keyOf(en, context);
+  if (vars) node.dataset.tAvars = JSON.stringify(vars); else delete node.dataset.tAvars;
+  node.setAttribute('aria-label', mathPlain(tx(node.dataset.tAria, vars)));
+  return node;
+}
+/** hint(node, en, vars?, context?) — a hint with values in it: the title in this language, its English kept for the hint hop */
+export function hint(node, en, vars, context) {
+  if (Array.isArray(en)) [en, vars] = en;                          // a builder's `title: ['… {x} …', { x }]`
+  if (typeof en !== 'string' || en === '') { node.removeAttribute('title'); return node; }
+  node.dataset.tTitle = keyOf(en, context);
+  if (vars) node.dataset.tHvars = JSON.stringify(vars); else delete node.dataset.tHvars;
+  node.title = mathPlain(tx(node.dataset.tTitle, vars));
+  return node;
+}
+/** placeholder(input, en, vars?, context?) — a field's placeholder, translated and kept the same way */
+export function placeholder(node, en, vars, context) {
+  node.dataset.tPh = keyOf(en, context);
+  if (vars) node.dataset.tPvars = JSON.stringify(vars); else delete node.dataset.tPvars;
+  node.placeholder = tx(node.dataset.tPh, vars);
   return node;
 }
 /** write every kit-written label and name under `root` again in the current language */
 export function relabel(root = document) {
-  const vars = (n) => { try { return n.dataset.tVars ? JSON.parse(n.dataset.tVars) : undefined; } catch (_) { return undefined; } };
-  for (const n of root.querySelectorAll('[data-t]')) mathText(n, tx(n.dataset.t, vars(n)));
-  for (const n of root.querySelectorAll('[data-t-aria]')) n.setAttribute('aria-label', mathPlain(tx(n.dataset.tAria, vars(n))));
+  for (const n of root.querySelectorAll('[data-t-ph]')) n.placeholder = tx(n.dataset.tPh, json(n.dataset.tPvars));
+  for (const n of root.querySelectorAll('[data-t]')) mathText(n, tx(n.dataset.t, json(n.dataset.tVars)));
+  for (const n of root.querySelectorAll('[data-t-aria]')) n.setAttribute('aria-label', mathPlain(tx(n.dataset.tAria, json(n.dataset.tAvars))));
+  for (const n of root.querySelectorAll('[data-t-title][title]')) n.title = mathPlain(tx(n.dataset.tTitle, json(n.dataset.tHvars)));
   for (const n of root.querySelectorAll('.dev-stat')) statCaps(n);
 }
 /** a window's state words, drawn by skin.css as ' · ' attr(data-cap-off | data-cap-copied) after its status */
@@ -179,7 +200,7 @@ export function knob(o) {
   if (ariaName) ariaLabel(root, ariaName);
   root.setAttribute('aria-valuemin', String(wheel ? 0 : lo));
   root.setAttribute('aria-valuemax', String(wheel ? 360 : hi));
-  if (o.title) root.title = mathPlain(o.title);             // knob() silently dropped `title:` at ten call sites; the hint was already written
+  if (o.title) hint(root, o.title);                      // knob() silently dropped `title:` at ten call sites; the hint was already written
   /** the announcement — guarded, and only ever the string the eye is reading (`fmt`), never a bare number.
    *  The two `!==` compare against a CLOSURE and not the DOM: paint() runs on the frame loop for every
    *  live and every modulated dial, and this module already knows what it last wrote. */
@@ -330,7 +351,7 @@ export function sw(o) {
   b.type = 'button';
 
 
-  if (o.title) b.title = mathPlain(o.title);
+  if (o.title) hint(b, o.title);
   el('i', 'sw-led', b); label(el('span', 'sw-lbl', b), o.label);
   let v = !!o.value;
   const paint = () => { b.classList.toggle('on', v); b.setAttribute('aria-pressed', String(v)); };
@@ -359,7 +380,7 @@ export function seg(o) {
   if (ariaName) ariaLabel(row, ariaName);
   let v = o.value; const btns = new Map(); const ids = [];
   for (const opt of o.options) {
-    const b = label(el('button', 'seg-b', row), opt.label); b.type = 'button'; if (opt.title) b.title = mathPlain(opt.title);
+    const b = label(el('button', 'seg-b', row), opt.label); b.type = 'button'; if (opt.title) hint(b, opt.title);
     b.setAttribute('role', 'radio');
     b.addEventListener('click', () => { if (v === opt.id) return; v = opt.id; paint(); if (o.onChange) o.onChange(v); });
     b.addEventListener('keydown', onKey);
@@ -425,7 +446,7 @@ export function trig(o) {
   b.type = 'button';
   if (o.glyph) el('span', 'trig-g', b, o.glyph);
   label(el('span', 'trig-l', b), o.label);
-  if (o.title) b.title = mathPlain(o.title);
+  if (o.title) hint(b, o.title);
   b.addEventListener('click', (e) => { if (o.onFire) o.onFire(e); });
   /* wave 62: a `trig` used as a STATE says so.  A trig that never sets `on` never gets the attribute,
      so this is correct for every caller and costs one expression. */

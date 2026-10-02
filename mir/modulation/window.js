@@ -33,7 +33,7 @@
  * Kept as they were: every law in modwindow/ACCEPTANCE.md and host-contract.md, the FL curve gestures
  * (curve-gesture.js), Sol's automation / exact resume / runtime capture in host.js and mod.js.
  */
-import { el, seg, trig, knob, tapWatcher, gripDots, label, ariaLabel } from '../kit.js';
+import { el, seg, trig, knob, tapWatcher, gripDots, label, ariaLabel, hint as hintTo } from '../kit.js';
 import { bindSliderKeys } from '../slider-keys.js';
 import { createModWindow, setDeviceMode, setWorkLane, sizeLaw, GEOM,
          buildGhost, buildAudioSheet, COPY } from './modwindow/modwindow.js';
@@ -48,7 +48,7 @@ import { drag as pointerDrag } from '../core/pointer.js';
 import { tweenRect, presence, owns, settled } from '../core/motion.js';
 import { createProximity } from '../core/proximity.js';
 import { rect as rectOf } from '../core/perf.js';
-import { t, onLanguage } from '../core/i18n.js';
+import { t, tn, phrase, onLanguage } from '../core/i18n.js';
 
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const pct = (u) => (100 * clamp01(u)).toFixed(2) + '%';
@@ -74,7 +74,10 @@ const KIND_WORD = Object.freeze({ lfo: { t: 'LFO' }, env: { t: 'ENV' }, audio: {
 const BAND_WORD = Object.freeze({ level: { t: 'LEVEL' }, low: { t: 'LOW' }, mid: { t: 'MID' }, high: { t: 'HIGH' }, hit: { t: 'HIT' }, beat: { t: 'BEAT' } });
 const BAND_SHORT = Object.freeze({ level: 'A', low: 'L', mid: 'M', high: 'H' });
 /** a device's run state, as the paint shows it (the logic compares the English ids) */
-const STATE_WORD = Object.freeze({ OFF: { t: 'OFF' }, GATE: { t: 'GATE' }, REL: { t: 'REL' }, RUN: { t: 'RUN' }, IDLE: { t: 'IDLE' }, HOLD: { t: 'HOLD' } });
+/* the waveform and shape labels mod.js (WAVE_LABEL) and curve.js (PRESET_LABEL) name: those two files are ports kept
+   by diff, so their tables stay plain, and the catalogue learns the words here.  Shown through { t: … } below. */
+export const WAVE_WORDS = Object.freeze([phrase('SAW↑'), phrase('SAW↓'), phrase('SINE'), phrase('TRI'), phrase('SQR'), phrase('S&H'), phrase('DRIFT'), phrase('MULTI-SAW'), phrase('MULTI-TRI')]);   // tr: waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written
+const STATE_WORD =Object.freeze({ OFF: { t: 'OFF' }, GATE: { t: 'GATE' }, REL: { t: 'REL' }, RUN: { t: 'RUN' }, IDLE: { t: 'IDLE' }, HOLD: { t: 'clock state::HOLD' } });   // tr[clock state::HOLD]: — the modulation clock is held (paused in place), as opposed to RUN
 const CAPTURE_WORD = Object.freeze({ idle: { t: 'IDLE' }, asking: { t: 'ASKING' }, live: { t: 'LIVE' }, denied: { t: 'DENIED' }, error: { t: 'ERROR' }, closed: { t: 'CLOSED' } });
 const kindWord = (k) => (KIND_WORD[k] ? t(KIND_WORD[k].t) : String(k));
 const bandWord = (k) => (BAND_WORD[k] ? t(BAND_WORD[k].t) : String(k));
@@ -114,17 +117,17 @@ const SHAPES = ['tri', 'sawup', 'sine', 'square', 'msaw', 'mtri'];
 
 
 const CHECK_HINT = {
-  sync: 'BPM · quantise the LFO rate to the loop clock',
-  anchor: 'ANCHOR · resume from the paused phase',
-  invert: 'Invert the curve output: 1 − v',
-  triplet: 'the note ladder × 2/3 — three in the space of two',
-  dotted: 'the note ladder × 3/2 — a note and a half',
-  gate: 'GATE holds sustain until release; ONE-SHOT runs once'
+  sync: phrase('{:BPM} · quantise the LFO rate to the loop clock'),
+  anchor: phrase('{:ANCHOR} · resume from the paused phase'),
+  invert: phrase('Invert the curve output: 1 − v'),
+  triplet: phrase('the note ladder × 2/3 — three in the space of two'),
+  dotted: phrase('the note ladder × 3/2 — a note and a half'),
+  gate: phrase('{:GATE} holds sustain until release; off, the envelope runs once')
 };
 
 /** THE CHIP RAIL, as window/rail.js chip tables.  One row per state, declared once: what aria-pressed means for
  *  WORK BARS (true above, mixed hidden) is written here and nowhere else. */
-const GRIP_HINT = 'Drag window · Shift-drag, or hold, to move these controls to another edge · arrows when focused';
+const GRIP_HINT = phrase('Drag window · Shift-drag, or hold, to move these controls to another edge · arrows when focused');
 const RAIL_CHIPS = Object.freeze([
   { name: 'close', kind: 'close', glyph: 'close', label: 'Close window', hint: 'Close window' },
   { name: 'compact', kind: 'toggle', glyph: 'compact', label: 'COMPACT', hint: 'COMPACT' },
@@ -175,8 +178,8 @@ export function createModulation(host, port) {
   /* ── THE ARTIFACT, BUILT ───────────────────────────────────────────────────────────────── */
   const root = createModWindow({
     /* COPY customizes audio's face while the ported files stay frozen. */
-    copy: { factory: 'FACTORY', knobs: {...COPY.knobs, audio:[['sens','GAIN','-24','+24'],['attack','ATTACK','0','2s'],['release','RELEASE','0','2s'],['peakHold','HOLD','0','2s']]},
-      audioSheetRows:[['out','BAND'],['lower','LOWER'],['upper','UPPER'],['att','ATTACK'],['rel','RELEASE'],['gate','NOISE GATE'],['thresh','GATE dB'],['hold','GATE HOLD'],['hyst','HYST'],['flux','HIT SENSE']],
+    copy: { factory: phrase('FACTORY'), knobs: {...COPY.knobs, audio:[['sens',phrase('GAIN'),'-24','+24'],['attack',phrase('ATTACK'),'0','2s'],['release',phrase('RELEASE'),'0','2s'],['peakHold',phrase('HOLD', 'peak hold'),'0','2s']]},
+      audioSheetRows:[['out',phrase('BAND')],['lower',phrase('LOWER')],['upper',phrase('UPPER')],['att',phrase('ATTACK')],['rel',phrase('RELEASE')],['gate',phrase('NOISE GATE')],['thresh',phrase('GATE dB')],['hold',phrase('GATE HOLD')],['hyst',phrase('HYST')],['flux',phrase('HIT SENSE')]],
       ...(port.copy || {}) }
   });
   host.appendChild(root);
@@ -260,11 +263,10 @@ export function createModulation(host, port) {
   function resumeSentence() {
     const r = clock.resumePlan ? clock.resumePlan() : null;
     if (!r) return '';
-    if (r.law === 'ANCH') return r.anch === 1
-      ? t('ANCHOR holds the beat: the 1 anchored source — and every BPM source beside it — resumes exactly where the pause caught it')
-      : t('ANCHOR holds the beat: the {n} anchored sources — and every BPM source beside them — resume exactly where the pause caught them', { n: r.anch });
+    if (r.law === 'ANCH') return tn(r.anch, '{:ANCHOR} holds the beat: the {n} anchored source — and every BPM source beside it — resumes exactly where the pause caught it',
+      '{:ANCHOR} holds the beat: the {n} anchored sources — and every BPM source beside them — resume exactly where the pause caught them');
     if (r.law === 'BPM') return t('the loop clock claims the resume: the beat jumped back {moved} of a beat to the {grid}-beat note boundary just passed', { moved: r.last.moved.toFixed(3), grid: r.grid });
-    if (r.law === 'TRIG') return t('TRIG: the curve starts over');
+    if (r.law === 'TRIG') return t('{:TRIG}: the curve starts over');
     return '';
   }
 
@@ -281,7 +283,7 @@ export function createModulation(host, port) {
     pick.btns.audio.setAttribute('aria-disabled', 'true');
     pick.btns.audio.title = 'Audio input is unavailable in this browser';
   } else if (pick.btns.audio) {
-    pick.btns.audio.title = 'Add an audio follower; AUDIO IN uses the microphone';
+    pick.btns.audio.title = 'Add an audio follower; {:AUDIO IN} uses the microphone';
   }
 
   /* ── PRESENTATION STATE.  The window's own, never the model's, never the project's. ────── */
@@ -550,7 +552,7 @@ export function createModulation(host, port) {
   transport.xport.addEventListener('click', () => {
     const on = !powered();
     setPower(on);
-    status(on ? t('MOD on') : t('MOD off'), '');
+    status(on ? t('MOD on') : t('MOD off'), '');   // tr: MOD: modulation as a whole, switched on or off by its power button
     sync();
   });
   transport.xport.title = 'Enable or bypass modulation';
@@ -619,17 +621,17 @@ export function createModulation(host, port) {
     paint(true);
   });
 
-  transport.sync.title = 'WALL follows elapsed time. FREE accumulates frame time.';
+  transport.sync.title = '{:WALL} follows elapsed time. {:FREE} accumulates frame time.';
   transport.sync.addEventListener('click', () => { clock.setSync(M.syncMode() === 'wall' ? 'free' : 'wall'); sync(); });
   transport.cad.title = 'Limit modulation updates per second';
   transport.cad.addEventListener('click', () => { if (port.setCadence) port.setCadence(port.cadence() === 120 ? 60 : 120); sync(); });
 
   const HOLD_NOTE = ['1/4', '1'];
   transport.holds.forEach((b, i) => {
-    b.title = t('Hold and repeat {note}; release to resume the original clock', { note: HOLD_NOTE[i] });
+    hintTo(b, 'Hold and repeat {note}; release to resume the original clock', { note: HOLD_NOTE[i] });   // tr: {note} is a note value, 1/4 or 1 (a beat or a bar)
     b.addEventListener('click', () => {
       if (M.transport.hold && M.transport.holdNote === HOLD_NOTE[i]) { clock.release(); status(t('STUTTER released — rejoined the running beat'), ''); }
-      else { if (M.transport.hold) clock.release(); clock.hold(HOLD_NOTE[i]); status(t('STUTTER {note} latched — applies to BPM-synced LFOs; press again to release', { note: HOLD_NOTE[i] }), ''); }
+      else { if (M.transport.hold) clock.release(); clock.hold(HOLD_NOTE[i]); status(t('STUTTER {note} latched — applies to BPM-synced LFOs; press again to release', { note: HOLD_NOTE[i] }), ''); }   // tr: STUTTER: the clock holds the current beat and repeats it at the note value {note} (1/4 or 1)
       sync();
     });
   });
@@ -639,7 +641,7 @@ export function createModulation(host, port) {
   foot.open.addEventListener('click', () => { presetOpen ? closePresets() : openPresets(); });
   foot.save.addEventListener('click', () => {
     const name = (foot.name.value || '').trim();
-    if (!name) { status(t('type a name first — the field beside SAVE'), 'warn'); foot.name.focus(); return; }
+    if (!name) { status(t('type a name first — the field beside {:SAVE}'), 'warn'); foot.name.focus(); return; }
     let r = M.presetSave(name, M.serializeRack());
     /* A NAME THAT IS ALREADY TAKEN IS A REPLACE, not a refusal — the model asks first and
        this window answers yes, because SAVE on a name you just loaded means "keep this". */
@@ -654,7 +656,7 @@ export function createModulation(host, port) {
   const folderLabel = (name) => name === M.PRESET_FOLDER_DEFAULT ? t('MY PRESETS') : name;
   const stepPreset = (dir) => {
     const list = userPresets();
-    if (!list.length) { status(t('no presets yet — type a name and press SAVE'), 'warn'); return; }
+    if (!list.length) { status(t('no presets yet — type a name and press {:SAVE}'), 'warn'); return; }
     const cur = list.findIndex((p) => p.name === foot.name.value);
     const next = list[((cur < 0 ? (dir > 0 ? -1 : 0) : cur) + dir + list.length) % list.length];
     loadPreset(next.id);
@@ -705,15 +707,14 @@ export function createModulation(host, port) {
   function closeDead() { deadOpen = false; dead.root.hidden = true; foot.dead.setAttribute('aria-expanded', 'false'); }
   function openDead() {
     deadOpen = true;
-    label(dead.title, 'DEAD SENDS');
+    label(dead.title, 'DEAD SENDS');   // tr[DEAD SENDS]: routes (sends) whose target control is missing from this build: they wait, keeping their range, until it comes back
     dead.list.innerHTML = '';
     for (const r of M.dormantRoutes()) {
       const m = M.macroOf(r.macroId);
       const row = dead.row({ routeId: r.id, macroId: r.macroId, targetId: r.targetId, reason: 'target-unavailable' });
       row.source.textContent = m ? m.name : r.macroId;
       row.target.textContent = r.targetId;
-      label(row.why, 'this build has no such target');
-      row.trail.nodeValue = ' ' + t('— the route keeps its range until one appears');
+      label(row.why, 'this build has no such target — the route keeps its range until one appears'); row.trail.nodeValue = '';
       row.remove.addEventListener('click', () => { M.removeRoute(r.id); clock.recomputeRunning(); apply(); rebuild(); openDead(); });
     }
     dead.root.hidden = false;
@@ -1168,7 +1169,7 @@ export function createModulation(host, port) {
       grip.classList.add('m2arm');
       hideGhost();
       const m = M.macroOf(macroId);
-      status(t('ARMED: {macro} — tap a lit control to route it, tap the grip again to cancel', { macro: m ? m.name : macroId }), '');
+      status(t('ARMED: {macro} — tap a lit control to route it, tap the grip again to cancel', { macro: m ? m.name : macroId }), '');   // tr: ARMED: the macro waits for a tap on a control to route itself there (as a record button is armed)
     });
     const cancel = () => { if (armed && armed.grip === grip) { if (armed.mode === 'drag') glow.cancel(); endArm(); status('', ''); } };
     grip.addEventListener('pointercancel', cancel);
@@ -1399,14 +1400,14 @@ export function createModulation(host, port) {
         rec.name.value = M.macroOf(m.id).name;
         rec.name.focus(); rec.name.select();
       };
-      rec.grip.title = 'Drag to route; tap to arm; double-tap to reset';
+      rec.grip.title = 'Drag to route; tap to arm; double-tap to reset';   // tr: route: connect this macro to a control so it moves it; arm: make it wait for a tap on the control to connect to
       ariaLabel(rec.grip, 'route {macro} — drag onto a control, or tap to arm', { macro: m.name });
       wireGrip(rec.grip, m.id);
       rec.reorder.title = 'Drag to reorder; double-tap to rename';
       ariaLabel(rec.reorder, 'reorder or rename {macro}', { macro: m.name });
       rec.reorder.replaceChildren(gripDots());                  // Josh: the dot grip for reorder; the cross stays the routing grip
       wireMacroReorder(rec, m.id, rename);
-      rec.del.title = t('delete {macro} and its routes', { macro: m.name });
+      hintTo(rec.del, 'delete {macro} and its routes', { macro: m.name });
       ariaLabel(rec.del, 'delete {macro} and its routes', { macro: m.name });
       rec.del.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1430,7 +1431,7 @@ export function createModulation(host, port) {
          "because that is what it is; the host's registry writes the aria range and value" — so it
          is written here, on all three of the plugin's slider kinds, and B122's document-wide sweep
          reads them back beside the house's own. */
-      aria(rec.numSeat, t('MACRO {n} DEPTH', { n }), 0, 100, 100 * M.macroOf(m.id).masterDepth, '100%');
+      aria(rec.numSeat, t('MACRO {i} DEPTH', { i: n }), 0, 100, 100 * M.macroOf(m.id).masterDepth, '100%');
 
       if (rec.kind === 'trigger') {
         rec.pad.addEventListener('pointerdown', (e) => { e.preventDefault(); M.fireMacro(m.id); apply(); paint(true); });
@@ -1597,7 +1598,7 @@ export function createModulation(host, port) {
       return {get:()=>Math.log1p(value())/Math.log1p(M.AUDIO_TIME_MAX),
         set:u=>M.setSource(s.id,{audio:{outs:{[band()]:{[field]:Math.round(Math.expm1(clamp01(u)*Math.log1p(M.AUDIO_TIME_MAX)))}}}}),
         text:()=>value()>=1000?(value()/1000).toFixed(value()%1000?2:0)+' s':value().toFixed(0)+' ms',
-        hint:key==='peakHold'?t('Selected audio band peak hold; choose LEVEL, LOW, MID or HIGH on its meter'):key==='attack'?t('Selected audio band attack time constant; choose LEVEL, LOW, MID or HIGH on its meter'):t('Selected audio band release time constant; choose LEVEL, LOW, MID or HIGH on its meter')};
+        hint:key==='peakHold'?t('Selected audio band peak hold; choose {:LEVEL}, {:LOW}, {:MID} or {:HIGH} on its meter'):key==='attack'?t('Selected audio band attack time constant; choose {:LEVEL}, {:LOW}, {:MID} or {:HIGH} on its meter'):t('Selected audio band release time constant; choose {:LEVEL}, {:LOW}, {:MID} or {:HIGH} on its meter')};
     }
     switch (key) {
       case 'rate': return {
@@ -1620,7 +1621,7 @@ export function createModulation(host, port) {
         text: () => fmtSec(s[key]),
         hint: 'Set the envelope stage time' };
       case 's': return { get: () => s.s, set: (u) => M.setSource(s.id, { s: clamp01(u) }),
-        text: () => (100 * s.s).toFixed(0) + '%', hint: 'the sustain LEVEL — the one ADSR control that is not a time' };
+        text: () => (100 * s.s).toFixed(0) + '%', hint: 'the sustain {:LEVEL} — the one ADSR control that is not a time' };
       /* ⚠ WAVE 100 · THESE READ DEFENSIVELY, AND THAT IS NOT TIDINESS.  `M.addSource('audio')` does
          not initialise `gainDb` or `gateDb` — the capture half that would own them was never ported —
          so both of these called `.toFixed` on `undefined` and threw INSIDE `buildCard`, which is the
@@ -1644,7 +1645,7 @@ export function createModulation(host, port) {
         const db = () => ((s.audio && Number.isFinite(s.audio.thresholdDb)) ? s.audio.thresholdDb : M.AUDIO_DB_FLOOR);
         return { get: () => clamp01((db() - M.AUDIO_DB_FLOOR) / M.AUDIO_DB_SPAN),
           set: (u) => M.setSource(s.id, { audio: { thresholdDb: M.AUDIO_DB_FLOOR + clamp01(u) * M.AUDIO_DB_SPAN } }),
-          text: () => db().toFixed(0) + ' dB', hint: 'the gate opens here and stays open until hysteresis below it' }; }
+          text: () => db().toFixed(0) + ' dB', hint: 'the gate opens here and stays open until hysteresis below it' }; }   // tr: hysteresis: a small margin below the opening level, so the gate does not flicker open and shut
       default: return { get: () => 0, set: () => {}, text: () => '--', hint: '' };
     }
   }
@@ -1745,7 +1746,7 @@ export function createModulation(host, port) {
       });
       const amount = el('input', '', cell()); amount.type = 'number'; amount.min = -100; amount.max = 100; amount.step = 1; amount.value = ((r.max - r.min) * 100).toFixed(1); ariaLabel(amount, 'Signed route amount percent');
       amount.addEventListener('change', () => { if (!Number.isFinite(amount.valueAsNumber)) return; const d = Math.max(-1, Math.min(1, amount.valueAsNumber / 100)); update(r, {min:Math.max(0,-d),max:Math.max(0,d)}); amount.value = (d*100).toFixed(1); });
-      select(cell(), [['uni',t('UNIPOLAR')],['bi',t('BIPOLAR')]], r.bi ? 'bi' : 'uni', 'Route polarity', v => update(r, {bi:v === 'bi'}));
+      select(cell(), [['uni',t('UNIPOLAR')],['bi',t('BIPOLAR')]], r.bi ? 'bi' : 'uni', 'Route polarity', v => update(r, {bi:v === 'bi'}));   // tr: UNIPOLAR: the route only adds (0 to +); BIPOLAR: it swings both ways around the base
       const curve = el('input', '', cell()); curve.type = 'range'; curve.min = -1; curve.max = 1; curve.step = .01; curve.value = r.curve || 0; ariaLabel(curve, 'Response curve, zero is linear'); curve.addEventListener('input', () => update(r, {curve:curve.valueAsNumber}));
       const remove = label(el('button', '', cell()), 'REMOVE'); remove.type = 'button'; remove.addEventListener('click', () => { M.removeRoute(r.id); clock.recomputeRunning(); apply(); rebuild(); renderMatrix(); });
     }
@@ -1858,14 +1859,13 @@ export function createModulation(host, port) {
         const rec = devRows.get(s.id);
         if (rec && rec.dev && rec.dev.root) rec.dev.root.remove();
         devRows.delete(s.id);
-        broken.push(t('{kind} {id}', { kind: KIND_WORD[s.kind] || s.kind, id: s.id }));
+        broken.push(t('{kind} {id}', { kind: KIND_WORD[s.kind] || s.kind, id: s.id }));   // tr: a device's name: its kind and its id (LFO s2); reorder if your language puts the id first
         try { console.error('[modwindow] device ' + s.id + ' failed to build', e); } catch (_) {}
       }
     }
     for (const s of devOrder()) { const rec = devRows.get(s.id); if (rec) setDeviceMode(rec.dev, modeOf(s.id)); }
-    if (broken.length) status(broken.length === 1
-      ? t('{list} could not be built and is not on the rack — the rest of the rack is unaffected', { list: broken[0] })
-      : t('{list} could not be built and are not on the rack — the rest of the rack is unaffected', { list: broken.join(', ') }), 'warn');
+    if (broken.length) status(tn(broken.length, 'One device could not be built and is not on the rack: {list}. The rest of the rack is unaffected.',
+      '{n} devices could not be built and are not on the rack: {list}. The rest of the rack is unaffected.', { list: broken.join(', ') }), 'warn');
   }
 
   function buildCard(s) {
@@ -1891,10 +1891,10 @@ export function createModulation(host, port) {
       dev.bank.btn.title = 'Switch between two saved patches for this device';
     dev.bank.btn.addEventListener('click', () => { M.setSource(s.id, { bank: s.bank === 'A' ? 'B' : 'A' }); apply(); sync(); });
     dev.cpy.title = 'copy this side\'s whole patch';
-    dev.cpy.addEventListener('click', () => { clip = M.copyBank(s.id); say(rec, t('patch copied — PASTE onto any {kind}', { kind: KIND_WORD[s.kind] || s.kind })); });
+    dev.cpy.addEventListener('click', () => { clip = M.copyBank(s.id); say(rec, t('patch copied — {:PASTE} onto any {kind}', { kind: KIND_WORD[s.kind] || s.kind })); });   // tr: a patch: all of one device’s settings together, as a synth patch; {kind} is the device kind (LFO, ENV, AUDIO)
       dev.pst.title = 'Paste a compatible device patch';
     dev.pst.addEventListener('click', () => {
-      if (!clip) { say(rec, t('nothing copied yet — press COPY on a device first')); return; }
+      if (!clip) { say(rec, t('nothing copied yet — press {:COPY} on a device first')); return; }
       const w = M.pasteBank(s.id, clip, s.bank);
       if (!w) { say(rec, t('{a} and {b} patches cannot be pasted across — they are different devices', { a: KIND_WORD[clip.kind] || String(clip.kind), b: KIND_WORD[s.kind] || s.kind })); return; }
       apply(); sync();
@@ -1927,7 +1927,7 @@ export function createModulation(host, port) {
     if (dev.kind === 'lfo') {
       for (const name of SHAPES) {
         const q = dev.presets[name]; if (!q) continue;
-        q.btn.title = PRESET_LABEL[name] + ' · tap to draw; tap again to mirror';
+        hintTo(q.btn, '{shape} · tap to draw; tap again to mirror', { shape: { t: PRESET_LABEL[name] } });
         q.btn.addEventListener('click', () => {
           M.setSource(s.id, { preset: name });
           const lp = s.lastPreset || {};
@@ -1980,7 +1980,7 @@ export function createModulation(host, port) {
          under GATE and framed 0.3565 s of a 0.910 s picture — 155 % past the right edge). */
       const [zin, zfit, zout] = dev.zoom;
       zin.title = 'Zoom into the envelope graph';
-      zin.addEventListener('click', () => { M.setSource(s.id, { timeScale: s.timeScale * 0.5 }); paint(true); say(rec, t('window {s} s', { s: s.timeScale.toFixed(2) })); });
+      zin.addEventListener('click', () => { M.setSource(s.id, { timeScale: s.timeScale * 0.5 }); paint(true); say(rec, t('window {s} s', { s: s.timeScale.toFixed(2) })); });   // tr: a window of time: the envelope graph now spans {s} seconds
       zout.title = 'Zoom out of the envelope graph';
       zout.addEventListener('click', () => { M.setSource(s.id, { timeScale: s.timeScale * 2 }); paint(true); say(rec, t('window {s} s', { s: s.timeScale.toFixed(2) })); });
       zfit.title = 'Fit the full envelope in the graph';
@@ -2047,14 +2047,14 @@ export function createModulation(host, port) {
             const d0 = document.createElement('option'); d0.value = ''; label(d0, 'SYSTEM DEFAULT');
             sh.input.appendChild(d0);
             for (const d of list) { const op = document.createElement('option');
-              op.value = d.id; op.textContent = d.label; sh.input.appendChild(op); }
+              op.value = d.id; op.textContent = t(d.label); sh.input.appendChild(op); }
             sh.input.value = port.audio.state().deviceId || '';
           });
         }
       });
       for (const key of Object.keys(A.outs)) {
         const row = A.outs[key];
-        row.box.title = key === 'hit' ? 'HIT event output' : t('Route {band} to a macro', { band: BAND_WORD[key] || key });
+        if (key === 'hit') hintTo(row.box, '{:HIT} event output'); else hintTo(row.box, 'Route {band} to a macro', { band: BAND_WORD[key] || key });
         row.box.addEventListener('click', () => {
           if (key !== 'hit') cycleAudioOut(rec, key);
         });
@@ -2078,13 +2078,13 @@ export function createModulation(host, port) {
     if (dev.bus) {
 
 
-      dev.bus.title = 'Select the envelope trigger; Shift-click selects AUDIO HIT';
+      dev.bus.title = 'Select the envelope trigger; Shift-click selects the {:AUDIO} {:HIT} output';
       dev.bus.addEventListener('click', (e) => {
         const list = fireSources();
         if (e.shiftKey) {                                   // the shortcut, straight to the signal
           const hit = list.find((f) => f.hit);
           M.setSourceTrigger(s.id, hit ? hit.id : null);
-          if (!hit) say(rec, t('add an AUDIO device and its HIT can fire this envelope'));
+          if (!hit) say(rec, t('add an {:AUDIO} device and its {:HIT} can fire this envelope'));
           apply(); sync(); return;
         }
         const cur = list.findIndex((f) => f.id === s.triggerId);
@@ -2120,7 +2120,7 @@ export function createModulation(host, port) {
       rec.knobs[key] = { k, spec };
       k.dial.classList.add('kctl', 'ctl-round');
       k.dial.title = spec.hint;
-      aria(k.dial, t('{kind} {id} {name}', { kind: KIND_WORD[dev.kind] || dev.kind, id: s.id, name: { t: k.label } }), 0, 100, 100 * clamp01(spec.get()), spec.text());
+      aria(k.dial, t('{name} on {kind} {id}', { kind: KIND_WORD[dev.kind] || dev.kind, id: s.id, name: { t: k.label } }), 0, 100, 100 * clamp01(spec.get()), spec.text());
       wireSlider(k.dial, {
         get: spec.get, set: (u) => { spec.set(u); apply(); paintKnob(rec, key); paint(true); },
         reset: () => { }, axis: 'both'
@@ -2255,7 +2255,7 @@ export function createModulation(host, port) {
   const say = (rec, msg) => {
     rec.say = msg;
     if (rec.dev.ed.note) rec.dev.ed.note.textContent = msg;   // kept for a host that un-hides the caption
-    if (msg) status(KIND_WORD[rec.dev.kind] ? t('{kind} — {message}', { kind: KIND_WORD[rec.dev.kind], message: msg }) : msg, '');
+    if (msg) status(KIND_WORD[rec.dev.kind] ? t('{kind} — {message}', { kind: KIND_WORD[rec.dev.kind], message: msg }) : msg, '');   // tr: a status line: the device kind (LFO, ENV, AUDIO), then a message that is already a whole sentence
   };
 
   /* ═══════════════════════════════════════════════════════════════════════════════════════
@@ -2385,9 +2385,9 @@ export function createModulation(host, port) {
       const live = !!(cap && cap.live);
       const state = live ? t('listening at {k} kHz', { k: Math.round((cap.sampleRate || 0) / 1000) })
         : !port.audio ? t('this host supplies no capture') : cap.reason || t('not listening');
-      return t('AUDIO — {state}. LEVEL, three BANDS and HIT leave as sockets; patch one to a macro.', { state });
+      return t('{:AUDIO} — {state}. {:LEVEL}, three bands and {:HIT} leave as sockets; patch one to a macro.', { state });
     }
-    if (s.kind === 'env') return t('ENV — {drawn} s drawn over a {window} s window. Drag the stages; FIT frames it.',
+    if (s.kind === 'env') return t('{:ENV} — {drawn} s drawn over a {window} s window. Drag the stages; {:FIT} frames it.',
       { drawn: envDrawn(s).toFixed(3), window: s.timeScale.toFixed(2) });
     if (s.shapeMode !== 'curve') return stochastic(s)
       ? t('{wave} · analytic: choose a breakpoint shape to edit it. Four cycles: each is a fresh hold.', { wave: { t: M.WAVE_LABEL[s.wave] } })
@@ -2531,7 +2531,7 @@ export function createModulation(host, port) {
       }
       if (action === 'reset-tension') { writeTension(h.i, 0); say(rec, t('tension reset')); return; }
       if (action === 'add-point') {
-        if (s.kind === 'env') { say(rec, t('the ENV has fixed stages — drag a stage or its tension handle')); return; }
+        if (s.kind === 'env') { say(rec, t('the {:ENV} has fixed stages — drag a stage or its tension handle')); return; }
         if (!ensureCurve()) return;
         const q = uv(p), n0 = s.points.length;
         q.v = pointAddValue(e, q.v, curveEval(g.pts, q.t));
@@ -2624,7 +2624,7 @@ export function createModulation(host, port) {
         axis:'y',editable:()=>true
       };
       wireSlider(dial,input);bindSliderKeys(dial,input);
-      aria(dial,key==='level'?t('LEVEL master to LEVEL'):t('{band} contribution to LEVEL',{band:BAND_WORD[key]||key}),0,100,100*input.get(),Math.round(100*input.get())+'%');
+      aria(dial,key==='level'?t('{:LEVEL} master to {:LEVEL}'):t('{band} contribution to {:LEVEL}',{band:BAND_WORD[key]||key}),0,100,100*input.get(),Math.round(100*input.get())+'%');
       return {root,dial,value,arc};
     };
     const shift = (key, delta, base=s.audio.outs[key]) => {
@@ -2639,7 +2639,7 @@ export function createModulation(host, port) {
       el('span','aud-range-short',head,BAND_SHORT[key]||key);
       const text=el('output','aud-range-value',row);
       head.addEventListener('click',()=>select(key));
-      head.title=t('Select {band} for ATTACK, RELEASE and HOLD',{band:BAND_WORD[key]||key});
+      hintTo(head,'Select {band} for {:ATTACK}, {:RELEASE} and {:peak hold::HOLD}',{band:BAND_WORD[key]||key});
       const track=el('div','aud-range-track',row);
       const low=el('div','aud-range-low',track),high=el('div','aud-range-high',track),zone=el('div','aud-range-zone',track),fill=el('div','aud-range-output',track),cursor=el('i','aud-range-input',track);
       const handles={};
@@ -2717,7 +2717,7 @@ export function createModulation(host, port) {
     for(const [key,spec] of Object.entries(specs)) {
       const row=sh.rows[key],input=el('input','aud-setting-input',row.val),output=el('output','m2audsreadout',row.val);row.input=input;row.output=output;
       row.row.classList.add('m2audscontinuous');
-      input.type='range';input.min=spec.min;input.max=spec.max;input.step=spec.step;ariaLabel(input,'{name} {unit}',{name:{t:sheetWord(key)},unit:spec.unit});
+      input.type='range';input.min=spec.min;input.max=spec.max;input.step=spec.step;ariaLabel(input,'{name} in {unit}',{name:{t:sheetWord(key)},unit:spec.unit});
       const write=v=>{
         if(!Number.isFinite(v)){refresh();return;}
         v=Math.max(+input.min,Math.min(+input.max,v));
@@ -2728,7 +2728,7 @@ export function createModulation(host, port) {
     }
     for(const [button,dir] of [[sh.rows.out.dn,-1],[sh.rows.out.up,1]])button.addEventListener('click',()=>{const next=keys[(keys.indexOf(selected())+dir+keys.length)%keys.length];audBands.set(s.id,next);audRoutes.set(s.id,next);changed();});
     for(const button of [sh.rows.gate.dn,sh.rows.gate.up])button.addEventListener('click',()=>{M.setSource(s.id,{audio:{gateEnabled:!s.audio.gateEnabled}});changed();});
-    label(sh.rows.hold.leg,'Gate hold keeps the noise gate open. The face HOLD knob separately holds each band peak before release.');
+    label(sh.rows.hold.leg,'{:GATE HOLD} keeps the noise gate open. The face’s {:peak hold::HOLD} knob separately holds each band peak before release.');
     label(sh.rows.lower.leg,'Input dB at 0% output; upper boundary reaches 100%.');
     sh.refresh=refresh;refresh();
   }
@@ -2761,9 +2761,9 @@ export function createModulation(host, port) {
         h.setAttribute('aria-valuemax',endpoint==='floorDb'?o.ceilingDb-M.AUDIO_RANGE_GAP:M.AUDIO_RANGE_MAX);
         h.setAttribute('aria-valuenow',o[endpoint]);h.setAttribute('aria-valuetext',o[endpoint].toFixed(1)+' dB');
       }
-      row.head.title=t('{band} · {out}% output · {db} dB input',{band:BAND_WORD[key]||key,out:(o.out*100).toFixed(0),db:Number.isFinite(o.inputDb)?o.inputDb.toFixed(1):'−∞'});
+      hintTo(row.head,'{band} · {out}% output · {db} dB input',{band:BAND_WORD[key]||key,out:(o.out*100).toFixed(0),db:Number.isFinite(o.inputDb)?o.inputDb.toFixed(1):'−∞'});
     }
-    const out=ro.outs[selected];ui.hint.textContent=t('{band} · A {a} · R {r} · H {h} ms',{band:BAND_WORD[selected]||selected,a:out.attackMs.toFixed(0),r:out.releaseMs.toFixed(0),h:out.holdMs.toFixed(0)});
+    const out=ro.outs[selected];ui.hint.textContent=t('{band} · A {a} · R {r} · H {h} ms',{band:BAND_WORD[selected]||selected,a:out.attackMs.toFixed(0),r:out.releaseMs.toFixed(0),h:out.holdMs.toFixed(0)});   // tr: A, R and H are the initials of ATTACK, RELEASE and HOLD (the peak hold), each in milliseconds: use the initials of your own labels
   }
 
   /** the AUDIO device's words and lamps — the capture's own state first, because a follower with no
@@ -2780,18 +2780,18 @@ export function createModulation(host, port) {
     A.srcBtn.setAttribute('aria-pressed', String(cap.live));
     A.srcBtn.textContent = cap.live ? t('AUDIO ON') : t('AUDIO IN');
     A.liveLed.style.background = cap.live ? 'var(--acc2)' : '';
-    A.liveTxt.textContent = cap.live ? t('LIVE') : (CAPTURE_WORD[cap.state] ? t(CAPTURE_WORD[cap.state].t) : String(cap.state));
+    A.liveTxt.textContent = cap.live ? t('LIVE') : (CAPTURE_WORD[cap.state] ? t(CAPTURE_WORD[cap.state].t) : String(cap.state));   // tr[LIVE]: the microphone is open and being listened to right now
     A.live.classList.toggle('on', cap.live);
     A.note.textContent = cap.live
       ? (ro.sampleRate ? t('{k} kHz · {hz} Hz feed', { k: (ro.sampleRate / 1000).toFixed(1), hz: ro.feedHz.toFixed(0) }) : t('listening'))
-      : (cap.reason || t('audio input is closed — press AUDIO IN'));
-    if (dev.audioState) { dev.audioState.textContent = cap.live ? (ro.gateOpen ? t('OPEN') : t('GATED')) : t('OFF');
+      : (cap.reason || t('audio input is closed — press {:AUDIO IN}'));
+    if (dev.audioState) { dev.audioState.textContent = cap.live ? (ro.gateOpen ? t('OPEN') : t('GATED')) : t('OFF');   // tr[GATED]: the audio input's noise gate is shut: the sound is below the threshold, so nothing passes (the opposite of OPEN)
       dev.audioState.classList.toggle('on', cap.live && ro.gateOpen);
       dev.audioState.classList.toggle('bad', cap.state === 'denied' || cap.state === 'error'); }
     if (dev.status) {
       dev.status.main.classList.toggle('on', cap.live && ro.gateOpen);
       dev.status.text.textContent = cap.live ? (ro.gateOpen ? t('OPEN') : t('GATED')) : t('OFF');
-      if (dev.status.middle) dev.status.middle.textContent = t('LEVEL {v}', { v: ro.outs.level.out.toFixed(2) });
+      if (dev.status.middle) dev.status.middle.textContent = t('{:LEVEL} {v}', { v: ro.outs.level.out.toFixed(2) });
       dev.status.out.textContent = t('{n} OUT', { n: pad2(outsOf(s)) });
     }
     /* each socket says which macro holds it, by NUMBER — the same reading the rail's indicator and
@@ -2802,7 +2802,7 @@ export function createModulation(host, port) {
     for (const key of Object.keys(A.outs)) {
       const row = A.outs[key], sock = M.scalarOutputId ? M.scalarOutputId(s.id, key) : null;
       const ix = sock ? macros.findIndex((m) => m.sourceId === sock) : -1;
-      row.slot.textContent = key === 'hit' ? t('EVT') : (ix >= 0 ? String(ix + 1) : '--');
+      row.slot.textContent = key === 'hit' ? t('EVT') : (ix >= 0 ? String(ix + 1) : '--');   // tr[EVT]: short for EVENT: this output fires on a hit (an onset), it does not carry a level
       const v = ro.outs[key] ? ro.outs[key].out : 0;
       row.row.classList.toggle('on', cap.live && (key === 'hit' ? v > 0 : v > 0.02));
       row.box.classList.toggle('on', ix >= 0);
@@ -2819,8 +2819,8 @@ export function createModulation(host, port) {
     if (dev.minNum) {
       dev.minNum.textContent = selectedIx >= 0 ? String(selectedIx + 1) : '--';
       dev.minNum.classList.toggle('m2nomac', selectedIx < 0);
-      attr(dev.minNum, 'aria-label', selectedIx >= 0 ? t('{band} audio routing macro {n}', { band: BAND_WORD[selectedRoute] || selectedRoute, n: selectedIx + 1 }) : t('{band} audio routing hand', { band: BAND_WORD[selectedRoute] || selectedRoute }));
-      attr(dev.minNum, 'title', t('{band} routing — click to cycle available macros', { band: BAND_WORD[selectedRoute] || selectedRoute }));
+      attr(dev.minNum, 'aria-label', selectedIx >= 0 ? t('{band} audio routing macro {i}', { band: BAND_WORD[selectedRoute] || selectedRoute, i: selectedIx + 1 }) : t('{band} audio routing: {:HAND}', { band: BAND_WORD[selectedRoute] || selectedRoute }));
+      hintTo(dev.minNum, '{band} routing — click to cycle available macros', { band: BAND_WORD[selectedRoute] || selectedRoute });
     }
     paintAudioMeter(rec, ro);
   }
@@ -2841,7 +2841,7 @@ export function createModulation(host, port) {
        takes the magnitude — which is all a 7.5 px seat inside a 48 px dial can hold — and the
        line under the cap takes the whole reading with its unit. */
     const txt = q.spec.text();
-    if(rec.kind==='audio' && (key==='attack'||key==='release'||key==='peakHold'))attr(q.k.dial,'aria-label',t('{band} {knob}',{band:BAND_WORD[audBands.get(rec.id)||'level'],knob:key==='peakHold'?{t:'HOLD'}:key==='attack'?{t:'ATTACK'}:{t:'RELEASE'}}));
+    if(rec.kind==='audio' && (key==='attack'||key==='release'||key==='peakHold'))attr(q.k.dial,'aria-label',t('{knob} of {band}',{band:BAND_WORD[audBands.get(rec.id)||'level'],knob:key==='peakHold'?{t:'peak hold::HOLD'}:key==='attack'?{t:'ATTACK'}:{t:'RELEASE'}}));
     if (q.k.arc && q.k.arc.chip) q.k.arc.chip.textContent = q.spec.short ? q.spec.short() : txt.split(' ')[0];
     q.k.val.textContent = txt;
     q.k.dial.setAttribute('aria-valuenow', String(Math.round(100 * u)));
@@ -2897,12 +2897,12 @@ export function createModulation(host, port) {
         rec.root.classList.toggle('m2locked', !!m.sourceId);
         rec.root.style.setProperty('--m2-slot-ink',
           !src ? 'var(--m2-ink-faint)' : src.kind === 'env' ? 'var(--m2-env-ink)' : 'var(--acc)');
-        rec.drive.textContent = src ? t('{kind} {name}', { kind: KIND_WORD[src.kind] || src.kind, name: src.label || src.id }) : t('HAND');
+        rec.drive.textContent = src ? t('{kind} {name}', { kind: KIND_WORD[src.kind] || src.kind, name: src.label || src.id }) : t('HAND');   // tr: what drives a macro: a device (its kind and name, e.g. LFO 2), or HAND — the value set by hand, nothing modulating it
         rec.depthArc.style.strokeDasharray = clamp01(shownDepth).toFixed(4) + ' 1';
         rec.numSeat.classList.toggle('m2zero', shownDepth <= 1e-6);
         rec.numSeat.setAttribute('aria-disabled','false');
         if(rec.val)rec.val.setAttribute('aria-disabled',String(!!m.sourceId));
-        rec.numSeat.title = t('Master depth for {macro}', { macro: m.name });
+        hintTo(rec.numSeat, 'Master depth for {macro}', { macro: m.name });
       }
       if (rec.kind === 'trigger') {
         rec.signal.style.setProperty('--hit', M.triggerLevel(m.id).toFixed(4));
@@ -2913,7 +2913,7 @@ export function createModulation(host, port) {
       }
 
 
-      aria(rec.numSeat, t('MACRO {n} DEPTH', { n: rec.index }), 0, 100, 100*shownDepth, (100*shownDepth).toFixed(0)+'%');
+      aria(rec.numSeat, t('MACRO {i} DEPTH', { i: rec.index }), 0, 100, 100*shownDepth, (100*shownDepth).toFixed(0)+'%');
       if (rec.val) aria(rec.val, t('{macro} value', { macro: m.name }), 0, 100, 100 * m.value, rec.vnum.textContent);
     }
 
@@ -3188,7 +3188,7 @@ export function createModulation(host, port) {
       };
       wireSlider(seat, input); bindSliderKeys(seat, input);
       seat.title = 'Master depth for this macro. Double-tap for 100%.';
-      aria(seat, t('MACRO {n} DEPTH', { n }), 0, 100, 100 * input.get(), '100%');
+      aria(seat, t('MACRO {i} DEPTH', { i: n }), 0, 100, 100 * input.get(), '100%');
     },
     paintDepth(seat, arc, macroId) {
       const m = M.macroOf(macroId); if (!m) return;

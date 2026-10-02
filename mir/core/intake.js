@@ -27,6 +27,7 @@ import { KINDS, LIMITS, wrap, unwrap, unpackText, check as checkEnvelope } from 
 import { extract } from './png.js';
 import { pageFromFile } from '../shell/pages.js';
 import { setAttr } from './perf.js';
+import { t } from './i18n.js';
 
 const isPngName = (name, type) => /\.png$/i.test(name || '') || type === 'image/png';
 const isMdName = (name, type) => /\.(md|markdown|txt)$/i.test(name || '') || type === 'text/markdown' || type === 'text/plain' && !name;
@@ -38,30 +39,30 @@ export async function readInput(input, { name = '', type = '', accept = KINDS, c
     let env = null, errors = null;
     if (input && typeof input === 'object' && typeof input.arrayBuffer === 'function') {          // File / Blob
       name = name || input.name || ''; type = type || input.type || '';
-      if (input.size > LIMITS.file) return reject('the file is larger than 32 MB', source);
+      if (input.size > LIMITS.file) return reject(t('the file is larger than 32 MB'), source);
       if (isPngName(name, type)) {
         env = extract(new Uint8Array(await input.arrayBuffer()));
-        if (!env) return reject('this picture carries no MIR data (a screenshot, a chat app or an editor drops it; use the saved file)', source);
+        if (!env) return reject(t('this picture carries no MIR data (a screenshot, a chat app or an editor drops it; use the saved file)'), source);
       } else {
         const text = await input.text();
         if (isMdName(name, type) && !/^\s*\{\s*"mir"/.test(text)) env = wrap('page', pageFromFile(name, text));
         else ({ envelope: env, errors } = /^\s*mir1\./.test(text) ? await unpackText(text) : unwrap(text));
       }
     } else if (input instanceof Uint8Array) {
-      if (isPngName(name, type) || (input[0] === 137 && input[1] === 80)) { env = extract(input); if (!env) return reject('this picture carries no MIR data', source); }
+      if (isPngName(name, type) || (input[0] === 137 && input[1] === 80)) { env = extract(input); if (!env) return reject(t('this picture carries no MIR data'), source); }
       else ({ envelope: env, errors } = unwrap(input));
     } else if (typeof input === 'string') {
       const t = input.trim();
       if (/^mir1\./.test(t)) ({ envelope: env, errors } = await unpackText(t));
       else if (/^\{/.test(t)) ({ envelope: env, errors } = unwrap(t));
       else if (accept.includes('page') && t) env = wrap('page', { title: name || 'PASTED', md: input });
-      else return reject('not a MIR file (nothing here takes plain text)', source);
-    } else return reject('nothing to read', source);
+      else return reject(t('not a MIR file (nothing here takes plain text)'), source);
+    } else return reject(t('nothing to read'), source);
     if (!env) return { ok: false, envelope: null, errors: errors && errors.length ? errors : [{ path: '', why: 'not a MIR file' }], warnings: [], source };
-    if (!accept.includes(env.kind)) return reject(`this place takes ${accept.join(', ')}; that is a ${env.kind}`, source, 'kind');
+    if (!accept.includes(env.kind)) return reject(t('this place takes {accept}; that is a {kind}', { accept: accept.join(', '), kind: env.kind }), source, 'kind');   // tr: {accept} and {kind} are kinds of MIR file (project, page …), written as their ids
     const r = typeof check === 'function' ? check(env) : checkEnvelope(env, check);
     return { ok: !!r.ok, envelope: r.ok ? r.envelope || env : null, errors: r.errors || [], warnings: r.warnings || [], source };
-  } catch (e) { return reject('could not read it: ' + String(e && e.message || e).slice(0, 120), source); }
+  } catch (e) { return reject(t('could not read it: {why}', { why: String(e && e.message || e).slice(0, 120) }), source); }
 }
 
 export function createIntake({ target, accept = KINDS, check = {}, onEnvelope, onReject, paste } = {}) {

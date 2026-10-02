@@ -34,7 +34,7 @@
  *
  * createRack(options) → api — see docs/RACK.md.  windows() lists the windows with their titles and state (for describe()
  * and the openers); keepClear() gives the rects a new floating window should not land on (FOLDERS' first seat).  The pure helpers are exported for node tests. */
-import { el, device, chip } from '../kit.js';
+import { el, device, chip, ariaLabel } from '../kit.js';
 import { drag } from '../core/pointer.js';
 import { flip, sequence, motionPolicy, motionToken } from '../core/motion.js';
 import { createProximity } from '../core/proximity.js';
@@ -185,7 +185,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
   const racks = {};
   for (const side of SIDES) if (sides.includes(side)) {
     const r = take(RACK_ID[side], 'div', 'mir-rack'); r.dataset.side = side; r.tabIndex = -1;
-    r.setAttribute('role', 'region'); r.setAttribute('aria-label', side === 'left' ? 'the left rack' : 'the rack');
+    r.setAttribute('role', 'region'); ariaLabel(r, side === 'left' ? 'the left rack' : 'the rack');   // tr: the RACK: the column of docked windows at the screen’s edge (not the SHELF, where notes are kept)
     racks[side] = r;
   }
   const rackOf = (side) => racks[side] || racks.right || racks.left;

@@ -10,8 +10,14 @@
  *   · NOTHING RUNS WHILE THE LANGUAGE DOES NOT CHANGE.  The builders that wrote text keep its English on the node and
  *     rewrite it from onLanguage(); t() itself is one map lookup.
  *   · NEVER THROUGH t(): numbers and units in readouts, app and product names, maths, what the user typed.
- *   · `{name}` substitution only.  A var written { t: 'English' } is a kit label and is translated in turn; any
- *     other var is data and is written as it is.
+ *   · VARS: `{name}` is data, written as it is.  A var `{ t: 'English' }` is a kit word and is translated in turn, and
+ *     `{:ATTACK}` written in the English is the same thing inline: the label ATTACK, as that language labels it.
+ *   · CONTEXT: one English word with two meanings is two keys, `'theme mode::LIGHT'` and `'quality tier::LIGHT'`; the
+ *     English shown is the part after `::`.  phrase(en, context) writes that key, and marks a string for the
+ *     catalogue where it is not handed to t() on the spot (a table of labels).  The context `name` is a NAME: never
+ *     translated, never pseudo-translated (`name::FROST`).
+ *   · PLURALS: tn(n, '{n} page', '{n} pages') — the key is the `other` form; a pack entry may be { one, few, many,
+ *     other, … } and Intl.PluralRules picks the form; a missing form is `other`, a missing entry the English.
  *   · `qps` / `qps-rtl` are generated, not packs (locales/pseudo.js): accented, ~40 % longer, bracketed. */
 
 /** the ten and English, each named in its own script; `reviewed` flips when a native reader has checked the pack */
@@ -43,18 +49,44 @@ export const missing = () => [...miss];
 export function addLocales(src) { if (!sources.includes(src)) { sources.push(src); cache.clear(); } }
 export function onLanguage(fn) { subs.add(fn); return () => subs.delete(fn); }
 
-const fill = (s, vars) => s.replace(/\{(\w+)\}/g, (m, k) => {
-  if (!(k in vars)) return m;
+const CTX = /^([a-z][a-z0-9 -]*)::/;
+/** phrase(en, context?) → the catalogue key: `en`, or `context::en`.  It translates nothing: it marks a string. */
+export const phrase = (en, context) => (context ? context + '::' + en : en);
+/** the English a key shows: the part after its context */
+export const english = (key) => { const m = CTX.exec(key); return m ? key.slice(m[0].length) : key; };
+
+const fill = (s, vars) => s.replace(/\{(:?)([^{}]+)\}/g, (m, lab, k) => {
+  if (lab) return t(k);                                           // {:ATTACK} — a label, translated in turn
+  if (!vars || !(k in vars)) return m;
   const v = vars[k];
   return v && typeof v === 'object' && typeof v.t === 'string' ? t(v.t) : String(v);
 });
-
-export function t(en, vars) {
-  if (typeof en !== 'string' || en === '') return en === undefined || en === null ? '' : en;
+const rules = new Map();
+const form = (n, lang) => { let r = rules.get(lang); if (!r) { try { r = new Intl.PluralRules(lang); } catch (_) { r = new Intl.PluralRules('en'); } rules.set(lang, r); } return r.select(n); };
+/** the pack's string for `key` — for a plural entry, the form `n` takes — or null */
+function look(key, n) {
+  const x = strings[key];
+  if (typeof x === 'string') return x || null;
+  if (x && typeof x === 'object') return x[form(Number(n) || 0, tag)] || x.other || null;
+  return null;
+}
+function say(key, en, vars, n) {
   let s = en;
-  if (pseudo) s = pseudo(en);
-  else if (strings) { const x = strings[en]; if (typeof x === 'string' && x) s = x; else if (miss.size < 4096) miss.add(en); }
-  return vars ? fill(s, vars) : s;
+  if (key.startsWith('name::')) s = en;                           // a name is never translated
+  else if (pseudo) s = pseudo(en);
+  else if (strings) { const x = look(key, n); if (x) s = x; else if (miss.size < 4096) miss.add(key); }
+  return s.indexOf('{') >= 0 ? fill(s, vars) : s;
+}
+
+export function t(en, vars, context) {
+  if (typeof en !== 'string' || en === '') return en === undefined || en === null ? '' : en;
+  const key = context ? context + '::' + en : en;
+  return say(key, english(key), vars, vars && vars.n);
+}
+/** tn(n, one, other, vars?, context?) — a count: English `one` or `other` by English rules, or the pack's form for n */
+export function tn(n, one, other, vars, context) {
+  const key = context ? context + '::' + other : other, v = { ...(vars || {}), n };
+  return say(key, form(Number(n) || 0, 'en') === 'one' ? english(one) : english(key), v, n);
 }
 
 async function loadPack(want) {

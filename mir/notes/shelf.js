@@ -31,6 +31,7 @@
  *   now       () => ISO string (default: the clock), for tests
  * Every write returns its result or null/false; `error` holds the last failure's words (a full quota, say). */
 import { pageFile, pageFromFile } from '../shell/pages.js';
+import { t } from '../core/i18n.js';
 
 export const RECENT = 5;
 const str = (v) => typeof v === 'string';
@@ -68,7 +69,7 @@ export function createShelf({ storage = globalThis.localStorage, key = 'mir.note
   let error = '', repaired = null;
 
   const read = () => {
-    let raw = null; try { raw = storage.getItem(key); } catch (e) { error = 'the shelf cannot be read — ' + e.message; }
+    let raw = null; try { raw = storage.getItem(key); } catch (e) { error = t('the shelf cannot be read — {why}', { why: e.message }); }
     const r = repair(raw);
     if (r.broken) {                                                  // keep the bad text whole, then mend
       const backup = key + '.corrupt';
@@ -79,7 +80,7 @@ export function createShelf({ storage = globalThis.localStorage, key = 'mir.note
     }
     return r.col;
   };
-  const write = (col) => { try { storage.setItem(key, JSON.stringify(col)); error = ''; return true; } catch (e) { error = 'the shelf could not be saved — ' + e.message; return false; } };
+  const write = (col) => { try { storage.setItem(key, JSON.stringify(col)); error = ''; return true; } catch (e) { error = t('the shelf could not be saved — {why}', { why: e.message }); return false; } };
   const touch = (col, path) => { col.recent = [path, ...col.recent.filter((p) => p !== path)].slice(0, RECENT); };
   const row = (it) => ({ path: it.path, folder: it.folder, name: it.name, title: it.title, saved: it.saved, opened: it.opened });
   const has = (path) => { path = normPath(path); return !!path && !!read().items[path]; };
@@ -113,9 +114,9 @@ export function createShelf({ storage = globalThis.localStorage, key = 'mir.note
     /** rename(from, to) → the new path, or null (no such note, an empty name, or `to` already taken) */
     rename(from, to) {
       from = normPath(from); to = normPath(to); const col = read(), it = col.items[from];
-      if (!it || !to) { error = it ? 'give it a name' : 'no such note'; return null; }
+      if (!it || !to) { error = it ? t('give it a name') : t('no such note'); return null; }
       if (to === from) return to;
-      if (col.items[to]) { error = to + ' already exists'; return null; }
+      if (col.items[to]) { error = t('{name} already exists', { name: to }); return null; }
       const { folder, name } = splitPath(to);
       delete col.items[from];
       col.items[to] = { ...it, path: to, folder, name };

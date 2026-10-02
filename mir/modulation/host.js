@@ -695,14 +695,14 @@ export function labParameters(port) {
     add('observer.pitch', { label: 'PITCH', unit: 'rad', map: 'bipolar', min: -Math.PI / 2, max: Math.PI / 2, group: 'observer', def: 0, ...field(p.obs, 'pitch') });
     /* DISTANCE is a log knob: the interesting half of a zoom is always the near half. */
     add('observer.dist', { label: 'DIST', map: 'log', min: 0.4, max: 40, group: 'observer', ...field(p.obs, 'dist') });
-    add('observer.fov', { label: 'FOV', map: 'linear', min: 0.2, max: 1.6, group: 'observer', ...field(p.obs, 'fov') });
+    add('observer.fov', { label: 'FOV', map: 'linear', min: 0.2, max: 1.6, group: 'observer', ...field(p.obs, 'fov') });   // tr[FOV]: field of view: how wide the camera sees
   }
   if (p.mat) {
     add('material.exposure', { label: 'EXPOSURE', map: 'log', min: 0.05, max: 20, group: 'material', ...field(p.mat, 'exposure') });
     add('material.softness', { label: 'SOFTNESS', map: 'linear', min: 0, max: 1, group: 'material', ...field(p.mat, 'softness') });
     add('material.iso', { label: 'ISO', map: 'log', min: 1e-4, max: 1, group: 'material', ...field(p.mat, 'iso') });
     add('material.grain', { label: 'GRAIN', map: 'linear', min: 0, max: 1, group: 'material', ...field(p.mat, 'grain') });
-    add('material.knee', { label: 'KNEE', map: 'linear', min: 0, max: 1, group: 'material', ...field(p.mat, 'knee') });
+    add('material.knee', { label: 'KNEE', map: 'linear', min: 0, max: 1, group: 'material', ...field(p.mat, 'knee') });   // tr[KNEE]: the bend in the picture's tone curve where the highlights start to roll off (as in a compressor's knee)
     /* HUE SHIFT wraps: the palette wheel is a wheel. */
     add('material.hueshift', { label: 'HUE', unit: '°', map: 'wrap', min: 0, max: 360, group: 'material', ...field(p.mat, 'hueShift') });
   }
@@ -716,7 +716,8 @@ export function labParameters(port) {
        the modulation clock cannot be the physics clock: this is a thing an LFO may
        modulate, so it cannot also be the thing that tells the LFO how fast to run. */
     add('transport.rate', { label: 'RATE', unit: ' a.u./s', map: 'log', min: 0.01, max: 100, group: 'transport', get: () => p.clock.rate, set: (v) => p.clock.setRate(v) });
-    add('transport.window', { label: 'WINDOW', map: 'log', min: 0.1, max: 1000, group: 'transport', ...field(p.clock, 'window') });
+    add('transport.window', { label: 'time span::WINDOW',   // tr[time span::WINDOW]: a span of time (in seconds) the view looks across, not an interface window
+    map: 'log', min: 0.1, max: 1000, group: 'transport', ...field(p.clock, 'window') });
   }
   /* The register's own address space.  `modes` is a list of stable ids "h:n:l:m"
      (lab/hydrogen.js), and each one contributes an AMPLITUDE and a PHASE — the phase
@@ -827,12 +828,12 @@ export const LAB_PRESETS = [
       sources: [
         /* SAW↑ on a circle is seamless BY CONSTRUCTION: position 1 IS position 0, so a
            full turn has no jump in it to hide.  One whole note = 4 beats = one bar. */
-        { id: 's1', kind: 'lfo', on: 1, label: 'LAP', shapeMode: 'wave', wave: 'rotate',
+        { id: 's1', kind: 'lfo', on: 1, label: 'LAP', shapeMode: 'wave', wave: 'rotate',   // tr[LAP]: a demo LFO's name: it moves the camera one lap round per bar (the user can rename it)
           sync: 1, mult: 0, triplet: 0, dotted: 0,
           ratePos: 0.39, phaseOff: 0, smooth: 0, steps: 0,
           trig: 0, anchor: 1, invert: 0, minimized: 0 },
         /* the rise: one raised cosine per lap, on the SAME bar, so the two close together */
-        { id: 's2', kind: 'lfo', on: 1, label: 'RISE', shapeMode: 'wave', wave: 'sine',
+        { id: 's2', kind: 'lfo', on: 1, label: 'RISE', shapeMode: 'wave', wave: 'sine',   // tr[RISE]: a demo LFO's name: it moves the camera up and down (the user can rename it)
           sync: 1, mult: 0, triplet: 0, dotted: 0,
           ratePos: 0.39, phaseOff: 0, smooth: 0, steps: 0,
           trig: 0, anchor: 1, invert: 0, minimized: 0 }
@@ -855,7 +856,7 @@ export const LAB_PRESETS = [
 
   {
     id: 'lw.peel', lab: 1, name: 'PEEL',
-    hint: 'Step through twelve density levels to reveal shells.',
+    hint: 'Step through twelve density levels to reveal shells.',   // tr: shells: the nested surfaces of equal density in the picture (like the layers of an onion)
     /* ── WHY IT EXISTS ────────────────────────────────────────────────────────────
      * A volume render shows one level of the density at a time and the viewer has no way
      * to know which.  |ψ_{nl}|² has n − l − 1 RADIAL nodes, and they are invisible until
@@ -932,7 +933,7 @@ export const LAB_PRESETS = [
     rack: {
       seq: { macro: 2, source: 1, route: 1 },
       sources: [
-        { id: 's1', kind: 'lfo', on: 1, label: 'TURN', shapeMode: 'wave', wave: 'rotate',
+        { id: 's1', kind: 'lfo', on: 1, label: 'TURN', shapeMode: 'wave', wave: 'rotate',   // tr[TURN]: a demo LFO's name: it turns the picture once per bar (the user can rename it)
           sync: 1, mult: 0, triplet: 0, dotted: 0,
           ratePos: 0.39, phaseOff: 0, smooth: 0, steps: 0,
           trig: 0, anchor: 1, invert: 0, minimized: 0 }

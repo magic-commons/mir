@@ -42,6 +42,7 @@
 import { MIR_VERSION } from '../version.js';
 import { perf } from './perf.js';
 import { frame } from './frame.js';
+import { english } from './i18n.js';   // a label's English, without the context a translator needs (time span::WINDOW → WINDOW)
 
 export const DESCRIBE_ID = 'mir-describe';
 const JOB = 'mir:describe';
@@ -103,12 +104,12 @@ export function describeText({ app = {}, windows = [], params = [], keys = [], p
     for (const p of params) {
       const unit = p.unit ? ' ' + p.unit : '';
       const v = p.driven ? `${num(p.value)}${unit} (driven by modulation; base ${num(p.base)})` : `${num(p.value)}${unit}`;
-      out.push(`| ${cell(p.id)} | ${cell(p.label)} | ${num(p.min)} – ${num(p.max)}${unit} | ${cell(v)} |`);
+      out.push(`| ${cell(p.id)} | ${cell(english(p.label))} | ${num(p.min)} – ${num(p.max)}${unit} | ${cell(v)} |`);
     }
   }
   if (keys.length) {
     out.push('', '## Keys', '', '| action | label | keys |', '|---|---|---|');
-    for (const k of keys) out.push(`| ${cell(k.id)} | ${cell(k.label)} | ${cell(k.display.join(', ') || '—')} |`);
+    for (const k of keys) out.push(`| ${cell(k.id)} | ${cell(english(k.label))} | ${cell(k.display.join(', ') || '—')} |`);
   }
   const shared = pages.filter((p) => p && p.shared === true);
   if (shared.length) {
@@ -168,7 +169,7 @@ export function createDescribe({ app = {}, rack = null, params = [], pages = nul
       clock: clockOf(transport, mod),
       params: (typeof params === 'function' ? params() : params).map((p) => {
         const driven = !!(mod && mod.isModulated(p.id));
-        return { id: p.id, label: p.label, unit: p.unit || '', min: p.min, max: p.max, value: driven ? mod.currentOf(p.id) : p.get(), driven, base: driven ? mod.baseOf(p.id) : undefined };
+        return { id: p.id, label: english(p.label), unit: p.unit || '', min: p.min, max: p.max, value: driven ? mod.currentOf(p.id) : p.get(), driven, base: driven ? mod.baseOf(p.id) : undefined };
       }),
       keys: keys ? keys.describe().actions : [],
       pages: pages ? pages.list().filter((p) => p.shared === true) : [],

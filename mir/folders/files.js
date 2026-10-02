@@ -49,6 +49,7 @@
        untouched.  The first write moves it aside under `<key>.refused-<time>`,
        verified by read-back, BEFORE anything can overwrite the key.
    ══════════════════════════════════════════════════════════════════════════ */
+import { t, tn } from '../core/i18n.js';   // a reason the user reads (Could not save: {why}) is a whole sentence
 
 export const FILES_V = 1;
 export const FILES_KIT = 'MIR files';
@@ -153,8 +154,8 @@ export function createFiles(opts) {
         /* REPAIRED (MIR 1.5): the bad records are skipped, the raw text waits to be set aside by the first write */
         refusedRaw = raw;
         stat.repaired = env.entries.length - sound.length;
-        stat.lastError = stat.repaired + ' unreadable record' + (stat.repaired === 1 ? ' was' : 's were') + ' skipped — the library as it was ' +
-          'is kept, and the first save moves it to ' + KEY + '.refused-<time> before writing';
+        stat.lastError = tn(stat.repaired, '{n} unreadable record was skipped — the library as it was is kept, and the first save moves it to {key} before writing',
+          '{n} unreadable records were skipped — the library as it was is kept, and the first save moves it to {key} before writing', { key: KEY + '.refused-<time>' });
       }
       const seqFloor = sound.reduce((m, e) => { const n = /^f(\d+)$/.exec(e.id); return n ? Math.max(m, +n[1]) : m; }, 0);
       lib = { kit: FILES_KIT, formatVersion: FILES_V,
@@ -170,8 +171,7 @@ export function createFiles(opts) {
     } else {
       if (raw != null) {
         refusedRaw = raw;
-        stat.lastError = 'the stored library could not be read — it is left in place, and the first save ' +
-          'moves it to ' + KEY + '.refused-<time> before starting a fresh one';
+        stat.lastError = t('the stored library could not be read — it is left in place, and the first save moves it to {key} before starting a fresh one', { key: KEY + '.refused-<time>' });
       }
       lib = { kit: FILES_KIT, formatVersion: FILES_V, seq: 0, entries: [], folders: {} };
     }
@@ -225,7 +225,7 @@ export function createFiles(opts) {
       stat.refusedFull++;
       return { ok: false, full: true, needChars: chars, capChars: cap, count: before.length,
                oldestName: before.length ? before[0].name : null,
-               why: 'the library is full: ' + Math.round(chars / 1e3) + ' k needed of ' + Math.round(cap / 1e3) + ' k' };
+               why: t('the library is full: {need} k needed of {cap} k', { need: Math.round(chars / 1e3), cap: Math.round(cap / 1e3) }) };
     }
     // If a second tab wrote during this edit, refuse this write. The next
     // attempt will reload its version and can safely apply the edit there.
@@ -236,7 +236,7 @@ export function createFiles(opts) {
     }
     try { persist(); } catch (err) {
       undo();
-      stat.lastError = 'the browser refused the write: ' + String((err && err.message) || err);
+      stat.lastError = t('the browser refused the write: {why}', { why: String((err && err.message) || err) });
       return { ok: false, quota: true, why: stat.lastError };
     }
     notify(what);
@@ -409,8 +409,8 @@ export function createFiles(opts) {
       if (!folder) return { ok: false, why: 'ROOT has no picture' };
       return commit((L) => {
         const e = L.entries.find((x) => x.id === String(id));
-        if (!e) return { ok: false, why: 'no such entry' };
-        if (!inFolderTree(folderOf(e), folder)) return { ok: false, why: 'that item is not inside ' + folder };
+        if (!e) return { ok: false, why: t('no such entry') };
+        if (!inFolderTree(folderOf(e), folder)) return { ok: false, why: t('that item is not inside {folder}', { folder }) };
         L.folders = L.folders || {};
         L.folders[folder] = { pictureId: e.id };
         return { folder, pictureId: e.id };

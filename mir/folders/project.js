@@ -22,6 +22,7 @@
  * emptyProject(adapter) → Promise<result>      restoreOk(r) → { ok, failed, why }   — every result is
  * { ok, why?, failed: [names], rolledBack?, rollbackFailed? } */
 import { captureProject, restoreProject, projectSignature, subscribeProject } from '../core/project.js';
+import { t, tn } from '../core/i18n.js';
 
 /** restoreOk(r) — what a restore returned, read as { ok, failed, why } */
 export function restoreOk(r) {
@@ -33,7 +34,7 @@ export function restoreOk(r) {
   }
   return { ok: true, failed: [] };
 }
-const partsSay = (names) => (names.length === 1 ? 'the part "' + names[0] + '" could not take it' : 'the parts ' + names.map((n) => '"' + n + '"').join(', ') + ' could not take it');
+const partsSay = (names) => tn(names.length, 'the part {names} could not take it', 'the parts {names} could not take it', { names: names.map((n) => '“' + n + '”').join(', ') });
 const errWhy = (e) => String((e && e.message) || e || 'unknown').slice(0, 200);
 
 /** createProjectAdapter({ capture, restore, signature, thumbnail, empty, subscribe }) — any hook left out is the kit's */
@@ -61,8 +62,8 @@ async function guarded(adapter, step) {
   const r = await attempt(step);
   if (r.ok) return r;
   const back = await attempt(() => adapter.restore(before));
-  if (back.ok) return { ...r, rolledBack: true, why: r.why + ' — what was open before is back' };
-  return { ...r, rolledBack: false, rollbackFailed: back.failed, why: r.why + ', and putting back what was open before failed too (' + back.why + ')' };
+  if (back.ok) return { ...r, rolledBack: true, why: t('{why} — what was open before is back', { why: r.why }) };
+  return { ...r, rolledBack: false, rollbackFailed: back.failed, why: t('{why}, and putting back what was open before failed too ({back})', { why: r.why, back: back.why }) };
 }
 /** openWithRollback(adapter, data, ctx) — open a saved project (ctx: the library entry, for an app that reads it); a failed open puts back what was there */
 export const openWithRollback = (adapter, data, ctx) => guarded(adapter, () => adapter.restore(data, ctx));

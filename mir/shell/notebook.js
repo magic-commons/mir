@@ -56,8 +56,10 @@
  *     and COPY TO SHELF (a project page) or COPY TO PROJECT (yours).  A .md dropped on the notebook becomes a page.
  *     Every copy is a copy: the two never share an object, so editing one never changes the other.
  *   api adds: pages, shelf, selected, select(id|'yours'), yours → { title, md }, openNote({ title, md }), flush() */
-import { el, label, ariaLabel } from '../kit.js';
-import { t as tx, onLanguage } from '../core/i18n.js';
+import { el, label, ariaLabel, hint } from '../kit.js';
+import { t as tx, tn, phrase, onLanguage } from '../core/i18n.js';
+/* the maths syntax the hint shows: typed exactly so in every language, so it is a var and never translated */
+const SYNTAX = Object.freeze({ inline: '$inline$', display: '$$display$$' });
 import { aboutFace } from './about.js';
 import { renderNotebook } from './notebook-render.js';
 import { pageFile, pageFromFile } from './pages.js';
@@ -96,20 +98,20 @@ export function createNotebook(options = {}) {
   const head = el('header', 'nb-head', nb);
   const titles = el('div', 'nb-titles', head);
   const titleIn = el('input', 'nb-title', titles); titleIn.value = tx(o.title); titleIn.spellcheck = false;
-  ariaLabel(titleIn, 'notebook title'); titleIn.title = "the notebook's title — type to rename";
+  ariaLabel(titleIn, 'notebook title'); titleIn.title = 'the notebook’s title — type to rename';
   const subIn = el('input', 'nb-subtitle', titles); subIn.placeholder = tx('subtitle'); subIn.spellcheck = false; subIn.hidden = true;
-  ariaLabel(subIn, 'notebook subtitle'); subIn.title = "the notebook's subtitle — type to rename";
+  ariaLabel(subIn, 'notebook subtitle'); subIn.title = 'the notebook’s subtitle — type to rename';
   const tools = el('span', 'nb-tools', head);
-  const tool = (cls, glyph, aria, title, vars) => { const b = el('button', cls, tools, glyph); b.type = 'button'; ariaLabel(b, aria, vars); b.title = title; return b; };
-  const modeBtn = tool('nb-mode', '◐', 'edit or preview the notes', 'Edit or preview the notebook');
+  const tool = (cls, glyph, aria, title, vars) => { const b = el('button', cls, tools, glyph); b.type = 'button'; ariaLabel(b, aria, vars); hint(b, title, vars); return b; };
+  const modeBtn = tool('nb-mode', '◐', phrase('edit or preview the notes'), phrase('Edit or preview the notebook'));
   const extra = (o.faces || []).map((f) => ({ ...f, btn: tool('nb-' + f.id + '-btn', f.glyph, f.label || f.id, f.title || f.id) }));
-  const aboutBtn = o.about === false ? null : tool('nb-about', 'i', 'about {name}', 'about ' + o.name + ' (and back to the notes)', { name: o.name });
-  tool('nb-close', '×', 'close the notebook', 'close' + (o.keyLabel ? ' (' + o.keyLabel + ')' : ''));
+  const aboutBtn = o.about === false ? null : tool('nb-about', 'i', phrase('about {name}'), phrase('about {name} (and back to the notes)'), { name: o.name });
+  tool('nb-close', '×', phrase('close the notebook'), o.keyLabel ? phrase('close ({key})') : phrase('close'), { key: o.keyLabel });   // tr[close ({key})]: {key} is the notebook’s shortcut key, e.g. J
 
   const notes = el('div', 'nb-face nb-notes', nb);
   const ta = el('textarea', 'nb-text', notes); ta.spellcheck = false;
-  const yoursHint = () => (o.projectsNote ? tx('notes — markdown, $inline$ and $$display$$ maths; ctrl+enter previews — kept in this browser and in the project')
-    : tx('notes — markdown, $inline$ and $$display$$ maths; ctrl+enter previews — kept in this browser'));
+  const yoursHint = () => (o.projectsNote ? tx('notes — markdown, {inline} and {display} maths; ctrl+enter previews — kept in this browser and in the project', SYNTAX)   // tr: {inline} and {display} are the maths syntax, $inline$ and $$display$$, shown exactly as typed
+    : tx('notes — markdown, {inline} and {display} maths; ctrl+enter previews — kept in this browser', SYNTAX));   // tr: {inline} and {display} are the maths syntax, $inline$ and $$display$$, shown exactly as typed
   ta.placeholder = yoursHint();
   const view = el('div', 'nb-view md', notes);
   const foot = el('div', 'nb-foot', notes); const countEl = el('span', 'nb-count', foot);
@@ -163,7 +165,7 @@ export function createNotebook(options = {}) {
   ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); setMode('view'); } if (tabs && APP_KEY(e)) tabs.flush(); if (!APP_KEY(e)) e.stopPropagation(); });
   const count = () => {                                             // whole sentences, so a translator sees each one
     const n = ta.value.trim() ? ta.value.trim().split(/\s+/).length : 0, p = onPage();
-    countEl.textContent = n ? (p ? tx('{n} words · in the project', { n }) : tx('{n} words · kept in this browser', { n }))
+    countEl.textContent = n ? (p ? tn(n, '{n} word · in the project', '{n} words · in the project') : tn(n, '{n} word · kept in this browser', '{n} words · kept in this browser'))
       : (p ? tx('empty · in the project') : tx('empty · kept in this browser'));
   };
   ta.addEventListener('input', () => { if (onPage()) tabs.edit('md', ta.value); else store(K.text, ta.value); count(); });
@@ -230,7 +232,7 @@ export function createNotebook(options = {}) {
     const T = { sel: 'yours' };
     let yours = null;                     // yours' fields, held while a page is selected
     let pend = null, ptimer = 0;          // { id, patch }: a page edit not yet written to the model
-    const PH = { yours: yoursHint, page: () => tx('this page — markdown, $inline$ and $$display$$ maths — saved in the project') };
+    const PH = { yours: yoursHint, page: () => tx('this page — markdown, {inline} and {display} maths — saved in the project', SYNTAX) };   // tr: {inline} and {display} are the maths syntax, shown exactly as typed
     notes.id = 'nb-tabpanel'; notes.setAttribute('role', 'tabpanel');
     const strip = el('div', 'nb-tabs'); notes.insertBefore(strip, notes.firstChild);
     const list = el('div', 'nb-tablist', strip); list.setAttribute('role', 'tablist'); ariaLabel(list, 'pages');
@@ -420,10 +422,10 @@ export function createNotebook(options = {}) {
 
     /* the foot: SHOW ON OPEN · .MD · IMPORT .MD · COPY TO SHELF | COPY TO PROJECT */
     const acts = el('span', 'nb-pageacts'); foot.insertBefore(acts, copyBtn);
-    const fbtn = (cls, title) => { const b = el('button', cls, acts); b.type = 'button'; b.title = title; return b; };   // its words: label(), below
-    const greetBtn = label(fbtn('nb-pg-greet', 'show this greeting when the project opens'), 'SHOW ON OPEN');
-    const mdBtn = label(fbtn('nb-pg-md', 'save this tab as a markdown file'), '.MD');
-    const impBtn = label(fbtn('nb-pg-import', 'add markdown files as pages of the project'), 'IMPORT .MD');
+    const fbtn = (cls, title) => { const b = el('button', cls, acts); b.type = 'button'; hint(b, title); return b; };   // its words: label(), below
+    const greetBtn = label(fbtn('nb-pg-greet', phrase('show this greeting when the project opens')), 'SHOW ON OPEN');
+    const mdBtn = label(fbtn('nb-pg-md', phrase('save this tab as a markdown file')), '.MD');
+    const impBtn = label(fbtn('nb-pg-import', phrase('add markdown files as pages of the project')), 'IMPORT .MD');
     const copyTo = label(fbtn('nb-pg-copy', ''), 'COPY TO SHELF');
     function paintFoot() {
       const g = P.greeting(), onGreet = !!g && g.id === T.sel;
@@ -445,7 +447,7 @@ export function createNotebook(options = {}) {
       const md = [...files].filter((f) => MD.test(f.name) || /^text\/(markdown|plain)$/.test(f.type));
       let last = null;
       for (const f of md) last = addPage(pageFromFile(f.name, await f.text()));
-      if (last) say(md.length === 1 ? tx('added the page {title}', { title: last.title }) : tx('added {n} pages', { n: md.length }));
+      if (last) say(md.length === 1 ? tx('added the page {title}', { title: last.title }) : tn(md.length, 'added {n} page', 'added {n} pages'));
       return md.length;
     }
     impBtn.addEventListener('click', () => {

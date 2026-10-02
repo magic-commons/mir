@@ -31,7 +31,7 @@ const tone = (id, name, hue, tint, bright, accentA, accentB, vivid) => ({ id, na
 
 /* ── THE TABLE ─────────────────────────────────────────────────────────────────────────────────────────────────────
    tone(id, NAME, HUE°, TINT, BRIGHT, ACCENT A°, ACCENT B°, VIVID) — the accents are angles on the accent palette. */
-const TABLE = [
+const TABLE = [   // tr: names
   /* FROST — Josh's recipe (2026-10-01): "'About Glass', Shadow maxed, Veil 0, Brightness 0, Dark mode, White Text, Glass
      control surface, Blur at 11px.  Saturation bumped to 130.  Tint 0, and disconnected off.  Corners knob maxed. …
      Refractive on and frost always."  BASINS' ABOUT GLASS draws no pane edge (material.css), so EDGE is off.  The white

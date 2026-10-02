@@ -47,9 +47,14 @@ const link = (node, part) => {
 };
 const words = (node, str) => String(str).split('\n').forEach((chunk, i) => { if (i) node.appendChild(document.createElement('br')); if (chunk) node.appendChild(document.createTextNode(chunk)); });
 const LINES = new WeakMap();   // node → the line it was written from, so a language change can write it again
+/* every rich line in the document (the ABOUT face, the GUI window's ABOUT page) is written again on a language change;
+   `data-t-rich` marks the nodes, the WeakMap holds their lines, and nothing runs until the language changes */
+if (typeof document !== 'undefined') onLanguage(() => {
+  for (const n of document.querySelectorAll('[data-t-rich]')) if (LINES.has(n)) { n.replaceChildren(); richText(n, LINES.get(n)); }
+});
 
 export function richText(node, line) {
-  LINES.set(node, line);
+  LINES.set(node, line); node.setAttribute('data-t-rich', '');
   const parts = Array.isArray(line) ? line : [line];
   for (const part of parts) {
     if (Array.isArray(part)) { link(node, part); continue; }
@@ -85,11 +90,5 @@ export function aboutFace(face, data = {}) {
   const actions = el('div', 'ab-actions', face);
   if (data.dump !== false) { const b = label(el('button', 'nb-dump', actions), 'COPY DUMP'); b.type = 'button'; }
   if (data.home && safeHref(data.home.href)) { const a = label(el('a', 'ab-home', actions), data.home.label || 'RETURN HOME'); a.href = data.home.href; }
-  /* the rich lines are written again on a language change (the labels above are kit.js's relabel); a face that has
-     left the document lets go of its subscriber at the first change after */
-  const off = onLanguage(() => {
-    if (!face.isConnected) { off(); return; }
-    for (const n of face.querySelectorAll('p')) if (LINES.has(n)) { n.replaceChildren(); richText(n, LINES.get(n)); }
-  });
-  return face;
+  return face;                                                   // its rich lines relabel with every other (richText, above)
 }

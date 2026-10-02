@@ -91,7 +91,7 @@ function cornerNotice(text, { kind = 'info', ms, action = null, max = 4 } = {}) 
     presence(root, false).then(() => root.remove());
   }
   if (action && action.label) root.appendChild(actionOf(action, close));
-  const x = el('button', 'mir-notice-x', root, '×'); x.type = 'button'; ariaLabel(x, 'dismiss');
+  const x = el('button', 'mir-notice-x', root, '×'); x.type = 'button'; ariaLabel(x, 'dismiss');   // tr[dismiss]: put the notice away (not close a window)
   x.addEventListener('click', () => close(), { signal: life.signal });
   host().appendChild(root);
   live.add(root);

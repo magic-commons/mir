@@ -13,6 +13,12 @@ The translator's companion to `docs/LANGUAGES.md` §11. This file holds the rule
 | Length | a knob label has about 8 letters, a button about 14. Where the natural word is much longer, the field's abbreviation is used (below) |
 | Tone | plain and direct, as the English is |
 | Quotes | `“ ”` are kept as the English has them in es, pt-BR and id; French uses `« … »` with a no-break space inside (typed as a normal space here) and `’` for the apostrophe |
+| Names (1.5.0-alpha.5) | the catalogue's `names` list (the themes FROST, MORPH, CLASSIC, SWIFT, AURORA, NEON, their tones, MIR) is never translated; a key `name::X` is never in a pack |
+| One word, two meanings | a key `context::WORD` (`theme mode::LIGHT`, `quality tier::LIGHT`, `peak hold::HOLD` …) is that meaning only: translate the meaning the context names |
+| `{:LABEL}` | a button the sentence names: keep `{:LABEL}` exactly; it shows as your translation of that button |
+| Counts | a key with `{n}` may hold forms: `{ "one": …, "few": …, "many": …, "other": … }` (CLDR names for your language; `other` required) |
+| Notes | `en.json` → `notes` explains the jargon (WALL, FREE, HAND, GATED, HOLD, RECORD INPUT, shells, TONE, SKIN, THEME, RACK, SHELF …): read the note before choosing a word |
+| Syntax | `{inline}` and `{display}` in the notebook hints are `$inline$` and `$$display$$`, typed exactly so: never translate them |
 
 ## 2. Voice and convention per language
 

@@ -34,8 +34,8 @@
 /* ── THE NAMESPACE ──────────────────────────────────────────────────────── */
 
 import { setGlyph as setHouseGlyph } from '../../glyph.js';
-import { label as kitLabel, ariaLabel as kitAria } from '../../kit.js';
-import { t, onLanguage } from '../../core/i18n.js';
+import { label as kitLabel, ariaLabel as kitAria, hint as kitHint, placeholder as kitPlaceholder } from '../../kit.js';
+import { t, phrase, onLanguage } from '../../core/i18n.js';
 
 /* ── THE WORDS (1.5.4).  Every word the tree shows goes through the kit's choke points: label() for a node that holds
    only its words, ariaLabel() for a name, and two small helpers for the two places label() cannot reach — the leading
@@ -160,55 +160,53 @@ export const sizeLaw = {
  *  named MANDELBROT, and the extraction's §5 calls it "a word, not a
  *  mechanism". */
 export const COPY = {
-  railHead: 'MACROS',
-  tab: 'MOD',
-  presetPlaceholder: 'PRESET NAME',
+  railHead: phrase('MACROS'),
+  tab: phrase('MOD'),
+  presetPlaceholder: phrase('PRESET NAME'),
   deadChip: '⊘ 0',
-  tap: 'TAP',
-  hold: ['HOLD 1/4', 'HOLD 1'],
-  colHead: { lfo: 'PRESET', env: 'TIME', audio: 'SOURCE' },
-  zoom: ['↑', 'FIT', '↓'],
+  tap: phrase('TAP'),
+  hold: [phrase('HOLD 1/4'), phrase('HOLD 1')],
+  colHead: { lfo: phrase('PRESET'), env: phrase('TIME'), audio: phrase('SOURCE') },   // tr: the head of a device's left column: the shape PRESETs, the envelope TIME, the audio SOURCE
+  zoom: ['↑', phrase('FIT'), '↓'],
   lfoPresets: [
-    ['tri', 'TRI'], ['sawup', 'SAW↑'], ['sine', 'SINE'],
-    ['square', 'SQR'], ['msaw', 'MULTI-SAW'], ['mtri', 'MULTI-TRI']
+    ['tri', phrase('TRI')], ['sawup', phrase('SAW↑')], ['sine', phrase('SINE')],
+    ['square', phrase('SQR')], ['msaw', phrase('MULTI-SAW')], ['mtri', phrase('MULTI-TRI')]
   ],
   lfoChecks: [
-    ['invert', 'INVERT'], ['sync', 'BPM'], ['anchor', 'ANCHOR'],
-    ['triplet', 'TRIPLET'], ['dotted', 'DOTTED']
+    ['invert', phrase('INVERT')], ['sync', phrase('BPM')], ['anchor', phrase('ANCHOR')],   // tr[ANCHOR]: ANCHOR: on resume, the LFO continues from the phase where the pause caught it, holding the beat
+    ['triplet', phrase('TRIPLET')], ['dotted', phrase('DOTTED')]
   ],
-  envChecks: [['invert', 'INVERT'], ['gate', 'GATE']],
+  envChecks: [['invert', phrase('INVERT')], ['gate', phrase('GATE')]],
   audioOuts: ['level', 'low', 'mid', 'high', 'hit'],
-  lfoCmpToggles: [['trig', 'TRIG'], ['invert', 'INVERT'], ['sync', 'BPM'], ['anchor', 'ANCHOR']],
+  lfoCmpToggles: [['trig', phrase('TRIG')], ['invert', phrase('INVERT')], ['sync', phrase('BPM')], ['anchor', phrase('ANCHOR')]],   // tr[TRIG]: short for TRIGGER: restart the curve on a trigger
   /* [dataKnob, cap, lo, hi].  The cap paints; lo/hi land in `.m2kends`, which
      `#modwin .m2kends { display: none }` never shows — they are MODEL-DERIVED
      in the source (String(M.ENV_MAX_S) + 's', String(M.STEPS_MAX), …) and are
      reproduced here at BASINS' shipping values.  A host with different model
      limits should override these through host.copy; nothing paints either way. */
   knobs: {
-    lfo: [['rate', 'RATE', '0.01', '3.0'], ['phase', 'PHASE', '0', '1'],
-    ['smooth', 'SMOOTH', 'OFF', '500'], ['steps', 'STEPS', 'OFF', '1024']],
-    env: [['a', 'ATTACK', '0', '8s'], ['hold', 'HOLD', '0', '8s'],
-    ['d', 'DECAY', '0', '8s'], ['s', 'SUSTAIN', '0', '1'],
-    ['r', 'RELEASE', '0', '8s'], ['steps', 'STEPS', 'OFF', '1024']],
-    audio: [['sens', 'GAIN', '-24', '+24'], ['attack', 'ATTACK', '0', '2s'],
-    ['release', 'RELEASE', '0', '2s'], ['peakHold', 'HOLD', '0', '2s']]
+    lfo: [['rate', phrase('RATE'), '0.01', '3.0'], ['phase', phrase('PHASE'), '0', '1'],
+    ['smooth', phrase('SMOOTH'), phrase('OFF'), '500'], ['steps', phrase('STEPS'), phrase('OFF'), '1024']],
+    env: [['a', phrase('ATTACK'), '0', '8s'], ['hold', phrase('HOLD'), '0', '8s'],   // tr[HOLD]: HOLD: the envelope stage that stays at full level after ATTACK, before DECAY (a time)
+    ['d', phrase('DECAY'), '0', '8s'], ['s', phrase('SUSTAIN'), '0', '1'],
+    ['r', phrase('RELEASE'), '0', '8s'], ['steps', phrase('STEPS'), phrase('OFF'), '1024']],
+    audio: [['sens', phrase('GAIN'), '-24', '+24'], ['attack', phrase('ATTACK'), '0', '2s'],
+    ['release', phrase('RELEASE'), '0', '2s'], ['peakHold', phrase('HOLD', 'peak hold'), '0', '2s']]   // tr[peak hold::HOLD]: the audio follower's PEAK HOLD: how long a band's peak is held before it falls (a time), not the envelope stage
   },
-  audioSheetRows: [['out', 'OUTPUT'], ['att', 'ATTACK'], ['rel', 'RELEASE'],
-  ['hyst', 'HYST'], ['flux', 'SENSE']],
-  devicePick: [['lfo', 'ADD LFO'], ['env', 'ADD ENV'], ['audio', 'ADD AUDIO']],
-  macroPick: [['knob', 'KNOB'], ['trigger', 'TRIGGER']],
-  factory: 'FACTORY',
-  presetSheetLabel: 'Rack presets, in folders: {factory} ships with the app, ' +
-    'the rest are yours',
-  presetOpenLabel: 'Open the preset list — {factory} ships with the app, ' +
-    'the rest are yours',
+  audioSheetRows: [['out', phrase('OUTPUT')], ['att', phrase('ATTACK')], ['rel', phrase('RELEASE')],
+  ['hyst', phrase('HYST')], ['flux', phrase('SENSE')]],
+  devicePick: [['lfo', phrase('ADD LFO')], ['env', phrase('ADD ENV')], ['audio', phrase('ADD AUDIO')]],
+  macroPick: [['knob', phrase('KNOB')], ['trigger', phrase('TRIGGER')]],   // tr: the two kinds of macro: KNOB (a value you turn) and TRIGGER (a button that fires)
+  factory: phrase('FACTORY'),
+  presetSheetLabel: phrase('Rack presets, in folders: {factory} ships with the app, the rest are yours'),
+  presetOpenLabel: phrase('Open the preset list — {factory} ships with the app, the rest are yours'),
   /* anim.js:3932 — the hint line, verbatim, U+2019 apostrophes and all. */
   /* one literal, not a sum: it is one sentence to a translator (1.5.4) */
-  hint: 'Drag ✥ onto a slider or knob to route it (a PAD’s ✥ makes that control get hit) · drop it there again to release · a macro bar: drag sideways to set, double-tap to reset, tap to rename or unassign · number ring: up/down = master depth, double-tap = 100% · route ring: up/down = depth, sideways = direction.',
+  hint: phrase('Drag ✥ onto a slider or knob to route it (a PAD’s ✥ makes that control get hit) · drop it there again to release · a macro bar: drag sideways to set, double-tap to reset, tap to rename or unassign · number ring: up/down = master depth, double-tap = 100% · route ring: up/down = depth, sideways = direction.'),   // tr: ✥ is the macro’s routing grip; a PAD is a trigger macro; one sentence of help shown along the window’s foot
   chips: [
-    { id: 'compact', glyph: 'compact', label: 'COMPACT' },
-    { id: 'workbars', glyph: 'barsTop', label: 'Work bars: bottom' },
-    { id: 'ribbon', glyph: 'leave', label: 'RIBBON' }
+    { id: 'compact', glyph: 'compact', label: phrase('COMPACT') },
+    { id: 'workbars', glyph: 'barsTop', label: phrase('Work bars: bottom') },
+    { id: 'ribbon', glyph: 'leave', label: phrase('RIBBON') }
   ]
 };
 
@@ -533,8 +531,8 @@ export function buildChipRail(windowRoot, host) {
     b.dataset.mirChip = spec.id;
     b.dataset.chromeKind = kind;
     b.dataset.reopensWindow = 'false';
-    b.setAttribute('aria-label', spec.label);
-    b.title = spec.title || spec.label;
+    kitAria(b, spec.label);
+    kitHint(b, spec.title || spec.label);
     rail.appendChild(b);
     chips[spec.id] = b;
     return b;
@@ -632,32 +630,32 @@ function buildPresetStrip(panel, copy) {
   /* the ▾: dirNext turned a quarter turn by the stylesheet — glyph.js carries
      no chevron-down, and a drawing rotated is still a drawing. */
   const open = navBtn('m2prenav m2preopen', 'chevronDown', 15,
-    copy.presetOpenLabel, null, { factory: copy.factory });
+    copy.presetOpenLabel, null, { factory: { t: copy.factory } });
   open.setAttribute('aria-haspopup', 'listbox');
   open.setAttribute('aria-expanded', 'false');
-  open.title = 'PRESETS';
+  kitHint(open, 'PRESETS');
 
   const save = navBtn('m2presave', null, 20, 'Save this rack as a preset');
   setHouseGlyph(save, 'save', { size: 20 });
   kitAria(save, 'Save this rack as a preset');
-  save.title = 'SAVE';
+  kitHint(save, 'SAVE');
 
   const name = m2mk('input', 'm2prename', core);
   name.type = 'text';
   name.spellcheck = false;
-  name.placeholder = t(copy.presetPlaceholder);
+  kitPlaceholder(name, copy.presetPlaceholder);
   name.setAttribute('autocapitalize', 'characters');
-  kitAria(name, 'Preset name — type one, then tap SAVE');
+  kitAria(name, 'Preset name — type one, then tap {:SAVE}');
 
-  const prev = navBtn('m2prenav', 'dirPrev', 15, 'Previous preset');
-  const next = navBtn('m2prenav', 'dirNext', 15, 'Next preset');
+  const prev = navBtn('m2prenav', 'dirPrev', 15, phrase('Previous preset'));
+  const next = navBtn('m2prenav', 'dirNext', 15, phrase('Next preset'));
   /* m2preDel is null.  NO DELETE BUTTON IS BUILT. */
 
   /* THE DEAD LIGHT.  A SIBLING of .m2precore, not inside it, so it lives in
      the 46 px extension.  Hidden entirely when nothing is dormant — a warning
      that is always on the glass is furniture, not a warning. */
   const dead = navBtn('m2predead off', copy.deadChip,
-    null, 'Sends that are dead until their controls come back', prebar);
+    null, phrase('Sends that are dead until their controls come back'), prebar);
   dead.id = IDS.deadWarn;
   dead.setAttribute('aria-haspopup', 'dialog');
   dead.setAttribute('aria-controls', IDS.deadInspector);
@@ -687,7 +685,7 @@ function buildTimingBar(pre, copy) {
   tempo.id = IDS.tempo;
   const tempoNum = m2mk('b', null, tempo);
   const tempoUnit = m2mk('span', null, tempo);
-  tempoUnit.textContent = 'BPM';                    // hidden by .tighter
+  tempoUnit.textContent = 'BPM';                    // hidden by .tighter; a unit, never translated
   const tempoHz = m2mk('i', 'modhz', tempo);        // hidden by .tight
 
   /* It stands exactly where the field stood: the two swap `hidden`. */
@@ -719,7 +717,7 @@ function buildTimingBar(pre, copy) {
     b.type = 'button';
     kitLabel(b, label);
     b.setAttribute('aria-pressed', 'false');
-    b.title = label;
+    kitHint(b, label);
     return b;
   });
 
@@ -782,7 +780,7 @@ function mkEditRow(root, what, index) {
   name.maxLength = 24;
   name.spellcheck = false;
   name.setAttribute('autocapitalize', 'characters');
-  kitAria(name, '{what} {n} name — type your own', { what: { t: what }, n: index });
+  kitAria(name, '{what} {i} name — type your own', { what: { t: what }, i: index });   // tr: the name field of a macro or a trigger: {what} is Macro or Trigger, {i} its number
   const clr = m2mk('button', 'm2mclr', row);
   clr.type = 'button';
   setGlyph(clr, 'clear', { size: 16 });
@@ -816,9 +814,9 @@ export function buildMacroSlot(slotbox, m, index) {
   gripIcon(reorder);
   const del = m2mk('button', 'm2slotx', tools);
   del.type = 'button';
-  setGlyph(del, 'close', { size: 14, label: trigger ? 'Delete trigger {n}' : 'Delete macro {n}', vars: { n: index } });
+  setGlyph(del, 'close', { size: 14, label: trigger ? 'Delete trigger {i}' : 'Delete macro {i}', vars: { i: index } });
 
-  const ed = mkEditRow(root, trigger ? 'Trigger' : 'Macro', index);
+  const ed = mkEditRow(root, trigger ? phrase('Trigger') : phrase('Macro'), index);
 
   return {
     id: m && m.id, kind: trigger ? 'trigger' : 'knob', index,
@@ -845,11 +843,12 @@ function statusCapsule(parent, o) {
   const main = m2mk('span', 'm2statusmain ' + o.mainClass, root);
   m2mk('i', 'm2statuslamp', main);
   const text = m2mk('b', null, main);
-  text.textContent = t(o.text);
+  const words = (v) => (Array.isArray(v) ? t(v[0], v[1]) : t(v));   // a word, or [sentence, vars]: the same keys the live paint uses
+  text.textContent = words(o.text);
   const middle = o.middleClass ? m2mk('span', o.middleClass, root) : null;
-  if (middle) middle.textContent = t(o.middleText);
+  if (middle) middle.textContent = words(o.middleText);
   const out = m2mk('span', o.outClass, root);
-  out.textContent = t(o.outText);
+  out.textContent = words(o.outText);
   return { root, main, text, middle, out };
 }
 
@@ -872,20 +871,20 @@ function buildEditor(dev, body, kind) {
   if (kind === 'lfo') {
     status = statusCapsule(box, {
       rootClass: 'm2lfostatus', mainClass: 'm2lforun',
-      text: 'HOLD', outClass: 'm2lfoout', outText: '0 OUT'
+      text: 'clock state::HOLD', outClass: 'm2lfoout', outText: ['{n} OUT', { n: '0' }]
     });
   } else if (kind === 'env') {
     status = statusCapsule(box, {
       rootClass: 'm2envstatus', mainClass: 'm2envrun',
-      text: 'IDLE', outClass: 'm2envout', outText: '0.00 · 0 OUT'
+      text: 'IDLE', outClass: 'm2envout', outText: ['{value} · {n} OUT', { value: '0.00', n: '0' }]
     });
     progress = m2mk('div', 'm2envprogress', box);
     progressFill = m2mk('i', null, progress);
   } else {
     status = statusCapsule(box, {
       rootClass: 'm2audiostatus', mainClass: 'm2audiolife', text: 'OFF',
-      middleClass: 'm2audiolevel', middleText: 'LEVEL 0.00',
-      outClass: 'm2audioout', outText: '0 OUT'
+      middleClass: 'm2audiolevel', middleText: ['{:LEVEL} {v}', { v: '0.00' }],
+      outClass: 'm2audioout', outText: ['{n} OUT', { n: '0' }]
     });
   }
   return {
@@ -997,7 +996,7 @@ export function buildDevice(run, add, src, copyIn) {
   const kindEl = m2mk('span', 'm2kind', fold);
   kitLabel(kindEl, KIND_WORD[kind] ? KIND_WORD[kind].t : String(kind));
   const modeLabel = m2mk('span', 'm2modelabel', fold);
-  modeLabel.textContent = t('FULL');
+  modeLabel.textContent = t('FULL', null, 'device view');   // tr: a device's view: FULL shows every control, CMP (compact) only the performance bank
 
   /* .m2headc is present on all three kinds. */
   const headc = m2mk('div', 'm2headc', head);
@@ -1122,7 +1121,7 @@ export function buildDevice(run, add, src, copyIn) {
   if (kind !== 'audio') {
     macbox = cap(m2mk('div', 'm2macbox', col), { t: 'OUT' });
     mac = cap(m2mk('button', 'm2mac', macbox), { t: 'OUT' });
-    mac.type = 'button'; mac.textContent = '--'; mac.title = 'MACRO';
+    mac.type = 'button'; mac.textContent = '--'; kitHint(mac, 'MACRO');
     capbox = m2mk('div', 'm2capbox', col);
     /* the captions "OUT" and "TRIG IN" are pseudo-elements on .m2mac; these
        two divs are the SEPARATE caption row .m2capbox carries. */
@@ -1131,7 +1130,7 @@ export function buildDevice(run, add, src, copyIn) {
     macCap.setAttribute('aria-hidden', 'true');
     if (kind === 'env') {
       bus = cap(m2mk('button', 'm2mac m2bus', macbox), { t: 'TRIG IN' });
-      bus.type = 'button'; bus.textContent = '--'; bus.title = 'TRIG';
+      bus.type = 'button'; bus.textContent = '--'; kitHint(bus, 'TRIG');
       const busCap = m2mk('div', 'm2maccap', capbox);
       kitLabel(busCap, 'TRIG');
     }
@@ -1251,7 +1250,7 @@ export function setDeviceMode(dev, mode, anatomy) {
   d.root.dataset.anatomy = an === 'C' ? 'compact' : 'full';
   d.root.classList.toggle('m2cmp', want === 'C');
   d.root.classList.toggle('m2min', want === 'M');
-  if (d.modeLabel) d.modeLabel.textContent = an === 'C' ? t('CMP') : t('FULL');
+  if (d.modeLabel) d.modeLabel.textContent = an === 'C' ? t('CMP') : t('FULL', null, 'device view');   // tr[CMP]: short for COMPACT: the device shows only its performance bank
   return want;
 }
 
@@ -1415,7 +1414,7 @@ export function buildPresetSheet(windowRoot, copyIn) {
   const copy = Object.assign({}, COPY, copyIn || {});
   const root = m2mk('div', 'm2ppick glass', windowRoot);
   root.setAttribute('role', 'listbox');
-  kitAria(root, copy.presetSheetLabel, { factory: copy.factory });
+  kitAria(root, copy.presetSheetLabel, { factory: { t: copy.factory } });
   root.hidden = true;
   return { root, group: (name, shut, on) => buildPresetGroup(root, name, shut, on) };
 }

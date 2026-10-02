@@ -34,7 +34,7 @@ const WORDS = {
   link: { what: t('A file the app needs did not load.'),
     todo: t('Check the connection and reload. If you serve the app yourself, check that every file was copied.') },
   exception: { what: t('Something went wrong while the app was starting.'),
-    todo: t('Reload. If it happens again, press COPY DETAILS and send them to the author.') }
+    todo: t('Reload. If it happens again, press {:COPY DETAILS} and send them to the author.') }
 };
 
 /** explainBoot(error) → { code, what, todo } (English; the card translates it) */
@@ -72,7 +72,7 @@ export function bootCard({ name = 'MIR', steps = [], host = document.body } = {}
   const done = [];
   let i = -1;
   root.hidden = true; host.appendChild(root); presence(root, true); mark.start();
-  const paintCount = () => { if (steps.length) label(count, '{n} of {total}', { n: Math.min(i + 1, steps.length), total: steps.length }); };
+  const paintCount = () => { if (steps.length) label(count, '{step} of {total}', { step: Math.min(i + 1, steps.length), total: steps.length }); };
 
   const api = {
     root,

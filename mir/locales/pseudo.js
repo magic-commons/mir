@@ -5,13 +5,13 @@
  *     through t() is the one that still reads as plain English;
  *   · about 40 % longer, counting the brackets — the room a French or Russian label will want;
  *   · wrapped in [ ], so a clipped string shows a missing bracket;
- *   · `<m>…</m>` maths runs and `{name}` placeholders pass through untouched, as do digits and punctuation.
+ *   · `<m>…</m>` maths runs and `{name}` placeholders and `{:LABEL}` references pass through untouched, as do digits and punctuation.
  * unpseudo() reverses it exactly (tests/i18n.node.mjs proves that over the whole catalogue). */
 const A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 const B = [...'ÁƁÇÐÉƑĜĤÍĴĶĹṀÑÖÞǪŔŠŢÛṼŴẊÝŽáƀçðéƒĝĥíĵķĺɱñöþǫŕšţûṽŵẋýž'];
 const TO = new Map(), FROM = new Map();
 [...A].forEach((c, i) => { TO.set(c, B[i]); FROM.set(B[i], c); });
-const KEEP = /(<m>[\s\S]*?<\/m>|\{\w+\})/;
+const KEEP = /(<m>[\s\S]*?<\/m>|\{:?[^{}]+\})/;   // maths, {vars} and {:LABEL} references pass through
 /** the filler a source of `n` characters gets, beyond its two brackets: tildes, broken by a space every six so a
  *  long sentence can still wrap where its translation would */
 const pad = (n) => { const k = Math.max(0, Math.round(0.4 * n) - 2); let f = ''; for (let i = 0; i < k; i++) f += k >= 6 && i % 6 === 0 ? ' ' : '~'; return f; };

@@ -19,8 +19,8 @@
  *   · EXPORT .MD saves the current note as a plain markdown file; IMPORT .MD adds files as notes (never over one).
  *   · A repaired store says so in the status line, with where the damaged text was kept.
  *   Keys typed in the fields never reach the app, except Ctrl/⌘+S and Ctrl/⌘+, (the notebook's own law). */
-import { el, label as writeLabel, ariaLabel } from '../kit.js';
-import { t as tx } from '../core/i18n.js';
+import { el, label as writeLabel, ariaLabel, hint } from '../kit.js';
+import { t as tx, tn } from '../core/i18n.js';
 import { createShelf } from './shelf.js';
 
 const APP_KEY = (e) => (e.ctrlKey || e.metaKey) && !e.altKey && (e.code === 'KeyS' || e.code === 'Comma');
@@ -36,7 +36,7 @@ export function notesFace({ store = createShelf(), glyph = '▤', label = 'shelf
   const say = (s) => { status.textContent = s; };
   function build(f, api) {
     face = f; nbApi = api; base = sig(api.yours);
-    writeLabel(el('div', 'ab-eyebrow', f), 'SHELF');
+    writeLabel(el('div', 'ab-eyebrow', f), 'SHELF');   // tr[SHELF]: the SHELF: where your notes are kept in this browser (not the RACK, the column of windows)
     const row = el('div', 'nt-new', f);
     path = el('input', 'nt-path', row); path.placeholder = tx('folder/name'); path.spellcheck = false; ariaLabel(path, 'save as folder/name');
     const saveAs = writeLabel(btn('nt-saveas', row, '', 'save the note open in YOURS under this name'), 'SAVE AS');
@@ -60,7 +60,7 @@ export function notesFace({ store = createShelf(), glyph = '▤', label = 'shelf
     });
     imp.addEventListener('click', () => {
       const inp = document.createElement('input'); inp.type = 'file'; inp.multiple = true; inp.accept = '.md,.markdown,.txt,text/markdown,text/plain';
-      inp.addEventListener('change', async () => { let n = 0, last = ''; for (const file of inp.files || []) { const p = store.importNote(file.name, await file.text(), folderOf(path.value)); if (p) { n++; last = p; } } say(n ? (n === 1 ? tx('imported {name}', { name: last }) : tx('imported {n} notes', { n })) : store.error || tx('nothing imported')); });
+      inp.addEventListener('change', async () => { let n = 0, last = ''; for (const file of inp.files || []) { const p = store.importNote(file.name, await file.text(), folderOf(path.value)); if (p) { n++; last = p; } } say(n ? (n === 1 ? tx('imported {name}', { name: last }) : tn(n, 'imported {n} note', 'imported {n} notes')) : store.error || tx('nothing imported')); });
       inp.click();
     });
     store.subscribe(() => { if (face && !face.hidden) paint(); });
@@ -119,12 +119,12 @@ export function notesFace({ store = createShelf(), glyph = '▤', label = 'shelf
       writeLabel(el('span', 'nt-label', recentRow), 'RECENT');
       for (const p of recent) { const c = btn('nt-chip', recentRow, p.split('/').pop(), 'open ' + p); c.addEventListener('click', () => open(p, c)); }
     }
-    if (!items.length) { writeLabel(el('div', 'nt-none', list), 'no notes yet — name one above and SAVE AS'); return; }
+    if (!items.length) { writeLabel(el('div', 'nt-none', list), 'no notes yet — name one above and {:SAVE AS}'); return; }
     const by = new Map();
     for (const it of items) { if (!by.has(it.folder)) by.set(it.folder, []); by.get(it.folder).push(it); }
     const names = [...by.keys()].sort((a, b) => a.localeCompare(b));
     for (const f of names) {
-      const c = btn('nt-root', roots, f || tx('(root)'), f ? 'save into ' + f : 'save into no folder');
+      const c = btn('nt-root', roots, f || tx('(root)')); if (f) hint(c, 'save into {folder}', { folder: f }); else hint(c, 'save into no folder');   // tr[(root)]: the top of the shelf: the notes in no folder
       c.addEventListener('click', () => { const name = (path.value.split('/').pop() || '').trim(); path.value = (f ? f + '/' : '') + name; path.focus(); });
     }
     const toProject = !!(nbApi && nbApi.pages);
@@ -133,7 +133,7 @@ export function notesFace({ store = createShelf(), glyph = '▤', label = 'shelf
       for (const it of by.get(f)) {
         const row = el('div', 'nt-item', list); row.setAttribute('role', 'listitem'); row.dataset.path = it.path;
         if (it.path === cur) row.dataset.current = '';
-        const nm = btn('nt-name', row, it.name, 'open ' + it.path + ' in YOURS');
+        const nm = btn('nt-name', row, it.name); hint(nm, 'open {path} in your notes tab', { path: it.path });   // tr: your notes tab is the notebook’s first tab: the note you are writing, kept in this browser
         nm.addEventListener('click', () => open(it.path, row));
         el('span', 'nt-when', row, (it.saved || '').slice(0, 16).replace('T', ' '));
         const rn = btn('nt-act nt-ren', row, '✎', 'rename'); ariaLabel(rn, 'rename {name}', { name: it.path });

@@ -30,7 +30,7 @@
  *
  * The pure helpers are exported for node tests. */
 import { el, label, ariaLabel, trig } from '../kit.js';
-import { onLanguage } from '../core/i18n.js';
+import { onLanguage, phrase } from '../core/i18n.js';
 import { drag } from '../core/pointer.js';
 import { frame } from '../core/frame.js';
 import { setText, setAttr } from '../core/perf.js';
@@ -50,8 +50,8 @@ export const TRANSPORT = Object.freeze({
 });
 /** the seats a user may choose on the stage (Josh 2026-10-01); docking into the rack is BASINS' dock chip */
 export const SEATS = Object.freeze(['bottom', 'top', 'compact']);
-const SEAT_WORD = { bottom: 'BOTTOM', top: 'TOP', compact: 'COMPACT' };
-const SEAT_HINT = { bottom: 'the bar at the bottom centre', top: 'the bar at the top centre', compact: 'a small bar at the bottom: glyphs only, no Hz reading' };
+const SEAT_WORD = { bottom: phrase('BOTTOM'), top: phrase('TOP'), compact: phrase('COMPACT') };
+const SEAT_HINT = { bottom: phrase('the bar at the bottom centre'), top: phrase('the bar at the top centre'), compact: phrase('a small bar at the bottom: glyphs only, no Hz reading') };
 const PLAY_ACTION = 'transport.play';
 /** the rack window the bar docks into (BASINS / λWAVES `device({ id: 'transport', eyebrow: 'TRANSPORT' })`) */
 export const DOCK_ID = 'transport';
@@ -329,13 +329,13 @@ export function tempoPanel({ tempo, mod = null, signal } = {}) {
   let taps = [];
   const tapT = trig({ label: 'TAP', title: 'Tap the tempo', onFire: () => { const r = (M.tapTempo || MOD.tapTempo)(taps, performance.now()); taps = r.taps; if (r.bpm) tempo.set(r.bpm); tempo.commit(); sync(); } });
   tapT.root.classList.add('tap'); grid.appendChild(tapT.root);
-  const syncB = trig({ label: 'WALL', title: 'Sync the modulation clock to the wall clock or run it free', onFire: () => { C.setSync(M.syncMode() === 'wall' ? 'free' : 'wall'); tempo.commit(); sync(); } });
+  const syncB = trig({ label: 'WALL', title: 'Sync the modulation clock to the wall clock or run it free', onFire: () => { C.setSync(M.syncMode() === 'wall' ? 'free' : 'wall'); tempo.commit(); sync(); } });   // tr[WALL]: the clock follows wall-clock time (real elapsed seconds), as opposed to FREE, which counts frame time and slows with the picture
   const cad = trig({ label: '60 Hz', title: 'Modulation cadence', onFire: () => { mod.setCadence(mod.cadence() === 120 ? 60 : 120); sync(); } });
   if (C && typeof C.setSync === 'function' && typeof M.syncMode === 'function') grid.appendChild(syncB.root);
   if (mod && typeof mod.cadence === 'function' && typeof mod.setCadence === 'function') grid.appendChild(cad.root);
   const bend = { base: null, which: null, latched: false, downAt: 0 };
   const bends = [[0.5, '÷2'], [2, '×2'], [4, '×4']].map(([factor, word]) => {
-    const b = trig({ label: word, title: 'Hold to ' + (factor > 1 ? 'multiply' : 'halve') + ' the tempo, release to return · tap to latch, tap again to release', onFire: () => {} });
+    const b = trig({ label: word, title: factor > 1 ? 'Hold to multiply the tempo, release to return · tap to latch, tap again to release' : 'Hold to halve the tempo, release to return · tap to latch, tap again to release', onFire: () => {} });
     b.root.setAttribute('aria-pressed', 'false'); b.root.dataset.bend = String(factor);
     const go = () => { if (bend.base === null) bend.base = tempo.get(); bend.which = word; tempo.set(bend.base * factor); sync(); };
     const off = () => { if (bend.base !== null) tempo.set(bend.base); bend.base = null; bend.which = null; bend.latched = false; sync(); };
@@ -349,14 +349,14 @@ export function tempoPanel({ tempo, mod = null, signal } = {}) {
     grid.appendChild(b.root); return { b, word };
   });
   const holds = ['1/4', '1'].map((note) => {
-    const b = trig({ label: note === '1/4' ? 'HOLD ¼' : 'HOLD 1', title: 'Stutter: hold the beat at this note value',
+    const b = trig({ label: note === '1/4' ? 'HOLD ¼' : 'HOLD 1', title: 'Stutter: hold the beat at this note value',   // tr: STUTTER: hold the current beat and repeat it at this note value (a quarter note, a whole beat) while held
       onFire: () => { const T = M.transport; if (T.hold && T.holdNote === note) C.release(); else { if (T.hold) C.release(); C.hold(note); } sync(); } });
     if (C && typeof C.hold === 'function') grid.appendChild(b.root);
     return { b, note };
   });
   const lit = (t, v) => { t.root.classList.toggle('on', !!v); setAttr(t.root, 'aria-pressed', String(!!v)); };
   function sync() {
-    if (C && typeof M.syncMode === 'function') { const wall = M.syncMode() === 'wall'; syncB.setLabel(wall ? 'WALL' : 'FREE'); lit(syncB, wall); }
+    if (C && typeof M.syncMode === 'function') { const wall = M.syncMode() === 'wall'; syncB.setLabel(wall ? 'WALL' : 'FREE'); lit(syncB, wall); }   // tr[FREE]: the clock counts frame time (it slows when the picture slows), as opposed to WALL, which follows real elapsed time
     if (mod && typeof mod.cadence === 'function') cad.setLabel(mod.cadence() + ' Hz');
     for (const { b, word } of bends) lit(b, bend.which === word);
     const T = M.transport || {};

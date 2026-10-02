@@ -122,9 +122,71 @@ try {
   /* ── a real pack with nothing translated yet: everything falls back, and the page counts it ── */
   await press('es');
   const n = await ev('__LANG.missing().length');
-  check('es (an empty draft pack): every kit string falls back to English and is counted', n > 20 && (await ev(`document.querySelector('.g-count').textContent.startsWith('${n} ')`)), String(n));
+  check('es (a draft pack): the strings it lacks fall back to English and are counted', n > 20 && (await ev(`document.querySelector('.g-count').textContent.startsWith('${n} ')`)), String(n));
   check('es: the page is <html lang="es" dir="ltr">', await ev(`document.documentElement.lang === 'es' && document.documentElement.dir === 'ltr'`));
   await press('en');
+
+  /* ── 1.5.0-alpha.5 · THE KIT'S WINDOWS UNDER qps: the GUI window, the transport bar, the notebook, FOLDERS, KEYS (the
+     starter app, which has them all) and the modulation window with an AUDIO device.  Only text inside the kit's own
+     roots is read; what may stay plain is a NAME, a VALUE with its unit, or the user's / the app's own data. */
+  const ROOTS = '.mir-win, .mir-transport, #modwin, #menubar, #notebook, .mir-rail, .mir-notice, .tempo-panel';
+  const KIT_WALK = `(() => {
+    const out = [], latin = /[A-Za-z]{2,}/, pseudoCh = /[\\u00C0-\\u024F\\u1E00-\\u1EFF]/;
+    const vis = (e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && e.checkVisibility({ visibilityProperty: true }); };
+    const add = (kind, s, e) => { s = (s || '').trim(); if (!s || !latin.test(s) || pseudoCh.test(s)) return; out.push({ kind, s: s.slice(0, 90), cls: String(e.className && e.className.baseVal === undefined ? e.className : '').split(' ')[0], tag: e.tagName, link: !!e.closest('a') }); };
+    const ok = (e) => e.closest(${JSON.stringify(ROOTS)}) && !e.closest('[translate="no"], script, style, svg') && vis(e);
+    const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) { const e = n.parentElement; if (e && ok(e)) add('text', n.textContent, e); }
+    for (const e of document.querySelectorAll('[aria-label], [placeholder], [data-help]')) { if (!ok(e)) continue;
+      if (e.hasAttribute('aria-label')) add('aria', e.getAttribute('aria-label'), e);
+      if (e.hasAttribute('placeholder')) add('ph', e.getAttribute('placeholder'), e);
+      if (e.dataset.help) add('help', e.dataset.help, e); }
+    return JSON.stringify(out);
+  })()`;
+  const NAMES = new Set(JSON.parse((await import('node:fs')).readFileSync(new URL('../mir/locales/en.json', import.meta.url), 'utf8')).names.concat(['MIR']));
+  const VALUE = /^[-+−]?[\d.,…\s-]*\d[\d.,…\s-]*\s?(Hz|HZ|ms|s|dB|px|%|°)?$/;
+  const DATA = new Set(['m2vname', 'nb-tab-name', 'fo-current']);                 // a macro's, a page's, a project's own name
+  const why = (r) => (NAMES.has(r.s) ? 'name' : VALUE.test(r.s) ? 'value' : r.s === 'BPM' ? 'unit' : DATA.has(r.cls) ? 'data' : r.link ? 'a link: a name' : null);
+  const walkKit = async (path, steps) => {
+    await p.goto(BASE + path, 1500);
+    for (let i = 0; i < 60 && !(await ev('!!(window.__ready || window.__STARTER)')); i++) await sleep(100);
+    await sleep(500);
+    await ev(`import('/mir/core/i18n.js').then((m) => m.setLanguage('qps')).then(() => true)`);
+    const seen = new Map();
+    for (const s of steps) { await ev(s); await sleep(450); for (const r of JSON.parse(await ev(KIT_WALK))) seen.set(r.kind + '|' + r.s, r); }
+    return [...seen.values()];
+  };
+  const S = '__STARTER.app';
+  const starter = await walkKit('/starter/index.html', ['1', `(${S}.notebook.open(), 1)`, `(${S}.gui.open('options:1'), 1)`, `(${S}.gui.open('options:2'), 1)`, `(${S}.gui.open('about'), 1)`,
+    `(${S}.gui.close(), ${S}.folders.open(), 1)`, `(${S}.folders.close(), ${S}.help && ${S}.help.open(), 1)`]);
+  const modw = await walkKit('/gallery/modulation.html?fresh=1', ['1', `(__MOD.M.addSource('audio'), __MOD.mod.view.rebuild(), 1)`]);
+  const plain = [...starter, ...modw].filter((r) => !why(r));
+  check('qps: the GUI window, the transport bar, the notebook, FOLDERS, KEYS and the modulation window show no plain-English kit string', plain.length === 0, JSON.stringify(plain.map((r) => `${r.kind} ${r.s} <${r.cls || r.tag}>`)));
+  const kinds = [...starter, ...modw].reduce((m, r) => { const w = why(r); m[w] = (m[w] || 0) + 1; return m; }, {});
+  note('kit windows under qps, the plain strings by reason (all allowed): ' + JSON.stringify(kinds));
+
+  /* ── PLURALS, LIVE: the notebook's word count in Russian and Arabic, with the real drafts loaded and a tiny test entry on
+     top (the drafts keep `other` only until a translator writes the forms) ── */
+  await p.goto(BASE + '/starter/index.html', 1500);
+  for (let i = 0; i < 60 && !(await ev('!!window.__STARTER')); i++) await sleep(100);
+  await sleep(400);
+  const counts = JSON.parse(await ev(`(async () => {
+    const m = await import('/mir/core/i18n.js');
+    const forms = { ru: { one: '{n} слово', few: '{n} слова', many: '{n} слов', other: '{n} слова' }, ar: { zero: 'لا كلمات', one: 'كلمة واحدة', two: 'كلمتان', few: '{n} كلمات', many: '{n} كلمة', other: '{n} كلمة' } };
+    m.addLocales((tag) => forms[tag] ? { strings: { '{n} words · kept in this browser': forms[tag], '{n} words · in the project': forms[tag] } } : null);
+    ${S}.notebook.open(); ${S}.notebook.select && ${S}.notebook.select('yours');
+    const ta = document.querySelector('#notebook .nb-text'), out = {}, errs = [];
+    for (const tag of ['ru', 'ar']) {
+      try { await m.setLanguage(tag); } catch (e) { errs.push(tag + ': ' + e.message); }
+      out[tag] = [];
+      for (const n of [1, 2, 5]) { ta.value = Array.from({ length: n }, (_, i) => 'w' + i).join(' '); ta.dispatchEvent(new Event('input')); out[tag].push(document.querySelector('#notebook .nb-count').textContent); }
+    }
+    await m.setLanguage('en'); ta.value = ''; ta.dispatchEvent(new Event('input'));
+    return JSON.stringify({ out, errs, lang: document.documentElement.lang });
+  })()`));
+  check('ru: 1, 2 and 5 words render three different forms (one · few · many)', new Set(counts.out.ru).size === 3 && counts.out.ru[0] === '1 слово' && counts.out.ru[2] === '5 слов', JSON.stringify(counts.out.ru));
+  check('ar: 1, 2 and 5 words render three different forms (one · two · few)', new Set(counts.out.ar).size === 3 && counts.out.ar[1] === 'كلمتان', JSON.stringify(counts.out.ar));
+  check('the real ru and ar drafts load and nothing throws', counts.errs.length === 0 && !p.logs.some((l) => /EXCEPTION/.test(l)), JSON.stringify(counts.errs) + ' ' + p.logs.filter((l) => /EXCEPTION/.test(l)).join(' | '));
 
   if (p.logs.length) note('console: ' + p.logs.join(' | '));
 } finally { await p.close(); }

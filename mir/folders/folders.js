@@ -29,7 +29,7 @@
  * createFolders(options) → api        (options and api: docs/FOLDERS.md) */
 import { createWindow } from '../window/window.js';
 import { ariaLabel } from '../kit.js';
-import { t } from '../core/i18n.js';
+import { t, phrase, onLanguage } from '../core/i18n.js';
 import { frame } from '../core/frame.js';
 import { setText, setAttr } from '../core/perf.js';
 import { wrap, stringify } from '../core/envelope.js';
@@ -41,11 +41,11 @@ import { createProjectAdapter, openWithRollback, emptyProject } from './project.
 import { seed as seedLibrary } from './seed.js';
 
 export const FOLDERS_COPY = {
-  save: ['SAVE', 'this project', 'Save — store what is on screen over the open project (a new one the first time).'],
-  saveAs: ['SAVE AS', 'a new project', 'Save as — store what is on screen as a new project, with the name and folder below.'],
-  fresh: ['NEW', 'the empty project', 'New — the empty project: every part starts from nothing.'],
-  open: ['OPEN FILE', '.mir or picture', 'Open a project file (.mir) or a picture that carries one — or drop it on this window.'],
-  export: ['EXPORT', '.mir or picture', 'Export the selected project (or the open one) as a .mir file, or as a picture that carries it.'],
+  save: [phrase('SAVE'), phrase('this project'), phrase('Save — store what is on screen over the open project (a new one the first time).')],
+  saveAs: [phrase('SAVE AS'), phrase('a new project'), phrase('Save as — store what is on screen as a new project, with the name and folder below.')],
+  fresh: [phrase('NEW'), phrase('the empty project'), phrase('New — the empty project: every part starts from nothing.')],
+  open: [phrase('OPEN FILE'), phrase('.mir or picture'), phrase('Open a project file (.mir) or a picture that carries one — or drop it on this window.')],
+  export: [phrase('EXPORT'), phrase('.mir or picture'), phrase('Export the selected project (or the open one) as a .mir file, or as a picture that carries it.')],
 };
 const LOOK_SORTS = ['az', 'za', 'new', 'old'];
 
@@ -182,8 +182,8 @@ export function createFolders(options = {}) {
     onMoved: (r) => { if (typeof o.onMoved === 'function') o.onMoved(r); },
     onOpen: () => { if (gallery) gallery.paint(); paintMark(); },
     chips: [
-      { name: 'sort', kind: 'cycle', label: t('Sort'), state: (sortModes[gp.sort] || sortModes[0]).id,
-        states: sortModes.map((m) => ({ id: m.id, text: m.ink, label: t(m.label), hint: t(m.label) + ' — ' + t('press for the next order') })),
+      { name: 'sort', kind: 'cycle', label: 'Sort', state: (sortModes[gp.sort] || sortModes[0]).id,
+        states: sortModes.map((m) => ({ id: m.id, text: m.ink, label: m.label, hint: ['{order} — press for the next sort order', { order: { t: m.label } }] })),
         press: (state) => { if (gallery) gallery.setSort(sortModes.findIndex((m) => m.id === state)); } },
     ],
     body: (b) => { b.append(head, panel, statusEl); },
@@ -231,6 +231,7 @@ export function createFolders(options = {}) {
   }
   const unsub = A.subscribe ? A.subscribe(() => paintMark()) : null;
   paintMark();
+  const offLang = onLanguage(() => paintMark());   // UNTITLED and UNSAVED CHANGES in the new language
 
   /* ── SAVE: over the open project; the first time (or over a starter) it is SAVE AS ── */
   async function saveNow() {
@@ -314,7 +315,7 @@ export function createFolders(options = {}) {
     seed: (list) => { const r = seedLibrary(files, list, { storage, seededKey: o.seededKey }); gallery.paint(); return r; },
     exportProject, importEnvelope, ingest: (input, io) => intake.ingest(input, io), say,
     state: () => ({ window: win.state(), gallery: gallery.state(), library: files.state(), current, dirty: gallery.dirty() }),
-    destroy() { life.abort(); if (unsub) unsub(); frame.cancel(MARK); intake.destroy(); gallery.destroy(); win.destroy(); },
+    destroy() { life.abort(); offLang(); if (unsub) unsub(); frame.cancel(MARK); intake.destroy(); gallery.destroy(); win.destroy(); },
   };
 }
 

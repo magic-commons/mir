@@ -101,7 +101,7 @@ export function createKeyboardWindow({ keys, host, persist = null, platform, onM
   /* the right well: record and reset, the status, the search, the list */
   const colR = el('div', 'km-col km-col-right', root);
   const tools = el('div', 'km-editor-actions', colR);
-  const rec = trig({ label: 'RECORD INPUT', cls: 'km-btn km-btn-record', onFire: () => (recording ? cancelRecording() : startRecording()) });
+  const rec = trig({ label: 'RECORD INPUT', cls: 'km-btn km-btn-record', onFire: () => (recording ? cancelRecording() : startRecording()) });   // tr[RECORD INPUT]: start listening for the new KEY (or chord) of the chosen shortcut: it records a keypress, not audio
   const rst = trig({ label: 'RESET TO DEFAULT', cls: 'km-btn km-btn-reset', onFire: () => resetAll() });
   rec.on = false; tools.append(rec.root, rst.root);
   const statusEl = el('div', 'km-status', colR); statusEl.hidden = true; statusEl.setAttribute('role', 'status');
@@ -280,12 +280,12 @@ export function createKeyboardWindow({ keys, host, persist = null, platform, onM
 
   /* ── recording: λWAVES' flow, the table's record() underneath ── */
   async function startRecording() {
-    if (!selected) { status({ t: 'Choose an action in the list first, then press RECORD INPUT' }); return; }
+    if (!selected) { status({ t: 'Choose an action in the list first, then press {:RECORD INPUT}' }); return; }
     const id = selected;
     recording = true; latched = new Set(); pending = null; refresh();
     const tap = touchOnly(view);
-    status(tap ? (narrow() ? { t: 'Listening for “{action}”. This looks like a touch screen with no keyboard and no board to tap: press the new keys on a hardware keyboard if one is connected, or press RECORD INPUT again to cancel.' }
-      : { t: 'Listening for “{action}”. This looks like a touch screen with no keyboard: tap the new key on the board (tap SHIFT, CTRL or ALT first for a modifier), or press RECORD INPUT again to cancel.' })
+    status(tap ? (narrow() ? { t: 'Listening for “{action}”. This looks like a touch screen with no keyboard and no board to tap: press the new keys on a hardware keyboard if one is connected, or press {:RECORD INPUT} again to cancel.' }
+      : { t: 'Listening for “{action}”. This looks like a touch screen with no keyboard: tap the new key on the board (tap SHIFT, CTRL or ALT first for a modifier), or press {:RECORD INPUT} again to cancel.' })
       : { t: 'Listening for “{action}”: press the new keys with any modifiers, or tap them on the board. Esc cancels.' }, { action: named(id) });
     while (recording && selected === id) {
       const c = await keys.record();

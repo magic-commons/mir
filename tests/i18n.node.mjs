@@ -2,7 +2,7 @@
 /* tests/i18n.node.mjs — core/i18n.js, the pseudo-language, the packs and the LANGUAGE menu's pure parts. */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { t, setLanguage, language, direction, languages, missing, addLocales, onLanguage, LANGUAGES } from '../mir/core/i18n.js';
+import { t, tn, phrase, english, setLanguage, language, direction, languages, missing, addLocales, onLanguage, LANGUAGES } from '../mir/core/i18n.js';
 import { pseudo, unpseudo } from '../mir/locales/pseudo.js';
 import { pickLanguage, languageMenu } from '../mir/shell/language.js';
 
@@ -45,6 +45,59 @@ await ok('the last setLanguage wins, however the loads finish', async () => {
 
 const cat = JSON.parse(fs.readFileSync(new URL('mir/locales/en.json', ROOT), 'utf8'));
 const keys = Object.keys(cat.strings);
+/* every English text the catalogue holds: a key's English, and a plural key's one and other */
+const texts = keys.flatMap((k) => (typeof cat.strings[k] === 'object' ? [cat.strings[k].one, cat.strings[k].other] : [english(k)]));
+
+/* a test pack for the plural law: real CLDR form names, the way a translator fills them */
+const PACKS = {
+  ru: { tag: 'ru', dir: 'ltr', strings: { '{n} words · kept in this browser': { one: '{n} слово', few: '{n} слова', many: '{n} слов', other: '{n} слова (дробь)' }, 'theme mode::LIGHT': 'СВЕТЛАЯ', 'quality tier::LIGHT': 'ЛЁГКИЙ', LIGHT: 'СВЕТ', ATTACK: 'АТАКА' } },
+  ar: { tag: 'ar', dir: 'rtl', strings: { '{n} words · kept in this browser': { zero: 'لا كلمات', one: 'كلمة واحدة', two: 'كلمتان', few: '{n} كلمات', many: '{n} كلمة', other: '{n} كلمة (أخرى)' } } },
+  ja: { tag: 'ja', dir: 'ltr', strings: { '{n} words · kept in this browser': { other: '{n} 語' } } },
+};
+addLocales((tag) => PACKS[tag] || null);
+const WORDS = (n) => tn(n, '{n} word · kept in this browser', '{n} words · kept in this browser');
+
+await ok('plurals: Intl.PluralRules picks the form, a missing form is `other`, English keeps its own one/other', async () => {
+  const at = (ns) => ns.map((n) => WORDS(n));
+  assert.deepEqual(at([1, 2, 5, 11, 21, 100]), ['1 word · kept in this browser', '2 words · kept in this browser', '5 words · kept in this browser', '11 words · kept in this browser', '21 words · kept in this browser', '100 words · kept in this browser']);
+  await setLanguage('ru');
+  assert.deepEqual(at([1, 2, 5, 11, 21, 100]), ['1 слово', '2 слова', '5 слов', '11 слов', '21 слово', '100 слов']);
+  await setLanguage('ar');
+  assert.deepEqual(at([0, 1, 2, 5, 11, 100]), ['لا كلمات', 'كلمة واحدة', 'كلمتان', '5 كلمات', '11 كلمة', '100 كلمة (أخرى)']);
+  await setLanguage('ja');
+  assert.deepEqual(at([1, 2, 5, 11, 21, 100]), ['1 語', '2 語', '5 語', '11 語', '21 語', '100 語']);
+  assert.equal(tn(3, '{n} page', '{n} pages'), '3 pages');                    // a missing entry: the English, by English rules
+  await setLanguage('en');
+});
+
+await ok('context: one English word with two meanings is two keys, and with no context nothing changes', async () => {
+  assert.equal(phrase('LIGHT', 'theme mode'), 'theme mode::LIGHT');
+  assert.equal(t('theme mode::LIGHT'), 'LIGHT'); assert.equal(t('LIGHT', null, 'quality tier'), 'LIGHT');   // English shows the word
+  await setLanguage('ru');
+  assert.equal(t('LIGHT', null, 'theme mode'), 'СВЕТЛАЯ'); assert.equal(t('quality tier::LIGHT'), 'ЛЁГКИЙ'); assert.equal(t('LIGHT'), 'СВЕТ');
+  assert.equal(t('LIGHT', null, 'light source'), 'LIGHT');                         // a context the pack lacks: the English word
+  assert.ok(missing().includes('light source::LIGHT'));
+  assert.ok(keys.includes('theme mode::LIGHT') && keys.includes('quality tier::LIGHT'), 'the catalogue keeps both meanings');
+  await setLanguage('en');
+});
+
+await ok('a { t } var and a {:LABEL} reference are translated in turn; a plain var and a name are not', async () => {
+  await setLanguage('ru');
+  assert.equal(t('Select {band} for {:ATTACK}', { band: { t: 'LIGHT' } }), 'Select СВЕТ for АТАКА');
+  assert.equal(t('Select {band} for {:ATTACK}', { band: 'LIGHT' }), 'Select LIGHT for АТАКА');
+  assert.equal(t('name::FROST'), 'FROST'); assert.equal(t('the {:name::FROST} theme'), 'the FROST theme');
+  assert.ok(cat.names.includes('FROST') && cat.names.includes('MORPH'), 'theme names are names in the catalogue');
+  await setLanguage('en');
+});
+
+await ok('a do-not-translate segment (a var, a name) survives qps; a label reference is pseudo-translated', async () => {
+  await setLanguage('qps');
+  const s = t('notes — markdown, {inline} and {display} maths', { inline: '$inline$', display: '$$display$$' });
+  assert.ok(s.includes('$inline$') && s.includes('$$display$$') && s.startsWith('['), s);
+  assert.equal(t('name::FROST'), 'FROST');
+  assert.ok(t('press {:SAVE}').includes('[ŠÁṼÉ]'), t('press {:SAVE}'));
+  await setLanguage('en');
+});
 
 await ok('qps: every string is bracketed, accented, 30–50 % longer, and reverses to its English exactly', async () => {
   await setLanguage('qps');
@@ -55,16 +108,16 @@ await ok('qps: every string is bracketed, accented, 30–50 % longer, and revers
   assert.equal(pseudo('<m>ρ</m> density'), '[<m>ρ</m> ðéñšíţý~~~~]');                     // maths runs pass through
   const len = (s) => [...s].length;
   let src = 0, out = 0; const bad = [];
-  for (const k of keys) {
+  for (const k of texts) {
     const p = pseudo(k);
     if (unpseudo(p) !== k) bad.push(k);
     if (len(k) >= 8) { const r = len(p) / len(k); if (r < 1.3 || r > 1.5) bad.push(k + ' ×' + r.toFixed(2)); }
     src += len(k); out += len(p);
-    assert.ok(!/[A-Za-z]/.test(p.replace(/<m>[\s\S]*?<\/m>|\{\w+\}/g, '')), 'no plain ASCII letter left in ' + p);
+    assert.ok(!/[A-Za-z]/.test(p.replace(/<m>[\s\S]*?<\/m>|\{:?[^{}]+\}/g, '')), 'no plain ASCII letter left in ' + p);
   }
   assert.deepEqual(bad, [], 'every catalogue string reverses and sits in 30–50 %');
   const r = out / src; assert.ok(r >= 1.3 && r <= 1.5, 'catalogue-wide ×' + r.toFixed(3));
-  console.log(`     ${keys.length} catalogue strings, ×${r.toFixed(3)} overall`);
+  console.log(`     ${texts.length} catalogue texts, ×${r.toFixed(3)} overall`);
   await setLanguage('qps-rtl'); assert.equal(direction(), 'rtl'); assert.equal(t('EXPOSURE'), pseudo('EXPOSURE'));
   await setLanguage('en');
 });

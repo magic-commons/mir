@@ -28,8 +28,16 @@ For text the app writes itself:
 | a label in its own DOM, once | `label(node, 'EXPOSURE')` from `mir/kit.js`: translated now and again on every change |
 | an accessible name | `ariaLabel(node, 'close the window')` |
 | a hint | `node.title = 'how bright the picture is'`: the hint hop translates it (needs `installControlHelp`) |
-| a sentence with a value in it | `t('{n} pages open', { n })`: one whole sentence, never `n + ' pages open'` |
+| a sentence with a value in it | `t('{name} saved', { name })`: one whole sentence, never `name + ' saved'` |
+| a count | `tn(n, '{n} page open', '{n} pages open')`: English one and other; a pack writes the forms its language needs |
 | a sentence with a kit label in it | `t('{name} help', { name: { t: 'MODULATION' } })`: a `{ t }` var is translated too |
+| a sentence that names a button | `t('press {:SAVE} first')`: `{:SAVE}` is the label SAVE, as that language labels the button |
+| one word with two meanings | `t('LIGHT', null, 'theme mode')`, or the key `'theme mode::LIGHT'` anywhere a label goes |
+| a name (a theme, a product) | `'name::FROST'`: never translated, never pseudo-translated |
+| a hint with a value in it | `hint(node, 'Master depth for {macro}', { macro })` from `mir/kit.js`, or a builder's `title: ['…', vars]` |
+| a placeholder | `placeholder(input, 'Preset name')` from `mir/kit.js` |
+| a table of labels written later | `phrase('ATTACK')` (or `phrase('HOLD', 'peak hold')`) marks it for the catalogue; it returns the key and translates nothing |
+| a word a translator could misread | a trailing comment on the same line: `// tr: WALL is wall-clock time, as opposed to FREE` (or `// tr[KEY]: …` for one key of several on the line) |
 | a line of the ABOUT face | `tagline: { t: 'One sentence.' }`; a plain string (a name, a copyright) is written as it is |
 | text it rebuilds itself | call `t()` when it rebuilds, and `onLanguage(rebuild)` |
 
@@ -39,7 +47,10 @@ For text the app writes itself:
 
 | Export | What it does |
 |---|---|
-| `t(en, vars?)` | the current language's string for `en`, or `en`. `{name}` substitution; a var `{ t: 'English' }` is translated, any other var is written as it is |
+| `t(en, vars?, context?)` | the current language's string for `en`, or `en`. `{name}` substitution; a var `{ t: 'English' }` and a `{:LABEL}` reference are translated in turn, any other var is written as it is. With `context` (or a key `context::English`) it is that meaning of the word; the context `name` is never translated |
+| `tn(n, one, other, vars?, context?)` | a count: English picks `one` or `other` by English rules; a pack entry `{ zero, one, two, few, many, other }` is chosen by `Intl.PluralRules` for the language; a missing form is `other`, a missing entry the English. `{n}` is `n` |
+| `phrase(en, context?)` | the catalogue key (`en`, or `context::en`): it marks a string the extractor must see and translates nothing |
+| `english(key)` | the English a key shows (the part after `context::`) |
 | `setLanguage(tag)` → `Promise<boolean>` | loads the pack, writes `<html lang dir>`, then tells the subscribers. `false` when no pack was found (every string stays English). The last call wins |
 | `language()`, `direction()` | the current tag and `'ltr' \| 'rtl'` |
 | `languages({ dev })` | the list, each `{ tag, name, dir, reviewed }`; `dev: true` adds `qps` and `qps-rtl` |
@@ -48,7 +59,7 @@ For text the app writes itself:
 | `missing()` | the English strings asked for in this language that its pack does not have |
 | `LANGUAGES` | the frozen list behind `languages()` |
 
-**`mir/kit.js`**: `label(node, en, vars?)`, `ariaLabel(node, en, vars?)`, `relabel(root?)`.
+**`mir/kit.js`**: `label(node, en, vars?, context?)`, `ariaLabel(node, en, vars?, context?)`, `hint(node, en | [en, vars], vars?, context?)`, `placeholder(input, en, vars?, context?)`, `relabel(root?)`. Each keeps its English on the node (`data-t`, `data-t-aria`, `data-t-title`, `data-t-ph`, with their vars) and is written again on a language change. A builder's `title` goes through `hint()`, so a native tooltip is translated too; `control-help.js` takes the English from `data-t-title`, never from the translated text.
 **`mir/shell/language.js`**: `languageMenu({ languages, dev, storageKey })`, `startLanguage({ languages, storageKey })`, `pickLanguage(prefs, languages)`.
 **`mir/locales/pseudo.js`**: `pseudo(s)`, `unpseudo(p)`.
 **`tools/i18n-extract.mjs`**: the catalogue (§8).
@@ -70,6 +81,10 @@ For text the app writes itself:
 - `fonts` names the planned faces; `file: null, status: "held"` until the files ship.
 - `type` records the language's type rules; `locales.css` is what applies them (the test checks the two agree on case).
 - `strings` maps the English to the translation. A key must be in the catalogue. A missing or empty value falls back to the English.
+- **A count** (a key with `{n}`, or one the catalogue gives as `{ one, other }`) may hold the forms its language needs: `"{n} pages": { "one": "{n} страница", "few": "{n} страницы", "many": "{n} страниц", "other": "{n} страницы" }`. The names are CLDR's (`zero one two few many other`); `other` is required; a form other than `other` may leave out `{n}` (Arabic's `two`).
+- **A context key** (`theme mode::LIGHT`) is one meaning of a word; its value is the translation of that meaning only.
+- **`{:LABEL}`** in a key stays in the translation exactly as written: it becomes the translation of LABEL.
+- **`review`** (optional) maps a key to why its draft needs a look: `"review": { "theme mode::LIGHT": "…" }`. A translator clears a flag by checking the value and deleting the entry.
 
 ## 4. The laws
 
@@ -118,6 +133,15 @@ Roboto stays first so every Latin letter and every digit is the house's; the scr
 | **Labels saved into projects** | the kit saves no default labels; an app must save only a user's own rename, never the English default |
 | **Maths markers** (`<m>…</m>`) | pass through `t()` and the pseudo-language untouched |
 | **Text drawn on a canvas** (λWAVES: 42 `ctx.font` sites) | not reached by the DOM pass. A canvas view calls `t()` when it draws and repaints `onLanguage` |
+| **One English word, two meanings** (the drafts found LIGHT, FROST, WINDOW, FULL, HOLD) | context keys: `theme mode::LIGHT`, `text ink::LIGHT`, `quality tier::LIGHT`, `light source::LIGHT`; `theme mode::DARK`, `text ink::DARK`; `frost setting::FROST` (the option) and `name::FROST` (the theme); `time span::WINDOW`; `quality tier::FULL`, `motion::FULL`, `device view::FULL`; `peak hold::HOLD`, `clock state::HOLD` (and HOLD, the envelope stage) |
+| **English nouns put into sentences at run time** (`{what}`, `{kind}`, `{shape}`, `{wave}`, `{band}`, `{knob}`) | each is a `{ t }` var, so the noun arrives in the language; the code no longer lower-cases a translated word |
+| **Fragments** (`{band} {knob}`, a key starting with a dash, two sentences that differed only at the end, a status joined with ` · `) | whole sentences with vars; the two sentences that differed by `is` / `are` are one count |
+| **Sentences that quote a button** (ATTACK, RELEASE, HOLD, LOW / MID / HIGH, FIT, PASTE, DUPLICATE, RECORD INPUT, COPY DETAILS, SAVE …) | `{:LABEL}`: the sentence names the button as the button is labelled in that language, and every quoted label is a catalogue key; the modulation window's knob and button tables are in the catalogue (`phrase()`) |
+| **Counts** (`{n} pages`, `{n} words`, `{n} notes`, anchored sources …) | `tn()` and plural pack entries; an index that is not a count is `{i}`, `{page}` or `{step}`, never `{n}` |
+| **Syntax inside a sentence** (`$inline$`, `$$display$$`) | a var: shown exactly as typed in every language |
+| **Jargon a translator had to guess** (WALL, FREE, HAND, GATED, HOLD, RECORD INPUT, shells, TONE, SKIN, THEME, RACK, SHELF, ARMED, patch, route, KNEE, FOV, CMP, EVT, TRIG, ANCHOR …) | a note in the catalogue beside each (`notes`) |
+| **Straight and curly quotes** | the English uses curly quotes and apostrophes throughout |
+| **A title translated twice** (written already translated, then translated again at the hint hop) | `hint()` keeps the English beside the title; the hint hop uses it |
 
 **The `toUpperCase()` calls in the kit today:**
 
@@ -130,6 +154,9 @@ Roboto stays first so every Latin letter and every digit is the house's; the scr
 | `shell/rack.js:786` | a default window title from its id | safe while it stays an English key the builder translates |
 
 ## 8. The catalogue
+
+Since 1.5.0-alpha.5 the catalogue also carries `notes` (what a key means, from a `// tr:` comment beside it), `names` (the names that are never translated: the themes, their tones, MIR) and, for a count, its English `one` and `other`. The extractor reads every `t` / `tn` / `label` / `ariaLabel` / `hint` / `placeholder` / `phrase` call (under whatever name a file imports it), both branches of a `cond ? 'A' : 'B'`, `.setLabel('…')`, object keys `label: title: aria: eyebrow: hint: t:`, and `title: ['…', vars]`; a file with a `// tr: names` comment lists its capital-letter literals as names.
+
 
 `node tools/i18n-extract.mjs` lexes the kit's JavaScript and writes:
 - **`mir/locales/en.json`**: every English string at a choke point, once, with the files it came from. It is itself a valid pack, with each English as its own translation.
@@ -166,12 +193,14 @@ All are SIL OFL 1.1. When they land: each in its own `@font-face` with a `unicod
 3. The laws in §4: keep `{vars}` and `<m>…</m>` exactly as they are; write the case your language uses (the English labels are capitals); never translate names, units or shortcut keys.
 4. The pack format in §3. Copy `en.json` to `<tag>.json`, keep the head of the existing `<tag>.json` (`name`, `dir`, `fonts`, `type`), and fill `strings`. Leave `reviewed: false`: only a native reader flips it.
 5. A check: open `gallery/language.html?lang=<tag>`. The count says how many strings still fall back to English.
+6. The pack's `review` entries: each says why a draft needs a look (a split meaning, a rewritten sentence, a new count). Check the value, then delete the entry. `node tests/i18n-packs.node.mjs` prints each pack's covered / missing / review counts and fails on a broken placeholder or a wrong plural form name.
 
 ## 12. Not done yet
 
 - **No pack is reviewed**: the ten packs are drafts (`reviewed: false`) until a native reader checks each. `tests/i18n-packs.node.mjs` checks their shape and placeholders and reports coverage; a key the English has changed shows English until the pack is updated.
-- **Ambiguous English keys** the translators found: `LIGHT` (the tier and the theme), `FROST` (the look's name and the frost option), `WINDOW` (a time window and the interface window), `FULL` (a lane mode and the tier) share one key each and need two.
+- **Not reached by the catalogue** (`mir/locales/en.unreached.json`, 21): the vendored `modulation/mod.js` (its factory preset notes and the stored-format warning are built from pieces; the kit's own windows never show them, and the file is kept by diff against its source), the envelope checker's and `describe.js`' diagnostic messages (English for a model and a bug report, as COPY DUMP is), thrown developer errors, and the unit and slot letters BPM, A and B.
+- **A device's name** is `{kind} {id}` (`LFO s2`) and a status line `{kind} — {message}`: two short formats with a note, not sentences.
 - **Native tooltips**: a `title` is translated where it becomes a hint (`installControlHelp`). On a page without it, the browser's own tooltip stays English.
 - **A window's head hint** (`name: status`) is assembled from two strings and falls back to English.
-- **Plurals**: there is no plural mechanism; counts such as "{n} pages" are one string per language, wrong for some n in Russian and Arabic.
+- **Plurals in the drafts**: the mechanism is in (`tn`, plural pack entries); the ten drafts hold only `other` for each count until a translator writes the forms (each is flagged).
 - **Directional glyphs** (a back chevron) do not flip under right-to-left.

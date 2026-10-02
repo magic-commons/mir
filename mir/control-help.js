@@ -6,6 +6,7 @@
  * first.  Tests and selectors that want a control by its hint read `data-help-en`, which never changes. */
 import { el, ariaLabel } from './kit.js';
 import { t, onLanguage } from './core/i18n.js';
+const vars = (n) => { try { return n.dataset.tHvars ? JSON.parse(n.dataset.tHvars) : undefined; } catch (_) { return undefined; } };
 export const HELP_HOVER_DELAY = 600;
 /* THE TWO SWITCHES an app flips on <body> to silence help:
      hintsOff  hover hints stay closed          (λWAVES SETTINGS › CONTROL HINTS) — read only by this file, so an app may rename it
@@ -62,8 +63,12 @@ export function installControlHelp(root = document) {
       if (!n.hasAttribute('title')) continue;
       const copy = (n.getAttribute('title') || '').trim();
       if (!copy) { n.removeAttribute('title'); n.removeAttribute('data-help'); n.removeAttribute('data-help-en'); if (n === owner) close(); continue; }
-      n.dataset.helpEn = copy; n.dataset.help = t(copy); n.removeAttribute('title');
-      if (!n.getAttribute('aria-label') && /^(BUTTON|INPUT|SELECT|CANVAS)$/.test(n.tagName) && !n.textContent.trim()) ariaLabel(n, copy);
+      /* a title kit.js hint() wrote is already in this language: its English key and vars are on the node */
+      const keyed = n.dataset.tTitle, hv = vars(n), own = keyed && t(keyed, hv).replace(/<\/?m>/g, '') === copy;
+      if (!own) { delete n.dataset.tTitle; delete n.dataset.tHvars; }
+      const en = own ? keyed : copy;
+      n.dataset.helpEn = en; n.dataset.help = t(en, own ? hv : undefined); n.removeAttribute('title');
+      if (!n.getAttribute('aria-label') && /^(BUTTON|INPUT|SELECT|CANVAS)$/.test(n.tagName) && !n.textContent.trim()) ariaLabel(n, en, own ? hv : undefined);
     }
   };
   const open = (node) => {
@@ -89,7 +94,7 @@ export function installControlHelp(root = document) {
   root.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (owner) close(); return; } if (owner && !/^(Tab|Shift|Control|Alt|Meta)$/.test(e.key)) close(); });
   addEventListener('resize', close, { passive: true }); addEventListener('scroll', close, { passive: true, capture: true });
   root.addEventListener('controlhintschange', close);
-  onLanguage(() => { close(); for (const n of (root.documentElement || root).querySelectorAll('[data-help-en]')) n.dataset.help = t(n.dataset.helpEn); });
+  onLanguage(() => { close(); for (const n of (root.documentElement || root).querySelectorAll('[data-help-en]')) n.dataset.help = t(n.dataset.helpEn, vars(n)); });
 }
 
 

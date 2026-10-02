@@ -19,7 +19,8 @@
  * Harvested from BASINS mod-window-snap.js (chipPosition, nearestChipSide), snap-window.js (seat), kwin.js (the DOM).
  */
 import { glyphEl } from '../glyph.js';
-import { ariaLabel } from '../kit.js';
+import { ariaLabel, hint } from '../kit.js';
+import { phrase } from '../core/i18n.js';
 import { rect, setAttr, setVar, setText } from '../core/perf.js';
 import { tweenRect, flip, owns } from '../core/motion.js';
 import { createProximity } from '../core/proximity.js';
@@ -108,7 +109,7 @@ export function nextState(spec, state) {
 const initial = (spec) => (spec.kind === 'cycle' ? (spec.state ?? spec.states[0].id) : spec.kind === 'toggle' || spec.kind === 'radio' ? !!spec.state : null);
 
 /* ── the rail ───────────────────────────────────────────────────────────────────────────────────────────────── */
-const GRIP_HINT = 'Move window · Shift-drag, or hold, to move these controls to another edge · arrows when focused';
+const GRIP_HINT = phrase('Move window · Shift-drag, or hold, to move these controls to another edge · arrows when focused');
 const KEY_SIDE = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'top', ArrowDown: 'bottom' };
 const KEY_NUDGE = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
 const forwarded = new WeakSet();
@@ -162,8 +163,8 @@ export function createRail({ id, title, chips = [], layer, seats, onChip, onSide
     b.classList.toggle('on', row.pressed === 'true');
     setAttr(b, 'aria-pressed', row.pressed ?? null);
     setAttr(b, 'data-state', key === null ? null : String(key));
-    setAttr(b, 'aria-label', row.label || name);
-    setAttr(b, 'title', row.hint || row.label || name);
+    if (row.label) ariaLabel(b, row.label); else setAttr(b, 'aria-label', name);   // a chip's name and hint are the kit's words (1.5.4)
+    hint(b, row.hint || row.label || name);
     ink(b, row);
     if (spec.kind === 'radio' && key === true) for (const [n, s] of specs) if (n !== name && s.kind === 'radio' && s.group === spec.group && states.get(n)) setChip(n, false);
   }

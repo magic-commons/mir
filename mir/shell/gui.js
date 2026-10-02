@@ -32,7 +32,8 @@
  *   about      { github, credits: [line…], fonts: href-prefix } — extras for the ABOUT page (shell/about.js richText lines)
  *   moving(b)  the app says the picture is moving: under FROST · STILL the frost is held (body.frost-hold) while it moves
  *   dropGuides() the DROP GUIDES switch, for createWindow({ dock: { guide: gui.dropGuides } }) */
-import { el, knob, seg, sw, trig, readout } from '../kit.js';
+import { el, knob, seg, sw, trig, readout, label, ariaLabel } from '../kit.js';
+import { phrase } from '../core/i18n.js';
 import { createWindow } from '../window/window.js';
 import { createPrefs } from '../core/prefs.js';
 import { setMotionPolicy } from '../core/motion.js';
@@ -51,7 +52,7 @@ export { THEMES };
 /** the 'name'-specs: rules or art outside the settings, announced, not selectable, until their packages land */
 export const SKINS = Object.freeze([{ id: 'frost', label: 'FROST' }, { id: 'metro', label: 'METRO', coming: true }, { id: 'sprites', label: 'SPRITES', coming: true }]);
 /** the words MIR says about itself — quoted from magic-commons.com/joshs-library/lambdawaves/about (2026-10-01) */
-export const MIR_WORDS = 'MIR is the shared Magic Commons interface kit behind its controls, window system, gestures, and modulation. MIR is an open source platform and will continuously be updated, allowing for ‘LLM Mods’ support and customizable skins.';
+export const MIR_WORDS = phrase('MIR is the shared Magic Commons interface kit behind its controls, window system, gestures, and modulation. MIR is an open source platform and will continuously be updated, allowing for ‘LLM Mods’ support and customizable skins.');
 const ZERO_SHADOW = '0 0 0 0 transparent';                       // the off shadow: never `none` (a list with none drops)
 const HOME = Object.freeze({ veil: 10, saturation: 1, corners: 14 });   // where nothing is written: the dark frost veil · no saturate · skin.css --card-r
 /** glassTint(bright, hue, tint, theme, saturation = 1) — BASINS skin.js applyGlass (core/look.js): the `H S% L%` triple
@@ -170,18 +171,18 @@ export function migrateShadow(key = 'mir.gui', win = globalThis) {
  *  can be reached. */
 export function stepper(o) {
   const root = el('div', 'gui-step' + (o.cls ? ' ' + o.cls : ''));
-  if (o.label) el('div', 'k-lbl', root, o.label);
+  if (o.label) label(el('div', 'k-lbl', root), o.label);
   const row = el('div', 'gui-step-row', root);
   const prev = el('button', 'gui-step-b', row, '‹'); prev.type = 'button'; prev.dataset.step = '-1';
   const name = el('div', 'gui-step-name', row); name.setAttribute('aria-live', 'polite');
   const next = el('button', 'gui-step-b', row, '›'); next.type = 'button'; next.dataset.step = '1';
-  prev.setAttribute('aria-label', 'previous'); next.setAttribute('aria-label', 'next');
-  if (o.aria || o.label) row.setAttribute('aria-label', o.aria || o.label);
+  ariaLabel(prev, 'previous'); ariaLabel(next, 'next');
+  if (o.aria || o.label) ariaLabel(row, o.aria || o.label);
   let items = o.items || [], v = o.value;
   const live = () => items.filter((i) => !i.coming);
   const paint = () => {
     const it = items.find((i) => i.id === v) || live()[0];
-    setText(name, it ? it.label : '—');
+    label(name, it ? it.label : '—', it && it.vars);
     const L = live(), i = L.findIndex((x) => x.id === v), wrap = o.wrap !== false;
     prev.disabled = L.length < 2 || (!wrap && i <= 0); next.disabled = L.length < 2 || (!wrap && i >= L.length - 1);
   };
@@ -255,7 +256,7 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   const opts = el('div', 'gui-page gui-options');
   const grids = { 1: el('div', 'gui-grid', opts), 2: el('div', 'gui-grid', opts) };
   grids[1].dataset.page = '1'; grids[2].dataset.page = '2';
-  const groupEl = (id, title) => { const g = el('section', 'gui-grp', grids[PAGE_OF[id]]); g.dataset.group = id; g.dataset.light = ''; g.dataset.sheet = String(SHEETS[id]); el('h3', 'gui-grp-lbl', g, title); return g; };
+  const groupEl = (id, title) => { const g = el('section', 'gui-grp', grids[PAGE_OF[id]]); g.dataset.group = id; g.dataset.light = ''; g.dataset.sheet = String(SHEETS[id]); label(el('h3', 'gui-grp-lbl', g), title); return g; };
   const line = (g, cls = '') => el('div', 'gui-line' + (cls ? ' ' + cls : ''), g);
   const segOf = (key, label, options) => bind(key, seg({ label, options: options.map(([id, l, title]) => ({ id, label: l, title })), value: P.get(key), onChange: (v) => P.set(key, v) }));
   const swOf = (key, label, title) => bind(key, sw({ label, title, value: P.get(key), onChange: (v) => P.set(key, v) }));
@@ -267,37 +268,38 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   const seat = () => { const h = el('div', 'k'); h.setAttribute('aria-hidden', 'true'); return h; };   // an empty dial seat, so dial rows share columns
 
   /* THEME — the vanilla themes (SKIN), their tones (TONE), the theme (LIGHT · DARK · SYSTEM), and what the theme costs */
-  let g = groupEl('theme', 'THEME');
-  const themeItems = () => [...THEMES.map((t) => ({ id: t.id, label: t.name })), { id: 'custom', label: 'CUSTOM', coming: true }];
-  const skinStep = stepper({ label: 'SKIN', items: themeItems(), value: P.preset(), onChange: (id) => applyTheme(id) });
-  const toneItems = (t) => { const th = themeById(t); return th ? [...th.tones.map((o) => ({ id: o.id, label: o.name })), { id: 'custom', label: 'CUSTOM', coming: true }] : []; };
-  const toneStep = stepper({ label: 'TONE', items: toneItems(P.preset()), value: matchTone(P.all(), P.preset()), onChange: (id) => applyTone(id) });
+  let g = groupEl('theme', phrase('THEME'));
+  /* a theme's and a tone's name is a NAME (shell/themes.js): shown as it is in every language */
+  const themeItems = () => [...THEMES.map((t) => ({ id: t.id, label: phrase(t.name, 'name') })), { id: 'custom', label: 'CUSTOM', coming: true }];
+  const skinStep = stepper({ label: 'SKIN', items: themeItems(), value: P.preset(), onChange: (id) => applyTheme(id) });   // tr[SKIN]: the look the kit wears: one of the built-in THEMES (FROST, MORPH …, whose names stay as written)
+  const toneItems = (t) => { const th = themeById(t); return th ? [...th.tones.map((o) => ({ id: o.id, label: phrase(o.name, 'name') })), { id: 'custom', label: 'CUSTOM', coming: true }] : []; };
+  const toneStep = stepper({ label: 'TONE', items: toneItems(P.preset()), value: matchTone(P.all(), P.preset()), onChange: (id) => applyTone(id) });   // tr[TONE]: a colour variant of the chosen theme (its tones have names, kept as written)
   skinStep.root.classList.add('gui-skin'); toneStep.root.classList.add('gui-tone');
   line(g, 'gui-pair').append(skinStep.root, toneStep.root);
   const costNote = el('div', 'gui-note gui-theme-cost', g); costNote.title = 'What this theme cost when it was applied: surfaces that blur, shadows drawn, shine layers, the mean frame time';
-  el('div', 'gui-note gui-coming', g, SKINS.filter((s) => s.coming).map((s) => s.label).join(' · ') + ' — coming ("name"-specs)');
+  label(el('div', 'gui-note gui-coming', g), '{skins} — coming (“name”-specs)', { skins: SKINS.filter((s) => s.coming).map((s) => s.label).join(' · ') });   // tr: a “name”-spec is a theme with its own rules or art, outside the built-in settings; METRO and SPRITES are names
   const themeLine = line(g, 'gui-pair');
-  themeLine.append(segOf('theme', 'THEME', [['light', 'LIGHT'], ['dark', 'DARK'], ['system', 'SYSTEM', 'Follow the system']]).root,
-    trig({ label: 'RESET LOOK', title: 'Every look option back home (FROST)', onFire: () => { costFor = 'frost'; P.reset(); } }).root);
+  themeLine.append(segOf('theme', phrase('THEME'), [['light', phrase('LIGHT', 'theme mode')], ['dark', phrase('DARK', 'theme mode')], ['system', phrase('SYSTEM'), phrase('Follow the system')]]).root,   // tr[THEME]: THEME: LIGHT, DARK or SYSTEM, the light or dark mode (not the SKIN)
+    trig({ label: 'RESET LOOK', title: 'Every look option back home: the {:name::FROST} theme', onFire: () => { costFor = 'frost'; P.reset(); } }).root);
 
   /* ACCENT — a hue is cyclic, so it is an arc (INTENT rule 2): the kit's accent dial */
-  g = groupEl('accent', 'ACCENT');
-  const kA = knobOf('accentA', 'A', { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial' });
-  const kB = knobOf('accentB', 'B', { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial accent-dial-b' });
-  const kV = knobOf('vivid', 'VIVID', hundred);
+  g = groupEl('accent', phrase('ACCENT'));
+  const kA = knobOf('accentA', phrase('A'), { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial' });
+  const kB = knobOf('accentB', phrase('B'), { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial accent-dial-b' });
+  const kV = knobOf('vivid', phrase('VIVID'), hundred);
   const swA = sweep(kA), swB = sweep(kB); swA(P.get('accentA')); swB(P.get('accentB'));
   line(g, 'gui-knobs').append(kA.root, kB.root, kV.root);
 
   /* TEXT — BASINS' TEXT seg (AUTO here follows the theme; BASINS' AUTO samples the picture), then what shows */
-  g = groupEl('text', 'TEXT');
-  line(g).append(segOf('text', 'INK', [['theme', 'AUTO', 'Follow the theme (on a SOLID pane, its lightness)'], ['light', 'LIGHT', 'White text on every label'], ['dark', 'DARK', 'Black text on every label']]).root);
-  const shows = el('div', 'segw gui-show', line(g)); el('div', 'k-lbl', shows, 'SHOW');
-  el('div', 'gui-line gui-sws gui-col', shows).append(swOf('hints', 'HINTS', 'Hover hints on controls').root, swOf('help', 'HELP', 'The ⓘ panels on windows').root);
+  g = groupEl('text', phrase('TEXT'));
+  line(g).append(segOf('text', phrase('INK'), [['theme', phrase('AUTO'), phrase('Follow the theme (on a {:SOLID} pane, its lightness)')], ['light', phrase('LIGHT', 'text ink'), phrase('White text on every label')], ['dark', phrase('DARK', 'text ink'), phrase('Black text on every label')]]).root);
+  const shows = el('div', 'segw gui-show', line(g)); label(el('div', 'k-lbl', shows), 'SHOW');
+  el('div', 'gui-line gui-sws gui-col', shows).append(swOf('hints', phrase('HINTS'), phrase('Hover hints on controls')).root, swOf('help', phrase('HELP'), phrase('The ⓘ panels on windows')).root);
 
   /* QUALITY — and what it costs */
-  g = groupEl('quality', 'QUALITY');
-  line(g).append(segOf('quality', 'TIER', [['full', 'FULL', 'Everything'], ['balanced', 'BALANCED', 'No blur anywhere, one shadow layer'], ['light', 'LIGHT', 'No blur, no relief, no shadows, no motion']]).root);
-  const roBlur = readout({ label: 'BLUR', value: '—' }), roShadow = readout({ label: 'SHADOW', value: '—' }), roFrame = readout({ label: 'FRAME', value: '—' });
+  g = groupEl('quality', phrase('QUALITY'));
+  line(g).append(segOf('quality', phrase('TIER'), [['full', phrase('FULL', 'quality tier'), phrase('Everything')], ['balanced', phrase('BALANCED'), phrase('No blur anywhere, one shadow layer')], ['light', phrase('LIGHT', 'quality tier'), phrase('No blur, no relief, no shadows, no motion')]]).root);
+  const roBlur = readout({ label: 'BLUR', value: '—' }), roShadow = readout({ label: 'SHADOW', value: '—' }), roFrame = readout({ label: 'FRAME', value: '—' });   // tr[FRAME]: the time to draw one frame of the screen, in milliseconds (not a picture frame)
   for (const r of [roBlur, roShadow, roFrame]) { r.root.classList.add('gui-ro'); r.root.title = 'What the look costs, measured after the last change'; }
   roBlur.root.title = 'Surfaces that blur what is behind them: one compositor pass each';
   roShadow.root.title = 'Surfaces that draw a shadow, and shine layers';
@@ -305,78 +307,78 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   line(g, 'gui-cost').append(roBlur.root, roShadow.root, roFrame.root);
 
   /* MATERIAL */
-  g = groupEl('material', 'MATERIAL');
-  line(g, 'gui-pair').append(segOf('card', 'PANE', [['tinted', 'TINTED', 'Add the theme tint behind window content: no blur, no compositor cost'], ['refractive', 'REFRACTIVE', 'Use transparent window surfaces: the blur, with a veil'],
-    ['solid', 'SOLID', 'An opaque pane in the tint’s colour: HUE picks it, TINT is its strength, BRIGHT its lightness']]).root,
-  segOf('frost', 'FROST', [['off', 'OFF', 'Disable backdrop filtering'], ['still', 'STILL', 'Apply frost while the picture is still'], ['always', 'ALWAYS', 'Apply frost continuously. This can reduce frame rate.']]).root);
-  const kBlur = knobOf('blur', 'BLUR', { min: 0, max: 24, fmt: (v) => Math.round(v) + ' px', title: 'BLUR — the blur radius of FROST' });
-  const kVeil = knobOf('veil', 'VEIL', { min: 0, max: 60, fmt: pct, title: 'Theme-coloured glass fill. Zero is clear.' });
-  const kSat = knobOf('saturation', 'SATURATION', { min: 0, max: 2, fmt: (v) => Math.round(v * 100) + '%', title: 'Colour intensity across glass surfaces: 0% neutral · 100% original · 200% vivid.' });
-  const kCorner = knobOf('corners', 'CORNERS', { min: 0, max: 24, fmt: (v) => Math.round(v) + ' px', title: 'Corner radius across window panes.' });
+  g = groupEl('material', phrase('MATERIAL'));
+  line(g, 'gui-pair').append(segOf('card', phrase('PANE'), [['tinted', phrase('TINTED'), phrase('Add the theme tint behind window content: no blur, no compositor cost')], ['refractive', phrase('REFRACTIVE'), phrase('Use transparent window surfaces: the blur, with a veil')],
+    ['solid', phrase('SOLID'), phrase('An opaque pane in the tint’s colour: {:HUE} picks it, {:TINT} is its strength, {:BRIGHT} its lightness')]]).root,
+  segOf('frost', phrase('FROST', 'frost setting'), [['off', phrase('OFF'), phrase('Disable backdrop filtering')], ['still', phrase('STILL'), phrase('Apply frost while the picture is still')], ['always', phrase('ALWAYS'), phrase('Apply frost continuously. This can reduce frame rate.')]]).root);
+  const kBlur = knobOf('blur', phrase('BLUR'), { min: 0, max: 24, fmt: (v) => Math.round(v) + ' px', title: '{:BLUR} — the blur radius of {:frost setting::FROST}' });
+  const kVeil = knobOf('veil', phrase('VEIL'), { min: 0, max: 60, fmt: pct, title: 'Theme-coloured glass fill. Zero is clear.' });
+  const kSat = knobOf('saturation', phrase('SATURATION'), { min: 0, max: 2, fmt: (v) => Math.round(v * 100) + '%', title: 'Colour intensity across glass surfaces: 0% neutral · 100% original · 200% vivid.' });
+  const kCorner = knobOf('corners', phrase('CORNERS'), { min: 0, max: 24, fmt: (v) => Math.round(v) + ' px', title: 'Corner radius across window panes.' });
   line(g, 'gui-knobs').append(kBlur.root, kVeil.root, kSat.root, kCorner.root);
   const signed = (v) => (v > 0.005 ? '+' : v < -0.005 ? '−' : '') + Math.abs(v * 100).toFixed(0);
-  const kBright = knobOf('bright', 'BRIGHT', { min: -1, max: 1, fmt: signed, title: 'BRIGHT — how light or dark the glass is' });
+  const kBright = knobOf('bright', phrase('BRIGHT'), { min: -1, max: 1, fmt: signed, title: '{:BRIGHT} — how light or dark the glass is' });
   /* HUE is cyclic, so an arc (INTENT rule 2), drawn in the hue it names */
-  const kHue = knobOf('hue', 'HUE', { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial', title: 'HUE — the colour TINT gives the glass' });
-  const kTint = knobOf('tint', 'TINT', { ...hundred, title: 'TINT — how much of HUE the glass carries' });
+  const kHue = knobOf('hue', phrase('HUE'), { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial', title: '{:HUE} — the colour {:TINT} gives the glass' });
+  const kTint = knobOf('tint', phrase('TINT'), { ...hundred, title: '{:TINT} — how much of {:HUE} the glass carries' });
   const hueArc = (v) => { setVar(kHue.root, '--accent-sweep', Math.round(v) + 'deg'); setVar(kHue.root, '--acc', `hsl(${Math.round(v)} 70% 55%)`); };
   hueArc(P.get('hue'));
   line(g, 'gui-knobs').append(kBright.root, kHue.root, kTint.root, seat());
 
   /* CONTROLS — the relief, the faces (BASINS' CONTROL FACES) and BLEND */
-  g = groupEl('controls', 'CONTROLS');
-  line(g).append(segOf('relief', 'RELIEF', [['default', 'DEFAULT', 'Raised controls and wells, lit by LIGHT ANGLE'], ['flat', 'FLAT', 'Flat control faces: hairlines and accents only']]).root);
-  line(g).append(segOf('faces', 'FACES', [['glass', 'GLASS', 'Under refractive or frost the knobs, buttons and fields are clear glass'], ['solid', 'SOLID', 'The kit’s filled knobs, buttons and fields']]).root);
-  const kBlend = knobOf('faceBlend', 'BLEND', { ...hundred, aria: 'Solid to glass control faces', title: '0% solid · 100% glass. The transition uses color burn in dark mode and color dodge in light mode.' });
+  g = groupEl('controls', phrase('CONTROLS'));
+  line(g).append(segOf('relief', phrase('RELIEF'), [['default', phrase('DEFAULT'), phrase('Raised controls and wells, lit by {:LIGHT ANGLE}')], ['flat', phrase('FLAT'), phrase('Flat control faces: hairlines and accents only')]]).root);
+  line(g).append(segOf('faces', phrase('FACES'), [['glass', phrase('GLASS'), phrase('Under refractive or frost the knobs, buttons and fields are clear glass')], ['solid', phrase('SOLID'), phrase('The kit’s filled knobs, buttons and fields')]]).root);
+  const kBlend = knobOf('faceBlend', phrase('BLEND'), { ...hundred, aria: 'Solid to glass control faces', title: '0% solid · 100% glass. The transition uses color burn in dark mode and color dodge in light mode.' });
   line(g, 'gui-knobs').append(kBlend.root, seat(), seat());
 
   /* MOTION */
-  g = groupEl('motion', 'MOTION');
-  line(g).append(segOf('motion', 'MOTION', [['auto', 'AUTO', 'Follow the system'], ['full', 'FULL'], ['reduced', 'REDUCED', 'Fades only: nothing travels'], ['off', 'OFF', 'Nothing animates']]).root);
-  line(g, 'gui-sws').append(swOf('glow', 'POINTER GLOW', 'A soft light follows the pointer over lit surfaces (never on touch)').root,
-    swOf('parallax', 'PARALLAX', 'Marked layers drift against the pointer (never on touch)').root);
-  line(g, 'gui-sws').append(swOf('dropGuides', 'DROP GUIDES', 'The dotted guide where a dragged window will land').root,
+  g = groupEl('motion', phrase('MOTION'));
+  line(g).append(segOf('motion', phrase('MOTION'), [['auto', phrase('AUTO'), phrase('Follow the system')], ['full', phrase('FULL', 'motion')], ['reduced', phrase('REDUCED'), phrase('Fades only: nothing travels')], ['off', phrase('OFF'), phrase('Nothing animates')]]).root);
+  line(g, 'gui-sws').append(swOf('glow', phrase('POINTER GLOW'), phrase('A soft light follows the pointer over lit surfaces (never on touch)')).root,
+    swOf('parallax', phrase('PARALLAX'), phrase('Marked layers drift against the pointer (never on touch)')).root);
+  line(g, 'gui-sws').append(swOf('dropGuides', phrase('DROP GUIDES'), phrase('The dotted guide where a dragged window will land')).root,
     Object.assign(el('div', 'sw'), { ariaHidden: 'true' }));         // an empty, invisible seat, so DROP GUIDES is as wide as the two above
   g.lastElementChild.lastElementChild.style.visibility = 'hidden';
 
   /* ── page 2 ── */
   /* LIGHT — one light: where it is, the shadow it casts, the shine across from it */
-  g = groupEl('light', 'LIGHT');
-  const kAngle = knobOf('lightAngle', 'ANGLE', { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial', aria: 'LIGHT ANGLE', title: 'LIGHT ANGLE — where the light is, clockwise from above: shadows fall away from it, the shine sits toward it, the controls’ relief turns with it' });
+  g = groupEl('light', phrase('LIGHT', 'light source'));
+  const kAngle = knobOf('lightAngle', phrase('ANGLE'), { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial', aria: 'LIGHT ANGLE', title: '{:LIGHT ANGLE} — where the light is, clockwise from above: shadows fall away from it, the shine sits toward it, the controls’ relief turns with it' });
   const angleArc = sweep(kAngle); angleArc(P.get('lightAngle'));
-  const kShadow = knobOf('shadow', 'SHADOW', { min: 0, max: 2, fmt: (v) => Math.round(v * 100) + '%', title: 'Strength of the pane shadow. Display can switch it off.' });
-  const kDist = knobOf('shadowDist', 'DISTANCE', { min: 0, max: 24, fmt: px, title: 'How far the shadow falls from its pane (and the shine across from it)' });
-  const kSoft = knobOf('shadowSoft', 'SOFTNESS', { min: 0, max: 48, fmt: px, title: 'The shadow’s blur' });
+  const kShadow = knobOf('shadow', phrase('SHADOW'), { min: 0, max: 2, fmt: (v) => Math.round(v * 100) + '%', title: 'Strength of the pane shadow. {:DROP SHADOW} can switch it off.' });
+  const kDist = knobOf('shadowDist', phrase('DISTANCE'), { min: 0, max: 24, fmt: px, title: 'How far the shadow falls from its pane (and the shine across from it)' });
+  const kSoft = knobOf('shadowSoft', phrase('SOFTNESS'), { min: 0, max: 48, fmt: px, title: 'The shadow’s blur' });
   line(g, 'gui-knobs').append(kAngle.root, kShadow.root, kDist.root, kSoft.root);
-  const kShine = knobOf('shine', 'SHINE', { ...hundred, title: 'SHINE — the shadow’s opposite: a light across the pane’s edge toward the light, added to what is behind' });
-  const kShineSoft = knobOf('shineSoft', 'SHINE SOFT', { min: 0, max: 48, fmt: px, aria: 'SHINE SOFTNESS', title: 'The shine’s blur' });
+  const kShine = knobOf('shine', phrase('SHINE'), { ...hundred, title: '{:SHINE} — the shadow’s opposite: a light across the pane’s edge toward the light, added to what is behind' });
+  const kShineSoft = knobOf('shineSoft', phrase('SHINE SOFT'), { min: 0, max: 48, fmt: px, aria: 'SHINE SOFTNESS', title: 'The shine’s blur' });
   line(g, 'gui-knobs').append(kShine.root, kShineSoft.root, seat(), seat());
 
   /* WINDOWS — the pane's rim, its drop shadow, its header apart */
-  g = groupEl('windows', 'WINDOWS');
-  line(g, 'gui-sws gui-col').append(swOf('dropShadow', 'DROP SHADOW', 'Pane shadows (SHADOW sets their strength)').root, swOf('edge', 'EDGE', 'The pane’s hairline rim').root,
-    swOf('disconnected', 'DISCONNECTED', 'Separate window headers from their bodies').root);
-  const kSpace = knobOf('spacing', 'SPACING', { ...hundred, title: 'The rack\u2019s air: between its windows, from the screen\u2019s edge and inside each window. 0% is flush.' });
+  g = groupEl('windows', phrase('WINDOWS'));
+  line(g, 'gui-sws gui-col').append(swOf('dropShadow', phrase('DROP SHADOW'), phrase('Pane shadows ({:SHADOW} sets their strength)')).root, swOf('edge', phrase('EDGE'), phrase('The pane’s hairline rim')).root,
+    swOf('disconnected', phrase('DISCONNECTED'), phrase('Separate window headers from their bodies')).root);
+  const kSpace = knobOf('spacing', phrase('SPACING'), { ...hundred, title: 'The rack\u2019s air: between its windows, from the screen\u2019s edge and inside each window. 0% is flush.' });
   line(g, 'gui-knobs').append(kSpace.root, seat(), seat());
 
   /* ── ABOUT ── */
   const ab = el('div', 'gui-page gui-about');
-  const logo = el('div', 'gui-logo', ab); logo.dataset.light = ''; logo.setAttribute('role', 'img'); logo.setAttribute('aria-label', 'MIR');
+  const logo = el('div', 'gui-logo', ab); logo.dataset.light = ''; logo.setAttribute('role', 'img'); ariaLabel(logo, 'MIR', null, 'name');
   const logoArt = el('div', 'gui-logo-art', logo); logoArt.dataset.parallax = '5';
   const abVer = el('div', 'gui-ab-ver', ab);
-  const paintVer = () => { const t = themeById(P.preset()); setText(abVer, `MIR ${MIR_VERSION} · SKIN ${t ? t.name : 'CUSTOM'}`); };
+  const paintVer = () => { const th = themeById(P.preset()); label(abVer, 'MIR {version} · SKIN {theme}', { version: MIR_VERSION, theme: th ? th.name : { t: 'CUSTOM' } }); };
   paintVer();
-  el('div', 'gui-ab-std', ab, `${appName} is an MIR Standard app`);
-  el('p', 'gui-ab-words', ab, MIR_WORDS);
+  label(el('div', 'gui-ab-std', ab), '{app} is an MIR Standard app', { app: appName });
+  label(el('p', 'gui-ab-words', ab), MIR_WORDS);
   const fine = (parts) => richText(el('p', 'gui-ab-fine', ab), parts);
-  if (about.github && safeHref(about.github)) fine(['Source: ', [about.github.replace(/^https?:\/\//, ''), about.github]]);
-  fine(['MIR is free software under the GNU GPL v3.0 only (GPL-3.0-only) — no warranty.']);
+  if (about.github && safeHref(about.github)) fine([{ t: 'Source: {link}', vars: { link: [about.github.replace(/^https?:\/\//, ''), about.github] } }]);
+  fine([{ t: 'MIR is free software under the GNU GPL v3.0 only (GPL-3.0-only) — no warranty.' }]);
   const F = about.fonts || '../fonts/';
-  fine(['Type: ', ['Roboto', F + 'Roboto-OFL.txt'], ' · ', ['LW Title', F + 'Spinwerad-OFL.txt'], ' (a renamed subset of Spinwerad by gluk) · ',
-    ['STIX Two Math', F + 'STIXTwoMath-OFL.txt'], ' · the notebook’s ', ['Spectral', F + 'info/Spectral-OFL.txt'], ', ', ['Playfair Display', F + 'info/PlayfairDisplay-OFL.txt'],
-    ' and ', ['Alegreya SC', F + 'info/AlegreyaSC-OFL.txt'], ' — all SIL OFL 1.1.']);
-  fine(['The MIR logo is outlined from Butler Free Extra Bold by ', ['Fabian De Smet', 'https://www.fabiandesmet.com/'], '.']);
-  for (const c of about.credits || ['© 2026 Joshua Hosain · Magic Commons. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).']) fine(c);
+  fine([{ t: 'Type: {roboto} · {title} (a renamed subset of Spinwerad by gluk) · {stix} · the notebook’s {spectral}, {playfair} and {alegreya} — all SIL OFL 1.1.',
+    vars: { roboto: ['Roboto', F + 'Roboto-OFL.txt'], title: ['LW Title', F + 'Spinwerad-OFL.txt'], stix: ['STIX Two Math', F + 'STIXTwoMath-OFL.txt'], spectral: ['Spectral', F + 'info/Spectral-OFL.txt'],
+      playfair: ['Playfair Display', F + 'info/PlayfairDisplay-OFL.txt'], alegreya: ['Alegreya SC', F + 'info/AlegreyaSC-OFL.txt'] } }]);
+  fine([{ t: 'The MIR logo is outlined from Butler Free Extra Bold by {who}.', vars: { who: ['Fabian De Smet', 'https://www.fabiandesmet.com/'] } }]);
+  for (const c of about.credits || [[{ t: '© 2026 Joshua Hosain · Magic Commons. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).' }]]) fine(c);
 
   /* the logo: the theme's file, inlined so its nine tiles can turn; ids stripped (the SVG's <title id="title"> would
      collide with the wordmark's #title) */
@@ -409,7 +411,7 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   /* ── the window, the page turner ── */
   const head = el('div', 'gui-head');
   let narrow = !!(win.matchMedia && win.matchMedia(NARROW).matches), page = 'options', optPage = 1, sheet = 1;
-  const pages = () => (narrow ? [...Array.from({ length: SHEET_COUNT }, (_, i) => ({ id: 'options:' + (i + 1), label: `MIR OPTIONS ${i + 1}/${SHEET_COUNT}` })), { id: 'about', label: 'MIR ABOUT' }]
+  const pages = () => (narrow ? [...Array.from({ length: SHEET_COUNT }, (_, i) => ({ id: 'options:' + (i + 1), label: phrase('MIR OPTIONS {page}/{of}'), vars: { page: i + 1, of: SHEET_COUNT } })), { id: 'about', label: 'MIR ABOUT' }]
     : [{ id: 'options:1', label: 'MIR OPTIONS 1' }, { id: 'options:2', label: 'MIR OPTIONS 2' }, { id: 'about', label: 'MIR ABOUT' }]);
   const pageId = () => (page === 'about' ? 'about' : 'options:' + (narrow ? sheet : optPage));
   const turner = stepper({ cls: 'gui-turner', aria: 'page', items: pages(), value: pageId(), onChange: (id) => show(id) });
@@ -418,7 +420,7 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   const W = createWindow({ id: 'gui', title: 'GUI', host, size: { w: 920, h: 520 }, min: { w: 280, h: 200 }, emptyDrag: true,
     panels: [{ name: 'options', body: (p) => p.append(opts) }, { name: 'about', body: (p) => p.append(ab) }] });
   W.root.classList.add('mir-gui');
-  W.root.setAttribute('aria-label', 'GUI — MIR OPTIONS and MIR ABOUT');
+  ariaLabel(W.root, 'GUI — MIR OPTIONS and MIR ABOUT');
   W.body.prepend(head);                                             // the turner sits above both pages
   for (const c of W.rail.el.querySelectorAll('.mir-chip')) c.dataset.light = '';   // the window's own chips catch the light too
 
@@ -452,8 +454,14 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
 
   /* ── the cost: once after a change, while OPTIONS is showing (and once after a theme is applied, window open or not) ── */
   let costRun = 0;
-  const costText = (c) => `${c.blur} BLUR · ${c.shadow} SHADOW · ${c.shine} SHINE${c.ms ? ' · ' + c.ms.toFixed(1) + ' ms' : ''}`;
-  const paintCost = () => { const t = P.preset(), c = costs[t]; setText(costNote, t === 'custom' ? 'CUSTOM: no theme to cost' : c ? costText(c) : 'measured when applied'); };
+  /* the cost line: one sentence each way, its counts as vars and its words the readouts' own labels */
+  const paintCost = () => {
+    const th = P.preset(), c = costs[th];
+    if (th === 'custom') label(costNote, 'CUSTOM: no theme to cost');
+    else if (!c) label(costNote, 'measured when applied');
+    else if (c.ms) label(costNote, '{blur} {:BLUR} · {shadow} {:SHADOW} · {shine} {:SHINE} · {ms} ms', { blur: c.blur, shadow: c.shadow, shine: c.shine, ms: c.ms.toFixed(1) });
+    else label(costNote, '{blur} {:BLUR} · {shadow} {:SHADOW} · {shine} {:SHINE}', { blur: c.blur, shadow: c.shadow, shine: c.shine });
+  };
   function measureCost(force) {
     if (!force && !(W.isOpen() && page === 'options')) return;
     const run = ++costRun, theme = costFor; costFor = null;
