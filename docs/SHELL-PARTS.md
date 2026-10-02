@@ -59,7 +59,7 @@ A short message that leaves by itself, in one of two seats.
 
 | Seat | Whose | What it is |
 |---|---|---|
-| **the toast** (the default) | **BASINS'** `#toast` (`app/overlay.js` `toast()`, `basins.css`) | one centred pill, 84 px above the bottom, at most 560 px wide (90 vw on a phone); a new message **replaces** the one showing; no ×; 3 s |
+| **the toast** (the default) | **BASINS'** `#toast` (`app/overlay.js` `toast()`, `basins.css`) | BASINS' pane, value for value: a `.glass` pill centred 84 px above the bottom, at most 560 px wide (90 vw on a phone), z-index 50; a new message **replaces** the one showing; no ×; 3 s; it takes no press |
 | **the corner** (`seat: 'corner'`, or `stack: true`) | **NEBULA's** `#notice` (copied into SOLEIL, AUTOMATA, EARTH) | a stack in the bottom end corner, at most four (the oldest goes first), each with a ×; 5 s, 9 s for an error; the kind drawn as a bar in `--ok` / `--warn` / `--bad` |
 
 ```js
@@ -73,14 +73,18 @@ guarded(() => engine.set(id, v));                                        // a th
 
 | Law | How |
 |---|---|
-| Nothing blocks the stage | only the message takes a press; the corner stack's box is `pointer-events: none` |
+| Nothing blocks the stage | the toast is `pointer-events: none`: a press at its centre reaches what is beneath it; with an action, only the action takes the pointer. In the corner, only a notice takes a press; the stack's box takes none |
 | Polite | the seat is `role=status`, `aria-live=polite` |
-| Leaves by itself; hover or focus holds it | the time left pauses while the pointer is on it or the focus is in it; `ms: 0` stays until closed |
+| Leaves by itself; hover or focus holds it | the time left pauses while the pointer is on it (on a toast: on its action) or the focus is in it; `ms: 0` stays until closed |
 | One at a time (the toast) | a new notice takes the same seat: the old one's text, timer and action go |
 | Above the transport | `--toast-bottom` is BASINS' 84 px, chosen with its bar in mind; the kit's bar (docs/TRANSPORT.md) is 46 px tall, 60 px up, so an app that keeps the bar clear passes `offset` (e.g. `offset: 112`) |
 | Reduced motion fades | through `core/motion.js presence` |
 
-`kind` (`info` · `ok` · `warn` · `error`) is on the element as `data-kind` in both seats; the toast does not draw it, as BASINS does not. Both seats carry the class `mir-notice`. `notice()` returns `{ close(), root }`. The toast's look is in the sheet's FROST values block: `--toast-fill`, `--toast-ink`, `--toast-edge`, `--toast-shadow`, `--toast-radius`, `--toast-size`, `--toast-weight`, `--toast-lh`, `--toast-tracking` (light: fill `hsl(0 0% 100% / .86)`, ink `#071114`, BASINS' own).
+`kind` (`info` · `ok` · `warn` · `error`) is on the element as `data-kind` in both seats; the toast does not draw it, as BASINS does not. Both seats carry the class `mir-notice`; the toast is `#mir-toast`. `notice()` returns `{ close(), root }`.
+
+**The toast is BASINS' drawing.** It is a `.glass` pane, so CARD STYLE reaches it: under REFRACTIVE + FROST it blurs with the panes' filter (`--surface-filter`, e.g. `blur(8px) saturate(1.3)` at BASINS' settings); TINTED never blurs it. Its own fill, edge, shadow and ink win over the pane's (`#mir-toast`, as BASINS' `#toast`): fill `color-mix(in srgb, var(--glass-tint-color, hsl(212 12% 17%)) 82%, transparent)` (light `hsl(0 0% 100% / .86)`), edge `--glass-border-color`, shadow `--glass-shadow`, ink `--fg` (light `#071114`), radius a pill, padding 8 × 14 px, `500 11px/1.4` with `.04em` tracking. Its z-index is `calc(var(--z-veil) + 10)` = 50, BASINS' number: above the veil (40), under the banner (60), the tip and the menus. The values are in the sheet's FROST values block (`--toast-fill`, `--toast-ink`, `--toast-edge`, `--toast-shadow`, `--toast-radius`, `--toast-size`, `--toast-weight`, `--toast-lh`, `--toast-tracking`).
+
+Measured against BASINS' own toast (its adoption branch, served and fired; dark and light × tinted and refractive, FROST on, BASINS' GLASS BLUR 8 and SATURATION 1.3): fill, shadow, backdrop filter, edge, radius, padding, font, tracking, pointer-events, z-index, position and size compute identically. The one difference is the dark ink: both read `--fg`, which is `#fff` in BASINS' sheets and `rgb(242 245 247)` in the kit's.
 
 **An app deletes:** BASINS' `#toast` and `toast()`; `#notice`, `#noticeText`, `#noticeClose` and their CSS (NEBULA, SOLEIL, AUTOMATA, EARTH: the same lines in each), `showMessage()`, `safe()`.
 

@@ -7,7 +7,9 @@
  *   error).
  *
  * THE LAWS IT KEEPS (both seats)
- *   · NOTHING BLOCKS THE STAGE.  Only the message itself takes a press; the corner stack's box takes none.
+ *   · NOTHING BLOCKS THE STAGE.  The toast takes no press at all (BASINS': a press goes to whatever is beneath it); with
+ *     an action, only the action does — so the pointer holds a toast only on its action.  In the corner, a notice
+ *     takes a press and the stack's box takes none.
  *   · POLITE.  The seat is a `role=status` live region (`aria-live=polite`).
  *   · IT LEAVES BY ITSELF, and HOVER OR FOCUS HOLDS IT: the time left pauses while the pointer is on it or the focus is
  *     in it.  `ms: 0` stays until closed.
@@ -48,7 +50,9 @@ export function notice(text, o = {}) {
 let toastSeat = null, toastNow = null;
 function toastNotice(text, { kind = 'info', ms, action = null, offset } = {}) {
   if (!toastSeat || !toastSeat.isConnected) {
-    toastSeat = el('div', 'mir-toast mir-notice', document.body); toastSeat.hidden = true;   // .mir-notice: "a notice", in either seat
+    /* BASINS' `<div id="toast" class="glass">`: a pane, so CARD STYLE's blur reaches it; the id carries its own fill
+       over the pane's, as BASINS' does.  .mir-notice: "a notice", in either seat */
+    toastSeat = el('div', 'mir-toast mir-notice glass', document.body); toastSeat.id = 'mir-toast'; toastSeat.hidden = true;
     toastSeat.setAttribute('role', 'status'); toastSeat.setAttribute('aria-live', 'polite');
   }
   const seat = toastSeat;

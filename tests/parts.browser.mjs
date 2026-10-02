@@ -76,14 +76,17 @@ try {
   /* ── NOTICE: the toast (the default, BASINS') ── */
   r = await run(`window.__n = T.notice('Saved.', { ms: 700 }); await wait(300); const n = __n.root, b = n.getBoundingClientRect(), c = center(n), hit = document.elementFromPoint(c.x, c.y);
     return { seats: document.querySelectorAll('.mir-toast').length, dx: +(b.left + b.width / 2 - innerWidth / 2).toFixed(2), bottom: +(innerHeight - b.bottom).toFixed(2),
-      x: n.querySelectorAll('.mir-notice-x, button:not(.trig)').length, hit: !!hit && n.contains(hit), live: n.getAttribute('aria-live'), shown: !n.hidden };`);
-  check('toast: one seat, centred within 1 px, 84 px above the bottom, no ×, polite, and elementFromPoint on it is it',
-    r.seats === 1 && Math.abs(r.dx) <= 1 && Math.abs(r.bottom - 84) <= 1 && r.x === 0 && r.hit && r.live === 'polite' && r.shown, JSON.stringify(r));
-  r = await run(`window.__n = T.notice('Second.', { ms: 700 }); await wait(150); const s = document.querySelectorAll('.mir-toast');
-    return { seats: s.length, texts: [...s[0].querySelectorAll('.mir-notice-text')].map((x) => x.textContent), shown: !s[0].hidden, ...center(s[0]) };`);
-  check('toast: a second notice REPLACES the first in the same seat', r.seats === 1 && r.texts.join() === 'Second.' && r.shown, JSON.stringify(r));
+      xs: n.querySelectorAll('.mir-notice-x, button:not(.trig)').length, beneath: hit && hit.id, live: n.getAttribute('aria-live'), shown: !n.hidden, z: getComputedStyle(n).zIndex, ...c };`);
+  check('toast: one seat, centred within 1 px, 84 px above the bottom, no ×, polite, z 50; elementFromPoint at its centre is the stage BENEATH it',
+    r.seats === 1 && Math.abs(r.dx) <= 1 && Math.abs(r.bottom - 84) <= 1 && r.xs === 0 && r.beneath === 'stage' && r.live === 'polite' && r.shown && r.z === '50', JSON.stringify(r));
+  const clicks0 = await run(`return T.stageClicks.n;`);
+  await click(r.x, r.y);
+  check('toast: a real click at its centre reaches the stage beneath it', (await run(`return T.stageClicks.n;`)) === clicks0 + 1);
+  r = await run(`window.__n = T.notice('Second.', { ms: 700, action: { label: 'UNDO' } }); await wait(150); const s = document.querySelectorAll('.mir-toast'), a = s[0].querySelector('.trig'), c = center(a), hit = document.elementFromPoint(c.x, c.y);
+    return { seats: s.length, texts: [...s[0].querySelectorAll('.mir-notice-text')].map((x) => x.textContent), shown: !s[0].hidden, onAction: !!hit && a.contains(hit), ...c };`);
+  check('toast: a second notice REPLACES the first in the same seat, and its action (only) takes the pointer', r.seats === 1 && r.texts.join() === 'Second.' && r.shown && r.onAction, JSON.stringify(r));
   await mouse('mouseMoved', r.x, r.y); await sleep(1300);
-  check('toast: it holds while the pointer rests on it (1.3 s on a 0.7 s notice)', await run(`return !__n.root.hidden;`));
+  check('toast: it holds while the pointer rests on its action (1.3 s on a 0.7 s notice)', await run(`return !__n.root.hidden;`));
   await mouse('mouseMoved', 640, 400); await sleep(1300);
   check('toast: it leaves by itself once the pointer has gone', await run(`return __n.root.hidden;`));
   r = await run(`const n = T.notice('Higher.', { offset: 120, action: { label: 'UNDO' } }); await wait(300); const b = n.root.getBoundingClientRect();

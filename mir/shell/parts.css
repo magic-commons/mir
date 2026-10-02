@@ -26,12 +26,13 @@
   --busy-low: .42;
   --busy-ring: calc(var(--busy-turn) * 2);
 }
-/* the toast: BASINS' pill (basins.css:6-11) — its own fill and ink, kept out of the glass passes as BASINS keeps it */
+/* the toast: BASINS' pill (basins.css:6-11), value for value.  It is a `.glass` pane, so CARD STYLE's blur reaches it
+   (REFRACTIVE + FROST); its own fill, edge, shadow and ink win over the pane's (`#mir-toast`, as BASINS' `#toast`). */
 .mir-toast {
-  --toast-fill: color-mix(in srgb, hsl(var(--glass-tint)) 82%, transparent);
+  --toast-fill: color-mix(in srgb, var(--glass-tint-color, hsl(212 12% 17%)) 82%, transparent);
   --toast-ink: var(--fg);
   --toast-edge: var(--glass-border-color);
-  --toast-shadow: var(--surface-shadow, var(--glass-shadow));
+  --toast-shadow: var(--glass-shadow);
   --toast-radius: var(--r-pill);
   --toast-size: 11px;
   --toast-weight: 500;
@@ -73,15 +74,17 @@ body[data-theme="light"] .mir-toast { --toast-fill: hsl(0 0% 100% / .86); --toas
   --toast-w: 560px;
   --toast-max: 90vw;
   --toast-pad: 8px 14px;
-  --toast-z: calc(var(--z-banner) + 8);
+  --toast-z: calc(var(--z-veil) + 10);          /* BASINS' 50: above the veil (40), under the banner (60) and the menus */
   position: fixed; inset-inline: 0; bottom: var(--toast-bottom); margin-inline: auto; z-index: var(--toast-z);
   width: fit-content; max-width: min(var(--toast-w), var(--toast-max)); display: flex; align-items: center; gap: var(--sp-3);
-  padding: var(--toast-pad); border: 1px solid var(--toast-edge); border-radius: var(--toast-radius);
-  background: var(--toast-fill); box-shadow: var(--toast-shadow); color: var(--toast-ink);
+  padding: var(--toast-pad); border-radius: var(--toast-radius);
   font: var(--toast-weight) var(--toast-size) / var(--toast-lh) var(--font-ui); letter-spacing: var(--toast-tracking);
+  pointer-events: none;                         /* a toast never eats a press on the picture or a control beneath it */
 }
+/* the pane's own drawing wins over CARD STYLE's fill and shadow, as BASINS' `#toast` does; the blur is CARD STYLE's */
+#mir-toast { border: 1px solid var(--toast-edge); background: var(--toast-fill); box-shadow: var(--toast-shadow); color: var(--toast-ink); }
 .mir-toast .mir-notice-text { overflow-wrap: anywhere; }
-.mir-toast .trig { flex: 0 0 auto; }
+.mir-toast .trig { flex: 0 0 auto; pointer-events: auto; }   /* with an action, only the action takes the pointer */
 
 /* ── the notice: the corner stack (seat: 'corner', NEBULA's) ────────────────────────────────────────────── */
 .mir-notices {
