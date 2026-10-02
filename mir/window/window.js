@@ -25,6 +25,7 @@
 import { drag, installPress } from '../core/pointer.js';
 import { presence, tweenRect, owns, settled } from '../core/motion.js';
 import { rect, setVar, setAttr } from '../core/perf.js';
+import { ariaLabel } from '../kit.js';
 import { createRail, seatRail, seatOn, nearestSide, roomFor, markForwarded, RAIL } from './rail.js';
 import { dockGeometry, createDockGuide } from './dock.js';
 
@@ -106,7 +107,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
   const root = mk('div', 'mir-win glass');
   root.dataset.mirWindow = id;
   root.setAttribute('role', 'group');
-  root.setAttribute('aria-label', String(title).toUpperCase());
+  ariaLabel(root, String(title));   // no toUpperCase: it would upper-case a translation
   root.hidden = true;
   const bodyEl = mk('div', 'mir-win-body', root);
   const fill = (target, b) => { const n = typeof b === 'function' ? b(target) : b; if (n && n.nodeType) target.appendChild(n); };
@@ -115,7 +116,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
     for (const p of panels) { const el = mk('div', 'mir-win-panel', bodyEl); el.dataset.panel = p.name; el.setAttribute('role', 'tabpanel'); fill(el, p.body); panelEls.set(p.name, el); }
   } else fill(bodyEl, body);
   const corner = resizable ? mk('div', 'mir-win-resize', root) : null;
-  if (corner) { corner.setAttribute('role', 'separator'); corner.setAttribute('aria-label', 'Resize window'); }
+  if (corner) { corner.setAttribute('role', 'separator'); ariaLabel(corner, 'Resize window'); }
   host.appendChild(root);
 
   /* ── the state ── */

@@ -71,10 +71,18 @@ ra.appendChild(knob({ label: 'ACCENT A', min: 0, max: 360, value: accent.a, wrap
 ra.appendChild(knob({ label: 'ACCENT B', min: 0, max: 360, value: accent.b, wrap: true, fmt: (v) => v.toFixed(0) + '°', title: 'the second accent: modulation and relationships', onInput: (v) => accent.set({ b: v }) }).root);
 ra.appendChild(knob({ label: 'VIVID', min: 0, max: 1, value: accent.vivid, fmt: (v) => (v * 100).toFixed(0) + '%', title: 'push the accents toward neon', onInput: (v) => accent.set({ vivid: v }) }).root);
 note(s0.body, 'Every window here is kit chrome — header, grip, fold, power, close — and every seat above re-dresses all of them at once: that is the material language, FROST. Hover a control for its hint; Tab reaches every one.');
-{ const n = note(s0.body, 'The shell — the wordmark in the corner, its menus and the notebook with ABOUT — is a page of its own: '); const a = el('a', '', n, 'shell.html'); a.href = './shell.html'; }
-{ const n = note(s0.body, 'The core — one frame, one motion, one drag, the drop-here glow and the cost meter — is a page to play with: '); const a = el('a', '', n, 'core.html'); a.href = './core.html'; }
-{ const n = note(s0.body, 'The window — one floating window, its chip rail and the dock between the racks — is a page to play with: '); const a = el('a', '', n, 'windows.html'); a.href = './windows.html'; }
-{ const n = note(s0.body, 'INFORMATIONAL — words on the picture that keep out of your way and point with a jointed line — is a page to play with: '); const a = el('a', '', n, 'info.html'); a.href = './info.html'; }
+/* the catalogue: every page of the gallery, one line each, INTENT first */
+for (const [href, what] of [
+  ['intent.html', 'INTENT — what every shadow, bevel and light means, each one drawn by these same controls'],
+  ['core.html', 'The core — one frame, one motion, one drag, the drop-here glow and the cost meter'],
+  ['windows.html', 'The window — one floating window, its chip rail and the dock between the racks'],
+  ['rack.html', 'The rack — two racks, six lazy windows, + / SHIFT-queue / ☆, drag, float, dock, hide and peek, the dodge'],
+  ['shell.html', 'The shell — the wordmark, its menus, and the notebook with a project\'s pages, the ▤ shelf and ABOUT (shell.html?pages=0 is the plain notebook)'],
+  ['info.html', 'INFORMATIONAL — words on the picture, read from the .md pages in gallery/pages/ (a greeting, labels on features, a place and controls; BARE / PANE)'],
+  ['gui.html', 'GUI — MIR OPTIONS and MIR ABOUT: every look option, the pointer glow and the parallax'],
+  ['language.html', 'LANGUAGES — the language mechanism, live: English, the pseudo-language and right to left'],
+  ['format.html', 'FORMAT — one portable file: drop a skin, a spec or a picture that carries one; see the checker\'s verdict; save a picture with a spec inside'],
+]) { const n = note(s0.body, what + ': '); const a = el('a', '', n, href); a.href = './' + href; }
 
 /* ── 2 · TOKENS ────────────────────────────────────────────────────────────────────────────────────────────── */
 const t = card('tokens', 'MIR · TOKENS', 'read from the page at runtime');

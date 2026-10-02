@@ -51,9 +51,9 @@
 body[data-theme="light"] .mir-rail { --chip-rim: hsl(214 30% 40% / .34); }
 body[data-card="tinted"] .mir-rail { --chip-fill: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
 body[data-card="refractive"] .mir-rail { --chip-fill: var(--surface-veil, transparent); }
-body.frost .mir-rail { --chip-filter: var(--surface-filter, var(--frost-filter)); }
-body.frost:not(.frost-hold)[data-card="tinted"] .mir-rail { --chip-fill: var(--surface-fill, hsl(var(--glass-tint) / .58)); }
+body.frost[data-card="refractive"] .mir-rail { --chip-filter: var(--surface-filter, var(--frost-filter)); }
 body.frost[data-card="refractive"][data-theme="dark"] .mir-rail { --chip-fill: var(--surface-veil, hsl(0 0% 0% / .10)); }
+body.frost.frost-hold[data-card="refractive"] .mir-rail { --chip-filter: none; --chip-fill: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }   /* FROST · STILL: the chip holds with its pane (skin.css) */
 
 /* ── THE CHIP: a 62 px target around a 48 px disc ─────────────────────────────────────────────────────────── */
 .mir-chip {

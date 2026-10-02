@@ -19,6 +19,7 @@
  * Harvested from BASINS mod-window-snap.js (chipPosition, nearestChipSide), snap-window.js (seat), kwin.js (the DOM).
  */
 import { glyphEl } from '../glyph.js';
+import { ariaLabel } from '../kit.js';
 import { rect, setAttr, setVar, setText } from '../core/perf.js';
 import { tweenRect, flip, owns } from '../core/motion.js';
 import { createProximity } from '../core/proximity.js';
@@ -125,7 +126,7 @@ export function createRail({ id, title, chips = [], layer, seats, onChip, onSide
   const el = doc.createElement('div');
   el.className = 'mir-rail';
   el.setAttribute('role', 'toolbar');
-  el.setAttribute('aria-label', `${String(title || id).toUpperCase()} window controls`);   // for people; CSS keys on the hooks
+  ariaLabel(el, '{title} window controls', { title: { t: String(title || id) } });   // for people; CSS keys on the hooks
   el.dataset.mirRail = id;
   el.hidden = true;
   const specs = new Map(), nodes = new Map(), tables = new Map(), states = new Map(), inked = new Map();   // inked: the ink drawn now

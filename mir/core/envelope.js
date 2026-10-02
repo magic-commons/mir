@@ -25,7 +25,7 @@
  * checkSkinValue(row, value, known) → reason | null   (one value against its row; the checker's inner rule) */
 
 export const FORMAT = 1;
-export const KIT = '1.5.0-alpha.3';
+import { MIR_VERSION as KIT } from '../version.js'; export { KIT };   // one constant: mir/version.js
 export const KINDS = Object.freeze(['settings', 'skin', 'project', 'page', 'spec']);
 export const LIMITS = Object.freeze({
   file: 32 << 20,          // any envelope as text

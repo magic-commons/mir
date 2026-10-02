@@ -18,6 +18,6 @@
   .hist-i { font-size: var(--fs-small); font-weight: 600; color: var(--dim); text-align: right; font-variant-numeric: tabular-nums; }
   .hist-current .hist-i { color: var(--acc); }
   .hist-lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: var(--tr-wide); }
-  .hist-dom { font-size: var(--fs-tiny); font-weight: 700; letter-spacing: var(--tr-wider); color: var(--dim); }
+  .hist-dom { font-size: var(--fs-tiny); font-weight: 700; letter-spacing: var(--tr-wider); color: var(--dim); text-transform: var(--label-case, uppercase); }
   .hist-count { font-size: var(--fs-tiny); letter-spacing: var(--tr-wide); color: var(--dim); }
 }   /* end @layer mir.kit.house */

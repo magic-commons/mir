@@ -8,8 +8,8 @@ Plan: `MIR CLAUDE 1.5 PLAN 2026-10-01.md` §5.1. Audit: `MIR 1.5 SURVEY 2026-10-
 `mir/css/base.css` loads first and declares it once:
 
 ```css
-@layer mir.tokens, mir.kit, mir.core, mir.a11y;
-@layer mir.kit.house, mir.kit.plugin.artifact, mir.kit.plugin.host;
+@layer mir.tokens, mir.kit, mir.core, mir.tier, mir.a11y;
+@layer mir.kit.house, mir.kit.plugin.artifact, mir.kit.plugin.host, mir.kit.locale;
 ```
 
 | Layer | Holds | Notes |
@@ -18,7 +18,9 @@ Plan: `MIR CLAUDE 1.5 PLAN 2026-10-01.md` §5.1. Audit: `MIR 1.5 SURVEY 2026-10-
 | `mir.kit.house` | `base.css`, `skin.css`, `shell/shell.css`, `shell/stage.css` | one rank: among them the cascade is 1.4's |
 | `mir.kit.plugin.artifact` | `modulation/modwindow/modwindow.css` | the vendored window sheet |
 | `mir.kit.plugin.host` | `modulation/modhost.css` | beats the artifact by rank, so it has no `:root` ladders (§5) |
+| `mir.kit.locale` | `locales/locales.css` | per-language type tokens and the RTL mirror; `:where()` gates, so any app rule wins |
 | `mir.core` | `mir/core/**` | lane L3 |
+| `mir.tier` | `css/tokens.css` | the performance tier and reduced transparency (docs/TIERS.md) |
 | `mir.a11y` | reduced-motion guarantees | 2 rules: shell.css `#title`, modwindow.css's window-wide stop |
 | *(no layer)* | every app sheet | beats every layer above, whatever the selector |
 
@@ -101,6 +103,7 @@ The moves into `mir.a11y` change nothing inside the kit: the moved declarations 
 | `mir.kit.house` | base.css, skin.css, shell/shell.css, shell/stage.css: one rank, so it is 1.4's cascade among them |
 | `mir.kit.plugin.artifact` | modulation/modwindow/modwindow.css (the vendored window sheet) |
 | `mir.kit.plugin.host` | modulation/modhost.css |
+| `mir.kit.locale` | locales/locales.css (per-language type and the RTL mirror) |
 
 **The ladders.** 838 `:root:root:root ` descendant prefixes were deleted by script, and the two compounds on `<html>` (`:root:root:root:not(.skin-frost)` and `:root:root { --m2-mat-hue }`) keep a single `:root`. 0 ladders are left, and `tools/lint-tokens.mjs` now **fails** on one in modhost.css (`LADDER_FREE`).
 

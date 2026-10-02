@@ -48,6 +48,15 @@ try {
     document.body.dataset.card = 'tinted'; return JSON.stringify({ tinted, menuT, refr, menuR }); })()`));
   check('material: under FROST a TINTED pane has backdrop-filter none, a REFRACTIVE one blurs', mat.tinted === 'none' && /blur/.test(mat.refr), JSON.stringify(mat));
   check('material: a TINTED menu never blurs; a REFRACTIVE one does', mat.menuT === 'none' && /blur/.test(mat.menuR), JSON.stringify(mat));
+  /* FROST · STILL: while the hold lasts a joined REFRACTIVE pane stops blurring and wears the tinted fill; then it is back */
+  const hold = JSON.parse(await ev(`(() => { const b = document.body, pane = document.querySelector('[data-id="pane"]'), cs = () => getComputedStyle(pane);
+    const was = b.dataset.card; b.dataset.card = 'tinted'; const tintFill = cs().backgroundColor;
+    b.dataset.card = 'refractive'; const always = { f: cs().backdropFilter, bg: cs().backgroundColor };
+    b.classList.add('frost-hold'); const held = { f: cs().backdropFilter, bg: cs().backgroundColor };
+    b.classList.remove('frost-hold'); const after = cs().backdropFilter; b.dataset.card = was;
+    return JSON.stringify({ frost: b.classList.contains('frost'), disc: b.classList.contains('disconnected'), tintFill, always, held, after }); })()`));
+  check('FROST · STILL: a held REFRACTIVE pane has no blur and the tinted fill; the blur returns when the hold lifts',
+    hold.frost && /blur/.test(hold.always.f) && hold.held.f === 'none' && hold.held.bg === hold.tintFill && hold.held.bg !== hold.always.bg && /blur/.test(hold.after), JSON.stringify(hold));
 
   /* ── keyboard focus: a ring outside ── */
   check('focus: the switch is the element under its own centre', await hits('.sw.on'));

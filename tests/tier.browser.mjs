@@ -96,7 +96,7 @@ try {
   await p.goto(BASE + '/gallery/shell.html', 1200);
   for (let i = 0; i < 40 && !(await p.eval('!!window.__MIR_SHELL')); i++) await sleep(100);
   await p.eval(`new Promise((res) => { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '../mir/css/tokens.css'; l.onload = () => res(true); document.head.appendChild(l); })`);
-  await p.eval(`__MIR_SHELL.notebook('notes'); __MIR_SHELL.menu('FILE'); true`); await sleep(400);
+  await p.eval(`document.body.dataset.card = 'refractive'; __MIR_SHELL.notebook('notes'); __MIR_SHELL.menu('FILE'); true`); await sleep(400);
   for (const theme of ['light', 'dark']) {
     await p.eval(`document.body.dataset.theme = ${JSON.stringify(theme)}; true`);
     const r = await seat(`shell ${theme} (notebook + FILE menu open)`);

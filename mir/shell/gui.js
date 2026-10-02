@@ -41,7 +41,7 @@ import { createPointerLight } from '../fx/pointer-light.js';
 import { createParallax } from '../fx/parallax.js';
 
 /** the kit's version, as package.json says it (the release step keeps the two in step) */
-export const MIR_VERSION = '1.5.0-alpha.3';
+import { MIR_VERSION } from '../version.js'; export { MIR_VERSION };   // one constant: mir/version.js
 /** the skins: FROST is the house look; the others are announced, not selectable, until their packages land */
 export const SKINS = Object.freeze([{ id: 'frost', label: 'FROST' }, { id: 'metro', label: 'METRO', coming: true }, { id: 'sprites', label: 'SPRITES', coming: true }]);
 /** the words MIR says about itself — quoted from magic-commons.com/joshs-library/lambdawaves/about (2026-10-01) */

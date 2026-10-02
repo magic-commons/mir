@@ -38,7 +38,7 @@
 #notebook[data-face="about"] { width: 470px; height: 670px; left: calc(50% - 235px); top: max(20px, calc(50% - 335px)); }
 body[data-theme="dark"] #notebook { border-color: var(--surface-edge, hsl(0 0% 100% / .18)); --nb-line: hsl(0 0% 100% / .18); --nb-btn: hsl(0 0% 100% / .08); --nb-btn-line: hsl(0 0% 100% / .2); }
 body[data-theme="dark"] #notebook::before { content: ''; position: absolute; inset: 0; z-index: -1; background: hsl(0 0% 0% / .22); pointer-events: none; }
-.nb-head { display: flex; align-items: flex-start; justify-content: space-between; padding: 8px 8px 6px 14px; cursor: grab; user-select: none; touch-action: none; }
+.nb-head { display: flex; align-items: flex-start; justify-content: space-between; padding-block: 8px 6px; padding-inline: 14px 8px; cursor: grab; user-select: none; touch-action: none; }
 .nb-titles { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; }
 .nb-title { font-family: var(--font-display, 'LW Title', var(--font-ui)); font-size: 34px; letter-spacing: .04em; color: var(--fg); background: transparent; border: 0; outline: 0; padding: 0; width: 100%; min-width: 0; }
 .nb-subtitle { font-family: var(--font-display, 'LW Title', var(--font-ui)); font-size: 18px; letter-spacing: .04em; color: var(--fg-soft); background: transparent; border: 0; outline: 0; padding: 0; width: 100%; min-width: 0; margin-top: 2px; }
@@ -55,7 +55,7 @@ body[data-theme="dark"] #notebook::before { content: ''; position: absolute; ins
 .nb-view code { font-family: var(--font-mono); font-size: 12px; padding: 0 4px; border-radius: 4px; background: hsl(0 0% 50% / .14); }
 .nb-view pre { padding: 8px 10px; border-radius: 8px; background: hsl(0 0% 50% / .12); overflow: auto; }
 .nb-view pre code { padding: 0; background: transparent; }
-.nb-view blockquote { margin: .4em 0; padding: 2px 10px; border-left: 2px solid var(--acc); color: var(--fg-soft); }
+.nb-view blockquote { margin: .4em 0; padding: 2px 10px; border-inline-start: 2px solid var(--acc); color: var(--fg-soft); }
 .nb-view table { border-collapse: collapse; margin: .4em 0; }
 .nb-view th, .nb-view td { padding: 3px 8px; border-bottom: 1px solid hsl(0 0% 50% / .25); }
 .nb-view hr { border: 0; height: 1px; background: hsl(0 0% 50% / .3); margin: .8em 0; }
@@ -99,8 +99,8 @@ body[data-theme="dark"] #notebook::before { content: ''; position: absolute; ins
 .mb-group { position: relative; }
 .mb-btn { height: 26px; padding: 0 10px; border: 0; border-radius: 7px; background: transparent; color: var(--fg-soft); font: var(--w-bold) var(--fs-tiny) var(--font-ui); letter-spacing: var(--label-tracking, var(--tr-wider)); cursor: pointer; }
 .mb-btn:hover { background: var(--state-hover, var(--glass-raise)); color: var(--fg); }
-.mb-list { position: absolute; left: 0; top: 30px; min-width: 240px; max-height: 60vh; overflow: auto; padding: 4px; border-radius: 10px; box-shadow: var(--surface-shadow-menu, var(--glass-shadow)); display: flex; flex-direction: column; }
-.mb-item { display: flex; justify-content: space-between; align-items: baseline; gap: 18px; text-align: left; border: 0; background: transparent; color: var(--fg-soft); padding: 6px 10px; border-radius: 6px; font: var(--fs-small) var(--font-ui); cursor: pointer; white-space: nowrap; }
+.mb-list { position: absolute; inset-inline-start: 0; top: 30px; min-width: 240px; max-height: 60vh; overflow: auto; padding: 4px; border-radius: 10px; box-shadow: var(--surface-shadow-menu, var(--glass-shadow)); display: flex; flex-direction: column; }
+.mb-item { display: flex; justify-content: space-between; align-items: baseline; gap: 18px; text-align: start; border: 0; background: transparent; color: var(--fg-soft); padding: 6px 10px; border-radius: 6px; font: var(--fs-small) var(--font-ui); cursor: pointer; white-space: nowrap; }
 .mb-item:hover { background: var(--state-hover, var(--glass-raise)); color: var(--fg); }
 .mb-key { color: var(--dim); font-size: var(--fs-micro); letter-spacing: var(--label-tracking, var(--tr-wide)); }
 .mb-sep { height: 1px; margin: 4px 8px; background: var(--glass-hairline); pointer-events: none; }
@@ -154,6 +154,7 @@ body[data-theme="dark"] #notebook::before { display: none; }
 .nb-grip { display: none; }
 .mb-list { max-width: calc(100vw - 24px); }
 .mb-item { min-height: var(--touch); }
+#menubar { flex-wrap: wrap; }                 /* seven groups do not fit beside the wordmark on 390 px: menubar.js gives the bar the room to the edge and it wraps */
 }
 /* 1.5.0-alpha.3 · A MENU IS A PANE, AND WEARS CARD STYLE's MATERIAL (INTENT rule 4, L08 / L70; open question O8).
    It was a .65 tint AND a blur, neither material.  TINTED: the tint, never a blur.  REFRACTIVE: the veil and the blur.

@@ -1,5 +1,66 @@
 # MIR — changelog
 
+## 1.5.0-alpha.3 — 2026-10-01 · INTENT in the house, pages, the rack, languages, the GUI window and one portable file
+
+Not released: built on branch `worktree-mir-1.5`. This entry covers the first join of wave 3. The keyboard window and the key table, the small shell parts, FOLDERS and the modulation window's own pass arrived after it and are joined separately.
+
+### INTENT in the house sheets
+- Every ledger row in `base.css`, `skin.css` and `shell.css` is fixed (`docs/INTENT.md`, its status column).
+  - One light from above: the card float's upward term is gone. A floating window, the notebook, a carried window and every menu, tip and popover now cast down at their own height.
+  - ON and CHOSEN are the frost face and a thin rim, never an accent fill. A switch's light is its LED; a trigger's is its label glow.
+  - Pressed is the press wash and one `scale` (`--state-press-scale: .96`). Hover is a lighter face (and a 1 px lift on what stands proud), never ink alone or a ring. Keyboard focus is one accent ring outside, on `:focus-visible`, for every control the kit builds. Disabled is one fade (`--state-disabled: .38`) with no relief.
+  - A modulation route is accent B. TINTED never blurs under FROST (the .58 thinning is gone); REFRACTIVE carries the blur. The menubar list wears CARD STYLE. The ⓘ panel and the control hint lost their seven `!important`s.
+  - The rail chip follows its pane under FROST (`mir/window/window.css`). In LIGHT the ON chip face is now `hsl(0 0% 100% / .62)` (it was .086, invisible on a light card).
+- **FROST · STILL holds a joined pane too.** While `body.frost-hold` is set, a REFRACTIVE pane (and its rail chip, and a disconnected window's body card) stops blurring and wears the tinted fill, the surface the lite tier gives it, so STILL differs from ALWAYS. Only the pixels of the hold change.
+- New page `gallery/intent.html`: the INTENT vocabulary, live, drawn by the kit's own controls. New test `tests/intent.browser.mjs`.
+- Removed: `--glass-shadow-flat` (read by nothing), the unread `--face-*` rows in `mir/tokens.json` (the 1.5 names are `--relief-*` and `--state-*`), and the duplicate `.sw.on`, `.trig.on`, `.seg-b.on`, `.k.live .k-needle`, `.dev.dragging` and disabled rules in `base.css`.
+- `--state-focus` is an `outline` shorthand (a new token type), so it never has to be composed with a control's own relief.
+- **Apps can delete:** any rule that undid the upward card shadow, re-flattened `.seg-b.on`, put a focus ring on kit controls, re-drew the accent fill on `.sw.on` / `.trig.on`, or turned off the tinted blur under FROST; any `!important` used to beat the ⓘ panel or the hint.
+
+### The modulation sheets
+- The plugin reads the 1.5 names (`--surface-*`, `--relief-*`, `--state-*`, `--label-*`) at the place of use with its 1.4 value as fallback, so the performance tier and a skin reach it. FLAT leaves no shadow in the plugin; LITE leaves no blur and gives its panes the tinted fill. Literals equal to a token became the token. Proved neutral by stylehash before the INTENT pass.
+- The plugin keeps INTENT: ON is a frost face, a thin rim and an accent light (switches, LED switches, power, tempo, transport, the eight underline controls, + DEVICE); a chosen preset is the ON face with an accent glyph; hover is a lighter face (no ring); pressed is the press wash and one scale, no translate; the dial wears the house's raised relief; one pane height, the house's; no scrim behind the matrix dialog. Plates: `docs/plates/intent/plugin/`.
+- Removed: `--glass-bevel` and its six lights `--gl-w`, `--gl-t`, `--gl-l`, `--gl-r`, `--gl-b`, `--gl-glow` (they drew nothing). `--m2-mat-shadow` is now the house height, declared once in `modhost.css`.
+- **Apps can delete:** any rule that re-quoted the plugin's pane shadow, or turned off its hover ring or scrim.
+
+### Pages, the notebook and the shelf
+- `mir/shell/pages.js`: a project's pages as one pure model (a page is a `.md` file; `pages[0]` is the greeting). New: `beforeCapture(fn) → off`, called at the top of `capture()` (a hook that throws is isolated); the notebook registers its flush there, so a capture always has the last keystrokes.
+- **The notebook gets pages.** `createNotebook({ pages })` shows them as tabs after YOURS: select, type, add, rename, delete with an inline yes/no, reorder by drag or Ctrl/⌘+←/→, the eye for `shared`, SHOW ON OPEN on the greeting, .MD export, IMPORT .MD, drop a .md, COPY TO SHELF / COPY TO PROJECT. Without `pages` the notebook is unchanged node for node. New sheet `mir/shell/pages.css`. Doc: `docs/NOTEBOOK.md`.
+- **The shelf** (`mir/notes/`): λWAVES' mini file system as the notebook's own notes store (`shelf.js`, pure) and face (`face.js`, `notes.css`): folders, the recent five, SAVE / SAVE AS, .md export and import, rename, delete. A damaged store is mended, never thrown.
+- **Apps can delete:** their own notes store and projects face (λWAVES' `renderProjects`), and any timer that flushed the notebook before saving.
+
+### INFORMATIONAL
+- `mir/info/page.js` shows PAGES: `parsePage(md)` (Obsidian callouts `> [!mir|anchor] Title` become labels on a feature, an `@place` or a `ui:control`), `showPage(layer, page, opts)` (one page at a time) and `greet(layer, pages)` (page 0 when the project should greet).
+- Control anchors follow the element with `data-info~="name"`; a gone anchor hides its label and line; a page may sit bare or on a pane (`setPane`); `mir/info/seats.js` chooses which side of its anchor a label rests on, so lines stop crossing.
+- `gallery/info.html` reads its words from `gallery/pages/*.md`.
+- **Apps can delete:** any tour, guide or title-card code: a tutorial is just a page someone writes.
+
+### The rack
+- `mir/shell/rack.js` and `rack.css`: `createRack()`. Windows are registered by name and built on first open; the `+` menu has the SHIFT-queue and ☆ favourite layouts; `windowMenu()` gives the WINDOW menu; reorder, carry across, float and dock run through core pointer, motion and proximity, with the slot and the detach edge drawn; Escape and pointercancel roll back. One hide path, by transform and delayed visibility, that never fades a rack. Edge peek, the transport dodge, the edge handle, header keys, layout persistence through an injected store, the phone's one rack. Doc: `docs/RACK.md`; page: `gallery/rack.html`.
+- **Apps can delete:** their own `rack.js` (BASINS: about 618 lines plus `createRackMotion` and about 85 CSS lines; each NEBULA port about 400–550 lines).
+
+### Languages
+- `mir/core/i18n.js`: `t('English')`. English is the key and the fallback; packs load on demand from `mir/locales/<tag>.json`; `setLanguage(tag)` writes `<html lang dir>`. Every kit label changes language live, without a reload, through `label()` / `ariaLabel()` in `kit.js`.
+- The menubar, the ABOUT face, the chips' names, the hints, the notebook, the shelf, the window and rail names, the history list's domain and a window's OFF / COPIED caption all translate. A window's and a rail's accessible name is no longer upper-cased in script; the history domain's capitals are CSS (`var(--label-case, uppercase)`).
+- `mir/shell/language.js`: the LANGUAGE menu (each language in its own name, DRAFT for an unreviewed pack). The pseudo-languages `qps` / `qps-rtl`. `tools/i18n-extract.mjs` writes the catalogue `mir/locales/en.json` (`npm run i18n`). Ten empty draft packs; no font is shipped.
+- Right to left: `dir="rtl"` mirrors the chrome. The house sheets now draw their sides as logical properties (`inset-inline-start`, `padding-inline`, `margin-inline-*`, `text-align: start | end`, `border-inline-start`), so the mirror rules for the wordmark, the menu lists, a window's head and status and the notebook's quotes are gone from `locales.css`. In left to right nothing changed (stylehash: 0 pixels on `gallery/index.html` and `gallery/shell.html`).
+- `mir/locales/locales.css` is in its own layer, `mir.kit.locale`, declared in `base.css`'s order statement.
+- **Breaking:** `about.js` `gplLicence()` and `kitType()` return one sentence part `{ t, vars }`; a menubar entry takes a fifth element `{ raw, current }`; `openGroup(name)` takes the English group name; a window root's `aria-label` is its title as written, no longer upper-cased. Code must never upper-case translated text.
+- **Apps can delete:** any lookup by a label's English text (use `data-menu`, `data-help-en`).
+
+### The GUI window, prefs and fx
+- `mir/shell/gui.js`, `gui.css`: the menubar's GUI group opens MIR OPTIONS (eight groups of kit controls with a live reading of what the look costs) and MIR ABOUT (the MIR logo, the version and skin, MIR's words, licences and credits). Nothing scrolls; at phone width the groups page sideways. Doc: `docs/GUI.md`; page: `gallery/gui.html`.
+- `mir/core/prefs.js`: one store for browser preferences; a schema says how each option is applied; bad stored values are repaired; applying is one coalesced frame job.
+- `mir/fx/pointer-light.js`, `parallax.js`, `fx.css`: the cursor glow and one pointer parallax, opt-in by `data-light` / `data-parallax`; off on touch, under reduced motion, in the flat tier and by switch.
+- **The menubar on a phone wraps.** With seven groups the bar ran off a 390 px screen; it now gets the room from the wordmark to the edge, wraps onto a second row, and an opened list is shifted sideways to stay whole on the screen (`tests/menubar-phone.browser.mjs`).
+- **One version constant:** `mir/version.js` exports `MIR_VERSION`; the GUI window and the envelope read it, and `tests/version.node.mjs` holds it equal to `package.json`.
+- **Apps can delete:** their own options window, preference store, cursor glow and parallax.
+
+### The portable format
+- `mir/core/envelope.js`: one envelope `{ mir: 1, kind, kit, app?, name?, made, data }` for settings, a skin, a project, a page and a spec, and one checker that never throws. A skin is checked against `mir/tokens.json` by a whitelist grammar per token type. A compact form for small carriers.
+- `mir/core/png.js` carries the envelope in one `iTXt` chunk of any PNG; `mir/core/intake.js` is the one way in (drop, paste, picker). `node tools/check-envelope.mjs <file>` (`npm run check:envelope`). Doc: `docs/FORMAT.md`; page: `gallery/format.html`.
+- **Apps can delete:** their own settings export/import and drop handlers.
+
 ## 1.5.0-alpha.2 — 2026-10-01 · one window, the first 1.5 tokens, words on the stage
 
 Not released: the 1.5 line is built on branch `worktree-mir-1.5`. The plans are in Josh's vault (`MIR CLAUDE 1.5 PLAN 2026-10-01`, `MIR CLAUDE 1.5.X INFORMATIONAL + LLM PLAN 2026-10-01`).

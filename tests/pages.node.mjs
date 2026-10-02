@@ -58,4 +58,12 @@ ok('a 1.4 notebook becomes the first page; a page is a .md file', () => {
   const P = createPages(); const p = P.add({ title: 'X', md: 'y', shared: true });
   assert.deepEqual(P.copyOut(p.id), { title: 'X', md: 'y' });
 });
+ok('beforeCapture runs first, a throwing hook is isolated, off() removes it', () => {
+  const P = createPages(), seen = [];
+  const off = P.beforeCapture(() => { seen.push('a'); P.add({ title: 'late', md: 'last keys' }); });
+  P.beforeCapture(() => { seen.push('b'); throw new Error('a broken hook'); });
+  const c = P.capture(); assert.deepEqual(seen, ['a', 'b']); assert.equal(c.pages[0].md, 'last keys');
+  off(); P.capture(); assert.deepEqual(seen, ['a', 'b', 'b']);
+  assert.equal(P.part().capture().pages.length, 1, 'the part registered with core/project.js runs the hooks too');
+});
 console.log(`\npages: ALL ${n} PASS`);

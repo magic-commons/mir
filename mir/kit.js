@@ -104,7 +104,10 @@ export function relabel(root = document) {
   const vars = (n) => { try { return n.dataset.tVars ? JSON.parse(n.dataset.tVars) : undefined; } catch (_) { return undefined; } };
   for (const n of root.querySelectorAll('[data-t]')) mathText(n, tx(n.dataset.t, vars(n)));
   for (const n of root.querySelectorAll('[data-t-aria]')) n.setAttribute('aria-label', mathPlain(tx(n.dataset.tAria, vars(n))));
+  for (const n of root.querySelectorAll('.dev-stat')) statCaps(n);
 }
+/** a window's state words, drawn by skin.css as ' · ' attr(data-cap-off | data-cap-copied) after its status */
+function statCaps(n) { n.dataset.capOff = tx('OFF'); n.dataset.capCopied = tx('COPIED'); }
 if (typeof document !== 'undefined') onLanguage(() => relabel(document));
 /** a control that shows a VALUE never mirrors: a knob turns clockwise and a fader grows rightwards in every language */
 const ltr = (node) => { node.dir = 'ltr'; return node; };
@@ -566,7 +569,7 @@ export function device(o) {
   const h2 = o.eyebrow ? label(el('h2', 'dev-title', idz), o.eyebrow) : el('h2', 'dev-title', idz, o.id || 'window');   // an id is never translated
   h2.id = 'devt-' + o.id;
   root.setAttribute('aria-labelledby', h2.id);
-  const stat = el('div', 'dev-stat', head, o.status || '');
+  const stat = el('div', 'dev-stat', head, o.status || ''); statCaps(stat);
   const util = el('div', 'dev-util', head);
   const power = el('button', 'dev-power', util, ''); power.type = 'button'; power.title = 'Turn this window on or off'; power.setAttribute('aria-pressed', 'true');
   ariaLabel(power, 'power');                 // it has no content, so that 90-character `title` WAS its accessible name

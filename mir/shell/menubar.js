@@ -96,15 +96,26 @@ export function createMenubar({ opener, host, menus, label, phone, keep } = {}) 
       }
     };
     fills.set(list, fill);
-    btn.addEventListener('click', (e) => { e.stopPropagation(); const was = openList === list; closeLists(); if (!was) { fill(); list.hidden = false; btn.setAttribute('aria-expanded', 'true'); openList = list; } });
-    btn.addEventListener('pointerenter', (e) => { if (e.pointerType === 'touch' || !openList || openList === list) return; closeLists(); fill(); list.hidden = false; btn.setAttribute('aria-expanded', 'true'); openList = list; });
+    btn.addEventListener('click', (e) => { e.stopPropagation(); const was = openList === list; closeLists(); if (!was) { fill(); list.hidden = false; fitList(list); btn.setAttribute('aria-expanded', 'true'); openList = list; } });
+    btn.addEventListener('pointerenter', (e) => { if (e.pointerType === 'touch' || !openList || openList === list) return; closeLists(); fill(); list.hidden = false; fitList(list); btn.setAttribute('aria-expanded', 'true'); openList = list; });
   }
   let barTimer = 0;
+  /* ON A PHONE the bar may not run off the screen: it gets the width from the wordmark to the edge and wraps onto a
+     second row there (shell.css), its first row level with the wordmark.  The desktop bar is one row, as it was. */
   const place = () => {
-    const r = opener.getBoundingClientRect();
+    const r = opener.getBoundingClientRect(), phone = isPhone();
     let rtl = false; try { rtl = bar.matches(':dir(rtl)'); } catch (_) {}
+    bar.style.maxWidth = phone ? Math.max(120, (rtl ? r.right - opener.offsetWidth : window.innerWidth - r.left - opener.offsetWidth) - 16) + 'px' : '';
     bar.style.left = (rtl ? r.right - opener.offsetWidth - 8 - bar.offsetWidth : r.left + opener.offsetWidth + 8) + 'px';   // rtl: the wordmark's untransformed RIGHT edge stays put (locales.css turns its origin)
-    bar.style.top = (r.top + r.height / 2 - bar.offsetHeight / 2) + 'px';
+    const row = phone && bar.firstElementChild ? bar.firstElementChild.offsetHeight : bar.offsetHeight;
+    bar.style.top = Math.max(0, r.top + r.height / 2 - row / 2) + 'px';
+  };
+  /* an open list stays whole on the screen: shifted sideways by as much as it would run off, never more */
+  const fitList = (list) => {
+    list.style.translate = '';
+    const r = list.getBoundingClientRect(), W = window.innerWidth, M = 8;
+    const dx = r.right > W - M ? Math.max(M - r.left, W - M - r.right) : r.left < M ? M - r.left : 0;
+    if (dx) list.style.translate = Math.round(dx) + 'px 0';
   };
   const showBar = (focusIt) => {
     clearTimeout(barTimer); barShown(true); place();

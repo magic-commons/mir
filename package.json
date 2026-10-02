@@ -1,9 +1,9 @@
 {
   "name": "mir",
-  "version": "1.5.0-alpha.2",
+  "version": "1.5.0-alpha.3",
   "private": true,
   "type": "module",
-  "description": "MIR — Magic Commons' interface kit: tokens, materials, widgets, gestures, window chrome, the shell (wordmark, menubar, notebook, ABOUT) and the modulation system, as vanilla ES modules and CSS.",
+  "description": "MIR — Magic Commons' interface kit: tokens, materials, widgets, gestures, window chrome, the shell (wordmark, menubar, notebook with pages, ABOUT, the rack, the GUI window), INFORMATIONAL, languages, the portable format and the modulation system, as vanilla ES modules and CSS.",
   "license": "GPL-3.0-only",
   "scripts": {
     "test": "node tests/run.mjs",
@@ -12,6 +12,8 @@
     "adopt": "node tools/adopt.mjs",
     "check": "node tools/adopt.mjs --check",
     "parity:shell": "node tools/shell-parity.mjs",
-    "stylehash": "node tools/stylehash.mjs"
+    "stylehash": "node tools/stylehash.mjs",
+    "i18n": "node tools/i18n-extract.mjs",
+    "check:envelope": "node tools/check-envelope.mjs"
   }
 }

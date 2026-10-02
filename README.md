@@ -22,7 +22,7 @@ MIR is the source; the apps are readers.
 | **Shell** | `mir/shell/` | What every app begins with, taken node for node from λWAVES: the **wordmark** (`wordmark.js`), the **menubar** it opens — FILE · EDIT · VIEW · WINDOW · ABOUT as data (`menubar.js`), the **notebook** glass with NOTES and **ABOUT** faces (`notebook.js`, `about.js` — the GPL notice and the font licences by default), the **accent engine** that colours A, B and the mark from a palette (`accent.js`), their sheet (`shell.css`) and an optional ground (`stage.css`). NOTES previews markdown and maths with marked and KaTeX from `vendor/`, loaded on the first preview. See `gallery/shell.js` for the whole assembly. |
 | **Modulation** | `mir/modulation/` | The kit's first plugin: the modulation window's builders (`modwindow/`, BASINS' window, the source since 1.1.0), its host (`host.js`, `modhost.css`), model (`mod.js`), registry, curves and the shared FL-style curve gesture interpreter (`curve-gesture.js`). The rest of the controller that wires the window to a host is still λWAVES' (`lab/modwindow.js`). See `modulation/modwindow/host-contract.md` and `docs/PLUGIN-CONTRACT.md`. |
 | **Type** | `fonts/` | LW Title (a renamed Spinwerad subset), Roboto (UI), STIX Two Math (the maths), with their licences. |
-| **Laws** | `docs/` | [API](docs/API.md) (every export) · [CONTRACT](docs/CONTRACT.md) (load order, what the kit reads on `<body>`, the tokens an app may re-point, ids, storage) · [PLUGIN-CONTRACT](docs/PLUGIN-CONTRACT.md) (the socket TIMELINE plugs into) · STYLE-LOCK, MOTION-LAW, ANTI-PATTERNS, REFERENCES — the reasoning, kept with the code. |
+| **Laws** | `docs/` | [API](docs/API.md) (every export) · [CONTRACT](docs/CONTRACT.md) (load order, what the kit reads on `<body>`, the tokens an app may re-point, ids, storage) · [INTENT](docs/INTENT.md) (what every shadow, bevel and light means) · [TOKENS](docs/TOKENS.md) (every token, generated) · [TIERS](docs/TIERS.md) (lite and flat) · [LAYERS](docs/LAYERS.md) (the cascade layers) · [CORE](docs/CORE.md) (frame, motion, pointer, proximity, perf) · [WINDOWS](docs/WINDOWS.md) · [RACK](docs/RACK.md) · [NOTEBOOK](docs/NOTEBOOK.md) (pages and the shelf) · [INFORMATIONAL](docs/INFORMATIONAL.md) (words on the picture) · [GUI](docs/GUI.md) (MIR OPTIONS and MIR ABOUT) · [LANGUAGES](docs/LANGUAGES.md) · [FORMAT](docs/FORMAT.md) (the portable file format, its checker, and pictures that carry a project) · [HISTORY](docs/HISTORY.md) · [ADOPTING-1.5](docs/ADOPTING-1.5.md) · [LINES](docs/LINES.md) · [PLUGIN-CONTRACT](docs/PLUGIN-CONTRACT.md) (the socket TIMELINE plugs into) · STYLE-LOCK, MOTION-LAW, ANTI-PATTERNS, REFERENCES — the reasoning, kept with the code. |
 | **Proofs** | `tests/`, `tools/` | `npm test`: the token lint, node tests of the model and the adopt tool, browser tests of the controls and the shell. `tools/stylehash.mjs` proves a kit change neutral in an app; `tools/shell-parity.mjs` proves the shell is λWAVES'. |
 
 ## Adopt it
@@ -90,7 +90,21 @@ that the split is real.
 `npm run gallery` serves http://127.0.0.1:8790/gallery/ — every token, control, window state, glyph and the
 modulation window on one page, built from the kit itself and restyled by nothing, with the theme, card style,
 frost, ground (plain or a busy coloured field) and accent seats live.
-`gallery/shell.html` is a fresh app on the kit: hover the wordmark for the menus, press J for the notebook, ⓘ for ABOUT.
+`gallery/shell.html` is a fresh app on the kit: hover the wordmark for the menus, press J for the notebook (with a project's pages and the ▤ shelf), ⓘ for ABOUT.
+
+The gallery's front page links every other page:
+
+| Page | What it shows |
+|---|---|
+| `gallery/intent.html` | INTENT: what every shadow, bevel and light means, drawn by the kit's own controls |
+| `gallery/core.html` | one frame, one motion, one drag, the drop-here glow and the cost meter |
+| `gallery/windows.html` | one floating window, its chip rail and the dock |
+| `gallery/rack.html` | two racks, lazy windows, + / SHIFT-queue / ☆, drag, float, dock, hide and peek |
+| `gallery/shell.html` | the wordmark, the menus, the notebook with pages and the shelf, ABOUT |
+| `gallery/info.html` | INFORMATIONAL: words on the picture, read from `.md` pages |
+| `gallery/gui.html` | MIR OPTIONS and MIR ABOUT, the pointer glow and the parallax |
+| `gallery/language.html` | the language mechanism: English, the pseudo-language and right to left |
+| `gallery/format.html` | the portable file: a skin, a spec, a picture that carries one |
 
 ## Prove it
 

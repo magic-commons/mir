@@ -24,7 +24,7 @@ The tokens named below are in `mir/tokens.json` (the schema) and `docs/TOKENS.md
 | **Drop here** | A dotted outline that brightens as the thing gets near; solid when it will land | `--prox` (core/proximity.js) + core.css `.mir-prox` | A whole-container line |
 | **A value in its own colour** | An arc, or a coloured thumb, with a glow in that colour — and no other relief | `--accent-sweep`, `--nc`, `--m2-slot-ink`; `--glow-own` (proposed) | Raise or well on top of it |
 | **Disabled** | Faded, no relief, no pointer | `--state-disabled` (.38) | Keeping its relief. More than one fade |
-| **Words on the stage** (INFORMATIONAL: a greeting, a label, a slide) | Ink plus a soft halo in the opposite ink; a jointed line that is only ever flat, 45° or vertical | `--info-ink`, `--info-halo`, `--info-line-w` (mir/info/info.css) | A pane by default. A fifth shadow height. Any other line angle |
+| **Words on the stage** (INFORMATIONAL: a greeting, a label, a slide) | Ink plus a soft halo in the opposite ink; a jointed line that is only ever flat, 45° or vertical; on request (`data-pane`) the same type on a pane that floats (the surface tokens) | `--info-ink`, `--info-halo`, `--info-line-w` (mir/info/info.css) | A pane by default. A fifth shadow height. Any other line angle |
 
 ## The rules
 
@@ -73,10 +73,10 @@ The **status** column says where each row stands. The house sheets' rows were fi
 |---|---|---|---|---|---|---|
 | L01 | pane floats | `css/skin.css:28` | `:root` | the pane float has an UPWARD term `0 -2px 6px` (dark) | drop the term; the value becomes today's `--glass-shadow-flat` (dark) | fixed (alpha.3) |
 | L02 | pane floats | `css/skin.css:211` | `body[data-theme="light"]` | the same upward term (light) | the same; `--glass-shadow-flat` (light) | fixed (alpha.3) |
-| L03 | pane floats | `modulation/modhost.css:135` | `.mir-modwindow, .kwin-chiprail, .m2ghost` | the plugin's quoted copy of the upward float (dark) | re-quote L01's value, or alias to the 1.5 surface shadow | plugin sheet: its own pass |
-| L04 | pane floats | `modulation/modhost.css:299` | `body[data-theme="light"] .mir-modwindow, body[data-theme="light"] .…` | the quoted copy (light) | as L03 | plugin sheet: its own pass |
+| L03 | pane floats | `modulation/modhost.css:135` | `.mir-modwindow, .kwin-chiprail, .m2ghost` | the plugin's quoted copy of the upward float (dark) | re-quote L01's value, or alias to the 1.5 surface shadow | fixed (alpha.3): every plugin pane reads `var(--surface-shadow, var(--glass-shadow))`, the house value |
+| L04 | pane floats | `modulation/modhost.css:299` | `body[data-theme="light"] .mir-modwindow, body[data-theme="light"] .…` | the quoted copy (light) | as L03 | fixed (alpha.3): as L03 |
 | L05 | pane floats | `css/base.css:152` | `.dev.floating` | a floating window lifted UP: `0 -5px 14px` | height 3 (floating window), falling down: `--surface-shadow-float` | fixed (alpha.3) |
-| L06 | pane floats | `modulation/modwindow/modwindow.css:1820` | `:root` | a second plugin pane height `0 8px 26px` (and `none` under `:root.skin-frost`) beside L03 | one plugin pane height: the house's | plugin sheet: its own pass |
+| L06 | pane floats | `modulation/modwindow/modwindow.css:1820` | `:root` | a second plugin pane height `0 8px 26px` (and `none` under `:root.skin-frost`) beside L03 | one plugin pane height: the house's | fixed (alpha.3): the `:root` copy is gone; the seat declares `--m2-mat-shadow` as the house height |
 | L07 | pane floats | `shell/shell.css:98` | `.mb-list` | a menu at PANE height (`--glass-shadow`) | height 4: `--surface-shadow-menu` | fixed (alpha.3) |
 | L08 | pane floats | `shell/shell.css:154` | `#menubar .mb-list` | the same, re-issued | as L07 | fixed: one rule (alpha.3) |
 | L09 | pane floats | `css/base.css:289` | `#graphTip` | the one tip at PANE height | height 4 | fixed (alpha.3) |
@@ -86,23 +86,23 @@ The **status** column says where each row stands. The house sheets' rows were fi
 | L13 | pane floats | `css/skin.css:171` | `.badge` | a badge: `--neu-flat` + literal `0 4px 12px` | height 1 or 2 as a token | fixed (alpha.3) |
 | L14 | pane floats | `shell/shell.css:31` | `#notebook` | the notebook: literal `inset … , 0 8px 24px` (light) | height 3 (it floats like a window) | fixed (alpha.3) |
 | L15 | pane floats | `shell/shell.css:33` | `body[data-theme="dark"] #notebook` | the same (dark) | as L14 | fixed (alpha.3) |
-| L16 | press me | `modulation/modhost.css:1052` | `:root:root:root #modwin.mir-modwindow .m2dialink::before` | the modulation dial: a second raised-knob drawing (top light + bottom lip, no drop) beside the kit puck's `--neu-raise` | one raised relief: `--relief-raise` | plugin sheet: its own pass |
-| L17 | press me | `modulation/modhost.css:1054` | `:root:root:root body[data-theme="light"] #modwin.mir-modwindow .m2d…` | the same (light) | as L16 | plugin sheet: its own pass |
+| L16 | press me | `modulation/modhost.css:1052` | `:root:root:root #modwin.mir-modwindow .m2dialink::before` | the modulation dial: a second raised-knob drawing (top light + bottom lip, no drop) beside the kit puck's `--neu-raise` | one raised relief: `--relief-raise` | fixed (alpha.3): reads `var(--relief-raise, var(--neu-raise))` |
+| L17 | press me | `modulation/modhost.css:1054` | `:root:root:root body[data-theme="light"] #modwin.mir-modwindow .m2d…` | the same (light) | as L16 | fixed (alpha.3): as L16 |
 | L18 | pressed | `css/skin.css:137` | `.sw:active` | pressed drawn as a WELL (`--neu-inset` + `--glass-well`), no scale | `--state-press` wash + `--state-press-scale` | fixed (alpha.3) |
 | L19 | pressed | `css/skin.css:146` | `.trig:active` | pressed as a well + `translateY(1px)` | `--state-press` + scale down, not a translate | fixed (alpha.3) |
 | L20 | pressed | `shell/shell.css:94` | `.nb-dump:active, .ab-home:active` | pressed as `translateY(1px)` | as L19 | fixed (alpha.3) |
-| L21 | pressed | `modulation/modhost.css:2017,2018` | `:root:root:root #modwin.mir-modwindow .m2macadd:active:not(:disable…` | pressed: `translateY(1px) scale(.985)` + a literal inset | as L19, one scale | plugin sheet: its own pass |
+| L21 | pressed | `modulation/modhost.css:2017,2018` | `:root:root:root #modwin.mir-modwindow .m2macadd:active:not(:disable…` | pressed: `translateY(1px) scale(.985)` + a literal inset | as L19, one scale | fixed (alpha.3): press wash, no translate; the scale is S1's |
 | L22 | on | `css/skin.css:138` | `.sw.on` | ON = accent fill (`--acc-soft`) + WELL (`--neu-inset`) + accent ring | frost face (`--state-on`) + thin rim; the LED is the light | fixed (alpha.3) |
 | L23 | on | `css/skin.css:147` | `.trig.on` | ON = accent fill + well + ring; label in accent | as L22; a trigger with no LED gets the light as its label/glyph glow (open: which) | fixed: label glow, O5 default (alpha.3) |
 | L24 | on | `css/base.css:225` | `.sw.on` | a second ON fill (hsl accent .28), shadowed by skin.css | delete | deleted (alpha.3) |
 | L25 | on | `css/base.css:237` | `.trig.on` | a second ON fill (`--acc-soft`), shadowed by skin.css | delete | deleted (alpha.3) |
-| L26 | on | `modulation/modhost.css:2020` | `:root:root:root #modwin.mir-modwindow .m2devadd.on` | ON as a WELL (`--glass-well` + `--neu-inset`) | frost face + rim | plugin sheet: its own pass |
-| L27 | on | `modulation/modwindow/modwindow.css:913` | `.mir-modwindow .m2swb.on` | ON as an accent fill .32 (out-specified inside `#modwin .m2dev` by modhost.css, whose LED is right) | delete | plugin sheet: its own pass |
-| L28 | on | `modulation/modwindow/modwindow.css:1427,1428` | `.mir-modwindow .m2dev.lfo .m2preset.on` | a chosen preset as an accent fill + accent border | frost face; label in accent (CHOSEN) | plugin sheet: its own pass |
-| L29 | on | `modulation/modwindow/modwindow.css:1321` | `#modwin.mir-modwindow .m2chk.on, #modwin.mir-modwindow .m2swb.on, #…` | ON as an accent UNDERLINE (`inset 0 -2px 0`) on eight controls | frost face + rim; the bar may stay as the light (accent A + glow) | plugin sheet: its own pass |
-| L30 | on | `modulation/modwindow/modwindow.css:1392,1393` | `.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcmd.on` | the same underline + accent border | as L29 | plugin sheet: its own pass |
-| L31 | on | `modulation/modwindow/modwindow.css:819` | `.mir-modwindow .m2pow.on` | ON as ink + border only (no face) | frost face + rim + light | plugin sheet: its own pass |
-| L32 | on | `modulation/modhost.css:1146` | `:root:root:root #modwin.mir-modwindow .modtempo.on` | ON as ink colour only | as L31 | plugin sheet: its own pass |
+| L26 | on | `modulation/modhost.css:2020` | `:root:root:root #modwin.mir-modwindow .m2devadd.on` | ON as a WELL (`--glass-well` + `--neu-inset`) | frost face + rim | fixed (alpha.3): frost face + rim, label in accent A |
+| L27 | on | `modulation/modwindow/modwindow.css:913` | `.mir-modwindow .m2swb.on` | ON as an accent fill .32 (out-specified inside `#modwin .m2dev` by modhost.css, whose LED is right) | delete | fixed (alpha.3): deleted (dead) |
+| L28 | on | `modulation/modwindow/modwindow.css:1427,1428` | `.mir-modwindow .m2dev.lfo .m2preset.on` | a chosen preset as an accent fill + accent border | frost face; label in accent (CHOSEN) | fixed (alpha.3): ON face + rim, glyph stroked in accent |
+| L29 | on | `modulation/modwindow/modwindow.css:1321` | `#modwin.mir-modwindow .m2chk.on, #modwin.mir-modwindow .m2swb.on, #…` | ON as an accent UNDERLINE (`inset 0 -2px 0`) on eight controls | frost face + rim; the bar may stay as the light (accent A + glow) | fixed (alpha.3): frost face + rim; the underline stays as the light (LED switches: the LED; `.modxport.on`: its glyph) |
+| L30 | on | `modulation/modwindow/modwindow.css:1392,1393` | `.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcmd.on` | the same underline + accent border | as L29 | fixed (alpha.3): frost face; the accent border is the rim; the bar stays |
+| L31 | on | `modulation/modwindow/modwindow.css:819` | `.mir-modwindow .m2pow.on` | ON as ink + border only (no face) | frost face + rim + light | fixed (alpha.3): face + rim; the accent glyph is the light |
+| L32 | on | `modulation/modhost.css:1146` | `:root:root:root #modwin.mir-modwindow .modtempo.on` | ON as ink colour only | as L31 | fixed (alpha.3): face + rim; the accent ink is the light |
 | L33 | chosen | `css/skin.css:143` | `.seg-b.on` | the chosen segment RISES (`--neu-raise`): press-me relief spent on "selected" | frost face, label in accent; no raise | fixed (alpha.3) |
 | L34 | chosen | `css/base.css:232` | `.seg-b.on` | a second chosen fill (accent .30), shadowed by skin.css | delete | deleted (alpha.3) |
 | L35 | hover | `css/skin.css:119` | `.k:hover .k-dial` | hover as a 1px white RING | a lighter face (`--state-hover`) + small lift | fixed (alpha.3) |
@@ -111,7 +111,7 @@ The **status** column says where each row stands. The house sheets' rows were fi
 | L38 | hover | `css/base.css:168` | `.dev-pop:hover, .dev-rail:hover` | hover as ink alone | lighter face | fixed (alpha.3) |
 | L39 | hover | `shell/shell.css:97` | `.mb-btn:hover` | hover as ink alone, background forced transparent | lighter face | fixed (alpha.3) |
 | L40 | hover | `shell/shell.css:68` | `.nb-tools button:hover` | hover as ink alone | lighter face | fixed (alpha.3) |
-| L41 | hover | `modulation/modhost.css:1272` | `:root:root:root #modwin.mir-modwindow .m2railhead:hover` | hover as ink alone (one of several in the plugin: `.m2swb`, `.m2mac`, work-bar buttons) | lighter face | plugin sheet: its own pass |
+| L41 | hover | `modulation/modhost.css:1272` | `:root:root:root #modwin.mir-modwindow .m2railhead:hover` | hover as ink alone (one of several in the plugin: `.m2swb`, `.m2mac`, work-bar buttons) | lighter face | fixed (alpha.3): a lighter face, `var(--state-hover, var(--m2-hover))`; the hover ring is gone |
 | L42 | focus | `css/skin.css:426` | `.native-info-button:hover, .native-info-button:focus-visible, .nati…` | focus drawn as HOVER, outline removed | the accent ring outside (`--state-focus`) | fixed (alpha.3) |
 | L43 | focus | `css/skin.css:444` | `.plane-model:focus-visible` | focus ring drawn INSIDE (offset −2px) | outside | fixed (alpha.3) |
 | L44 | focus | `shell/shell.css:38` | `.nb-title:focus` | focus as ink colour | the accent ring outside | fixed (alpha.3) |
@@ -131,8 +131,8 @@ The **status** column says where each row stands. The house sheets' rows were fi
 | L58 | disabled | `css/base.css:219` | `.sw.disabled, .sw:disabled, .seg-b:disabled, .trig:disabled` | disabled .38 with the raise still drawn | relief none | fixed (alpha.3) |
 | L59 | disabled | `shell/shell.css:103` | `.mb-item:disabled` | a third fade, .45 | one value | fixed (alpha.3) |
 | L60 | meaningless relief | `css/base.css:127` | `.glass` | an emboss on every glyph inside `.glass` (`--ink-shadow`): relief on ink | none (open: legibility over the live field — see Open) | open (O3) |
-| L61 | meaningless relief | `modulation/modwindow/modwindow.css:17` | `.glass.mir-modwindow, .mir-modwindow .glass` | the bevel token: every light transparent, draws nothing | delete with the `--gl-*` lights | plugin sheet: its own pass |
-| L62 | meaningless relief | `modulation/modwindow/modwindow.css:52,68,83,316,384,1856` | (several rules: `box-shadow: …, var(--glass-bevel)`) | composes the inert bevel into a shadow list | drop `var(--glass-bevel)` from the list | plugin sheet: its own pass |
+| L61 | meaningless relief | `modulation/modwindow/modwindow.css:17` | `.glass.mir-modwindow, .mir-modwindow .glass` | the bevel token: every light transparent, draws nothing | delete with the `--gl-*` lights | fixed (alpha.3): `--glass-bevel` and its six lights deleted |
+| L62 | meaningless relief | `modulation/modwindow/modwindow.css:52,68,83,316,384,1856` | (several rules: `box-shadow: …, var(--glass-bevel)`) | composes the inert bevel into a shadow list | drop `var(--glass-bevel)` from the list | fixed (alpha.3): `var(--glass-bevel)` dropped from all six lists |
 | L63 | meaningless relief | `css/skin.css:30` | `:root` | declared, read by nothing | becomes the value of `--glass-shadow` (L01), then the name goes | fixed: the name is gone (alpha.3) |
 | L64 | material | `css/skin.css:228` | `body.frost .dev, body.frost .glass` | FROST blurs every pane, TINTED included | scope to `[data-card="refractive"]` | fixed (alpha.3) |
 | L65 | material | `css/skin.css:233` | `body.frost:not(.frost-hold)[data-card="tinted"] .dev, body.frost:no…` | TINTED thins to .58 under FROST so the blur shows | delete: TINTED keeps `--card-opacity` | fixed (alpha.3) |
@@ -141,14 +141,14 @@ The **status** column says where each row stands. The house sheets' rows were fi
 | L68 | material | `css/skin.css:268,269` | `body.disconnected.frost:not(.phone) .dev > .dev-head` | the disconnected head blurs whatever the card style | gate on refractive | fixed (alpha.3) |
 | L69 | material | `css/base.css:290` | `#graphTip` | a .97 TINTED tip that also blurs | no blur (it is tinted) | fixed (alpha.3) |
 | L70 | material | `shell/shell.css:154` | `#menubar .mb-list` | a .65 tint WITH blur: neither material | one material (open: which) | fixed: card material, O8 default (alpha.3) |
-| L71 | material | `modulation/modhost.css:1670` | `.mod-matrix::backdrop` | a dark dimming scrim `#0008` + literal `blur(8px)` behind the matrix dialog — the "dark layer" Josh asked to avoid | no dark scrim; if a blur, REFRACTIVE's token | plugin sheet: its own pass |
+| L71 | material | `modulation/modhost.css:1670` | `.mod-matrix::backdrop` | a dark dimming scrim `#0008` + literal `blur(8px)` behind the matrix dialog — the "dark layer" Josh asked to avoid | no dark scrim; if a blur, REFRACTIVE's token | fixed (alpha.3): `background: transparent`, no scrim, no blur |
 <!-- ledger:end -->
 
 **Two gaps that are not one line each**
 
 | # | meaning | where | what it draws today | fix | status |
 |---|---|---|---|---|---|
-| S1 | pressed | every `:active` rule in the kit: 73 rules (base 5 · skin 4 · shell 1 · modhost 22 · modwindow 41) | a wash alone; **one** of the 73 scales (modhost `.m2macadd`, L21) | add `--state-press-scale` to the press drawing once, at the widget level | house: fixed in alpha.3 (one `scale` rule for `.sw`, `.seg-b`, `.trig`, `.dev-fold`, and the notebook's two buttons); plugin: its own pass |
-| S2 | focus | `.trig`, `.sw`, `.seg-b`, `.k-dial`, `.fd`, `select.sel`, the header chips (base.css, skin.css) | **no focus rule at all**: the browser's default ring. `.k` and `.fd` only reveal their value on `:focus-within` | one `--state-focus` ring outside, on `:focus-visible`; modhost.css entry 50 already draws it right inside the plugin | house: fixed in alpha.3 (one rule in skin.css for the widgets, the header chips, the ⓘ button and the plane model; one in shell.css for the menubar and the notebook) |
+| S1 | pressed | every `:active` rule in the kit: 73 rules (base 5 · skin 4 · shell 1 · modhost 22 · modwindow 41) | a wash alone; **one** of the 73 scales (modhost `.m2macadd`, L21) | add `--state-press-scale` to the press drawing once, at the widget level | house: fixed in alpha.3 (one `scale` rule for `.sw`, `.seg-b`, `.trig`, `.dev-fold`, and the notebook's two buttons); plugin: fixed in alpha.3 (`scale: var(--state-press-scale, .96)` on `#modwin button:active`, the chip rail and chips) |
+| S2 | focus | `.trig`, `.sw`, `.seg-b`, `.k-dial`, `.fd`, `select.sel`, the header chips (base.css, skin.css) | **no focus rule at all**: the browser's default ring. `.k` and `.fd` only reveal their value on `:focus-within` | one `--state-focus` ring outside, on `:focus-visible`; modhost.css entry 50 already draws it right inside the plugin | house: fixed in alpha.3 (one rule in skin.css for the widgets, the header chips, the ⓘ button and the plane model; one in shell.css for the menubar and the notebook); plugin: its accent ring reads `var(--state-focus, …)` (alpha.3) |
 
 **Counted, not listed:** the literal census and the mechanical relief counts are the lint's baseline (`tools/lint-intent.baseline.json`; `node tools/lint-intent.mjs --report` for every site).

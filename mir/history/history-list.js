@@ -12,7 +12,7 @@
  *       canAct() false (a render running) lets the key through untouched; onEmpty(redo) when there was nothing to do.
  *   editableTarget(el) → true for a field that owns its own undo
  */
-import { el, trig } from '../kit.js';
+import { el, trig, label, ariaLabel } from '../kit.js';
 import { setText } from '../core/perf.js';
 
 const TEXT_TYPES = /^(text|search|email|url|password|tel|number)$/i;
@@ -25,7 +25,7 @@ export function historyList(history, host, o = {}) {
   const redo = trig({ label: 'REDO', title: 'Redo (Ctrl+Shift+Z, Ctrl+Y)', onFire: () => history.redo() });
   tools.append(undo.root, redo.root);
   const list = el('div', 'hist-list', root);
-  list.setAttribute('role', 'listbox'); list.setAttribute('aria-label', 'history rows');
+  list.setAttribute('role', 'listbox'); ariaLabel(list, 'history rows');
   const count = o.limitLine === false ? null : el('div', 'hist-count', root);
   list.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('.hist-row'); if (b) history.goto(+b.dataset.i); });
 
@@ -41,7 +41,7 @@ export function historyList(history, host, o = {}) {
       if (r.state === 'current') { b.setAttribute('aria-current', 'true'); b.setAttribute('aria-selected', 'true'); }
       el('span', 'hist-i', b).textContent = String(r.i + 1);
       el('span', 'hist-lbl', b).textContent = r.label;
-      if (r.domain) el('span', 'hist-dom', b).textContent = r.domain.toUpperCase();
+      if (r.domain) label(el('span', 'hist-dom', b), r.domain);   // the case is the sheet's: var(--label-case, uppercase)
       out.push(b);
     }
     list.replaceChildren(...out);

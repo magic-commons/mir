@@ -18,7 +18,7 @@ const fails = [];
 /* 4 · shape */
 assert.equal(rows.size, schema.tokens.length, 'a token name appears twice in mir/tokens.json');
 const TIER = ['primitive', 'semantic', 'component'], OWNER = ['kit', 'plugin', 'app-input', 'runtime'];
-const TYPE = ['color', 'color-channels', 'angle', 'percentage', 'number', 'length', 'shadow', 'filter', 'image', 'duration', 'easing', 'font', 'keyword'];
+const TYPE = ['color', 'color-channels', 'angle', 'percentage', 'number', 'length', 'shadow', 'filter', 'image', 'duration', 'easing', 'font', 'keyword', 'outline'];
 for (const t of schema.tokens) {
   const bad = (why) => fails.push(`${t.name}: ${why}`);
   if (!/^--[a-z0-9][a-z0-9-]*$/.test(t.name)) bad('not a lower-kebab custom property name');

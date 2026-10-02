@@ -46,6 +46,16 @@ Five small modules in `mir/core/` and one sheet. No dependency between them exce
 - `rect(el)` — the counted layout read. `count(name, n)` — what `frame` feeds (`frames`, `timers`).
 - `snapshot()` → `{ writes, skipped, reads, frames, timers, longTasks, longestMs, ms }`; `reset()`. Long tasks come from `PerformanceObserver` where the engine has it.
 
+## Beside the runtime: preferences, languages, the portable format
+
+Five more modules live in `mir/core/`. They are not part of the frame law above; each has its own doc.
+
+**`core/prefs.js`** — one store for browser preferences. A schema row says how each option is applied (an attribute, a class, a property, or a call); a bad stored value is repaired, never thrown; applying is one coalesced frame job. The GUI window is built on it. API: [API.md](API.md#mircoreprefsjs-browser-preferences); doc: [GUI.md](GUI.md).
+
+**`core/i18n.js`** — `t('English')`: English is the key and the fallback; packs load on demand; `setLanguage(tag)` writes `<html lang dir>` and every kit label changes live through `kit.js`'s `label()` / `ariaLabel()`. Doc: [LANGUAGES.md](LANGUAGES.md).
+
+**`core/envelope.js`**, **`core/png.js`**, **`core/intake.js`** — one portable file `{ mir: 1, kind, kit, app?, name?, made, data }` and one checker that never throws; the same envelope inside a PNG's `iTXt` chunk; one way in (drop, paste, picker). Doc: [FORMAT.md](FORMAT.md).
+
 ## What each module replaces in the apps
 
 Paths are BASINS REDUX `app/` (read 2026-10-01; survey B and F2 in the vault).

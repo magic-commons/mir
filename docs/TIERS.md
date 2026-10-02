@@ -37,7 +37,7 @@ delete document.documentElement.dataset.uiTier;         // back to full
 
 ## What a skin may set
 
-A skin sets the **semantic** names. Each one is read at the place of use with the 1.4 value as its fallback, so an unset name changes nothing.
+A skin sets the **semantic** names. Each one is read at the place of use with the 1.4 value as its fallback, so an unset name changes nothing. Since 1.5.0-alpha.3 a few are declared by the kit itself in `mir/css/skin.css`, because their values have no `var()` in them: `--surface-shadow-float`, `--surface-shadow-menu`, `--state-on`, `--state-on-rim`, `--state-press-scale`, `--state-disabled` (docs/INTENT.md). The tier still wins over all of them.
 
 | Group | Names |
 |---|---|

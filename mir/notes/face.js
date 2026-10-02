@@ -19,7 +19,8 @@
  *   · EXPORT .MD saves the current note as a plain markdown file; IMPORT .MD adds files as notes (never over one).
  *   · A repaired store says so in the status line, with where the damaged text was kept.
  *   Keys typed in the fields never reach the app, except Ctrl/⌘+S and Ctrl/⌘+, (the notebook's own law). */
-import { el } from '../kit.js';
+import { el, label as writeLabel, ariaLabel } from '../kit.js';
+import { t as tx } from '../core/i18n.js';
 import { createShelf } from './shelf.js';
 
 const APP_KEY = (e) => (e.ctrlKey || e.metaKey) && !e.altKey && (e.code === 'KeyS' || e.code === 'Comma');
@@ -27,7 +28,7 @@ const keep = (e) => { if (!APP_KEY(e)) e.stopPropagation(); };
 
 export function notesFace({ store = createShelf(), glyph = '▤', label = 'shelf' } = {}) {
   let cur = null, base = null, nbApi = null, face = null;
-  const btn = (cls, parent, text, title) => { const b = el('button', cls, parent, text); b.type = 'button'; if (title) b.title = title; return b; };
+  const btn = (cls, parent, text, title) => { const b = el('button', cls, parent, text); b.type = 'button'; if (title) b.title = title; return b; };   // text: data (a name); the kit's own words go through writeLabel
   const sig = (p) => p.title + '\n' + p.md;
   const dirty = () => { const y = nbApi.yours; return y.md.trim() !== '' && (cur === null || sig(y) !== base); };
 
@@ -35,35 +36,35 @@ export function notesFace({ store = createShelf(), glyph = '▤', label = 'shelf
   const say = (s) => { status.textContent = s; };
   function build(f, api) {
     face = f; nbApi = api; base = sig(api.yours);
-    el('div', 'ab-eyebrow', f, 'SHELF');
+    writeLabel(el('div', 'ab-eyebrow', f), 'SHELF');
     const row = el('div', 'nt-new', f);
-    path = el('input', 'nt-path', row); path.placeholder = 'folder/name'; path.spellcheck = false; path.setAttribute('aria-label', 'save as folder/name');
-    const saveAs = btn('nt-saveas', row, 'SAVE AS', 'save the note open in YOURS under this name');
+    path = el('input', 'nt-path', row); path.placeholder = tx('folder/name'); path.spellcheck = false; ariaLabel(path, 'save as folder/name');
+    const saveAs = writeLabel(btn('nt-saveas', row, '', 'save the note open in YOURS under this name'), 'SAVE AS');
     recentRow = el('div', 'nt-recent', f);
     roots = el('div', 'nt-roots', f);
     list = el('div', 'nt-list', f); list.setAttribute('role', 'list');
     const foot = el('div', 'nt-foot', f);
-    const save = btn('nt-save', foot, 'SAVE', 'save the note open in YOURS where it came from');
-    const exp = btn('nt-export', foot, 'EXPORT .MD', 'save the current note as a markdown file');
-    const imp = btn('nt-import', foot, 'IMPORT .MD', 'add markdown files to the shelf');
+    const save = writeLabel(btn('nt-save', foot, '', 'save the note open in YOURS where it came from'), 'SAVE');
+    const exp = writeLabel(btn('nt-export', foot, '', 'save the current note as a markdown file'), 'EXPORT .MD');
+    const imp = writeLabel(btn('nt-import', foot, '', 'add markdown files to the shelf'), 'IMPORT .MD');
     status = el('span', 'nt-status', foot); status.setAttribute('role', 'status');
 
     saveAs.addEventListener('click', () => saveTo(path.value));
-    save.addEventListener('click', () => { if (cur) saveTo(cur); else { say('give it a name: folder/name'); path.focus(); } });
+    save.addEventListener('click', () => { if (cur) saveTo(cur); else { say(tx('give it a name: folder/name')); path.focus(); } });
     path.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); saveTo(path.value); } keep(e); });
     exp.addEventListener('click', () => {
-      if (!cur) { say('nothing to export — save first'); return; }
+      if (!cur) { say(tx('nothing to export — save first')); return; }
       const file = store.exportNote(cur); if (!file) return;
       const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([file.text], { type: 'text/markdown' })); a.download = file.name; a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 2000); say('saved ' + file.name);
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000); say(tx('saved {name}', { name: file.name }));
     });
     imp.addEventListener('click', () => {
       const inp = document.createElement('input'); inp.type = 'file'; inp.multiple = true; inp.accept = '.md,.markdown,.txt,text/markdown,text/plain';
-      inp.addEventListener('change', async () => { let n = 0, last = ''; for (const file of inp.files || []) { const p = store.importNote(file.name, await file.text(), folderOf(path.value)); if (p) { n++; last = p; } } say(n ? 'imported ' + (n === 1 ? last : n + ' notes') : store.error || 'nothing imported'); });
+      inp.addEventListener('change', async () => { let n = 0, last = ''; for (const file of inp.files || []) { const p = store.importNote(file.name, await file.text(), folderOf(path.value)); if (p) { n++; last = p; } } say(n ? (n === 1 ? tx('imported {name}', { name: last }) : tx('imported {n} notes', { n })) : store.error || tx('nothing imported')); });
       inp.click();
     });
     store.subscribe(() => { if (face && !face.hidden) paint(); });
-    if (store.repaired) say('the shelf was damaged and has been mended — the old text is kept under ' + store.repaired.backup);
+    if (store.repaired) say(tx('the shelf was damaged and has been mended — the old text is kept under {key}', { key: store.repaired.backup }));
     paint();
   }
   const folderOf = (p) => { const s = String(p || '').trim(), i = s.lastIndexOf('/'); return i < 0 ? '' : s.slice(0, i); };
@@ -71,18 +72,18 @@ export function notesFace({ store = createShelf(), glyph = '▤', label = 'shelf
   function saveTo(p) {
     const y = nbApi.yours, at = store.save(p, y);
     if (!at) { say(store.error); return; }
-    cur = at; base = sig(y); path.value = at; say('saved ' + at);
+    cur = at; base = sig(y); path.value = at; say(tx('saved {name}', { name: at }));
   }
   function open(p, row) {
-    const go = () => { const page = store.open(p); if (!page) return; cur = p; base = sig(page); nbApi.openNote(page); say('opened ' + p); };
-    if (row && dirty() && p !== cur) askOn(row, 'replace yours?', go); else go();
+    const go = () => { const page = store.open(p); if (!page) return; cur = p; base = sig(page); nbApi.openNote(page); say(tx('opened {name}', { name: p })); };
+    if (row && dirty() && p !== cur) askOn(row, tx('replace yours?'), go); else go();
   }
   /* an inline question on a row: yes runs `then`, no or leaving it puts the row back */
   function askOn(row, words, then) {
     if (row.dataset.asking !== undefined) return;
     row.dataset.asking = '';
     const q = el('span', 'nt-ask', row); el('span', 'nt-q', q, words);
-    const yes = btn('nt-yes', q, 'yes'), no = btn('nt-no', q, 'no');
+    const yes = writeLabel(btn('nt-yes', q, ''), 'yes'), no = writeLabel(btn('nt-no', q, ''), 'no');
     let shut = false;
     const close = () => { if (shut) return; shut = true; delete row.dataset.asking; q.remove(); };   // removing the focused button fires focusout: once only
     yes.addEventListener('click', () => { close(); then(); });
@@ -94,7 +95,7 @@ export function notesFace({ store = createShelf(), glyph = '▤', label = 'shelf
   function rename(row, it) {
     if (row.dataset.renaming !== undefined) return;
     row.dataset.renaming = '';
-    const inp = el('input', 'nt-rename'); inp.value = it.path; inp.spellcheck = false; inp.setAttribute('aria-label', 'rename to folder/name');
+    const inp = el('input', 'nt-rename'); inp.value = it.path; inp.spellcheck = false; ariaLabel(inp, 'rename to folder/name');
     row.insertBefore(inp, row.firstChild); inp.focus(); inp.select();
     let done = false;
     const end = (ok) => {
@@ -103,7 +104,7 @@ export function notesFace({ store = createShelf(), glyph = '▤', label = 'shelf
       const to = store.rename(it.path, inp.value);
       if (!to) { say(store.error); return; }
       if (cur === it.path) cur = to;
-      say('renamed to ' + to);
+      say(tx('renamed to {name}', { name: to }));
     };
     inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); end(true); } else if (e.key === 'Escape') { e.preventDefault(); end(false); } keep(e); });
     inp.addEventListener('blur', () => end(true));
@@ -115,34 +116,34 @@ export function notesFace({ store = createShelf(), glyph = '▤', label = 'shelf
     recentRow.replaceChildren(); roots.replaceChildren(); list.replaceChildren();
     recentRow.hidden = !recent.length;
     if (recent.length) {
-      el('span', 'nt-label', recentRow, 'RECENT');
+      writeLabel(el('span', 'nt-label', recentRow), 'RECENT');
       for (const p of recent) { const c = btn('nt-chip', recentRow, p.split('/').pop(), 'open ' + p); c.addEventListener('click', () => open(p, c)); }
     }
-    if (!items.length) { el('div', 'nt-none', list, 'no notes yet — name one above and SAVE AS'); return; }
+    if (!items.length) { writeLabel(el('div', 'nt-none', list), 'no notes yet — name one above and SAVE AS'); return; }
     const by = new Map();
     for (const it of items) { if (!by.has(it.folder)) by.set(it.folder, []); by.get(it.folder).push(it); }
     const names = [...by.keys()].sort((a, b) => a.localeCompare(b));
     for (const f of names) {
-      const c = btn('nt-root', roots, f || '(root)', f ? 'save into ' + f : 'save into no folder');
+      const c = btn('nt-root', roots, f || tx('(root)'), f ? 'save into ' + f : 'save into no folder');
       c.addEventListener('click', () => { const name = (path.value.split('/').pop() || '').trim(); path.value = (f ? f + '/' : '') + name; path.focus(); });
     }
     const toProject = !!(nbApi && nbApi.pages);
     for (const f of names) {
-      el('div', 'nt-folder', list, f || '(root)');
+      el('div', 'nt-folder', list, f || tx('(root)'));
       for (const it of by.get(f)) {
         const row = el('div', 'nt-item', list); row.setAttribute('role', 'listitem'); row.dataset.path = it.path;
         if (it.path === cur) row.dataset.current = '';
         const nm = btn('nt-name', row, it.name, 'open ' + it.path + ' in YOURS');
         nm.addEventListener('click', () => open(it.path, row));
         el('span', 'nt-when', row, (it.saved || '').slice(0, 16).replace('T', ' '));
-        const rn = btn('nt-act nt-ren', row, '✎', 'rename'); rn.setAttribute('aria-label', 'rename ' + it.path);
+        const rn = btn('nt-act nt-ren', row, '✎', 'rename'); ariaLabel(rn, 'rename {name}', { name: it.path });
         rn.addEventListener('click', () => rename(row, it));
         if (toProject) {
-          const cp = btn('nt-act nt-toproject', row, '→', 'copy into the project as a page'); cp.setAttribute('aria-label', 'copy ' + it.path + ' into the project');
-          cp.addEventListener('click', () => { const page = store.get(it.path); if (!page) return; const p = nbApi.pages.add(page); nbApi.select(p.id); say('copied ' + it.path + ' into the project'); });
+          const cp = btn('nt-act nt-toproject', row, '→', 'copy into the project as a page'); ariaLabel(cp, 'copy {name} into the project', { name: it.path });
+          cp.addEventListener('click', () => { const page = store.get(it.path); if (!page) return; const p = nbApi.pages.add(page); nbApi.select(p.id); say(tx('copied {name} into the project', { name: it.path })); });
         }
-        const x = btn('nt-act nt-del', row, '×', 'delete'); x.setAttribute('aria-label', 'delete ' + it.path);
-        x.addEventListener('click', () => askOn(row, 'delete?', () => { if (store.remove(it.path)) { if (cur === it.path) cur = null; say('deleted ' + it.path); } }));
+        const x = btn('nt-act nt-del', row, '×', 'delete'); ariaLabel(x, 'delete {name}', { name: it.path });
+        x.addEventListener('click', () => askOn(row, tx('delete?'), () => { if (store.remove(it.path)) { if (cur === it.path) cur = null; say(tx('deleted {name}', { name: it.path })); } }));
       }
     }
   }

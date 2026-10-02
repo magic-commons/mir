@@ -1,6 +1,6 @@
 # MIR · API
 
-Every module the kit exports, what each export is, and what it returns. MIR 1.4.0.
+Every module the kit exports, what each export is, and what it returns. MIR 1.5.0-alpha.3.
 
 Each module's own header holds its laws and their reasons. This page is the map to them.
 
@@ -73,6 +73,8 @@ These are not modules. Tokens live on `:root` in `base.css`, are re-pointed in `
 
 See [CONTRACT.md](CONTRACT.md) for the tokens an app may re-point, and `tools/lint-tokens.mjs` for the check that every token the kit reads is written somewhere.
 
+Since 1.5.0-alpha.3 a skin may also set the state and height tokens the house reads (the meanings are [INTENT.md](INTENT.md)'s; the full list is [TOKENS.md](TOKENS.md)): `--state-on`, `--state-on-rim`, `--state-on-light`, `--state-press-scale`, `--state-disabled`, `--state-focus` (an `outline` shorthand), `--state-carried`, `--surface-shadow-float`, `--surface-shadow-menu`. Under FROST · STILL (`body.frost-hold`) a REFRACTIVE pane stops blurring and wears the tinted fill.
+
 ---
 
 ## `mir/glyph.js`: drawn marks, never font characters
@@ -126,6 +128,86 @@ A window does no presentation work while it is off, closed, folded, compact, hid
 - dragging or the arrow keys tilt the plane about world X and Y, Shift for fine, and Home resets;
 - it is sharp at every device-pixel ratio and repaints itself on a theme flip; an accent change shows on the app's next `paint()`.
 
+## `mir/core/i18n.js`: one translation seam ([LANGUAGES.md](LANGUAGES.md))
+
+- `t(en, vars?)` → the current language's string, or `en` itself. `{name}` substitution; a var `{ t: 'English' }` is translated in turn, any other var is data.
+- `setLanguage(tag)` → `Promise<boolean>`: loads the pack (one fetch per source, cached), writes `<html lang dir>`, then calls the subscribers. `false` when no pack exists (every string stays English). The last call wins.
+- `language()`, `direction()`, `languages({ dev })` (each `{ tag, name, dir, reviewed }`; `dev` adds `qps`, `qps-rtl`), `LANGUAGES`.
+- `onLanguage(fn)` → `off`. `missing()` → the English strings the current pack lacked. `addLocales(urlOrFn)`: an app's packs, later sources win.
+
+`mir/kit.js` adds: `label(node, en, vars?)` (write a translated label and keep its English on the node), `ariaLabel(node, en, vars?)`, `relabel(root?)` (runs by itself on every language change). `knob()` and `fader()` roots are `dir="ltr"`. A seg's arrow keys follow the eye under `dir="rtl"`. A window's OFF / COPIED caption is written on its `.dev-stat` as `data-cap-off` / `data-cap-copied`.
+
+- `mir/shell/language.js`: `languageMenu({ languages, dev, storageKey })` → a menu entries function (`menus.LANGUAGE`); `startLanguage({ languages, storageKey })` → `Promise<tag>`; `pickLanguage(prefs, languages)`.
+- `mir/locales/pseudo.js`: `pseudo(s)`, `unpseudo(p)`. `mir/locales/locales.css` (layer `mir.kit.locale`): load after base.css.
+- `createMenubar`: an entry is `[label, run, disabled?, hint?, { raw?, current? }]`; `openGroup(name)` takes the English group name.
+- `control-help.js`: a hinted node carries `data-help-en` (the English, stable) and `data-help` (shown, translated). `infoPanel(content, label)` also takes `[template, vars]`.
+- `about.js`: a rich-text part may be `{ t, vars }`; a var that is `[text, href]` is a link inside the sentence.
+
+## `mir/core/prefs.js`: browser preferences
+
+- `createPrefs({ key, schema, presets, storage, doc, context })` → `{ get(k), set(k, v) | set(patch) → changedKeys, reset(), all(), subscribe(fn(state, changed)) → off, apply({ now }), preset(), applyPreset(id), presets, resolve(), env(), destroy() }`
+- A schema row: `{ key, type: 'enum' | 'bool' | 'number', values?, min?, max?, step?, wrap?, default, apply: [{ on, attr, map? } | { on, cls, when? } | { on, prop, map? } | { run(v, state, env, context) }] }`
+- Pure: `valid`, `defaults`, `repair`, `coerce`, `resolve(state, schema, env)`, `matchPreset(state, presets)`
+
+## The portable format: `mir/core/envelope.js`, `png.js`, `intake.js` ([FORMAT.md](FORMAT.md))
+
+### `core/envelope.js`
+
+| export | what |
+|---|---|
+| `FORMAT` | the format version this code writes and reads (1) |
+| `KIT` | the kit version written into `kit` (`mir/version.js` `MIR_VERSION`) |
+| `KINDS` | `['settings', 'skin', 'project', 'page', 'spec']` |
+| `LIMITS` | the size caps (file 32 MB, project 24 MB, page 2 MB, one skin value 400 characters …) |
+| `wrap(kind, data, { kit?, app?, name?, made? })` | a new envelope. Throws only on an unknown kind |
+| `unwrap(text \| object \| Uint8Array)` | `{ envelope, errors }`: parse, read the frame, refuse a newer format, migrate an older one |
+| `stringify(envelope)` | the file text |
+| `pack(envelope)` | `Promise<string>`: `'mir1.z.'` + base64url(deflate-raw(JSON)), or `'mir1.j.'` without CompressionStream |
+| `unpackText(text)` | `Promise<{ envelope, errors }>`; inflates at most 1 MB; never throws |
+| `check(envelope, { tokens, settings?, app? })` | `{ ok, errors: [{ path, why }], warnings, envelope }` — the clean copy, or null. Never throws |
+| `checkSkinValue(row, value, known)` | null, or the reason one value is outside its type's grammar |
+| `skinValues(skinData, theme)` | `{ '--token': value }` for one theme (`tokens`, then `dark`/`light` over it) |
+| `migrate(envelope)`, `MIGRATIONS` | lifting an older format (empty today) |
+| `RANGES`, `KEYWORDS`, `FONTS` | the number ranges, keyword sets and font families the grammar uses where the schema has none |
+
+### `core/png.js`: a picture that carries an envelope
+
+| export | what |
+|---|---|
+| `embed(pngBytes, envelope \| text)` | a new PNG with one `iTXt` `mir` chunk before IEND (an older one replaced); null if not a PNG |
+| `extract(pngBytes)` | the envelope (frame read, data not yet checked), or null. Never throws |
+| `extractText(pngBytes)` | the chunk's text, or null |
+| `chunks(pngBytes)` | `[{ type, start, length, crcOk }]` up to IEND, or null |
+| `crc32(bytes)` | the PNG CRC-32 |
+
+### `core/intake.js`: the one way in
+
+| export | what |
+|---|---|
+| `createIntake({ target, accept?, check?, onEnvelope, onReject?, paste? })` | drop on `target`, paste on the document (not in a text field), `pick()` for the file picker; `→ { pick, ingest(input, opts), destroy }`. While a file is over the target it carries `.mir-prox-host[data-prox="capture"]` (core.css draws the guide) |
+| `readInput(input, { name?, type?, accept?, check?, source? })` | `Promise<{ ok, envelope, errors, warnings, source }>` for a File/Blob, a string or bytes — the same door without listeners |
+
+## `mir/version.js`
+
+`MIR_VERSION`: the kit's version, equal to `package.json`'s (`tests/version.node.mjs`). The GUI window shows it; every envelope carries it.
+
+## `mir/info/`: INFORMATIONAL, words on the picture ([INFORMATIONAL.md](INFORMATIONAL.md))
+
+### `info/page.js`: a page on the picture
+
+- `parsePage(md) → { blocks: [{ md }], labels: [{ anchor, kind, line, title, md }] }` — pure. A label is `> [!mir|anchor word?] Title?` followed by `>` lines; `kind` is `'feature' | 'place' | 'control'` (`@…` a place, `ui:…` a control); `line` is `'auto' | 'flat-first' | 'diagonal-first'` (`flat`, `diagonal` in the callout). Other callouts stay prose; `---` on its own line separates blocks; fences, CRLF, a BOM and front matter are handled.
+- `anchorKind(anchor)` → the kind.
+- `showPage(layer, page, { place?, controls?, pane?, hold? }) → { clear(), page, blocks, labels }` — `page` is a pages-model row, a markdown string or a parsed page. One page per layer: showing another runs the old page's exit, then the new one's entrance. `place(text) → { x, y, r } | null` in stage px, asked on every `viewChanged()`.
+- `greet(layer, pages, { hold = 2500, onDismiss?, place?, controls?, pane? }) → { shown, dismiss() }` — page 0 when `pages.shouldGreet()`; leaves on Escape or on the first press on the stage after the hold.
+
+### `info/seats.js`: the seat chooser (pure)
+
+`chooseSeat(cands, obs, opts) → index`, `scoreSeat`, `troubleOf`, `SEAT`, and the geometry `segCrossesSeg`, `segHitsBox`, `clipLength`, `overlapArea`.
+
+### `info/layer.js`: additions
+
+`createInfoLayer({ …, pane = false, controls = null })`; `addLabel({ anchor: 'ui:name', control? })`; `addBlock({ pane? })`; `setPane(on)`; `layer.stage`. A `() => null` anchor hides its labels.
+
 ---
 
 ## `mir/shell/`: the wordmark, the menubar, the notebook, ABOUT, the accent
@@ -134,7 +216,7 @@ A window does no presentation work while it is off, closed, folded, compact, hid
 |---|---|
 | `wordmark(parent, { lead, word, sub, id = 'title' })` | `#title`, with an optional lead glyph (λWAVES' λ) |
 | `markSvg()` | The nine-square mark |
-| `createMenubar({ opener, host, menus, label, phone, keep })` | FILE · EDIT · VIEW · WINDOW · ABOUT under the wordmark. Returns `{ bar, open(focus), close(), openGroup(name), isOpen, items, destroy() }` |
+| `createMenubar({ opener, host, menus, label, phone, keep })` | FILE · EDIT · VIEW · WINDOW · ABOUT (and LANGUAGE, GUI) under the wordmark. An entry is `[label, run, disabled?, hint?, { raw?, current? }]`. On a phone the bar wraps onto a second row and an open list stays on the screen. Returns `{ bar, open(focus), close(), openGroup(name), isOpen, items, destroy() }` |
 | `createNotebook({ host, name, title, storageKey, about, faces, render, vendor, logo, onLogo, dump, keyLabel })` | The glass with NOTES and ABOUT. Returns `{ root, open(face), close, toggle, isOpen, face, moveTo, resize, size, dump, text, title, subtitle, mode, setMode, render, html, destroy() }` |
 | `loadRenderer()` | Loads marked and KaTeX from `shell/vendor/`, once, only what the page hasn't loaded |
 | `aboutFace(face, data)` | The ABOUT face from data |
@@ -151,6 +233,64 @@ Notes on the shell:
 - **App faces:** each face in `faces` is `{ id, glyph, label, title, build(faceEl, api), show(faceEl, api) }` and gets a round button after ◐.
 - **Accent defaults:** A 30°, B 300°, vivid 0.1, as λWAVES ships. Josh's law is `{ a: 60, b: 300 }`.
 - **Sheets:** `shell/shell.css` is required for the shell. `shell/stage.css` is an optional ground.
+
+### Pages and the notebook's tabs: `mir/shell/pages.js`, `mir/shell/notebook.js` ([NOTEBOOK.md](NOTEBOOK.md))
+
+`createPages()` → `{ list, get, index, add, update, remove, move, greeting, shouldGreet, showOnOpen (get/set), copyOut, capture, beforeCapture, restore, signature, subscribe, part }`. A page is `{ id, title, md, shared }`; `pages[0]` is the greeting. `beforeCapture(fn)` → `off`: `fn` runs at the top of every `capture()` (a hook that throws is isolated), so a debounced editor writes its last keystrokes first. Also `pageFromNotebook({ title, subtitle, text })`, `pageFile(page) → { name, text }`, `pageFromFile(name, text) → { title, md }`.
+
+`createNotebook(options)` — new option `pages` (a `createPages()` model): the notebook gets a tab strip, YOURS then the project's pages, and registers its flush with `pages.beforeCapture`. A face in `faces` that carries `store` is the shelf (COPY TO SHELF writes there). Without `pages` nothing changes. New on the returned object:
+- `pages` — the model, or null · `shelf` — the shelf store, or null
+- `selected` — `'yours'` or a page id · `select(key)` — a missing id selects yours
+- `yours` — `{ title, md }` of the YOURS tab · `openNote({ title, md })` — into YOURS, selected and shown
+- `addFiles(files)` → Promise<count> — `.md/.markdown/.txt` files as pages
+- `flush()` — write pending page edits and storage now
+
+Sheets: `mir/core/core.css` (drop guides) and `mir/shell/pages.css` after `mir/shell/shell.css`.
+
+### The shelf: `mir/notes/`
+
+`createShelf({ storage = localStorage, key = 'mir.notes', now })` (`mir/notes/shelf.js`, pure) → `{ key, list(), folders(), recent(), get(path), has(path), save(path, { title, md }), open(path), rename(from, to), remove(path), freePath(path), exportNote(path) → { name, text }, importNote(fileName, text, folder?), repaired, error, subscribe(fn(what, path)) }`.
+Storage: `{ items: { [path]: { path, folder, name, saved, opened, title, md } }, recent: [≤5 paths] }`. Writes return the result or null/false with words in `error`; nothing throws. A damaged store is copied whole to `<key>.corrupt` and mended. Also exported: `normPath`, `splitPath`, `repair`, `RECENT` (5).
+
+`notesFace({ store = createShelf(), glyph = '▤', label = 'shelf' })` (`mir/notes/face.js`) → a face `{ id: 'shelf', glyph, label, title, store, build, show, current }` for `createNotebook({ faces })`. Sheet: `mir/notes/notes.css`.
+
+### The rack: `mir/shell/rack.js` ([RACK.md](RACK.md))
+
+- `createRack({ host, sides, key, store, favourites, transport, seats, phone, chrome, handle, onChange })` → `rack`
+- **Windows.**
+  - `rack.register({ id, title, side, open, glyph, hint, key, status, build(body, api), onOpen, onWake, onClose, onSleep, onFold, onPower, onPresent })` → id. Built on first open.
+  - `rack.start()` applies the saved layout. It also runs by itself after the creating task.
+  - `rack.open(id, { side, index })`, `close(id)`, `toggle(id)`, `isOpen(id)`, `raise(id)`, `fold(id, on?)`, `move(id, { side, index })`.
+  - `rack.float(id, at)`, `dock(id, { side, index })`, `toggleFloat(id)`, `setCompact(id, on)`.
+- **Hiding and the transport.**
+  - `rack.setHidden(on)` is the one hide path. Also `toggleHidden()`, `hidden` and `peek`.
+  - `rack.setInterface(shown)` is H; the edge handle is the way back.
+  - `rack.dodge(rect | null)` moves the transport to the free seat; `seat` says which.
+- **Menus.**
+  - `rack.windowMenu({ rack, rackKey })` gives the rows for `createMenubar({ menus })`.
+  - `rack.addMenu` is `{ open, close, shown, queued, commit }`; `rack.favMenu` is `{ open, close, shown }`.
+- **The layout.**
+  - `rack.capture()` → `{ v, at, hidden, phoneShown, cards: [{ id, side, open, folded, off, float }] }`; `rack.apply(layout)`.
+  - `saveLayout(slot?)`, `loadLayout(slot)`, `forgetLayout(slot)`, `layouts()`.
+- **Reading the state.** `built`, `registered`, `isBuilt(id)`, `window(id)`, `order(side)`, `floating()`, `floatOf(id)`, `phone`, `dragging`, `cancelDrag()`, `activity`, `el`, `sync()`, `destroy()`.
+- **Pure helpers.** `reorderIndex`, `insertionIndex`, `slotRect`, `moveId`, `clampFloat`, `detached`, `peekSide`, `dodgeSeat`, `queueToggle`, `openOrder`, `favSlot`, `readLayout`, `layoutLabel`, `localStore`, `RACK`, `SIDES`.
+- **`mir/shell/rack.css`** loads after the kit's sheets and core.css, in `mir.kit.house`.
+
+### The GUI window: `mir/shell/gui.js` ([GUI.md](GUI.md))
+
+- `createGui({ host, prefs, app: { name }, about: { github, credits, fonts }, accent, defaults, storageKey = 'mir.gui' })` → `{ root, window, prefs, open('options' | 'about'), close(), toggle(page), page, turn(±1), moving(bool), dropGuides(), census(), light, parallax, destroy() }`
+- `lookSchema()`, `LOOK_PRESETS` (`classic`, `glass`, `light`), `SKINS`, `MIR_VERSION`, `MIR_WORDS`
+- `stepper({ label, aria, items: [{ id, label, coming? }], value, onChange, wrap })` → `{ root, prev, next, get(), set(id), setItems(items, id), step(d) }`
+- `census(doc)` → `{ blur, shadow }`
+- Sheet: `mir/shell/gui.css`.
+
+### Pointer effects: `mir/fx/`
+
+- `createPointerLight({ doc, enabled })` → `{ refresh(), destroy(), live }` — surfaces opt in with `data-light`; writes `--light-x/--light-y` (px) and `data-lit`; `<html data-pointer-light>` while live.
+- `createParallax({ doc, enabled })` → `{ refresh(), destroy(), live }` — elements opt in with `data-parallax="<px>"`; writes `--plx-x/--plx-y`; `<html data-parallax-live>` while live.
+- Pure: `fxAllowed({ coarse, motion, tier })`, `fxEnv(doc)`, `watchFxMedia(doc, fn)`, `parallaxOffset(px, py, view, depth)`.
+- Sheet: `mir/fx/fx.css` (`@layer mir.kit.house`).
+
 
 ---
 
@@ -259,6 +399,10 @@ The window loads two sheets, `mir/modulation/modhost.css` and then `mir/modulati
 | `shell-parity.mjs capture\|compare` | The shell is λWAVES' shell: styles, text, boxes and pixels in 14 states |
 | `shell-behaviour.mjs [url]` | 19 behaviour probes of the shell |
 | `extract-shell-css.mjs` | How `mir/shell/shell.css` was made |
+| `lint-intent.mjs [--report] [--update-baseline]` | The INTENT counts per sheet may go down, never up |
+| `tokens-doc.mjs` | Writes `docs/TOKENS.md` from `mir/tokens.json` |
+| `i18n-extract.mjs [--check]` | The English catalogue `mir/locales/en.json` and its report (`npm run i18n`) |
+| `check-envelope.mjs <file> [--app id] [--settings schema.json] [--tokens tokens.json] [--json]` | `ok <kind>` or `error path: why` lines; exit 0 / 1 (2 on bad usage) (`npm run check:envelope`) |
 | `cdp.mjs` | The headless Chromium under all of them |
 
 `npm test` runs the token lint, `tests/*.node.mjs` and `tests/*.browser.mjs`.

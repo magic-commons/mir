@@ -10,7 +10,7 @@ import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath }
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 export const SCHEMA = path.join(ROOT, 'mir', 'tokens.json');
 export const DOC = path.join(ROOT, 'docs', 'TOKENS.md');
-const GROUPS = ['ink', 'accent', 'status', 'data', 'surface', 'face', 'relief', 'state', 'type', 'space', 'radius', 'motion', 'layout', 'z', 'runtime'];
+const GROUPS = ['ink', 'accent', 'status', 'data', 'surface', 'face', 'relief', 'state', 'type', 'space', 'radius', 'motion', 'layout', 'z', 'info', 'gui', 'fx', 'runtime'];
 const GROUP_LINE = {
   ink: 'The ink ladder. The 1.4 names stay the public names: an app re-points them per cell, and an alias would not follow.',
   accent: 'ACCENT A carries live signal and emphasis; ACCENT B carries relationships and time. Both are the user\'s.',
@@ -19,7 +19,7 @@ const GROUP_LINE = {
   face: 'What a control\'s face is made of, at rest and in each state.', relief: 'Shadows and bevels. Each one means one thing (docs/INTENT.md).',
   state: 'The 1.5 state tokens: one drawing per meaning.', type: 'Faces, sizes, tracking, weights.', space: 'Spacing and the 44 px law.',
   radius: 'Corners.', motion: 'Durations and easings (docs/MOTION-LAW.md).', layout: 'Geometry the layout reads. A skin that changes a size got something wrong.',
-  z: 'Stacking.', runtime: 'Written per element at run time, by kit JS or by the app. Not a skin\'s.',
+  z: 'Stacking.', info: 'INFORMATIONAL: words on the picture (docs/INFORMATIONAL.md).', gui: 'The GUI window (docs/GUI.md).', fx: 'The pointer glow and parallax (mir/fx/).', keyboard: 'The keyboard window (docs/KEYS.md).', 'shell-parts': 'The small shell parts: dialog, notice, busy mark, boot card, settings rows (docs/SHELL-PARTS.md).', folders: 'The project window (docs/FOLDERS.md).', runtime: 'Written per element at run time, by kit JS or by the app. Not a skin\'s.',
 };
 const esc = (s) => String(s ?? '').replace(/\|/g, '\\|');
 const code = (s) => (s === undefined || s === null || s === '' ? '' : '`' + esc(s).replace(/`/g, "'") + '`');
@@ -36,14 +36,14 @@ export function render(schema) {
   L.push('', '## How to read a row', '');
   L.push('| field | meaning |', '|---|---|',
     '| **tier** | `primitive` a raw scale step · `semantic` what a thing is for (the names components read) · `component` one part\'s knob, read with a semantic fallback at the use site |',
-    '| **type** | color · color-channels (`H S% L%` for `hsl(var(--x) / a)`) · angle · percentage · number · length · shadow · filter · image · duration · easing · font · keyword |',
+    '| **type** | color · color-channels (`H S% L%` for `hsl(var(--x) / a)`) · angle · percentage · number · length · shadow · filter · image · duration · easing · font · keyword · outline (an `outline` shorthand) |',
     '| **dark / light** | the value the kit gives it, per theme (light only where it differs). For a plugin token, the value in the plugin seat (`.mir-modwindow, .kwin-chiprail, .m2ghost`) |',
     '| **owner** | `kit` its sheets declare it · `plugin` only the modulation sheets do · `app-input` the kit reads it and the app writes it · `runtime` written per element by script |',
     '| **skin** | ✓ a skin may set it. Geometry, data, runtime and plugin tokens are not a skin\'s (the PORTED-WINDOW EXCEPTION: a host sets the plugin\'s accent hues, nothing else) |',
     '| **status** | `stable` · `alias-of:--x` the same value under a second name · `deprecated` going (dead or inert) · `proposed` a 1.5 name, not in the sheets yet; it reads its **fallback** (a 1.4 name) at the use site |',
     '| **intent** | the meaning it carries in docs/INTENT.md, if any |', '');
   L.push('Flags: **dead** declared and read by nothing · **inert** draws nothing (transparent lights) · **unread-in-kit** read by apps, not the kit · **read-by-js** read only by kit script · **js-written** kit script writes it too · **js-only** only kit script writes it · **no-writer** read, and nothing in the kit writes it · **parallel-pane:…** one of the three pane vocabularies.', '');
-  for (const g of GROUPS) {
+  for (const g of [...new Set([...GROUPS, ...T.map((t) => t.group)])]) {   // a group the list does not name yet is still drawn, after the named ones
     const rows = T.filter((t) => t.group === g);
     if (!rows.length) continue;
     L.push(`## ${g}`, '', GROUP_LINE[g] || '', '');

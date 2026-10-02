@@ -87,9 +87,9 @@ body {
   transition: box-shadow var(--t-fast); }
 
 
-.dev-head { position: relative; height: 34px; padding-left: 28px; background: transparent; border-bottom-color: var(--glass-hairline); border-radius: var(--surface-radius, var(--card-r)) var(--surface-radius, var(--card-r)) 0 0;
+.dev-head { position: relative; height: 34px; padding-inline-start: 28px; background: transparent; border-bottom-color: var(--glass-hairline); border-radius: var(--surface-radius, var(--card-r)) var(--surface-radius, var(--card-r)) 0 0;
   cursor: grab; }                                                             /* the header is the drag handle */
-.dev-head::before { content: ""; position: absolute; left: 8px; top: 50%; width: 15px; height: 15px; margin-top: -7.5px;
+.dev-head::before { content: ""; position: absolute; inset-inline-start: 8px; top: 50%; width: 15px; height: 15px; margin-top: -7.5px;
   color: var(--ink-faint); pointer-events: none;
   /* THE DOT GRIP (Josh, 2026-09-10): 3 × 3 dots on a 5-px pitch — the same mark as kit.js gripDots() and the
      modulation rail's reorder handle, so every "drag me" in the lab is one mark. */
@@ -100,7 +100,7 @@ body {
 .dev-head > .dev-util { grid-column: 3; justify-self: end; gap: 4px; }
 .dev-util > .dev-power, .dev-util > .dev-copy, .dev-util > .dev-swap,
 .dev-util > .dev-pop, .dev-util > .dev-rail,
-.dev-util > .dev-close, .dev-util > .dev-fold { margin-left: 0; margin-right: 0; }
+.dev-util > .dev-close, .dev-util > .dev-fold { margin-inline: 0; }
 .dev-head:active { cursor: grabbing; }
 .folded .dev-head { border-radius: var(--surface-radius, var(--card-r)); }
 /* CARRIED (INTENT): one height up — the floating window's shadow, falling down — and an accent ring.  One drawing:
@@ -272,6 +272,11 @@ body[data-card="tinted"] .dev, body[data-card="tinted"] .glass
    through it is gone with the blur. */
 body.frost[data-card="refractive"] .dev, body.frost[data-card="refractive"] .glass { -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter)); backdrop-filter: var(--surface-filter, var(--frost-filter)); }
 body.frost[data-card="refractive"][data-theme="dark"] .dev, body.frost[data-card="refractive"][data-theme="dark"] .glass { background: var(--surface-veil, hsl(0 0% 0% / .10)); }
+/* FROST · STILL (`body.frost-hold`, set while the picture moves): a REFRACTIVE pane stops blurring and wears the tinted
+   fill for as long as the hold lasts — the surface the lite tier gives it — so STILL differs from ALWAYS.  Only the
+   pixels of the hold change; the moment it lifts, the blur and the veil are back. */
+body.frost.frost-hold[data-card="refractive"] .dev, body.frost.frost-hold[data-card="refractive"] .glass {
+  -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
 
 /* A live WebGPU canvas makes every blurred/inset child shadow in a translucent rack a recurring
    compositor cost on iPad. During motion the card silhouette, borders, fills and state colours stay;
@@ -310,6 +315,7 @@ body.disconnected.frost[data-card="refractive"]:not(.phone) .dev > .dev-head {
   backdrop-filter: var(--surface-filter, var(--frost-filter) brightness(1.03) saturate(1.03)); }
 body.disconnected.frost.frost-hold:not(.phone) .dev > .dev-head,
 body.disconnected.frost.frost-hold:not(.phone) .dev > .dev-body { -webkit-backdrop-filter: none; backdrop-filter: none; }
+body.disconnected.frost.frost-hold[data-card="refractive"]:not(.phone) .dev > .dev-body { background: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
 /* A COMPACT window is one rail and nothing else: the body is gone, so there is no constellation and the
    chip is the whole window.  A FOLDED one is the same shape, and both fall out of `display: none` on the
    body without a rule — stated here only so the next reader does not go looking for one.
@@ -448,15 +454,15 @@ body.disconnected:not(.phone) .dev.tab-hot > .dev-body { outline: none; }
    λWAVES, BASINS and NEBULA (which carry the same sheets) they are duplicates and change nothing.
    The switches: body.window-info-off hides every ⓘ (control-help.js HELP_CLASSES.infoOff). */
 /* from λWAVES lab/lab.css */
-.dev.off .dev-stat::after { content: ' · OFF'; color: var(--dim); }
-.dev.copied .dev-stat::after { content: ' · COPIED'; color: var(--acc); }
+.dev.off .dev-stat::after { content: ' · ' attr(data-cap-off); color: var(--dim); }          /* the words are kit.js's, translated */
+.dev.copied .dev-stat::after { content: ' · ' attr(data-cap-copied); color: var(--acc); }
 .k-val, .fd-val, .ro-val, .ro-sub, .dev-stat { font-variant-numeric: tabular-nums; }
 .fx { margin: 3px 0 0; display: flex; flex-direction: column; gap: 1px; }
 .fx-l { display: block; font-size: var(--fs-small); line-height: 1.55; color: var(--ink-key); letter-spacing: 0; }
 .fx-v { font-style: normal; font-family: var(--font-num); font-size: .92em; font-variant-numeric: tabular-nums;
         color: var(--fg); letter-spacing: var(--tr-tight); }
 .fx.dim .fx-l { color: var(--ink-faint); }
-.dev-stat { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: right; font-size: var(--fs-tiny); letter-spacing: var(--tr-tight); color: var(--dim); font-variant-numeric: tabular-nums;
+.dev-stat { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: end; font-size: var(--fs-tiny); letter-spacing: var(--tr-tight); color: var(--dim); font-variant-numeric: tabular-nums;
   padding: 0 var(--sp-2); }
 .dev-stat.live { color: var(--acc); }
 .dev-stat.warn { color: var(--warn); }

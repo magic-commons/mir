@@ -20,105 +20,359 @@
  },
  "note": "The catalogue (tools/i18n-extract.mjs writes it; do not edit). A translator copies this file to <tag>.json, keeps the keys, writes each value in the language, and deletes \"sources\". English needs no pack: it is the fallback.",
  "strings": {
+  "(root)": "(root)",
+  "+ DEVICE": "+ DEVICE",
+  "+ MACRO": "+ MACRO",
+  ".MD": ".MD",
+  "A file the app needs did not load.": "A file the app needs did not load.",
   "ABOUT": "ABOUT",
-  "Audio input device": "Audio input device",
+  "ADD ROUTE": "ADD ROUTE",
+  "ANCHOR holds the beat: the 1 anchored source — and every BPM source beside it — resumes exactly where the pause caught it": "ANCHOR holds the beat: the 1 anchored source — and every BPM source beside it — resumes exactly where the pause caught it",
+  "ANCHOR holds the beat: the {n} anchored sources — and every BPM source beside them — resume exactly where the pause caught them": "ANCHOR holds the beat: the {n} anchored sources — and every BPM source beside them — resume exactly where the pause caught them",
+  "ARMED: {macro} — tap a lit control to route it, tap the grip again to cancel": "ARMED: {macro} — tap a lit control to route it, tap the grip again to cancel",
+  "AUDIO IN": "AUDIO IN",
+  "AUDIO ON": "AUDIO ON",
+  "AUDIO — {state}. LEVEL, three BANDS and HIT leave as sockets; patch one to a macro.": "AUDIO — {state}. LEVEL, three BANDS and HIT leave as sockets; patch one to a macro.",
+  "Active": "Active",
+  "Add a macro": "Add a macro",
+  "Add a macro in the modulation window to begin routing.": "Add a macro in the modulation window to begin routing.",
+  "Add an LFO, envelope, or audio follower": "Add an LFO, envelope, or audio follower",
+  "Add an audio follower; AUDIO IN uses the microphone": "Add an audio follower; AUDIO IN uses the microphone",
+  "Alt-click deletes this point; drag it to move": "Alt-click deletes this point; drag it to move",
+  "Audio input is unavailable in this browser": "Audio input is unavailable in this browser",
+  "Audio input, band ranges, timing, gate, and onset settings": "Audio input, band ranges, timing, gate, and onset settings",
+  "Audio response ranges": "Audio response ranges",
   "BASINS today: refractive frost, separate headers": "BASINS today: refractive frost, separate headers",
+  "BIPOLAR": "BIPOLAR",
   "BLUR": "BLUR",
+  "Bypass this device and keep its settings": "Bypass this device and keep its settings",
   "CALCULATING": "CALCULATING",
+  "CENTRE": "CENTRE",
   "CLASSIC": "CLASSIC",
+  "CLOSE": "CLOSE",
+  "CMP": "CMP",
   "COMPACT": "COMPACT",
+  "COPIED": "COPIED",
   "COPY": "COPY",
+  "COPY DETAILS": "COPY DETAILS",
   "COPY DUMP": "COPY DUMP",
+  "COPY TO PROJECT": "COPY TO PROJECT",
+  "COPY TO SHELF": "COPY TO SHELF",
+  "CURVE": "CURVE",
   "CUSTOM": "CUSTOM",
-  "Close dead-send inspector": "Close dead-send inspector",
-  "Close the conditioning sheet": "Close the conditioning sheet",
+  "Cancel": "Cancel",
+  "Cancelled: “{action}” keeps its keys": "Cancelled: “{action}” keeps its keys",
+  "Check the connection and reload. If you serve the app yourself, check that every file was copied.": "Check the connection and reload. If you serve the app yourself, check that every file was copied.",
+  "Choose a key, with any modifiers.": "Choose a key, with any modifiers.",
+  "Choose an action in the list first, then press RECORD INPUT": "Choose an action in the list first, then press RECORD INPUT",
+  "Choose at least one project component before saving.": "Choose at least one project component before saving.",
   "Close this window": "Close this window",
   "Close window": "Close window",
+  "Collapse or expand the macro rail": "Collapse or expand the macro rail",
+  "Collapse or expand this device": "Collapse or expand this device",
   "Collapse or expand this window": "Collapse or expand this window",
+  "Continue from the clock phase": "Continue from the clock phase",
+  "Could not delete: {why}": "Could not delete: {why}",
+  "Could not duplicate: {why}": "Could not duplicate: {why}",
+  "Could not keep {name}: {why}": "Could not keep {name}: {why}",
+  "Could not make the picture for {name} — it has none; export the .mir file instead": "Could not make the picture for {name} — it has none; export the .mir file instead",
+  "Could not make the picture: {why}": "Could not make the picture: {why}",
+  "Could not move: {why}": "Could not move: {why}",
+  "Could not open that file: {why}": "Could not open that file: {why}",
+  "Could not open {name}: {why}": "Could not open {name}: {why}",
+  "Could not remove the folder: {why}": "Could not remove the folder: {why}",
+  "Could not rename: {why}": "Could not rename: {why}",
+  "Could not restore the factory gallery: {why}": "Could not restore the factory gallery: {why}",
+  "Could not save: {why}": "Could not save: {why}",
+  "Could not save: {why} — nothing was cleared.": "Could not save: {why} — nothing was cleared.",
+  "Could not save: {why} — nothing was opened.": "Could not save: {why} — nothing was opened.",
+  "Could not set the folder picture: {why}": "Could not set the folder picture: {why}",
+  "Could not start over: {why}": "Could not start over: {why}",
+  "Ctrl / ⌘": "Ctrl / ⌘",
+  "Current gallery folder": "Current gallery folder",
+  "Curve editor: right-drag empty space to add a point; Shift-right-click adds at the current curve value; left-drag a point to move it; left-drag a tension handle to bend it; Ctrl makes tension fine; right-click or double-click a tension handle resets it; Alt-click a point deletes it.": "Curve editor: right-drag empty space to add a point; Shift-right-click adds at the current curve value; left-drag a point to move it; left-drag a tension handle to bend it; Ctrl makes tension fine; right-click or double-click a tension handle resets it; Alt-click a point deletes it.",
+  "DEAD SENDS": "DEAD SENDS",
   "DIST": "DIST",
+  "DOWN": "DOWN",
   "DRAFT": "DRAFT",
-  "Dead-send inspector": "Dead-send inspector",
+  "Delete {name}": "Delete {name}",
+  "Deleted — {name}": "Deleted — {name}",
+  "Disconnect the source from this macro": "Disconnect the source from this macro",
+  "Drag sideways to set; double-tap the row grip to rename": "Drag sideways to set; double-tap the row grip to rename",
+  "Drag to reorder": "Drag to reorder",
+  "Drag to reorder; double-tap to rename": "Drag to reorder; double-tap to rename",
   "Drag to resize the notebook": "Drag to resize the notebook",
+  "Drag to route; tap to arm; double-tap to reset": "Drag to route; tap to arm; double-tap to reset",
   "Drag window": "Drag window",
+  "Drag ✥ onto a slider or knob to route it (a PAD’s ✥ makes that control get hit) · drop it there again to release · a macro bar: drag sideways to set, double-tap to reset, tap to rename or unassign · number ring: up/down = master depth, double-tap = 100% · route ring: up/down = depth, sideways = direction.": "Drag ✥ onto a slider or knob to route it (a PAD’s ✥ makes that control get hit) · drop it there again to release · a macro bar: drag sideways to set, double-tap to reset, tap to rename or unassign · number ring: up/down = master depth, double-tap = 100% · route ring: up/down = depth, sideways = direction.",
+  "Duplicated — {name}": "Duplicated — {name}",
+  "ENV — {drawn} s drawn over a {window} s window. Drag the stages; FIT frames it.": "ENV — {drawn} s drawn over a {window} s window. Drag the stages; FIT frames it.",
+  "EVT": "EVT",
+  "EXPORT": "EXPORT",
+  "EXPORT .MD": "EXPORT .MD",
   "EXPOSURE": "EXPOSURE",
+  "Enable route": "Enable route",
+  "Escape is kept for closing and cancelling.": "Escape is kept for closing and cancelling.",
+  "Every key is back to its default": "Every key is back to its default",
   "Every look option back home": "Every look option back home",
+  "Exported {name} as a .mir file": "Exported {name} as a .mir file",
+  "Exported {name} as a picture that carries it": "Exported {name} as a picture that carries it",
+  "FACTORY": "FACTORY",
   "FOV": "FOV",
   "FRAME": "FRAME",
+  "FREE": "FREE",
   "FROST": "FROST",
+  "FULL": "FULL",
+  "Find a keyboard action": "Find a keyboard action",
+  "Find an action or key…": "Find an action or key…",
+  "Fire this trigger": "Fire this trigger",
+  "Fit the full envelope in the graph": "Fit the full envelope in the graph",
+  "Folder picture set from {name}": "Folder picture set from {name}",
+  "Folder removed — {n} moved to ROOT": "Folder removed — {n} moved to ROOT",
+  "Folder renamed to {to}": "Folder renamed to {to}",
+  "Folders": "Folders",
+  "GATED": "GATED",
   "GLASS": "GLASS",
   "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license}": "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license}",
   "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license} and {notice}": "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license} and {notice}",
   "GRAIN": "GRAIN",
   "GUI": "GUI",
   "GUI — MIR OPTIONS and MIR ABOUT": "GUI — MIR OPTIONS and MIR ABOUT",
+  "Gate hold keeps the noise gate open. The face HOLD knob separately holds each band peak before release.": "Gate hold keeps the noise gate open. The face HOLD knob separately holds each band peak before release.",
+  "HAND": "HAND",
   "HSV wheel (the built-in)": "HSV wheel (the built-in)",
   "HUE": "HUE",
+  "Handed to the share sheet — choose Save Image or Save to Files.": "Handed to the share sheet — choose Save Image or Save to Files.",
+  "Hold and repeat {note}; release to resume the original clock": "Hold and repeat {note}; release to resume the original clock",
+  "IDLE": "IDLE",
+  "IMPORT .MD": "IMPORT .MD",
+  "IMPORTED": "IMPORTED",
   "ISO": "ISO",
+  "Imported — {name}": "Imported — {name}",
   "In the most recently saved layout": "In the most recently saved layout",
+  "Include {what} in the next save": "Include {what} in the next save",
   "Information": "Information",
+  "Input dB at 0% output; upper boundary reaches 100%.": "Input dB at 0% output; upper boundary reaches 100%.",
+  "KEYBOARD": "KEYBOARD",
+  "KEYS": "KEYS",
   "KNEE": "KNEE",
+  "Key names": "Key names",
+  "Keyboard actions": "Keyboard actions",
   "LAP": "LAP",
   "LEVEL": "LEVEL",
+  "LEVEL master to LEVEL": "LEVEL master to LEVEL",
+  "LEVEL {v}": "LEVEL {v}",
   "LIGHT": "LIGHT",
+  "LIVE": "LIVE",
   "LOOK": "LOOK",
+  "Limit modulation updates per second": "Limit modulation updates per second",
+  "Listening for “{action}”. This looks like a touch screen with no keyboard and no board to tap: press the new keys on a hardware keyboard if one is connected, or press RECORD INPUT again to cancel.": "Listening for “{action}”. This looks like a touch screen with no keyboard and no board to tap: press the new keys on a hardware keyboard if one is connected, or press RECORD INPUT again to cancel.",
+  "Listening for “{action}”. This looks like a touch screen with no keyboard: tap the new key on the board (tap SHIFT, CTRL or ALT first for a modifier), or press RECORD INPUT again to cancel.": "Listening for “{action}”. This looks like a touch screen with no keyboard: tap the new key on the board (tap SHIFT, CTRL or ALT first for a modifier), or press RECORD INPUT again to cancel.",
+  "Listening for “{action}”: press the new keys with any modifiers, or tap them on the board. Esc cancels.": "Listening for “{action}”: press the new keys with any modifiers, or tap them on the board. Esc cancels.",
   "MACRO": "MACRO",
+  "MACRO {n} DEPTH": "MACRO {n} DEPTH",
+  "MAKE ROOM — delete oldest (\"{name}\") and save": "MAKE ROOM — delete oldest (\"{name}\") and save",
+  "MAX": "MAX",
   "METRO": "METRO",
+  "MIN": "MIN",
   "MIR": "MIR",
   "MIR ABOUT": "MIR ABOUT",
   "MIR OPTIONS": "MIR OPTIONS",
+  "MOD is on — the arm is the small button beside the transport’s own play": "MOD is on — the arm is the small button beside the transport’s own play",
+  "MODULATION": "MODULATION",
+  "MODULATION MATRIX": "MODULATION MATRIX",
+  "MOVE TO": "MOVE TO",
+  "MY PRESETS": "MY PRESETS",
+  "Mac and iPad": "Mac and iPad",
+  "Master depth for this macro. Double-tap for 100%.": "Master depth for this macro. Double-tap for 100%.",
+  "Master depth for {macro}": "Master depth for {macro}",
+  "Move macros to either side": "Move macros to either side",
+  "Move macros to left or right end": "Move macros to left or right end",
   "Move this window between the rack and stage": "Move this window between the rack and stage",
   "Move window": "Move window",
+  "Move {name} to a folder": "Move {name} to a folder",
+  "Move {name} to folder": "Move {name} to folder",
+  "Moved {name} to {to}": "Moved {name} to {to}",
   "NOTEBOOK": "NOTEBOOK",
+  "New folder path — onto an existing folder it merges": "New folder path — onto an existing folder it merges",
+  "New — the empty project": "New — the empty project",
+  "Next project page": "Next project page",
+  "No such action.": "No such action.",
+  "Nothing matches": "Nothing matches",
+  "Nothing was captured to save — save again.": "Nothing was captured to save — save again.",
+  "OFF": "OFF",
+  "OK": "OK",
+  "OLDER MODEL": "OLDER MODEL",
+  "ON": "ON",
+  "OPEN": "OPEN",
   "One camera orbit per bar, with a vertical sweep.": "One camera orbit per bar, with a vertical sweep.",
+  "Open folder {name}": "Open folder {name}",
+  "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.": "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.",
+  "Open modulation matrix": "Open modulation matrix",
+  "Open or close audio input. Audio is analysed locally and is not stored.": "Open or close audio input. Audio is analysed locally and is not stored.",
+  "Opened — {name}": "Opened — {name}",
   "Orient the plane. Shift gives finer motion; Home resets.": "Orient the plane. Shift gives finer motion; Home resets.",
+  "PAGE {n} / {of}": "PAGE {n} / {of}",
+  "PHOTOSENSITIVITY WARNING": "PHOTOSENSITIVITY WARNING",
   "PITCH": "PITCH",
   "PRESETS": "PRESETS",
-  "Preset name — type one, then tap SAVE": "Preset name — type one, then tap SAVE",
+  "PROJECTS": "PROJECTS",
+  "Paste a compatible device patch": "Paste a compatible device patch",
+  "Picture made — {w}×{h}. Tap the download icon to keep it.": "Picture made — {w}×{h}. Tap the download icon to keep it.",
+  "Play or pause modulation": "Play or pause modulation",
+  "Previous project page": "Previous project page",
+  "Project components and display options": "Project components and display options",
+  "Project name": "Project name",
+  "Project options": "Project options",
+  "Project pages": "Project pages",
+  "Projects": "Projects",
+  "Quantise output to discrete levels": "Quantise output to discrete levels",
+  "RANGE": "RANGE",
   "RATE": "RATE",
   "RECENT": "RECENT",
+  "RECORD INPUT": "RECORD INPUT",
   "REDO": "REDO",
+  "REMOVE": "REMOVE",
+  "REMOVE ALL": "REMOVE ALL",
   "RES": "RES",
+  "RESET": "RESET",
   "RESET LOOK": "RESET LOOK",
+  "RESET TO DEFAULT": "RESET TO DEFAULT",
+  "RETRY": "RETRY",
   "RIBBON": "RIBBON",
   "RISE": "RISE",
+  "ROOT or folder path": "ROOT or folder path",
+  "Recording cancelled": "Recording cancelled",
   "Redo (Ctrl+Shift+Z, Ctrl+Y)": "Redo (Ctrl+Shift+Z, Ctrl+Y)",
+  "Reload the page: on a cold start the adapter is sometimes late. If it happens again, turn on hardware acceleration in the browser's settings or update the graphics driver.": "Reload the page: on a cold start the adapter is sometimes late. If it happens again, turn on hardware acceleration in the browser's settings or update the graphics driver.",
+  "Reload to start again. Your saved work in this browser is kept.": "Reload to start again. Your saved work in this browser is kept.",
+  "Reload. If it happens again, press COPY DETAILS and send them to the author.": "Reload. If it happens again, press COPY DETAILS and send them to the author.",
+  "Remove the macro from this control": "Remove the macro from this control",
+  "Remove this device and release its macros": "Remove this device and release its macros",
+  "Remove this route": "Remove this route",
+  "Rename {name}": "Rename {name}",
+  "Reset the base value and keep its routes": "Reset the base value and keep its routes",
+  "Resize at the edges; shift inside; double-click to reset": "Resize at the edges; shift inside; double-click to reset",
   "Resize window": "Resize window",
+  "Response curve, zero is linear": "Response curve, zero is linear",
+  "Restart phase on triggers and playback": "Restart phase on triggers and playback",
   "Restore this window layout": "Restore this window layout",
+  "Restored {added} of {total}.": "Restored {added} of {total}.",
+  "Reverse the curve in time": "Reverse the curve in time",
   "Rotate phase colour once per bar without moving the state.": "Rotate phase colour once per bar without moving the state.",
+  "Route {band} to a macro": "Route {band} to a macro",
   "SAVE": "SAVE",
-  "SHADOWS": "SHADOWS",
+  "SAVE AS": "SAVE AS",
+  "SHADOW": "SHADOW",
   "SHELF": "SHELF",
+  "SHOW": "SHOW",
+  "SHOW ON OPEN": "SHOW ON OPEN",
+  "SINE": "SINE",
   "SKIN": "SKIN",
   "SOFTNESS": "SOFTNESS",
   "SPECIAL THANKS": "SPECIAL THANKS",
   "SPRITES": "SPRITES",
   "STEPS": "STEPS",
+  "STUTTER released — rejoined the running beat": "STUTTER released — rejoined the running beat",
+  "STUTTER {note} latched — applies to BPM-synced LFOs; press again to release": "STUTTER {note} latched — applies to BPM-synced LFOs; press again to release",
+  "SYSTEM DEFAULT": "SYSTEM DEFAULT",
   "Save the current window arrangement": "Save the current window arrangement",
-  "Save this rack as a preset": "Save this rack as a preset",
+  "Save this first?": "Save this first?",
+  "Save to folder": "Save to folder",
+  "Saved projects and folders": "Saved projects and folders",
+  "Saved — {name}": "Saved — {name}",
+  "Select a band for timing": "Select a band for timing",
+  "Select a curve before reversing it": "Select a curve before reversing it",
+  "Select the LFO waveform": "Select the LFO waveform",
+  "Select the envelope trigger; Shift-click selects AUDIO HIT": "Select the envelope trigger; Shift-click selects AUDIO HIT",
+  "Select the macro driven by this device": "Select the macro driven by this device",
+  "Select {band} for ATTACK, RELEASE and HOLD": "Select {band} for ATTACK, RELEASE and HOLD",
+  "Selected audio band attack time constant; choose LEVEL, LOW, MID or HIGH on its meter": "Selected audio band attack time constant; choose LEVEL, LOW, MID or HIGH on its meter",
+  "Selected audio band peak hold; choose LEVEL, LOW, MID or HIGH on its meter": "Selected audio band peak hold; choose LEVEL, LOW, MID or HIGH on its meter",
+  "Selected audio band release time constant; choose LEVEL, LOW, MID or HIGH on its meter": "Selected audio band release time constant; choose LEVEL, LOW, MID or HIGH on its meter",
+  "Selected macro range; the large dial sets the base": "Selected macro range; the large dial sets the base",
+  "Set free rate or a loop-clock division": "Set free rate or a loop-clock division",
+  "Set the envelope stage time": "Set the envelope stage time",
+  "Set the modulation clock in beats per minute": "Set the modulation clock in beats per minute",
+  "Shift": "Shift",
+  "Show Mac and iPad key names": "Show Mac and iPad key names",
+  "Show Windows and Linux key names": "Show Windows and Linux key names",
+  "Show the data for {name}": "Show the data for {name}",
   "Show the interface": "Show the interface",
+  "Signed route amount percent": "Signed route amount percent",
   "Slice sphere and plane. Drag or use arrow keys to rotate; Home resets.": "Slice sphere and plane. Drag or use arrow keys to rotate; Home resets.",
+  "Smooth the LFO output": "Smooth the LFO output",
+  "Something went wrong while the app was starting.": "Something went wrong while the app was starting.",
+  "Sort": "Sort",
+  "Sort A to Z": "Sort A to Z",
+  "Sort Z to A": "Sort Z to A",
+  "Sort deepest zoom first": "Sort deepest zoom first",
+  "Sort newest first": "Sort newest first",
+  "Sort oldest first": "Sort oldest first",
+  "Sort shallowest zoom first": "Sort shallowest zoom first",
   "Step through twelve density levels to reveal shells.": "Step through twelve density levels to reveal shells.",
   "Surfaces that blur what is behind them: one compositor pass each": "Surfaces that blur what is behind them: one compositor pass each",
   "Surfaces that draw a shadow": "Surfaces that draw a shadow",
+  "Switch between two saved patches for this device": "Switch between two saved patches for this device",
+  "THIS CONTROL IS HELD BY {n} MACROS  ·  which one the outer arc edits": "THIS CONTROL IS HELD BY {n} MACROS  ·  which one the outer arc edits",
   "TRIG": "TRIG",
+  "TRIG IN": "TRIG IN",
+  "TRIG: the curve starts over": "TRIG: the curve starts over",
   "TURN": "TURN",
+  "Tab is kept for moving the focus.": "Tab is kept for moving the focus.",
+  "Tap repeatedly to set the modulation clock": "Tap repeatedly to set the modulation clock",
   "The 1.4 look: tinted panes, no blur, the relief": "The 1.4 look: tinted panes, no blur, the relief",
+  "The browser has WebGPU but found no graphics adapter to use.": "The browser has WebGPU but found no graphics adapter to use.",
+  "The factory gallery is already complete.": "The factory gallery is already complete.",
   "The fast look: no blur, flat, no shadows, no motion": "The fast look: no blur, flat, no shadows, no motion",
+  "The graphics device was lost: the GPU was reset, its driver changed, or it ran out of memory.": "The graphics device was lost: the GPU was reset, its driver changed, or it ran out of memory.",
+  "The keyboard": "The keyboard",
+  "The library is full: {count} saved, {need} needed of {cap}.  This save was NOT stored.  Delete projects yourself, or make room — the oldest go first.": "The library is full: {count} saved, {need} needed of {cap}.  This save was NOT stored.  Delete projects yourself, or make room — the oldest go first.",
   "The mean frame time over 30 frames after the last change": "The mean frame time over 30 frames after the last change",
+  "The view moved since the picture was made — capture it again.": "The view moved since the picture was made — capture it again.",
+  "This browser has no WebGPU, which this app draws with.": "This browser has no WebGPU, which this app draws with.",
+  "Trigger this envelope. Start modulation to advance it.": "Trigger this envelope. Start modulation to advance it.",
   "Turn this window on or off": "Turn this window on or off",
   "Type: {title}, a renamed subset of Spinwerad by gluk · {roboto} · {stix} — all SIL OFL 1.1, subset for this app.": "Type: {title}, a renamed subset of Spinwerad by gluk · {roboto} · {stix} — all SIL OFL 1.1, subset for this app.",
   "UNDO": "UNDO",
+  "UNIPOLAR": "UNIPOLAR",
+  "UNSAVED CHANGES": "UNSAVED CHANGES",
+  "UNTITLED": "UNTITLED",
+  "UP": "UP",
+  "Unbound": "Unbound",
   "Undo (Ctrl+Z)": "Undo (Ctrl+Z)",
   "Untitled": "Untitled",
   "Use the compact window layout": "Use the compact window layout",
+  "Use the knob position as the centre of a bipolar range": "Use the knob position as the centre of a bipolar range",
+  "Use the knob position as the maximum": "Use the knob position as the maximum",
+  "Use the knob position as the minimum": "Use the knob position as the minimum",
+  "WALL": "WALL",
+  "WALL follows elapsed time. FREE accumulates frame time.": "WALL follows elapsed time. FREE accumulates frame time.",
   "WINDOW": "WINDOW",
+  "WORK BARS · BOTTOM": "WORK BARS · BOTTOM",
+  "WORK BARS · HIDDEN": "WORK BARS · HIDDEN",
+  "WORK BARS · TOP": "WORK BARS · TOP",
   "What the look costs, measured after the last change": "What the look costs, measured after the last change",
+  "Windows and Linux": "Windows and Linux",
+  "Work bars": "Work bars",
+  "Work bars: above. Tap to hide them": "Work bars: above. Tap to hide them",
+  "Work bars: below. Tap to move them above": "Work bars: below. Tap to move them above",
   "Work bars: bottom": "Work bars: bottom",
+  "Work bars: hidden. Tap to move them below": "Work bars: hidden. Tap to move them below",
   "YAW": "YAW",
   "Your own mix: the options match no preset": "Your own mix: the options match no preset",
+  "Zoom into the envelope graph": "Zoom into the envelope graph",
+  "Zoom out of the envelope graph": "Zoom out of the envelope graph",
+  "a curve keeps at least two points": "a curve keeps at least two points",
   "a draft translation: no native reader has checked it yet": "a draft translation: no native reader has checked it yet",
   "add a page": "add a page",
   "add a page to the project": "add a page to the project",
+  "add an AUDIO device and its HIT can fire this envelope": "add an AUDIO device and its HIT can fire this envelope",
+  "added the page {title}": "added the page {title}",
+  "added {n} pages": "added {n} pages",
+  "an envelope has fixed stages — drag a stage to zero instead": "an envelope has fixed stages — drag a stage to zero instead",
+  "asking for the microphone…": "asking for the microphone…",
+  "audio input is closed — press AUDIO IN": "audio input is closed — press AUDIO IN",
   "aurora": "aurora",
   "balmer": "balmer",
   "beacon": "beacon",
@@ -127,135 +381,506 @@
   "carousel": "carousel",
   "close this window": "close this window",
   "cmyk": "cmyk",
+  "copied into the project": "copied into the project",
+  "copied to the shelf as {path}": "copied to the shelf as {path}",
+  "copied {name} into the project": "copied {name} into the project",
   "copy the notes as text": "copy the notes as text",
+  "copy this side's whole patch": "copy this side's whole patch",
+  "copy {name} into the project": "copy {name} into the project",
+  "could not save that preset": "could not save that preset",
   "cym": "cym",
   "delete this page": "delete this page",
+  "delete {macro} and its routes": "delete {macro} and its routes",
+  "delete {name}": "delete {name}",
   "delete?": "delete?",
+  "deleted {name}": "deleted {name}",
+  "deleted “{name}”": "deleted “{name}”",
+  "dismiss": "dismiss",
+  "eight macros is the model’s ceiling": "eight macros is the model’s ceiling",
   "ember": "ember",
+  "empty · in the project": "empty · in the project",
+  "empty · kept in this browser": "empty · kept in this browser",
+  "empty — press ◐ to write": "empty — press ◐ to write",
   "emulsion": "emulsion",
   "enamel": "enamel",
+  "every macro is already driven by another source — free one, or add a macro": "every macro is already driven by another source — free one, or add a macro",
+  "every route into {target} removed": "every route into {target} removed",
   "every window is open — × on a window closes it": "every window is open — × on a window closes it",
+  "fitted to {s} s": "fitted to {s} s",
+  "flipped in time": "flipped in time",
   "fold or unfold this window": "fold or unfold this window",
   "folder/name": "folder/name",
   "forget this layout": "forget this layout",
   "gas lamp": "gas lamp",
   "gemstone": "gemstone",
+  "give it a name: folder/name": "give it a name: folder/name",
+  "hidden from a visiting model — share it": "hidden from a visiting model — share it",
   "history rows": "history rows",
   "hot iron": "hot iron",
+  "imported {name}": "imported {name}",
+  "imported {n} notes": "imported {n} notes",
   "in the saved favourite layout": "in the saved favourite layout",
+  "input changed": "input changed",
+  "input gain, ±24 dB before the band response ranges": "input gain, ±24 dB before the band response ranges",
+  "keep tapping — two taps make an interval": "keep tapping — two taps make an interval",
   "lasers": "lasers",
+  "listening": "listening",
+  "listening at {k} kHz": "listening at {k} kHz",
+  "loaded “{name}”": "loaded “{name}”",
+  "macro reset — value 0, depth 100 %": "macro reset — value 0, depth 100 %",
+  "microphone closed": "microphone closed",
+  "microphone open": "microphone open",
   "narrow this window to its rail": "narrow this window to its rail",
   "neon": "neon",
   "next": "next",
   "no": "no",
   "no notes yet — name one above and SAVE AS": "no notes yet — name one above and SAVE AS",
+  "no presets yet — type a name and press SAVE": "no presets yet — type a name and press SAVE",
+  "not listening": "not listening",
   "notebook": "notebook",
   "notebook subtitle": "notebook subtitle",
   "notebook title": "notebook title",
+  "notes — markdown, $inline$ and $$display$$ maths; ctrl+enter previews — kept in this browser": "notes — markdown, $inline$ and $$display$$ maths; ctrl+enter previews — kept in this browser",
+  "notes — markdown, $inline$ and $$display$$ maths; ctrl+enter previews — kept in this browser and in the project": "notes — markdown, $inline$ and $$display$$ maths; ctrl+enter previews — kept in this browser and in the project",
+  "nothing copied yet — press COPY on a device first": "nothing copied yet — press COPY on a device first",
+  "nothing imported": "nothing imported",
+  "nothing is routed — the transport has nothing to do": "nothing is routed — the transport has nothing to do",
+  "nothing to export — save first": "nothing to export — save first",
   "opal": "opal",
   "open a window": "open a window",
+  "opened {name}": "opened {name}",
   "page": "page",
   "page 0 — the greeting, shown when the project opens": "page 0 — the greeting, shown when the project opens",
   "pages": "pages",
+  "patch copied — PASTE onto any {kind}": "patch copied — PASTE onto any {kind}",
   "patina": "patina",
   "phosphor": "phosphor",
   "pinwheel": "pinwheel",
+  "point removed": "point removed",
   "power": "power",
+  "press a key…": "press a key…",
+  "press for the next order": "press for the next order",
   "previous": "previous",
   "prism": "prism",
   "quadrant": "quadrant",
+  "remove every route into this control": "remove every route into this control",
+  "remove the macro from this control": "remove the macro from this control",
   "rename this tab": "rename this tab",
   "rename to folder/name": "rename to folder/name",
+  "rename {name}": "rename {name}",
+  "renamed to {name}": "renamed to {name}",
+  "reorder or rename {macro}": "reorder or rename {macro}",
+  "replace yours?": "replace yours?",
   "rose window": "rose window",
+  "route removed — {target} is the hand’s again": "route removed — {target} is the hand’s again",
+  "route {macro} — drag onto a control, or tap to arm": "route {macro} — drag onto a control, or tap to arm",
   "save as folder/name": "save as folder/name",
+  "saved {name}": "saved {name}",
+  "saved “{name}”": "saved “{name}”",
   "sea": "sea",
+  "shared with a visiting model — hide it": "shared with a visiting model — hide it",
   "shelf": "shelf",
   "signal flag": "signal flag",
   "subtitle": "subtitle",
   "supernova": "supernova",
+  "sure?": "sure?",
   "take this window off the rack": "take this window off the rack",
+  "tapped {bpm} BPM from {n} intervals": "tapped {bpm} BPM from {n} intervals",
+  "tension reset": "tension reset",
   "terra": "terra",
   "test card": "test card",
+  "that input did not open": "that input did not open",
+  "that macro cannot carry a route": "that macro cannot carry a route",
+  "that macro does not reach this control": "that macro does not reach this control",
+  "that name belongs to a factory preset — try “{name}”": "that name belongs to a factory preset — try “{name}”",
+  "that output cannot be bound": "that output cannot be bound",
+  "that preset could not be loaded": "that preset could not be loaded",
+  "that preset was written by a model this build cannot honour": "that preset was written by a model this build cannot honour",
+  "the ENV has fixed stages — drag a stage or its tension handle": "the ENV has fixed stages — drag a stage or its tension handle",
+  "the conditioning sheet is not available in this build": "the conditioning sheet is not available in this build",
+  "the gate opens here and stays open until hysteresis below it": "the gate opens here and stays open until hysteresis below it",
+  "the loop clock claims the resume: the beat jumped back {moved} of a beat to the {grid}-beat note boundary just passed": "the loop clock claims the resume: the beat jumped back {moved} of a beat to the {grid}-beat note boundary just passed",
+  "the microphone did not open": "the microphone did not open",
   "the notebook's subtitle — type to rename": "the notebook's subtitle — type to rename",
   "the notebook's title — type to rename": "the notebook's title — type to rename",
+  "the phase offset": "the phase offset",
+  "the shelf was damaged and has been mended — the old text is kept under {key}": "the shelf was damaged and has been mended — the old text is kept under {key}",
+  "the sustain LEVEL — the one ADSR control that is not a time": "the sustain LEVEL — the one ADSR control that is not a time",
+  "thirty-two points is the curve’s ceiling": "thirty-two points is the curve’s ceiling",
+  "this build has no such target": "this build has no such target",
+  "this host supplies no audio capture": "this host supplies no audio capture",
+  "this host supplies no capture": "this host supplies no capture",
+  "this page — markdown, $inline$ and $$display$$ maths — saved in the project": "this page — markdown, $inline$ and $$display$$ maths — saved in the project",
+  "this shape is its own mirror — nothing to flip": "this shape is its own mirror — nothing to flip",
   "twilight": "twilight",
+  "type a name first — the field beside SAVE": "type a name first — the field beside SAVE",
   "ukiyo": "ukiyo",
   "ultraviolet": "ultraviolet",
+  "window {s} s": "window {s} s",
   "yes": "yes",
   "your notes: save, open, folders, recent": "your notes: save, open, folders, recent",
   "yours — the note open from your shelf, kept in this browser": "yours — the note open from your shelf, kept in this browser",
+  "{a} and {b} patches cannot be pasted across — they are different devices": "{a} and {b} patches cannot be pasted across — they are different devices",
+  "{band} audio routing hand": "{band} audio routing hand",
+  "{band} audio routing macro {n}": "{band} audio routing macro {n}",
+  "{band} contribution to LEVEL": "{band} contribution to LEVEL",
+  "{band} routing — click to cycle available macros": "{band} routing — click to cycle available macros",
+  "{band} {knob}": "{band} {knob}",
+  "{band} · A {a} · R {r} · H {h} ms": "{band} · A {a} · R {r} · H {h} ms",
+  "{band} · {out}% output · {db} dB input": "{band} · {out}% output · {db} dB input",
+  "{chord} is already bound to “{other}”: press it again to take it, or Esc to cancel": "{chord} is already bound to “{other}”: press it again to take it, or Esc to cancel",
+  "{chord} now runs “{action}”, taken from “{other}”": "{chord} now runs “{action}”, taken from “{other}”",
+  "{chord} runs “{action}”": "{chord} runs “{action}”",
+  "{key} is a modifier: it joins a chord": "{key} is a modifier: it joins a chord",
+  "{key} is free": "{key} is free",
+  "{key}: {action}": "{key}: {action}",
+  "{kind} {id}": "{kind} {id}",
+  "{kind} {id} {name}": "{kind} {id} {name}",
+  "{kind} {name}": "{kind} {name}",
+  "{kind} — {message}": "{kind} — {message}",
+  "{k} kHz · {hz} Hz feed": "{k} kHz · {hz} Hz feed",
+  "{list} could not be built and are not on the rack — the rest of the rack is unaffected": "{list} could not be built and are not on the rack — the rest of the rack is unaffected",
+  "{list} could not be built and is not on the rack — the rest of the rack is unaffected": "{list} could not be built and is not on the rack — the rest of the rack is unaffected",
+  "{macro} already reaches {target}": "{macro} already reaches {target}",
+  "{macro} value": "{macro} value",
+  "{macro} → {target}  ·  {lo} … {hi}": "{macro} → {target}  ·  {lo} … {hi}",
+  "{name} came with the app and cannot be renamed — DUPLICATE makes your own copy": "{name} came with the app and cannot be renamed — DUPLICATE makes your own copy",
+  "{name} came with the app — saving it as your own copy": "{name} came with the app — saving it as your own copy",
+  "{name} could not start": "{name} could not start",
+  "{name} is already there": "{name} is already there",
+  "{name} window controls": "{name} window controls",
+  "{name} {unit}": "{name} {unit}",
+  "{n} OUT": "{n} OUT",
+  "{n} SUB": "{n} SUB",
+  "{n} of {total}": "{n} of {total}",
+  "{n} renamed to avoid a clash": "{n} renamed to avoid a clash",
+  "{n} words · in the project": "{n} words · in the project",
+  "{n} words · kept in this browser": "{n} words · kept in this browser",
+  "{p} PROJECTS · {f} FOLDERS": "{p} PROJECTS · {f} FOLDERS",
+  "{shape} drawn": "{shape} drawn",
+  "{shape} flipped": "{shape} flipped",
+  "{shape} is its own mirror — nothing to flip": "{shape} is its own mirror — nothing to flip",
+  "{shape} mirrored": "{shape} mirrored",
+  "{shape} — {points} points, {bent} bent. Right-drag empty space to add; drag dots and handles.": "{shape} — {points} points, {bent} bent. Right-drag empty space to add; drag dots and handles.",
+  "{target} (unavailable)": "{target} (unavailable)",
+  "{title} window controls": "{title} window controls",
   "{value} · base · modulated": "{value} · base · modulated",
   "{value} · modulated": "{value} · modulated",
+  "{value} · {n} OUT": "{value} · {n} OUT",
+  "{verb} — {name} · made room by deleting {n}": "{verb} — {name} · made room by deleting {n}",
+  "{wave} is stochastic — choose a breakpoint shape before editing": "{wave} is stochastic — choose a breakpoint shape before editing",
+  "{wave} · analytic: choose a breakpoint shape to edit it. Four cycles: each is a fresh hold.": "{wave} · analytic: choose a breakpoint shape to edit it. Four cycles: each is a fresh hold.",
+  "{wave} · analytic: right-drag the curve to make it editable.": "{wave} · analytic: right-drag the curve to make it editable.",
+  "{wave} · waveform": "{wave} · waveform",
+  "{wave} · waveform, four cycles shown": "{wave} · waveform, four cycles shown",
   "{word} — the {menus} menus": "{word} — the {menus} menus",
-  "λWAVES": "λWAVES"
+  "λWAVES": "λWAVES",
+  "— the route keeps its range until one appears": "— the route keeps its range until one appears",
+  "“{action}” already has {chord}": "“{action}” already has {chord}",
+  "“{action}” is now bound to {chord}": "“{action}” is now bound to {chord}",
+  "… preview truncated at 200 000 characters; the notes are kept whole": "… preview truncated at 200 000 characters; the notes are kept whole"
  },
  "sources": {
+  "(root)": [
+   "mir/notes/face.js"
+  ],
+  "+ DEVICE": [
+   "mir/modulation/modwindow/modwindow.js"
+  ],
+  "+ MACRO": [
+   "mir/modulation/modwindow/modwindow.js"
+  ],
+  ".MD": [
+   "mir/shell/notebook.js"
+  ],
+  "A file the app needs did not load.": [
+   "mir/shell/boot.js"
+  ],
   "ABOUT": [
    "mir/shell/about.js"
   ],
-  "Audio input device": [
-   "mir/modulation/modwindow/modwindow.js"
+  "ADD ROUTE": [
+   "mir/modulation/window.js"
+  ],
+  "ANCHOR holds the beat: the 1 anchored source — and every BPM source beside it — resumes exactly where the pause caught it": [
+   "mir/modulation/window.js"
+  ],
+  "ANCHOR holds the beat: the {n} anchored sources — and every BPM source beside them — resume exactly where the pause caught them": [
+   "mir/modulation/window.js"
+  ],
+  "ARMED: {macro} — tap a lit control to route it, tap the grip again to cancel": [
+   "mir/modulation/window.js"
+  ],
+  "AUDIO IN": [
+   "mir/modulation/modwindow/modwindow.js",
+   "mir/modulation/window.js"
+  ],
+  "AUDIO ON": [
+   "mir/modulation/window.js"
+  ],
+  "AUDIO — {state}. LEVEL, three BANDS and HIT leave as sockets; patch one to a macro.": [
+   "mir/modulation/window.js"
+  ],
+  "Active": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "Add a macro": [
+   "mir/modulation/window.js"
+  ],
+  "Add a macro in the modulation window to begin routing.": [
+   "mir/modulation/window.js"
+  ],
+  "Add an LFO, envelope, or audio follower": [
+   "mir/modulation/window.js"
+  ],
+  "Add an audio follower; AUDIO IN uses the microphone": [
+   "mir/modulation/window.js"
+  ],
+  "Alt-click deletes this point; drag it to move": [
+   "mir/modulation/window.js"
+  ],
+  "Audio input is unavailable in this browser": [
+   "mir/modulation/window.js"
+  ],
+  "Audio input, band ranges, timing, gate, and onset settings": [
+   "mir/modulation/window.js"
+  ],
+  "Audio response ranges": [
+   "mir/modulation/window.js"
   ],
   "BASINS today: refractive frost, separate headers": [
    "mir/shell/gui.js"
   ],
+  "BIPOLAR": [
+   "mir/modulation/window.js"
+  ],
   "BLUR": [
    "mir/shell/gui.js"
   ],
+  "Bypass this device and keep its settings": [
+   "mir/modulation/window.js"
+  ],
   "CALCULATING": [
-   "mir/kit.js"
+   "mir/kit.js",
+   "mir/shell/busy.js"
+  ],
+  "CENTRE": [
+   "mir/modulation/window.js"
   ],
   "CLASSIC": [
    "mir/shell/gui.js"
   ],
-  "COMPACT": [
+  "CLOSE": [
+   "mir/modulation/window.js"
+  ],
+  "CMP": [
    "mir/modulation/modwindow/modwindow.js"
+  ],
+  "COMPACT": [
+   "mir/modulation/modwindow/modwindow.js",
+   "mir/modulation/window.js"
+  ],
+  "COPIED": [
+   "mir/kit.js"
   ],
   "COPY": [
    "mir/shell/notebook.js"
   ],
+  "COPY DETAILS": [
+   "mir/shell/boot.js"
+  ],
   "COPY DUMP": [
    "mir/shell/about.js"
+  ],
+  "COPY TO PROJECT": [
+   "mir/shell/notebook.js"
+  ],
+  "COPY TO SHELF": [
+   "mir/shell/notebook.js"
+  ],
+  "CURVE": [
+   "mir/modulation/window.js"
   ],
   "CUSTOM": [
    "mir/shell/gui.js"
   ],
-  "Close dead-send inspector": [
-   "mir/modulation/modwindow/modwindow.js"
+  "Cancel": [
+   "mir/folders/gallery.js"
   ],
-  "Close the conditioning sheet": [
-   "mir/modulation/modwindow/modwindow.js"
+  "Cancelled: “{action}” keeps its keys": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "Check the connection and reload. If you serve the app yourself, check that every file was copied.": [
+   "mir/shell/boot.js"
+  ],
+  "Choose a key, with any modifiers.": [
+   "mir/shell/keys.js"
+  ],
+  "Choose an action in the list first, then press RECORD INPUT": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "Choose at least one project component before saving.": [
+   "mir/folders/gallery.js"
   ],
   "Close this window": [
    "mir/kit.js"
   ],
   "Close window": [
    "mir/modulation/modwindow/modwindow.js",
+   "mir/modulation/window.js",
    "mir/window/rail.js"
+  ],
+  "Collapse or expand the macro rail": [
+   "mir/modulation/window.js"
+  ],
+  "Collapse or expand this device": [
+   "mir/modulation/window.js"
   ],
   "Collapse or expand this window": [
    "mir/kit.js"
   ],
+  "Continue from the clock phase": [
+   "mir/modulation/window.js"
+  ],
+  "Could not delete: {why}": [
+   "mir/folders/gallery.js"
+  ],
+  "Could not duplicate: {why}": [
+   "mir/folders/gallery.js"
+  ],
+  "Could not keep {name}: {why}": [
+   "mir/folders/folders.js"
+  ],
+  "Could not make the picture for {name} — it has none; export the .mir file instead": [
+   "mir/folders/folders.js"
+  ],
+  "Could not make the picture: {why}": [
+   "mir/folders/gallery.js"
+  ],
+  "Could not move: {why}": [
+   "mir/folders/gallery.js"
+  ],
+  "Could not open that file: {why}": [
+   "mir/folders/folders.js"
+  ],
+  "Could not open {name}: {why}": [
+   "mir/folders/gallery.js"
+  ],
+  "Could not remove the folder: {why}": [
+   "mir/folders/gallery.js"
+  ],
+  "Could not rename: {why}": [
+   "mir/folders/gallery.js"
+  ],
+  "Could not restore the factory gallery: {why}": [
+   "mir/folders/gallery.js"
+  ],
+  "Could not save: {why}": [
+   "mir/folders/folders.js",
+   "mir/folders/gallery.js"
+  ],
+  "Could not save: {why} — nothing was cleared.": [
+   "mir/folders/gallery.js"
+  ],
+  "Could not save: {why} — nothing was opened.": [
+   "mir/folders/gallery.js"
+  ],
+  "Could not set the folder picture: {why}": [
+   "mir/folders/gallery.js"
+  ],
+  "Could not start over: {why}": [
+   "mir/folders/gallery.js"
+  ],
+  "Ctrl / ⌘": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "Current gallery folder": [
+   "mir/folders/gallery.js"
+  ],
+  "Curve editor: right-drag empty space to add a point; Shift-right-click adds at the current curve value; left-drag a point to move it; left-drag a tension handle to bend it; Ctrl makes tension fine; right-click or double-click a tension handle resets it; Alt-click a point deletes it.": [
+   "mir/modulation/window.js"
+  ],
+  "DEAD SENDS": [
+   "mir/modulation/window.js"
+  ],
   "DIST": [
    "mir/modulation/host.js"
+  ],
+  "DOWN": [
+   "mir/modulation/window.js"
   ],
   "DRAFT": [
    "mir/shell/language.js"
   ],
-  "Dead-send inspector": [
-   "mir/modulation/modwindow/modwindow.js"
+  "Delete {name}": [
+   "mir/folders/gallery.js"
+  ],
+  "Deleted — {name}": [
+   "mir/folders/gallery.js"
+  ],
+  "Disconnect the source from this macro": [
+   "mir/modulation/window.js"
+  ],
+  "Drag sideways to set; double-tap the row grip to rename": [
+   "mir/modulation/window.js"
+  ],
+  "Drag to reorder": [
+   "mir/modulation/window.js"
+  ],
+  "Drag to reorder; double-tap to rename": [
+   "mir/modulation/window.js"
   ],
   "Drag to resize the notebook": [
    "mir/shell/notebook.js"
   ],
+  "Drag to route; tap to arm; double-tap to reset": [
+   "mir/modulation/window.js"
+  ],
   "Drag window": [
+   "mir/modulation/modwindow/modwindow.js",
+   "mir/modulation/window.js"
+  ],
+  "Drag ✥ onto a slider or knob to route it (a PAD’s ✥ makes that control get hit) · drop it there again to release · a macro bar: drag sideways to set, double-tap to reset, tap to rename or unassign · number ring: up/down = master depth, double-tap = 100% · route ring: up/down = depth, sideways = direction.": [
    "mir/modulation/modwindow/modwindow.js"
+  ],
+  "Duplicated — {name}": [
+   "mir/folders/gallery.js"
+  ],
+  "ENV — {drawn} s drawn over a {window} s window. Drag the stages; FIT frames it.": [
+   "mir/modulation/window.js"
+  ],
+  "EVT": [
+   "mir/modulation/window.js"
+  ],
+  "EXPORT": [
+   "mir/folders/folders.js"
+  ],
+  "EXPORT .MD": [
+   "mir/notes/face.js"
   ],
   "EXPOSURE": [
    "mir/modulation/host.js"
   ],
+  "Enable route": [
+   "mir/modulation/window.js"
+  ],
+  "Escape is kept for closing and cancelling.": [
+   "mir/shell/keys.js"
+  ],
+  "Every key is back to its default": [
+   "mir/keyboard/keyboard.js"
+  ],
   "Every look option back home": [
    "mir/shell/gui.js"
+  ],
+  "Exported {name} as a .mir file": [
+   "mir/folders/folders.js"
+  ],
+  "Exported {name} as a picture that carries it": [
+   "mir/folders/folders.js"
+  ],
+  "FACTORY": [
+   "mir/modulation/modwindow/modwindow.js"
   ],
   "FOV": [
    "mir/modulation/host.js"
@@ -263,8 +888,41 @@
   "FRAME": [
    "mir/shell/gui.js"
   ],
+  "FREE": [
+   "mir/modulation/window.js"
+  ],
   "FROST": [
    "mir/shell/gui.js"
+  ],
+  "FULL": [
+   "mir/modulation/modwindow/modwindow.js"
+  ],
+  "Find a keyboard action": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "Find an action or key…": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "Fire this trigger": [
+   "mir/modulation/window.js"
+  ],
+  "Fit the full envelope in the graph": [
+   "mir/modulation/window.js"
+  ],
+  "Folder picture set from {name}": [
+   "mir/folders/gallery.js"
+  ],
+  "Folder removed — {n} moved to ROOT": [
+   "mir/folders/gallery.js"
+  ],
+  "Folder renamed to {to}": [
+   "mir/folders/gallery.js"
+  ],
+  "Folders": [
+   "mir/folders/gallery.js"
+  ],
+  "GATED": [
+   "mir/modulation/window.js"
   ],
   "GLASS": [
    "mir/shell/gui.js"
@@ -284,23 +942,66 @@
   "GUI — MIR OPTIONS and MIR ABOUT": [
    "mir/shell/gui.js"
   ],
+  "Gate hold keeps the noise gate open. The face HOLD knob separately holds each band peak before release.": [
+   "mir/modulation/window.js"
+  ],
+  "HAND": [
+   "mir/modulation/window.js"
+  ],
   "HSV wheel (the built-in)": [
    "mir/palette.js"
   ],
   "HUE": [
    "mir/modulation/host.js"
   ],
+  "Handed to the share sheet — choose Save Image or Save to Files.": [
+   "mir/folders/gallery.js"
+  ],
+  "Hold and repeat {note}; release to resume the original clock": [
+   "mir/modulation/window.js"
+  ],
+  "IDLE": [
+   "mir/modulation/modwindow/modwindow.js"
+  ],
+  "IMPORT .MD": [
+   "mir/notes/face.js",
+   "mir/shell/notebook.js"
+  ],
+  "IMPORTED": [
+   "mir/folders/folders.js"
+  ],
   "ISO": [
    "mir/modulation/host.js"
+  ],
+  "Imported — {name}": [
+   "mir/folders/folders.js"
   ],
   "In the most recently saved layout": [
    "mir/shell/rack.js"
   ],
+  "Include {what} in the next save": [
+   "mir/folders/gallery.js"
+  ],
   "Information": [
    "mir/control-help.js"
   ],
+  "Input dB at 0% output; upper boundary reaches 100%.": [
+   "mir/modulation/window.js"
+  ],
+  "KEYBOARD": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "KEYS": [
+   "mir/keyboard/keyboard.js"
+  ],
   "KNEE": [
    "mir/modulation/host.js"
+  ],
+  "Key names": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "Keyboard actions": [
+   "mir/keyboard/keyboard.js"
   ],
   "LAP": [
    "mir/modulation/host.js"
@@ -308,17 +1009,50 @@
   "LEVEL": [
    "mir/modulation/host.js"
   ],
+  "LEVEL master to LEVEL": [
+   "mir/modulation/window.js"
+  ],
+  "LEVEL {v}": [
+   "mir/modulation/window.js"
+  ],
   "LIGHT": [
    "mir/shell/gui.js"
+  ],
+  "LIVE": [
+   "mir/modulation/window.js"
   ],
   "LOOK": [
    "mir/shell/gui.js"
   ],
+  "Limit modulation updates per second": [
+   "mir/modulation/window.js"
+  ],
+  "Listening for “{action}”. This looks like a touch screen with no keyboard and no board to tap: press the new keys on a hardware keyboard if one is connected, or press RECORD INPUT again to cancel.": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "Listening for “{action}”. This looks like a touch screen with no keyboard: tap the new key on the board (tap SHIFT, CTRL or ALT first for a modifier), or press RECORD INPUT again to cancel.": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "Listening for “{action}”: press the new keys with any modifiers, or tap them on the board. Esc cancels.": [
+   "mir/keyboard/keyboard.js"
+  ],
   "MACRO": [
+   "mir/modulation/modwindow/modwindow.js"
+  ],
+  "MACRO {n} DEPTH": [
+   "mir/modulation/window.js"
+  ],
+  "MAKE ROOM — delete oldest (\"{name}\") and save": [
+   "mir/folders/gallery.js"
+  ],
+  "MAX": [
    "mir/modulation/modwindow/modwindow.js"
   ],
   "METRO": [
    "mir/shell/gui.js"
+  ],
+  "MIN": [
+   "mir/modulation/modwindow/modwindow.js"
   ],
   "MIR": [
    "mir/shell/gui.js"
@@ -329,20 +1063,116 @@
   "MIR OPTIONS": [
    "mir/shell/gui.js"
   ],
+  "MOD is on — the arm is the small button beside the transport’s own play": [
+   "mir/modulation/window.js"
+  ],
+  "MODULATION": [
+   "mir/modulation/window.js"
+  ],
+  "MODULATION MATRIX": [
+   "mir/modulation/window.js"
+  ],
+  "MOVE TO": [
+   "mir/folders/gallery.js"
+  ],
+  "MY PRESETS": [
+   "mir/modulation/window.js"
+  ],
+  "Mac and iPad": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "Master depth for this macro. Double-tap for 100%.": [
+   "mir/modulation/window.js"
+  ],
+  "Master depth for {macro}": [
+   "mir/modulation/window.js"
+  ],
+  "Move macros to either side": [
+   "mir/modulation/window.js"
+  ],
+  "Move macros to left or right end": [
+   "mir/modulation/window.js"
+  ],
   "Move this window between the rack and stage": [
    "mir/kit.js"
   ],
   "Move window": [
    "mir/window/rail.js"
   ],
+  "Move {name} to a folder": [
+   "mir/folders/gallery.js"
+  ],
+  "Move {name} to folder": [
+   "mir/folders/gallery.js"
+  ],
+  "Moved {name} to {to}": [
+   "mir/folders/gallery.js"
+  ],
   "NOTEBOOK": [
    "mir/shell/notebook.js"
+  ],
+  "New folder path — onto an existing folder it merges": [
+   "mir/folders/gallery.js"
+  ],
+  "New — the empty project": [
+   "mir/folders/folders.js",
+   "mir/folders/gallery.js"
+  ],
+  "Next project page": [
+   "mir/folders/gallery.js"
+  ],
+  "No such action.": [
+   "mir/shell/keys.js"
+  ],
+  "Nothing matches": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "Nothing was captured to save — save again.": [
+   "mir/folders/gallery.js"
+  ],
+  "OFF": [
+   "mir/kit.js",
+   "mir/modulation/modwindow/modwindow.js",
+   "mir/modulation/window.js"
+  ],
+  "OK": [
+   "mir/shell/dialog.js"
+  ],
+  "OLDER MODEL": [
+   "mir/modulation/modwindow/modwindow.js"
+  ],
+  "ON": [
+   "mir/modulation/window.js"
+  ],
+  "OPEN": [
+   "mir/modulation/window.js"
   ],
   "One camera orbit per bar, with a vertical sweep.": [
    "mir/modulation/host.js"
   ],
+  "Open folder {name}": [
+   "mir/folders/gallery.js"
+  ],
+  "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.": [
+   "mir/shell/boot.js"
+  ],
+  "Open modulation matrix": [
+   "mir/modulation/window.js"
+  ],
+  "Open or close audio input. Audio is analysed locally and is not stored.": [
+   "mir/modulation/window.js"
+  ],
+  "Opened — {name}": [
+   "mir/folders/gallery.js"
+  ],
   "Orient the plane. Shift gives finer motion; Home resets.": [
    "mir/plane-model.js"
+  ],
+  "PAGE {n} / {of}": [
+   "mir/folders/gallery.js"
+  ],
+  "PHOTOSENSITIVITY WARNING": [
+   "mir/shell/flash-guard.js"
   ],
   "PITCH": [
    "mir/modulation/host.js"
@@ -350,8 +1180,41 @@
   "PRESETS": [
    "mir/modulation/modwindow/modwindow.js"
   ],
-  "Preset name — type one, then tap SAVE": [
-   "mir/modulation/modwindow/modwindow.js"
+  "PROJECTS": [
+   "mir/folders/gallery.js"
+  ],
+  "Paste a compatible device patch": [
+   "mir/modulation/window.js"
+  ],
+  "Picture made — {w}×{h}. Tap the download icon to keep it.": [
+   "mir/folders/gallery.js"
+  ],
+  "Play or pause modulation": [
+   "mir/modulation/window.js"
+  ],
+  "Previous project page": [
+   "mir/folders/gallery.js"
+  ],
+  "Project components and display options": [
+   "mir/folders/gallery.js"
+  ],
+  "Project name": [
+   "mir/folders/gallery.js"
+  ],
+  "Project options": [
+   "mir/folders/gallery.js"
+  ],
+  "Project pages": [
+   "mir/folders/gallery.js"
+  ],
+  "Projects": [
+   "mir/folders/gallery.js"
+  ],
+  "Quantise output to discrete levels": [
+   "mir/modulation/window.js"
+  ],
+  "RANGE": [
+   "mir/modulation/window.js"
   ],
   "RATE": [
    "mir/modulation/host.js"
@@ -359,41 +1222,121 @@
   "RECENT": [
    "mir/notes/face.js"
   ],
+  "RECORD INPUT": [
+   "mir/keyboard/keyboard.js"
+  ],
   "REDO": [
    "mir/history/history-list.js"
+  ],
+  "REMOVE": [
+   "mir/modulation/window.js"
+  ],
+  "REMOVE ALL": [
+   "mir/modulation/window.js"
   ],
   "RES": [
    "mir/modulation/host.js"
   ],
+  "RESET": [
+   "mir/modulation/window.js"
+  ],
   "RESET LOOK": [
    "mir/shell/gui.js"
   ],
+  "RESET TO DEFAULT": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "RETRY": [
+   "mir/shell/boot.js"
+  ],
   "RIBBON": [
-   "mir/modulation/modwindow/modwindow.js"
+   "mir/modulation/modwindow/modwindow.js",
+   "mir/modulation/window.js"
   ],
   "RISE": [
    "mir/modulation/host.js"
   ],
+  "ROOT or folder path": [
+   "mir/folders/gallery.js"
+  ],
+  "Recording cancelled": [
+   "mir/keyboard/keyboard.js"
+  ],
   "Redo (Ctrl+Shift+Z, Ctrl+Y)": [
    "mir/history/history-list.js"
+  ],
+  "Reload the page: on a cold start the adapter is sometimes late. If it happens again, turn on hardware acceleration in the browser's settings or update the graphics driver.": [
+   "mir/shell/boot.js"
+  ],
+  "Reload to start again. Your saved work in this browser is kept.": [
+   "mir/shell/boot.js"
+  ],
+  "Reload. If it happens again, press COPY DETAILS and send them to the author.": [
+   "mir/shell/boot.js"
+  ],
+  "Remove the macro from this control": [
+   "mir/modulation/window.js"
+  ],
+  "Remove this device and release its macros": [
+   "mir/modulation/window.js"
+  ],
+  "Remove this route": [
+   "mir/modulation/window.js"
+  ],
+  "Rename {name}": [
+   "mir/folders/gallery.js"
+  ],
+  "Reset the base value and keep its routes": [
+   "mir/modulation/window.js"
+  ],
+  "Resize at the edges; shift inside; double-click to reset": [
+   "mir/modulation/window.js"
   ],
   "Resize window": [
    "mir/window/window.js"
   ],
+  "Response curve, zero is linear": [
+   "mir/modulation/window.js"
+  ],
+  "Restart phase on triggers and playback": [
+   "mir/modulation/window.js"
+  ],
   "Restore this window layout": [
    "mir/shell/rack.js"
+  ],
+  "Restored {added} of {total}.": [
+   "mir/folders/gallery.js"
+  ],
+  "Reverse the curve in time": [
+   "mir/modulation/window.js"
   ],
   "Rotate phase colour once per bar without moving the state.": [
    "mir/modulation/host.js"
   ],
-  "SAVE": [
-   "mir/modulation/modwindow/modwindow.js"
+  "Route {band} to a macro": [
+   "mir/modulation/window.js"
   ],
-  "SHADOWS": [
+  "SAVE": [
+   "mir/modulation/modwindow/modwindow.js",
+   "mir/notes/face.js"
+  ],
+  "SAVE AS": [
+   "mir/notes/face.js"
+  ],
+  "SHADOW": [
    "mir/shell/gui.js"
   ],
   "SHELF": [
    "mir/notes/face.js"
+  ],
+  "SHOW": [
+   "mir/shell/gui.js"
+  ],
+  "SHOW ON OPEN": [
+   "mir/shell/notebook.js"
+  ],
+  "SINE": [
+   "mir/modulation/modwindow/modwindow.js"
   ],
   "SKIN": [
    "mir/shell/gui.js"
@@ -410,17 +1353,117 @@
   "STEPS": [
    "mir/modulation/host.js"
   ],
+  "STUTTER released — rejoined the running beat": [
+   "mir/modulation/window.js"
+  ],
+  "STUTTER {note} latched — applies to BPM-synced LFOs; press again to release": [
+   "mir/modulation/window.js"
+  ],
+  "SYSTEM DEFAULT": [
+   "mir/modulation/window.js"
+  ],
   "Save the current window arrangement": [
    "mir/shell/rack.js"
   ],
-  "Save this rack as a preset": [
-   "mir/modulation/modwindow/modwindow.js"
+  "Save this first?": [
+   "mir/folders/gallery.js"
+  ],
+  "Save to folder": [
+   "mir/folders/gallery.js"
+  ],
+  "Saved projects and folders": [
+   "mir/folders/gallery.js"
+  ],
+  "Saved — {name}": [
+   "mir/folders/folders.js",
+   "mir/folders/gallery.js"
+  ],
+  "Select a band for timing": [
+   "mir/modulation/window.js"
+  ],
+  "Select a curve before reversing it": [
+   "mir/modulation/window.js"
+  ],
+  "Select the LFO waveform": [
+   "mir/modulation/window.js"
+  ],
+  "Select the envelope trigger; Shift-click selects AUDIO HIT": [
+   "mir/modulation/window.js"
+  ],
+  "Select the macro driven by this device": [
+   "mir/modulation/window.js"
+  ],
+  "Select {band} for ATTACK, RELEASE and HOLD": [
+   "mir/modulation/window.js"
+  ],
+  "Selected audio band attack time constant; choose LEVEL, LOW, MID or HIGH on its meter": [
+   "mir/modulation/window.js"
+  ],
+  "Selected audio band peak hold; choose LEVEL, LOW, MID or HIGH on its meter": [
+   "mir/modulation/window.js"
+  ],
+  "Selected audio band release time constant; choose LEVEL, LOW, MID or HIGH on its meter": [
+   "mir/modulation/window.js"
+  ],
+  "Selected macro range; the large dial sets the base": [
+   "mir/modulation/window.js"
+  ],
+  "Set free rate or a loop-clock division": [
+   "mir/modulation/window.js"
+  ],
+  "Set the envelope stage time": [
+   "mir/modulation/window.js"
+  ],
+  "Set the modulation clock in beats per minute": [
+   "mir/modulation/window.js"
+  ],
+  "Shift": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "Show Mac and iPad key names": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "Show Windows and Linux key names": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "Show the data for {name}": [
+   "mir/folders/gallery.js"
   ],
   "Show the interface": [
    "mir/shell/rack.js"
   ],
+  "Signed route amount percent": [
+   "mir/modulation/window.js"
+  ],
   "Slice sphere and plane. Drag or use arrow keys to rotate; Home resets.": [
    "mir/plane-model.js"
+  ],
+  "Smooth the LFO output": [
+   "mir/modulation/window.js"
+  ],
+  "Something went wrong while the app was starting.": [
+   "mir/shell/boot.js"
+  ],
+  "Sort": [
+   "mir/folders/folders.js"
+  ],
+  "Sort A to Z": [
+   "mir/folders/gallery.js"
+  ],
+  "Sort Z to A": [
+   "mir/folders/gallery.js"
+  ],
+  "Sort deepest zoom first": [
+   "mir/folders/gallery.js"
+  ],
+  "Sort newest first": [
+   "mir/folders/gallery.js"
+  ],
+  "Sort oldest first": [
+   "mir/folders/gallery.js"
+  ],
+  "Sort shallowest zoom first": [
+   "mir/folders/gallery.js"
   ],
   "Step through twelve density levels to reveal shells.": [
    "mir/modulation/host.js"
@@ -431,20 +1474,62 @@
   "Surfaces that draw a shadow": [
    "mir/shell/gui.js"
   ],
+  "Switch between two saved patches for this device": [
+   "mir/modulation/window.js"
+  ],
+  "THIS CONTROL IS HELD BY {n} MACROS  ·  which one the outer arc edits": [
+   "mir/modulation/window.js"
+  ],
   "TRIG": [
    "mir/modulation/modwindow/modwindow.js"
+  ],
+  "TRIG IN": [
+   "mir/modulation/modwindow/modwindow.js"
+  ],
+  "TRIG: the curve starts over": [
+   "mir/modulation/window.js"
   ],
   "TURN": [
    "mir/modulation/host.js"
   ],
+  "Tab is kept for moving the focus.": [
+   "mir/shell/keys.js"
+  ],
+  "Tap repeatedly to set the modulation clock": [
+   "mir/modulation/window.js"
+  ],
   "The 1.4 look: tinted panes, no blur, the relief": [
    "mir/shell/gui.js"
+  ],
+  "The browser has WebGPU but found no graphics adapter to use.": [
+   "mir/shell/boot.js"
+  ],
+  "The factory gallery is already complete.": [
+   "mir/folders/gallery.js"
   ],
   "The fast look: no blur, flat, no shadows, no motion": [
    "mir/shell/gui.js"
   ],
+  "The graphics device was lost: the GPU was reset, its driver changed, or it ran out of memory.": [
+   "mir/shell/boot.js"
+  ],
+  "The keyboard": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "The library is full: {count} saved, {need} needed of {cap}.  This save was NOT stored.  Delete projects yourself, or make room — the oldest go first.": [
+   "mir/folders/gallery.js"
+  ],
   "The mean frame time over 30 frames after the last change": [
    "mir/shell/gui.js"
+  ],
+  "The view moved since the picture was made — capture it again.": [
+   "mir/folders/gallery.js"
+  ],
+  "This browser has no WebGPU, which this app draws with.": [
+   "mir/shell/boot.js"
+  ],
+  "Trigger this envelope. Start modulation to advance it.": [
+   "mir/modulation/window.js"
   ],
   "Turn this window on or off": [
    "mir/kit.js"
@@ -455,6 +1540,21 @@
   "UNDO": [
    "mir/history/history-list.js"
   ],
+  "UNIPOLAR": [
+   "mir/modulation/window.js"
+  ],
+  "UNSAVED CHANGES": [
+   "mir/folders/folders.js"
+  ],
+  "UNTITLED": [
+   "mir/folders/folders.js"
+  ],
+  "UP": [
+   "mir/modulation/window.js"
+  ],
+  "Unbound": [
+   "mir/keyboard/keyboard.js"
+  ],
   "Undo (Ctrl+Z)": [
    "mir/history/history-list.js"
   ],
@@ -464,20 +1564,68 @@
   "Use the compact window layout": [
    "mir/kit.js"
   ],
+  "Use the knob position as the centre of a bipolar range": [
+   "mir/modulation/window.js"
+  ],
+  "Use the knob position as the maximum": [
+   "mir/modulation/window.js"
+  ],
+  "Use the knob position as the minimum": [
+   "mir/modulation/window.js"
+  ],
+  "WALL": [
+   "mir/modulation/window.js"
+  ],
+  "WALL follows elapsed time. FREE accumulates frame time.": [
+   "mir/modulation/window.js"
+  ],
   "WINDOW": [
    "mir/modulation/host.js"
+  ],
+  "WORK BARS · BOTTOM": [
+   "mir/modulation/window.js"
+  ],
+  "WORK BARS · HIDDEN": [
+   "mir/modulation/window.js"
+  ],
+  "WORK BARS · TOP": [
+   "mir/modulation/window.js"
   ],
   "What the look costs, measured after the last change": [
    "mir/shell/gui.js"
   ],
+  "Windows and Linux": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "Work bars": [
+   "mir/modulation/window.js"
+  ],
+  "Work bars: above. Tap to hide them": [
+   "mir/modulation/window.js"
+  ],
+  "Work bars: below. Tap to move them above": [
+   "mir/modulation/window.js"
+  ],
   "Work bars: bottom": [
    "mir/modulation/modwindow/modwindow.js"
+  ],
+  "Work bars: hidden. Tap to move them below": [
+   "mir/modulation/window.js"
   ],
   "YAW": [
    "mir/modulation/host.js"
   ],
   "Your own mix: the options match no preset": [
    "mir/shell/gui.js"
+  ],
+  "Zoom into the envelope graph": [
+   "mir/modulation/window.js"
+  ],
+  "Zoom out of the envelope graph": [
+   "mir/modulation/window.js"
+  ],
+  "a curve keeps at least two points": [
+   "mir/modulation/window.js"
   ],
   "a draft translation: no native reader has checked it yet": [
    "mir/shell/language.js"
@@ -487,6 +1635,24 @@
   ],
   "add a page to the project": [
    "mir/shell/notebook.js"
+  ],
+  "add an AUDIO device and its HIT can fire this envelope": [
+   "mir/modulation/window.js"
+  ],
+  "added the page {title}": [
+   "mir/shell/notebook.js"
+  ],
+  "added {n} pages": [
+   "mir/shell/notebook.js"
+  ],
+  "an envelope has fixed stages — drag a stage to zero instead": [
+   "mir/modulation/window.js"
+  ],
+  "asking for the microphone…": [
+   "mir/modulation/window.js"
+  ],
+  "audio input is closed — press AUDIO IN": [
+   "mir/modulation/window.js"
   ],
   "aurora": [
    "mir/palette.js"
@@ -512,8 +1678,26 @@
   "cmyk": [
    "mir/palette.js"
   ],
+  "copied into the project": [
+   "mir/shell/notebook.js"
+  ],
+  "copied to the shelf as {path}": [
+   "mir/shell/notebook.js"
+  ],
+  "copied {name} into the project": [
+   "mir/notes/face.js"
+  ],
   "copy the notes as text": [
    "mir/shell/notebook.js"
+  ],
+  "copy this side's whole patch": [
+   "mir/modulation/window.js"
+  ],
+  "copy {name} into the project": [
+   "mir/notes/face.js"
+  ],
+  "could not save that preset": [
+   "mir/modulation/window.js"
   ],
   "cym": [
    "mir/palette.js"
@@ -521,11 +1705,39 @@
   "delete this page": [
    "mir/shell/notebook.js"
   ],
+  "delete {macro} and its routes": [
+   "mir/modulation/window.js"
+  ],
+  "delete {name}": [
+   "mir/notes/face.js"
+  ],
   "delete?": [
+   "mir/notes/face.js",
    "mir/shell/notebook.js"
+  ],
+  "deleted {name}": [
+   "mir/notes/face.js"
+  ],
+  "deleted “{name}”": [
+   "mir/modulation/window.js"
+  ],
+  "dismiss": [
+   "mir/shell/notice.js"
+  ],
+  "eight macros is the model’s ceiling": [
+   "mir/modulation/window.js"
   ],
   "ember": [
    "mir/palette.js"
+  ],
+  "empty · in the project": [
+   "mir/shell/notebook.js"
+  ],
+  "empty · kept in this browser": [
+   "mir/shell/notebook.js"
+  ],
+  "empty — press ◐ to write": [
+   "mir/shell/notebook.js"
   ],
   "emulsion": [
    "mir/palette.js"
@@ -533,8 +1745,20 @@
   "enamel": [
    "mir/palette.js"
   ],
+  "every macro is already driven by another source — free one, or add a macro": [
+   "mir/modulation/window.js"
+  ],
+  "every route into {target} removed": [
+   "mir/modulation/window.js"
+  ],
   "every window is open — × on a window closes it": [
    "mir/shell/rack.js"
+  ],
+  "fitted to {s} s": [
+   "mir/modulation/window.js"
+  ],
+  "flipped in time": [
+   "mir/modulation/window.js"
   ],
   "fold or unfold this window": [
    "mir/kit.js"
@@ -551,17 +1775,56 @@
   "gemstone": [
    "mir/palette.js"
   ],
+  "give it a name: folder/name": [
+   "mir/notes/face.js"
+  ],
+  "hidden from a visiting model — share it": [
+   "mir/shell/notebook.js"
+  ],
   "history rows": [
    "mir/history/history-list.js"
   ],
   "hot iron": [
    "mir/palette.js"
   ],
+  "imported {name}": [
+   "mir/notes/face.js"
+  ],
+  "imported {n} notes": [
+   "mir/notes/face.js"
+  ],
   "in the saved favourite layout": [
    "mir/shell/rack.js"
   ],
+  "input changed": [
+   "mir/modulation/window.js"
+  ],
+  "input gain, ±24 dB before the band response ranges": [
+   "mir/modulation/window.js"
+  ],
+  "keep tapping — two taps make an interval": [
+   "mir/modulation/window.js"
+  ],
   "lasers": [
    "mir/palette.js"
+  ],
+  "listening": [
+   "mir/modulation/window.js"
+  ],
+  "listening at {k} kHz": [
+   "mir/modulation/window.js"
+  ],
+  "loaded “{name}”": [
+   "mir/modulation/window.js"
+  ],
+  "macro reset — value 0, depth 100 %": [
+   "mir/modulation/window.js"
+  ],
+  "microphone closed": [
+   "mir/modulation/window.js"
+  ],
+  "microphone open": [
+   "mir/modulation/window.js"
   ],
   "narrow this window to its rail": [
    "mir/kit.js"
@@ -573,10 +1836,17 @@
    "mir/shell/gui.js"
   ],
   "no": [
+   "mir/notes/face.js",
    "mir/shell/notebook.js"
   ],
   "no notes yet — name one above and SAVE AS": [
    "mir/notes/face.js"
+  ],
+  "no presets yet — type a name and press SAVE": [
+   "mir/modulation/window.js"
+  ],
+  "not listening": [
+   "mir/modulation/window.js"
   ],
   "notebook": [
    "mir/shell/notebook.js"
@@ -587,11 +1857,32 @@
   "notebook title": [
    "mir/shell/notebook.js"
   ],
+  "notes — markdown, $inline$ and $$display$$ maths; ctrl+enter previews — kept in this browser": [
+   "mir/shell/notebook.js"
+  ],
+  "notes — markdown, $inline$ and $$display$$ maths; ctrl+enter previews — kept in this browser and in the project": [
+   "mir/shell/notebook.js"
+  ],
+  "nothing copied yet — press COPY on a device first": [
+   "mir/modulation/window.js"
+  ],
+  "nothing imported": [
+   "mir/notes/face.js"
+  ],
+  "nothing is routed — the transport has nothing to do": [
+   "mir/modulation/window.js"
+  ],
+  "nothing to export — save first": [
+   "mir/notes/face.js"
+  ],
   "opal": [
    "mir/palette.js"
   ],
   "open a window": [
    "mir/shell/rack.js"
+  ],
+  "opened {name}": [
+   "mir/notes/face.js"
   ],
   "page": [
    "mir/shell/gui.js"
@@ -602,6 +1893,9 @@
   "pages": [
    "mir/shell/notebook.js"
   ],
+  "patch copied — PASTE onto any {kind}": [
+   "mir/modulation/window.js"
+  ],
   "patina": [
    "mir/palette.js"
   ],
@@ -611,8 +1905,17 @@
   "pinwheel": [
    "mir/palette.js"
   ],
+  "point removed": [
+   "mir/modulation/window.js"
+  ],
   "power": [
    "mir/kit.js"
+  ],
+  "press a key…": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "press for the next order": [
+   "mir/folders/folders.js"
   ],
   "previous": [
    "mir/shell/gui.js"
@@ -623,20 +1926,54 @@
   "quadrant": [
    "mir/palette.js"
   ],
+  "remove every route into this control": [
+   "mir/modulation/window.js"
+  ],
+  "remove the macro from this control": [
+   "mir/modulation/window.js"
+  ],
   "rename this tab": [
    "mir/shell/notebook.js"
   ],
   "rename to folder/name": [
    "mir/notes/face.js"
   ],
+  "rename {name}": [
+   "mir/notes/face.js"
+  ],
+  "renamed to {name}": [
+   "mir/notes/face.js"
+  ],
+  "reorder or rename {macro}": [
+   "mir/modulation/window.js"
+  ],
+  "replace yours?": [
+   "mir/notes/face.js"
+  ],
   "rose window": [
    "mir/palette.js"
+  ],
+  "route removed — {target} is the hand’s again": [
+   "mir/modulation/window.js"
+  ],
+  "route {macro} — drag onto a control, or tap to arm": [
+   "mir/modulation/window.js"
   ],
   "save as folder/name": [
    "mir/notes/face.js"
   ],
+  "saved {name}": [
+   "mir/notes/face.js",
+   "mir/shell/notebook.js"
+  ],
+  "saved “{name}”": [
+   "mir/modulation/window.js"
+  ],
   "sea": [
    "mir/palette.js"
+  ],
+  "shared with a visiting model — hide it": [
+   "mir/shell/notebook.js"
   ],
   "shelf": [
    "mir/notes/face.js"
@@ -650,8 +1987,17 @@
   "supernova": [
    "mir/palette.js"
   ],
+  "sure?": [
+   "mir/folders/gallery.js"
+  ],
   "take this window off the rack": [
    "mir/kit.js"
+  ],
+  "tapped {bpm} BPM from {n} intervals": [
+   "mir/modulation/window.js"
+  ],
+  "tension reset": [
+   "mir/modulation/window.js"
   ],
   "terra": [
    "mir/palette.js"
@@ -659,14 +2005,80 @@
   "test card": [
    "mir/palette.js"
   ],
+  "that input did not open": [
+   "mir/modulation/window.js"
+  ],
+  "that macro cannot carry a route": [
+   "mir/modulation/window.js"
+  ],
+  "that macro does not reach this control": [
+   "mir/modulation/window.js"
+  ],
+  "that name belongs to a factory preset — try “{name}”": [
+   "mir/modulation/window.js"
+  ],
+  "that output cannot be bound": [
+   "mir/modulation/window.js"
+  ],
+  "that preset could not be loaded": [
+   "mir/modulation/window.js"
+  ],
+  "that preset was written by a model this build cannot honour": [
+   "mir/modulation/window.js"
+  ],
+  "the ENV has fixed stages — drag a stage or its tension handle": [
+   "mir/modulation/window.js"
+  ],
+  "the conditioning sheet is not available in this build": [
+   "mir/modulation/window.js"
+  ],
+  "the gate opens here and stays open until hysteresis below it": [
+   "mir/modulation/window.js"
+  ],
+  "the loop clock claims the resume: the beat jumped back {moved} of a beat to the {grid}-beat note boundary just passed": [
+   "mir/modulation/window.js"
+  ],
+  "the microphone did not open": [
+   "mir/modulation/window.js"
+  ],
   "the notebook's subtitle — type to rename": [
    "mir/shell/notebook.js"
   ],
   "the notebook's title — type to rename": [
    "mir/shell/notebook.js"
   ],
+  "the phase offset": [
+   "mir/modulation/window.js"
+  ],
+  "the shelf was damaged and has been mended — the old text is kept under {key}": [
+   "mir/notes/face.js"
+  ],
+  "the sustain LEVEL — the one ADSR control that is not a time": [
+   "mir/modulation/window.js"
+  ],
+  "thirty-two points is the curve’s ceiling": [
+   "mir/modulation/window.js"
+  ],
+  "this build has no such target": [
+   "mir/modulation/window.js"
+  ],
+  "this host supplies no audio capture": [
+   "mir/modulation/window.js"
+  ],
+  "this host supplies no capture": [
+   "mir/modulation/window.js"
+  ],
+  "this page — markdown, $inline$ and $$display$$ maths — saved in the project": [
+   "mir/shell/notebook.js"
+  ],
+  "this shape is its own mirror — nothing to flip": [
+   "mir/modulation/window.js"
+  ],
   "twilight": [
    "mir/palette.js"
+  ],
+  "type a name first — the field beside SAVE": [
+   "mir/modulation/window.js"
   ],
   "ukiyo": [
    "mir/palette.js"
@@ -674,7 +2086,11 @@
   "ultraviolet": [
    "mir/palette.js"
   ],
+  "window {s} s": [
+   "mir/modulation/window.js"
+  ],
   "yes": [
+   "mir/notes/face.js",
    "mir/shell/notebook.js"
   ],
   "your notes: save, open, folders, recent": [
@@ -683,17 +2099,182 @@
   "yours — the note open from your shelf, kept in this browser": [
    "mir/shell/notebook.js"
   ],
+  "{a} and {b} patches cannot be pasted across — they are different devices": [
+   "mir/modulation/window.js"
+  ],
+  "{band} audio routing hand": [
+   "mir/modulation/window.js"
+  ],
+  "{band} audio routing macro {n}": [
+   "mir/modulation/window.js"
+  ],
+  "{band} contribution to LEVEL": [
+   "mir/modulation/window.js"
+  ],
+  "{band} routing — click to cycle available macros": [
+   "mir/modulation/window.js"
+  ],
+  "{band} {knob}": [
+   "mir/modulation/window.js"
+  ],
+  "{band} · A {a} · R {r} · H {h} ms": [
+   "mir/modulation/window.js"
+  ],
+  "{band} · {out}% output · {db} dB input": [
+   "mir/modulation/window.js"
+  ],
+  "{chord} is already bound to “{other}”: press it again to take it, or Esc to cancel": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "{chord} now runs “{action}”, taken from “{other}”": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "{chord} runs “{action}”": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "{key} is a modifier: it joins a chord": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "{key} is free": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "{key}: {action}": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "{kind} {id}": [
+   "mir/modulation/window.js"
+  ],
+  "{kind} {id} {name}": [
+   "mir/modulation/window.js"
+  ],
+  "{kind} {name}": [
+   "mir/modulation/window.js"
+  ],
+  "{kind} — {message}": [
+   "mir/modulation/window.js"
+  ],
+  "{k} kHz · {hz} Hz feed": [
+   "mir/modulation/window.js"
+  ],
+  "{list} could not be built and are not on the rack — the rest of the rack is unaffected": [
+   "mir/modulation/window.js"
+  ],
+  "{list} could not be built and is not on the rack — the rest of the rack is unaffected": [
+   "mir/modulation/window.js"
+  ],
+  "{macro} already reaches {target}": [
+   "mir/modulation/window.js"
+  ],
+  "{macro} value": [
+   "mir/modulation/window.js"
+  ],
+  "{macro} → {target}  ·  {lo} … {hi}": [
+   "mir/modulation/window.js"
+  ],
+  "{name} came with the app and cannot be renamed — DUPLICATE makes your own copy": [
+   "mir/folders/gallery.js"
+  ],
+  "{name} came with the app — saving it as your own copy": [
+   "mir/folders/folders.js"
+  ],
+  "{name} could not start": [
+   "mir/shell/boot.js"
+  ],
+  "{name} is already there": [
+   "mir/folders/gallery.js"
+  ],
+  "{name} window controls": [
+   "mir/modulation/window.js"
+  ],
+  "{name} {unit}": [
+   "mir/modulation/window.js"
+  ],
+  "{n} OUT": [
+   "mir/modulation/window.js"
+  ],
+  "{n} SUB": [
+   "mir/modulation/window.js"
+  ],
+  "{n} of {total}": [
+   "mir/shell/boot.js"
+  ],
+  "{n} renamed to avoid a clash": [
+   "mir/folders/gallery.js"
+  ],
+  "{n} words · in the project": [
+   "mir/shell/notebook.js"
+  ],
+  "{n} words · kept in this browser": [
+   "mir/shell/notebook.js"
+  ],
+  "{p} PROJECTS · {f} FOLDERS": [
+   "mir/folders/gallery.js"
+  ],
+  "{shape} drawn": [
+   "mir/modulation/window.js"
+  ],
+  "{shape} flipped": [
+   "mir/modulation/window.js"
+  ],
+  "{shape} is its own mirror — nothing to flip": [
+   "mir/modulation/window.js"
+  ],
+  "{shape} mirrored": [
+   "mir/modulation/window.js"
+  ],
+  "{shape} — {points} points, {bent} bent. Right-drag empty space to add; drag dots and handles.": [
+   "mir/modulation/window.js"
+  ],
+  "{target} (unavailable)": [
+   "mir/modulation/window.js"
+  ],
+  "{title} window controls": [
+   "mir/window/rail.js"
+  ],
   "{value} · base · modulated": [
    "mir/kit.js"
   ],
   "{value} · modulated": [
    "mir/kit.js"
   ],
+  "{value} · {n} OUT": [
+   "mir/modulation/window.js"
+  ],
+  "{verb} — {name} · made room by deleting {n}": [
+   "mir/folders/gallery.js"
+  ],
+  "{wave} is stochastic — choose a breakpoint shape before editing": [
+   "mir/modulation/window.js"
+  ],
+  "{wave} · analytic: choose a breakpoint shape to edit it. Four cycles: each is a fresh hold.": [
+   "mir/modulation/window.js"
+  ],
+  "{wave} · analytic: right-drag the curve to make it editable.": [
+   "mir/modulation/window.js"
+  ],
+  "{wave} · waveform": [
+   "mir/modulation/window.js"
+  ],
+  "{wave} · waveform, four cycles shown": [
+   "mir/modulation/window.js"
+  ],
   "{word} — the {menus} menus": [
    "mir/shell/menubar.js"
   ],
   "λWAVES": [
    "mir/palette.js"
+  ],
+  "— the route keeps its range until one appears": [
+   "mir/modulation/window.js"
+  ],
+  "“{action}” already has {chord}": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "“{action}” is now bound to {chord}": [
+   "mir/keyboard/keyboard.js"
+  ],
+  "… preview truncated at 200 000 characters; the notes are kept whole": [
+   "mir/shell/notebook.js"
   ]
  }
 }

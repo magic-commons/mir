@@ -19,7 +19,7 @@
  *   · capture() is null while there is nothing to save, so an empty project file carries no `pages` entry.
  *
  * createPages() → { list, get, index, add, update, remove, move, greeting, shouldGreet, showOnOpen (get/set),
- *                   copyOut, capture, restore, signature, subscribe, part }
+ *                   copyOut, capture, beforeCapture, restore, signature, subscribe, part }
  * pageFromNotebook({ title, subtitle, text }) → { title, md }   a 1.4 project's notebook as its first page (ruling 16)
  * pageFile(page) → { name, text } · pageFromFile(name, text) → { title, md }   the .md on disk, either way */
 
@@ -28,7 +28,7 @@ const row = (p) => Object.freeze({ id: p.id, title: p.title, md: p.md, shared: p
 
 export function createPages() {
   let pages = [], showOnOpen = true, seq = 0;
-  const watchers = new Set();
+  const watchers = new Set(), hooks = new Set();
   const tell = (what, id) => { for (const fn of watchers) { try { fn(what, id); } catch (_) {} } };
   const at = (id) => pages.findIndex((p) => p.id === id);
 
@@ -65,7 +65,13 @@ export function createPages() {
     /** copyOut(id) → { title, md }: a page as a free copy, for the shelf or a file.  It carries no id and no `shared`. */
     copyOut: (id) => { const p = pages[at(id)]; return p ? { title: p.title, md: p.md } : null; },
 
-    capture: () => (pages.length || !showOnOpen ? { v: 1, showOnOpen, pages: pages.map((p) => ({ ...p })) } : null),
+    /** beforeCapture(fn) → off: fn runs at the top of every capture(), so a debounced editor (the notebook) writes its
+        last keystrokes first.  A hook that throws is isolated: the capture goes on. */
+    beforeCapture(fn) { hooks.add(fn); return () => hooks.delete(fn); },
+    capture() {
+      for (const fn of [...hooks]) { try { fn(); } catch (_) {} }
+      return pages.length || !showOnOpen ? { v: 1, showOnOpen, pages: pages.map((p) => ({ ...p })) } : null;
+    },
     /** restore(saved | null): the project's pages replace these.  null (a project with none) empties them.  Ids that
         came in the file are kept; a row without one, or with one already taken, gets the next free id. */
     restore(saved) {
