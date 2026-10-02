@@ -213,10 +213,14 @@ export function createFolders(options = {}) {
     /* the tiles, the folders and the context box are the gallery's to press; every other piece of glass drags */
     emptyDrag: '.sv-card, .sv-folder, .sv-context, .sv-crumb' + (o.emptyDragExcept ? ', ' + o.emptyDragExcept : ''),
     dock: o.dock || null,
+    /* BASINS' SAVE window wears the modulation window's material (kwin adoptMaterial): the kit window's material hook
+       ([data-mir-material], window.css) gives FOLDERS the same by default; `material: null` for the plain house glass */
+    material: o.material === undefined ? 'modulation' : o.material, railGap: o.railGap,
     /* BASINS seats the SAVE rail on the window's RIGHT; a saved chipSide wins */
     persist: { read: () => ({ chipSide: o.chipSide || 'right', ...readPrefs() }), write: (shape) => writePrefs(shape) },
     onMoved: (r) => { if (typeof o.onMoved === 'function') o.onMoved(r); },
-    onOpen: () => { if (gallery) gallery.paint(); if (active !== 'gallery') showTab(active); paintMark(); },
+    /* every open, a persisted one included, tells the app (BASINS seeds its factory gallery and library here) */
+    onOpen: () => { if (typeof o.onOpen === 'function') { try { o.onOpen(api); } catch (_) {} } if (gallery) gallery.paint(); if (active !== 'gallery') showTab(active); paintMark(); },
     chips,
     panels: panelSpecs.map((p) => ({ name: p.id, body: (b) => {
       panelBodies.set(p.id, b);
@@ -256,6 +260,7 @@ export function createFolders(options = {}) {
     onFresh: () => { current = null; settled(self()); paintMark(); },
     onRemoved: (e) => { if (current === e.id) { current = null; paintMark(); } },
     onInspect: o.onInspect,
+    dragToFolder: o.dragToFolder === true, folderGlyph: o.folderGlyph,
     ...extraOpts,
   });
   gallery = buildGallery(panel, viewOptions(() => gallery, { prefs: gp, persist: (g) => writePrefs({ gallery: g }) }));

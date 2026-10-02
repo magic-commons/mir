@@ -108,13 +108,14 @@ F = createFolders({
   panels: [renderPanel],
   onInspect: (e, how) => { if (how && how.show) F.tab('render'); else renderPaint(); },
   rack: { keepClear: () => [document.getElementById('rack').getBoundingClientRect()] },
+  onOpen: () => maybeSeed(),                            // BASINS' kwin onOpen: every open seeds what is due, a persisted one too
 });
 /* the rack card's compact gallery: a second view of the same library (BASINS' rackSave) */
 const card = device({ id: 'rackSave', eyebrow: 'FOLDERS', status: 'PROJECTS' });
 document.getElementById('rack').appendChild(card.root);
 const rackGallery = F.mountGallery(card.body, { pageSize: 8 });
 
-addEventListener('keydown', (e) => { if (e.code === 'KeyS' && !(e.target.closest && e.target.closest('input, textarea'))) { if (F.isOpen()) F.close(); else { F.open(); maybeSeed(); } } });
+addEventListener('keydown', (e) => { if (e.code === 'KeyS' && !(e.target.closest && e.target.closest('input, textarea'))) { if (F.isOpen()) F.close(); else F.open(); } });
 window.__B = { F, E, M, readPrefs, rackGallery, FACTORY, LIBRARY };
 window.__ready = true;
 </script>

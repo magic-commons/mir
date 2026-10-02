@@ -5,7 +5,7 @@
    read 2026-10-01 evening; md5 d3cc0d2f…).  The explorer, the menus, the one context box, "save this first?", the
    full-library refusal with MAKE ROOM, the inline rename latch and the six sorts are BASINS' as they stand.  What
    MIR 1.5 changed, and why:
-     · DRAG TO FOLDER (plan, smaller rulings): a tile carried by a mouse or pen lights the folders and the crumbs
+     · DRAG TO FOLDER (plan, smaller rulings; `dragToFolder: true`, OFF by default — BASINS never had it): a tile carried by a mouse or pen lights the folders and the crumbs
        through core/proximity.js — dotted and brightening with nearness, solid when release would land — and drops
        into the one it lands on.  Escape, a lost pointer or a blur puts it back where it was (core/pointer.js drag).
        A finger long-presses a tile for its menu; the keyboard reaches the same menu by the tile's MOVE button (or the
@@ -90,6 +90,11 @@ export function buildGallery(panel, opts) {
   const btn = (cls, parent, text, label) => { const b = mk('button', cls, parent, text); b.type = 'button'; if (label) { b.setAttribute('aria-label', label); b.title = label; } return b; };
   const ink = (el, name, size) => { const g = glyph(name, 'gly gly-' + name, size); if (g) el.appendChild(g); return el; };
   const ro = (e) => !!(e && e.facts && e.facts.readOnly);
+  /* BASINS by default (Josh, 10-02: "Prefer BASINS"): no drag-to-folder, the Mandelbrot mark counting a folder, the
+     cover's wash at .65 when no token is set.  An app opts into the kit's additions. */
+  const DRAG = o.dragToFolder === true;
+  const FOLDER_GLYPH = o.folderGlyph || 'mandelbrotSmall';
+  const COVER = 'var(--folders-cover-scrim, hsl(0 0% 0% / .65))';
 
   const prefs = o.prefs || {};
   const S = {
@@ -127,16 +132,14 @@ export function buildGallery(panel, opts) {
   let partsBox = null, optionsBtn = null;
   BUILT.options = () => {
     if (!live.length) return null;                                  // nothing to disclose: no button (BASINS always has parts)
-    const optionsTrig = kit.trig({ label: '', cls: 'sv-options', title: 'Project options', onFire: () => {
+    /* BASINS' plain button (not a kit trigger): button.sv-options with the list glyph, its name and hint */
+    optionsBtn = btn('sv-options', verbs, null, t('Project options'));
+    ink(optionsBtn, 'bulletList', 20);
+    optionsBtn.setAttribute('aria-expanded', 'false');
+    optionsBtn.addEventListener('click', () => {
       if (!partsBox) return;
       partsBox.hidden = !partsBox.hidden; optionsBtn.setAttribute('aria-expanded', String(!partsBox.hidden));
-    } });
-    optionsBtn = optionsTrig.root;
-    optionsBtn.querySelector('.trig-l').textContent = '';
-    ink(optionsBtn.querySelector('.trig-l'), 'bulletList', 20);
-    kitAria(optionsBtn, 'Project options');
-    optionsBtn.setAttribute('aria-expanded', 'false');
-    verbs.appendChild(optionsBtn);
+    }, on);
     return optionsBtn;
   };
   const actionIds = Array.isArray(o.actions) ? o.actions : DEFAULT_ACTIONS;
@@ -442,8 +445,8 @@ export function buildGallery(panel, opts) {
       const r = files.setFolderPicture(S.folder, e.id);
       if (r.ok) { say(t('Folder picture set from {name}', { name: e.name })); closeContext(); paintExplorer(); } else say(t('Could not set the folder picture: {why}', { why: r.why }), true);
     }, 'sv-primary');
-    /* MOVE TO — every folder as a button: the touch and keyboard way to do what a carried tile does */
-    const dests = ['', ...files.folders()].filter((f) => f !== e.folder);
+    /* MOVE TO — every folder as a button: the touch and keyboard way to do what a carried tile does (with dragToFolder) */
+    const dests = DRAG ? ['', ...files.folders()].filter((f) => f !== e.folder) : [];
     if (dests.length) {
       mk('div', 'sv-context-label', b, t('MOVE TO'));
       const list = mk('div', 'sv-context-row sv-moveto', b);
@@ -456,7 +459,7 @@ export function buildGallery(panel, opts) {
     action(row, 'MOVE', () => moveTo(e, inp.value));
     action(b, 'CLOSE', closeContext);
     scrollIn();
-    const first = b.querySelector('.sv-moveto .trig') || b.querySelector('.sv-act');   // the keyboard lands in the menu
+    const first = DRAG && (b.querySelector('.sv-moveto .trig') || b.querySelector('.sv-act'));   // the keyboard lands in MOVE TO
     if (first) first.focus({ preventScroll: true });
   }
   function folderMenu(path) {
@@ -629,11 +632,11 @@ export function buildGallery(panel, opts) {
       const shot = btn('sv-folder-shot', card, null, t('Open folder {name}', { name: leafOf(path) }));
       const pic = files.folderPicture(path);
       /* BASINS' cover: the picture under a dimming wash, on the button itself (the scrim is a token) */
-      if (pic && pic.thumb) { shot.style.backgroundImage = 'linear-gradient(var(--folders-cover-scrim), var(--folders-cover-scrim)), url(' + JSON.stringify(pic.thumb) + ')'; card.classList.add('has-cover'); }
+      if (pic && pic.thumb) { shot.style.backgroundImage = 'linear-gradient(' + COVER + ', ' + COVER + '), url(' + JSON.stringify(pic.thumb) + ')'; card.classList.add('has-cover'); }
       ink(mk('span', 'sv-folder-glyph', shot), 'saveFolder', 20);
       mk('span', 'sv-folder-name', shot, leafOf(path));
       const filesLine = mk('span', 'sv-folder-files', shot);
-      ink(filesLine, 'projectFile', 12);
+      ink(filesLine, FOLDER_GLYPH, 12);
       mk('span', null, filesLine, String(files.count(path, true)));
       shot.addEventListener('click', () => go(path));
       wireLongPress(shot, () => folderMenu(path));
@@ -663,10 +666,15 @@ export function buildGallery(panel, opts) {
       const shot = btn('sv-shot', card, null, t(S.selected === e.id ? 'Open {name} — tap again' : 'Select {name}', { name: e.name }));
       shot.setAttribute('aria-pressed', String(S.selected === e.id));
       if (e.thumb) shot.style.setProperty('--sv-thumb', 'url(' + JSON.stringify(e.thumb) + ')');
-      tileLife.push(pointerField(shot));
-      const carried = wireCarry(shot, card, e);
-      tileLife.push(() => carried.destroy());
+      tileLife.push(pointerField(shot, { touch: true }));            // BASINS' parallax follows a finger too
+      let pressX = null, pressY = 0, dragged = false;                  // BASINS: a press that travels > 10 px is not a tap
+      shot.addEventListener('pointerdown', (ev) => { dragged = false; pressX = ev.clientX; pressY = ev.clientY; });
+      shot.addEventListener('pointermove', (ev) => { if (pressX != null && ev.buttons && Math.hypot(ev.clientX - pressX, ev.clientY - pressY) > 10) dragged = true; });
+      shot.addEventListener('pointerup', () => { pressX = null; });
+      shot.addEventListener('pointercancel', () => { pressX = null; dragged = true; });
+      if (DRAG) { const carried = wireCarry(shot, card, e); tileLife.push(() => carried.destroy()); }
       shot.addEventListener('click', () => {
+        if (dragged) { dragged = false; return; }
         if (Date.now() - lastDrop < 400) return;                   // the click a carry's release makes is not a tap
         if (S.selected === e.id) openEntry(e.id); else selectCard(e.id);
       });
@@ -678,7 +686,7 @@ export function buildGallery(panel, opts) {
       const acts = mk('div', 'sv-acts', card);
       const info = ink(btn('sv-info', acts, null, t('Show the data for {name}', { name: e.name })), 'info', 18);
       info.addEventListener('click', () => { S.selected = e.id; paintExplorer(); if (typeof o.onInspect === 'function') o.onInspect(files.entry(e.id), { show: true }); });
-      ink(btn('sv-move-btn', acts, null, t('Move {name} to a folder', { name: e.name })), 'folder', 15).addEventListener('click', () => itemMenu(e));
+      if (DRAG) ink(btn('sv-move-btn', acts, null, t('Move {name} to a folder', { name: e.name })), 'folder', 15).addEventListener('click', () => itemMenu(e));
       ink(btn('sv-rename', acts, null, t('Rename {name}', { name: e.name })), 'rename', 15).addEventListener('click', renameIt);
       const del = ink(btn('sv-del', acts, null, t('Delete {name}', { name: e.name })), 'close', 14);
       let tm = 0;

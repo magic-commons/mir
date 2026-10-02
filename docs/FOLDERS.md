@@ -56,8 +56,8 @@ Read from BASINS (`save-window.js`, `mir-plugins/kwin/kwin.js`, `shell.js`; adop
 | FOLDERS' own verbs (`actions: FOLDERS_ACTIONS`) | **SAVE** over the open project (the first time, or over a read-only starter, it is SAVE AS) · **SAVE AS** · **NEW** · **OPEN FILE** (a `.mir` or a picture that carries one) · **EXPORT** (`.mir` or picture) |
 | The panels | GALLERY first; an app's own after it (BASINS: RENDER). With more than one, a radio chip per panel sits on the rail before the sort, as BASINS draws them |
 | The explorer | crumbs (ROOT / …), the folders as cards (the cover picture under a wash, a count), then the projects as pictured tiles. Tap a tile to choose it, tap again to open it. A chosen tile shows its name and four verbs: ⓘ, MOVE, RENAME, DELETE (DELETE asks "sure?") |
-| **Drag to folder** | carry a tile with a mouse or pen: the folders and the crumbs in reach light up, dotted and brightening as it nears, solid when release would land. Escape, a lost pointer or a blur puts it back |
-| **MOVE TO** | the touch and keyboard way to do the same: long-press a tile (or right-click, or the context-menu key), or press its MOVE verb. The menu lists every folder as a button, then BASINS' typed path and MOVE |
+| **Drag to folder** (`dragToFolder: true`; off by default, BASINS never had it) | carry a tile with a mouse or pen: the folders and the crumbs in reach light up, dotted and brightening as it nears, solid when release would land. Escape, a lost pointer or a blur puts it back |
+| **MOVE TO** (with `dragToFolder`) | the touch and keyboard way to do the same: long-press a tile (or right-click, or the context-menu key), or press its MOVE verb. The menu lists every folder as a button, then BASINS' typed path and MOVE |
 | Folder menu | long-press or right-click a folder: RENAME (onto an existing path it merges), REMOVE FOLDER (it arms first: MOVE CONTENTS TO ROOT?) |
 | Opening | over a screen not known to be saved (as at start, BASINS' law) it asks: SAVE & OPEN or OPEN WITHOUT SAVING |
 | The rail | close, the panel chips, the sort (A–Z, Z–A, newest, oldest; the depth sorts too with `depthOf`), the grip. On the window's **right** by default (BASINS). Shift-drag, long-press or the arrow keys on the grip move it to another edge |
@@ -81,6 +81,10 @@ Read from BASINS (`save-window.js`, `mir-plugins/kwin/kwin.js`, `shell.js`; adop
 | `actions` | `DEFAULT_ACTIONS` = BASINS' `project capture download duplicate fresh options` | the toolbar's verbs, in order. `FOLDERS_ACTIONS` = `save saveAs fresh open export`; mix freely |
 | `panels` | none | `[{ id, label, glyph, hint, build(body, api), onShow?(body, api) }]` after the built-in gallery; `galleryPanel` overrides the gallery's chip |
 | `onTab(id)` | — | after a panel is shown (BASINS: `render.paint()`) |
+| `dragToFolder` | `false` | drag a tile onto a folder (the proximity glow), with MOVE TO and the tile's MOVE verb as its touch and keyboard way. BASINS' gallery has neither; `gallery/folders.html` turns it on |
+| `folderGlyph` | `'mandelbrotSmall'` (BASINS') | the mark beside a folder's count |
+| `onOpen(api)` | — | every open, a window persisted open included (BASINS seeds its factory gallery and JOSH'S LIBRARY here) |
+| `material`, `railGap` | `'modulation'`, the kit's | the window and rail material (`[data-mir-material]`, window.css: BASINS' SAVE window wore the modulation window's); `null` for the plain house glass |
 | `head`, `status` | `false`, `false` | the name line with UNSAVED CHANGES; a status line in the window instead of the toast |
 | `chipSide` | `'right'` | the rail's side before the user moves it |
 | `seeds` / `seededKey` | — / `store + '.seeded'` | starter projects (below) |
@@ -173,6 +177,7 @@ const folders = createFolders({
   onInspect: (e, how) => { if (how && how.show) folders.tab('render'); else if (render) render.paint(); },
   onOpened: () => { if (render) render.paint(); },
   rack: { keepClear: () => [document.getElementById('rack').getBoundingClientRect()] },
+  onOpen: () => maybeSeed(),                            // every open, a persisted one too (was kwin's onOpen)
   say: (t, bad) => toast(t, bad ? 5000 : 3200),         // until BASINS takes the kit's notice
   onMoved: (r) => shell.workspaceMoved(r),
 });
@@ -217,4 +222,5 @@ const folders = createFolders({
 - `tests/folders.node.mjs`: the store, the seeds, the adapter (open, NEW, rollback).
 - `tests/folders.browser.mjs` on `gallery/folders.html?reset&test` (FOLDERS' own options), real CDP input, every press hit-tested: 25 checks — the window takes the pointer, and still does with its id taken away; the first open asks over an unknown screen; SAVE, the unsaved mark, SAVE in place; another project restores knobs, colour and pages; NEW; drag to folder and Escape; MOVE TO by keyboard; the rail moves; empty glass drags and a tile does not; the transport dodges; export and import; another app's file refused; a reload keeps the library; a failed open rolls back.
 - `tests/folders-basins.browser.mjs` on `tests/fixtures/folders-basins.html` (BASINS' options, a stand-in engine and RENDER panel): **BASINS' own `save-gate.js` checks**, names and actions unchanged, the kwin selectors mapped: 28 run as written and pass; 7 run against the stand-in engine or panel and pass (they prove the seat, not the fractal); 9 need BASINS itself (the engine's exact scale, knobs and colours; CAPTURE IMAGE, the film estimate and the self-test in RENDER; the two film checks; the rail-against-modulation-rail comparison). `MIR_PLATES=1` writes `docs/plates/folders/basins.png`.
+- **BASINS' own gallery, node for node** (`.tmp/W8/FO/domcmp.mjs`, the adoption branch served read-only at `?warn=0`, against `tests/fixtures/folders-basins.html`): a project tile, a folder tile, the options button and a folder's count glyph — 42 nodes — have the same tags, classes and child order. What differs is not the gallery's: BASINS' control-help hop turns every `title` into `data-help`/`data-help-en` at run time (the kit's `installControlHelp` does the same when an app installs it) and BASINS' ink sampler writes `data-ink` on the folder card and the options button; and the kit adds `data-action` on every toolbar verb (a hook) and `data-current` on the open project's tile.
 - Not proven: BASINS' real app (the stage that adopts this runs the real gate), WebKit or an iPad, a real OS file drop.

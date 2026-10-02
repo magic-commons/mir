@@ -25,7 +25,8 @@
   --folders-over-ink: hsl(0 0% 100%);                /* words and glyphs drawn on a picture */
   --folders-over-scrim: hsl(0 0% 0% / .8);           /* the gradient that keeps those words legible */
   --folders-over-scrim-soft: hsl(0 0% 0% / .35);     /* a button's face on a picture */
-  --folders-cover-scrim: hsl(0 0% 0% / .62);         /* a folder's cover picture, dimmed under its name */
+  --folders-cover-scrim: hsl(0 0% 0% / .65);         /* a folder's cover picture, dimmed under its name (BASINS' .65) */
+  --folders-inset: 13px;                             /* the gallery's inset in the pane: BASINS' 12 px panel padding + its sheet's 1 px edge */
   --folders-parallax: 6px;                           /* how far a tile's picture follows the pointer */
   --folders-zoom: 1.08;                              /* the picture's rest scale inside its tile … */
   --folders-zoom-hot: 1.13;                          /* … and hovered or chosen */
@@ -34,7 +35,7 @@
 /* ── end of the values ── */
 
 /* ── the body: a column whose explorer is the one scroller ─────────────────────────────────────────────────── */
-.mir-folders .mir-win-body { display: flex; flex-direction: column; gap: var(--sp-2); overflow: hidden; padding: var(--sp-3); }
+.mir-folders .mir-win-body { display: flex; flex-direction: column; gap: var(--sp-2); overflow: hidden; padding: var(--folders-inset); }
 .mir-folders .fo-gallery { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 /* the panels (BASINS' GALLERY and RENDER): one shown at a time; the gallery is a column whose explorer scrolls, any
    other panel scrolls itself */
@@ -56,8 +57,16 @@
 /* ── the verbs: kit triggers, raised at rest, one row (two rows when the window is narrow) ───────────────────── */
 .mir-folders .sv-toolbar { display: grid; grid-template-columns: repeat(var(--sv-verbs, 6), minmax(0, 1fr)); gap: var(--sp-1); }
 @container (max-width: 285px) { .mir-folders .sv-toolbar { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-.mir-folders .sv-toolbar .trig { display: flex; align-items: center; justify-content: center; box-sizing: border-box;
+.mir-folders .sv-toolbar :is(.trig, .sv-options) { display: flex; align-items: center; justify-content: center; box-sizing: border-box;
   width: 100%; min-width: 0; height: 44px; min-height: 44px; padding: 0; }
+/* the options disclosure is BASINS' plain button: it wears a trigger's relief here (raised at rest, the ON face open) */
+.mir-folders .sv-toolbar .sv-options { border: 0; border-radius: var(--r-md); background: var(--glass-raise); box-shadow: var(--relief-raise, var(--neu-raise));
+  color: var(--fg-soft); cursor: pointer; transition: scale var(--motion-micro) var(--ease-out); }
+.mir-folders .sv-toolbar .sv-options:hover { background: var(--state-hover, var(--glass-raise)); color: var(--fg); }
+.mir-folders .sv-toolbar .sv-options:is(:active, .press) { scale: var(--state-press-scale, .96); }
+.mir-folders .sv-toolbar .sv-options[aria-expanded="true"] { background: var(--state-on, var(--glass-raise)); box-shadow: var(--state-on-rim, var(--neu-flat)); color: var(--acc); }
+.mir-folders .sv-toolbar .sv-options:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
+.mir-folders .sv-toolbar .sv-options svg { width: 20px; height: 20px; }
 .mir-folders .sv-toolbar .trig .trig-l { display: flex; align-items: center; justify-content: center; line-height: 1; }
 .mir-folders .sv-toolbar .trig svg { width: 20px; height: 20px; }
 .mir-folders .sv-toolbar [aria-busy="true"] svg { opacity: .45; }
