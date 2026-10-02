@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>MIR · rack</title>
+<!-- THE RACK, PLAYABLE: two racks over a busy 2D ground, six windows registered by name (two open, four LAZY: the
+     BUILT counter at the top says how many exist), the + menu (SHIFT-click several, let SHIFT go: they open in the
+     order you picked), the ☆ layouts, and a menubar whose WINDOW menu is rack.windowMenu().  Drag a window's header to
+     reorder it (its slot is drawn), out past the rack's edge to float it, back over a rack to dock it into the lit slot.
+     Keyboard: Tab to a header, ↑ ↓ move it, ← → change rack, Enter floats / docks.  B hides the racks (they peek at the
+     edge), H hides the interface (the edge handle brings it back).  DRIFT is a kit window (mir/window/): move it over the
+     transport and the transport gives way.  ?theme=light · ?reset (forget the saved layout) · ?drag=<id> (a plate pose). -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/shell/shell.css">
+<link rel="stylesheet" href="../mir/shell/stage.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<link rel="stylesheet" href="../mir/window/window.css">
+<link rel="stylesheet" href="../mir/shell/rack.css">
+<style>
+  /* the page's own: the ground, the counter, the transport's two seats */
+  #ground { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .g-count { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); z-index: 31; padding: 6px 12px; border-radius: var(--r-pill);
+    font: var(--w-bold) var(--fs-tiny) var(--font-ui); letter-spacing: var(--tr-wide); color: var(--fg-soft); }
+  .g-count b { color: var(--acc); }
+  #transport { position: absolute; left: 50%; transform: translateX(-50%); bottom: 60px; z-index: 31; display: flex; gap: 6px; align-items: center;
+    padding: 6px 10px; border-radius: var(--r-lg); }
+  #transport[data-seat="top"] { bottom: auto; top: 52px; }
+  .g-note { font-size: var(--fs-small); color: var(--fg-soft); line-height: 1.5; margin: 0 0 6px; }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted" class="disconnected">
+<div id="lab">
+  <div id="stage"><canvas id="ground" aria-hidden="true"></canvas></div>
+  <div class="g-count glass" aria-live="polite">BUILT <b id="built">0</b> / <span id="total">6</span></div>
+  <div id="transport" class="glass"></div>
+  <div id="winlayer"></div>
+</div>
+<script type="module">
+import { el, knob, fader, sw, seg, trig, readout } from '../mir/kit.js';
+import { createRack } from '../mir/shell/rack.js';
+import { createWindow } from '../mir/window/window.js';
+import { wordmark } from '../mir/shell/wordmark.js';
+import { createMenubar } from '../mir/shell/menubar.js';
+import { installPress } from '../mir/core/pointer.js';
+
+const q = new URLSearchParams(location.search);
+if (q.get('theme') === 'light') document.body.dataset.theme = 'light';
+if (q.has('reset')) try { localStorage.removeItem('mir.gallery.rack'); } catch {}
+const $ = (id) => document.getElementById(id);
+
+/* ── the busy ground, drawn once per size (the page is idle when nothing moves) ── */
+const ground = $('ground');
+function paint() {
+  const dpr = devicePixelRatio || 1, w = innerWidth, h = innerHeight;
+  ground.width = w * dpr; ground.height = h * dpr;
+  const g = ground.getContext('2d'); g.scale(dpr, dpr);
+  const light = document.body.dataset.theme === 'light';
+  g.fillStyle = light ? '#eef1f6' : '#070a0f'; g.fillRect(0, 0, w, h);
+  let s = 11; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  for (let i = 0; i < 90; i++) {
+    const x = rnd() * w, y = rnd() * h, r = 30 + rnd() * 180, hue = Math.round(rnd() * 360);
+    const grad = g.createRadialGradient(x, y, 0, x, y, r);
+    grad.addColorStop(0, `hsla(${hue} 80% ${light ? 60 : 55}% / .55)`); grad.addColorStop(1, `hsla(${hue} 80% 50% / 0)`);
+    g.fillStyle = grad; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+  }
+  g.strokeStyle = light ? 'hsla(214 30% 30% / .25)' : 'hsla(0 0% 100% / .12)';
+  for (let x = 0; x < w; x += 24) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + h * .4, h); g.stroke(); }
+}
+paint(); addEventListener('resize', paint);
+
+/* ── the transport pill: it gives way to DRIFT ── */
+const transport = $('transport');
+for (const l of ['◀◀', 'PLAY', '▶▶']) transport.appendChild(trig({ label: l, onFire: () => {} }).root);
+
+/* ── THE RACK ── */
+const rack = createRack({ host: $('lab'), key: 'mir.gallery.rack', transport, handle: 'always' });
+const count = () => { $('built').textContent = String(rack.built); };
+const note = (b, t) => el('p', 'g-note', b, t);
+const W = [
+  { id: 'tone', title: 'TONE', side: 'right', open: true, hint: 'two knobs and a readout',
+    build(b) { note(b, 'Built at boot: it was open in the default layout.'); const r = el('div', 'row', b); r.appendChild(knob({ label: 'GAIN', min: 0, max: 1, value: .6 }).root); r.appendChild(knob({ label: 'TILT', min: -1, max: 1, value: 0 }).root); b.appendChild(readout({ label: 'LEVEL', value: '−6.0 dB' }).root); } },
+  { id: 'display', title: 'DISPLAY', side: 'left', open: true, hint: 'theme, card, frost — and the hide keys',
+    build(b) {
+      b.appendChild(seg({ label: 'THEME', value: document.body.dataset.theme, options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], onChange: (v) => { document.body.dataset.theme = v; paint(); } }).root);
+      b.appendChild(seg({ label: 'CARD', value: 'tinted', options: [{ id: 'tinted', label: 'TINTED' }, { id: 'refractive', label: 'REFRACTIVE' }], onChange: (v) => { document.body.dataset.card = v; } }).root);
+      const r = el('div', 'row', b);
+      r.appendChild(sw({ label: 'FROST', value: false, onChange: (v) => document.body.classList.toggle('frost', v) }).root);
+      r.appendChild(trig({ label: 'HIDE RACK  B', onFire: () => rack.toggleHidden() }).root);
+      r.appendChild(trig({ label: 'HIDE ALL  H', onFire: () => rack.setInterface(false) }).root);
+    } },
+  { id: 'mix', title: 'MIX', side: 'right', hint: 'a fader pair',
+    build(b) { note(b, 'Lazy: built the first time you opened it.'); b.appendChild(fader({ label: 'WET', min: 0, max: 1, value: .3 }).root); b.appendChild(fader({ label: 'DRY', min: 0, max: 1, value: .8 }).root); } },
+  { id: 'scope', title: 'SCOPE', side: 'right', glyph: 'tune', hint: 'switches',
+    build(b) { const r = el('div', 'row', b); for (const l of ['TRIG', 'HOLD', 'XY']) r.appendChild(sw({ label: l, value: l === 'TRIG' }).root); } },
+  { id: 'camera', title: 'CAMERA', side: 'left', glyph: 'camera', hint: 'a knob and two buttons',
+    build(b) { const r = el('div', 'row', b); r.appendChild(knob({ label: 'ZOOM', min: 1, max: 64, value: 4, log: true }).root); r.appendChild(trig({ label: 'CENTER', onFire: () => {} }).root); r.appendChild(trig({ label: 'NORTH', onFire: () => {} }).root); } },
+  { id: 'notes', title: 'NOTES', side: 'left', glyph: 'bulletList', hint: 'a readout',
+    build(b) { note(b, 'Close me with × and I sleep; I keep what I built. Power me off and I would free it.'); b.appendChild(readout({ label: 'WORDS', value: '24' }).root); } },
+];
+for (const w of W) rack.register({ ...w, onOpen: count, onClose: count });
+$('total').textContent = String(W.length);
+rack.start(); count();
+installPress({ selector: '.sw, .seg-b, .trig, .mir-rack-btn' });
+
+/* ── DRIFT: a kit floating window that reports its rect, so the transport dodges it ── */
+const drift = createWindow({ id: 'drift', title: 'DRIFT', host: $('winlayer'), size: { w: 300, h: 180 }, emptyDrag: true,
+  body: (b) => { note(b, 'A kit window (mir/window). Drag me over the transport: it moves to its other seat, and back when I leave.'); },
+  onMoved: (r) => rack.dodge(r) });
+drift.place({ x: Math.round(innerWidth / 2 - 150), y: 120 }); drift.open();
+
+/* ── the menubar: its WINDOW menu IS the rack's ── */
+const title = wordmark($('stage'), { word: 'RACK', sub: 'MIR · THE RACK' });
+const bar = createMenubar({ opener: title, host: $('lab'), menus: {
+  WINDOW: () => [...rack.windowMenu(), null, ['HIDE / SHOW the rack\tB', () => rack.toggleHidden()], ['HIDE the interface\tH', () => rack.setInterface(false)], ['DRIFT', () => drift.toggle()]],
+  LAYOUT: () => [['SAVE LAYOUT', () => rack.saveLayout()], ...rack.layouts().map((L) => ['LOAD ' + L.label, () => rack.loadLayout(L.slot)]), null, ['FORGET the saved layout (reload)', () => { localStorage.removeItem('mir.gallery.rack'); location.reload(); }]],
+} });
+
+/* ── the keys: one hide path each ── */
+addEventListener('keydown', (e) => {
+  if (e.ctrlKey || e.metaKey || e.altKey || e.target.closest('input, textarea, [contenteditable="true"]')) return;
+  if (e.code === 'KeyB') rack.toggleHidden();
+  else if (e.code === 'KeyH') rack.setInterface(document.body.classList.contains('ui-hidden'));
+});
+
+/* a plate pose: ?drag=<id> carries that window halfway to the other rack (mid-drag, the slot lit) */
+window.__R = { rack, drift, bar, count };
+</script>
+</body>
+</html>

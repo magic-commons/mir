@@ -1,6 +1,6 @@
 # MIR · WINDOWS — the one floating window
 
-Three modules in `mir/window/` and one sheet. They are built on the core (`docs/CORE.md`) and add no runtime of their own. Load `mir/window/window.css` after the kit's sheets and `mir/core/core.css`; it lives in `@layer mir.kit.house`. Play with it at `gallery/windows.html`.
+Three modules in `mir/window/` and one sheet. (The rack's windows, the `.dev` cards in the columns at the screen's edges, are `mir/shell/rack.js`: see `docs/RACK.md`. A kit window that reports `onMoved` can hand that rect to `rack.dodge()` so the transport gives way.) They are built on the core (`docs/CORE.md`) and add no runtime of their own. Load `mir/window/window.css` after the kit's sheets and `mir/core/core.css`; it lives in `@layer mir.kit.house`. Play with it at `gallery/windows.html`.
 
 ## The laws
 

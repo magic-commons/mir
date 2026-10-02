@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MIR · rack fixture</title>
+<link rel="stylesheet" href="../../mir/css/base.css">
+<link rel="stylesheet" href="../../mir/css/skin.css">
+<link rel="stylesheet" href="../../mir/shell/shell.css">
+<link rel="stylesheet" href="../../mir/shell/stage.css">
+<link rel="stylesheet" href="../../mir/core/core.css">
+<link rel="stylesheet" href="../../mir/window/window.css">
+<link rel="stylesheet" href="../../mir/shell/rack.css">
+<style>
+  #ground { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #transport { position: absolute; left: 50%; transform: translateX(-50%); bottom: 60px; z-index: 31; display: flex; gap: 6px; padding: 6px 10px; border-radius: 12px; }
+  #transport[data-seat="top"] { bottom: auto; top: 52px; }
+  .fill { height: 60px; }
+</style>
+<!-- counts every rAF the page books, from before any module loads -->
+<script>
+  window.__rafCalls = 0;
+  const raf0 = window.requestAnimationFrame.bind(window);
+  window.requestAnimationFrame = (f) => { window.__rafCalls++; return raf0(f); };
+</script>
+</head>
+<body data-theme="dark" data-card="tinted" class="disconnected">
+<div id="lab">
+  <div id="stage"><canvas id="ground"></canvas></div>
+  <div id="transport" class="glass"><button class="trig" type="button">PLAY</button></div>
+  <div id="winlayer"></div>
+</div>
+<script type="module">
+import { el, knob, readout } from '../../mir/kit.js';
+import { createRack } from '../../mir/shell/rack.js';
+import { createWindow } from '../../mir/window/window.js';
+import { wordmark } from '../../mir/shell/wordmark.js';
+import { createMenubar } from '../../mir/shell/menubar.js';
+import * as motion from '../../mir/core/motion.js';
+import { perf } from '../../mir/core/perf.js';
+
+if (new URLSearchParams(location.search).has('fresh')) localStorage.removeItem('mir.test.rack');
+const g = document.getElementById('ground'); g.width = innerWidth; g.height = innerHeight;
+const c = g.getContext('2d'); for (let i = 0; i < 40; i++) { c.fillStyle = `hsl(${i * 37} 70% 45%)`; c.fillRect((i * 97) % innerWidth, (i * 53) % innerHeight, 160, 120); }
+
+const transport = document.getElementById('transport');
+const rack = createRack({ host: document.getElementById('lab'), key: 'mir.test.rack', transport, handle: 'always' });
+const life = [];
+const W = [
+  ['tone', 'TONE', 'right', true], ['display', 'DISPLAY', 'left', true], ['mix', 'MIX', 'right', false],
+  ['scope', 'SCOPE', 'right', false], ['camera', 'CAMERA', 'left', false], ['notes', 'NOTES', 'left', false],
+];
+for (const [id, title, side, open] of W) rack.register({ id, title, side, open,
+  build(b) { b.appendChild(knob({ label: 'K', min: 0, max: 1, value: .5 }).root); b.appendChild(readout({ label: id.toUpperCase(), value: '1' }).root); el('div', 'fill', b); },
+  onOpen: (api) => life.push('open:' + api.id), onClose: (api) => life.push('close:' + api.id), onPresent: (on, api) => life.push('present:' + api.id + ':' + on) });
+rack.start();
+const drift = createWindow({ id: 'drift', title: 'DRIFT', host: document.getElementById('winlayer'), size: { w: 300, h: 160 }, onMoved: (r) => rack.dodge(r) });
+drift.place({ x: 480, y: 120 }); drift.open();
+const title = wordmark(document.getElementById('stage'), { word: 'RACK' });
+const bar = createMenubar({ opener: title, host: document.getElementById('lab'), menus: { WINDOW: () => rack.windowMenu() } });
+addEventListener('keydown', (e) => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.code === 'KeyB') rack.toggleHidden();
+  else if (e.code === 'KeyH') rack.setInterface(document.body.classList.contains('ui-hidden'));
+});
+window.__T = { rack, drift, bar, motion, perf, life };
+window.__ready = true;
+</script>
+</body>
+</html>
