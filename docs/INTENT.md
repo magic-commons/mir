@@ -54,7 +54,20 @@ Josh has not ruled these. 1.5.0-alpha.3 built the default in the last column so 
 | O9 | Drop here: accent A (as core.css draws it) or accent B (it is a relationship)? | accent A | left as it was |
 | O10 | `--neu-flat`, "a resting seat" (a 1 px ring): a meaning, or gone? | on `.sw`, `.badge`, `.k-val` | left as it was |
 | O11 | Plan §5.2 and F1 §5.2 name the same tokens twice (`--relief-raise` / `--face-relief-raise`, `--state-on` / `--face-fill-on` …). Which spelling? | both in the schema as `proposed`; the plan's are listed first | the plan's: `--relief-*`, `--state-*`. The `--face-*` duplicates are read by nothing and can leave the schema |
-| O12 | Rule 4 says TINTED never blurs; BASINS draws its own TINTED panes with the frost blur when FROST is on. Keep rule 4, or let TINTED + FROST blur as BASINS does? | (1.4: FROST blurred every pane, TINTED thinned to .58) | rule 4 is kept: TINTED never blurs, REFRACTIVE carries the blur (alpha.3). **Open for Josh (1.5.0-alpha.9).** Which elements change under each answer is the look lane's eight-row table in its round-three report to the orchestrator; it is not in the tree yet and goes here when it is |
+| O12 | Rule 4 says TINTED never blurs; BASINS draws its own TINTED panes with the frost blur when FROST is on. Keep rule 4, or let TINTED + FROST blur as BASINS does? | (1.4: FROST blurred every pane, TINTED thinned to .58) | rule 4 is kept: TINTED never blurs, REFRACTIVE carries the blur (alpha.3). **Open for Josh (1.5.0-alpha.9).** Which elements change under each answer is the table below |
+
+**O12, element by element** (TINTED with FROST on; measured against BASINS' live windows, 2026-10-02). Josh's own FROST recipe is REFRACTIVE, so it looks the same under either answer.
+
+| Element | Rule 4 everywhere (the kit today) | BASINS' tinted-frost drawing kept |
+|---|---|---|
+| Stage rack buttons (`button.glass`, chip-hooked) | tinted fill .84 dark / .86 light, no backdrop | .58 tint, `blur(8px) saturate(1.3)` |
+| Modulation and timeline work bars (`.m2workbar`) | the card's fill, no blur | .58 + blur, ink .96 |
+| Chip discs (kwin `.crail-chip::before`, kit `.mir-chip::before`) | tinted fill, chip filter none under TINTED | .58 + the chip filter under FROST for every card style |
+| A disconnected `.dev-head` | the tinted fill (with the look engine), no blur | the .58 pane + `blur(8px) saturate(1.3)` |
+| A disconnected `.dev-body` and islands | tinted fill, no backdrop | .58 + blur |
+| Rack cards and `.glass` panes | tinted fill, no blur | .58 + the frost filter |
+| The work-bar transport inside the timeline | tinted fill + shadow | .58 |
+| Menus and popovers (`.mb-list`, the hint, the ⓘ panel) | a tinted pane, no blur | clear + the frost blur |
 
 ## The vanilla themes keep it
 
