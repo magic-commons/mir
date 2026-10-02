@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>MIR · FOLDERS</title>
+<!-- FOLDERS, PLAYABLE.  A small 2D "app": the picture behind is drawn from two knobs (RINGS, TWIST) and a colour (HUE),
+     and the PAGES window holds the project's pages.  Those four are registered as project parts (core/project.js), so
+     FOLDERS saves and opens them without knowing what they are.  Six starter projects are seeded in two folders.
+     SAVE writes over the open project (SAVE AS the first time), SAVE AS makes a new one, NEW is the empty project,
+     OPEN FILE takes a .mir or a picture, EXPORT gives either.  Drag a tile onto a folder (or a crumb) to move it;
+     long-press a tile (touch) or press its folder button (keyboard) for MOVE TO.  The transport gives way to the
+     window.  S toggles FOLDERS.  ?theme=light · ?reset (forget the library and the layout) · ?break (a part that
+     refuses the HALO starter, to watch a failed open roll back). -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/shell/shell.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<link rel="stylesheet" href="../mir/window/window.css">
+<link rel="stylesheet" href="../mir/shell/rack.css">
+<link rel="stylesheet" href="../mir/folders/folders.css">
+<style>
+  /* the page's own: the picture, the transport's two seats */
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  #ground { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #transport { position: absolute; left: 50%; transform: translateX(-50%); bottom: 60px; z-index: 31; display: flex; gap: 6px; align-items: center;
+    padding: 6px 10px; border-radius: var(--r-lg); }
+  #transport[data-seat="top"] { bottom: auto; top: 52px; }
+  #winlayer { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
+  .g-note { font-size: var(--fs-small); color: var(--fg-soft); line-height: 1.5; margin: 0 0 6px; }
+  .g-pages { display: flex; flex-direction: column; gap: 4px; margin: 6px 0; }
+  .g-page { font-size: var(--fs-small); color: var(--fg); padding: 4px 6px; border-radius: var(--r-sm); background: var(--glass-well); }
+  .g-page:first-child { color: var(--acc); }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted" class="disconnected">
+<div id="lab">
+  <div id="stage"><canvas id="ground" aria-hidden="true"></canvas></div>
+  <div id="transport" class="glass"></div>
+  <div id="winlayer"></div>
+</div>
+<script type="module">
+import { el, knob, seg, trig, sw } from '../mir/kit.js';
+import { createRack } from '../mir/shell/rack.js';
+import { installPress } from '../mir/core/pointer.js';
+import { registerProjectPart } from '../mir/core/project.js';
+import { createPages } from '../mir/shell/pages.js';
+import { createFolders } from '../mir/folders/folders.js';
+
+const q = new URLSearchParams(location.search);
+if (q.get('theme') === 'light') document.body.dataset.theme = 'light';
+if (q.has('reset')) try { for (const k of Object.keys(localStorage)) if (k.startsWith('mir.gallery.folders')) localStorage.removeItem(k); } catch {}
+const $ = (id) => document.getElementById(id);
+
+/* ── THE APP: two knobs and a colour draw the picture ─────────────────────────────────────────────────────── */
+const S = { rings: 6, twist: 0.35, hue: 28 };
+const EMPTY = { rings: 3, twist: 0, hue: 210 };
+function draw(c, st, w, h) {
+  const g = c.getContext('2d'), light = document.body.dataset.theme === 'light';
+  g.fillStyle = light ? '#eef1f6' : '#06080d'; g.fillRect(0, 0, w, h);
+  const cx = w / 2, cy = h / 2, R = Math.hypot(w, h) / 2;
+  for (let i = st.rings * 6; i > 0; i--) {
+    const r = (i / (st.rings * 6)) * R, a = i * st.twist;
+    g.beginPath();
+    for (let k = 0; k <= 6; k++) { const t = a + (k / 6) * Math.PI * 2; g.lineTo(cx + Math.cos(t) * r, cy + Math.sin(t) * r * .8); }
+    g.fillStyle = `hsl(${(st.hue + i * 7) % 360} 70% ${light ? 72 - (i % 2) * 14 : 30 + (i % 2) * 18}%)`; g.fill();
+  }
+}
+const ground = $('ground');
+function paint() {
+  const dpr = devicePixelRatio || 1, w = innerWidth, h = innerHeight;
+  if (ground.width !== w * dpr || ground.height !== h * dpr) { ground.width = w * dpr; ground.height = h * dpr; }
+  const g = ground.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); draw(ground, S, w, h);
+}
+let queued = false;
+const repaint = () => { if (queued) return; queued = true; requestAnimationFrame(() => { queued = false; paint(); }); };
+paint(); addEventListener('resize', repaint);
+
+/* ── its parts: the knobs, the colour and the pages, each registered once (FOLDERS never learns what they are) ── */
+const watchers = { knobs: new Set(), colour: new Set() };
+const told = (k) => { for (const f of watchers[k]) f(); };
+let rings, twist, hueSeg;
+registerProjectPart('knobs', {
+  capture: () => ({ rings: S.rings, twist: S.twist }),
+  restore: (v) => { const x = v || EMPTY; S.rings = x.rings; S.twist = x.twist; if (rings) { rings.set(S.rings); twist.set(S.twist); } repaint(); },
+  subscribe: (fn) => { watchers.knobs.add(fn); return () => watchers.knobs.delete(fn); },
+});
+registerProjectPart('colour', {
+  capture: () => ({ hue: S.hue }),
+  restore: (v) => {
+    if (q.has('break') && v && v.hue === 300) throw new Error('this colour part refuses hue 300');
+    S.hue = v ? v.hue : EMPTY.hue; if (hueSeg) hueSeg.set(String(S.hue)); repaint();
+  },
+  subscribe: (fn) => { watchers.colour.add(fn); return () => watchers.colour.delete(fn); },
+});
+const pages = createPages();
+registerProjectPart('pages', pages.part());
+
+/* ── the starters: six projects in two folders, each pictured by the app's own drawing ── */
+const shot = (st) => { const c = document.createElement('canvas'); c.width = 320; c.height = 240; draw(c, st, 320, 240); return c.toDataURL('image/jpeg', .82); };
+const starter = (name, folder, st, page, readOnly) => ({ name, folder, readOnly, thumbnail: shot(st),
+  data: { parts: { knobs: { rings: st.rings, twist: st.twist }, colour: { hue: st.hue }, pages: { v: 1, showOnOpen: true, pages: [{ id: 'p1', title: name, md: page, shared: false }] } } } });
+const seeds = [
+  starter('EMBER', 'STARTERS', { rings: 6, twist: 0.35, hue: 18 }, 'A warm spiral.', true),
+  starter('TIDE', 'STARTERS', { rings: 9, twist: 0.12, hue: 190 }, 'Slow blue rings.', true),
+  starter('HALO', 'STARTERS', { rings: 4, twist: 0.6, hue: 300 }, 'A violet turn.', true),
+  starter('MOSS', 'STUDIES', { rings: 12, twist: 0.05, hue: 110 }, 'Many rings, little twist.'),
+  starter('DUSK', 'STUDIES', { rings: 5, twist: 0.9, hue: 260 }, 'Twisted.'),
+  starter('SAND', 'STUDIES', { rings: 7, twist: 0.25, hue: 42 }, 'Plain.'),
+];
+
+/* ── the transport and the rack ── */
+const transport = $('transport');
+for (const l of ['◀◀', 'PLAY', '▶▶']) transport.appendChild(trig({ label: l, onFire: () => {} }).root);
+transport.appendChild(trig({ label: 'FOLDERS  S', onFire: () => folders.toggle() }).root);
+const rack = createRack({ host: $('lab'), key: 'mir.gallery.folders.rack', transport, favourites: 0 });
+rack.register({ id: 'controls', title: 'CONTROLS', side: 'right', open: true, hint: 'two knobs and a colour: project parts',
+  build(b) {
+    el('p', 'g-note', b, 'These three are project parts. Change one and FOLDERS marks the project unsaved.');
+    const r = el('div', 'row', b);
+    rings = knob({ label: 'RINGS', min: 2, max: 14, value: S.rings, step: 1, fmt: (v) => String(Math.round(v)), onInput: (v) => { S.rings = Math.round(v); repaint(); told('knobs'); } });
+    twist = knob({ label: 'TWIST', min: 0, max: 1, value: S.twist, onInput: (v) => { S.twist = v; repaint(); told('knobs'); } });
+    r.append(rings.root, twist.root);
+    hueSeg = seg({ label: 'HUE', value: String(S.hue), options: [18, 42, 110, 190, 210, 260, 300].map((h) => ({ id: String(h), label: String(h) })),
+      onChange: (v) => { S.hue = +v; repaint(); told('colour'); } });
+    b.appendChild(hueSeg.root);
+  } });
+rack.register({ id: 'pages', title: 'PAGES', side: 'left', open: true, hint: 'the project\'s pages: a part too',
+  build(b) {
+    el('p', 'g-note', b, 'A project carries its pages. Opening a project shows its own.');
+    const list = el('div', 'g-pages', b);
+    const show = () => { list.textContent = ''; for (const p of pages.list()) el('div', 'g-page', list, (p.title || 'Untitled') + (p.md ? ' — ' + p.md.slice(0, 40) : '')); if (!pages.list().length) el('div', 'g-note', list, 'No pages.'); };
+    pages.subscribe(show); show();
+    b.appendChild(trig({ label: 'ADD PAGE', onFire: () => pages.add({ title: 'PAGE ' + (pages.list().length + 1), md: 'written ' + new Date().toLocaleTimeString() }) }).root);
+    const r = el('div', 'row', b);
+    r.appendChild(seg({ label: 'THEME', value: document.body.dataset.theme, options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], onChange: (v) => { document.body.dataset.theme = v; repaint(); } }).root);
+    r.appendChild(sw({ label: 'REFRACTIVE', value: false, onChange: (v) => { document.body.dataset.card = v ? 'refractive' : 'tinted'; } }).root);
+  } });
+rack.start();
+installPress({ selector: '.sw, .seg-b, .trig, .mir-rack-btn' });
+
+/* ── FOLDERS ── */
+const downloads = [];
+const folders = createFolders({
+  host: $('winlayer'), app: 'mir-folders-demo', store: 'mir.gallery.folders',
+  seeds, defaultName: 'STUDY', size: { w: 380, h: 560 },
+  adapter: { thumbnail: () => ground },
+  firstSeat: () => ({ x: Math.max(16, innerWidth - 380 - 300), y: 64 }),      // clear of the right rack
+  onMoved: (r) => rack.dodge(r),
+  download: q.has('test') ? (blob, name) => downloads.push({ blob, name }) : undefined,
+});
+folders.open();
+addEventListener('keydown', (e) => {
+  if (e.ctrlKey || e.metaKey || e.altKey || e.target.closest('input, textarea, [contenteditable="true"]')) return;
+  if (e.code === 'KeyS') folders.toggle();
+});
+window.__F = { folders, rack, pages, S, downloads, told, get rings() { return rings; }, get twist() { return twist; }, get hueSeg() { return hueSeg; } };
+window.__ready = true;
+</script>
+</body>
+</html>
