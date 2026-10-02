@@ -197,7 +197,6 @@ export function createFolders(options = {}) {
 
   /* ── the unsaved mark: the open project's name, and whether what is on screen is still it ── */
   function paintMark() {
-    if (!gallery) return;                                          // a window persisted open opens before the gallery is built
     frame.coalesce(MARK, () => {
       const e = currentEntry(), d = gallery.dirty();
       setText(curName, e ? e.name : t('UNTITLED'));

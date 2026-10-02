@@ -38,6 +38,7 @@
  *   keep    () => Element[] — presses inside these do not close the bar (λWAVES: #rackToggle) */
 import { el, label as writeLabel } from '../kit.js';
 import { t, onLanguage } from '../core/i18n.js';
+import { setVar } from '../core/perf.js';
 
 export function createMenubar({ opener, host, menus, label, phone, keep } = {}) {
   if (!opener || !menus) return null;
@@ -70,7 +71,7 @@ export function createMenubar({ opener, host, menus, label, phone, keep } = {}) 
   /* `bar.hidden` is written in exactly ONE place, so aria-expanded can never disagree with it */
   const barShown = (v) => {
     const want = isPhone() ? true : !!v;
-    bar.hidden = !want;
+    bar.hidden = !want; if (!want) publish();
     if (canPop) { try { if (want && !bar.matches(':popover-open')) bar.showPopover(); else if (!want && bar.matches(':popover-open')) bar.hidePopover(); } catch (_) {} }
     opener.classList.toggle('menu-open', want); opener.setAttribute('aria-expanded', String(want));
   };
@@ -109,7 +110,11 @@ export function createMenubar({ opener, host, menus, label, phone, keep } = {}) 
     bar.style.left = (rtl ? r.right - opener.offsetWidth - 8 - bar.offsetWidth : r.left + opener.offsetWidth + 8) + 'px';   // rtl: the wordmark's untransformed RIGHT edge stays put (locales.css turns its origin)
     const row = phone && bar.firstElementChild ? bar.firstElementChild.offsetHeight : bar.offsetHeight;
     bar.style.top = Math.max(0, r.top + r.height / 2 - row / 2) + 'px';
+    publish();
   };
+  /* the bar's foot, for the chrome below it: on a phone the kit's rack starts under it (rack.css reads --menubar-bottom
+     on <html>); nothing is written on a desktop or while the bar is hidden */
+  function publish() { setVar(document.documentElement, '--menubar-bottom', isPhone() && !bar.hidden ? Math.ceil(bar.getBoundingClientRect().bottom) + 'px' : null); }
   /* an open list stays whole on the screen: shifted sideways by as much as it would run off, never more */
   const fitList = (list) => {
     list.style.translate = '';
@@ -164,7 +169,7 @@ export function createMenubar({ opener, host, menus, label, phone, keep } = {}) 
     /** open the bar and one group, as a click would */
     openGroup(name) { showBar(false); const b = [...bar.querySelectorAll('.mb-btn')].find((x) => x.dataset.menu === name); if (b && (!openList || openList !== b.nextElementSibling)) b.click(); return !!b; },
     get items() { return openList ? [...openList.querySelectorAll('.mb-item')].map((b) => b.textContent) : []; },
-    destroy() { clearTimeout(barTimer); life.abort(); try { if (canPop && bar.matches(':popover-open')) bar.hidePopover(); } catch (_) {} bar.remove();
+    destroy() { clearTimeout(barTimer); life.abort(); setVar(document.documentElement, '--menubar-bottom', null); try { if (canPop && bar.matches(':popover-open')) bar.hidePopover(); } catch (_) {} bar.remove();
       opener.classList.remove('menu-open'); for (const a of ['tabindex', 'role', 'aria-haspopup', 'aria-expanded', 'aria-label']) opener.removeAttribute(a); },
   };
 }

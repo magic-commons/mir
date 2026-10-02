@@ -5,14 +5,14 @@
  *   the new one runs it; recording a taken chord shows the conflict, pressing it again steals it and names the loser;
  *   the menubar's key column and the help view show the new chord without a reload; a reload keeps the bindings;
  *   RESET restores them; under the pseudo-language the labels translate and the key caps do not.
- * It also writes the plates into docs/plates/keyboard/ (dark, light, recording, conflict, the help view).
+ * MIR_PLATES=1 also writes the plates into docs/plates/keyboard/ (dark, light, recording, conflict, the help view).
  * Standalone: MIR_BASE=http://127.0.0.1:8799 node tests/keyboard.browser.mjs */
 import { launch, sleep } from '../tools/cdp.mjs';
 import { fileURLToPath } from 'node:url';
 
 const BASE = process.env.MIR_BASE || 'http://127.0.0.1:8799';
 const PLATES = fileURLToPath(new URL('../docs/plates/keyboard/', import.meta.url));
-const SHOOT = !process.env.MIR_NO_PLATES;
+const SHOOT = !!process.env.MIR_PLATES;   // a test run never writes into docs/: MIR_PLATES=1 retakes the plates
 const results = [];
 const check = (name, ok, detail = '') => results.push(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? '  — ' + detail : ''}`);
 

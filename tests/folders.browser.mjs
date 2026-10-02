@@ -5,12 +5,12 @@
  * failed open rolls back and says so (?break); a tile carried onto a folder lights it and lands there, and Escape
  * mid-carry leaves it where it was; a chip relocates; empty glass moves the window and a tile does not; the transport
  * dodges; export as .mir and as a picture, and dropping each back opens the project; a reload keeps the library.
- * Plates: PLATES=1 writes docs/plates/folders/{dark,light,carry}.png.
+ * Plates: MIR_PLATES=1 writes docs/plates/folders/{dark,light,carry}.png.
  * Standalone: MIR_BASE=http://127.0.0.1:8801 node tests/folders.browser.mjs */
 import { launch, sleep } from '../tools/cdp.mjs';
 
 const BASE = process.env.MIR_BASE || 'http://127.0.0.1:8801';
-const PLATES = !!process.env.PLATES;
+const PLATES = !!process.env.MIR_PLATES;
 const results = [];
 const check = (name, ok, detail = '') => results.push(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? '  — ' + detail : ''}`);
 

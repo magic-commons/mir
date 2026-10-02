@@ -68,7 +68,7 @@ export function installControlHelp(root = document) {
   };
   const open = (node) => {
     const copy = node?.dataset?.help; if (!copy || document.body.classList.contains(hintsOffClass)) return;
-    close(); owner = node; tip.textContent = copy; tip.hidden = false; node.setAttribute('aria-describedby', tip.id);
+    close(); owner = node; tip.textContent = node.dataset.keyHint ? copy + '  ' + node.dataset.keyHint : copy; tip.hidden = false; node.setAttribute('aria-describedby', tip.id);   // a key cap (data-key-hint, keys.hints) is never translated
     const r = node.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
     tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
     tip.style.top = (r.bottom + h + 8 <= innerHeight ? r.bottom + 7 : Math.max(8, r.top - h - 7)) + 'px';

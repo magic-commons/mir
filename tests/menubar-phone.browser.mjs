@@ -36,6 +36,21 @@ try {
     await sleep(150);
   }
   check('no page errors', !p.logs.some((l) => /EXCEPTION/.test(l)), p.logs.join(' | '));
+
+  /* the rack starts below a bar that wrapped: no group button's rect meets the rack's (tests/fixtures/menubar-rack.html) */
+  p.logs.length = 0;
+  await p.goto(BASE + '/tests/fixtures/menubar-rack.html', 2500);
+  for (let i = 0; i < 40 && !(await p.eval('!!window.__ready')); i++) await sleep(100);
+  await p.eval('__T.rack.setHidden(false); true'); await sleep(700);                 // the phone's one rack, shown
+  const over = JSON.parse(await p.eval(`(() => {
+    const racks = [...document.querySelectorAll('.mir-rack')].filter((r) => getComputedStyle(r).display !== 'none').map((r) => r.getBoundingClientRect());
+    const btns = [...document.querySelectorAll('#menubar .mb-btn')].map((b) => ({ name: b.dataset.menu, r: b.getBoundingClientRect() }));
+    const meets = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+    return JSON.stringify({ racks: racks.map((r) => [Math.round(r.left), Math.round(r.top), Math.round(r.right), Math.round(r.bottom)]), rows: new Set(btns.map((b) => Math.round(b.r.top))).size,
+      hits: btns.filter((b) => racks.some((r) => meets(b.r, r))).map((b) => b.name), barBottom: getComputedStyle(document.documentElement).getPropertyValue('--menubar-bottom') }); })()`));
+  check('phone + rack: the bar wraps over a shown rack with seven groups', over.rows >= 2 && over.racks.length >= 1 && over.racks[0][0] >= 0, JSON.stringify(over));
+  check('phone + rack: no menubar button meets the rack (the rack starts below the bar)', over.hits.length === 0, JSON.stringify(over));
+  check('phone + rack: no page errors', !p.logs.some((l) => /EXCEPTION/.test(l)), p.logs.join(' | '));
 } finally { await p.close(); }
 
 console.log(results.join('\n'));

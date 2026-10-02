@@ -23,6 +23,7 @@ Three modules in `mir/window/` and one sheet. (The rack's windows, the `.dev` ca
   - `body` is a Node or `fn(bodyEl)`. `panels` is `[{ name, body }]`, one shown at a time; a radio chip named like a panel switches to it.
   - `dock` is `{ span, guide }`. `span` is `{ read(), subscribe(fn) }` (from `observeSpan`); `guide()` is the Display switch, which hides the guide and keeps the snap.
   - `persist` is `{ read() → shape | null, write(shape) }`. It is written on release, resize end, dock, a kept seat, open, close and `place`; never mid-gesture or on cancel.
+  - A window whose persisted shape says it was **open** opens one microtask after `createWindow` returns, not inside the call. So its `onOpen` may already use the returned window and anything the host builds right after the call; `isOpen()` is `false` until then. A window destroyed before that microtask never opens.
 - Pure: `readShape(raw, defaults, min)`, `windowLayout(state, env)`, `dockInput(state, env)`, `CLAMP` (120 px across and 52 px down stay on screen).
 
 **`window/rail.js`**

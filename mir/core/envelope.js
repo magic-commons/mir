@@ -487,8 +487,23 @@ function shadowLayer(layer, g, bad, allowInset) {
   return true;
 }
 
+const OUTLINE_STYLES = new Set(['none', 'auto', 'solid', 'dashed', 'dotted', 'double', 'groove', 'ridge', 'inset', 'outset']);
+const OUTLINE_WIDTHS = new Set(['thin', 'medium', 'thick']);
 const TYPE_RULES = {
   color(nodes, g, bad) { const n = one(nodes, bad, 'colour'); if (n) color(n, g, bad); },
+  /* an outline shorthand (--state-focus): a width, a style and a colour, each at most once, in any order */
+  outline(nodes, g, bad) {
+    if (nodes.length === 1 && isVar(nodes[0], g, bad)) return;
+    if (!nodes.length || nodes.length > 3) return bad('an outline is a width, a style and a colour: at most three parts');
+    const seen = { width: 0, style: 0, colour: 0 };
+    for (const n of nodes) {
+      if (n.t === 'ident' && OUTLINE_STYLES.has(n.v)) seen.style++;
+      else if (n.t === 'ident' && OUTLINE_WIDTHS.has(n.v)) seen.width++;
+      else if (n.t === 'num' || (n.t === 'fn' && MATH_FNS.has(n.name))) { seen.width++; if (!numeric(n, g, bad, LEN_UNITS, false, (x) => { if (x.v < 0 || (x.unit === 'px' && x.v > 16)) bad2(g, `${x.v}${x.unit} is out of range for an outline (0…16px)`); })) return; }
+      else { seen.colour++; if (!color(n, g, bad)) return; }
+    }
+    if (seen.width > 1 || seen.style > 1 || seen.colour > 1) bad('an outline names its width, style and colour once each');
+  },
   'color-channels'(nodes, g, bad) {
     if (nodes.length === 1 && isVar(nodes[0], g, bad)) return;
     if (nodes.length !== 3) return bad('colour channels are three: H S% L%');

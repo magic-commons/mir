@@ -205,4 +205,5 @@ Those are the defaults (`--light-blend`, `--light-strength`). It is a softer thi
   - the glow follows the pointer and a still pointer writes nothing;
   - glow and parallax are off under reduced motion, in the flat tier and on a coarse pointer.
 - Plates in `docs/plates/gui/`: both pages, dark and light, CLASSIC and GLASS; the glow on the glass; the five phone pages.
-- **Not proven:** WebKit and a real iPad; FROST · STILL on the joined window pane (the kit's sheets hold the frost only on the disconnected surfaces and the tinted fill, so the proof uses a disconnected card); the frame time on a busy app (the reading is honest about the gallery, which is idle).
+- **FROST · STILL on a joined pane is held by the kit:** while `body.frost-hold` is set, a REFRACTIVE pane (joined or disconnected, and its rail chip) stops blurring and wears the tinted fill (`mir/css/skin.css`; proved in `tests/intent.browser.mjs`), so STILL differs from ALWAYS on every window.
+- **Not proven:** WebKit and a real iPad; the frame time on a busy app (the reading is honest about the gallery, which is idle).

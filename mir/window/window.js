@@ -304,12 +304,15 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
     setChip: rail.setChip, tab, raise,
     state: shape,
     destroy() {
-      api.close(); gripDrag.destroy(); if (cornerDrag) cornerDrag.destroy(); if (guide) guide.destroy();
+      dead = true; api.close(); gripDrag.destroy(); if (cornerDrag) cornerDrag.destroy(); if (guide) guide.destroy();
       if (unSpan) unSpan(); view.removeEventListener('resize', resized);
       const i = STACK.indexOf(pair); if (i >= 0) STACK.splice(i, 1);
       rail.destroy(); root.remove();
     },
   };
-  if (wantOpen) api.open();
+  /* a window persisted OPEN opens one microtask after createWindow returns, so its onOpen can already use the window
+     and whatever the host builds right after the call (docs/WINDOWS.md) */
+  let dead = false;
+  if (wantOpen) queueMicrotask(() => { if (!dead && !P.open) api.open(); });
   return api;
 }

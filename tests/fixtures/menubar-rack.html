@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MIR · fixture · the phone menubar over a rack</title>
+<!-- tests/menubar-phone.browser.mjs: seven menubar groups (they wrap onto two rows on a phone) above the kit's rack, which
+     must start below the bar (menubar.js writes --menubar-bottom on <html>; rack.css reads it on the phone). -->
+<link rel="stylesheet" href="../../mir/css/base.css">
+<link rel="stylesheet" href="../../mir/css/skin.css">
+<link rel="stylesheet" href="../../mir/shell/shell.css">
+<link rel="stylesheet" href="../../mir/core/core.css">
+<link rel="stylesheet" href="../../mir/window/window.css">
+<link rel="stylesheet" href="../../mir/shell/rack.css">
+</head>
+<body data-theme="dark" data-card="tinted">
+<div id="lab"><div id="stage"></div></div>
+<script type="module">
+import { el, knob } from '../../mir/kit.js';
+import { createRack } from '../../mir/shell/rack.js';
+import { wordmark } from '../../mir/shell/wordmark.js';
+import { createMenubar } from '../../mir/shell/menubar.js';
+try { localStorage.removeItem('mir.fixture.menubar-rack'); } catch {}
+const $ = (id) => document.getElementById(id);
+const rack = createRack({ host: $('lab'), key: 'mir.fixture.menubar-rack' });
+for (const [id, title] of [['one', 'ONE'], ['two', 'TWO']])
+  rack.register({ id, title, side: 'right', open: true, build(b) { el('div', 'row', b).appendChild(knob({ label: 'GAIN', min: 0, max: 1, value: .5 }).root); } });
+const title = wordmark($('stage'), { word: 'MIR', sub: 'RACK' });
+const item = (l) => () => [[l]];
+const menubar = createMenubar({ opener: title, host: $('lab'), menus: {
+  FILE: item('NEW'), EDIT: item('UNDO'), VIEW: item('FULL SCREEN'), WINDOW: () => rack.windowMenu(), ABOUT: item('ABOUT MIR'), LANGUAGE: item('ENGLISH'), GUI: item('MIR OPTIONS'),
+} });
+window.__T = { rack, menubar };
+window.__ready = true;
+</script>
+</body>
+</html>

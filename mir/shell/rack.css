@@ -117,7 +117,7 @@ body.rack-hidden:not(.transport-peek) .mir-rack-transport[data-seat="top"] { tra
 @media (hover: none) and (max-width: 700px), (hover: none) and (max-height: 520px) and (max-width: 1000px) {
   body.rack-hidden { --rack-edge: 0px; }
   .mir-rack[data-side="right"] {
-    top: calc(env(safe-area-inset-top) + var(--top-bar)); bottom: 0; left: 0; right: auto; width: var(--rack-w); height: auto; max-height: none; direction: ltr;
+    top: max(calc(env(safe-area-inset-top) + var(--top-bar)), var(--menubar-bottom, 0px)); bottom: 0; left: 0;   /* below a menubar that wrapped (menubar.js) */ right: auto; width: var(--rack-w); height: auto; max-height: none; direction: ltr;
     padding: var(--card-gap) var(--card-gap) max(var(--card-gap), env(safe-area-inset-bottom)) max(var(--card-gap), env(safe-area-inset-left));
   }
   body.rack-hidden:not(.rack-peek-right) .mir-rack[data-side="right"] { transform: translateX(calc(-100% - 12px)); }   /* it leaves to the LEFT */

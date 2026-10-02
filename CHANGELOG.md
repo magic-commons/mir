@@ -1,8 +1,8 @@
 # MIR — changelog
 
-## 1.5.0-alpha.3 — 2026-10-01 · INTENT in the house, pages, the rack, languages, the GUI window and one portable file
+## 1.5.0-alpha.3 — 2026-10-01 · INTENT in the house, pages, the rack, languages, the GUI window, one portable file, keys, the shell parts, FOLDERS and the modulation window
 
-Not released: built on branch `worktree-mir-1.5`. This entry covers the first join of wave 3. The keyboard window and the key table, the small shell parts, FOLDERS and the modulation window's own pass arrived after it and are joined separately.
+Not released: built on branch `worktree-mir-1.5`. This entry is wave 3, joined.
 
 ### INTENT in the house sheets
 - Every ledger row in `base.css`, `skin.css` and `shell.css` is fixed (`docs/INTENT.md`, its status column).
@@ -52,14 +52,44 @@ Not released: built on branch `worktree-mir-1.5`. This entry covers the first jo
 - `mir/shell/gui.js`, `gui.css`: the menubar's GUI group opens MIR OPTIONS (eight groups of kit controls with a live reading of what the look costs) and MIR ABOUT (the MIR logo, the version and skin, MIR's words, licences and credits). Nothing scrolls; at phone width the groups page sideways. Doc: `docs/GUI.md`; page: `gallery/gui.html`.
 - `mir/core/prefs.js`: one store for browser preferences; a schema says how each option is applied; bad stored values are repaired; applying is one coalesced frame job.
 - `mir/fx/pointer-light.js`, `parallax.js`, `fx.css`: the cursor glow and one pointer parallax, opt-in by `data-light` / `data-parallax`; off on touch, under reduced motion, in the flat tier and by switch.
-- **The menubar on a phone wraps.** With seven groups the bar ran off a 390 px screen; it now gets the room from the wordmark to the edge, wraps onto a second row, and an opened list is shifted sideways to stay whole on the screen (`tests/menubar-phone.browser.mjs`).
+- **The menubar on a phone wraps.** With seven groups the bar ran off a 390 px screen; it now gets the room from the wordmark to the edge, wraps onto a second row, and an opened list is shifted sideways to stay whole on the screen. The phone rack starts below the bar (menubar.js writes `--menubar-bottom` on `<html>`; rack.css reads it) (`tests/menubar-phone.browser.mjs`).
 - **One version constant:** `mir/version.js` exports `MIR_VERSION`; the GUI window and the envelope read it, and `tests/version.node.mjs` holds it equal to `package.json`.
 - **Apps can delete:** their own options window, preference store, cursor glow and parallax.
 
 ### The portable format
-- `mir/core/envelope.js`: one envelope `{ mir: 1, kind, kit, app?, name?, made, data }` for settings, a skin, a project, a page and a spec, and one checker that never throws. A skin is checked against `mir/tokens.json` by a whitelist grammar per token type. A compact form for small carriers.
+- `mir/core/envelope.js`: one envelope `{ mir: 1, kind, kit, app?, name?, made, data }` for settings, a skin, a project, a page and a spec, and one checker that never throws. A skin is checked against `mir/tokens.json` by a whitelist grammar per token type. The `outline` type has its grammar (a width, a style and a colour), so a skin may set `--state-focus`. A compact form for small carriers.
 - `mir/core/png.js` carries the envelope in one `iTXt` chunk of any PNG; `mir/core/intake.js` is the one way in (drop, paste, picker). `node tools/check-envelope.mjs <file>` (`npm run check:envelope`). Doc: `docs/FORMAT.md`; page: `gallery/format.html`.
 - **Apps can delete:** their own settings export/import and drop handlers.
+
+### Keys and the keyboard window
+- **`mir/shell/keys.js`: one key table.** An app declares its keyboard once (`{ id, label, group, keys, run, when, inFields }`); one `keydown` listener runs it. Chords are `event.code` with a fixed modifier order and `Mod` (⌘ on a Mac, Ctrl elsewhere). Rebinding steals and reports the loser; only the difference is saved (the shape of a spec envelope's `keys`). The table generates the menus' key column (`menuItem`, `menuKey`), control hints (`hints`, `aria-keyshortcuts`, and now the visible hint: `control-help.js` shows a control's `data-key-hint` after its words, untranslated), the help rows and a plain-data `describe()`. Doc: `docs/KEYS.md`.
+- **`mir/keyboard/`: the KEYBOARD window**, λWAVES' design rebuilt untinted on the 1.5 window: the drawn ANSI board, the modifier badges, the two wells, the action list with search, the platform switch, RECORD and RESET, steal on conflict. Every drawn key is focusable and pressable; recording works from a tap on the board. **`createKeysHelp`**: the help view generated from the table. Page: `gallery/keyboard.html`.
+- Removed: the dead λWAVES `#keymap` rules and `@keyframes km-pulse` in `base.css` (nothing in the kit builds a `#keymap` now).
+- **Apps can delete:** their shortcut tables, keymap editors and every hand-written help dialog (λWAVES `lab/shortcuts.js`, `lab/keymap.js`).
+
+### The shell parts
+- The small parts every app wrote again, each taken from the app with the best one (`docs/SHELL-PARTS.md`, `gallery/parts.html`; sheet `mir/shell/parts.css`):
+  - `shell/dialog.js`: `openDialog` / `confirmDialog`, a pane at menu height with no scrim; focus trapped and returned; Escape and a press outside dismiss when allowed; one at a time.
+  - `shell/notice.js`: `notice(text, { kind, ms, action })`, stacked in one corner, a polite live region, leaving by itself, held by hover or focus; `guarded(fn)` turns a throw into an error notice.
+  - `shell/busy.js`: the loading mark is the 3×3 diamond (`busyMark` inline, card, logo or pointer; `busyCursor`, `busyLogo`, `whileBusy`), moved by transform and opacity only, and nothing when stopped.
+  - `shell/boot.js`: `bootCard({ name, steps })` with `step` / `done` / `fail(error, { retry })`; `explainBoot(error)` names no WebGPU, no adapter, a lost device, a file that did not load or an exception, in plain words; COPY DETAILS.
+  - `shell/flash-guard.js`: a per-route limiter that holds a parameter to WCAG 2.3.1 (at most 3 flashes a second) and names what tripped it; the field judge; `photosensitivityNotice()` once per browser.
+  - `shell/share-link.js`: a readable `#v=1&c=…` fragment of what differs from the defaults, CRC-checked, so a damaged link is null and never a throw.
+  - `shell/settings-rows.js`: a settings panel from data with the kit's controls and the begin/end edit law (a sync never repaints a control under the hand); the kit's first select and number fields.
+- **Apps can delete:** their hand-rolled `<dialog>`s and `window.confirm`, toast code, spinners, boot screens, flash limiters, share-link encoders and settings panels.
+
+### FOLDERS
+- **`mir/folders/`: BASINS' SAVE window, retitled and split.** `createFolders()` on the one window (rail, empty-glass drag, resize, motion, `onMoved` for the transport dodge); the project adapter (`createProjectAdapter`, default core/project.js parts; NEW is the empty project; a failed open rolls back and says so); BASINS' library store (`files.js`: the key an option, plus `overwrite`, and a library with a bad record is repaired instead of hidden); the gallery plus drag-to-folder with the proximity glow and MOVE TO for touch and keyboard; seeding once (`seed.js`); export as a `.mir` project envelope or a PNG that carries it; import by drop or OPEN FILE (another app's project is refused with the reason). Doc: `docs/FOLDERS.md`; page: `gallery/folders.html`.
+- INTENT where BASINS' SAVE broke it: resting toolbar buttons are raised kit triggers (they were wells), tiles at rest are flat (they were sunk), a chosen tile wears the ON face with its name in accent A, pressed is the sink and scale, and the "save this first?" box lost its literal colours and `!important`.
+- **A window persisted open opens one microtask after `createWindow` returns** (`mir/window/window.js`, `docs/WINDOWS.md`), so its `onOpen` can use the returned window. FOLDERS' guard for the old order is gone.
+- **Apps can delete:** BASINS' `save-window.js` and its library code.
+
+### The modulation window
+- **The controller is importable.** `mir/modulation/window.js` (`createModulation(host, port)`) is λWAVES' 3,084-line `lab/modwindow.js`, taken whole into the kit, and `mir/modulation/bind.js` (`installModulation({ mount, params, … })`) is the app seam SOLEIL and NEBULA each wrote. Doc: `docs/MODULATION.md`; page: `gallery/modulation.html`.
+- **It joins the window set.** Its chip rail is `window/rail.js`, its placement `windowLayout`, its drag `core/pointer.js`, its dock guide `createDockGuide` (the guide is the landing in every seat), and the landing and every relocation travel; open and close have motion. The resting window is unchanged (stylehash, 8 seats: 0 pixels); the grip is now a `<button>`.
+- **It routes onto faders natively:** `.fd[data-param]` is a target; a routed fader wears a range bar and shows the modulated value. While a macro is dragged, routable controls glow by distance (core/proximity.js, accent B) and the one inside capture takes the drop.
+- The preset key is an option (`mod.js setPresetKey(key)` / `presetKeyOf()`); the play dot is true after a resize or a paused change; the plugin's words go through `t()` (the CSS captions are `content: attr(data-cap)`, no `toUpperCase()`); the route badges, pop-over and arming marks are the kit's; `.k.has-ring > .k-dial` no longer slides 10 px left; the ON rim draws again (the plugin read `--state-on-rim` as a colour).
+- **Apps can delete:** λWAVES' `lab/modwindow.js`, SOLEIL's and NEBULA's modulation seams, SOLEIL's invisible-knob overlay, and every app's `:root`-laddered route-badge rules.
 
 ## 1.5.0-alpha.2 — 2026-10-01 · one window, the first 1.5 tokens, words on the stage
 

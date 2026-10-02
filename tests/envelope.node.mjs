@@ -62,7 +62,13 @@ await ok('every schema default of a skin token passes its own grammar (both them
   }
   assert.ok(count > 100);
 });
-await ok('refused, with a path and a reason: an unknown token', () => refused(skin({ '--nope': '1' }), 'data.tokens.--nope', /not a token in the schema/));
+await ok('an outline token (--state-focus) takes a width, a style and a colour, once each', () => {
+  const known = new Map(tokens.tokens.map((r) => [r.name, r])), row = known.get('--state-focus');
+  assert.equal(row.type, 'outline');
+  for (const v of ['2px solid var(--acc)', 'solid 3px #78e1f0', 'thin dotted hsl(188 80% 70%)', 'var(--acc) 2px solid', 'none']) assert.equal(checkSkinValue(row, v, known), null, v);
+  for (const v of ['2px 3px solid', 'solid dashed red', '40px solid red', 'url(x) solid', '2px solid red blue', 'bold red']) assert.notEqual(checkSkinValue(row, v, known), null, v);
+});
+await ok('refused, with a path and a reason: an unknown token',() => refused(skin({ '--nope': '1' }), 'data.tokens.--nope', /not a token in the schema/));
 await ok('refused: a token that is not a skin\'s (data ink)', () => refused(skin({ '--n1': 'red' }), 'data.tokens.--n1', /not a skin's/));
 await ok('refused: an out-of-range number, percentage, length', () => {
   refused(skin({ '--glass-opacity': '7' }), 'data.tokens.--glass-opacity', /out of range/);

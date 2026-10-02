@@ -87,6 +87,7 @@ are allowed wherever a single value is, with the same leaves.
 | `image` | `none`, or a comma list of `linear-` `radial-` `conic-gradient()` (and their `repeating-` forms) | every colour inside as above |
 | `font` | a comma list of family names from a fixed list (`FONTS` in `envelope.js`: the faces the kit ships — Roboto, Spectral, Playfair Display, Alegreya SC, STIX Two Math … — common system faces, and the generics) | |
 | `keyword` | a word from the token's set (`--label-case`: `uppercase none lowercase capitalize`) | |
+| `outline` | an outline shorthand (`--state-focus`): a width (a length or `thin medium thick`), a style (`none auto solid dashed dotted double groove ridge inset outset`) and a colour, each at most once, in any order | width 0…16px |
 
 #### What is refused, and why
 

@@ -394,9 +394,6 @@ select.sel { min-height: var(--touch); padding: 0 8px; border-radius: var(--r-md
 .k.ring-drag .k-val i.clip { color: var(--warn); }
 
 
-#keymap { position: fixed; inset: 0; z-index: var(--z-veil); display: flex; flex-direction: column; }
-#keymap[hidden] { display: none; }
-@keyframes km-pulse { 50% { border-color: var(--acc); } }
 
 /* Final II: readouts reserve their text lanes as values change. */
 .ro { min-width:0; overflow:hidden; }

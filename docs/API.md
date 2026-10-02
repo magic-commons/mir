@@ -111,6 +111,7 @@ Since 1.5.0-alpha.3 a skin may also set the state and height tokens the house re
 How a hint behaves once installed:
 - **A hand on a control closes it.** A press, a wheel or an operating key closes the hint, and it stays closed until the pointer leaves and returns.
 - **Focus shows a hint only from the keyboard.** A click's own focus doesn't reopen it.
+- **A control's key shows in its hint.** A node with `data-key-hint` (written by `keys.hints(root)`, `mir/shell/keys.js`) shows the key after its words, untranslated.
 
 ## `mir/window-activity.js`: idle is zero work
 
@@ -294,7 +295,149 @@ Storage: `{ items: { [path]: { path, folder, name, saved, opened, title, md } },
 
 ---
 
+## `mir/shell/keys.js` and `mir/keyboard/`: one key table, the keyboard window, the help view
+
+The keyboard is data: one table of actions, from which the kit makes the listener, the menu key column, the hints, the
+help view and the KEYBOARD window ([KEYS.md](KEYS.md)). Load `mir/keyboard/keyboard.css` after `mir/window/window.css`.
+
+| Export | What it is |
+|---|---|
+| `createKeys({ actions, storage, platform, target })` | The table. An action is `{ id, label, group, keys, run(event, action), when?, hint?, inFields?, repeat?, short? }`; `storage` is `{ get(), set(obj) }`; `platform` is `'mac'` or `'other'` (detected). Returns `{ run, bind, unbind, reset, resetAll, check, holders, conflicts, record, answer, stopRecording, recording, menuKey, menuItem, hint, hints, helpRows, describe, list, get, chords, saved, restore, onChange, platform, destroy }` |
+| `localKeyStorage(name)` | A `{ get, set }` over localStorage that survives a private window |
+| `parseChord(s, platform)`, `normalize(s, platform)` | Any accepted spelling → `{ mods, code }` / `'Mod+Shift+KeyS'`, or `null` |
+| `chordFromEvent(e, platform)` | The chord a keydown is (`null` for a modifier alone) |
+| `displayChord(chord, platform)`, `keyText(code, platform)`, `modText(mod, platform)`, `ariaChord(chord, platform)` | `⇧⌘S` / `Ctrl+Shift+S`; a cap's legend; a modifier's chip; the `aria-keyshortcuts` spelling |
+| `pickAction(entries, chord, { field, repeat })` | The action a chord runs: table order, the first whose `when()` holds |
+| `isField(node)`, `ownsKey(node, chord)` | A place the user types; a key a focused control works by |
+| `bindError(chord)`, `steal(map, id, chord, { add })` | The binding law (Escape and Tab are kept); the pure steal |
+| `diffSaved(defaults, current)`, `repairSaved(raw, ids, platform)` | What is saved (only the difference); a save read back, bad entries dropped, never thrown |
+| `detectPlatform(navigator)`, `MOD_ORDER`, `MODIFIER_CODES`, `CODE_CHAR` | |
+| `createKeyboardWindow({ keys, host, persist, platform, onMoved })` (`mir/keyboard/keyboard.js`) | The KEYBOARD window on `createWindow` (id `keyboard`). Returns `{ win, root, open, close, toggle, isOpen, select(id), setPlatform(p), record(), refresh, destroy }` |
+| `createKeysHelp({ keys, host, persist, onMoved })` | The help view (id `keys-help`): `helpRows()` by group. Returns `{ win, root, open, close, toggle, isOpen, refresh, destroy }` |
+| `boardRows(platform)`, `keyStates(list, platform, selectedId)` | The drawn ANSI rows; what each drawn key shows |
+
+Notes:
+- **One spelling:** `Mod+Ctrl+Alt+Shift+Meta+<code>`, ASCII, so `saved()` is a spec envelope's `keys` member as it is.
+- **Menus:** `keys.menuItem(id)` is a whole menubar entry; the key after the TAB is never translated.
+- **Hints:** give a control `data-key-action="<id>"` and call `keys.hints(document)` (again on `onChange`).
+
+---
+
+## The shell parts: `mir/shell/dialog.js`, `notice.js`, `busy.js`, `boot.js`, `flash-guard.js`, `share-link.js`, `settings-rows.js` ([SHELL-PARTS.md](SHELL-PARTS.md))
+
+Load `mir/shell/parts.css` after the kit's sheets.
+
+### `mir/shell/dialog.js`
+| Export | |
+|---|---|
+| `openDialog({ title, body, actions: [{ label, run, kind, value }], dismiss = true, kind, mark })` → `{ result, close(value), root }` | a pane at menu height, no scrim. `body`: English or a Node. `kind` on an action: `'primary'` (accent label, takes the focus) or `'danger'`. `result` resolves with `run()`'s return (awaited), else `value`, else `null` when dismissed. `dismiss: false` traps (no Escape, no outside press). One dialog at a time; later ones wait |
+| `confirmDialog(text, { yes = 'OK', no = 'CANCEL', title, danger })` → `Promise<boolean>` | Escape / outside press = false |
+
+### `mir/shell/notice.js`
+| Export | |
+|---|---|
+| `notice(text, { kind = 'info' \| 'ok' \| 'warn' \| 'error', ms, action: { label, run }, max = 4 })` → `{ close(), root }` | 5 s (9 s for an error); `ms: 0` stays; hover or focus holds it |
+| `guarded(fn)` → fn's result | a throw or a rejection becomes an error notice |
+
+### `mir/shell/busy.js`
+| Export | |
+|---|---|
+| `busyMark(host, { size, seat = 'inline' \| 'card' \| 'logo' \| 'pointer', colors, label = 'CALCULATING' })` → `{ root, start(), stop(), paint(colors), running, destroy() }` | the 3×3 diamond; `seat: 'card'` is a transparent overlay over a positioned host |
+| `busyCursor(on)` | the mark beside the pointer; counted |
+| `busyLogo(on, logo = '#title')` | the mark in place of the wordmark's `.mark`; counted |
+| `whileBusy(work, { cursor = true, logo = true })` → work's result | |
+| `markColors(root?)`, `FIRST_PAINT` | the palette as the header mark wears it; λWAVES' first-paint colours |
+
+### `mir/shell/boot.js`
+| Export | |
+|---|---|
+| `bootCard({ name, steps, host })` → `{ root, step(text?), done(), fail(error, { retry }), destroy() }` | |
+| `explainBoot(error)` → `{ code: 'nogpu' \| 'noadapter' \| 'lost' \| 'link' \| 'exception', what, todo }` | pure |
+| `bootDetails(error, { name, steps })` → text | what COPY DETAILS copies |
+
+### `mir/shell/flash-guard.js`
+| Export | |
+|---|---|
+| `createFlashGuard({ maxHz = 3, delta = 0.1, window = 1, release = 1, ranges, now, onTrip, onRelease })` → `guard(value, route, t?)` | holds a route's swing that would exceed maxHz flashes in any second; `guard.lastTrip` `{ route, hz, at }`, `guard.state(route)`, `guard.describe(trip)`, `guard.reset(route?)`, `guard.enabled` |
+| `areaEvent(prev, cur)`, `flashRate(samples)`, `createFlashModel()` | the field judge (POLAR/EARTH), pure |
+| `photosensitivityNotice({ key, title, body, accept, driver, force, storage })` → `Promise<true>` | once per browser; not under a test driver unless forced |
+| `flashNoticeSeen(o)`, `forgetFlashNotice(o)`, `WCAG` | |
+
+### `mir/shell/share-link.js`
+| Export | |
+|---|---|
+| `encodeState(state, { defaults, version = 1, digits = 4, strict = true })` → `'#v=1&c=…&…'` | only what differs from `defaults` |
+| `decodeState(text, { defaults, version, strict, migrate })` → state \| null | never throws |
+| `inspectLink(text, opts)` → `{ state, ok, why, version, damaged, dropped, length }` | |
+| `measureState(state, opts)` → `{ text, length, ceiling, fits, keys }` | ceiling `LINK_CEILING` = 2000 |
+| `createShareLink(opts)` → `{ encode, decode, inspect, measure, read(), write(state), url(state), copy(state), destroy() }` | `write` = replaceState, debounced 400 ms |
+| `crc32(str)`, `flatten(obj)` | |
+
+### `mir/shell/settings-rows.js`
+| Export | |
+|---|---|
+| `settingsRows(host, rows, { onBegin, onEnd, onChange })` → `{ root, sync(), control(id), editing(id?), beginEdit(id), endEdit(id), destroy() }` | a row: `{ id, label, hint, control: 'sw' \| 'seg' \| 'fader' \| 'knob' \| 'select' \| 'number', get, set, options, min, max, step, log, wrap, fmt, when, begin, end }` |
+| `selectField({ label, options, value, onChange, aria, title })`, `numberField({ label, value, min, max, step, fmt, onChange, aria, title })` → `{ root, input, get, set, setDisabled }` | to move into kit.js |
+
+---
+
+## FOLDERS: `mir/folders/`, the project window ([FOLDERS.md](FOLDERS.md))
+
+**`folders/folders.js`**
+- `createFolders({ host, id = 'folders', title = 'FOLDERS', store = 'mir.folders', storage, prefs, app, adapter, seeds, seededKey,
+  size, min, dock, onMoved, firstSeat, say, download, picture, defaultName, capChars, parts, sorts, actions, depthOf, factory,
+  capturePicture, savePicture, pictureStale, onInspect, onOpened })` → `{ win, files, gallery, adapter, seeded, intake, open(), close(),
+  toggle(), isOpen(), save(), saveAs({ name, folder }), fresh(), openEntry(id, { force }), current(), dirty(), seed(list),
+  exportProject('mir' | 'png'), importEnvelope(env), ingest(input), say(text, warn), state(), destroy() }`
+- `localPrefs(storage, key)` → `{ read, write }` · `toThumb(src, { max, type, quality })` → `Promise<data URL>` · `FOLDERS_COPY`
+
+**`folders/project.js`** (pure)
+- `createProjectAdapter({ capture, restore, signature, thumbnail, empty, subscribe, facts })` — any hook left out is core/project.js's
+- `openWithRollback(adapter, data, ctx)` · `emptyProject(adapter)` → `Promise<{ ok, why?, failed, rolledBack?, rollbackFailed? }>`
+- `restoreOk(r)` → `{ ok, failed, why }`
+
+**`folders/files.js`** (pure; BASINS' model) — `createFiles({ key, storage, capChars, defaultName })` → `{ save, overwrite, rename, move,
+  remove, renameFolder, deleteFolder, setFolderPicture, folderPicture, saveMakingRoom, evictOldest, entries, entry, folders, count,
+  proposedName, state, subscribe, reload, key, cap, setCap, chars }`; `normalizeFolder`, `inFolderTree`, `leafOf`, `parentOf`,
+  `uniqueName`, `savedAtLabel`, `entryOk`, `FILES_V`, `NAME_MAX`
+
+**`folders/seed.js`** (pure) — `seed(files, starters, { storage, seededKey })` → `{ ok, added, skipped, total }`; `seedId(starter)`
+
+**`folders/gallery.js`** — `buildGallery(panel, { files, adapter, kit, glyph, parts, sorts, actions, extraActions, say, prefs, persist,
+  pageSize, current, onInspect, onOpened, onSaved, onFresh, onRemoved, dropLayer })` → `{ root, toolbar, actions, paint, save, fresh,
+  openEntry, markClean, closeContext, box, action, go, folder, selected, select, sort, sorts, setSort, cycleSort, presence, projection,
+  dirty, nameValue, folderValue, carrying, state, destroy }`; `SORT_MODES`, `GALLERY_COPY`
+
+**`folders/folders.css`** — `@layer mir.kit.house`, scoped on `.mir-folders` (+ `.sv-ghost`, the carried tile in `<body>`).
+
+---
+
 ## `mir/modulation/`: the modulation system
+
+### `bind.js`: the app seam (1.5.0-alpha.3, [MODULATION.md](MODULATION.md))
+- `installModulation({ mount, params, roots, available, present, onWindow, store, storageKey, presetKey, audio, dock, copy,
+  targets, routeGlow, enabled, showWidgets, moved })` → `{ host, view, registry, M, open(), close(), toggle(), isOpen,
+  arm(on), armed(), onArm(fn) → off, isModulated(id), baseOf(id), currentOf(id), hand(id, value) → bool, running(), bpm(),
+  syncBases(all?), paintWidgets(), persist(), dispose() }`.
+  `params`: `[{ id, label, unit, group, hint, min, max, step, map, def, get(), set(v), widget }]`; `store`: `{ read(),
+  write(patch) }` (default `localStore(storageKey || 'mir.modulation')`); `audio`: the app's `createAudioCapture`.
+- `localStore(key)` → `{ read(), write(patch) }` (guarded localStorage, one JSON record).
+- `rootsOf(params)` → the registry roots the ids imply.
+
+### `window.js`: the controller (1.5.0-alpha.3)
+- `createModulation(host, port)` → `{ root, rail, chipRail, api, open(), close(), toggle(), isOpen, paint(force), sync(),
+  rebuild(), presentation(), restore(o), setAccent(a, b), say(msg, cls), resumeSentence(), wake(), dispose() }`.
+  `port`: `{ M, registry, clock, apply, knobOf, persist, cadence, setCadence, armed, arm, audio, rateControl, moved,
+  opened, closed, presetKey, copy, dock, targets, routeGlow }` (all but M, registry, clock optional).
+  `presentation()` is `{ x, y, lane, ribbon, modes, audioMini, open, folder, macroSide, macroMin, selectedMacro,
+  selectedSource, audioBands, audioRoutes, dock, chipSide }`.
+  `api` (the gates' read-back) adds `placement()` → `{ box, dock, chipSide, side, seat, landing: { top, bottom }, moving }`
+  and `presetKey()`.
+- `ROUTABLE` (`'.k[data-param], .fd[data-param]'`), `ROUTE_REACH` (56), `ROUTE_CAPTURE` (18).
+
+### `mod.js`: the preset key (1.5.0-alpha.3)
+- `setPresetKey(key)` → the key in force ('' restores `PRESET_LS`); `presetKeyOf()`. `presetStoreState().key` names the key
+  in force.
 
 ### `registry.js`: the parameter registry
 
