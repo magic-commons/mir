@@ -54,6 +54,8 @@ export const GALLERY_COPY = {
 };
 
 const ARM_MS = 2600, LONG_MS = 560;
+/** BASINS' SAVE toolbar, in its order: the default `actions` */
+export const DEFAULT_ACTIONS = Object.freeze(['project', 'capture', 'download', 'duplicate', 'fresh', 'options']);
 const fmtBytes = (b) => (b >= 1e6 ? (b / 1e6).toFixed(1) + ' MB' : b >= 1e3 ? Math.round(b / 1e3) + ' kB' : Math.round(b) + ' B');
 
 /**
@@ -118,12 +120,31 @@ export function buildGallery(panel, opts) {
     duplicate: () => iconAction(copy.duplicate, 'sv-duplicate', 'duplicate', () => duplicateSelected()),
     fresh: () => iconAction(copy.fresh, 'sv-new', 'plus', () => fresh()),
   };
-  const actionIds = Array.isArray(o.actions) ? o.actions : ['project', 'capture', 'download', 'duplicate', 'fresh'];
+  /* THE TOOLBAR IS DATA (MIR 1.5.0-alpha.7, BASINS parity): `actions` names the verbs in order.  The default is BASINS'
+     SAVE window exactly — PROJECT · CAPTURE · DOWNLOAD · DUPLICATE · NEW · the options disclosure — and a host adds its
+     own through `extraActions` (FOLDERS offers SAVE · SAVE AS · NEW · OPEN FILE · EXPORT that way). */
+  const live = PARTS.filter((p) => !p.soon);
+  let partsBox = null, optionsBtn = null;
+  BUILT.options = () => {
+    if (!live.length) return null;                                  // nothing to disclose: no button (BASINS always has parts)
+    const optionsTrig = kit.trig({ label: '', cls: 'sv-options', title: 'Project options', onFire: () => {
+      if (!partsBox) return;
+      partsBox.hidden = !partsBox.hidden; optionsBtn.setAttribute('aria-expanded', String(!partsBox.hidden));
+    } });
+    optionsBtn = optionsTrig.root;
+    optionsBtn.querySelector('.trig-l').textContent = '';
+    ink(optionsBtn.querySelector('.trig-l'), 'bulletList', 20);
+    kitAria(optionsBtn, 'Project options');
+    optionsBtn.setAttribute('aria-expanded', 'false');
+    verbs.appendChild(optionsBtn);
+    return optionsBtn;
+  };
+  const actionIds = Array.isArray(o.actions) ? o.actions : DEFAULT_ACTIONS;
   const actionEls = {};
   for (const id of actionIds) {
     const x = o.extraActions && o.extraActions[id];
-    if (x) { actionEls[id] = iconAction(x.copy, 'sv-' + id, x.icon, () => x.fire(api)); actionEls[id].dataset.action = id; }
-    else if (BUILT[id]) { actionEls[id] = BUILT[id](); actionEls[id].dataset.action = id; }
+    const node = x ? iconAction(x.copy, 'sv-' + id, x.icon, () => x.fire(api)) : BUILT[id] ? BUILT[id]() : null;
+    if (node) { actionEls[id] = node; node.dataset.action = id; }
   }
   const projectBtn = actionEls.project || null, captureBtn = actionEls.capture || null, downloadBtn = actionEls.download || null;
   const duplicateBtn = actionEls.duplicate || null, freshBtn = actionEls.fresh || null;
@@ -134,23 +155,13 @@ export function buildGallery(panel, opts) {
   if (typeof adapter.fresh !== 'function') able(freshBtn, false);
 
   /* The options expand in the sheet, moving the gallery down while keeping the window itself at its current size. */
-  const live = PARTS.filter((p) => !p.soon);
-  const partsBox = live.length ? mk('section', 'sv-parts', wrap) : null;
+  partsBox = live.length ? mk('section', 'sv-parts', wrap) : null;
   const partSw = {};
   if (partsBox) {
-    const optionsTrig = kit.trig({ label: '', cls: 'sv-options', title: 'Project options', onFire: () => {
-      partsBox.hidden = !partsBox.hidden; optionsBtn.setAttribute('aria-expanded', String(!partsBox.hidden));
-    } });
-    const optionsBtn = optionsTrig.root;
-    optionsBtn.querySelector('.trig-l').textContent = '';
-    ink(optionsBtn.querySelector('.trig-l'), 'bulletList', 20);
-    optionsBtn.setAttribute('aria-label', t('Project options'));
-    verbs.appendChild(optionsBtn);
     partsBox.hidden = true;
     partsBox.id = 'sv-parts-' + Math.random().toString(36).slice(2, 8);
-    partsBox.setAttribute('aria-label', t('Project components and display options'));
-    optionsBtn.setAttribute('aria-controls', partsBox.id);
-    optionsBtn.setAttribute('aria-expanded', 'false');
+    kitAria(partsBox, 'Project components and display options');
+    if (optionsBtn) optionsBtn.setAttribute('aria-controls', partsBox.id);
     const partsGrid = mk('div', 'sv-partgrid', partsBox);
     for (const p of live) {
       const s = kit.sw({ label: p.label, value: S.parts[p.id], cls: 'sv-part', title: ['Include {what} in the next save', { what: { t: p.label } }],   // tr: {what} is the name of a part of the project (LAYOUT, PICTURE …), as its switch is labelled
@@ -159,7 +170,7 @@ export function buildGallery(panel, opts) {
       partsGrid.appendChild(s.root);
       partSw[p.id] = s;
     }
-    S.closeParts = () => { if (partsBox.hidden) return false; partsBox.hidden = true; optionsBtn.setAttribute('aria-expanded', 'false'); return true; };
+    S.closeParts = () => { if (partsBox.hidden) return false; partsBox.hidden = true; if (optionsBtn) optionsBtn.setAttribute('aria-expanded', 'false'); return true; };
   }
   verbs.style.setProperty('--sv-verbs', String(verbs.children.length));
 
@@ -326,17 +337,21 @@ export function buildGallery(panel, opts) {
     if (locked() || !captureBtn) return;
     captureBtn.disabled = true;
     captureBtn.setAttribute('aria-busy', 'true');
+    kitAria(captureBtn, 'Making image');
     try {
       const held = await adapter.picture();
       if (held) { S.held = held; say(t('Picture made — {w}×{h}. Tap the download icon to keep it.', { w: held.w, h: held.h })); }
     } catch (e) { say(t('Could not make the picture: {why}', { why: String((e && e.message) || e) }), true); }
-    finally { captureBtn.removeAttribute('aria-busy'); captureBtn.disabled = typeof adapter.picture !== 'function'; paintPicture(); }
+    finally { captureBtn.removeAttribute('aria-busy'); captureBtn.disabled = typeof adapter.picture !== 'function'; kitAria(captureBtn, 'Capture image'); paintPicture(); }
   }
   function paintPicture() {
     if (!downloadBtn) return;
     if (S.held && typeof adapter.pictureStale === 'function' && adapter.pictureStale(S.held)) S.held = null;
     downloadBtn.disabled = !S.held || typeof adapter.savePicture !== 'function';
     downloadBtn.classList.toggle('sv-download-ready', !!S.held);
+    /* BASINS' words on the button: what it will hand over, or that a capture comes first */
+    if (S.held) { kitAria(downloadBtn, 'Download image — {name}, {size}', { name: S.held.name, size: fmtBytes(S.held.bytes) }); downloadBtn.title = t('Download {name} · {w} × {h}', { name: S.held.name, w: S.held.w, h: S.held.h }); }
+    else { kitAria(downloadBtn, 'Download image — capture first'); downloadBtn.title = t(copy.download[2]); }
   }
   function savePicture() {
     if (!S.held) return;
@@ -613,7 +628,8 @@ export function buildGallery(panel, opts) {
       card.dataset.folder = path;
       const shot = btn('sv-folder-shot', card, null, t('Open folder {name}', { name: leafOf(path) }));
       const pic = files.folderPicture(path);
-      if (pic && pic.thumb) { shot.style.setProperty('--sv-thumb', 'url(' + JSON.stringify(pic.thumb) + ')'); card.classList.add('has-cover'); }
+      /* BASINS' cover: the picture under a dimming wash, on the button itself (the scrim is a token) */
+      if (pic && pic.thumb) { shot.style.backgroundImage = 'linear-gradient(var(--folders-cover-scrim), var(--folders-cover-scrim)), url(' + JSON.stringify(pic.thumb) + ')'; card.classList.add('has-cover'); }
       ink(mk('span', 'sv-folder-glyph', shot), 'saveFolder', 20);
       mk('span', 'sv-folder-name', shot, leafOf(path));
       const filesLine = mk('span', 'sv-folder-files', shot);

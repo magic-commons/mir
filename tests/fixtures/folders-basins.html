@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MIR · FOLDERS with BASINS' options</title>
+<!-- FOLDERS mounted the way BASINS would mount it in place of its SAVE window (docs/FOLDERS.md, "BASINS: what it passes"):
+     id 'savewin', store 'basins.library', its prefs slot `savewin` inside `basins.settings`, its toolbar (the default),
+     its four components, its six sorts (depthOf), its factory gallery and JOSH'S LIBRARY seeded on the first open by its
+     own code, a stand-in RENDER panel, and the rack card's compact gallery (mountGallery).  The fractal engine is a
+     stand-in: a place, a look and a rack held in a plain object.  tests/folders-basins.browser.mjs runs the checks of
+     BASINS' tools/rig/save-gate.js that do not need the engine against it. -->
+<link rel="stylesheet" href="../../mir/css/base.css">
+<link rel="stylesheet" href="../../mir/css/skin.css">
+<link rel="stylesheet" href="../../mir/core/core.css">
+<link rel="stylesheet" href="../../mir/window/window.css">
+<link rel="stylesheet" href="../../mir/shell/parts.css">
+<link rel="stylesheet" href="../../mir/folders/folders.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #070a0f; }
+  #rack { position: fixed; top: 0; right: 0; bottom: 0; width: 300px; z-index: 20; padding: 12px; box-sizing: border-box; overflow: auto; }
+  #floats { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  .sr-section { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted">
+<div id="rack" class="glass"></div>
+<div id="floats"></div>
+<script type="module">
+import { createFolders } from '../../mir/folders/folders.js';
+import { device, trig, el } from '../../mir/kit.js';
+
+/* ── BASINS' prefs blob: one object under basins.settings, read-modify-write ── */
+const readPrefs = () => { try { return JSON.parse(localStorage.getItem('basins.settings') || '{}'); } catch { return {}; } };
+const writePrefs = (patch) => localStorage.setItem('basins.settings', JSON.stringify({ ...readPrefs(), ...patch }));
+
+/* ── the stand-in engine: a place, a look (six knobs), a rack (sources) ── */
+const HOME = { x: '-0.5', y: '0', log2Scale: -1.2, theta: 0 };
+const E = { place: { ...HOME }, look: { knobs: { hue: 0.1, phase: 0, freq: 1, bright: 1, exterior: 0.5, interior: 0 }, e: [{ m: 'lin' }] }, rack: { sources: [] } };
+const depthOf = (p) => Math.max(0, -(p.log2Scale + 1.2) / Math.log2(10));
+const M = { addSource: (kind) => { E.rack.sources.push({ kind }); return kind; }, sourceList: () => E.rack.sources.slice() };
+const thumbOf = () => { const c = document.createElement('canvas'); c.width = 160; c.height = 120; const g = c.getContext('2d');
+  g.fillStyle = `hsl(${Math.round(E.look.knobs.hue * 360)} 70% 40%)`; g.fillRect(0, 0, 160, 120);
+  g.fillStyle = '#fff'; g.fillRect(70 + E.place.log2Scale * 4, 50, 20, 20); return c.toDataURL('image/jpeg', 0.8); };
+const clone = (v) => JSON.parse(JSON.stringify(v));
+const ALL = { rack: true, look: true, place: true };
+const adapter = {
+  /* BASINS' capture(presence): only the chosen parts; no presence (the rollback's own capture) means all */
+  capture: (p = ALL) => { const o = { v: 2 }; if (p.place) o.place = clone(E.place); if (p.look) o.look = clone(E.look); if (p.rack) o.rack = clone(E.rack); return o; },
+  restore: (p) => { if (!p || !(p.place || p.look || p.rack)) return { ok: false, why: 'this project carries nothing this version can open' };
+    if (p.place) E.place = clone(p.place); if (p.look) E.look = clone(p.look); if (p.rack) E.rack = clone(p.rack); return { ok: true }; },
+  signature: () => JSON.stringify(E),
+  thumbnail: thumbOf,
+  facts: () => { const d = depthOf(E.place); return { depth: d, label: '10^' + d.toFixed(1) }; },
+  empty: () => { const n = E.rack.sources.length; E.rack = { sources: [] }; E.place = { ...HOME }; return n ? 'New fractal — the whole set, modulation cleared' : 'New fractal — the whole set, your colours kept'; },
+};
+
+/* ── the factory gallery (19) and JOSH'S LIBRARY, as BASINS' own code seeds them (files.save, by facts id) ── */
+const FACTORY = Array.from({ length: 19 }, (_, i) => ({ id: 'fac' + (i + 1), name: 'FACTORY ' + String(i + 1).padStart(2, '0'),
+  place: { x: String(-0.75 + i * 0.01), y: String(0.1 + i * 0.002), log2Scale: -1.2 - i * 1.7, theta: 0 }, knobs: { hue: i / 19, phase: 0, freq: 1 + i / 10, bright: 1, exterior: 0.5, interior: 0 } }));
+const LIBRARY = [{ id: 'lib1', name: 'PIEZO' }, { id: 'lib2', name: 'ELEKTRA' }];
+let F = null;
+function restoreShipped() {
+  const have = new Set(F.files.entries().map((e) => e.facts && e.facts.factoryId).filter(Boolean));
+  let added = 0;
+  for (const f of FACTORY) { if (have.has(f.id)) continue;
+    const r = F.files.save({ name: f.name, folder: '', at: 1700000000000 + added, thumb: thumbOf(), payload: { v: 2, place: f.place, look: { knobs: f.knobs, e: [{ m: 'lin' }] } }, facts: { depth: depthOf(f.place), factoryId: f.id } });
+    if (!r.ok) return r; added++; }
+  return { ok: true, added, total: FACTORY.length, complete: added === 0 };
+}
+function restoreLibrary() {
+  const have = new Set(F.files.entries().map((e) => e.facts && e.facts.libraryId).filter(Boolean));
+  let added = 0;
+  for (const l of LIBRARY) { if (have.has(l.id)) continue; F.files.save({ name: l.name, folder: "JOSH'S LIBRARY/iPad", thumb: thumbOf(), payload: { v: 2, place: { ...HOME, log2Scale: -20 } }, facts: { libraryId: l.id, depth: 5 } }); added++; }
+  localStorage.setItem('basins.library.library-seeded', '1');
+  return { ok: true, added };
+}
+let seeding = false;
+function maybeSeed() {
+  const facDue = !F.files.entries().some((e) => !(e.facts && e.facts.starterId)) && !localStorage.getItem('basins.library.factory-seeded');
+  const libDue = !localStorage.getItem('basins.library.library-seeded');
+  if (seeding || (!facDue && !libDue)) return; seeding = true;
+  try { if (facDue && restoreShipped().ok) localStorage.setItem('basins.library.factory-seeded', String(Date.now())); if (libDue) restoreLibrary(); } finally { seeding = false; }
+  F.gallery.paint();
+}
+
+/* ── a stand-in RENDER panel: the subject (THIS VIEW or the inspected project), the self-test lines ── */
+let renderPaint = () => {};
+const renderPanel = { id: 'render', label: 'RENDER', glyph: 'render', hint: 'Render — this project, and the picture or film you make of it',
+  build(body, api) {
+    const subject = el('section', 'sr-section sr-subject', body);
+    const lines = el('pre', 'sr-lines', body);
+    renderPaint = () => { subject.textContent = ''; const e = api.gallery.selected();
+      el('strong', 'sr-subject-name', subject, e ? e.name : 'THIS VIEW');
+      if (e) subject.appendChild(trig({ label: 'THIS VIEW', onFire: () => { api.gallery.select(null); renderPaint(); } }).root);
+      el('div', 'sr-value', subject, 'COMPONENTS ' + (e ? ['place', 'look', 'rack'].filter((k) => e.payload[k]).join(' + ') : '—')); };
+    renderPaint();
+  },
+  onShow: () => renderPaint() };
+
+F = createFolders({
+  host: document.getElementById('floats'),
+  id: 'savewin', title: 'FOLDERS', store: 'basins.library', app: 'basins', defaultName: 'FRACTAL',
+  prefs: { read: () => readPrefs().savewin || null, write: (v) => writePrefs({ savewin: v }) },
+  adapter, depthOf: (e) => (e.facts && Number.isFinite(e.facts.depth) ? e.facts.depth : 0),
+  parts: [{ id: 'rack', label: 'MODULATION' }, { id: 'look', label: 'COLOUR & BRIGHTNESS' }, { id: 'place', label: 'POSITION' }, { id: 'cache', label: 'CACHE', soon: 'under construction' }],
+  freshLoses: () => E.rack.sources.length > 0 || depthOf(E.place) > 0.05,
+  factory: async () => { const fac = restoreShipped(); const lib = restoreLibrary(); return { ...fac, added: fac.added + lib.added }; },
+  panels: [renderPanel],
+  onInspect: (e, how) => { if (how && how.show) F.tab('render'); else renderPaint(); },
+  rack: { keepClear: () => [document.getElementById('rack').getBoundingClientRect()] },
+});
+/* the rack card's compact gallery: a second view of the same library (BASINS' rackSave) */
+const card = device({ id: 'rackSave', eyebrow: 'FOLDERS', status: 'PROJECTS' });
+document.getElementById('rack').appendChild(card.root);
+const rackGallery = F.mountGallery(card.body, { pageSize: 8 });
+
+addEventListener('keydown', (e) => { if (e.code === 'KeyS' && !(e.target.closest && e.target.closest('input, textarea'))) { if (F.isOpen()) F.close(); else { F.open(); maybeSeed(); } } });
+window.__B = { F, E, M, readPrefs, rackGallery, FACTORY, LIBRARY };
+window.__ready = true;
+</script>
+</body>
+</html>

@@ -45,7 +45,7 @@ import { createRack } from '../mir/shell/rack.js';
 import { installPress } from '../mir/core/pointer.js';
 import { registerProjectPart } from '../mir/core/project.js';
 import { createPages } from '../mir/shell/pages.js';
-import { createFolders } from '../mir/folders/folders.js';
+import { createFolders, FOLDERS_ACTIONS } from '../mir/folders/folders.js';
 
 const q = new URLSearchParams(location.search);
 if (q.get('theme') === 'light') document.body.dataset.theme = 'light';
@@ -144,6 +144,7 @@ const downloads = [];
 const folders = createFolders({
   host: $('winlayer'), app: 'mir-folders-demo', store: 'mir.gallery.folders',
   seeds, defaultName: 'STUDY', size: { w: 380, h: 560 },
+  actions: FOLDERS_ACTIONS, head: true, status: true, chipSide: 'left',      // this page chooses FOLDERS' own verbs, the name line and an in-window status
   adapter: { thumbnail: () => ground },
   firstSeat: () => ({ x: Math.max(16, innerWidth - 380 - 300), y: 64 }),      // clear of the right rack
   onMoved: (r) => rack.dodge(r),

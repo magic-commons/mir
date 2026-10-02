@@ -53,7 +53,11 @@ export function createProjectAdapter(o = {}) {
 
 /** apply(adapter, fn) — run a restore-shaped step, catching a throw as a failure */
 async function attempt(fn) {
-  try { return restoreOk(await fn()); } catch (e) { return { ok: false, failed: [], why: errWhy(e) }; }
+  try {
+    const v = await fn(), r = restoreOk(v);
+    if (r.ok && typeof v === 'string' && v) r.said = v;            // an app's own sentence (BASINS' NEW: "New fractal — …")
+    return r;
+  } catch (e) { return { ok: false, failed: [], why: errWhy(e) }; }
 }
 /** the shared core of open and NEW: take a snapshot, try `step`, roll back to the snapshot if it did not take */
 async function guarded(adapter, step) {

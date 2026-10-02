@@ -60,14 +60,21 @@ try {
     for (const f of root.querySelectorAll('.sv-folder-shot')) probe(f, 'folder');
     for (const ch of F.win.rail.el.querySelectorAll('.mir-chip')) probe(ch, 'chip ' + ch.dataset.mirChip);
     const b = root.getBoundingClientRect(), low = document.elementFromPoint(b.left + 40, b.bottom - 60);
-    return { missed: out, low: !!low && root.contains(low), id: root.id, pe: getComputedStyle(root).pointerEvents, title: root.getAttribute('aria-label'), rail: F.win.rail.el.getAttribute('aria-label') };`);
+    /* the id is BASINS' parity (#savewin), never the pointer's: take it away and the glass still answers */
+    const id = root.id; root.removeAttribute('id');
+    const c0 = C(root.querySelector('.sv-projects-heading')), still = document.elementFromPoint(c0.x, c0.y), pe = getComputedStyle(root).pointerEvents;
+    root.id = id;
+    return { missed: out, low: !!low && root.contains(low), id, still: !!still && root.contains(still), pe, title: root.getAttribute('aria-label'), rail: F.win.rail.el.getAttribute('aria-label') };`);
   check('hit-test: every verb, the field, the glass, each folder, each chip and the empty bottom of the pane are the window\'s (elementFromPoint)', !r.missed.length && r.low, JSON.stringify(r.missed));
-  check('the window takes the pointer by its class, with no id at all (nothing for a retitle to break)', r.id === '' && r.pe === 'auto' && r.title === 'FOLDERS' && /^FOLDERS window controls$/.test(r.rail), JSON.stringify(r));
+  check('the window takes the pointer by its class: with its id taken away the glass still answers (nothing for a retitle to break)', r.id === 'folders' && r.still && r.pe === 'auto' && r.title === 'FOLDERS' && /^FOLDERS window controls$/.test(r.rail), JSON.stringify(r));
 
   /* ── open a starter by real clicks: folder, tile (select), tile (open) ── */
   await click(T('.sv-folder[data-folder="STARTERS"] .sv-folder-shot'), 'STARTERS folder');
   await click(`tile('TIDE').querySelector('.sv-shot')`, 'TIDE select');
   await click(`tile('TIDE').querySelector('.sv-shot')`, 'TIDE open');
+  /* as BASINS: what the app started with is unknown, so the first open asks */
+  const asked0 = await ev(`return !!F.win.root.querySelector('.sv-ask');`);
+  if (asked0) await click(T('.sv-ask .sv-act:not(.sv-primary)'), 'OPEN WITHOUT SAVING');
   await sleep(200);
   r = await ev(`return { S: { ...S }, pages: __F.pages.list().map((x) => x.title), cur: ${T('.fo-current')}.textContent, dirty: ${T('.fo-head')}.dataset.dirty || null };`);
   check('opening TIDE restores the knobs, the colour and the pages, and names it', r.S.rings === 9 && Math.abs(r.S.twist - 0.12) < 1e-9 && r.S.hue === 190 && r.pages.join() === 'TIDE' && r.cur === 'TIDE' && !r.dirty, JSON.stringify(r));
@@ -209,6 +216,7 @@ try {
   const before = await ev(`return { ...S, pages: __F.pages.list().length };`);
   await click(`tile('HALO').querySelector('.sv-shot')`, 'HALO select');
   await click(`tile('HALO').querySelector('.sv-shot')`, 'HALO open');
+  if (await ev(`return !!F.win.root.querySelector('.sv-ask');`)) await click(T('.sv-ask .sv-act:not(.sv-primary)'), 'OPEN WITHOUT SAVING (HALO)');
   await sleep(300);
   r = await ev(`return { S: { ...S, pages: __F.pages.list().length }, status: F.win.root.querySelector('.fo-status').textContent, tone: F.win.root.querySelector('.fo-status').dataset.tone, cur: F.current() };`);
   check('an open that fails rolls back to what was on screen, and says so', JSON.stringify(r.S) === JSON.stringify(before) && /colour/.test(r.status) && /back/.test(r.status) && r.tone === 'warn' && r.cur === null, JSON.stringify(r));

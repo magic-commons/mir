@@ -36,6 +36,12 @@
 /* ── the body: a column whose explorer is the one scroller ─────────────────────────────────────────────────── */
 .mir-folders .mir-win-body { display: flex; flex-direction: column; gap: var(--sp-2); overflow: hidden; padding: var(--sp-3); }
 .mir-folders .fo-gallery { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+/* the panels (BASINS' GALLERY and RENDER): one shown at a time; the gallery is a column whose explorer scrolls, any
+   other panel scrolls itself */
+.mir-folders .mir-win-panel { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+.mir-folders .mir-win-panel[hidden] { display: none; }
+.mir-folders .mir-win-panel:not([data-panel="gallery"]) { display: block; overflow: hidden auto; overscroll-behavior: contain; touch-action: pan-y; }
+.mir-folders .mir-win-panel:not([data-panel="gallery"])[hidden] { display: none; }
 .mir-folders .fo-head { display: flex; align-items: baseline; gap: var(--sp-3); min-height: 18px; padding: 0 var(--sp-1); touch-action: none; }
 .mir-folders .fo-current { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   font: var(--w-semi) var(--fs-small)/1.3 var(--font-ui); letter-spacing: var(--tr-wide); color: var(--fg); }
@@ -121,8 +127,8 @@
 .mir-folders .sv-folder-shot:hover { background: var(--state-hover, var(--glass-raise)); }
 .mir-folders .sv-folder-shot:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: -3px; }
 .mir-folders .sv-folder.has-cover .sv-folder-shot { color: var(--folders-over-ink); }
-.mir-folders .sv-folder.has-cover .sv-folder-shot::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-  background: linear-gradient(var(--folders-cover-scrim), var(--folders-cover-scrim)), var(--folders-thumb-ground) var(--sv-thumb, none) center / cover no-repeat; }
+/* the cover is BASINS': the picture under the wash, as the button's own inline background-image (gallery.js) */
+.mir-folders .sv-folder.has-cover .sv-folder-shot { background-color: var(--folders-thumb-ground); background-position: center; background-size: cover; background-repeat: no-repeat; }
 .mir-folders .sv-folder-glyph { flex: 0 0 auto; display: flex; color: var(--acc); }
 .mir-folders .sv-folder-files { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 2px; color: var(--ink-faint); font: var(--w-semi) var(--fs-micro)/1 var(--font-mono); }
 .mir-folders .sv-folder.has-cover .sv-folder-files { color: var(--folders-over-ink); }
