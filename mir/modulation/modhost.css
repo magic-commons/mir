@@ -107,97 +107,121 @@
    HOST's controls (the rings, spans and range bars live outside its roots), and @own the few such values that read a var(),
    declared on the very elements that paint them. */
 /* @default */ .mir-modwindow, .kwin-chiprail, .m2ghost {
-  --m2-face-w18: hsl(0 0% 100% / 0.18);
-  --m2-head-wash: linear-gradient(180deg, hsl(0 0% 100% / 0.06), transparent);
-  --m2-face-tint-97: hsl(var(--glass-tint) / 0.97);
-  --m2-dialink-b-wash: repeating-conic-gradient(var(--glass-groove) 0deg 1.6deg, transparent 1.6deg 30deg), radial-gradient(circle at 35% 30%, hsl(0 0% 100% / .07), transparent 62%), hsl(var(--glass-tint) / 1);
-  --m2-face-w06: hsl(0 0% 100% / 0.06);
-  --m2-fill-tint-100: hsl(var(--glass-tint) / 1);
-  --m2-face-w10: hsl(0 0% 100% / .10);
-  --m2-matrix-face: #171b22;
-  --m2-face-tint-100: hsl(var(--glass-tint) / 1);
-  --m2-face-tint-94: hsl(var(--glass-tint) / .94);
-  --m2-aud-range-low-face: color-mix(in srgb,var(--acc) 19%,transparent);
+  --m2-aud-mix-focus-shadow: 0 0 0 1px color-mix(in srgb,var(--acc) 50%,transparent);
   --m2-aud-range-high-face: color-mix(in srgb,var(--acc) 30%,transparent);
+  --m2-aud-range-low-face: color-mix(in srgb,var(--acc) 19%,transparent);
   --m2-aud-range-zone-face: color-mix(in srgb,var(--acc2) 18%,transparent);
-  --m2-face-tint-96: hsl(var(--glass-tint) / .96);
+  --m2-audled-on-glow: 0 0 6px color-mix(in srgb,var(--acc) 55%,transparent);
+  --m2-chip-ink-drop: drop-shadow(0 1px 0 var(--glass-raise));
+  --m2-chk-on-shadow: var(--m2-on-rim), inset 0 -2px 0 hsl(var(--hue-acc) var(--sat-acc) 66% / .64);
+  --m2-dialink-b-wash: repeating-conic-gradient(var(--glass-groove) 0deg 1.6deg, transparent 1.6deg 30deg), radial-gradient(circle at 35% 30%, hsl(0 0% 100% / .07), transparent 62%), hsl(var(--glass-tint) / 1);
+  --m2-dialink-drag-shadow: var(--relief-raise, var(--neu-raise)), 0 0 0 1px var(--acc);
+  --m2-dot-on-glow: 0 0 6px var(--acc), 0 0 2px var(--acc);
   --m2-face-tint-18: hsl(var(--glass-tint) / .18);
+  --m2-face-tint-94: hsl(var(--glass-tint) / .94);
+  --m2-face-tint-96: hsl(var(--glass-tint) / .96);
+  --m2-face-tint-97: hsl(var(--glass-tint) / 0.97);
+  --m2-face-tint-100: hsl(var(--glass-tint) / 1);
+  --m2-face-w06: hsl(0 0% 100% / 0.06);
+  --m2-face-w10: hsl(0 0% 100% / .10);
+  --m2-face-w18: hsl(0 0% 100% / 0.18);
+  --m2-fill-tint-100: hsl(var(--glass-tint) / 1);
+  --m2-focus-shadow: 0 0 0 3px hsl(var(--hue-acc) var(--sat-acc) 66% / 0.30), 0 0 0 1px hsl(var(--hue-acc) var(--sat-acc) 52%);
+  --m2-head-shadow: inset 0 -1px 0 hsl(0 0% 100% / 0.09);
+  --m2-head-wash: linear-gradient(180deg, hsl(0 0% 100% / 0.06), transparent);
+  --m2-hero-well: inset 0 1px 2px hsl(0 0% 0% / 0.045);
+  --m2-kind-halo: 0 1px 0 var(--glass-raise);
+  --m2-kn-shadow: 0 0 0 0.5px hsl(0 0% 0% / 0.38);
+  --m2-mac-hover-drop: drop-shadow(0 1px 0 var(--glass-raise)) drop-shadow(0 2px 6px hsl(214 40% 20% / .22));
+  --m2-matrix-face: #171b22;
+  --m2-mintdot-shadow: 0 0 0 1px hsl(0 0% 0% / 0.38);
+  --m2-rail-shadow: inset 0 1px 0 var(--m2-mat-inner), var(--surface-shadow, var(--glass-shadow));
+  --m2-reorder-shadow: inset 0 0 0 1px var(--acc2);
 }
 /* @dark */ :where(body[data-theme="dark"]) .mir-modwindow, :where(body[data-theme="dark"]) .kwin-chiprail, :where(body[data-theme="dark"]) .m2ghost {
-  --m2-ink-a94: hsl(0 0% 88% / 0.94);
-  --m2-ink-a92: hsl(0 0% 88% / 0.92);
-  --m2-ink-a90: hsl(0 0% 88% / 0.9);
-  --m2-ink-a88: hsl(0 0% 88% / 0.88);
-  --m2-ink-a85: hsl(0 0% 88% / 0.85);
-  --m2-ink-a82: hsl(0 0% 88% / 0.82);
-  --m2-ink-a78: hsl(0 0% 88% / 0.78);
-  --m2-ink-a72: hsl(0 0% 88% / 0.72);
-  --m2-ink-a70: hsl(0 0% 88% / 0.7);
-  --m2-ink-a68: hsl(0 0% 88% / 0.68);
-  --m2-ink-a66: hsl(0 0% 88% / 0.66);
-  --m2-ink-a62: hsl(0 0% 88% / 0.62);
-  --m2-ink-a60: hsl(0 0% 88% / 0.6);
-  --m2-ink-a58: hsl(0 0% 88% / 0.58);
-  --m2-ink-a56: hsl(0 0% 88% / 0.56);
-  --m2-ink-a55: hsl(0 0% 88% / 0.55);
-  --m2-ink-a54: hsl(0 0% 88% / 0.54);
-  --m2-ink-a52: hsl(0 0% 88% / 0.52);
-  --m2-ink-a50: hsl(0 0% 88% / 0.5);
-  --m2-ink-a48: hsl(0 0% 88% / 0.48);
-  --m2-ink-a46: hsl(0 0% 88% / 0.46);
-  --m2-ink-a44: hsl(0 0% 88% / 0.44);
-  --m2-ink-a42: hsl(0 0% 88% / 0.42);
-  --m2-ink-a40: hsl(0 0% 88% / 0.4);
-  --m2-ink-a38: hsl(0 0% 88% / 0.38);
-  --m2-ink-a34: hsl(0 0% 88% / 0.34);
-  --m2-ink-a32: hsl(0 0% 88% / 0.32);
-  --m2-ink-a30: hsl(0 0% 88% / 0.3);
-  --m2-ink-a28: hsl(0 0% 88% / 0.28);
-  --m2-wash-a44: hsl(0 0% 88% / 0.44);
-  --m2-wash-a42: hsl(0 0% 88% / 0.42);
-  --m2-wash-a30: hsl(0 0% 88% / 0.3);
-  --m2-wash-a25: hsl(0 0% 88% / 0.25);
-  --m2-wash-a24: hsl(0 0% 88% / 0.24);
-  --m2-wash-a20: hsl(0 0% 88% / 0.2);
   --m2-face-k10: hsl(0 0% 0% / .10);
+  --m2-ink-a28: hsl(0 0% 88% / 0.28);
+  --m2-ink-a30: hsl(0 0% 88% / 0.3);
+  --m2-ink-a32: hsl(0 0% 88% / 0.32);
+  --m2-ink-a34: hsl(0 0% 88% / 0.34);
+  --m2-ink-a38: hsl(0 0% 88% / 0.38);
+  --m2-ink-a40: hsl(0 0% 88% / 0.4);
+  --m2-ink-a42: hsl(0 0% 88% / 0.42);
+  --m2-ink-a44: hsl(0 0% 88% / 0.44);
+  --m2-ink-a46: hsl(0 0% 88% / 0.46);
+  --m2-ink-a48: hsl(0 0% 88% / 0.48);
+  --m2-ink-a50: hsl(0 0% 88% / 0.5);
+  --m2-ink-a52: hsl(0 0% 88% / 0.52);
+  --m2-ink-a54: hsl(0 0% 88% / 0.54);
+  --m2-ink-a55: hsl(0 0% 88% / 0.55);
+  --m2-ink-a56: hsl(0 0% 88% / 0.56);
+  --m2-ink-a58: hsl(0 0% 88% / 0.58);
+  --m2-ink-a60: hsl(0 0% 88% / 0.6);
+  --m2-ink-a62: hsl(0 0% 88% / 0.62);
+  --m2-ink-a66: hsl(0 0% 88% / 0.66);
+  --m2-ink-a68: hsl(0 0% 88% / 0.68);
+  --m2-ink-a70: hsl(0 0% 88% / 0.7);
+  --m2-ink-a72: hsl(0 0% 88% / 0.72);
+  --m2-ink-a78: hsl(0 0% 88% / 0.78);
+  --m2-ink-a82: hsl(0 0% 88% / 0.82);
+  --m2-ink-a85: hsl(0 0% 88% / 0.85);
+  --m2-ink-a88: hsl(0 0% 88% / 0.88);
+  --m2-ink-a90: hsl(0 0% 88% / 0.9);
+  --m2-ink-a92: hsl(0 0% 88% / 0.92);
+  --m2-ink-a94: hsl(0 0% 88% / 0.94);
+  --m2-wash-a20: hsl(0 0% 88% / 0.2);
+  --m2-wash-a24: hsl(0 0% 88% / 0.24);
+  --m2-wash-a25: hsl(0 0% 88% / 0.25);
+  --m2-wash-a30: hsl(0 0% 88% / 0.3);
+  --m2-wash-a42: hsl(0 0% 88% / 0.42);
+  --m2-wash-a44: hsl(0 0% 88% / 0.44);
 }
 /* @light */ :where(body[data-theme="light"]) .mir-modwindow, :where(body[data-theme="light"]) .kwin-chiprail, :where(body[data-theme="light"]) .m2ghost {
-  --m2-ink-a94: hsl(214 20% 18% / 0.94);
-  --m2-ink-a92: hsl(214 20% 18% / 0.92);
-  --m2-ink-a90: hsl(214 20% 18% / 0.9);
-  --m2-ink-a88: hsl(214 20% 18% / 0.88);
-  --m2-ink-a85: hsl(214 20% 18% / 0.85);
-  --m2-ink-a82: hsl(214 20% 18% / 0.82);
-  --m2-ink-a78: hsl(214 20% 18% / 0.78);
-  --m2-ink-a72: hsl(214 20% 18% / 0.72);
-  --m2-ink-a70: hsl(214 20% 18% / 0.7);
-  --m2-ink-a68: hsl(214 20% 18% / 0.68);
-  --m2-ink-a66: hsl(214 20% 18% / 0.66);
-  --m2-ink-a62: hsl(214 20% 18% / 0.62);
-  --m2-ink-a60: hsl(214 20% 18% / 0.6);
-  --m2-ink-a58: hsl(214 20% 18% / 0.58);
-  --m2-ink-a56: hsl(214 20% 18% / 0.56);
-  --m2-ink-a55: hsl(214 20% 18% / 0.55);
-  --m2-ink-a54: hsl(214 20% 18% / 0.54);
-  --m2-ink-a52: hsl(214 20% 18% / 0.52);
-  --m2-ink-a50: hsl(214 20% 18% / 0.5);
-  --m2-ink-a48: hsl(214 20% 18% / 0.48);
-  --m2-ink-a46: hsl(214 20% 18% / 0.46);
-  --m2-ink-a44: hsl(214 20% 18% / 0.44);
-  --m2-ink-a42: hsl(214 20% 18% / 0.42);
-  --m2-ink-a40: hsl(214 20% 18% / 0.4);
-  --m2-ink-a38: hsl(214 20% 18% / 0.38);
-  --m2-ink-a34: hsl(214 20% 18% / 0.34);
-  --m2-ink-a32: hsl(214 20% 18% / 0.32);
-  --m2-ink-a30: hsl(214 20% 18% / 0.3);
   --m2-ink-a28: hsl(214 20% 18% / 0.28);
-  --m2-wash-a44: hsl(214 20% 18% / 0.44);
-  --m2-wash-a42: hsl(214 20% 18% / 0.42);
-  --m2-wash-a30: hsl(214 20% 18% / 0.3);
-  --m2-wash-a25: hsl(214 20% 18% / 0.25);
-  --m2-wash-a24: hsl(214 20% 18% / 0.24);
-  --m2-wash-a20: hsl(214 20% 18% / 0.2);
+  --m2-ink-a30: hsl(214 20% 18% / 0.3);
+  --m2-ink-a32: hsl(214 20% 18% / 0.32);
+  --m2-ink-a34: hsl(214 20% 18% / 0.34);
+  --m2-ink-a38: hsl(214 20% 18% / 0.38);
+  --m2-ink-a40: hsl(214 20% 18% / 0.4);
+  --m2-ink-a42: hsl(214 20% 18% / 0.42);
+  --m2-ink-a44: hsl(214 20% 18% / 0.44);
+  --m2-ink-a46: hsl(214 20% 18% / 0.46);
+  --m2-ink-a48: hsl(214 20% 18% / 0.48);
+  --m2-ink-a50: hsl(214 20% 18% / 0.5);
+  --m2-ink-a52: hsl(214 20% 18% / 0.52);
+  --m2-ink-a54: hsl(214 20% 18% / 0.54);
+  --m2-ink-a55: hsl(214 20% 18% / 0.55);
+  --m2-ink-a56: hsl(214 20% 18% / 0.56);
+  --m2-ink-a58: hsl(214 20% 18% / 0.58);
+  --m2-ink-a60: hsl(214 20% 18% / 0.6);
+  --m2-ink-a62: hsl(214 20% 18% / 0.62);
+  --m2-ink-a66: hsl(214 20% 18% / 0.66);
+  --m2-ink-a68: hsl(214 20% 18% / 0.68);
+  --m2-ink-a70: hsl(214 20% 18% / 0.7);
+  --m2-ink-a72: hsl(214 20% 18% / 0.72);
+  --m2-ink-a78: hsl(214 20% 18% / 0.78);
+  --m2-ink-a82: hsl(214 20% 18% / 0.82);
+  --m2-ink-a85: hsl(214 20% 18% / 0.85);
+  --m2-ink-a88: hsl(214 20% 18% / 0.88);
+  --m2-ink-a90: hsl(214 20% 18% / 0.9);
+  --m2-ink-a92: hsl(214 20% 18% / 0.92);
+  --m2-ink-a94: hsl(214 20% 18% / 0.94);
   --m2-macadd-face: hsl(214 30% 40% / 0.09);
+  --m2-wash-a20: hsl(214 20% 18% / 0.2);
+  --m2-wash-a24: hsl(214 20% 18% / 0.24);
+  --m2-wash-a25: hsl(214 20% 18% / 0.25);
+  --m2-wash-a30: hsl(214 20% 18% / 0.3);
+  --m2-wash-a42: hsl(214 20% 18% / 0.42);
+  --m2-wash-a44: hsl(214 20% 18% / 0.44);
+}
+/* @own */ #modwin .aud-range-output {
+  --m2-aud-range-output-glow: 0 0 5px color-mix(in srgb,var(--aud-live) 45%,transparent);
+}
+/* @own */ .k.has-ring > .k-dial {
+  --m2-ring-dial-shadow: var(--relief-raise, var(--neu-raise)),0 0 0 1px color-mix(in srgb,var(--acc) 65%,transparent);
+}
+/* @own */ .k.has-ring.mod-selected > .k-dial {
+  --m2-ring-dial-sel-shadow: var(--relief-raise, var(--neu-raise)),0 0 0 1px color-mix(in srgb,var(--acc2) 75%,transparent);
 }
 /* FROST · end */
 
@@ -466,7 +490,7 @@ body[data-theme="light"] .m2ghost {
    the device card and the work bar — and takes the same card the other two take. */
 :root:not(.skin-frost) #modwin.mir-modwindow .m2rail {
   background-color: var(--m2-mat-chassis);
-  box-shadow: inset 0 1px 0 var(--m2-mat-inner), var(--surface-shadow, var(--glass-shadow)); }                              /* 13 */
+  box-shadow: var(--m2-rail-shadow); }                              /* 13 */
 /* 14 · the artifact's ONE literal font family, on the chip rail.  Family only — the size still reads
    --fs-small, and the 48 px disc in its 62 px target is untouched. */
 .kwin-chiprail[data-mir-rail="modulation"] .crail-chip { font-family: var(--font-ui); }  /* 14 */
@@ -499,7 +523,7 @@ body[data-theme="light"] .m2ghost {
    they only need their alphas moved in step with --m2-mat-inner and the state ramp. */
 #modwin.mir-modwindow .m2dev .m2head {
   background-image: var(--surface-sheen, var(--m2-head-wash));
-  box-shadow: inset 0 -1px 0 hsl(0 0% 100% / 0.09); }
+  box-shadow: var(--m2-head-shadow); }
 /* RETIRED wave 105 — the officiation .m2hero wash: the plot box is ONE element carrying `m2edit m2hero`
    (modwindow.js:824) and entry 72 sets `background-image: none` on `.m2edit, .m2hero`, later. */
 #modwin.mir-modwindow button:active:not(:disabled),
@@ -974,7 +998,7 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 .kwin-chiprail[data-mir-rail] .crail-chip .crail-ink,
 .kwin-chiprail[data-mir-rail] .kwin-grip-dots {
   color: var(--ink-key);
-  filter: drop-shadow(0 1px 0 var(--glass-raise)); }                                                   /* 32 */
+  filter: var(--m2-chip-ink-drop); }                                                   /* 32 */
 .kwin-chiprail[data-mir-rail] .crail-chip:active .crail-ink { color: var(--fg); }
 
 
@@ -1005,7 +1029,7 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 #modwin.mir-modwindow .m2dev .m2chk.on .m2dot,
 #modwin.mir-modwindow .m2dev .m2swb.on .m2dot {
   background: var(--acc); border-color: var(--acc);
-  box-shadow: 0 0 6px var(--acc), 0 0 2px var(--acc); }                                                 /* 34b */
+  box-shadow: var(--m2-dot-on-glow); }                                                 /* 34b */
 
 
 #modwin.mir-modwindow .m2note { display: none; }                                       /* 35 */
@@ -1042,7 +1066,7 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
   transition: background var(--m2-motion-micro, var(--t-fast)), box-shadow var(--m2-motion-micro, var(--t-fast)); }
 #modwin.mir-modwindow .m2dev .m2swb.on::before,
 #modwin.mir-modwindow .m2dev .m2flipb.on::before {
-  background: var(--acc); box-shadow: 0 0 6px var(--acc), 0 0 2px var(--acc); }                        /* 37 */
+  background: var(--acc); box-shadow: var(--m2-dot-on-glow); }                        /* 37 */
 
 
 #modwin.mir-modwindow .m2dev .m2swb,
@@ -1107,7 +1131,7 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 
 #modwin.mir-modwindow .m2preset .m2gl {
   stroke: var(--ink-key);
-  filter: drop-shadow(0 1px 0 var(--glass-raise)); }
+  filter: var(--m2-chip-ink-drop); }
 #modwin.mir-modwindow .m2preset.on .m2gl { stroke: var(--acc); filter: none; }
 @media (hover: hover) {
   #modwin.mir-modwindow .m2preset:hover .m2gl { stroke: var(--fg); }
@@ -1123,10 +1147,10 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 #modwin.mir-modwindow .m2mac,
 #modwin.mir-modwindow .m2maccap {
   border-color: transparent; background: transparent; color: var(--ink-key);
-  filter: drop-shadow(0 1px 0 var(--glass-raise)); }
+  filter: var(--m2-chip-ink-drop); }
 @media (hover: hover) {
   #modwin.mir-modwindow .m2mac:hover {
-    filter: drop-shadow(0 1px 0 var(--glass-raise)) drop-shadow(0 2px 6px hsl(214 40% 20% / .22));
+    filter: var(--m2-mac-hover-drop);
     color: var(--fg); }
 }
 #modwin.mir-modwindow .m2mac.on { border-color: transparent; }      /* 49 */
@@ -1140,8 +1164,7 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
   /* ⚠ NOT `--acc-soft`: this window redeclares the house glass names onto its own ladder, and that
      token computed to `color(srgb 0 0 0 / 0)` here — a fully transparent halo, i.e. no ring at all.
      Measured, then written as the accent's own hue at an alpha, which cannot be re-pointed. */
-  box-shadow: var(--state-focus, 0 0 0 3px hsl(var(--hue-acc) var(--sat-acc) 66% / 0.30),
-              0 0 0 1px hsl(var(--hue-acc) var(--sat-acc) 52%)); }                                      /* 50 */
+  box-shadow: var(--state-focus, var(--m2-focus-shadow)); }                                      /* 50 */
 
 
 #modwin.mir-modwindow .m2kval {
@@ -1175,7 +1198,7 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 
 #modwin.mir-modwindow .m2dialink .m2kn {
   width: 1.5px; margin-left: -0.75px; height: 34%; border-radius: 1px;
-  background: var(--m2-ink-hi); box-shadow: 0 0 0 0.5px hsl(0 0% 0% / 0.38); }
+  background: var(--m2-ink-hi); box-shadow: var(--m2-kn-shadow); }
 
 
 #modwin.mir-modwindow .m2dialink.drag .m2kn { background: var(--acc); }                 /* 55 */
@@ -1309,7 +1332,7 @@ body[data-theme="light"] #modwin.mir-modwindow .m2macdel {
 
 
   border-color: transparent;
-  box-shadow: var(--relief-well, inset 0 1px 2px hsl(0 0% 0% / 0.045)); }                                                  /* 72 */
+  box-shadow: var(--relief-well, var(--m2-hero-well)); }                                                  /* 72 */
 
 
 #modwin.mir-modwindow .m2mid,
@@ -1461,7 +1484,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
   transition: box-shadow var(--t-fast) ease; }
 #modwin.mir-modwindow .m2dialink.drag::before,
 #modwin.mir-modwindow .m2kd.drag .m2dialink::before {
-  box-shadow: var(--relief-raise, var(--neu-raise)), 0 0 0 1px var(--acc); }                                                                  /* 90 */
+  box-shadow: var(--m2-dialink-drag-shadow); }                                                                  /* 90 */
 
 
 #modwin.mir-modwindow .m2grab i {
@@ -1529,7 +1552,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
   background: var(--m2-mat-recess); border: 0;
   transition: background var(--m2-motion-micro, var(--t-fast)), box-shadow var(--m2-motion-micro, var(--t-fast)); }
 #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle.on::before {
-  background: var(--acc); box-shadow: 0 0 6px var(--acc), 0 0 2px var(--acc); }
+  background: var(--acc); box-shadow: var(--m2-dot-on-glow); }
 /* the artifact's own ON treatment stands down — the lamp is the state now, as it is in FULL */
 #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle.on,
 #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle:active {
@@ -1630,7 +1653,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin.mir-modwindow .m2mintdot {
   position: absolute; left: calc(var(--tx, 50) * 1%); top: calc(var(--ty, 50) * 1%);
   width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; border-radius: 50%;
-  background: var(--acc); box-shadow: 0 0 0 1px hsl(0 0% 0% / 0.38); pointer-events: none; }
+  background: var(--acc); box-shadow: var(--m2-mintdot-shadow); pointer-events: none; }
 #modwin.mir-modwindow .m2dev.env .m2mintdot { background: var(--m2-env-ink); }
 #modwin.mir-modwindow .m2dev.audio .m2mintdot { background: var(--acc); }
 /* a bypassed device keeps its shape and stops claiming to be running */
@@ -1699,7 +1722,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin.mir-modwindow .m2preset .m2gl,
 .kwin-chiprail[data-mir-rail] .crail-chip .crail-ink,
 .kwin-chiprail[data-mir-rail] .kwin-grip-dots {
-  filter: drop-shadow(0 1px 0 var(--glass-raise)); }
+  filter: var(--m2-chip-ink-drop); }
 @media (hover: hover) {
   #modwin.mir-modwindow .m2workbar button:not(.modtempo):hover,
   .kwin-chiprail[data-mir-rail] .crail-chip:hover,
@@ -1716,7 +1739,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin.mir-modwindow .m2kind,
 #modwin.mir-modwindow .m2railhead,
 #modwin.mir-modwindow .modtempo b {
-  text-shadow: 0 1px 0 var(--glass-raise); }                                                          /* 108 */
+  text-shadow: var(--m2-kind-halo); }                                                          /* 108 */
 
 
 .kwin-chiprail[data-mir-rail] .crail-chip.on,
@@ -1831,7 +1854,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin .aud-range-low { left:0;background:var(--m2-aud-range-low-face); }
 #modwin .aud-range-high { background:var(--m2-aud-range-high-face); }
 #modwin .aud-range-zone { background:var(--m2-aud-range-zone-face); }
-#modwin .aud-range-output { position:absolute;left:0;top:50%;height:2px;margin-top:-1px;background:var(--aud-live);box-shadow:0 0 5px color-mix(in srgb,var(--aud-live) 45%,transparent);pointer-events:none; }
+#modwin .aud-range-output { position:absolute;left:0;top:50%;height:2px;margin-top:-1px;background:var(--aud-live);box-shadow:var(--m2-aud-range-output-glow);pointer-events:none; }
 #modwin .aud-range-input { display:none; }
 #modwin .aud-range-handle { position:absolute; z-index:3; top:0; bottom:0; width:14px; padding:0; transform:translateX(-50%); border:0; background:transparent; color:var(--acc); cursor:ew-resize; touch-action:none; }
 #modwin .aud-range-handle.lower { color:var(--acc);opacity:.72; }
@@ -1845,7 +1868,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin .aud-level-mix-dial .m2depthtrack,#modwin .aud-level-mix-dial .m2deptharc { stroke-width:2.2; }
 #modwin .aud-level-mix-dial .m2deptharc { stroke:var(--acc); }
 #modwin .aud-level-mix-core.m2num { width:14px;height:14px;border-color:transparent;background:transparent; }
-#modwin .aud-level-mix-dial:focus-visible { outline:0;box-shadow:0 0 0 1px color-mix(in srgb,var(--acc) 50%,transparent); }
+#modwin .aud-level-mix-dial:focus-visible { outline:0;box-shadow:var(--m2-aud-mix-focus-shadow); }
 #modwin .aud-level-mix-value { position:absolute;left:50%;bottom:calc(100% + 3px);z-index:5;transform:translate(-50%,2px);padding:2px 4px;border-radius:3px;background:var(--m2-face-tint-96);color:var(--fg-soft);font:600 7px/1 var(--font-num);opacity:0;pointer-events:none;white-space:nowrap; }
 #modwin .aud-level-mix:hover .aud-level-mix-value,
 #modwin .aud-level-mix:focus-within .aud-level-mix-value,
@@ -1905,7 +1928,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin.mir-modwindow .m2dev.audio .m2audslot { color:var(--m2-ink-faint); }
 #modwin.mir-modwindow .m2dev.audio .m2audmac.on .m2audslot { color:var(--acc2); }
 #modwin.mir-modwindow .m2dev.audio .m2audout.on .m2audled {
-  background:var(--acc);box-shadow:0 0 6px color-mix(in srgb,var(--acc) 55%,transparent); }
+  background:var(--acc);box-shadow:var(--m2-audled-on-glow); }
 #modwin.mir-modwindow .m2dev.audio .m2audsrc,
 #modwin.mir-modwindow .m2dev.audio .m2audsrc.on { color:var(--acc2); }
 #modwin.mir-modwindow .m2dev.audio .m2audioheadstate { display:none; }
@@ -2058,10 +2081,10 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
    in Accent A; choosing their macro or source, or touching the control itself,
    promotes the dial and complete range drawing to Accent B. */
 .k.has-ring > .k-dial {
-  box-shadow:var(--relief-raise, var(--neu-raise)),0 0 0 1px color-mix(in srgb,var(--acc) 65%,transparent); }
+  box-shadow:var(--m2-ring-dial-shadow); }
 .k.has-ring > .k-dial > .k-needle { background:var(--acc);box-shadow:none; }
 .k.has-ring.mod-selected > .k-dial {
-  box-shadow:var(--relief-raise, var(--neu-raise)),0 0 0 1px color-mix(in srgb,var(--acc2) 75%,transparent); }
+  box-shadow:var(--m2-ring-dial-sel-shadow); }
 .k.has-ring.mod-selected > .k-dial > .k-needle { background:var(--acc2);box-shadow:none; }
 .k.mod-selected .k-ring-edit,
 .k.mod-selected .k-ring-stack,
@@ -2090,7 +2113,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin.mir-modwindow .m2rail .m2depthring { width:30px;height:30px;left:7px;margin-top:-15px; }
 #modwin.mir-modwindow .m2val { cursor:ew-resize; }
 #modwin.mir-modwindow .m2slot.m2reorder {
-  background:var(--acc2-soft);box-shadow:inset 0 0 0 1px var(--acc2);z-index:2; }
+  background:var(--acc2-soft);box-shadow:var(--m2-reorder-shadow);z-index:2; }
 #modwin.mir-modwindow .m2slottools {
   width:44px;min-width:44px;height:44px;align-self:center;display:grid;
   grid-template-rows:22px 22px;overflow:hidden;border-radius:var(--r-md); }
@@ -2175,7 +2198,7 @@ body[data-theme="light"] #modwin.mir-modwindow .m2devadd {
 #modwin.mir-modwindow .m2bus.on, #modwin.mir-modwindow .modsync.on, #modwin.mir-modwindow .modcad.on,
 #modwin.mir-modwindow .m2audsrc.on {
   background-color: var(--state-on, var(--m2-mat-frost));
-  box-shadow: var(--m2-on-rim), inset 0 -2px 0 hsl(var(--hue-acc) var(--sat-acc) 66% / .64); }
+  box-shadow: var(--m2-chk-on-shadow); }
 /* L30 · the compact LFO's command: the same, and its accent border becomes the rim */
 #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcmd.on {
   background: var(--state-on, var(--m2-mat-frost)); border-color: var(--m2-mat-edge); }
