@@ -9,7 +9,7 @@ Plan §5.2 and §6.6–6.7. Audit: F1 §4.3 and §5.
 | Tier | `data-ui-tier` | What changes |
 |---|---|---|
 | **full** | absent or `full` | nothing |
-| **lite** | `lite` | **No backdrop filter anywhere.** `--surface-filter` and `--surface-lift` are `none`, and so are the bridges `--frost-filter` and `--glass-filter` (the modulation sheets still read those).<br>**A legible pane.** `--surface-fill` and `--surface-veil` get the TINTED fill `hsl(var(--glass-tint) / var(--card-opacity))`. A refractive pane, the frost-thinned .58 pane, the notebook and the menus then sit on a tint, not on the bare picture.<br>**One shadow layer.** Every pane height (`--surface-shadow`, `-float`, `-menu`) is one layer falling down: `0 1px 2px`, black .16 on dark and navy .09 on light |
+| **lite** | `lite` | **No backdrop filter anywhere.** `--surface-filter` and `--surface-lift` are `none`, and so are the bridges `--frost-filter` and `--glass-filter` (sheets that still read a 1.4 name: `.glass` and the plugin read `--glass-filter`).<br>**A legible pane.** `--surface-fill` and `--surface-veil` get the TINTED fill `hsl(var(--glass-tint) / var(--card-opacity))`. A refractive pane, the frost-thinned .58 pane, the notebook and the menus then sit on a tint, not on the bare picture.<br>**One shadow layer.** Every pane height (`--surface-shadow`, `-float`, `-menu`) is one layer falling down: `0 1px 2px`, black .16 on dark and navy .09 on light |
 | **flat** | `flat` | Everything lite does, plus:<br>**Control relief off:** `--relief-raise` and `--relief-well` become `0 0 0 0 transparent`.<br>**Pane shadows off:** all three heights become `0 0 0 0 transparent`.<br>**Sheen off:** `--surface-sheen: none`.<br>**Motion 0s:** `--t-fast`, `--t-soft`, `--t-linger`, and core.css's `--motion-micro`, `-ui`, `-structural` |
 | *(media)* | `prefers-reduced-transparency: reduce` | The lite **surface** values (filter, lift, fill, veil, shadows), whatever the tier. Flat still wins its own values |
 
@@ -71,9 +71,22 @@ Two kinds of value go on `<body>`, where the theme and the tint are:
 
 This is the same constraint that makes the 1.5 names read at the place of use instead of being declared as `:root` aliases.
 
-## What is not on the tier yet
+## The modulation plugin
 
-The modulation plugin's sheets (`mir/modulation/**`) do not read the 1.5 names yet.
-- **Lite reaches them** through the `--frost-filter` and `--glass-filter` bridges, and the tier test holds them to it.
-- **Flat does not reach their own shadows.** `tests/tier.browser.mjs` counts what is left (3 elements in the gallery: `.m2rail`, `.m2workbar.m2prebar`, `.m2workbar.m2pre`) and does not fail on it.
-- The plugin lane's hunks route those sheets onto the names, and then the bridges can go.
+The plugin's two sheets (`mir/modulation/modhost.css`, `mir/modulation/modwindow/modwindow.css`) read the same names as the house, at the place of use, with their 1.4 value as the fallback. With no tier and no skin they draw exactly what they drew (proof: stylehash over the gallery with the window open and an LFO, an ENV and an AUDIO device in it, theme × card × frost, zero elements and zero pixels changed).
+
+| Name | What it reaches in the plugin |
+|---|---|
+| `--surface-filter` | every frost blur: the panes, the work bar, the chip rail's discs; the matrix dialog's backdrop |
+| `--surface-shadow` | the six panes (work bar, macro rail, device cards, the three picker sheets), the audio sheet, the hint, the chip discs |
+| `--surface-shadow-float` | the routing pill while it is carried |
+| `--surface-fill` / `--surface-veil` | the pane fill: TINTED reads `--surface-fill`, REFRACTIVE (and its frost whisper) reads `--surface-veil`; the picker sheets read `--surface-fill` |
+| `--surface-sheen` | the device head's top wash |
+| `--surface-edge`, `--surface-edge-width`, `--surface-radius` | the panes' hairline and corner |
+| `--relief-raise`, `--relief-well` | the routed knob's puck, the name field, the plot box |
+| `--state-hover`, `--state-press`, `--state-on`, `--state-disabled` | every hover, press, ON and disabled fill that was a token |
+| `--label-tracking`, `--label-case` | every tracked label and the window title |
+
+- **Lite** takes every blur off the plugin and gives its panes the tinted fill.
+- **Flat** takes off every pane shadow and every control relief in it. `tests/tier.browser.mjs` holds the plugin to the same promises as the house: zero neutral blurred or offset shadows left. A 1 px inset line with no blur is a hairline (the device head's rule), not relief, and is not counted.
+- **Still read by its 1.4 name:** the TINTED filter `--glass-filter` (as the house's `.glass` reads it), so the tier's `--glass-filter` bridge stays. The `--frost-filter` bridge is no longer needed by the plugin.

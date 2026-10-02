@@ -2,7 +2,10 @@
    docs/LAYERS.md).  Above the house sheets and below modhost.css (mir.kit.plugin.host), which wins by rank instead
    of by ladder; an app sheet, in no layer, beats both with a plain selector.  "LAST: nothing may follow it" is retired by this:
    source order now matters only inside the kit.  Its one reduced-motion guarantee is moved, whole, to mir.a11y at
-   the foot of this sheet; nothing else in PART A or PART B is changed. */
+   the foot of this sheet; nothing else in PART A or PART B is changed.
+   1.5.0-alpha.3 · VALUES ONLY: the pane shadow, edge and radius, every press/ON/disabled token, every tracked label and the
+   title's case read the 1.5 names with the 1.4 value as fallback (modhost.css's header; docs/TIERS.md), and literals that
+   equal a token exactly became it (radius 5/8/12px, type 9/10/13px, .12s, tracking .02/.12em).  No selector moved. */
 @layer mir.kit.plugin.artifact {
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -64,8 +67,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-radius: var(--r-lg);
-  box-shadow: var(--glass-shadow), var(--glass-bevel);
+  border-radius: var(--surface-radius, var(--r-lg));
+  box-shadow: var(--surface-shadow, var(--glass-shadow)), var(--glass-bevel);
 
 
   contain: layout paint;
@@ -80,7 +83,7 @@
 }
 /* index.html:3210-3213   was:  .kwin.resizing, .jwin.resizing  */
 .kwin.mir-modwindow.resizing {
-  box-shadow: var(--glass-shadow), var(--glass-bevel),
+  box-shadow: var(--surface-shadow, var(--glass-shadow)), var(--glass-bevel),
               0 0 0 1px hsl(var(--hue-acc) var(--sat-acc) 68% / 0.55);
 }
 
@@ -112,8 +115,8 @@
   flex: 1 1 auto;
   min-width: 0;
   font-size: var(--fs-tiny);
-  letter-spacing: var(--tr-wider);
-  text-transform: uppercase;
+  letter-spacing: var(--label-tracking, var(--tr-wider));
+  text-transform: var(--label-case, uppercase);
   color: var(--fg-soft);
   text-shadow: var(--ink-shadow);
   overflow: hidden;
@@ -141,7 +144,7 @@
   color: var(--dim);
 }
 /* index.html:3463-3465   was:  .kwin-close:active  */
-.mir-modwindow .kwin-close:active { background: var(--glass-press); color: var(--fg); }
+.mir-modwindow .kwin-close:active { background: var(--state-press, var(--glass-press)); color: var(--fg); }
 /* index.html:3467   was:  .kwin-tabs  */
 .mir-modwindow .kwin-tabs {
   flex: 0 0 auto;
@@ -164,7 +167,7 @@
   padding: 4px 2px 3px;
   font: inherit;
   font-size: var(--fs-tiny);
-  letter-spacing: var(--tr-wide);
+  letter-spacing: var(--label-tracking, var(--tr-wide));
   line-height: 1.4;
   color: var(--dim);
   background: transparent;
@@ -176,7 +179,7 @@
   transition: color 140ms ease, background-color 140ms ease;
 }
 /* index.html:3496-3498   was:  .kwin-tab:active  */
-.mir-modwindow .kwin-tab:active, .kwin-chiprail[data-mir-rail="modulation"] .kwin-tab:active { background: var(--glass-press); }
+.mir-modwindow .kwin-tab:active, .kwin-chiprail[data-mir-rail="modulation"] .kwin-tab:active { background: var(--state-press, var(--glass-press)); }
 /* index.html:3521-3535   was:  .kwin-body  */
 .mir-modwindow .kwin-body {
   flex: 1 1 auto;
@@ -218,7 +221,7 @@
   filter: brightness(1.16) saturate(1.08);
   box-shadow: 0 0 0 1.5px hsl(var(--hue-acc) calc(var(--sat-acc) + 8%) 64% / 0.85),
               0 2px 16px -2px hsl(var(--hue-acc) calc(var(--sat-acc) + 8%) 52% / 0.35);
-  border-radius: 8px;           /* the ring follows a soft concentric corner */
+  border-radius: var(--r-md);           /* the ring follows a soft concentric corner */
 }
 /* index.html:3584-3589   was:  .kctl.ctl-round.ctl-sel  */
 .mir-modwindow .kctl.ctl-round.ctl-sel { border-radius: 50%; }
@@ -243,11 +246,11 @@
   -webkit-tap-highlight-color: transparent;
 }
 /* index.html:4812   was:  button:active  */
-.mir-modwindow button:active, .kwin-chiprail[data-mir-rail="modulation"] button:active { background: var(--glass-press); }
+.mir-modwindow button:active, .kwin-chiprail[data-mir-rail="modulation"] button:active { background: var(--state-press, var(--glass-press)); }
 /* index.html:6917   was:  .kwin-tab.on  */
 .mir-modwindow .kwin-tab.on, .kwin-chiprail[data-mir-rail="modulation"] .kwin-tab.on {
   color: var(--fg);
-  background: var(--bar-raise);
+  background: var(--state-on, var(--bar-raise));
   box-shadow: inset 0 0 0 var(--glass-border) var(--glass-border-color);
   font-weight: var(--w-bold);
   text-shadow: var(--ink-shadow);
@@ -324,7 +327,7 @@
 /* index.html:7159-7165   was:  .crail.crail-float.kwin-chiprail .crail-chip:active::before, .crail.crail-float.kwin-chiprail .crail-chip.on::before  */
 .crail.crail-float.kwin-chiprail[data-mir-rail="modulation"] .crail-chip:active::before,
 .crail.crail-float.kwin-chiprail[data-mir-rail="modulation"] .crail-chip.on::before {
-  background-color: var(--bar-raise);
+  background-color: var(--state-press, var(--bar-raise));
   border-color: var(--glass-border-color);
 }
 /* index.html:7164-7169   was:  .crail.crail-float.kwin-chiprail .crail-grip  */
@@ -379,13 +382,13 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip.on {
 }
 /* index.html:7222-7228   was:  html body .crail.crail-float .crail-chip.on::before  */
 html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip.on::before {
-  background-color: var(--bar-raise);
+  background-color: var(--state-on, var(--bar-raise));
   border-color: var(--glass-border-color);
   box-shadow: inset 0 var(--glass-border) 0 var(--glass-sheen), var(--glass-bevel);
 }
 /* index.html:7227-7232   was:  html body .crail.crail-float .crail-chip:active::before  */
 html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::before {
-  background-color: var(--glass-press);
+  background-color: var(--state-press, var(--glass-press));
   border-color: var(--glass-border-color);
 }
 
@@ -448,7 +451,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2workbar { position: absolute; left: 0; top: 0; height: 52px;
   box-sizing: border-box; display: flex; flex-wrap: nowrap; align-items: center;
   gap: 2px; padding: 2px 7px 3px; overflow: hidden; pointer-events: auto;
-  border: var(--glass-border) solid var(--glass-hairline); border-radius: 16px; }
+  border: var(--surface-edge-width, var(--glass-border)) solid var(--surface-edge, var(--glass-hairline)); border-radius: var(--surface-radius, 16px); }
 .mir-modwindow .m2prebar { flex: 0 0 auto; width: 294px; }
 .mir-modwindow .m2pre { width: 450px; }
 .mir-modwindow .m2precore { display: flex; flex: 0 0 calc(var(--m2-precore-w, 294px) - 14px - var(--glass-border) - var(--glass-border));
@@ -457,11 +460,11 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
    work bars now use this single fixed-height grammar in every material. */
 :root.skin-frost #modwin.mir-modwindow.kwin-frost.kwin-barless .m2workbar {
   flex-wrap: nowrap; gap: 2px; margin: 0; padding: 2px 7px 3px;
-  height: 52px; border-radius: 16px; }
+  height: 52px; border-radius: var(--surface-radius, 16px); }
 .mir-modwindow .m2prename { flex: 1 1 auto; min-width: 44px; height: 44px; box-sizing: border-box;
-  border: var(--glass-border) solid var(--glass-hairline); border-radius: 5px;
+  border: var(--glass-border) solid var(--glass-hairline); border-radius: var(--r-sm);
   background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.94); padding: 2px 6px;
-  font: 500 10.5px var(--font-sans); letter-spacing: 0.05em;
+  font: 500 10.5px var(--font-sans); letter-spacing: var(--label-tracking, 0.05em);
   text-align: center; -webkit-appearance: none; appearance: none; }
 .mir-modwindow .m2prename::placeholder { color: rgba(255,255,255,0.94); opacity: 1; }
 .mir-modwindow .m2prename:focus { outline: 0; border-color: var(--acc); background: rgba(255,255,255,0.11); }
@@ -472,7 +475,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   flex: 0 0 auto; min-width: 44px; height: 44px; min-height: 44px; padding: 0;
   border-radius: 6px; border: var(--glass-border) solid var(--glass-hairline);
   background: transparent; color: rgba(255,255,255,0.72);
-  font: 600 11px var(--font-sans); letter-spacing: 0.06em; }
+  font: 600 11px var(--font-sans); letter-spacing: var(--label-tracking, 0.06em); }
 .mir-modwindow .m2prenav { color: var(--acc); font-size: 15px; }
 /* The preset save uses the same plain floppy as the Save window. */
 .mir-modwindow .m2presave { min-width: 44px; width: 44px; border-radius: var(--r-md, 8px); padding: 0; color: var(--acc);
@@ -481,53 +484,53 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2presave.m2arm { width: 44px; min-width: 44px; border-radius: 6px; padding: 0;
   font-size: 7px; }
 .mir-modwindow .m2prenav:active:not(:disabled), .mir-modwindow .m2presave:active:not(:disabled),
-.mir-modwindow .m2predel:active:not(:disabled) { background: var(--glass-press); color: #fff; }
-.mir-modwindow .m2prenav:disabled, .mir-modwindow .m2presave:disabled, .mir-modwindow .m2predel:disabled { opacity: 0.30; }
+.mir-modwindow .m2predel:active:not(:disabled) { background: var(--state-press, var(--glass-press)); color: #fff; }
+.mir-modwindow .m2prenav:disabled, .mir-modwindow .m2presave:disabled, .mir-modwindow .m2predel:disabled { opacity: var(--state-disabled, 0.30); }
 /* ARMED — one tap asks, the second acts.  A confirm that costs a modal is a
    confirm nobody reads; a button that says SURE for four seconds is one. */
 .mir-modwindow .m2presave.m2arm { border-color: var(--acc); color: var(--acc); }
 .mir-modwindow .m2predel.m2arm { border-color: var(--bad); color: var(--bad); }
 /* DEAD SENDS — the MODUX collision idiom, verbatim: var(--bad) on the thing
    that is dead, and nothing moved out from under the user. */
-.mir-modwindow .m2predead { color: var(--bad); border-color: var(--bad); font-size: 10px; }
+.mir-modwindow .m2predead { color: var(--bad); border-color: var(--bad); font-size: var(--fs-small); }
 .mir-modwindow .m2predead.off { display: none; }
 /* The warning's inspector floats from the 46 px extension.  It is outside the
    work bar's clipped flow, so opening it cannot bargain with the preset core. */
 .mir-modwindow .m2deadpick { position: absolute; width: 320px; max-width: calc(100vw - 16px); z-index: 43;
-  box-sizing: border-box; border-radius: 12px; padding: 7px;
-  border: var(--glass-border) solid var(--glass-hairline);
+  box-sizing: border-box; border-radius: var(--surface-radius, var(--r-lg)); padding: 7px;
+  border: var(--surface-edge-width, var(--glass-border)) solid var(--surface-edge, var(--glass-hairline));
   display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
 .mir-modwindow .m2deadpick[hidden] { display: none; }
 .mir-modwindow .m2deadhead { flex: 0 0 44px; min-height: 44px; display: flex; align-items: center;
   justify-content: space-between; gap: 8px; padding-left: 8px; color: var(--bad);
-  font: 700 9px var(--font-sans); letter-spacing: .12em; }
+  font: 700 var(--fs-tiny) var(--font-sans); letter-spacing: var(--label-tracking, var(--tr-wide)); }
 .mir-modwindow .m2deadclose, .mir-modwindow .m2deadremove { flex: 0 0 44px; width: 44px; min-width: 44px; height: 44px;
   min-height: 44px; padding: 0; border-radius: 7px;
   border: var(--glass-border) solid var(--glass-hairline); background: transparent;
-  color: var(--fg-soft); font: 700 7px var(--font-sans); letter-spacing: .08em; }
-.mir-modwindow .m2deadclose { color: var(--bad); font-size: 13px; }
-.mir-modwindow .m2deadclose:active, .mir-modwindow .m2deadremove:active { background: var(--glass-press); color: var(--fg); }
+  color: var(--fg-soft); font: 700 7px var(--font-sans); letter-spacing: var(--label-tracking, .08em); }
+.mir-modwindow .m2deadclose { color: var(--bad); font-size: var(--fs-lead); }
+.mir-modwindow .m2deadclose:active, .mir-modwindow .m2deadremove:active { background: var(--state-press, var(--glass-press)); color: var(--fg); }
 .mir-modwindow .m2deadlist { min-height: 0; overflow-y: auto; overscroll-behavior: contain;
   touch-action: pan-y; display: flex; flex-direction: column; gap: 4px; }
 .mir-modwindow .m2deadrow { flex: 0 0 auto; min-height: 62px; display: grid;
   grid-template-columns: minmax(0,1fr) 44px; grid-template-rows: auto auto;
-  column-gap: 7px; padding: 7px; box-sizing: border-box; border-radius: 8px;
+  column-gap: 7px; padding: 7px; box-sizing: border-box; border-radius: var(--r-md);
   border: var(--glass-border) solid var(--glass-hairline); background: rgba(255,255,255,.04); }
-.mir-modwindow .m2deadroute { min-width: 0; color: var(--fg); font: 650 9px var(--font-sans);
-  letter-spacing: .05em; line-height: 1.35; overflow-wrap: anywhere; }
+.mir-modwindow .m2deadroute { min-width: 0; color: var(--fg); font: 650 var(--fs-tiny) var(--font-sans);
+  letter-spacing: var(--label-tracking, .05em); line-height: 1.35; overflow-wrap: anywhere; }
 .mir-modwindow .m2deadtarget { color: var(--acc2); }
 .mir-modwindow .m2deadmeta { min-width: 0; color: var(--dim); font: 600 7px var(--font-sans);
-  letter-spacing: .09em; line-height: 1.35; overflow-wrap: anywhere; }
+  letter-spacing: var(--label-tracking, .09em); line-height: 1.35; overflow-wrap: anywhere; }
 .mir-modwindow .m2deadwhy { color: var(--bad); }
 .mir-modwindow .m2deadremove { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
 /* The former free-placement grips stay absent: the lane chip is now the one
    placement control and moves both bars together. */
 .mir-modwindow .m2bargrip { flex: 0 0 auto; min-width: 44px; width: 44px; height: 44px; min-height: 44px;
-  padding: 0; border: 0; border-radius: 8px; background: transparent;
+  padding: 0; border: 0; border-radius: var(--r-md); background: transparent;
   color: var(--acc2); touch-action: none;
   display: none; align-items: center; justify-content: center; }
 .mir-modwindow .m2bargrip svg { width: 20px; height: 20px; display: block; pointer-events: none; }
-.mir-modwindow .m2bargrip:active { color: var(--fg); background: var(--glass-press); }
+.mir-modwindow .m2bargrip:active { color: var(--fg); background: var(--state-press, var(--glass-press)); }
 /* a bar off its dock says so quietly — the accent rim is the only ink it gains */
 .mir-modwindow .m2barfloat { border-color: var(--acc2); }
 /* The timing bar's legacy grip sits out of the flow. */
@@ -554,7 +557,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   border-right: var(--glass-border) solid var(--glass-hairline); }
 /* The rail head. */
 .mir-modwindow .m2railhead { flex: 0 0 auto; padding: 3px 9px 2px; color: var(--acc2);
-  font: 700 10.5px var(--font-sans); letter-spacing: 0.13em; }
+  font: 700 10.5px var(--font-sans); letter-spacing: var(--label-tracking, 0.13em); }
 .mir-modwindow .m2slots { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden;
   -webkit-overflow-scrolling: touch; padding: 0 5px 4px; scrollbar-width: thin; }
 /* The slot list's scrollbar is drawn, not faded. */
@@ -571,13 +574,13 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2macadd, .mir-modwindow .m2devadd { flex: 1 1 0; min-width: 44px; height: 44px; min-height: 44px;
   padding: 0; border-radius: 7px; border: var(--glass-border) solid var(--glass-hairline);
   background: transparent; color: var(--acc2);
-  font: 700 8px var(--font-sans); letter-spacing: .08em; line-height: 1; }
+  font: 700 8px var(--font-sans); letter-spacing: var(--label-tracking, .08em); line-height: 1; }
 .mir-modwindow .m2macadd:active:not(:disabled), .mir-modwindow .m2devadd:active:not(:disabled) { background: var(--acc2-soft); }
-.mir-modwindow .m2macadd:disabled, .mir-modwindow .m2devadd:disabled { opacity: 0.30; }
+.mir-modwindow .m2macadd:disabled, .mir-modwindow .m2devadd:disabled { opacity: var(--state-disabled, 0.30); }
 /* Every slot is one fixed controller row.  Its three permanent zones are the
    route grip, a future-ready 44 px number seat, and the information face. */
 .mir-modwindow .m2slot { position: relative; height: 64px; box-sizing: border-box;
-  border: var(--glass-border) solid var(--glass-hairline); border-radius: 8px;
+  border: var(--glass-border) solid var(--glass-hairline); border-radius: var(--r-md);
   padding: 0; margin-bottom: 2px; background: rgba(255,255,255,0.035); overflow: hidden; }
 .mir-modwindow .m2slot.m2armed { background: var(--acc2-soft); }
 /* A slot whose macro is gone. */
@@ -589,9 +592,9 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2grip { flex: 0 0 44px; width: 44px; min-width: 44px; height: 44px; min-height: 44px;
   align-self: center; padding: 0; border: 0;
   background: transparent; color: var(--acc2); touch-action: none; display: flex;
-  align-items: center; justify-content: center; border-radius: 8px; }
+  align-items: center; justify-content: center; border-radius: var(--r-md); }
 .mir-modwindow .m2grip svg { width: 22px; height: 22px; display: block; pointer-events: none; }
-.mir-modwindow .m2grip:active { color: var(--fg); background: var(--glass-press); }
+.mir-modwindow .m2grip:active { color: var(--fg); background: var(--state-press, var(--glass-press)); }
 .mir-modwindow .m2numseat { position: relative; display: flex; align-items: center; justify-content: center;
   width: 44px; height: 100%; padding: 0; border: 0; border-radius: 7px;
   background: transparent; touch-action: none; cursor: ns-resize; }
@@ -601,7 +604,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   display: flex; align-items: center; justify-content: center;
   width: 24px; height: 24px; border-radius: 50%;
   border: 1.2px solid rgba(255,255,255,0.55); color: rgba(255,255,255,0.9);
-  font: 600 10px var(--font-num); line-height: 1; }
+  font: 600 var(--fs-small) var(--font-num); line-height: 1; }
 .mir-modwindow .m2depthring { position: absolute; z-index: 2; left: 5px; top: 50%;
   width: 34px; height: 34px; margin-top: -17px; overflow: visible;
   pointer-events: none; transform: rotate(-90deg); }
@@ -618,9 +621,9 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   display: grid; grid-template-columns: minmax(0, 1fr) 32px; align-items: center; gap: 4px; }
 .mir-modwindow .m2vname { min-width: 0; overflow: hidden;
   white-space: nowrap; text-overflow: ellipsis; text-align: left;
-  color: rgba(255,255,255,0.94); font: 600 9.5px var(--font-sans); letter-spacing: 0.035em; }
+  color: rgba(255,255,255,0.94); font: 600 9.5px var(--font-sans); letter-spacing: var(--label-tracking, 0.035em); }
 .mir-modwindow .m2vnum { color: rgba(255,255,255,0.88); text-align: right;
-  font: 650 9px var(--font-num); font-variant-numeric: tabular-nums; line-height: 1; }
+  font: 650 var(--fs-tiny) var(--font-num); font-variant-numeric: tabular-nums; line-height: 1; }
 .mir-modwindow .m2signal { position: absolute; left: 6px; right: 6px; top: 29px; height: 12px;
   pointer-events: none; overflow: visible; }
 .mir-modwindow .m2signal::before { content: ""; position: absolute; left: 0; right: 0; top: 5px;
@@ -635,7 +638,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2val.m2driven .m2spark { opacity: 0.78; }
 .mir-modwindow .m2vmeta { position: absolute; left: 6px; right: 6px; bottom: 4px; height: 12px;
   display: flex; align-items: center; gap: 4px; pointer-events: none;
-  font: 700 7px var(--font-sans); letter-spacing: 0.08em; }
+  font: 700 7px var(--font-sans); letter-spacing: var(--label-tracking, 0.08em); }
 .mir-modwindow .m2drive { color: rgba(255,255,255,0.32); }
 .mir-modwindow .m2val.m2driven .m2drive { color: var(--acc2); }
 .mir-modwindow .m2route { margin-left: auto; color: rgba(255,255,255,0.28); white-space: nowrap; }
@@ -645,25 +648,25 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2val:active { background: rgba(255,255,255,0.055); }
 .mir-modwindow .m2slotx { width: 44px; min-width: 44px; height: 44px; min-height: 44px;
   align-self: center; display: flex; align-items: center; justify-content: center;
-  padding: 0; border: 0; border-radius: 8px; background: transparent; color: rgba(255,255,255,.42); }
+  padding: 0; border: 0; border-radius: var(--r-md); background: transparent; color: rgba(255,255,255,.42); }
 .mir-modwindow .m2slotx svg { width: 13px; height: 13px; pointer-events: none; }
-.mir-modwindow .m2slotx:active { background: var(--glass-press); color: var(--acc2); }
+.mir-modwindow .m2slotx:active { background: var(--state-press, var(--glass-press)); color: var(--acc2); }
 /* Rename is an in-place overlay over the information face.  It leaves the
    route grip exposed and never changes this or any neighbouring row's height. */
 .mir-modwindow .m2namerow { position: absolute; z-index: 3; left: 48px; right: 48px; top: 9px;
   height: 44px; display: flex; align-items: stretch; gap: 3px; margin: 0; padding: 0; }
 .mir-modwindow .m2namerow[hidden] { display: none; }
 .mir-modwindow .m2name { display: block; flex: 1 1 auto; min-width: 0; height: 44px; box-sizing: border-box;
-  border: var(--glass-border) solid var(--glass-hairline); border-radius: 5px;
+  border: var(--glass-border) solid var(--glass-hairline); border-radius: var(--r-sm);
   background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.94); padding: 2px 4px;
-  font: 500 9.5px var(--font-sans); letter-spacing: 0.04em;
+  font: 500 9.5px var(--font-sans); letter-spacing: var(--label-tracking, 0.04em);
   text-align: center; -webkit-appearance: none; appearance: none; }
 .mir-modwindow .m2name:focus { outline: 0; border-color: var(--acc); background: rgba(255,255,255,0.11); }
 .mir-modwindow .m2mclr { flex: 0 0 auto; width: 44px; min-width: 44px; height: 44px; min-height: 44px;
-  padding: 0; border-radius: 5px; border: var(--glass-border) solid var(--glass-hairline);
-  background: transparent; color: rgba(255,255,255,0.62); font-size: 13px; line-height: 1; }
-.mir-modwindow .m2mclr:active:not(:disabled) { background: var(--glass-press); color: #fff; }
-.mir-modwindow .m2mclr:disabled { opacity: 0.30; }
+  padding: 0; border-radius: var(--r-sm); border: var(--glass-border) solid var(--glass-hairline);
+  background: transparent; color: rgba(255,255,255,0.62); font-size: var(--fs-lead); line-height: 1; }
+.mir-modwindow .m2mclr:active:not(:disabled) { background: var(--state-press, var(--glass-press)); color: #fff; }
+.mir-modwindow .m2mclr:disabled { opacity: var(--state-disabled, 0.30); }
 /* The trigger uses the same information anatomy; its signal line is the live
    hit level and the face remains the existing press/hold target. */
 .mir-modwindow .m2pad { padding: 0; color: var(--acc2); }
@@ -687,7 +690,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   padding: 6px 7px 8px; container-type: inline-size; }
 .mir-modwindow .m2dev { flex: 0 0 auto; width: var(--m2-device-w); height: var(--m2-device-h);
   box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column;
-  position: relative; border-radius: 16px; }
+  position: relative; border-radius: var(--surface-radius, 16px); }
 .mir-modwindow .m2dev.m2cmp { width: 320px; height: 368px; }
 /* A device card without glass. */
 .mir-modwindow .m2dev:not(.glass) { border: var(--glass-border) solid var(--glass-hairline);
@@ -696,7 +699,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center;
   gap: 4px; padding: 2px 5px; height: 48px; min-height: 48px; }
 .mir-modwindow .m2headl { min-width: 0; display: flex; align-items: center; gap: 3px; overflow: hidden; }
-.mir-modwindow .m2kind { font: 700 13px var(--font-sans); letter-spacing: 0.09em;
+.mir-modwindow .m2kind { font: 700 var(--fs-lead) var(--font-sans); letter-spacing: var(--label-tracking, 0.09em);
   color: var(--acc); }
 .mir-modwindow .m2dev.env .m2kind { color: hsl(calc(var(--hue-acc) - 52) calc(var(--sat-acc) + 3%) 66%); }
 .mir-modwindow .m2bank { display: flex; align-items: center; justify-content: center; gap: 1px;
@@ -705,7 +708,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2bank span { font: 700 12px var(--font-num); color: rgba(255,255,255,0.30); }
 .mir-modwindow .m2bank .m2bslash { color: rgba(255,255,255,0.30); font-weight: 400; }
 .mir-modwindow .m2bank span.on { color: var(--acc); }
-.mir-modwindow .m2bank:active { background: var(--glass-press); }
+.mir-modwindow .m2bank:active { background: var(--state-press, var(--glass-press)); }
 .mir-modwindow .m2spacer { flex: 1 1 auto; }
 /* The device head. */
 /* The two zones never wrap: utilities may disappear, but the right anchor is
@@ -715,7 +718,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 /* An expanded device's head does not shrink. */
 .mir-modwindow .m2dev:not(.m2min) .m2head { flex-shrink: 0; }
 .mir-modwindow .m2modelabel { flex: 0 0 auto; color: rgba(255,255,255,0.38);
-  font: 700 7px var(--font-sans); letter-spacing: 0.08em; }
+  font: 700 7px var(--font-sans); letter-spacing: var(--label-tracking, 0.08em); }
 /* Compact spends header room on identity and status, not clipboard/reorder. */
 .mir-modwindow .m2dev.m2cmp .m2ab, .mir-modwindow .m2dev.m2cmp .m2move { display: none; }
 /* The fold button. */
@@ -723,22 +726,22 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   padding: 0 4px; border: 0; border-radius: 6px; background: transparent; position: relative; }
 .mir-modwindow .m2fold::before { content: ""; position: absolute; left: 0; right: 0; top: 50%;
   height: 44px; margin-top: -22px; }
-.mir-modwindow .m2fold:active { background: var(--glass-press); }
+.mir-modwindow .m2fold:active { background: var(--state-press, var(--glass-press)); }
 .mir-modwindow .m2chev { flex: 0 0 auto; width: 0; height: 0; color: rgba(255,255,255,0.55);
   border-left: 5px solid currentColor; border-top: 4px solid transparent;
   border-bottom: 4px solid transparent; transform: rotate(90deg);
-  transition: transform var(--m2-motion-structural, 120ms) var(--m2-motion-ease, ease); }
+  transition: transform var(--m2-motion-structural, var(--t-fast)) var(--m2-motion-ease, ease); }
 .mir-modwindow .m2dev.m2min .m2chev { transform: rotate(0deg); }
 /* The A/B clipboard. */
 /* The A/B button, 28 px wide. */
 .mir-modwindow .m2ab { flex: 0 0 auto; width: 28px; height: 40px; min-height: 40px; padding: 0;
   border-radius: 6px; border: var(--glass-border) solid var(--glass-hairline);
   background: transparent; color: rgba(255,255,255,0.60); position: relative;
-  font: 700 7px var(--font-sans); letter-spacing: 0.04em; }
+  font: 700 7px var(--font-sans); letter-spacing: var(--label-tracking, 0.04em); }
 .mir-modwindow .m2ab::before { content: ""; position: absolute; left: -2px; right: -2px; top: 50%;
   height: 44px; margin-top: -22px; }
-.mir-modwindow .m2ab:active { background: var(--glass-press); color: var(--acc); }
-.mir-modwindow .m2ab[disabled] { opacity: 0.32; }
+.mir-modwindow .m2ab:active { background: var(--state-press, var(--glass-press)); color: var(--acc); }
+.mir-modwindow .m2ab[disabled] { opacity: var(--state-disabled, 0.32); }
 /* THE REORDER ARROWS.  Presentation order and nothing else — mod.js's
    moveSource carries the proof that a move cannot reach a routing. */
 .mir-modwindow .m2move { flex: 0 0 auto; width: 34px; height: 40px; min-height: 40px; padding: 0; border: 0;
@@ -746,8 +749,8 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   font-size: 14px; line-height: 1; position: relative; }
 .mir-modwindow .m2move::before { content: ""; position: absolute; left: -2px; right: -2px; top: 50%;
   height: 44px; margin-top: -22px; }
-.mir-modwindow .m2move:active { background: var(--glass-press); color: #fff; }
-.mir-modwindow .m2move[disabled] { opacity: 0.24; }
+.mir-modwindow .m2move:active { background: var(--state-press, var(--glass-press)); color: #fff; }
+.mir-modwindow .m2move[disabled] { opacity: var(--state-disabled, 0.24); }
 /* The folded strip. */
 /* A folded strip is as tall as the device. */
 /* A folded device is 64 px wide and the view's height. */
@@ -776,7 +779,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   border: 0; background: transparent; position: relative;
   touch-action: none; -webkit-tap-highlight-color: transparent;
   font: 700 21px var(--font-num); color: var(--acc); line-height: 1; }
-.mir-modwindow .m2dev.m2min .m2minnum:active { background: var(--glass-press); border-radius: 5px; }
+.mir-modwindow .m2dev.m2min .m2minnum:active { background: var(--state-press, var(--glass-press)); border-radius: var(--r-sm); }
 .mir-modwindow .m2dev.env.m2min .m2minnum { color: hsl(calc(var(--hue-acc) - 52) calc(var(--sat-acc) + 3%) 66%); }
 .mir-modwindow .m2dev.m2min .m2minnum.m2nomac { color: rgba(255,255,255,0.34); }
 /* THE BAY: the tall meter and the name lying on its side, which is the shape
@@ -787,7 +790,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2minname { display: none; }
 .mir-modwindow .m2dev.m2min .m2minname { display: block; flex: 0 0 auto; max-height: 100%;
   writing-mode: vertical-rl; transform: rotate(180deg);
-  font: 600 9px var(--font-sans); letter-spacing: 0.09em;
+  font: 600 var(--fs-tiny) var(--font-sans); letter-spacing: var(--label-tracking, 0.09em);
   color: rgba(255,255,255,0.62); overflow: hidden; white-space: nowrap;
   text-overflow: ellipsis; }
 .mir-modwindow .m2meter { display: none; }
@@ -805,9 +808,9 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   justify-content: center; margin: 0 auto; }
 .mir-modwindow .m2trig { min-width: 48px; height: 44px; min-height: 44px; border-radius: 6px; padding: 0 8px;
   border: var(--glass-border) solid var(--glass-hairline); background: transparent;
-  color: rgba(255,255,255,0.85); font: 600 10px var(--font-sans);
-  letter-spacing: 0.09em; }
-.mir-modwindow .m2trig:active { background: var(--glass-press); color: #fff; }
+  color: rgba(255,255,255,0.85); font: 600 var(--fs-small) var(--font-sans);
+  letter-spacing: var(--label-tracking, 0.09em); }
+.mir-modwindow .m2trig:active { background: var(--state-press, var(--glass-press)); color: #fff; }
 /* TRIG lives in the ENV's switch column, 44 px wide. */
 .mir-modwindow .m2dev.env .m2sw .m2trig { min-width: 0; width: 100%; padding: 0 2px; }
 .mir-modwindow .m2pow { width: 40px; height: 40px; min-height: 40px; border-radius: 50%; padding: 0;
@@ -823,11 +826,11 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   border-radius: 6px; }
 .mir-modwindow .m2x::before { content: ""; position: absolute; left: 50%; top: 50%; width: 44px; height: 44px;
   margin: -22px 0 0 -22px; }
-.mir-modwindow .m2x:active { color: #fff; background: var(--glass-press); }
+.mir-modwindow .m2x:active { color: #fff; background: var(--state-press, var(--glass-press)); }
 
 .mir-modwindow .m2body { display: flex; align-items: stretch; gap: 5px; padding: 0 6px 4px; }
 .mir-modwindow .m2col { flex: 0 0 auto; width: 92px; display: flex; flex-direction: column; gap: 3px; }
-.mir-modwindow .m2colhead { font: 600 8.5px var(--font-sans); letter-spacing: 0.12em;
+.mir-modwindow .m2colhead { font: 600 8.5px var(--font-sans); letter-spacing: var(--label-tracking, var(--tr-wide));
   color: rgba(255,255,255,0.48); text-align: center; }
 /* The preset stack, two columns of 44 px. */
 .mir-modwindow .m2presets { display: grid; grid-template-columns: 44px 44px; gap: 2px; justify-content: center; }
@@ -842,11 +845,11 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2preset:active { background: transparent; }
 /* The flip button. */
 .mir-modwindow .m2sw .m2flipb { display: flex; align-items: center; justify-content: center;
-  min-height: 44px; padding: 0; border-radius: 5px;
+  min-height: 44px; padding: 0; border-radius: var(--r-sm);
   border: var(--glass-border) solid var(--glass-hairline); background: transparent;
   font: 700 8.5px var(--font-sans);
-  letter-spacing: 0.08em; color: rgba(255,255,255,0.78); }
-.mir-modwindow .m2sw .m2flipb:active { background: var(--glass-press); color: var(--acc); }
+  letter-spacing: var(--label-tracking, 0.08em); color: rgba(255,255,255,0.78); }
+.mir-modwindow .m2sw .m2flipb:active { background: var(--state-press, var(--glass-press)); color: var(--acc); }
 /* The device drag handle. */
 .mir-modwindow .m2grab { flex: 0 0 auto; width: 16px; height: 40px; min-height: 40px; padding: 0;
   border: 0; border-radius: 6px; background: transparent; position: relative;
@@ -863,15 +866,15 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2zoom { width: 100%; height: 44px; min-height: 44px; padding: 0; border: 0; border-radius: 6px;
   background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.82); font-size: 15px;
   line-height: 1; }
-.mir-modwindow .m2zoom:active { background: var(--glass-press); }
-.mir-modwindow .m2zoom.m2fit { font: 600 10px var(--font-sans); letter-spacing: 0.1em; }
+.mir-modwindow .m2zoom:active { background: var(--state-press, var(--glass-press)); }
+.mir-modwindow .m2zoom.m2fit { font: 600 var(--fs-small) var(--font-sans); letter-spacing: var(--label-tracking, 0.1em); }
 .mir-modwindow .m2mac { width: 100%; height: 44px; min-height: 44px; margin-top: auto; border-radius: 6px;
   border: 1.3px solid rgba(255,255,255,0.5); background: transparent; color: rgba(255,255,255,0.92);
   font: 600 15px var(--font-num); padding: 0; }
 .mir-modwindow .m2mac.on { border-color: var(--acc); color: var(--acc); }
 /* A refused macro assignment. */
 .mir-modwindow .m2mac.m2bad { border-color: var(--bad); color: var(--bad); }
-.mir-modwindow .m2maccap { font: 600 8px var(--font-sans); letter-spacing: 0.1em;
+.mir-modwindow .m2maccap { font: 600 8px var(--font-sans); letter-spacing: var(--label-tracking, 0.1em);
   color: rgba(255,255,255,0.44); text-align: center; margin-top: 1px; }
 
 /* the editor */
@@ -902,20 +905,20 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2note { position: absolute; left: 7px; right: 7px; bottom: 0; height: 14px;
   display: flex; align-items: center; pointer-events: none; overflow: hidden;
   white-space: nowrap; text-overflow: ellipsis;
-  font: 500 9px var(--font-sans); color: rgba(255,255,255,0.5); }
+  font: 500 var(--fs-tiny) var(--font-sans); color: rgba(255,255,255,0.5); }
 
 /* the right column: the 3-way switch and the checkboxes */
 .mir-modwindow .m2rt { flex: 0 0 auto; width: 104px; display: flex; gap: 4px; }
 .mir-modwindow .m2sw { flex: 0 0 auto; width: 44px; display: flex; flex-direction: column; gap: 2px; }
-.mir-modwindow .m2swb { min-height: 44px; border: 0; border-radius: 5px; background: rgba(255,255,255,0.07);
+.mir-modwindow .m2swb { min-height: 44px; border: 0; border-radius: var(--r-sm); background: rgba(255,255,255,0.07);
   color: rgba(255,255,255,0.62); font: 600 8.5px var(--font-sans);
-  letter-spacing: 0.04em; padding: 0; }
+  letter-spacing: var(--label-tracking, 0.04em); padding: 0; }
 .mir-modwindow .m2swb.on { background: hsl(var(--hue-acc) var(--sat-acc) 62% / 0.32); color: #fff; }
 .mir-modwindow .m2chks { flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .mir-modwindow .m2chk { display: flex; align-items: center; gap: 5px; min-height: 44px; border: 0; padding: 0 3px;
-  border-radius: 5px; background: transparent; color: rgba(255,255,255,0.62);
-  font: 500 9px var(--font-sans); letter-spacing: 0.04em; text-align: left; }
-.mir-modwindow .m2chk:active { background: var(--glass-press); }
+  border-radius: var(--r-sm); background: transparent; color: rgba(255,255,255,0.62);
+  font: 500 var(--fs-tiny) var(--font-sans); letter-spacing: var(--label-tracking, 0.04em); text-align: left; }
+.mir-modwindow .m2chk:active { background: var(--state-press, var(--glass-press)); }
 /* A status lamp. */
 .mir-modwindow .m2dot { flex: 0 0 auto; width: 9px; height: 9px; border-radius: 50%;
   border: 0; background: var(--m2-recess);
@@ -934,13 +937,13 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2k[data-knob="smooth"] .m2kd,
 .mir-modwindow .m2k[data-knob="steps"] .m2kd { background: transparent; }
 .mir-modwindow .m2kd.drag { border-color: var(--acc); }
-.mir-modwindow .m2kcap { font: 600 8.5px var(--font-sans); letter-spacing: 0.08em;
+.mir-modwindow .m2kcap { font: 600 8.5px var(--font-sans); letter-spacing: var(--label-tracking, 0.08em);
   color: rgba(255,255,255,0.6); white-space: nowrap; }
 .mir-modwindow .m2kval { font: 600 9.5px var(--font-num); color: var(--acc);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 /* The MIN / MAX labels on every arc. */
 .mir-modwindow .m2kends { display: flex; justify-content: space-between; width: 100%; padding: 0 1px;
-  font: 500 7.5px var(--font-sans); letter-spacing: 0.04em;
+  font: 500 7.5px var(--font-sans); letter-spacing: var(--label-tracking, 0.04em);
   color: rgba(255,255,255,0.38); }
 
 /* The (+) button, a blue circle. */
@@ -952,16 +955,16 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2add:active { background: var(--acc-soft); }
 /* A chooser sheet, on the app's own glass. */
 .mir-modwindow .m2pick { position: absolute; left: 50%; top: 46px; transform: translateX(-50%); z-index: 42;
-  min-width: 200px; border-radius: 12px; background: var(--m2-plate);
+  min-width: 200px; border-radius: var(--surface-radius, var(--r-lg)); background: var(--m2-plate);
   -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter);
-  border: var(--glass-border) solid var(--glass-hairline); padding: 8px;
-  box-shadow: var(--glass-shadow); display: flex; flex-direction: column; gap: 6px; }
+  border: var(--surface-edge-width, var(--glass-border)) solid var(--surface-edge, var(--glass-hairline)); padding: 8px;
+  box-shadow: var(--surface-shadow, var(--glass-shadow)); display: flex; flex-direction: column; gap: 6px; }
 .mir-modwindow .m2pick[hidden] { display: none; }
-.mir-modwindow .m2pickb { min-height: 46px; border: 0; border-radius: 8px; background: rgba(255,255,255,0.07);
-  color: #fff; font: 600 12px var(--font-sans); letter-spacing: 0.08em; }
-.mir-modwindow .m2pickb:active { background: var(--glass-press); }
+.mir-modwindow .m2pickb { min-height: 46px; border: 0; border-radius: var(--r-md); background: rgba(255,255,255,0.07);
+  color: #fff; font: 600 12px var(--font-sans); letter-spacing: var(--label-tracking, 0.08em); }
+.mir-modwindow .m2pickb:active { background: var(--state-press, var(--glass-press)); }
 /* The hint stops at the grip. */
-.mir-modwindow .m2hint { flex: 0 0 auto; font: 400 9px var(--font-sans);
+.mir-modwindow .m2hint { flex: 0 0 auto; font: 400 var(--fs-tiny) var(--font-sans);
   padding: 0 calc(var(--grip-hit, 44px) + 8px) 6px 8px;
   /* The row takes no presses. */
   pointer-events: none;
@@ -971,7 +974,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   min-width: 30px; height: 30px; padding: 0 10px; border-radius: 15px; background: var(--acc);
   color: var(--acc-ink); font: 700 11px var(--font-sans);
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
+  box-shadow: var(--surface-shadow-float, 0 4px 16px rgba(0,0,0,0.5)); }
 [data-m2target].m2droppable { outline: 1.5px dashed hsl(var(--hue-acc) calc(var(--sat-acc) + 8%) 66% / 0.6);
   outline-offset: 2px; }
 [data-m2target].m2drop { outline: 2px solid var(--acc); outline-offset: 2px;
@@ -986,7 +989,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .m2ringdot { fill: var(--acc2); stroke: var(--fg); stroke-width: .7; }
 .m2ringn { position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: flex;
   align-items: center; justify-content: center; pointer-events: none;
-  font: 700 9px var(--font-num); color: var(--acc); }
+  font: 700 var(--fs-tiny) var(--font-num); color: var(--acc); }
 .m2ring.m2negative .m2ringarc { stroke-dasharray: 2.1 1.7; }
 .m2ring.m2zero .m2ringarc { opacity: .36; }
 .m2ring.drag .m2ringarc { stroke: var(--fg); stroke-width: 4; }
@@ -1006,12 +1009,12 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 /* The clear button on a modulated control. */
 .m2clr { position: absolute; left: 100%; top: 50%; margin-left: 3px;
   width: 26px; height: 20px; min-height: 20px; padding: 0; z-index: 6;
-  border: 0; border-radius: 5px; background: var(--m2-recess-deep);
+  border: 0; border-radius: var(--r-sm); background: var(--m2-recess-deep);
   color: rgba(255,255,255,0.66); font-size: 11px; line-height: 1;
   display: flex; align-items: center; justify-content: center; }
 .m2clr::before { content: ""; position: absolute; left: 50%; top: 50%;
-  width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 8px; }
-.m2clr:active { color: #fff; background: var(--glass-press); }
+  width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: var(--r-md); }
+.m2clr:active { color: #fff; background: var(--state-press, var(--glass-press)); }
 
 /* The excursion, drawn on the control itself. */
 .m2span { position: absolute; pointer-events: none; z-index: 3; }
@@ -1049,7 +1052,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   border: 0; border-radius: var(--r-sm); background: transparent;
   color: var(--dim); font-size: var(--fs-lead); line-height: 1; }
 .modwin.mir-modwindow .modxport.on { color: var(--acc); text-shadow: 0 0 8px var(--acc); }
-.modwin.mir-modwindow .modxport:active { background: var(--glass-press); }
+.modwin.mir-modwindow .modxport:active { background: var(--state-press, var(--glass-press)); }
 /* The global tempo field. */
 /* The tempo field looks like a field at rest, always. */
 /* The tempo readout. */
@@ -1067,7 +1070,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .modwin.mir-modwindow .modtempo b { font: 700 calc(12px * var(--ui-scale)) var(--font-num);
   line-height: 1; font-variant-numeric: tabular-nums; }
 .modwin.mir-modwindow .modtempo span { font: 600 calc(7.5px * var(--ui-scale)) var(--font-sans);
-  letter-spacing: 0.10em; line-height: 1; opacity: 0.7; }
+  letter-spacing: var(--label-tracking, 0.10em); line-height: 1; opacity: 0.7; }
 /* What the row gives up first, in order. */
 .modwin.mir-modwindow .modtempo.tight .modhz { display: none; }
 .modwin.mir-modwindow .modtempo.tighter span { display: none; }
@@ -1077,7 +1080,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   line-height: 1;
   font-style: normal; font-variant-numeric: tabular-nums; opacity: 0.55; }
 .modwin.mir-modwindow .modtempo.on { color: var(--acc); border-color: hsl(var(--hue-acc) var(--sat-acc) 62% / 0.55); }
-.modwin.mir-modwindow .modtempo:active { background: var(--glass-press); color: var(--fg); }
+.modwin.mir-modwindow .modtempo:active { background: var(--state-press, var(--glass-press)); color: var(--fg); }
 /* the typing box — it stands exactly where the field stood, so the swap does
    not move the bar's other children by a pixel */
 /* The typing box stands where the field stands. */
@@ -1099,18 +1102,18 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   margin: calc(-12px * var(--ui-scale)) 0; padding: 0; display: flex; align-items: center;
   justify-content: center; border: 0; border-radius: var(--r-sm); background: transparent;
   color: var(--dim); font: 700 calc(8.5px * var(--ui-scale)) var(--font-sans);
-  letter-spacing: 0.12em; line-height: 1; }
-.modwin.mir-modwindow .modtap:active { background: var(--glass-press); color: var(--acc); }
+  letter-spacing: var(--label-tracking, var(--tr-wide)); line-height: 1; }
+.modwin.mir-modwindow .modtap:active { background: var(--state-press, var(--glass-press)); color: var(--acc); }
 /* The sync-mode switch. */
 .modwin.mir-modwindow .modsync { flex: 0 0 auto; width: var(--touch); height: var(--touch);
   min-height: var(--touch);
   margin: calc(-12px * var(--ui-scale)) 0; padding: 0; display: flex; align-items: center;
   justify-content: center; border: 0; border-radius: var(--r-sm); background: transparent;
   color: var(--dim); font: 700 calc(8.5px * var(--ui-scale)) var(--font-sans);
-  letter-spacing: 0.10em; line-height: 1; }
+  letter-spacing: var(--label-tracking, 0.10em); line-height: 1; }
 .modwin.mir-modwindow .modsync.on { color: var(--acc); }
 .modwin.mir-modwindow .modsync.pend { color: var(--acc); opacity: 0.55; }
-.modwin.mir-modwindow .modsync:active { background: var(--glass-press); color: var(--acc); }
+.modwin.mir-modwindow .modsync:active { background: var(--state-press, var(--glass-press)); color: var(--acc); }
 
 /* The cadence chip. */
 .modwin.mir-modwindow .modcad { flex: 0 0 auto; min-width: var(--touch); height: var(--touch);
@@ -1118,9 +1121,9 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   display: flex; align-items: center; justify-content: center; white-space: nowrap;
   border: var(--glass-border) solid var(--glass-hairline); border-radius: var(--r-sm);
   background: transparent; color: var(--dim);
-  font: 700 calc(8.5px * var(--ui-scale)) var(--font-sans); letter-spacing: 0.10em; line-height: 1; }
+  font: 700 calc(8.5px * var(--ui-scale)) var(--font-sans); letter-spacing: var(--label-tracking, 0.10em); line-height: 1; }
 .modwin.mir-modwindow .modcad.on { color: var(--acc); border-color: hsl(var(--hue-acc) var(--sat-acc) 62% / 0.55); }
-.modwin.mir-modwindow .modcad:active { background: var(--glass-press); color: var(--acc); }
+.modwin.mir-modwindow .modcad:active { background: var(--state-press, var(--glass-press)); color: var(--acc); }
 .modwin.mir-modwindow .modcad[hidden] { display: none; }
 /* The frost radii for this window. */
 #modwin.mir-modwindow.kwin-frost { --fr-r-card: calc(16px * var(--ui-scale)); --fr-r-chip: calc(16px * var(--ui-scale)); }
@@ -1182,8 +1185,8 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2dev.env .m2playdot { fill: hsl(calc(var(--hue-acc) - 52) calc(var(--sat-acc) + 3%) 66%); }
 /* The preset list sheet. */
 .mir-modwindow .m2ppick { position: absolute; left: 8px; width: 340px; max-width: calc(100% - 16px); z-index: 42;
-  box-sizing: border-box; border-radius: 12px; padding: 8px;
-  border: var(--glass-border) solid var(--glass-hairline);
+  box-sizing: border-box; border-radius: var(--surface-radius, var(--r-lg)); padding: 8px;
+  border: var(--surface-edge-width, var(--glass-border)) solid var(--surface-edge, var(--glass-hairline));
   display: flex; flex-direction: column; gap: 3px; max-height: 62%; overflow-y: auto; }
 .mir-modwindow .m2ppick[hidden] { display: none; }
 /* the preset chip under CLASSIC sits inside a glass window already: one
@@ -1196,17 +1199,17 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   min-height: 44px; padding: 0 10px; text-align: left; }
 .mir-modwindow .m2prow.on { color: var(--acc); }
 .mir-modwindow .m2prow.m2stale { opacity: 0.5; }
-.mir-modwindow .m2prowtag { font: 600 7.5px var(--font-sans); letter-spacing: 0.12em; opacity: 0.55; }
+.mir-modwindow .m2prowtag { font: 600 7.5px var(--font-sans); letter-spacing: var(--label-tracking, var(--tr-wide)); opacity: 0.55; }
 /* A preset row. */
 .mir-modwindow .m2prowwrap { display: flex; align-items: stretch; gap: 4px; }
 /* the folder header: a 44 px control that opens and shuts its own folder */
 .mir-modwindow .m2pgrp { display: flex; flex-direction: column; gap: 3px; }
 .mir-modwindow .m2pfold { display: flex; align-items: center; gap: 6px; min-height: 44px;
-  padding: 0 8px; border: 0; border-radius: 8px; background: transparent;
-  color: var(--acc2); font: 700 9.5px var(--font-sans); letter-spacing: 0.13em;
+  padding: 0 8px; border: 0; border-radius: var(--r-md); background: transparent;
+  color: var(--acc2); font: 700 9.5px var(--font-sans); letter-spacing: var(--label-tracking, 0.13em);
   text-align: left; }
 .mir-modwindow .m2pfold.on { color: var(--acc); }
-.mir-modwindow .m2pfold:active { background: var(--glass-press); }
+.mir-modwindow .m2pfold:active { background: var(--state-press, var(--glass-press)); }
 .mir-modwindow .m2pfoldname { flex: 1 1 auto; min-width: 0; overflow: hidden;
   white-space: nowrap; text-overflow: ellipsis; }
 .mir-modwindow .m2pcaret { flex: 0 0 auto; display: flex; align-items: center; }
@@ -1215,9 +1218,9 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2pgrp .m2prowwrap { padding-left: 10px; }
 .mir-modwindow .m2prowwrap .m2prow { flex: 1 1 auto; min-width: 0; }
 .mir-modwindow .m2prowdel { flex: 0 0 44px; width: 44px; min-width: 44px; min-height: 44px; padding: 0;
-  border: 0; border-radius: 8px; background: rgba(255,255,255,0.07);
-  color: rgba(255,255,255,0.62); font: 700 9px var(--font-sans); letter-spacing: 0.06em; }
-.mir-modwindow .m2prowdel:active { background: var(--glass-press); color: #fff; }
+  border: 0; border-radius: var(--r-md); background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.62); font: 700 var(--fs-tiny) var(--font-sans); letter-spacing: var(--label-tracking, 0.06em); }
+.mir-modwindow .m2prowdel:active { background: var(--state-press, var(--glass-press)); color: #fff; }
 .mir-modwindow .m2prowdel.m2arm { width: auto; min-width: 58px; color: var(--bad);
   box-shadow: inset 0 0 0 1px var(--bad); }
 
@@ -1263,7 +1266,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 
 /* One editing-seat geometry. Semantics and typography remain on each device. */
 .mir-modwindow .m2dev .m2seat44 { width: 100%; min-width: 0; height: 44px; min-height: 44px;
-  padding: 0 2px; border: 1px solid transparent; border-radius: 5px;
+  padding: 0 2px; border: 1px solid transparent; border-radius: var(--r-sm);
   background: hsl(0 0% 100% / .035); }
 
 /* WindowKit still owns every gesture and arc value. This is presentation ink. */
@@ -1320,7 +1323,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 #modwin.mir-modwindow .modcad.on, #modwin.mir-modwindow .m2audsrc.on {
   box-shadow: inset 0 -2px 0 hsl(var(--hue-acc) var(--sat-acc) 66% / .64); }
 #modwin.mir-modwindow button:disabled, #modwin.mir-modwindow input:disabled {
-  opacity: .48; filter: saturate(.34); border-style: dashed; cursor: not-allowed; }
+  opacity: var(--state-disabled, .48); filter: saturate(.34); border-style: dashed; cursor: not-allowed; }
 /* WindowKit's global freeze still owns refusal and its known pointer fall-through.
    The hatch and explicit edge make a locked control more than a faded control. */
 #modwin.mir-modwindow .kctl.ctl-frozen {
@@ -1349,7 +1352,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
    merely seated into the rigid Full/Compact/Minimized chassis. */
 .mir-modwindow .m2dev.lfo .m2lfowave { flex: 1 1 auto; min-width: 34px; max-width: 70px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center;
-  color: var(--acc2); font: 700 7.5px var(--font-sans); letter-spacing: .08em; }
+  color: var(--acc2); font: 700 7.5px var(--font-sans); letter-spacing: var(--label-tracking, .08em); }
 /* Full: graph, compact shape/output bank, secondary switch row, then knobs. */
 .mir-modwindow .m2dev.lfo:not(.m2cmp):not(.m2min) .m2body {
   flex: 0 0 216px; height: 216px; min-height: 216px; box-sizing: border-box;
@@ -1384,10 +1387,10 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   border-left: 1px solid hsl(0 0% 100% / .10); }
 .mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcmd { position: relative; min-width: 0; width: 100%;
   height: 44px; min-height: 44px; padding: 0 3px; overflow: hidden;
-  border: 1px solid transparent; border-radius: 5px;
+  border: 1px solid transparent; border-radius: var(--r-sm);
   background: hsl(0 0% 100% / .035); color: hsl(0 0% 100% / .62);
-  font: 700 7px var(--font-sans); letter-spacing: .035em; }
-.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcmd:active { background: var(--glass-press); color: var(--fg); }
+  font: 700 7px var(--font-sans); letter-spacing: var(--label-tracking, .035em); }
+.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcmd:active { background: var(--state-press, var(--glass-press)); color: var(--fg); }
 .mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcmd.on {
   color: var(--fg); border-color: hsl(var(--hue-acc) var(--sat-acc) 65% / .35);
   box-shadow: inset 0 -2px 0 hsl(var(--hue-acc) var(--sat-acc) 66% / .64); }
@@ -1398,14 +1401,14 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpshape path { fill: none; stroke: var(--acc);
   stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcap { color: hsl(0 0% 100% / .38);
-  font: 700 6px/8px var(--font-sans); letter-spacing: .10em; }
+  font: 700 6px/8px var(--font-sans); letter-spacing: var(--label-tracking, .10em); }
 .mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpvalue { display: block; overflow: hidden;
   white-space: nowrap; text-overflow: ellipsis; color: var(--acc);
-  font: 700 7px/9px var(--font-num); letter-spacing: .02em; }
+  font: 700 7px/9px var(--font-num); letter-spacing: var(--label-tracking, var(--tr-tight)); }
 .mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpmacro { display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 3px; }
 .mir-modwindow .m2dev.m2cmp.lfo .m2lfocmplabel { pointer-events: none; }
-.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpclip { letter-spacing: .08em; }
+.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpclip { letter-spacing: var(--label-tracking, .08em); }
 
 /* Useful graph ink over hostile backgrounds: waveform is Accent A; the live
    playhead/output is Accent B, so signal never masquerades as structure. */
@@ -1417,24 +1420,24 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2dev.lfo .m2play { stroke: var(--acc2); stroke-width: 1.25; opacity: .66; }
 .mir-modwindow .m2dev.lfo .m2playdot { fill: var(--acc2); stroke: var(--fg); stroke-width: 1; }
 .mir-modwindow .m2lfostatus { right: 5px; gap: 7px; background: hsl(var(--glass-tint) / .90);
-  font: 700 7px var(--font-num); letter-spacing: .06em; color: hsl(0 0% 100% / .58); }
+  font: 700 7px var(--font-num); letter-spacing: var(--label-tracking, .06em); color: hsl(0 0% 100% / .58); }
 .mir-modwindow .m2lfoout { color: var(--acc2); }
 
 /* Editing buttons use one restrained material and retain their real 44px hit
    targets.  The output seat is distinguished by label, not glow. */
 .mir-modwindow .m2dev.lfo .m2preset { width: 100%; height: 44px; min-height: 44px;
-  border: 1px solid transparent; border-radius: 5px; }
+  border: 1px solid transparent; border-radius: var(--r-sm); }
 .mir-modwindow .m2dev.lfo .m2preset.on { border-color: hsl(var(--hue-acc) var(--sat-acc) 66% / .55);
   background: var(--acc-soft); }
 .mir-modwindow .m2dev.lfo .m2preset .m2gl { stroke-width: 1.5; }
 .mir-modwindow .m2dev.lfo .m2macbox::before { content: "OUT"; position: absolute; z-index: 1;
   left: 0; right: 0; top: 4px; text-align: center; pointer-events: none;
-  font: 700 6.5px var(--font-sans); letter-spacing: .10em; color: hsl(0 0% 100% / .40); }
+  font: 700 6.5px var(--font-sans); letter-spacing: var(--label-tracking, .10em); color: hsl(0 0% 100% / .40); }
 .mir-modwindow .m2dev.lfo .m2mac { height: 44px; min-height: 44px; padding-top: 8px;
-  border-radius: 5px; background: hsl(0 0% 100% / .035); }
+  border-radius: var(--r-sm); background: hsl(0 0% 100% / .035); }
 .mir-modwindow .m2dev.lfo .m2swb, .mir-modwindow .m2dev.lfo .m2flipb, .mir-modwindow .m2dev.lfo .m2chk {
   justify-content: center; gap: 2px; overflow: hidden; white-space: nowrap;
-  font: 600 6.8px var(--font-sans); letter-spacing: .015em; text-align: center; }
+  font: 600 6.8px var(--font-sans); letter-spacing: var(--label-tracking, .015em); text-align: center; }
 .mir-modwindow .m2dev.lfo .m2swb.on, .mir-modwindow .m2dev.lfo .m2chk.on { border-color: hsl(var(--hue-acc) var(--sat-acc) 65% / .35); }
 .mir-modwindow .m2dev.lfo .m2dot { width: 7px; height: 7px; }
 
@@ -1461,7 +1464,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2dev.env { --m2-env-ink: hsl(calc(var(--hue-acc) - 52) calc(var(--sat-acc) + 3%) 66%); }
 .mir-modwindow .m2dev.env .m2envstage { flex: 1 1 auto; min-width: 42px; max-width: 62px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center;
-  color: hsl(0 0% 100% / .48); font: 700 7px var(--font-sans); letter-spacing: .07em; }
+  color: hsl(0 0% 100% / .48); font: 700 7px var(--font-sans); letter-spacing: var(--label-tracking, .07em); }
 .mir-modwindow .m2dev.env .m2envstage.on { color: var(--acc2); }
 .mir-modwindow .m2dev.env .m2envstage.done { color: var(--m2-env-ink); }
 /* Reorder already has the grab affordance; the right zone stays [TRIG][POWER][CLOSE]. */
@@ -1495,15 +1498,15 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2dev.env .m2colhead, .mir-modwindow .m2dev.env .m2capbox { display: none; }
 .mir-modwindow .m2dev.env .m2macbox { height: 44px; margin: 0; gap: 2px; }
 .mir-modwindow .m2dev.env .m2mac { position: relative; height: 44px; min-height: 44px; margin: 0;
-  padding-top: 9px; border-radius: 5px; background: hsl(0 0% 100% / .035); }
+  padding-top: 9px; border-radius: var(--r-sm); background: hsl(0 0% 100% / .035); }
 .mir-modwindow .m2dev.env .m2mac::before { content: "OUT"; position: absolute; left: 0; right: 0; top: 4px;
   text-align: center; pointer-events: none; font: 700 6px var(--font-sans);
-  letter-spacing: .08em; color: hsl(0 0% 100% / .38); }
+  letter-spacing: var(--label-tracking, .08em); color: hsl(0 0% 100% / .38); }
 .mir-modwindow .m2dev.env .m2mac.m2bus::before { content: "TRIG IN"; }
-.mir-modwindow .m2dev.env .m2zoom { font-size: 13px; }
+.mir-modwindow .m2dev.env .m2zoom { font-size: var(--fs-lead); }
 .mir-modwindow .m2dev.env .m2zoom.m2fit { font-size: 8px; }
 .mir-modwindow .m2dev.env .m2chk { justify-content: center; gap: 3px; overflow: hidden;
-  white-space: nowrap; font: 600 7px var(--font-sans); letter-spacing: .01em; }
+  white-space: nowrap; font: 600 7px var(--font-sans); letter-spacing: var(--label-tracking, .01em); }
 .mir-modwindow .m2dev.env .m2chk.on { border-color: hsl(var(--hue-acc) var(--sat-acc) 65% / .35); }
 .mir-modwindow .m2dev.env .m2dot { width: 7px; height: 7px; }
 
@@ -1521,7 +1524,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2dev.env .m2play { stroke: var(--acc2); stroke-width: 1.25; opacity: .7; }
 .mir-modwindow .m2dev.env .m2playdot { fill: var(--acc2); stroke: var(--fg); stroke-width: 1; }
 .mir-modwindow .m2envstatus { right: 5px; gap: 7px; background: hsl(var(--glass-tint) / .90);
-  font: 700 7px var(--font-num); letter-spacing: .05em; color: hsl(0 0% 100% / .58); }
+  font: 700 7px var(--font-num); letter-spacing: var(--label-tracking, .05em); color: hsl(0 0% 100% / .58); }
 .mir-modwindow .m2envrun.done { color: var(--m2-env-ink); }
 .mir-modwindow .m2envout { color: var(--acc2); }
 .mir-modwindow .m2envprogress { position: absolute; z-index: 2; left: 6px; right: 6px; bottom: 3px;
@@ -1540,7 +1543,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 #modwin.mir-modwindow .m2dev.env .m2k[data-knob="r"] .m2kd { width: 48px; height: 48px; }
 #modwin.mir-modwindow .m2dev.env .ckarc-val { stroke: var(--m2-env-ink); }
 #modwin.mir-modwindow .m2dev.env .m2kn::before { background: var(--m2-env-ink); }
-#modwin.mir-modwindow .m2dev.env .m2kcap { font-size: 7px; letter-spacing: .025em; }
+#modwin.mir-modwindow .m2dev.env .m2kcap { font-size: 7px; letter-spacing: var(--label-tracking, .025em); }
 #modwin.mir-modwindow .m2dev.env .m2kval { color: var(--m2-env-ink); }
 #modwin.mir-modwindow .m2dev.m2cmp.env .m2knobs { grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 2px 3px; padding: 3px 7px 3px; }
@@ -1570,7 +1573,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   height: 100%; min-height: 0; overflow: visible; }
 .mir-modwindow .m2dev.m2min.lfo .m2lfominshape path { fill: none; stroke: var(--acc);
   stroke-width: 4; vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round; }
-.mir-modwindow .m2dev.m2min.lfo .m2lfominout { font-size: 6.5px; letter-spacing: .02em; }
+.mir-modwindow .m2dev.m2min.lfo .m2lfominout { font-size: 6.5px; letter-spacing: var(--label-tracking, var(--tr-tight)); }
 .mir-modwindow .m2dev.m2min.lfo .m2lfominout.on { color: var(--acc2); }
 .mir-modwindow .m2dev.m2min.lfo .m2minnum { order: 6; }
 .mir-modwindow .m2dev.m2min.lfo .m2x { order: 7; }
@@ -1597,10 +1600,10 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   height: var(--touch); padding: 0 calc(5px * var(--ui-scale));
   border-radius: 7px; border: var(--glass-border) solid var(--glass-hairline);
   background: transparent; color: rgba(255,255,255,0.62);
-  font: 700 calc(8.5px * var(--ui-scale)) var(--font-sans); letter-spacing: 0.06em;
+  font: 700 calc(8.5px * var(--ui-scale)) var(--font-sans); letter-spacing: var(--label-tracking, 0.06em);
   cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none;
   -webkit-touch-callout: none; }
-.modwin.mir-modwindow .m2hold:disabled { opacity: 0.34; cursor: default; }
+.modwin.mir-modwindow .m2hold:disabled { opacity: var(--state-disabled, 0.34); cursor: default; }
 /* A held hold button. */
 .modwin.mir-modwindow .m2hold.held { color: var(--acc); border-color: var(--acc);
   box-shadow: inset 0 0 0 1px var(--acc), inset 0 0 11px rgba(255,255,255,0.30); }
@@ -1611,7 +1614,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2dev.audio .m2kind { color: var(--acc); }
 .mir-modwindow .m2audioheadstate { flex: 1 1 auto; min-width: 38px; max-width: 58px; overflow: hidden;
   text-overflow: ellipsis; white-space: nowrap; text-align: center;
-  color: hsl(0 0% 100% / .46); font: 700 7px var(--font-sans); letter-spacing: .07em; }
+  color: hsl(0 0% 100% / .46); font: 700 7px var(--font-sans); letter-spacing: var(--label-tracking, .07em); }
 .mir-modwindow .m2audioheadstate.on { color: var(--acc2); }
 .mir-modwindow .m2audioheadstate.bad { color: var(--bad); }
 /* Lifecycle is high-value minimized AUDIO identity; LFO/ENV omit their centre zone. */
@@ -1636,16 +1639,16 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2aud { display: grid; grid-template-rows: repeat(2, 44px); gap: 2px; width: 100%; }
 .mir-modwindow .m2audlive { display: none; }
 .mir-modwindow .m2audsrc { width: 100%; min-width: 44px; min-height: 44px; padding: 0 4px;
-  border-radius: 5px; border: 1px solid hsl(0 0% 100% / .14);
+  border-radius: var(--r-sm); border: 1px solid hsl(0 0% 100% / .14);
   background: hsl(0 0% 100% / .035); color: hsl(0 0% 100% / .72);
-  font: 700 8px var(--font-sans); letter-spacing: .07em;
+  font: 700 8px var(--font-sans); letter-spacing: var(--label-tracking, .07em);
   touch-action: none; user-select: none; -webkit-user-select: none;
   -webkit-touch-callout: none; }
 .mir-modwindow .m2audsrc.on { color: var(--acc2); border-color: hsl(var(--hue-acc2) var(--sat-acc2) 70% / .58); }
 .mir-modwindow .m2audsrc.m2audbad { color: var(--bad); border-color: var(--bad); }
 .mir-modwindow .m2audsrc:hover, .mir-modwindow .m2audsrc:focus-visible { border-color: hsl(0 0% 100% / .34); }
 .mir-modwindow .m2audsrc:focus-visible { outline: 1px solid var(--fg); outline-offset: 2px; }
-.mir-modwindow .m2audsrc:active { background: var(--glass-press); }
+.mir-modwindow .m2audsrc:active { background: var(--state-press, var(--glass-press)); }
 .mir-modwindow .m2dev.m2cmp.audio .m2aud { display: flex; align-items: flex-start; }
 .mir-modwindow .m2dev.m2cmp.audio .m2audsrc { padding: 0 1px; font-size: 7px; }
 .mir-modwindow .m2dev.m2cmp.audio .m2audsrc:nth-child(3), .mir-modwindow .m2dev.m2cmp.audio .m2audsheet { display: none; }
@@ -1659,7 +1662,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   grid-template: repeat(2, 44px) / repeat(3, minmax(0, 1fr)); gap: 0 2px; }
 .mir-modwindow .m2audout { min-width: 0; min-height: 44px; display: grid;
   grid-template-columns: 44px minmax(0, 1fr); align-items: stretch; overflow: hidden;
-  border: 1px solid transparent; border-radius: 5px; color: hsl(0 0% 100% / .56);
+  border: 1px solid transparent; border-radius: var(--r-sm); color: hsl(0 0% 100% / .56);
   background: hsl(0 0% 100% / .025); }
 .mir-modwindow .m2audout[data-out="level"] { grid-row: 1 / 3; display: grid;
   grid-template: 44px 44px / minmax(0, 1fr); border-color: hsl(0 0% 100% / .09); }
@@ -1670,24 +1673,24 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   border-color: hsl(0 0% 100% / .10); }
 .mir-modwindow .m2audout.on { border-color: hsl(var(--hue-acc2) var(--sat-acc2) 70% / .25); }
 .mir-modwindow .m2audgrip { width: 44px; min-width: 44px; height: 44px; min-height: 44px; padding: 0;
-  border: 0; border-radius: 5px; background: transparent; color: hsl(0 0% 100% / .54);
+  border: 0; border-radius: var(--r-sm); background: transparent; color: hsl(0 0% 100% / .54);
   display: flex; align-items: center; justify-content: center; gap: 3px;
   touch-action: none; cursor: grab; }
 .mir-modwindow .m2audout[data-out="level"] .m2audgrip { width: 100%; }
-.mir-modwindow .m2audgrip:active { background: var(--glass-press); }
+.mir-modwindow .m2audgrip:active { background: var(--state-press, var(--glass-press)); }
 .mir-modwindow .m2audgrip svg { display: block; width: 12px; height: 12px; pointer-events: none; }
 .mir-modwindow .m2audled { flex: 0 0 auto; width: 7px; height: 7px; border-radius: 50%;
   background: var(--mark-under); }
 .mir-modwindow .m2audout.on .m2audled { background: var(--acc2); }
 .mir-modwindow .m2audout[data-out="hit"] .m2audled { border-radius: 1px; transform: rotate(45deg); }
-.mir-modwindow .m2audmac { min-width: 0; min-height: 44px; padding: 0 5px; border: 0; border-radius: 5px;
+.mir-modwindow .m2audmac { min-width: 0; min-height: 44px; padding: 0 5px; border: 0; border-radius: var(--r-sm);
   background: transparent; color: inherit; display: flex; flex-direction: column;
   align-items: flex-start; justify-content: center; touch-action: none; text-align: left; }
 .mir-modwindow .m2audout[data-out="level"] .m2audmac { width: 100%; align-items: center; text-align: center; }
-.mir-modwindow .m2audmac:active { background: var(--glass-press); }
-.mir-modwindow .m2audname { font: 700 7px var(--font-sans); letter-spacing: .08em;
+.mir-modwindow .m2audmac:active { background: var(--state-press, var(--glass-press)); }
+.mir-modwindow .m2audname { font: 700 7px var(--font-sans); letter-spacing: var(--label-tracking, .08em);
   color: hsl(0 0% 100% / .58); }
-.mir-modwindow .m2audslot { font: 700 9px var(--font-num); color: hsl(0 0% 100% / .30); }
+.mir-modwindow .m2audslot { font: 700 var(--fs-tiny) var(--font-num); color: hsl(0 0% 100% / .30); }
 .mir-modwindow .m2audout.on .m2audname { color: var(--fg); }
 .mir-modwindow .m2audmac.on .m2audslot { color: var(--acc2); }
 
@@ -1709,7 +1712,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2audhitlabel { fill: hsl(0 0% 100% / .58); }
 .mir-modwindow .m2audflash { fill: var(--acc2); }
 .mir-modwindow .m2audiostatus { left: 5px; right: 5px; gap: 6px; background: hsl(var(--glass-tint) / .91);
-  font: 700 6.5px var(--font-num); letter-spacing: .04em; color: hsl(0 0% 100% / .52); }
+  font: 700 6.5px var(--font-num); letter-spacing: var(--label-tracking, .04em); color: hsl(0 0% 100% / .52); }
 .mir-modwindow .m2audiolife { min-width: 0; overflow: hidden; }
 .mir-modwindow .m2audiolife b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mir-modwindow .m2audiolife:not(.on):not(.bad) .m2statuslamp { background: hsl(0 0% 100% / .24); }
@@ -1732,34 +1735,34 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 #modwin.mir-modwindow .m2dev.m2cmp.audio .m2k[data-knob="sens"] .m2kd { width: 46px; height: 46px; }
 /* The conditioning sheet: one door, five rows. */
 .mir-modwindow .m2audsheet { position: absolute; left: 6px; right: 6px; top: 40px; z-index: 24;
-  border-radius: 10px; border: var(--glass-border) solid var(--glass-hairline);
+  border-radius: var(--surface-radius, 10px); border: var(--surface-edge-width, var(--glass-border)) solid var(--surface-edge, var(--glass-hairline));
   background: var(--m2-plate);
   -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter);
   padding: 6px;
   display: flex; flex-direction: column; gap: 3px;
-  box-shadow: var(--glass-shadow); }
+  box-shadow: var(--surface-shadow, var(--glass-shadow)); }
 .mir-modwindow .m2audsheet[hidden] { display: none; }
 .mir-modwindow .m2audshead { display: flex; align-items: center; gap: 4px; min-height: 22px;
-  font: 700 8.5px var(--font-sans); letter-spacing: 0.12em; color: rgba(255,255,255,0.66); }
-.mir-modwindow .m2audinput { flex: 1 1 auto; min-width: 0; height: 44px; border-radius: 8px;
+  font: 700 8.5px var(--font-sans); letter-spacing: var(--label-tracking, var(--tr-wide)); color: rgba(255,255,255,0.66); }
+.mir-modwindow .m2audinput { flex: 1 1 auto; min-width: 0; height: 44px; border-radius: var(--r-md);
   border: var(--glass-border) solid var(--glass-hairline); background: var(--m2-plate);
   color: var(--fg); padding: 0 7px; font: 600 8px var(--font-sans); }
 .mir-modwindow .m2audinput:focus-visible { outline: 1px solid var(--fg); outline-offset: 2px; }
 .mir-modwindow .m2audsx { margin-left: auto; width: 44px; height: 44px; min-height: 44px; padding: 0;
-  border: 0; border-radius: 8px; background: rgba(255,255,255,0.07); color: #fff;
+  border: 0; border-radius: var(--r-md); background: rgba(255,255,255,0.07); color: #fff;
   font: 600 12px var(--font-sans); }
 .mir-modwindow .m2audsrow { display: flex; align-items: center; gap: 4px; min-height: 44px; }
-.mir-modwindow .m2audslab { flex: 0 0 46px; font: 600 8.5px var(--font-sans); letter-spacing: 0.08em;
+.mir-modwindow .m2audslab { flex: 0 0 46px; font: 600 8.5px var(--font-sans); letter-spacing: var(--label-tracking, 0.08em);
   color: rgba(255,255,255,0.62); }
 .mir-modwindow .m2audsval { flex: 1 1 auto; min-width: 0; text-align: center;
-  font: 600 10px var(--font-num); color: var(--acc2); overflow: hidden;
+  font: 600 var(--fs-small) var(--font-num); color: var(--acc2); overflow: hidden;
   text-overflow: ellipsis; white-space: nowrap; }
 .mir-modwindow .m2audsbtn { flex: 0 0 44px; width: 44px; height: 44px; min-height: 44px; padding: 0;
-  border: 0; border-radius: 8px; background: rgba(255,255,255,0.07);
-  color: rgba(255,255,255,0.78); font: 600 13px var(--font-sans); }
-.mir-modwindow .m2audsbtn:active { background: var(--glass-press); }
+  border: 0; border-radius: var(--r-md); background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.78); font: 600 var(--fs-lead) var(--font-sans); }
+.mir-modwindow .m2audsbtn:active { background: var(--state-press, var(--glass-press)); }
 .mir-modwindow .m2audsleg { padding: 0 2px 2px; font: 500 8px var(--font-sans);
-  color: rgba(255,255,255,0.46); letter-spacing: 0.04em; }
+  color: rgba(255,255,255,0.46); letter-spacing: var(--label-tracking, 0.04em); }
 /* Minimized AUDIO keeps only live signal ink. Three hairlines show the band
    followers; pressing the meter replaces them with one wider ALL follower. */
 .mir-modwindow .m2audminleds { display: none; }
@@ -1778,7 +1781,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .mir-modwindow .m2dev.audio.m2min .m2audminleds.is-all i[data-out="mid"],
 .mir-modwindow .m2dev.audio.m2min .m2audminleds.is-all i[data-out="high"] { display: none; }
 .mir-modwindow .m2dev.audio.m2min .m2audminleds.is-all i[data-out="level"] { display: block; flex-basis: 6px; width: 6px; }
-.mir-modwindow .m2dev.audio.m2min .m2audminleds:active { background: var(--glass-press); }
+.mir-modwindow .m2dev.audio.m2min .m2audminleds:active { background: var(--state-press, var(--glass-press)); }
 .mir-modwindow .m2dev.audio.m2min .m2audminleds:focus-visible { outline: 1px solid var(--acc); outline-offset: 1px; }
 .mir-modwindow .m2dev.audio.m2min.m2off .m2audminleds { opacity: .32; }
 .mir-modwindow .m2dev.audio.m2min .m2audminout { color: hsl(0 0% 100% / .44); }
@@ -1853,13 +1856,13 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 :root:not(.skin-frost) #modwin.mir-modwindow.glass {
   background-color: var(--m2-mat-pane);
   border-color: var(--m2-mat-edge);
-  box-shadow: inset 0 1px 0 var(--m2-mat-inner), var(--m2-mat-shadow), var(--glass-bevel); }
+  box-shadow: inset 0 1px 0 var(--m2-mat-inner), var(--surface-shadow, var(--m2-mat-shadow)), var(--glass-bevel); }
 :root:not(.skin-frost) #modwin.mir-modwindow .m2rail {
   background-color: hsl(var(--m2-mat-hue) 12% var(--m2-mat-chassis-lum) / calc(.24 + var(--m2-blend) * .20));
   box-shadow: inset -1px 0 0 var(--m2-mat-inner); }
 #modwin.mir-modwindow .m2dev {
   background-color: var(--m2-mat-chassis);
-  border-color: var(--m2-mat-edge);
+  border-color: var(--surface-edge, var(--m2-mat-edge));
   box-shadow: inset 0 1px 0 var(--m2-mat-inner); }
 #modwin.mir-modwindow .m2dev .m2head {
   background-image: linear-gradient(180deg, hsl(0 0% 100% / .035), transparent);
@@ -1890,11 +1893,11 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 /* The work lane remains two boxes with a real hole between them. */
 :root:not(.skin-frost) #modwin.mir-modwindow .m2workbar {
   background-color: var(--m2-mat-chassis); background-image: none;
-  border-color: var(--m2-mat-edge);
+  border-color: var(--surface-edge, var(--m2-mat-edge));
   box-shadow: inset 0 1px 0 var(--m2-mat-inner); }
 :root.skin-frost #modwin.mir-modwindow .m2workbar {
   background-color: var(--m2-mat-pane); background-image: none;
-  border-color: var(--m2-mat-edge);
+  border-color: var(--surface-edge, var(--m2-mat-edge));
   box-shadow: inset 0 1px 0 var(--m2-mat-inner); }
 #modwin.mir-modwindow .m2foot { background: transparent; }
 

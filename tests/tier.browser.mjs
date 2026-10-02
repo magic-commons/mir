@@ -3,9 +3,9 @@
  *   FLAT   no rendered element of the house has a blurred or offset NEUTRAL box-shadow, and every transition duration is 0s
  *   OFF    removing data-ui-tier restores every computed style the page had before
  * Run on the gallery in all 16 seats (theme × card × frost × disconnected), and on the shell page with the notebook and a
- * menu open (tokens.css is linked into it at run time: that page does not load it).  The modulation plugin's sheets do
- * not read the 1.5 names yet: they are held to LITE (the tier's --frost-filter bridge reaches them) but only COUNTED for
- * FLAT, and the count is printed so the plugin lane can drive it to zero.
+ * menu open (tokens.css is linked into it at run time: that page does not load it).  The modulation window is open in
+ * the gallery with an LFO, an ENV and an AUDIO device added to it, and its sheets read the 1.5 names since 1.5.0-alpha.3:
+ * the plugin is held to the same LITE and FLAT promises as the house (FLAT: zero neutral blurred/offset shadows left).
  * Run by tests/run.mjs with MIR_BASE set; standalone: MIR_BASE=http://127.0.0.1:8790 node tests/tier.browser.mjs */
 import { launch, sleep } from '../tools/cdp.mjs';
 
@@ -27,6 +27,8 @@ const PROBE = `((plugin, skip) => {
     if (!c || c[3] === 0) return false;
     const neutral = Math.max(c[0], c[1], c[2]) - Math.min(c[0], c[1], c[2]) <= 48;
     const px = l.replace(col[1], '').match(/-?[\\d.]+px/g)?.map(parseFloat) || [];
+    /* a HAIRLINE is not relief: an inset line, no blur, no spread, at most 1px off (the plugin's device-head rule) */
+    if (/\\binset\\b/.test(l) && !px[2] && !px[3] && Math.abs(px[0] || 0) <= 1 && Math.abs(px[1] || 0) <= 1) return false;
     return neutral && (px[0] || px[1] || px[2]);
   });
   const all = [document.documentElement, document.body, ...document.body.querySelectorAll('*')];
@@ -80,6 +82,9 @@ try {
   await p.goto(BASE + '/gallery/index.html', 1200);
   for (let i = 0; i < 40 && !(await p.eval('!!window.__GALLERY')); i++) await sleep(100);
   check('gallery: tokens.css is loaded and the tier layer is named', await p.eval(`[...document.styleSheets].some((s) => /tokens\\.css$/.test(s.href || ''))`));
+  /* a device of each kind in the modulation window, so the cards, their heads and their controls are probed too */
+  check('gallery: the modulation window takes an LFO, an ENV and an AUDIO device', await p.eval(`(() => { const w = document.querySelector('.mir-modwindow'); if (!w || !w.modwindow) return false;
+    for (const k of ['lfo', 'env', 'audio']) w.modwindow.addDevice({ kind: k, id: k }); return document.querySelectorAll('.mir-modwindow .m2dev').length >= 3; })()`));
   for (const theme of ['dark', 'light']) for (const card of ['tinted', 'refractive']) for (const frost of [false, true]) for (const disc of [true, false]) {
     await p.eval(`window.__GALLERY.setTheme(${JSON.stringify(theme)}); document.body.dataset.card = ${JSON.stringify(card)}; document.body.classList.toggle('frost', ${frost}); document.body.classList.toggle('disconnected', ${disc}); true`);
     const r = await seat(`gallery ${theme}-${card}-frost ${frost ? 'on' : 'off'}${disc ? '-disconnected' : '-joined'}`);
@@ -106,8 +111,8 @@ try {
   check('no page errors', !p.logs.some((l) => /EXCEPTION/.test(l)), p.logs.join(' | '));
 } finally { await p.close(); }
 
+check(`the modulation plugin · flat: no blurred or offset neutral box-shadow in any seat (worst seat: ${pluginFlat})`, pluginFlat === 0, pluginSample.slice(0, 4).join(' ; '));
 console.log(results.join('\n'));
-console.log(`(the modulation plugin, not yet on the 1.5 names: at most ${pluginFlat} element(s) per seat keep a neutral blurred/offset shadow under FLAT — counted, not failed)${pluginSample.length ? '\n   ' + pluginSample.join('\n   ') : ''}`);
 const failed = results.filter((r) => r.startsWith('FAIL')).length;
 console.log(failed ? `\n${failed} of ${results.length} failed` : `\nPASS tier: all ${results.length}`);
 process.exit(failed ? 1 : 0);
