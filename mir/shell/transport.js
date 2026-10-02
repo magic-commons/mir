@@ -55,6 +55,12 @@ const SEAT_HINT = { bottom: phrase('the bar at the bottom centre'), top: phrase(
 const PLAY_ACTION = 'transport.play';
 /** the rack window the bar docks into (BASINS / λWAVES `device({ id: 'transport', eyebrow: 'TRANSPORT' })`) */
 export const DOCK_ID = 'transport';
+/** the seats that wear a work bar's button face when the bar sits in one (BASINS transport-placement.js BAR_SEATS:
+ *  to-start, send-to-rack and the logo take `.trig` — the kit's button face — with the bar's 34 px, radius-8 box) */
+export const BAR_SEATS = '.transport-home, .dock-btn, .mod-exp';
+/** the bars a transport can sit in: 'float' (on the stage, BASINS `#transport.mini`) or 'work' (inside a work bar,
+ *  BASINS `timeline-mounted`: its seats are the bar's buttons) */
+export const BARS = Object.freeze(['float', 'work']);
 const SVG = 'http://www.w3.org/2000/svg';
 
 /* ── the pure part ─────────────────────────────────────────────────────────────────────────────────────────── */
@@ -431,6 +437,7 @@ export function layoutNames(list) {
 /* the docked seat: the bar in a rack window named TRANSPORT (BASINS transport-placement.js `docked`).  One window per
    rack, registered once; its hooks are forwarded to whichever bar is alive. */
 const docks = new WeakMap();
+let bars = 0;                                                       // bars made on this page (each paints under its own key)
 function dockOf(R) {
   let d = docks.get(R);
   if (!d) {
@@ -449,10 +456,12 @@ function dockOf(R) {
  *    clock       the ONE TRUE PLAY's clock: { play(), pause(), isPlaying(), toggle?(), onChange?(fn), seek?(beat) }
  *    mod         the modulation seam (installModulation's result): the power button, the door, the panel's clock tiles
  *    model, setBpm, persist   the tempo (createTempo)
+ *    bar         'float' (default: on the stage) or 'work' (inside a work bar: the to-start, send-to-rack and logo seats
+ *                take the bar's own button face, 34 px with radius 8, and the bar's padding is 3 px — BASINS' timeline)
  *    openers, rack, keys, store, key, opener, onRefused, onInterface, host, root, id — as in docs/TRANSPORT.md */
 export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = globalThis.document && document.body, root = null, id = 'transport',
   clock = null, mod = null, model = MOD, setBpm = null, persist = null, openers = [], rack = null, keys = null, store = null,
-  key = 'mir.transport', opener = true, onRefused = null, onInterface = null } = {}) {
+  key = 'mir.transport', opener = true, onRefused = null, onInterface = null, bar: barKind = 'float' } = {}) {
   const doc = host.ownerDocument, view = doc.defaultView, body = doc.body;
   const life = new AbortController(), on = { signal: life.signal }, signal = life.signal;
   const S = store || localSeatStore(key);
@@ -484,7 +493,7 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
       case 'openers': openBox = el('div', 'tr-openers'); return openBox;
       case 'seat': seatB = tbtn('tr-seat'); setGlyph(seatB, 'grip', { label: 'Choose where the transport sits', size: 16 });
         seatB.title = 'Where the transport sits'; seatB.setAttribute('aria-haspopup', 'menu'); seatB.setAttribute('aria-expanded', 'false'); return seatB;
-      case 'dock': if (!rackOf() && typeof rack !== 'function') return null;
+      case 'dock':
         dockB = el('button', 'dock-btn'); dockB.type = 'button'; setGlyph(dockB, 'north', { label: 'Dock the transport into the rack' });
         dockB.title = 'Move the transport between the stage and the rack'; dockB.setAttribute('aria-pressed', 'false'); return dockB;
       case 'back': return null;                                     // the way back is always the bar's last child
@@ -507,6 +516,10 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
   place(layout, bar);
   const back = wayBack({ run: () => { if (onInterface) onInterface(); else { const R = rackOf(); if (R && typeof R.setInterface === 'function') R.setInterface(true); else body.classList.remove('ui-hidden'); } }, signal });
   bar.appendChild(back.root);
+  /* in a work bar, the round seats are the bar's buttons (BASINS transport-placement.js barFace) */
+  const work = barKind === 'work';
+  setAttr(bar, 'data-bar', work ? 'work' : 'float');
+  for (const b of bar.querySelectorAll(BAR_SEATS)) b.classList.toggle('trig', work);
 
   /* ── the latches, from data, redrawn only when the list changes ── */
   let latches = [], latchSig = '';
@@ -633,7 +646,8 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
     for (const p of parts) p.sync();
     for (const l of latches) l.p.sync();
   }
-  const soon = () => frame.coalesce('mir.transport.sync', sync);
+  const syncKey = 'mir.transport.sync:' + (++bars);                 // one paint per bar: two bars on a page never share a job
+  const soon = () => frame.coalesce(syncKey, sync);
   view.addEventListener('click', soon, on);
   view.addEventListener('keyup', soon, on);
   doc.addEventListener('devopen', soon, on);
@@ -671,7 +685,7 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
       const R = rackOf(); const d = R && docks.get(R); if (d) { d.open = null; d.close = null; }
       if (docked && bar.parentElement !== stageHost) stageHost.appendChild(bar);
       for (const n of made) n.remove();
-      if (!made.includes(bar)) { bar.textContent = ''; bar.classList.remove('mir-transport', 'mini', 'docked', 'tempo-open'); for (const a of ['data-home', 'data-form']) bar.removeAttribute(a); delete bar.dataset.opener; }
+      if (!made.includes(bar)) { bar.removeAttribute('data-bar'); bar.textContent = ''; bar.classList.remove('mir-transport', 'mini', 'docked', 'tempo-open'); for (const a of ['data-home', 'data-form']) bar.removeAttribute(a); delete bar.dataset.opener; }
     },
   };
 }

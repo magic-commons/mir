@@ -26,11 +26,16 @@
   --xport-h: 46px;                   /* the bar's height (BASINS: the modulation work bar's) */
   --xport-seat: 34px;                /* a round seat (BASINS skin.css:78) */
   --xport-power: 44px;               /* the power button's seat (BASINS transport-controls.css:17) */
-  --xport-pill-w: 72px;              /* the BPM pill (BASINS skin.css:447) */
+  --xport-pill-w: 72px;              /* the BPM pill's least width; it sizes to its number (BASINS ui-fixes 9: ≈ 90 px) */
   --xport-pill-r: 10px;              /* its corner (BASINS skin.css:87) */
   --xport-radius: 16px;              /* the bar's corner when CORNERS is at home (BASINS skin.css:66) */
-  --xport-num-size: 12px;            /* the tempo's number (BASINS skin.css:450) */
-  --xport-micro: 7px;                /* BPM and the Hz reading (BASINS skin.css:451–452) */
+  --xport-num-size: 18px;            /* the tempo's number (BASINS ui-fixes 9, --xport-tempo-size; was 12) */
+  --xport-micro: 8px;                /* BPM and the Hz reading (BASINS ui-fixes 9; was 7) */
+  --xport-play-size: 32px;           /* play's glyph (BASINS ui-fixes 10, --xport-play-size; was 20); its seat is the glyph + 8 */
+  --xport-work-seat: 34px;           /* a seat inside a work bar: the bar's button (BASINS ui-fixes 8, .tl-action) */
+  --xport-work-r: 8px;               /* … its corner */
+  --xport-work-h: 52px;              /* the transport inside a work bar: the tool bar's height (BASINS ui-fixes 8) */
+  --xport-work-pad: 3px 8px;         /* … and its padding (BASINS timeline-window.css: 44 px power seat + border = 52) */
   --xport-face: hsl(var(--glass-tint) / 1);                                   /* the pill's face: it stands proud */
   --xport-pill-rim: var(--glass-hairline);                                    /* the pill's hairline (BASINS) */
   --xport-pill-rim-hot: color-mix(in srgb, var(--acc2) 60%, transparent);     /* hovered / focused (BASINS skin.css:448) */
@@ -78,9 +83,9 @@
 .mir-transport :is(.tbtn, .dock-btn, .mod-exp, .transport-tempo-input):focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
 
 /* play: no face at all; its ink lights in accent A (BASINS transport-controls.css:3–14) */
-.mir-transport .tbtn.play { width: var(--xport-seat); color: var(--fg-soft); }
+.mir-transport .tbtn.play { width: calc(var(--xport-play-size) + 8px); height: calc(var(--xport-play-size) + 8px); min-height: calc(var(--xport-play-size) + 8px); color: var(--fg-soft); }
 .mir-transport .tbtn.play:is(.on, :hover) { background: transparent; color: var(--acc); }
-.mir-transport .tbtn.play svg { width: 20px; height: 20px; transition: transform var(--t-fast); }
+.mir-transport .tbtn.play svg { width: var(--xport-play-size); height: var(--xport-play-size); transition: transform var(--t-fast); }
 .mir-transport .tbtn.play:hover svg { transform: scale(1.08); }
 .mir-transport .tbtn.play:active svg { transform: scale(.94); }
 
@@ -97,20 +102,21 @@
 .mir-transport .mir-mod-power:active .mir-power-icon { transform: scale(.94); }
 .mir-transport .tbtn.mir-mod-power:focus-visible { outline: 1px solid var(--acc2); outline-offset: 2px; border-radius: var(--r-md); }
 
-/* the dock chip and the door to the modulation window (λWAVES lab.css:320–326, BASINS lab.css:327–333; no pane float) */
-.mir-transport :is(.dock-btn, .mod-exp) {
+/* the dock chip, the door to the modulation window and to-start: one set of round seats with a hairline ring (λWAVES
+   lab.css:320–326, BASINS lab.css:327–333 and ui-fixes 11; no pane float — INTENT) */
+.mir-transport :is(.dock-btn, .mod-exp, .tbtn.transport-home) {
   flex: 0 0 auto; width: var(--xport-seat); height: var(--xport-seat); padding: 0; border-radius: 50%; cursor: pointer;
   border: var(--glass-border) solid var(--glass-border-color); background: transparent; box-shadow: var(--xport-flat); color: var(--ink-key, var(--fg-soft));
   display: inline-flex; align-items: center; justify-content: center;
 }
 .mir-transport :is(.dock-btn, .mod-exp) > svg { width: 13px; height: 13px; filter: var(--xport-glyph-lift); }
 .mir-transport .mod-exp > svg.mark { width: 16px; height: 16px; }
-.mir-transport :is(.dock-btn, .mod-exp):hover { color: var(--fg); }
-.mir-transport :is(.dock-btn, .mod-exp):active { background: var(--state-press, var(--glass-press)); }
+.mir-transport :is(.dock-btn, .mod-exp, .tbtn.transport-home):hover { color: var(--fg); }
+.mir-transport :is(.dock-btn, .mod-exp, .tbtn.transport-home):active { background: var(--state-press, var(--glass-press)); }
 
 /* ── the BPM pill (BASINS skin.css:447–454); its rest is RAISED, not a well (INTENT, ruled) ─────────────────── */
 .mir-transport .tbtn.tempo-expand {
-  position: relative; order: 8; flex: 0 0 var(--xport-pill-w); width: var(--xport-pill-w); min-width: var(--xport-pill-w); height: var(--xport-seat); padding: 4px 15px 4px 7px;
+  position: relative; order: 8; flex: 0 0 auto; width: auto; min-width: var(--xport-pill-w); height: var(--xport-seat); padding: 4px 15px 4px 7px;
   display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 1fr 1fr; column-gap: 4px; align-items: center;
   border: var(--glass-border) solid var(--xport-pill-rim); border-radius: var(--xport-pill-r);
   background: var(--xport-face); box-shadow: var(--relief-raise, var(--neu-raise)); color: var(--fg-soft); touch-action: none; cursor: ns-resize;
@@ -159,10 +165,20 @@
 .mir-transport .ro-val { color: var(--ink-key, var(--fg-soft)); font-size: var(--fs-micro); line-height: 1.15; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 
 /* ── COMPACT (ruled 2026-10-01): glyphs only, no TAP, no Hz reading ───────────────────────────────────────── */
-.mir-transport[data-form="compact"] { --xport-w: 0px; --xport-h: 40px; --xport-seat: 30px; --xport-power: 36px; --xport-pill-w: 52px; }
+.mir-transport[data-form="compact"] { --xport-w: 0px; --xport-h: 40px; --xport-seat: 30px; --xport-power: 36px; --xport-pill-w: 52px; --xport-play-size: 22px; --xport-num-size: 14px; }
 .mir-transport[data-form="compact"] :is(.tap, .tempo-hz, .tempo-unit, .tempo-chevron, .tr-open.has-glyph .tr-word, .fd, .ro, .k) { display: none; }
 .mir-transport[data-form="compact"] .tbtn.tempo-expand { grid-template-columns: 1fr; padding: 4px 6px; }
 .mir-transport[data-form="compact"] .tempo-number { justify-self: center; }
+
+/* ── IN A WORK BAR (`createTransport({ bar: 'work' })`, `data-bar="work"`): BASINS' timeline-mounted transport.  It sits
+   in the bar's flow, 52 px tall with 3 px of padding; to-start, send-to-rack and the logo carry `.trig` (the kit's button
+   face and relief) in the bar's 34 px, radius-8 box, so the GUI's look paints both bars alike (BASINS ui-fixes 8, 11) ── */
+.mir-transport[data-bar="work"] { position: static; transform: none; z-index: auto; width: max-content; min-width: 0; max-width: 100%;
+  height: auto; min-height: var(--xport-work-h); padding: var(--xport-work-pad); }
+.mir-transport[data-bar="work"] :is(.dock-btn, .mod-exp, .tbtn.transport-home).trig {
+  width: var(--xport-work-seat); height: var(--xport-work-seat); min-width: var(--xport-work-seat); min-height: var(--xport-work-seat); padding: 0;
+  border: 0; border-radius: var(--xport-work-r); background: var(--trig-face); box-shadow: var(--relief-raise, var(--neu-raise)); }
+.mir-transport[data-bar="work"] .tbtn.tempo-expand { height: var(--xport-work-seat); border-radius: var(--xport-work-r); }
 
 /* ── DOCKED: the bar in the rack's TRANSPORT window (BASINS / λWAVES lab.css:317) ──────────────────────────── */
 .mir-transport.docked { position: static; transform: none; min-width: 0; max-width: none; width: auto; height: auto; flex-wrap: wrap; padding: 6px; gap: 6px;

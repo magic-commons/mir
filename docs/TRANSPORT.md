@@ -72,22 +72,25 @@ It returns `{ root, layout, parts, el: { play, power, door, pill, field, panel, 
 |---|---|
 | The bar on the stage: `#transport.mini`, 46 px tall, 60 px up from the bottom, centred, 640 px wide (wider when its parts need it), 2 px gaps | BASINS' |
 | The round seats: 34 px, flat, `--ink-key`; hover is a lighter face and `--fg` | BASINS' |
-| **Play**: no face; its ink lights in accent A while playing; the glyph swaps ▶ / ❚❚ and scales 1.08 on hover, .94 when pressed; `aria-label` "Play or pause" | BASINS' |
+| **Play**: no face and no ring; its glyph is 32 px (`--xport-play-size`, was 20) in a 40 × 40 seat (the glyph + 8); its ink lights in accent A while playing; the glyph swaps ▶ / ❚❚ and scales 1.08 on hover, .94 when pressed; `aria-label` "Play or pause" | BASINS' (ui-fixes 10, Josh 2026-10-01: "way bigger and still have no background") |
 | **Play is the only thing that starts or stops time** | ruled by Josh 2026-10-01 |
 | **Modulation's power**: the ring-and-stem glyph in a 44 px seat; off, the ring opens and dims; on, it closes and lights in accent B with its halo; a press is `mod.arm(!mod.armed())`, BASINS' `toggleModulation` | BASINS' (and ruled by Josh 2026-10-01: a power button, not a play) |
 | **The door** to the modulation window: the MIR mark in a 34 px round seat with a hairline (`.mod-exp.mod-logo`) | BASINS' / λWAVES' |
-| **The BPM pill**: 72 px, the number in accent B (12 px), BPM and the Hz reading (7 px), the chevron, a hairline that warms to accent B on hover and when the panel is open | BASINS' |
+| **The BPM pill**: sized to its number, at least 72 px (about 92 px at 30.0); the number in accent B at 18 px (`--xport-num-size`, was 12), BPM and the Hz reading 8 px (was 7), the chevron, a hairline that warms to accent B on hover and when the panel is open. The digit under the pointer is read from the number's own glyph boxes, so the drag and the wheel follow the size | BASINS' (ui-fixes 9, Josh 2026-10-01: "increase the size of the BPM thingy") |
 | The pill's drag (the digit under the pointer is the step; 9 px a step, a finger 14 px in ones), its wheel (by the digit under the pointer), its keys (↑ → up, ↓ ← down, Shift a tenth, PageUp/PageDown ten) | BASINS' |
 | A click on the pill opens the **tempo panel**: TAP, WALL / FREE, the cadence, ÷2 ×2 ×4 (hold to bend, tap to latch), HOLD ¼, HOLD 1 | BASINS' (λWAVES has the same panel) |
 | **TAP's place**: in the tempo panel | BASINS' |
 | **The resting pill stands proud** (its own face and the raised relief), not a well | ruled by Josh 2026-10-01 (INTENT: BASINS' rested in a well and read as already pressed) |
 | A double click on the pill types the tempo, in a well in the pill's seat (Enter or leaving takes it, Escape does not) | the kit's (BASINS types the tempo only in its timeline form) |
 | **The dock chip** (`.dock-btn`, the north glyph): the bar goes into a rack window named TRANSPORT and back | BASINS' / λWAVES' |
-| The dock chip and the door wear no pane shadow | ruled (INTENT: a button never wears a pane's float; BASINS gave them `--glass-shadow`) |
+| **To-start** (`.transport-home`) is one of the round seats: 34 px with the dock chip's and the door's hairline ring | BASINS' (ui-fixes 11, Josh 2026-10-01) |
+| The dock chip, the door and to-start wear no pane shadow | ruled (INTENT: a button never wears a pane's float; BASINS gave them `--glass-shadow`) |
+| **In a work bar** (`bar: 'work'`): to-start, send-to-rack and the logo take the bar's button face (`.trig`) in a 34 × 34, radius-8 box; the pill is 34 px tall; the transport is 52 px tall with 3 px padding | BASINS' (ui-fixes 8 and 11, Josh 2026-10-01: "match the button style and size of the right work bar") |
 | The dodge: the bottom seat unless a floating window covers it, then the top | BASINS' / λWAVES' (the rack's `dodge`) |
 | **λWAVES' bar**: play, power, rewind, ‹ ›, the scrub as a thin line, ⟳, the stacked readouts, the small RATE knob, the pill, then dock and door | λWAVES' (lab/rack.js §25, skin.css §12), with its MOD word replaced by the power button (ruled) |
 | **The window latches** (a glyph and a word; lit with the frost face and the label in accent A; a press toggles the window) | ruled by Josh 2026-10-01 (the kit's) |
 | **The seats BOTTOM, TOP, COMPACT** and the ⠿ menu (a right click or a long press opens it too); COMPACT: glyphs only, no TAP, no Hz reading | ruled by Josh 2026-10-01 (the kit's) |
+| COMPACT's sizes (40 px tall): play's glyph 22 px in a 30 px seat, the tempo 14 px, the pill at least 52 px | the kit's (not ruled) |
 | **The way back** under H on a touch screen | ruled by Josh 2026-10-01 (the kit's) |
 | The focus ring on the seats (`--state-focus`), and on the power button BASINS' 1 px accent-B outline | the kit's / BASINS' |
 
@@ -109,6 +112,10 @@ Every look value of the bar is the kit's, so the GUI window restyles it with no 
 | SHADOW, the tier | flat tier: no shadow, no blur, no relief | `--surface-shadow`, the tier's tokens |
 
 `tests/transport.browser.mjs` checks every row in both layouts. BASINS' own numbers (the bar's width and height, the seats, the pill) are `--xport-*` tokens declared on `.mir-transport`, so a skin can change them.
+
+## In a work bar
+
+`createTransport({ bar: 'work' })` (`data-bar="work"` on the bar; `BARS` is `['float', 'work']`) is BASINS' timeline-mounted transport: the bar sits in its host's flow (no seat, no dodge), 52 px tall with 3 px of padding, and the seats named in `BAR_SEATS` (to-start, send-to-rack, the logo) carry `.trig`, the kit's button face, so the GUI's look paints them exactly as it paints the work bar's own buttons. `gallery/transport.html` shows one in a mock work bar beside two ordinary work-bar buttons (EDIT, SNAP); the test checks that the three seats match them in size, corner, face and relief. The timeline itself (and its tempo panel opening above or below the bar) is not in the kit yet.
 
 ## The opener law
 
@@ -149,7 +156,7 @@ Every look value of the bar is the kit's, so the GUI window restyles it with no 
 ## Proofs
 
 - `tests/transport.node.mjs` (8 groups): the step under a pointer, the clamp and the tenth, BASINS' drag and keys, a typed tempo, the seats, `firstRun`, the openers, the key-table row, the two layouts (one play each, no second play), `createTempo`.
-- `tests/transport.browser.mjs` on `gallery/transport.html`, real CDP pointer, wheel and keys, every press hit-tested with `elementFromPoint`: first run; 30.0 and 72 px; play runs the clock; **the power button toggles modulation and never the clock, and play never the power**; the drag by tens, tenths and ones; the wheel; BASINS' keys; a click opens the tempo panel and TAP there sets the tempo; a double click types it; the resting pill is not a well and the field is; latches and closing from the window; the door; the dodge; the dock chip, in and out; **the settings check in both layouts** (card, frost, BLUR, CORNERS, RELIEF, the flat tier); the λWAVES layout from the switch, its one play; H; idle; the seat and the layout across a reload; `qps`.
+- `tests/transport.browser.mjs` on `gallery/transport.html`, real CDP pointer, wheel and keys, every press hit-tested with `elementFromPoint`: first run; 30.0; BASINS' new sizes (the tempo 18 px, BPM / Hz 8 px, the pill about 90 px, play's 32 px glyph in a 40 px seat with no face, to-start's ring); the work-bar match; play runs the clock; **the power button toggles modulation and never the clock, and play never the power**; the drag by tens, tenths and ones; the wheel; BASINS' keys; a click opens the tempo panel and TAP there sets the tempo; a double click types it; the resting pill is not a well and the field is (under GLASS faces both are clear, as BASINS draws them); latches and closing from the window; the door; the dodge; the dock chip, in and out; **the settings check in both layouts** (card, frost, BLUR, CORNERS, RELIEF, the flat tier); the λWAVES layout from the switch, its one play; in λWAVES' layout and in COMPACT, after the size change, the wheel on the tens digit, a click opening the panel, and play; H; idle; the seat and the layout across a reload; `qps`.
 - Plates (`MIR_PLATES=1`): `docs/plates/transport/transport-first-run.png`, `transport-basins-dark.png`, `transport-basins-light.png`, `transport-lambdawaves-dark.png`, `transport-lambdawaves-light.png`.
 
 **Not proven:** the way back on a real touch screen (the CSS rule is on `any-pointer: coarse`; the headless run is a fine pointer), the long press, WebKit and a real iPad, a screen reader.

@@ -48,6 +48,21 @@ try {
     for (let i = 1; i <= 6; i++) { await p.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: pt.x, y: Math.round(pt.y - (rise * i) / 6), button: 'left', buttons: 1 }); await sleep(20); }
     await sleep(40); await p.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: pt.x, y: pt.y - rise, button: 'left', buttons: 0, clickCount: 1 }); await sleep(80);
   };
+  /* after the size change, in any seat: the wheel on the tens digit steps by ten, a click opens the panel, play plays */
+  const seatCheck = async (name, want = { glyph: 32, num: 18, seat: 40 }) => {
+    await run(`T.tr.setBpm(30); if (T.clock.isPlaying()) T.clock.pause(); await wait(60); return 0;`);
+    const dg = await digit(0);
+    await p.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: dg.x, y: dg.y, deltaX: 0, deltaY: -100 }); await sleep(80);
+    const w = await run(`return T.tr.bpm;`);
+    const hp = await click(`__T.tr.el.pill`);
+    const op = await run(`await wait(60); const o = !__T.tr.el.panel.hidden; return o;`);
+    await click(`__T.tr.el.pill`);
+    const hy = await click(`__T.tr.el.play`);
+    const q = await run(`await wait(60); const g = { width: parseFloat(getComputedStyle(T.tr.el.play.querySelector('svg')).width) }, b = T.tr.el.play.getBoundingClientRect(); const on = T.clock.isPlaying(); T.tr.toggle(); await wait(40);
+      return { on, glyph: Math.round(g.width), seat: Math.round(b.width), num: parseFloat(getComputedStyle(T.tr.el.pill.querySelector('.tempo-number')).fontSize) };`);
+    check(name + ': after the size change the wheel on the tens digit steps by ten, a click opens the tempo panel, play plays (glyph ' + want.glyph + ' px in a ' + want.seat + ' px seat, tempo ' + want.num + ' px)',
+      dg.ok && dg.ch === '3' && w === 40 && hp.ok && op && hy.ok && q.on && q.glyph === want.glyph && q.seat === want.seat && q.num === want.num, JSON.stringify({ dg, w, op, q }));
+  };
   const shadowTerms = `(s) => (s === 'none' ? [] : s.split(/,(?![^(]*\\))/).map((x) => x.trim()))`;
 
   /* ── a first load: the bar and nothing else ───────────────────────────────────────────────────────────────── */
@@ -58,10 +73,24 @@ try {
     return { first: T.first, layout: T.layout, open, shown: bar.getClientRects().length > 0, hit: !!f && bar.contains(f), bpm: pill.querySelector('.tempo-number').textContent,
       w: Math.round(pill.getBoundingClientRect().width), plays: bar.querySelectorAll('.tbtn.play').length };`);
   check('first run: BASINS\' bar is on screen and hit-testable, and nothing else is open', r.first && r.layout === 'basins' && r.shown && r.hit && r.open.racks === 0 && !r.open.folders && !r.open.gui && !r.open.drift && !r.open.mod, JSON.stringify(r));
-  check('with nothing saved the pill reads 30.0; it is BASINS\' 72 px; the bar has one play', r.bpm === '30.0' && r.w === 72 && r.plays === 1, JSON.stringify(r));
+  check('with nothing saved the pill reads 30.0; the bar has one play', r.bpm === '30.0' && r.plays === 1, JSON.stringify(r));
+  r = await run(`const px = (e, k) => parseFloat(getComputedStyle(e)[k]), box = (e) => { const b = e.getBoundingClientRect(); return [Math.round(b.width), Math.round(b.height)]; }; const home = bar.querySelector('.transport-home');
+    return { num: px(pill.querySelector('.tempo-number'), 'fontSize'), unit: px(pill.querySelector('.tempo-unit'), 'fontSize'), hz: px(pill.querySelector('.tempo-hz'), 'fontSize'), pill: box(pill),
+      play: box(tr.el.play), glyph: box(tr.el.play.querySelector('svg')), playBg: getComputedStyle(tr.el.play).backgroundColor, playRing: px(tr.el.play, 'borderTopWidth'),
+      home: box(home), homeRing: getComputedStyle(home).borderTopWidth, homeR: getComputedStyle(home).borderRadius, dockRing: getComputedStyle(tr.el.dock).borderTopWidth, dockR: getComputedStyle(tr.el.dock).borderRadius };`);
+  check('BASINS\' new sizes: the tempo 18 px (was 12), BPM / Hz 8 px (was 7), the pill sized to it (≥ 72, about 90); play\'s glyph 32 px (was 20) in a 40 px seat with no face and no ring; to-start wears the dock chip\'s and the logo\'s hairline ring',
+    r.num === 18 && r.unit === 8 && r.hz === 8 && r.pill[0] >= 84 && r.pill[0] <= 100 && r.glyph[0] === 32 && r.play[0] === 40 && r.play[1] === 40 && r.playBg === 'rgba(0, 0, 0, 0)' && r.playRing === 0
+    && r.home[0] === 34 && r.homeRing === r.dockRing && r.homeRing !== '0px' && r.homeR === r.dockR, JSON.stringify(r));
+  r = await run(`const px = (e, k) => parseFloat(getComputedStyle(e)[k]), box = (e) => { const b = e.getBoundingClientRect(); return [Math.round(b.width), Math.round(b.height)]; }; const W = T.work, wb = document.querySelector('#workbar .g-wb'), sh = (e) => getComputedStyle(e).boxShadow, rad = (e) => getComputedStyle(e).borderRadius;
+    const seats = [...W.root.querySelectorAll('.transport-home, .dock-btn, .mod-exp')];
+    return { bar: W.root.dataset.bar, pad: getComputedStyle(W.root).paddingTop, h: box(W.root)[1], wb: [box(wb)[1], rad(wb), sh(wb), getComputedStyle(wb).backgroundColor],
+      seats: seats.map((e) => [box(e), rad(e), sh(e) === sh(wb), getComputedStyle(e).backgroundColor === getComputedStyle(wb).backgroundColor, e.classList.contains('trig')]), pill: box(W.el.pill) };`);
+  check('in a work bar (bar: \'work\'): to-start, send-to-rack and the logo are the bar\'s buttons — 34 × 34, radius 8, the same face and relief as EDIT and SNAP beside them; the bar\'s padding is 3 px',
+    r.bar === 'work' && r.pad === '3px' && r.seats.length === 3 && r.seats.every((x) => x[0][0] === 34 && x[0][1] === 34 && x[1] === '8px' && x[1] === r.wb[1] && x[2] && x[3] && x[4]) && r.pill[1] === 34, JSON.stringify(r));
   if (PLATES) await p.shot(plate('transport-first-run.png'));
-  r = await run(`const terms = ${shadowTerms}; const cs = getComputedStyle(pill); return { pill: terms(cs.boxShadow), pillBg: cs.backgroundColor };`);
-  const pillRaised = r.pill.some((s) => !s.includes('inset')), pillBg = r.pillBg;
+  r = await run(`const terms = ${shadowTerms}; const cs = getComputedStyle(pill), B = document.body;
+    return { pill: terms(cs.boxShadow), pillBg: cs.backgroundColor, glass: B.dataset.faces === 'glass' && (B.dataset.card === 'refractive' || B.classList.contains('frost')) && B.dataset.card !== 'solid' };`);
+  const pillRaised = r.pill.some((s) => !s.includes('inset')), pillBg = r.pillBg, glassFaces = r.glass;
 
   /* ── the one play and modulation's power: neither moves the other ────────────────────────────────────────── */
   let h = await click(`__T.tr.el.play`);
@@ -120,8 +149,11 @@ try {
   await sleep(60); await mouse('mousePressed', h.x, h.y, 0, 2); await mouse('mouseReleased', h.x, h.y, 0, 2); await sleep(80);
   r = await run(`const terms = ${shadowTerms}; const cs = getComputedStyle(field); return { open: !field.hidden, focus: document.activeElement === field, value: field.value, panel: !tr.el.panel.hidden,
     field: terms(cs.boxShadow), fieldBg: cs.backgroundColor };`);
-  const fieldWell = r.field.length > 0 && r.field.every((s) => s.includes('inset')) && r.fieldBg !== pillBg;
-  check('INTENT (ruled): the resting pill stands proud (a drop term, its own face), the field you type in is a well', pillRaised && fieldWell, JSON.stringify({ pillRaised, pillBg, r }));
+  /* BASINS: under GLASS control faces (REFRACTIVE or FROST) the resting pill and the tempo field are both clear; otherwise the
+     pill wears its own face and the field the well's fill.  Either way the pill is not a well and the field is. */
+  const clear = (c) => c === 'rgba(0, 0, 0, 0)';
+  const fieldWell = r.field.length > 0 && r.field.every((s) => s.includes('inset')) && (glassFaces ? clear(pillBg) && clear(r.fieldBg) : r.fieldBg !== pillBg);
+  check('the resting pill is not a well (it stands proud), the field you type in is a well; under glass faces both are clear, as BASINS draws them', pillRaised && fieldWell, JSON.stringify({ pillRaised, pillBg, glassFaces, r }));
   await key('Backspace', 'Backspace', 8); await p.send('Input.insertText', { text: '64' }); await key('Enter', 'Enter', 13);
   const r5 = await run(`await wait(30); return { bpm: tr.bpm, open: !field.hidden, focus: document.activeElement === pill };`);
   check('a double click types it (the panel stays shut); 64 and Enter set it; the focus comes back to the pill', h.ok && r.open && r.value === '92.5' && !r.panel && r5.bpm === 64 && !r5.open && r5.focus, JSON.stringify({ r, r5 }));
@@ -156,7 +188,7 @@ try {
   const hd = await click(`__T.tr.el.dock`);
   r2 = await run(`await wait(500); return { docked: tr.docked, in: !!bar.closest('.dev'), pos: getComputedStyle(bar).position, top: Math.round(bar.getBoundingClientRect().top) };`);
   check('the dock chip docks the bar into the rack\'s TRANSPORT window, and from there back onto the stage', h.ok && r.docked && r.in === 'transport' && r.cls && r.pos === 'static' && hd.ok && !r2.docked && !r2.in && r2.pos === 'fixed' && r2.top > 600, JSON.stringify({ h, r, hd, r2 }));
-  if (PLATES) { await run(`R.open('mix'); T.drift.place({ x: 60, y: 90 }); T.clock.play(); await wait(900); T.clock.pause(); await wait(300); return 0;`); await p.shot(plate('transport-basins-dark.png')); }
+  if (PLATES) { await run(`R.open('mix'); T.drift.place({ x: 60, y: 170 }); T.clock.play(); await wait(900); T.clock.pause(); await wait(300); return 0;`); await p.shot(plate('transport-basins-dark.png')); }
 
   /* ── the look settings restyle the bar, in both layouts ──────────────────────────────────────────────────── */
   const looks = async () => run(`const P = T.gui.prefs, cs = () => getComputedStyle(bar), ps = () => getComputedStyle(tr.el.pill), terms = ${shadowTerms};
@@ -188,6 +220,7 @@ try {
   h = await click(`__T.tr.el.play`);
   r = await run(`await wait(300); const on = T.clock.isPlaying(), armed = T.mod.armed(); T.tr.toggle(); await wait(60); return { on, armed, after: T.clock.isPlaying(), time: document.querySelector('#transport .ro.time .ro-val').textContent };`);
   check('λWAVES\' layout: its one play runs the clock and its readout moves; the power stays as it was', h.ok && r.on && r.armed && !r.after && r.time !== '0.00', JSON.stringify({ h, r }));
+  await seatCheck('λWAVES\' layout');
   if (PLATES) { await run(`R.open('tone'); await wait(400); return 0;`); await p.shot(plate('transport-lambdawaves-dark.png')); }
   const looksL = await run(`return 0;`).then(() => looks());
   check('settings (λWAVES layout): the same restyling, with no transport code', lookOk(looksL), JSON.stringify(looksL));
@@ -210,6 +243,7 @@ try {
   r = await run(`await wait(40); return { shown: !T.tr.el.menu.hidden, topOk: T.tr.el.menu.querySelector('[data-seat-choice="top"]').disabled === (typeof R.setHome !== 'function') };`);
   const hc = await click(`__T.tr.el.menu.querySelector('[data-seat-choice="compact"]')`);
   r2 = await run(`await wait(60); const b = T.tr.root; return { seat: T.tr.seat, form: b.dataset.form, hz: getComputedStyle(T.tr.el.pill.querySelector('.tempo-hz')).display, menu: !T.tr.el.menu.hidden };`);
+  await seatCheck('COMPACT', { glyph: 22, num: 14, seat: 30 });
   check('the seat menu opens from ⠿; COMPACT drops the Hz reading (TOP is offered when the rack has setHome)', h.ok && r.shown && r.topOk && hc.ok && r2.seat === 'compact' && r2.form === 'compact' && r2.hz === 'none' && !r2.menu, JSON.stringify({ h, r, hc, r2 }));
   await load('');
   r = await run(`return { seat: tr.seat, form: bar.dataset.form, first: T.first, layout: T.layout };`);
@@ -219,10 +253,10 @@ try {
   /* ── the light plates ────────────────────────────────────────────────────────────────────────────────────── */
   if (PLATES) {
     await load('?theme=light&layout=lambdawaves');
-    await run(`R.open('tone'); T.drift.open(); T.drift.place({ x: 60, y: 90 }); await wait(500); return 0;`);
+    await run(`R.open('tone'); T.drift.open(); T.drift.place({ x: 60, y: 170 }); await wait(500); return 0;`);
     await p.shot(plate('transport-lambdawaves-light.png'));
     await load('?theme=light');
-    await run(`R.open('tone'); T.drift.open(); T.drift.place({ x: 60, y: 90 }); await wait(500); return 0;`);
+    await run(`R.open('tone'); T.drift.open(); T.drift.place({ x: 60, y: 170 }); await wait(500); return 0;`);
     await p.shot(plate('transport-basins-light.png'));
   }
 
