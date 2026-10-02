@@ -64,7 +64,7 @@ assert.deepEqual(pointsInRectangle({start:2,duration:4,offset:2,scale:1},source,
 let beat=1,time=1000,playing=true,hidden=false,scrubbing=false,reduced=false;
 globalThis.matchMedia=()=>({get matches(){return reduced;}});const realPerformance=globalThis.performance;
 Object.defineProperty(globalThis,'performance',{configurable:true,value:{now:()=>time}});
-const head={style:{},classList:{toggle(){}}},tail={style:{}},paint=createTimelinePlayhead({head,tail,clock:{beats:()=>beat,playing:()=>playing,bpm:()=>60},controller:{isScrubbing:()=>scrubbing},visible:()=>!hidden,pixels:()=>100,scroll:()=>20});
+const head={style:{},classList:{toggle(){}}},tail={style:{}},paint=createTimelinePlayhead({head,tail,clock:{beats:()=>beat,playing:()=>playing,bpm:()=>60},controller:{isScrubbing:()=>scrubbing},visible:()=>!hidden,pixels:()=>100,scroll:()=>20,reduced:()=>reduced}); // the kit reads its motion policy; the test hands it the same switch
 paint.paint();assert.equal(head.style.transform,'translateX(80px)');assert.equal(tail.style.width,'0px');
 time+=20;beat+=.02;paint.paint();near(parseFloat(tail.style.width),16);
 time+=20;beat+=100;paint.paint();assert.equal(tail.style.width,'0px');

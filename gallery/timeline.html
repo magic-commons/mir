@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>MIR · timeline</title>
+<!-- THE TIMELINE PLUGIN, PLAYABLE.  A 2D picture drawn from four registered parameters (SIZE, HUE, SPIN, GLOW: the knobs in
+     the card on the left), the kit's modulation window (MODULATION on the bar), and the TIMELINE (mir/timeline/bind.js
+     installTimeline): two automation lanes on SIZE and HUE, a pattern clip, the work bar with the transport carrying the
+     app's ONE PLAY.  Press ▶ (or Space with the timeline focused): the playhead runs and the automation moves the
+     picture; drag the ruler to scrub.  The window is docked at the bottom; drag its grip away to float it, near the top
+     or the bottom edge to dock it again (the dotted guide is where it lands).  Hold a knob for half a second: CREATE
+     AUTOMATION CLIP.  ⋯ › SHORTCUTS is the key sheet, made from the key table.  The look is the GUI window's (MIR OPTIONS):
+     every vanilla theme reaches the timeline's panes.  ?fresh forgets the arrangement and the window · ?theme=light ·
+     ?lang=qps.  This page's own rules lay out the page; every look is the kit's. -->
+<link rel="stylesheet" href="../mir/mir.css">
+<link rel="stylesheet" href="../mir/timeline/timeline.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  #scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  #card { position: fixed; left: 8px; top: 8px; width: 210px; z-index: 20; padding: 10px 12px 12px; box-sizing: border-box; border-radius: var(--r-lg);
+    display: flex; flex-direction: column; gap: 10px; }
+  .g-knobs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 6px; justify-items: center; padding-top: 6px; }
+  #floats { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  #floats > * { pointer-events: auto; }
+  body.ui-hidden :is(#card, #bar, #floats) { visibility: hidden; }
+  #bar { position: fixed; z-index: 25; right: 8px; top: 8px; display: flex; gap: 8px; align-items: end; flex-wrap: wrap; justify-content: end;
+    padding: 8px 10px; border-radius: var(--r-lg); max-width: calc(100vw - 240px); }
+</style>
+</head>
+<body data-theme="dark">
+<canvas id="scene" aria-hidden="true"></canvas>
+<div id="card" class="glass"></div>
+<div id="bar" class="glass"></div>
+<div id="floats"></div>
+<script type="module">
+import { el, knob, seg, trig, group } from '../mir/kit.js';
+import { installModulation } from '../mir/modulation/bind.js';
+import { installTimeline } from '../mir/timeline/bind.js';
+import { createKeys, localKeyStorage } from '../mir/shell/keys.js';
+import { observeSpan } from '../mir/window/dock.js';
+import { createGui } from '../mir/shell/gui.js';
+import { frame } from '../mir/core/frame.js';
+import { addLocales, setLanguage } from '../mir/core/i18n.js';
+import { notice } from '../mir/shell/notice.js';
+import { installPress } from '../mir/core/pointer.js';
+import * as motion from '../mir/core/motion.js';
+
+const q = new URLSearchParams(location.search);
+const KEY = 'mir.gallery.timeline';
+if (q.has('fresh')) { try { for (const k of Object.keys(localStorage)) if (k.startsWith(KEY)) localStorage.removeItem(k); } catch (_) { /* private mode */ } }
+const $ = (id) => document.getElementById(id);
+
+/* ── THE PICTURE: four numbers, drawn once per change (idle costs nothing) ── */
+const S = { size: 0.45, hue: 200, spin: 0.15, glow: 0.6 };
+const canvas = $('scene');
+function draw() {
+  const dpr = devicePixelRatio || 1, w = innerWidth, h = innerHeight;
+  if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) { canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); }
+  const g = canvas.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const light = document.body.dataset.theme === 'light';
+  g.fillStyle = light ? '#eef1f6' : '#05070b'; g.fillRect(0, 0, w, h);
+  const cx = w * 0.55, cy = h * 0.3, R = Math.min(w, h) * 0.26;
+  for (let i = 0; i < 7; i++) {
+    const a = S.spin * Math.PI * 2 + i * (Math.PI * 2 / 7), d = R * 0.55;
+    const x = cx + Math.cos(a) * d, y = cy + Math.sin(a) * d, r = 12 + R * 0.55 * S.size;
+    const grad = g.createRadialGradient(x, y, 0, x, y, r);
+    grad.addColorStop(0, `hsla(${(S.hue + i * 18) % 360} 85% ${35 + 35 * S.glow}% / .9)`); grad.addColorStop(1, `hsla(${(S.hue + i * 18) % 360} 85% 40% / 0)`);
+    g.fillStyle = grad; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+  }
+}
+let tl = null;
+const present = () => { frame.coalesce('gallery:scene', draw); if (tl) tl.paintHead(); };
+addEventListener('resize', present);
+
+/* ── the card: four knobs, each a registered parameter (a target for the modulation window and the timeline) ── */
+const card = $('card');
+group(card, 'PICTURE');
+const knobs = el('div', 'g-knobs', card);
+let mod = null;
+const handed = (id, key) => (v) => { if (!(mod && mod.hand(id, v))) { S[key] = v; present(); } };
+const P = [
+  { id: 'scene.size', key: 'size', label: 'SIZE', min: 0.05, max: 1, map: 'linear' },
+  { id: 'scene.hue', key: 'hue', label: 'HUE', unit: '°', min: 0, max: 360, map: 'wrap', wrap: true },
+  { id: 'scene.spin', key: 'spin', label: 'SPIN', min: 0, max: 1, map: 'wrap', wrap: true },
+  { id: 'scene.glow', key: 'glow', label: 'GLOW', min: 0, max: 1, map: 'linear' },
+];
+const params = P.map((p) => {
+  const fmt = p.unit === '°' ? (v) => v.toFixed(0) + '°' : (v) => v.toFixed(2);
+  const widget = knob({ label: p.label, min: p.min, max: p.max, value: S[p.key], wrap: p.wrap, fmt, onInput: handed(p.id, p.key) });
+  knobs.appendChild(widget.root);
+  return { id: p.id, label: p.label, unit: p.unit || '', min: p.min, max: p.max, map: p.map, def: S[p.key], get: () => S[p.key], set: (v) => { S[p.key] = v; present(); }, widget };
+});
+
+/* ── the look: the GUI window (MIR OPTIONS), FROST by default ── */
+const gui = createGui({ host: $('floats'), app: { name: 'MIR TIMELINE' }, about: { fonts: '../fonts/' }, storageKey: KEY + '.gui' });
+if (q.get('theme') === 'light') gui.prefs.set('theme', 'light');
+gui.prefs.subscribe(() => present());
+
+/* ── THE TWO PLUGINS: modulation, then the timeline on the same span ── */
+const span = observeSpan({ left: card, occupied: false });
+mod = installModulation({ mount: $('floats'), params, present, storageKey: KEY + '.modulation', presetKey: KEY + '.presets', dock: { span } });
+/* the page's ONE KEY TABLE: its own row (H hides the interface, as an app's shell does), then the timeline's rows and the
+   one play's Space, which installTimeline adds to it */
+const keys = createKeys({ storage: localKeyStorage(KEY + '.keys'), actions: [
+  { id: 'gallery.hide', label: 'HIDE THE INTERFACE', group: 'VIEW', keys: ['KeyH'], run: () => { document.body.classList.toggle('ui-hidden'); } },
+] });
+let scrubLevel = 'live';                                          // SCRUB: how often a scrub seeks (BASINS' Settings › SCRUB), read once per gesture
+tl = installTimeline({ mount: $('floats'), mod, present, say: (text) => notice(text), dock: { span }, storageKey: KEY, keys, scrubLevel: () => scrubLevel,
+  initial: { dock: 'bottom', open: true, h: 440, chipSide: 'left' } });
+
+/* first visit: two automation lanes on SIZE and HUE, and a pattern clip (its steps fire an ENV in an app that has one) */
+const model = tl.model;
+if (!model.state().clips.length) {
+  const lanes = model.state().lanes.map((l) => l.id);
+  const a = model.create({ targetId: 'scene.size', name: 'SIZE', value: 0.4, start: 0, duration: 16, laneId: lanes[0] });
+  model.updateCurve(model.state().clips.find((c) => c.id === a).curveId, { points: [{ t: 0, v: 0.15, tension: 0 }, { t: 0.25, v: 0.95, tension: 0.35 }, { t: 0.5, v: 0.3, tension: -0.3 }, { t: 0.75, v: 0.85, tension: 0 }, { t: 1, v: 0.15, tension: 0 }] });
+  const b = model.create({ targetId: 'scene.hue', name: 'HUE', value: 0.5, start: 0, duration: 16, laneId: lanes[1] });
+  model.updateCurve(model.state().clips.find((c) => c.id === b).curveId, { points: [{ t: 0, v: 0.1, tension: 0 }, { t: 1, v: 0.9, tension: 0.2 }], color: '#7bbfc8' });
+  const steps = Array.from({ length: 16 }, (_, i) => (i % 4 === 0 ? 127 : i % 4 === 2 ? 72 : 0));
+  tl.editor.addClip('pattern', { envId: 'env1', steps, name: 'PATTERN', color: '#e2b579' }, { start: 4, duration: 8, laneId: lanes[2], select: false });
+  model.restore(model.serialize());                               // the seed is the start, not an edit: no undo rows behind it
+}
+
+/* ── the bar: the two windows, the GUI, the language, a reset ── */
+const bar = $('bar');
+bar.appendChild(trig({ label: 'MODULATION', title: 'open or close the modulation window', onFire: () => mod.toggle() }).root);
+bar.appendChild(trig({ label: 'TIMELINE', title: 'open or close the timeline', onFire: () => tl.toggle() }).root);
+bar.appendChild(trig({ label: 'GUI', title: 'the look: MIR OPTIONS', onFire: () => gui.open() }).root);
+const SCRUBS = [{ id: 'live', label: 'LIVE' }, { id: 'light', label: 'LIGHT' }, { id: 'release', label: 'RELEASE' }];
+const scrubSeg = seg({ label: 'SCRUB', value: 'live', options: SCRUBS, onChange: (v) => { scrubLevel = v; } });
+scrubSeg.root.dataset.g = 'scrub'; scrubSeg.root.querySelectorAll('.seg-b').forEach((b, i) => { b.dataset.id = SCRUBS[i].id; });
+bar.appendChild(scrubSeg.root);
+bar.appendChild(seg({ label: 'LANGUAGE', value: 'en', options: [{ id: 'en', label: 'EN' }, { id: 'qps', label: 'QPS' }], onChange: (v) => setLanguage(v) }).root);
+bar.appendChild(trig({ label: 'RESET', title: 'forget the arrangement, the windows and the look', onFire: () => { location.search = '?fresh'; } }).root);
+installPress({ selector: '.sw, .seg-b, .trig, .tbtn' });
+if (q.get('lang')) { addLocales(new URL('../mir/locales/', location.href).href); await setLanguage(q.get('lang')); }
+present();
+window.__TL = { tl, mod, model, S, gui, span, keys, frame, motion, setLanguage, params, scrubLevel: () => scrubLevel };
+window.__ready = true;
+</script>
+</body>
+</html>
