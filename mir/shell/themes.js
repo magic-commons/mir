@@ -22,11 +22,11 @@
 export const COLOUR_KEYS = Object.freeze(['hue', 'tint', 'bright', 'accentA', 'accentB', 'vivid']);
 /** the options a theme sets: every look option but the colours and the user's own (theme, hints, help, drop guides) */
 export const THEME_KEYS = Object.freeze(['card', 'frost', 'blur', 'veil', 'saturation', 'corners', 'faces', 'faceBlend', 'text', 'relief', 'edge',
-  'lightAngle', 'shadow', 'shadowDist', 'shadowSoft', 'shine', 'shineSoft', 'dropShadow', 'disconnected', 'spacing', 'motion', 'glow', 'parallax', 'quality']);
+  'lightAngle', 'reliefAngle', 'reliefLink', 'shadow', 'shadowDist', 'shadowSoft', 'shine', 'shineSoft', 'dropShadow', 'disconnected', 'spacing', 'motion', 'glow', 'parallax', 'quality']);
 
 /* what a theme does not say: the kit's own home for each (shell/gui.js lookSchema defaults, before FROST) */
 const BASE = { card: 'tinted', frost: 'off', blur: 11, veil: 10, saturation: 1, corners: 14, faces: 'solid', faceBlend: 0, text: 'theme', relief: 'default', edge: true,
-  lightAngle: 0, shadow: 1, shadowDist: 2, shadowSoft: 8, shine: 0, shineSoft: 12, dropShadow: true, disconnected: false, spacing: 'default', motion: 'auto', glow: true, parallax: true, quality: 'full' };
+  lightAngle: 0, reliefAngle: 315, reliefLink: false, shadow: 1, shadowDist: 2, shadowSoft: 8, shine: 0, shineSoft: 12, dropShadow: true, disconnected: false, spacing: 'default', motion: 'auto', glow: true, parallax: true, quality: 'full' };
 const tone = (id, name, hue, tint, bright, accentA, accentB, vivid) => ({ id, name, values: { hue, tint, bright, accentA, accentB, vivid } });
 
 /* ── THE TABLE ─────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -37,11 +37,11 @@ const TABLE = [   // tr: names
      Refractive on and frost always."  BASINS' ABOUT GLASS draws no pane edge (material.css), so EDGE is off.  The white
      text belongs to dark mode: TEXT is AUTO, which under glass is BASINS' pure ladder in the mode's polarity — white in
      dark (the recipe, exactly), black in light. */
-  { id: 'frost', name: 'FROST', values: { card: 'refractive', frost: 'always', blur: 11, veil: 0, saturation: 1.3, corners: 24, faces: 'glass', text: 'theme', edge: false, lightAngle: 0, shadow: 2, spacing: 'default' },
+  { id: 'frost', name: 'FROST', values: { card: 'refractive', frost: 'always', blur: 11, veil: 0, saturation: 1.3, corners: 24, faces: 'glass', text: 'theme', edge: false, lightAngle: 0, reliefAngle: 315, shadow: 2, spacing: 'default' },
     tones: [tone('clear', 'CLEAR', 0, 0, 0, 30, 300, 0.1), tone('rose', 'ROSE', 340, 0.22, 0, 345, 300, 0.25), tone('azure', 'AZURE', 205, 0.28, 0, 200, 280, 0.25)] },
   /* MORPH — neumorphism: the SOLID pane, the light at the upper left, a drop shadow bottom-right and the shine upper-left
      (Josh: "So bottom right shadow, upper left shine"), faces the pane's colour, soft corners, no edge. */
-  { id: 'morph', name: 'MORPH', values: { card: 'solid', corners: 20, edge: false, lightAngle: 315, shadow: 1.4, shadowDist: 6, shadowSoft: 14, shine: 0.7, shineSoft: 14, glow: false, parallax: false, spacing: 'airy' },
+  { id: 'morph', name: 'MORPH', values: { card: 'solid', corners: 20, edge: false, lightAngle: 315, reliefLink: true, shadow: 1.4, shadowDist: 6, shadowSoft: 14, shine: 0.7, shineSoft: 14, glow: false, parallax: false, spacing: 'airy' },
     tones: [tone('clay', 'CLAY', 24, 0.16, 0, 30, 300, 0.1), tone('mint', 'MINT', 150, 0.18, 0, 140, 300, 0.1), tone('lilac', 'LILAC', 268, 0.2, 0, 280, 30, 0.1), tone('slate', 'SLATE', 0, 0, 0, 30, 300, 0.1)] },
   /* CLASSIC — the 1.4 spirit: the tinted pane, solid faces, the relief, the house corner and veil, and 1.4's 22 px blur. */
   { id: 'classic', name: 'CLASSIC', values: { blur: 22 },

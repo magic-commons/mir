@@ -9,7 +9,7 @@ See them all at `gallery/themes.html` (every theme × every tone, live; click on
 | Theme | What it is | Its settings (beyond the kit's home) | Tones |
 |---|---|---|---|
 | **FROST** | Glassmorphism. Josh's recipe, the new user's look | REFRACTIVE, FROST always, BLUR 11, VEIL 0, SATURATION 130 %, CORNERS 24, CONTROL FACES glass, TEXT auto (white in dark, as the recipe says; black in light), EDGE off, SHADOW 200 %, SPACING DEFAULT | CLEAR · ROSE · AZURE |
-| **MORPH** | Neumorphism | SOLID, CORNERS 20, EDGE off, LIGHT ANGLE 315° (upper left), SHADOW 140 %, DISTANCE 6, SOFTNESS 14, SHINE 70 %, SHINE SOFT 14, glow and parallax off, SPACING AIRY | CLAY · MINT · LILAC · SLATE |
+| **MORPH** | Neumorphism | SOLID, CORNERS 20, EDGE off, LIGHT ANGLE 315° (upper left) with the relief LINKED, SHADOW 140 %, DISTANCE 6, SOFTNESS 14, SHINE 70 %, SHINE SOFT 14, glow and parallax off, SPACING AIRY | CLAY · MINT · LILAC · SLATE |
 | **CLASSIC** | The 1.4 spirit | TINTED, solid faces, the relief, CORNERS 14, the house veil, BLUR 22 (1.4's own), SPACING DEFAULT | HOUSE · INK · EMBER |
 | **SWIFT** | The fast one (it replaces the preset called LIGHT) | SOLID, relief FLAT, SHADOW 0, MOTION off, glow and parallax off, QUALITY light (the flat tier), SPACING TIGHT | GRAPHITE · SAND · STEEL |
 | **AURORA** | The flashy one | REFRACTIVE, FROST always, BLUR 16, VEIL 6, SATURATION 180 %, CORNERS 22, glass faces, SHADOW 150 %, DISTANCE 3, SOFTNESS 14, SHINE 100 %, SHINE SOFT 18, vivid accents, SPACING DEFAULT | BOREALIS · DUSK · SOLAR |
@@ -33,19 +33,20 @@ All are options of the GUI window's look store (`docs/GUI.md` has every option a
 | DROP SHADOW | on · off | Display's switch: off is no pane shadow at all | BASINS Settings › DISPLAY |
 | BRIGHT · HUE · TINT · SATURATION · VEIL | as before | Now BASINS' formula exactly: the tint's lightness +40 per BRIGHT, its hue to HUE and saturation to 70 % by TINT, **times SATURATION**; the veil is the theme's signed whiteness **plus ½·BRIGHT**, coloured toward HUE by TINT | BASINS `applyGlass` (`mir/core/look.js`) |
 | EDGE | on · off | A window pane's hairline rim (`--pane-edge`). Menus and popovers keep theirs | BASINS draws no window edge (`material.css`) |
-| **LIGHT ANGLE** | 0–360° (an arc) | Where the one light is, clockwise from straight up. Pane shadows fall away from it, the shine sits toward it, and the controls' relief turns with it | Josh ("bottom right shadow, upper left shine") |
+| **LIGHT ANGLE** | 0–360° (an arc) | Where the panes' light is, clockwise from straight up. Pane shadows fall away from it and the shine sits toward it | Josh ("bottom right shadow, upper left shine") |
+| **RELIEF ANGLE** · LINK | 0–360° (an arc) · on/off | Where the controls' light is: their raise and wells turn with it. LINK makes it LIGHT ANGLE (one light for everything) | BASINS (two lights: panes from above, controls from the upper left); Josh ("let it be more parameters I can mess with") |
 | DISTANCE · SOFTNESS | 0–24 px · 0–48 px | How far the shadow falls and how soft it is (the shine uses the same distance) | invention |
 | **SHINE** · SHINE SOFT | 0–100 % · 0–48 px | The shadow's opposite: a light 180° across, blended additively | Josh ("set blend mode to 'add' which is shine") |
 | **SPACING** | 0 · TIGHT · DEFAULT · AIRY | The rack's air: the gap between its windows, its inset from the screen's edge, the padding inside a pane and the gap in a docked chip rail (`--rack-gap`, `--rack-inset`, `--pane-pad`, `--rail-gap`). 0 is flush | Josh ("an option for 0 padding/margins …"); the levels are BASINS' (`skin.js SPACING`); AIRY is an invention |
 
-### One light
+### Two lights
 
-`--light-angle` (on `<html>`) is the only direction. The sheets draw from it with CSS `sin()` / `cos()`:
+BASINS has two lights, and so does the kit since alpha.7: `--light-angle` (LIGHT ANGLE) for the panes and `--relief-angle` (RELIEF ANGLE) for the controls, both on `<html>`; LINK makes the relief take LIGHT ANGLE. The sheets draw from them with CSS `sin()` / `cos()`:
 - **the pane shadow** (`html[data-cast]`, written while any light setting is off home) falls away from it, at three heights (pane · floating window · menu: ×1, ×3, ×5 the distance, ×1, ×2.25, ×3.5 the softness). A height scales distance and softness, never darkness: every height wears BASINS' pane alphas (.20 · .12 dark, .10 · .06 light) times SHADOW, so **the cap** is BASINS' own pane shadow at 200 %: alpha .40 · .24 (dark), .20 · .12 (light). FROST's menu, which was .76, is .40;
 - **the shine** (`html[data-shine]`, SHINE above 0) sits toward it;
-- **the controls' relief** (`--neu-raise`, `--neu-inset`, read through `--relief-raise` / `--relief-well`) turns with it: the highlight toward the light, the drop away. At 315° these are the 1.4 drawing exactly; at FROST's 0° (above, plan ruling 2) the raise is straight up and down. This settles INTENT's O2.
+- **the controls' relief** (`--neu-raise`, `--neu-inset`, read through `--relief-raise` / `--relief-well`) turns with RELIEF ANGLE: the highlight toward the light, the drop away. At its home, 315°, it is the 1.4 drawing exactly (`-1px -1px 3px`, `2px 2px 4px`; wells `1px 1px 3px`, `-1px -1px 2px`: computed to the pixel); the top-edge light (`inset 0 1px 0`) never turns. This settles INTENT's O2: two lights, linked or not.
 
-FROST's light is from above (0°). MORPH's is the upper left (315°).
+FROST and CLASSIC: panes from above (0°), controls from the upper left (315°), which is BASINS exactly. MORPH: LINK on, the upper left (315°) for everything. AURORA and NEON: as FROST (0° and 315°, unlinked). SWIFT has no relief (FLAT).
 
 **The shine on each pane species.** A `box-shadow` cannot blend, so the shine needs a layer of its own:
 
@@ -163,7 +164,7 @@ Also: a pane shadow written as `none` breaks nothing (the carried ring, the tool
 | ON | the frost face, rim and light | unchanged (BASINS paints its own ON) |
 | Disabled | one fade, no relief | unchanged |
 
-**The light, for Josh's decision.** FROST's angle is one value in `mir/shell/themes.js` (`lightAngle: 0`). One angle cannot reproduce BASINS: BASINS has two lights, its panes cast straight down (`0 2px 8px`) and its controls down-right (`2px 2px` / `1px 1px`, the 1.4 relief). At 315° the kit draws BASINS' controls exactly but its panes fall bottom-right; at 0° its panes are BASINS' and its controls cast straight down. Matching BASINS exactly needs a second setting (a relief angle beside LIGHT ANGLE, the relief reading it, FROST at 0° and 315°): that is the real answer to INTENT's O2.
+**The light.** One angle could not reproduce BASINS: its panes cast straight down and its controls down-right. Since alpha.7 there are two settings (above), and FROST is `lightAngle: 0, reliefAngle: 315` in `mir/shell/themes.js`: the knob, trigger, segment track, fader well and arc knob compute BASINS' 1.4 relief exactly, and the panes BASINS' straight-down shadow. Against alpha.4 on `gallery/index.html` and `intent.html` (stylehash) every control's relief is back where it was; what differs is alpha.5–7's own: the tooltip's, badge's and carried window's ring are outlines (the same pixels), no text emboss under glass (O3), a refractive menu under FROST wears the .10 veil and no sheen, and the 44 px power seat.
 
 ## What an app can delete
 

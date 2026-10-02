@@ -103,7 +103,8 @@ Every control on MIR OPTIONS changes what is drawn through a hook a kit sheet or
 | | HELP | switch | `body.window-info-off` (skin.css hides every ⓘ) | on |
 | QUALITY | FULL · BALANCED · LIGHT | seg | `<html data-ui-tier>`: none · `lite` · `flat` (`docs/TIERS.md`) | FULL |
 | | BLUR · SHADOW · FRAME | readouts | the cost of the look (below); SHADOW counts shine layers too | |
-| LIGHT (page 2) | ANGLE 0–360° (an arc) | dial | `--light-angle` on `<html>`: the pane shadow falls away from it, the shine sits toward it, the relief turns with it (`docs/THEMES.md`) | 0° (above) |
+| LIGHT (page 2) | ANGLE 0–360° (an arc) | dial | `--light-angle` on `<html>`: the pane shadow falls away from it, the shine sits toward it (`docs/THEMES.md`) | 0° (above) |
+| | RELIEF 0–360° (an arc) · LINK | dial · switch | `--relief-angle` on `<html>`: the controls' raise and wells turn with it; LINK writes LIGHT ANGLE there instead. RELIEF is disabled while linked or FLAT | 315° (upper left: 1.4, BASINS) · off |
 | | SHADOW 0–200 % | dial | `--shadow-amount` on `<html>`; off home `html[data-cast]` draws BASINS' ABOUT shadow at this strength, at three heights | 100 % (FROST: 200 %) |
 | | DISTANCE 0–24 px · SOFTNESS 0–48 px | dials | `--shadow-dist`, `--shadow-soft` on `<html>` | 2 px · 8 px |
 | | SHINE 0–100 % · SHINE SOFT 0–48 px | dials | `--shine-amount`, `--shine-soft` on `<html>`; above 0, `html[data-shine]`: the additive layer on rack cards, a shadow-list layer elsewhere. Disabled in the flat tier | 0 · 12 px |

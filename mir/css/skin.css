@@ -47,20 +47,24 @@
   --state-disabled: .38;                                          /* the one fade, relief removed (INTENT O6) */
   --glass-well: hsl(0 0% 0% / .28); --glass-raise: hsl(0 0% 100% / .045); --glass-press: hsl(0 0% 100% / .12);
   --glass-groove: hsl(0 0% 100% / .08); --glass-groove-hot: hsl(0 0% 100% / .14);
-  /* 1.5.0-alpha.5 · ONE LIGHT (docs/THEMES.md).  LIGHT ANGLE is where the light is, clockwise from straight up; the GUI
-     window writes it on <html>.  The controls' relief follows it (INTENT O2, settled): the highlight sits toward the
-     light, the drop away from it, by CSS sin()/cos().  At 315° (upper left) these are the 1.4 drawing exactly; at the
-     home 0° (FROST's "from above") the raise is straight up and down.  The pane shadows follow it under html[data-cast]. */
+  /* 1.5.0-alpha.7 · TWO LIGHTS (docs/THEMES.md, INTENT O2): a pane light and a relief light, linked or not, as BASINS
+     has them.  LIGHT ANGLE (where the panes' light is, clockwise from straight up) turns the pane shadows and the shine
+     under html[data-cast] / html[data-shine]; RELIEF ANGLE turns the controls' raise and well: the highlight toward
+     it, the drop away, by CSS sin()/cos().  The GUI window writes both on <html>; LINK makes the relief take LIGHT
+     ANGLE.  At their homes, 0° and 315°, the panes cast straight down and the controls down-right: the 1.4 relief
+     exactly, and FROST = BASINS.  The top-edge light (inset 0 1px 0) does not turn: it is the pane's edge catching light. */
   --light-angle: 0deg;
   --light-sin: sin(var(--light-angle)); --light-cos: cos(var(--light-angle));
+  --relief-angle: 315deg;                                         /* RELIEF ANGLE: the controls' light (1.4 and BASINS: upper left); LINK makes it LIGHT ANGLE */
+  --relief-sin: sin(var(--relief-angle)); --relief-cos: cos(var(--relief-angle));
   --shadow-amount: 1; --shadow-dist: 2px; --shadow-soft: 8px;     /* SHADOW 100 %, DISTANCE, SOFTNESS: read only under html[data-cast] */
   --shine-amount: 0; --shine-soft: 12px;                          /* SHINE and its SOFTNESS: read only under html[data-shine] */
   --shine-term: 0 0 0 0 transparent;                              /* the shine's layer in a pane's shadow list, off */
-  --neu-raise: calc(1.4142px * var(--light-sin)) calc(-1.4142px * var(--light-cos)) 3px hsl(0 0% 100% / .05),
-    calc(-2.8284px * var(--light-sin)) calc(2.8284px * var(--light-cos)) 4px hsl(0 0% 0% / .42),
-    inset calc(-1px * var(--light-sin)) calc(1px * var(--light-cos)) 0 hsl(0 0% 100% / .08);                            /* a control that stands proud */
-  --neu-inset: inset calc(-1.4142px * var(--light-sin)) calc(1.4142px * var(--light-cos)) 3px hsl(0 0% 0% / .48),
-    inset calc(1.4142px * var(--light-sin)) calc(-1.4142px * var(--light-cos)) 2px hsl(0 0% 100% / .04);                 /* a well cut into the card */
+  --neu-raise: calc(1px * sqrt(2) * var(--relief-sin)) calc(-1px * sqrt(2) * var(--relief-cos)) 3px hsl(0 0% 100% / .05),
+    calc(-2px * sqrt(2) * var(--relief-sin)) calc(2px * sqrt(2) * var(--relief-cos)) 4px hsl(0 0% 0% / .42),
+    inset 0 1px 0 hsl(0 0% 100% / .08);                            /* a control that stands proud */
+  --neu-inset: inset calc(-1px * sqrt(2) * var(--relief-sin)) calc(1px * sqrt(2) * var(--relief-cos)) 3px hsl(0 0% 0% / .48),
+    inset calc(1px * sqrt(2) * var(--relief-sin)) calc(-1px * sqrt(2) * var(--relief-cos)) 2px hsl(0 0% 100% / .04);                 /* a well cut into the card */
   --neu-flat: 0 0 0 1px hsl(0 0% 100% / .05);                     /* a resting seat, neither up nor down */
   --seat-edge: 1px solid hsl(0 0% 100% / .05);                    /* the same seat as an outline, beside a pane shadow (the tooltip, the badge) */
   --fg: #f2f5f7; --fg-soft: hsl(0 0% 88%); --dim: hsl(0 0% 72%); --ink-key: hsl(0 0% 74%); --ink-faint: hsl(0 0% 64%);  /* all ≥ 4.5:1 on the card, see skin-notes */
@@ -115,11 +119,11 @@ body[data-theme="light"] {
   --surface-shadow-menu: inset 0 1px 0 hsl(0 0% 100% / .8), 0 10px 28px hsl(214 40% 20% / .20), 0 2px 6px hsl(214 40% 20% / .10);
   --state-on: hsl(0 0% 100% / .62);                               /* on a light card a .086 white is invisible: the frost face is whiter */
   --state-on-rim: inset 0 0 0 1px hsl(214 30% 40% / .34), inset 0 1px 0 hsl(0 0% 100% / .12);
-  --neu-raise: calc(1.4142px * var(--light-sin)) calc(-1.4142px * var(--light-cos)) 3px hsl(0 0% 100% / .9),
-    calc(-2.8284px * var(--light-sin)) calc(2.8284px * var(--light-cos)) 4px hsl(214 30% 40% / .22),
-    inset calc(-1px * var(--light-sin)) calc(1px * var(--light-cos)) 0 hsl(0 0% 100% / .9);
-  --neu-inset: inset calc(-1.4142px * var(--light-sin)) calc(1.4142px * var(--light-cos)) 3px hsl(214 30% 40% / .24),
-    inset calc(1.4142px * var(--light-sin)) calc(-1.4142px * var(--light-cos)) 2px hsl(0 0% 100% / .8);
+  --neu-raise: calc(1px * sqrt(2) * var(--relief-sin)) calc(-1px * sqrt(2) * var(--relief-cos)) 3px hsl(0 0% 100% / .9),
+    calc(-2px * sqrt(2) * var(--relief-sin)) calc(2px * sqrt(2) * var(--relief-cos)) 4px hsl(214 30% 40% / .22),
+    inset 0 1px 0 hsl(0 0% 100% / .9);
+  --neu-inset: inset calc(-1px * sqrt(2) * var(--relief-sin)) calc(1px * sqrt(2) * var(--relief-cos)) 3px hsl(214 30% 40% / .24),
+    inset calc(1px * sqrt(2) * var(--relief-sin)) calc(-1px * sqrt(2) * var(--relief-cos)) 2px hsl(0 0% 100% / .8);
   --lum-acc: 34%; --acc: hsl(var(--hue-acc) calc(var(--sat-acc) - 10%) var(--lum-acc)); --acc-ink: hsl(0 0% 100%);   /* hsl(188 70% 34%) by default, and it follows the hue */
 }
 /* LIGHT · THE VIVID SHELL SET (wave 46).  --n1…--n6 were chosen on the dark ground: measured against the
@@ -153,10 +157,10 @@ body[data-card="solid"] {
   --solid-shade: color-mix(in srgb, var(--solid-pane), hsl(0 0% 0%) var(--solid-sink, 32%));
   --glass-well: color-mix(in srgb, var(--solid-pane), hsl(0 0% 0%) 10%);
   --sw-fill: var(--solid-pane);
-  --neu-raise: calc(2.8284px * var(--light-sin)) calc(-2.8284px * var(--light-cos)) 6px var(--solid-lit),
-    calc(-2.8284px * var(--light-sin)) calc(2.8284px * var(--light-cos)) 6px var(--solid-shade);
-  --neu-inset: inset calc(-2px * var(--light-sin)) calc(2px * var(--light-cos)) 4px var(--solid-shade),
-    inset calc(2px * var(--light-sin)) calc(-2px * var(--light-cos)) 4px var(--solid-lit);
+  --neu-raise: calc(2px * sqrt(2) * var(--relief-sin)) calc(-2px * sqrt(2) * var(--relief-cos)) 6px var(--solid-lit),
+    calc(-2px * sqrt(2) * var(--relief-sin)) calc(2px * sqrt(2) * var(--relief-cos)) 6px var(--solid-shade);
+  --neu-inset: inset calc(-2px * var(--relief-sin)) calc(2px * var(--relief-cos)) 4px var(--solid-shade),
+    inset calc(2px * var(--relief-sin)) calc(-2px * var(--relief-cos)) 4px var(--solid-lit);
 }
 body[data-card="solid"][data-theme="light"] {
   --solid-lit: color-mix(in srgb, var(--solid-pane), hsl(0 0% 100%) var(--solid-lift, 70%));

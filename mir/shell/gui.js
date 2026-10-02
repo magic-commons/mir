@@ -123,6 +123,11 @@ export function lookSchema() {
     /* THE ONE LIGHT — LIGHT ANGLE, SHADOW 0–200 % (BASINS' range), DISTANCE, SOFTNESS, SHINE, its SOFTNESS.  Each writes
        its number on <html> off home; html[data-cast] lets the sheets draw the cast, html[data-shine] the shine layer */
     { key: 'lightAngle', type: 'number', step: 1, min: 0, max: 360, wrap: true, default: 0, apply: [{ on: 'html', prop: '--light-angle', map: (v) => (v ? v + 'deg' : null) }] },
+    /* RELIEF ANGLE — the controls' light (INTENT O2: two lights, as BASINS has them); LINK makes it LIGHT ANGLE.  At its
+       home, 315° (upper left), the kit's own relief stands: the 1.4 drawing, BASINS' */
+    { key: 'reliefAngle', type: 'number', step: 1, min: 0, max: 360, wrap: true, default: 315 },
+    { key: 'reliefLink', type: 'bool', default: false, apply: [{ on: 'html', prop: '--relief-angle',
+      map: (v, s) => { const a = v ? s.lightAngle : s.reliefAngle; return a === 315 ? null : a + 'deg'; } }] },
     { key: 'shadow', type: 'number', step: 0.01, min: 0, max: 2, default: 2, apply: [{ on: 'html', prop: '--shadow-amount', map: (v) => (v === 1 ? null : String(v)) }] },
     { key: 'shadowDist', type: 'number', step: 1, min: 0, max: 24, default: 2, apply: [{ on: 'html', prop: '--shadow-dist', map: (v) => (v === 2 ? null : v + 'px') }] },
     { key: 'shadowSoft', type: 'number', step: 1, min: 0, max: 48, default: 8, apply: [{ on: 'html', prop: '--shadow-soft', map: (v) => (v === 8 ? null : v + 'px') }] },
@@ -359,7 +364,11 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   line(g, 'gui-knobs').append(kAngle.root, kShadow.root, kDist.root, kSoft.root);
   const kShine = knobOf('shine', phrase('SHINE'), { ...hundred, title: '{:SHINE} — the shadow’s opposite: a light across the pane’s edge toward the light, added to what is behind' });
   const kShineSoft = knobOf('shineSoft', phrase('SHINE SOFT'), { min: 0, max: 48, fmt: px, aria: 'SHINE SOFTNESS', title: 'The shine’s blur' });
-  line(g, 'gui-knobs').append(kShine.root, kShineSoft.root, seat(), seat());
+  const kRelief = knobOf('reliefAngle', phrase('RELIEF'), { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial', aria: 'RELIEF ANGLE', title: 'RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})' });
+  const reliefArc = sweep(kRelief); reliefArc(P.get('reliefAngle'));
+  const swLink = swOf('reliefLink', phrase('LINK'), phrase('The controls take the panes’ light: one {:ANGLE} for everything'));
+  swLink.root.classList.add('gui-link');
+  line(g, 'gui-knobs').append(kShine.root, kShineSoft.root, kRelief.root, swLink.root);
 
   /* WINDOWS — the pane's rim, its drop shadow, its header apart */
   g = groupEl('windows', phrase('WINDOWS'));
@@ -496,6 +505,8 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
     if (changed.includes('accentB')) swB(state.accentB);
     if (changed.includes('hue')) hueArc(state.hue);
     if (changed.includes('lightAngle')) angleArc(state.lightAngle);
+    if (changed.includes('reliefAngle')) reliefArc(state.reliefAngle);
+    kRelief.setDisabled(state.reliefLink || state.relief === 'flat');
     const theme = P.preset();
     skinStep.set(theme); toneStep.setItems(toneItems(theme), theme === 'custom' ? undefined : matchTone(state, theme));
     paintVer(); paintCost();
