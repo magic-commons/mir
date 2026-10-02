@@ -1,0 +1,30 @@
+{
+ "tag": "ja",
+ "name": "日本語",
+ "dir": "ltr",
+ "reviewed": false,
+ "fonts": [
+  {
+   "family": "M PLUS 1",
+   "role": "ui",
+   "script": "Japanese (subset; Noto Sans JP is the alternative)",
+   "licence": "OFL-1.1",
+   "file": null,
+   "status": "held"
+  },
+  {
+   "family": "Shippori Mincho",
+   "role": "display",
+   "script": "Japanese",
+   "licence": "OFL-1.1",
+   "file": null,
+   "status": "held"
+  }
+ ],
+ "type": {
+  "case": "none",
+  "tracking": 0,
+  "lineHeight": 1.6
+ },
+ "strings": {}
+}

@@ -1,0 +1,30 @@
+{
+ "tag": "zh-Hans",
+ "name": "中文",
+ "dir": "ltr",
+ "reviewed": false,
+ "fonts": [
+  {
+   "family": "Noto Sans SC",
+   "role": "ui",
+   "script": "Han (subset: the app strings + GB2312 level 1)",
+   "licence": "OFL-1.1",
+   "file": null,
+   "status": "held"
+  },
+  {
+   "family": "Noto Serif SC",
+   "role": "display",
+   "script": "Han",
+   "licence": "OFL-1.1",
+   "file": null,
+   "status": "held"
+  }
+ ],
+ "type": {
+  "case": "none",
+  "tracking": 0,
+  "lineHeight": 1.6
+ },
+ "strings": {}
+}

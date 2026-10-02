@@ -1,0 +1,699 @@
+{
+ "tag": "en",
+ "name": "English",
+ "dir": "ltr",
+ "reviewed": true,
+ "fonts": [
+  {
+   "family": "Roboto",
+   "role": "ui",
+   "script": "Latin (the shipped subset)",
+   "licence": "OFL-1.1",
+   "file": "fonts/Roboto-ui.woff2",
+   "status": "shipped"
+  }
+ ],
+ "type": {
+  "case": "uppercase",
+  "tracking": "house",
+  "lineHeight": 1.45
+ },
+ "note": "The catalogue (tools/i18n-extract.mjs writes it; do not edit). A translator copies this file to <tag>.json, keeps the keys, writes each value in the language, and deletes \"sources\". English needs no pack: it is the fallback.",
+ "strings": {
+  "ABOUT": "ABOUT",
+  "Audio input device": "Audio input device",
+  "BASINS today: refractive frost, separate headers": "BASINS today: refractive frost, separate headers",
+  "BLUR": "BLUR",
+  "CALCULATING": "CALCULATING",
+  "CLASSIC": "CLASSIC",
+  "COMPACT": "COMPACT",
+  "COPY": "COPY",
+  "COPY DUMP": "COPY DUMP",
+  "CUSTOM": "CUSTOM",
+  "Close dead-send inspector": "Close dead-send inspector",
+  "Close the conditioning sheet": "Close the conditioning sheet",
+  "Close this window": "Close this window",
+  "Close window": "Close window",
+  "Collapse or expand this window": "Collapse or expand this window",
+  "DIST": "DIST",
+  "DRAFT": "DRAFT",
+  "Dead-send inspector": "Dead-send inspector",
+  "Drag to resize the notebook": "Drag to resize the notebook",
+  "Drag window": "Drag window",
+  "EXPOSURE": "EXPOSURE",
+  "Every look option back home": "Every look option back home",
+  "FOV": "FOV",
+  "FRAME": "FRAME",
+  "FROST": "FROST",
+  "GLASS": "GLASS",
+  "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license}": "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license}",
+  "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license} and {notice}": "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license} and {notice}",
+  "GRAIN": "GRAIN",
+  "GUI": "GUI",
+  "GUI — MIR OPTIONS and MIR ABOUT": "GUI — MIR OPTIONS and MIR ABOUT",
+  "HSV wheel (the built-in)": "HSV wheel (the built-in)",
+  "HUE": "HUE",
+  "ISO": "ISO",
+  "In the most recently saved layout": "In the most recently saved layout",
+  "Information": "Information",
+  "KNEE": "KNEE",
+  "LAP": "LAP",
+  "LEVEL": "LEVEL",
+  "LIGHT": "LIGHT",
+  "LOOK": "LOOK",
+  "MACRO": "MACRO",
+  "METRO": "METRO",
+  "MIR": "MIR",
+  "MIR ABOUT": "MIR ABOUT",
+  "MIR OPTIONS": "MIR OPTIONS",
+  "Move this window between the rack and stage": "Move this window between the rack and stage",
+  "Move window": "Move window",
+  "NOTEBOOK": "NOTEBOOK",
+  "One camera orbit per bar, with a vertical sweep.": "One camera orbit per bar, with a vertical sweep.",
+  "Orient the plane. Shift gives finer motion; Home resets.": "Orient the plane. Shift gives finer motion; Home resets.",
+  "PITCH": "PITCH",
+  "PRESETS": "PRESETS",
+  "Preset name — type one, then tap SAVE": "Preset name — type one, then tap SAVE",
+  "RATE": "RATE",
+  "RECENT": "RECENT",
+  "REDO": "REDO",
+  "RES": "RES",
+  "RESET LOOK": "RESET LOOK",
+  "RIBBON": "RIBBON",
+  "RISE": "RISE",
+  "Redo (Ctrl+Shift+Z, Ctrl+Y)": "Redo (Ctrl+Shift+Z, Ctrl+Y)",
+  "Resize window": "Resize window",
+  "Restore this window layout": "Restore this window layout",
+  "Rotate phase colour once per bar without moving the state.": "Rotate phase colour once per bar without moving the state.",
+  "SAVE": "SAVE",
+  "SHADOWS": "SHADOWS",
+  "SHELF": "SHELF",
+  "SKIN": "SKIN",
+  "SOFTNESS": "SOFTNESS",
+  "SPECIAL THANKS": "SPECIAL THANKS",
+  "SPRITES": "SPRITES",
+  "STEPS": "STEPS",
+  "Save the current window arrangement": "Save the current window arrangement",
+  "Save this rack as a preset": "Save this rack as a preset",
+  "Show the interface": "Show the interface",
+  "Slice sphere and plane. Drag or use arrow keys to rotate; Home resets.": "Slice sphere and plane. Drag or use arrow keys to rotate; Home resets.",
+  "Step through twelve density levels to reveal shells.": "Step through twelve density levels to reveal shells.",
+  "Surfaces that blur what is behind them: one compositor pass each": "Surfaces that blur what is behind them: one compositor pass each",
+  "Surfaces that draw a shadow": "Surfaces that draw a shadow",
+  "TRIG": "TRIG",
+  "TURN": "TURN",
+  "The 1.4 look: tinted panes, no blur, the relief": "The 1.4 look: tinted panes, no blur, the relief",
+  "The fast look: no blur, flat, no shadows, no motion": "The fast look: no blur, flat, no shadows, no motion",
+  "The mean frame time over 30 frames after the last change": "The mean frame time over 30 frames after the last change",
+  "Turn this window on or off": "Turn this window on or off",
+  "Type: {title}, a renamed subset of Spinwerad by gluk · {roboto} · {stix} — all SIL OFL 1.1, subset for this app.": "Type: {title}, a renamed subset of Spinwerad by gluk · {roboto} · {stix} — all SIL OFL 1.1, subset for this app.",
+  "UNDO": "UNDO",
+  "Undo (Ctrl+Z)": "Undo (Ctrl+Z)",
+  "Untitled": "Untitled",
+  "Use the compact window layout": "Use the compact window layout",
+  "WINDOW": "WINDOW",
+  "What the look costs, measured after the last change": "What the look costs, measured after the last change",
+  "Work bars: bottom": "Work bars: bottom",
+  "YAW": "YAW",
+  "Your own mix: the options match no preset": "Your own mix: the options match no preset",
+  "a draft translation: no native reader has checked it yet": "a draft translation: no native reader has checked it yet",
+  "add a page": "add a page",
+  "add a page to the project": "add a page to the project",
+  "aurora": "aurora",
+  "balmer": "balmer",
+  "beacon": "beacon",
+  "biolum": "biolum",
+  "bipolar (Re/Im legible)": "bipolar (Re/Im legible)",
+  "carousel": "carousel",
+  "close this window": "close this window",
+  "cmyk": "cmyk",
+  "copy the notes as text": "copy the notes as text",
+  "cym": "cym",
+  "delete this page": "delete this page",
+  "delete?": "delete?",
+  "ember": "ember",
+  "emulsion": "emulsion",
+  "enamel": "enamel",
+  "every window is open — × on a window closes it": "every window is open — × on a window closes it",
+  "fold or unfold this window": "fold or unfold this window",
+  "folder/name": "folder/name",
+  "forget this layout": "forget this layout",
+  "gas lamp": "gas lamp",
+  "gemstone": "gemstone",
+  "history rows": "history rows",
+  "hot iron": "hot iron",
+  "in the saved favourite layout": "in the saved favourite layout",
+  "lasers": "lasers",
+  "narrow this window to its rail": "narrow this window to its rail",
+  "neon": "neon",
+  "next": "next",
+  "no": "no",
+  "no notes yet — name one above and SAVE AS": "no notes yet — name one above and SAVE AS",
+  "notebook": "notebook",
+  "notebook subtitle": "notebook subtitle",
+  "notebook title": "notebook title",
+  "opal": "opal",
+  "open a window": "open a window",
+  "page": "page",
+  "page 0 — the greeting, shown when the project opens": "page 0 — the greeting, shown when the project opens",
+  "pages": "pages",
+  "patina": "patina",
+  "phosphor": "phosphor",
+  "pinwheel": "pinwheel",
+  "power": "power",
+  "previous": "previous",
+  "prism": "prism",
+  "quadrant": "quadrant",
+  "rename this tab": "rename this tab",
+  "rename to folder/name": "rename to folder/name",
+  "rose window": "rose window",
+  "save as folder/name": "save as folder/name",
+  "sea": "sea",
+  "shelf": "shelf",
+  "signal flag": "signal flag",
+  "subtitle": "subtitle",
+  "supernova": "supernova",
+  "take this window off the rack": "take this window off the rack",
+  "terra": "terra",
+  "test card": "test card",
+  "the notebook's subtitle — type to rename": "the notebook's subtitle — type to rename",
+  "the notebook's title — type to rename": "the notebook's title — type to rename",
+  "twilight": "twilight",
+  "ukiyo": "ukiyo",
+  "ultraviolet": "ultraviolet",
+  "yes": "yes",
+  "your notes: save, open, folders, recent": "your notes: save, open, folders, recent",
+  "yours — the note open from your shelf, kept in this browser": "yours — the note open from your shelf, kept in this browser",
+  "{value} · base · modulated": "{value} · base · modulated",
+  "{value} · modulated": "{value} · modulated",
+  "{word} — the {menus} menus": "{word} — the {menus} menus",
+  "λWAVES": "λWAVES"
+ },
+ "sources": {
+  "ABOUT": [
+   "mir/shell/about.js"
+  ],
+  "Audio input device": [
+   "mir/modulation/modwindow/modwindow.js"
+  ],
+  "BASINS today: refractive frost, separate headers": [
+   "mir/shell/gui.js"
+  ],
+  "BLUR": [
+   "mir/shell/gui.js"
+  ],
+  "CALCULATING": [
+   "mir/kit.js"
+  ],
+  "CLASSIC": [
+   "mir/shell/gui.js"
+  ],
+  "COMPACT": [
+   "mir/modulation/modwindow/modwindow.js"
+  ],
+  "COPY": [
+   "mir/shell/notebook.js"
+  ],
+  "COPY DUMP": [
+   "mir/shell/about.js"
+  ],
+  "CUSTOM": [
+   "mir/shell/gui.js"
+  ],
+  "Close dead-send inspector": [
+   "mir/modulation/modwindow/modwindow.js"
+  ],
+  "Close the conditioning sheet": [
+   "mir/modulation/modwindow/modwindow.js"
+  ],
+  "Close this window": [
+   "mir/kit.js"
+  ],
+  "Close window": [
+   "mir/modulation/modwindow/modwindow.js",
+   "mir/window/rail.js"
+  ],
+  "Collapse or expand this window": [
+   "mir/kit.js"
+  ],
+  "DIST": [
+   "mir/modulation/host.js"
+  ],
+  "DRAFT": [
+   "mir/shell/language.js"
+  ],
+  "Dead-send inspector": [
+   "mir/modulation/modwindow/modwindow.js"
+  ],
+  "Drag to resize the notebook": [
+   "mir/shell/notebook.js"
+  ],
+  "Drag window": [
+   "mir/modulation/modwindow/modwindow.js"
+  ],
+  "EXPOSURE": [
+   "mir/modulation/host.js"
+  ],
+  "Every look option back home": [
+   "mir/shell/gui.js"
+  ],
+  "FOV": [
+   "mir/modulation/host.js"
+  ],
+  "FRAME": [
+   "mir/shell/gui.js"
+  ],
+  "FROST": [
+   "mir/shell/gui.js"
+  ],
+  "GLASS": [
+   "mir/shell/gui.js"
+  ],
+  "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license}": [
+   "mir/shell/about.js"
+  ],
+  "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license} and {notice}": [
+   "mir/shell/about.js"
+  ],
+  "GRAIN": [
+   "mir/modulation/host.js"
+  ],
+  "GUI": [
+   "mir/shell/gui.js"
+  ],
+  "GUI — MIR OPTIONS and MIR ABOUT": [
+   "mir/shell/gui.js"
+  ],
+  "HSV wheel (the built-in)": [
+   "mir/palette.js"
+  ],
+  "HUE": [
+   "mir/modulation/host.js"
+  ],
+  "ISO": [
+   "mir/modulation/host.js"
+  ],
+  "In the most recently saved layout": [
+   "mir/shell/rack.js"
+  ],
+  "Information": [
+   "mir/control-help.js"
+  ],
+  "KNEE": [
+   "mir/modulation/host.js"
+  ],
+  "LAP": [
+   "mir/modulation/host.js"
+  ],
+  "LEVEL": [
+   "mir/modulation/host.js"
+  ],
+  "LIGHT": [
+   "mir/shell/gui.js"
+  ],
+  "LOOK": [
+   "mir/shell/gui.js"
+  ],
+  "MACRO": [
+   "mir/modulation/modwindow/modwindow.js"
+  ],
+  "METRO": [
+   "mir/shell/gui.js"
+  ],
+  "MIR": [
+   "mir/shell/gui.js"
+  ],
+  "MIR ABOUT": [
+   "mir/shell/gui.js"
+  ],
+  "MIR OPTIONS": [
+   "mir/shell/gui.js"
+  ],
+  "Move this window between the rack and stage": [
+   "mir/kit.js"
+  ],
+  "Move window": [
+   "mir/window/rail.js"
+  ],
+  "NOTEBOOK": [
+   "mir/shell/notebook.js"
+  ],
+  "One camera orbit per bar, with a vertical sweep.": [
+   "mir/modulation/host.js"
+  ],
+  "Orient the plane. Shift gives finer motion; Home resets.": [
+   "mir/plane-model.js"
+  ],
+  "PITCH": [
+   "mir/modulation/host.js"
+  ],
+  "PRESETS": [
+   "mir/modulation/modwindow/modwindow.js"
+  ],
+  "Preset name — type one, then tap SAVE": [
+   "mir/modulation/modwindow/modwindow.js"
+  ],
+  "RATE": [
+   "mir/modulation/host.js"
+  ],
+  "RECENT": [
+   "mir/notes/face.js"
+  ],
+  "REDO": [
+   "mir/history/history-list.js"
+  ],
+  "RES": [
+   "mir/modulation/host.js"
+  ],
+  "RESET LOOK": [
+   "mir/shell/gui.js"
+  ],
+  "RIBBON": [
+   "mir/modulation/modwindow/modwindow.js"
+  ],
+  "RISE": [
+   "mir/modulation/host.js"
+  ],
+  "Redo (Ctrl+Shift+Z, Ctrl+Y)": [
+   "mir/history/history-list.js"
+  ],
+  "Resize window": [
+   "mir/window/window.js"
+  ],
+  "Restore this window layout": [
+   "mir/shell/rack.js"
+  ],
+  "Rotate phase colour once per bar without moving the state.": [
+   "mir/modulation/host.js"
+  ],
+  "SAVE": [
+   "mir/modulation/modwindow/modwindow.js"
+  ],
+  "SHADOWS": [
+   "mir/shell/gui.js"
+  ],
+  "SHELF": [
+   "mir/notes/face.js"
+  ],
+  "SKIN": [
+   "mir/shell/gui.js"
+  ],
+  "SOFTNESS": [
+   "mir/modulation/host.js"
+  ],
+  "SPECIAL THANKS": [
+   "mir/shell/about.js"
+  ],
+  "SPRITES": [
+   "mir/shell/gui.js"
+  ],
+  "STEPS": [
+   "mir/modulation/host.js"
+  ],
+  "Save the current window arrangement": [
+   "mir/shell/rack.js"
+  ],
+  "Save this rack as a preset": [
+   "mir/modulation/modwindow/modwindow.js"
+  ],
+  "Show the interface": [
+   "mir/shell/rack.js"
+  ],
+  "Slice sphere and plane. Drag or use arrow keys to rotate; Home resets.": [
+   "mir/plane-model.js"
+  ],
+  "Step through twelve density levels to reveal shells.": [
+   "mir/modulation/host.js"
+  ],
+  "Surfaces that blur what is behind them: one compositor pass each": [
+   "mir/shell/gui.js"
+  ],
+  "Surfaces that draw a shadow": [
+   "mir/shell/gui.js"
+  ],
+  "TRIG": [
+   "mir/modulation/modwindow/modwindow.js"
+  ],
+  "TURN": [
+   "mir/modulation/host.js"
+  ],
+  "The 1.4 look: tinted panes, no blur, the relief": [
+   "mir/shell/gui.js"
+  ],
+  "The fast look: no blur, flat, no shadows, no motion": [
+   "mir/shell/gui.js"
+  ],
+  "The mean frame time over 30 frames after the last change": [
+   "mir/shell/gui.js"
+  ],
+  "Turn this window on or off": [
+   "mir/kit.js"
+  ],
+  "Type: {title}, a renamed subset of Spinwerad by gluk · {roboto} · {stix} — all SIL OFL 1.1, subset for this app.": [
+   "mir/shell/about.js"
+  ],
+  "UNDO": [
+   "mir/history/history-list.js"
+  ],
+  "Undo (Ctrl+Z)": [
+   "mir/history/history-list.js"
+  ],
+  "Untitled": [
+   "mir/shell/notebook.js"
+  ],
+  "Use the compact window layout": [
+   "mir/kit.js"
+  ],
+  "WINDOW": [
+   "mir/modulation/host.js"
+  ],
+  "What the look costs, measured after the last change": [
+   "mir/shell/gui.js"
+  ],
+  "Work bars: bottom": [
+   "mir/modulation/modwindow/modwindow.js"
+  ],
+  "YAW": [
+   "mir/modulation/host.js"
+  ],
+  "Your own mix: the options match no preset": [
+   "mir/shell/gui.js"
+  ],
+  "a draft translation: no native reader has checked it yet": [
+   "mir/shell/language.js"
+  ],
+  "add a page": [
+   "mir/shell/notebook.js"
+  ],
+  "add a page to the project": [
+   "mir/shell/notebook.js"
+  ],
+  "aurora": [
+   "mir/palette.js"
+  ],
+  "balmer": [
+   "mir/palette.js"
+  ],
+  "beacon": [
+   "mir/palette.js"
+  ],
+  "biolum": [
+   "mir/palette.js"
+  ],
+  "bipolar (Re/Im legible)": [
+   "mir/palette.js"
+  ],
+  "carousel": [
+   "mir/palette.js"
+  ],
+  "close this window": [
+   "mir/kit.js"
+  ],
+  "cmyk": [
+   "mir/palette.js"
+  ],
+  "copy the notes as text": [
+   "mir/shell/notebook.js"
+  ],
+  "cym": [
+   "mir/palette.js"
+  ],
+  "delete this page": [
+   "mir/shell/notebook.js"
+  ],
+  "delete?": [
+   "mir/shell/notebook.js"
+  ],
+  "ember": [
+   "mir/palette.js"
+  ],
+  "emulsion": [
+   "mir/palette.js"
+  ],
+  "enamel": [
+   "mir/palette.js"
+  ],
+  "every window is open — × on a window closes it": [
+   "mir/shell/rack.js"
+  ],
+  "fold or unfold this window": [
+   "mir/kit.js"
+  ],
+  "folder/name": [
+   "mir/notes/face.js"
+  ],
+  "forget this layout": [
+   "mir/shell/rack.js"
+  ],
+  "gas lamp": [
+   "mir/palette.js"
+  ],
+  "gemstone": [
+   "mir/palette.js"
+  ],
+  "history rows": [
+   "mir/history/history-list.js"
+  ],
+  "hot iron": [
+   "mir/palette.js"
+  ],
+  "in the saved favourite layout": [
+   "mir/shell/rack.js"
+  ],
+  "lasers": [
+   "mir/palette.js"
+  ],
+  "narrow this window to its rail": [
+   "mir/kit.js"
+  ],
+  "neon": [
+   "mir/palette.js"
+  ],
+  "next": [
+   "mir/shell/gui.js"
+  ],
+  "no": [
+   "mir/shell/notebook.js"
+  ],
+  "no notes yet — name one above and SAVE AS": [
+   "mir/notes/face.js"
+  ],
+  "notebook": [
+   "mir/shell/notebook.js"
+  ],
+  "notebook subtitle": [
+   "mir/shell/notebook.js"
+  ],
+  "notebook title": [
+   "mir/shell/notebook.js"
+  ],
+  "opal": [
+   "mir/palette.js"
+  ],
+  "open a window": [
+   "mir/shell/rack.js"
+  ],
+  "page": [
+   "mir/shell/gui.js"
+  ],
+  "page 0 — the greeting, shown when the project opens": [
+   "mir/shell/notebook.js"
+  ],
+  "pages": [
+   "mir/shell/notebook.js"
+  ],
+  "patina": [
+   "mir/palette.js"
+  ],
+  "phosphor": [
+   "mir/palette.js"
+  ],
+  "pinwheel": [
+   "mir/palette.js"
+  ],
+  "power": [
+   "mir/kit.js"
+  ],
+  "previous": [
+   "mir/shell/gui.js"
+  ],
+  "prism": [
+   "mir/palette.js"
+  ],
+  "quadrant": [
+   "mir/palette.js"
+  ],
+  "rename this tab": [
+   "mir/shell/notebook.js"
+  ],
+  "rename to folder/name": [
+   "mir/notes/face.js"
+  ],
+  "rose window": [
+   "mir/palette.js"
+  ],
+  "save as folder/name": [
+   "mir/notes/face.js"
+  ],
+  "sea": [
+   "mir/palette.js"
+  ],
+  "shelf": [
+   "mir/notes/face.js"
+  ],
+  "signal flag": [
+   "mir/palette.js"
+  ],
+  "subtitle": [
+   "mir/shell/notebook.js"
+  ],
+  "supernova": [
+   "mir/palette.js"
+  ],
+  "take this window off the rack": [
+   "mir/kit.js"
+  ],
+  "terra": [
+   "mir/palette.js"
+  ],
+  "test card": [
+   "mir/palette.js"
+  ],
+  "the notebook's subtitle — type to rename": [
+   "mir/shell/notebook.js"
+  ],
+  "the notebook's title — type to rename": [
+   "mir/shell/notebook.js"
+  ],
+  "twilight": [
+   "mir/palette.js"
+  ],
+  "ukiyo": [
+   "mir/palette.js"
+  ],
+  "ultraviolet": [
+   "mir/palette.js"
+  ],
+  "yes": [
+   "mir/shell/notebook.js"
+  ],
+  "your notes: save, open, folders, recent": [
+   "mir/notes/face.js"
+  ],
+  "yours — the note open from your shelf, kept in this browser": [
+   "mir/shell/notebook.js"
+  ],
+  "{value} · base · modulated": [
+   "mir/kit.js"
+  ],
+  "{value} · modulated": [
+   "mir/kit.js"
+  ],
+  "{word} — the {menus} menus": [
+   "mir/shell/menubar.js"
+  ],
+  "λWAVES": [
+   "mir/palette.js"
+  ]
+ }
+}

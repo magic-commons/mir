@@ -3,6 +3,8 @@
 /* λWAVES: forced edit 1/2 — overlay.js is MANDELBROT's M4 diagnostics sink and has no counterpart here; our gate reads the DOM. */
 // import { publishM4 } from './overlay.js';
 
+import { t } from './core/i18n.js';   // 1.5.4: a chip's accessible name is a label, translated here and kept in data-t-aria (kit.js relabel)
+
 const NS = 'http://www.w3.org/2000/svg';
 
 /* ⟡ EVERY GLYPH IS SIZED, AND SIZED HERE, NOT BY A STYLESHEET.
@@ -399,7 +401,7 @@ export function setGlyph(el, name, opts) {
   el.textContent = '';
   el.appendChild(svg);
   el.setAttribute('data-gly', name);
-  if (label) el.setAttribute('aria-label', label);
+  if (label) { el.setAttribute('data-t-aria', label); el.setAttribute('aria-label', t(label)); }
   return el;
 }
 

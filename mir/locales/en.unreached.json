@@ -1,0 +1,398 @@
+[
+ {
+  "file": "mir/core/envelope.js",
+  "line": 75,
+  "why": "fragment",
+  "text": "not JSON: "
+ },
+ {
+  "file": "mir/core/envelope.js",
+  "line": 135,
+  "why": "fragment",
+  "text": "the packed text does not inflate: "
+ },
+ {
+  "file": "mir/core/envelope.js",
+  "line": 168,
+  "why": "fragment",
+  "text": "the checker could not read this: "
+ },
+ {
+  "file": "mir/core/intake.js",
+  "line": 64,
+  "why": "fragment",
+  "text": "could not read it: "
+ },
+ {
+  "file": "mir/css/skin.css",
+  "line": 451,
+  "why": "css",
+  "text": " · OFF"
+ },
+ {
+  "file": "mir/css/skin.css",
+  "line": 452,
+  "why": "css",
+  "text": " · COPIED"
+ },
+ {
+  "file": "mir/glyph.js",
+  "line": 417,
+  "why": "fragment",
+  "text": " — known: "
+ },
+ {
+  "file": "mir/modulation/mod.js",
+  "line": 2528,
+  "why": "fragment",
+  "text": "a slow sine opening and closing the colour bands, with the whole palette "
+ },
+ {
+  "file": "mir/modulation/mod.js",
+  "line": 2588,
+  "why": "fragment",
+  "text": "two sample-and-hold wanderers on the first two colour phases — "
+ },
+ {
+  "file": "mir/modulation/mod.js",
+  "line": 2686,
+  "why": "fragment",
+  "text": "the stored modulation presets are format "
+ },
+ {
+  "file": "mir/modulation/mod.js",
+  "line": 2686,
+  "why": "fragment",
+  "text": " and this build reads format "
+ },
+ {
+  "file": "mir/modulation/mod.js",
+  "line": 2687,
+  "why": "fragment",
+  "text": " — the file is left untouched and this session runs on the "
+ },
+ {
+  "file": "mir/modulation/modhost.css",
+  "line": 2070,
+  "why": "css",
+  "text": "+ MACRO"
+ },
+ {
+  "file": "mir/modulation/modhost.css",
+  "line": 2072,
+  "why": "css",
+  "text": "+ DEVICE"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.css",
+  "line": 1433,
+  "why": "css",
+  "text": "OUT"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.css",
+  "line": 1502,
+  "why": "css",
+  "text": "OUT"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.css",
+  "line": 1505,
+  "why": "css",
+  "text": "TRIG IN"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 51,
+  "why": "fragment",
+  "text": " window controls"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 185,
+  "why": "fragment",
+  "text": "a macro bar: drag sideways to set, double-tap to reset, tap to rename or unassign · "
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 493,
+  "why": "fragment",
+  "text": " window controls"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 554,
+  "why": "textContent",
+  "text": "ADD MACRO"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 557,
+  "why": "textContent",
+  "text": "ADD DEVICE"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 657,
+  "why": "textContent",
+  "text": "BPM"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 752,
+  "why": "fragment",
+  "text": " name — type your own"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 893,
+  "why": "textContent",
+  "text": "LEVEL"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 895,
+  "why": "textContent",
+  "text": "HIT"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 967,
+  "why": "textContent",
+  "text": "FULL"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 972,
+  "why": "textContent",
+  "text": "SINE"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 974,
+  "why": "textContent",
+  "text": "IDLE"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 976,
+  "why": "textContent",
+  "text": "OFF"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 980,
+  "why": "textContent",
+  "text": "A"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 982,
+  "why": "textContent",
+  "text": "B"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 985,
+  "why": "textContent",
+  "text": "COPY"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 987,
+  "why": "textContent",
+  "text": "PASTE"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 1028,
+  "why": "textContent",
+  "text": "TRIG"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 1063,
+  "why": "textContent",
+  "text": "AUDIO IN"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 1071,
+  "why": "textContent",
+  "text": "OFF"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 1073,
+  "why": "textContent",
+  "text": "SET"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 1075,
+  "why": "textContent",
+  "text": "OFF"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 1097,
+  "why": "textContent",
+  "text": "MACRO"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 1103,
+  "why": "textContent",
+  "text": "TRIG"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 1117,
+  "why": "textContent",
+  "text": "TRIG"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 1120,
+  "why": "textContent",
+  "text": "FLIP"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 1122,
+  "why": "textContent",
+  "text": "OFF"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 1164,
+  "why": "textContent",
+  "text": "WAVE"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 1168,
+  "why": "textContent",
+  "text": "SINE"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 1172,
+  "why": "textContent",
+  "text": "OUT"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 1184,
+  "why": "textContent",
+  "text": "COPY"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 1186,
+  "why": "textContent",
+  "text": "PASTE"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 1233,
+  "why": "textContent",
+  "text": "CONDITIONING"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 1238,
+  "why": "textContent",
+  "text": "SYSTEM DEFAULT"
+ },
+ {
+  "file": "mir/modulation/modwindow/modwindow.js",
+  "line": 1468,
+  "why": "textContent",
+  "text": "REMOVE"
+ },
+ {
+  "file": "mir/modulation/registry.js",
+  "line": 67,
+  "why": "fragment",
+  "text": "an id must be a string, not "
+ },
+ {
+  "file": "mir/modulation/registry.js",
+  "line": 69,
+  "why": "fragment",
+  "text": "an id must be at most "
+ },
+ {
+  "file": "mir/notes/face.js",
+  "line": 66,
+  "why": "fragment",
+  "text": "the shelf was damaged and has been mended — the old text is kept under "
+ },
+ {
+  "file": "mir/notes/face.js",
+  "line": 106,
+  "why": "fragment",
+  "text": "renamed to "
+ },
+ {
+  "file": "mir/notes/face.js",
+  "line": 126,
+  "why": "fragment",
+  "text": "save into "
+ },
+ {
+  "file": "mir/notes/face.js",
+  "line": 135,
+  "why": "fragment",
+  "text": " in YOURS"
+ },
+ {
+  "file": "mir/notes/face.js",
+  "line": 141,
+  "why": "fragment",
+  "text": " into the project"
+ },
+ {
+  "file": "mir/notes/face.js",
+  "line": 142,
+  "why": "fragment",
+  "text": " into the project"
+ },
+ {
+  "file": "mir/notes/shelf.js",
+  "line": 71,
+  "why": "fragment",
+  "text": "the shelf cannot be read — "
+ },
+ {
+  "file": "mir/notes/shelf.js",
+  "line": 82,
+  "why": "fragment",
+  "text": "the shelf could not be saved — "
+ },
+ {
+  "file": "mir/notes/shelf.js",
+  "line": 118,
+  "why": "fragment",
+  "text": " already exists"
+ },
+ {
+  "file": "mir/shell/gui.js",
+  "line": 206,
+  "why": "fragment",
+  "text": " — coming"
+ },
+ {
+  "file": "mir/shell/notebook.js",
+  "line": 442,
+  "why": "fragment",
+  "text": "added the page "
+ },
+ {
+  "file": "mir/shell/notebook.js",
+  "line": 453,
+  "why": "fragment",
+  "text": "copied to the shelf as "
+ }
+]

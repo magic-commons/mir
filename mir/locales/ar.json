@@ -1,0 +1,30 @@
+{
+ "tag": "ar",
+ "name": "العربية",
+ "dir": "rtl",
+ "reviewed": false,
+ "fonts": [
+  {
+   "family": "Noto Sans Arabic",
+   "role": "ui",
+   "script": "Arabic",
+   "licence": "OFL-1.1",
+   "file": null,
+   "status": "held"
+  },
+  {
+   "family": "Amiri",
+   "role": "display",
+   "script": "Arabic (Bold)",
+   "licence": "OFL-1.1",
+   "file": null,
+   "status": "held"
+  }
+ ],
+ "type": {
+  "case": "none",
+  "tracking": 0,
+  "lineHeight": 1.7
+ },
+ "strings": {}
+}

@@ -45,6 +45,7 @@
  */
 import { setGlyph } from './glyph.js';
 import { setText, setVar } from './core/perf.js';   // paint writes only what changed, and the meter counts both
+import { t as tx, onLanguage } from './core/i18n.js';
 
 
 export const chip = (btn, name, label) => setGlyph(btn, name, { label });
@@ -79,6 +80,34 @@ export function el(tag, cls, parent, text) {
   if (parent) parent.appendChild(e);
   return e;
 }
+/* ── 1.5.4 · THE LANGUAGE CHOKE POINT ────────────────────────────────────────────────────────────
+ * Every label a builder in this file writes goes through `label()`, every accessible name it writes through
+ * `ariaLabel()`.  Each translates now and KEEPS THE ENGLISH ON THE NODE (`data-t`, `data-t-aria`, `data-t-vars`),
+ * so a language change is one pass over those attributes (`relabel()`) and costs nothing until it happens.
+ * Nothing finds or styles a node by these attributes' VALUES: they are the English, which is text, not an id.
+ * A `title` is NOT translated here: it becomes a hint at ONE hop (control-help.js), which translates it there. */
+export function label(node, en, vars) {
+  if (typeof en !== 'string' || en === '') { delete node.dataset.t; delete node.dataset.tVars; return mathText(node, en); }
+  node.dataset.t = en;
+  if (vars) node.dataset.tVars = JSON.stringify(vars); else delete node.dataset.tVars;
+  return mathText(node, tx(en, vars));
+}
+export function ariaLabel(node, en, vars) {
+  if (typeof en !== 'string' || en === '') return node;
+  node.dataset.tAria = en;
+  if (vars) node.dataset.tVars = JSON.stringify(vars);
+  node.setAttribute('aria-label', mathPlain(tx(en, vars)));
+  return node;
+}
+/** write every kit-written label and name under `root` again in the current language */
+export function relabel(root = document) {
+  const vars = (n) => { try { return n.dataset.tVars ? JSON.parse(n.dataset.tVars) : undefined; } catch (_) { return undefined; } };
+  for (const n of root.querySelectorAll('[data-t]')) mathText(n, tx(n.dataset.t, vars(n)));
+  for (const n of root.querySelectorAll('[data-t-aria]')) n.setAttribute('aria-label', mathPlain(tx(n.dataset.tAria, vars(n))));
+}
+if (typeof document !== 'undefined') onLanguage(() => relabel(document));
+/** a control that shows a VALUE never mirrors: a knob turns clockwise and a fader grows rightwards in every language */
+const ltr = (node) => { node.dir = 'ltr'; return node; };
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 
 /** double-tap detector shared by knobs and faders — and, since wave 61, by the modulation
@@ -120,8 +149,8 @@ export function dragTravel(e, { touch = false, travel, fine } = {}) {
   return touch ? KNOB_LAW.touchTravel : (travel || KNOB_LAW.travel);
 }
 export function knob(o) {
-  const root = el('div', 'k' + (o.size === 'lg' ? ' k-lg' : '') + (o.cls ? ' ' + o.cls : ''));
-  if (o.label) el('div', 'k-lbl', root, o.label);
+  const root = ltr(el('div', 'k' + (o.size === 'lg' ? ' k-lg' : '') + (o.cls ? ' ' + o.cls : '')));
+  if (o.label) label(el('div', 'k-lbl', root), o.label);
   const dial = el('div', 'k-dial', root);
   const needle = el('i', 'k-needle', dial);
   const val = el('div', 'k-val', root);
@@ -144,7 +173,7 @@ export function knob(o) {
   root.tabIndex = 0;
   root.setAttribute('role', 'slider');
   const ariaName = o.aria || o.label;                       // `aria` OVERRIDES: the two nameless dials and the 91 spectrum lanes name themselves at the call site
-  if (ariaName) root.setAttribute('aria-label', mathPlain(ariaName));
+  if (ariaName) ariaLabel(root, ariaName);
   root.setAttribute('aria-valuemin', String(wheel ? 0 : lo));
   root.setAttribute('aria-valuemax', String(wheel ? 360 : hi));
   if (o.title) root.title = mathPlain(o.title);             // knob() silently dropped `title:` at ten call sites; the hint was already written
@@ -164,7 +193,7 @@ export function knob(o) {
     let b = null;
     if (!wheel && baseOf) { try { const x = baseOf(); if (Number.isFinite(x)) b = x; } catch (_) {} }
     if (b !== null) {
-      const now = String(fromUser ? v : b), text = fmt(fromUser ? v : b) + ' · base · modulated';
+      const now = String(fromUser ? v : b), text = tx('{value} · base · modulated', { value: fmt(fromUser ? v : b) });
       if (saidNow !== now) { saidNow = now; root.setAttribute('aria-valuenow', now); }
       if (saidText !== text) { saidText = text; root.setAttribute('aria-valuetext', text); }
       return;
@@ -172,7 +201,7 @@ export function knob(o) {
     if (!fromUser && focused) return;                                  // THE CHATTER GUARD: never announce a change the APP made to a control the user is sitting on
     /* a value PAINTED by show() with no base road: valuenow is the hand's v, so valuetext must be too (1.4.0) */
     const modulated = !wheel && shown !== null && !dragging;
-    const now = String(wheel ? turn : v), text = wheel ? (turn ? '+' + turn.toFixed(0) + '° · ' : '') + val.textContent : modulated ? fmt(v) + ' · modulated' : val.textContent;
+    const now = String(wheel ? turn : v), text = wheel ? (turn ? '+' + turn.toFixed(0) + '° · ' : '') + val.textContent : modulated ? tx('{value} · modulated', { value: fmt(v) }) : val.textContent;
     if (saidNow !== now) { saidNow = now; root.setAttribute('aria-valuenow', now); }
     if (saidText !== text) { saidText = text; root.setAttribute('aria-valuetext', text); }
   }
@@ -299,7 +328,7 @@ export function sw(o) {
 
 
   if (o.title) b.title = mathPlain(o.title);
-  el('i', 'sw-led', b); el('span', 'sw-lbl', b, o.label);
+  el('i', 'sw-led', b); label(el('span', 'sw-lbl', b), o.label);
   let v = !!o.value;
   const paint = () => { b.classList.toggle('on', v); b.setAttribute('aria-pressed', String(v)); };
   b.addEventListener('click', () => { v = !v; paint(); if (o.onChange) o.onChange(v); });
@@ -310,7 +339,7 @@ export function sw(o) {
 /** seg({ label, aria, options: [{id, label, title}], value, onChange }) — an enumeration */
 export function seg(o) {
   const root = el('div', 'segw' + (o.cls ? ' ' + o.cls : ''));
-  if (o.label) el('div', 'k-lbl', root, o.label);
+  if (o.label) label(el('div', 'k-lbl', root), o.label);
   const row = el('div', 'seg', root);
   /* WAVE 62 · THIS IS THE ONE PLACE THE INTERFACE PRESENTED STATE IT DID NOT EXPOSE: the selection
      lived in a CSS class and nowhere else, across 42 groups and about a hundred buttons.
@@ -324,10 +353,10 @@ export function seg(o) {
      code here — what they need is the app to get out of the way, which is rack.js's OWNED guard. */
   row.setAttribute('role', 'radiogroup');
   const ariaName = o.aria || o.label;
-  if (ariaName) row.setAttribute('aria-label', mathPlain(ariaName));
+  if (ariaName) ariaLabel(row, ariaName);
   let v = o.value; const btns = new Map(); const ids = [];
   for (const opt of o.options) {
-    const b = el('button', 'seg-b', row, opt.label); b.type = 'button'; if (opt.title) b.title = mathPlain(opt.title);
+    const b = label(el('button', 'seg-b', row), opt.label); b.type = 'button'; if (opt.title) b.title = mathPlain(opt.title);
     b.setAttribute('role', 'radio');
     b.addEventListener('click', () => { if (v === opt.id) return; v = opt.id; paint(); if (o.onChange) o.onChange(v); });
     b.addEventListener('keydown', onKey);
@@ -338,9 +367,12 @@ export function seg(o) {
     const live = ids.filter((id) => !btns.get(id).disabled);
     if (!live.length) return;
     const i = Math.max(0, live.indexOf(v));
+    /* a segmented row is chrome and MIRRORS under dir="rtl", so the arrow that points at the next option is Left there */
+    let rtl = false; try { rtl = row.matches(':dir(rtl)'); } catch (_) {}
+    const fwd = rtl ? 'ArrowLeft' : 'ArrowRight', back = rtl ? 'ArrowRight' : 'ArrowLeft';
     let id = null;
-    if (e.code === 'ArrowRight' || e.code === 'ArrowDown') id = live[(i + 1) % live.length];
-    else if (e.code === 'ArrowLeft' || e.code === 'ArrowUp') id = live[(i - 1 + live.length) % live.length];
+    if (e.code === fwd || e.code === 'ArrowDown') id = live[(i + 1) % live.length];
+    else if (e.code === back || e.code === 'ArrowUp') id = live[(i - 1 + live.length) % live.length];
     else if (e.code === 'Home') id = live[0];
     else if (e.code === 'End') id = live[live.length - 1];
     else return;                                            // not ours: it reaches the app
@@ -389,22 +421,22 @@ export function trig(o) {
   const b = el('button', 'trig' + (o.cls ? ' ' + o.cls : ''));
   b.type = 'button';
   if (o.glyph) el('span', 'trig-g', b, o.glyph);
-  el('span', 'trig-l', b, o.label);
+  label(el('span', 'trig-l', b), o.label);
   if (o.title) b.title = mathPlain(o.title);
   b.addEventListener('click', (e) => { if (o.onFire) o.onFire(e); });
   /* wave 62: a `trig` used as a STATE says so.  A trig that never sets `on` never gets the attribute,
      so this is correct for every caller and costs one expression. */
-  return { root: b, setLabel(t) { mathText(b.querySelector('.trig-l'), t); }, setGlyph(g) { const s = b.querySelector('.trig-g'); if (s) s.textContent = g; }, set on(v) { b.classList.toggle('on', !!v); b.setAttribute('aria-pressed', String(!!v)); } };
+  return { root: b, setLabel(s) { label(b.querySelector('.trig-l'), s); }, setGlyph(g) { const s = b.querySelector('.trig-g'); if (s) s.textContent = g; }, set on(v) { b.classList.toggle('on', !!v); b.setAttribute('aria-pressed', String(!!v)); } };
 }
 
 /** fader({ label, aria, min, max, value, fmt, log, fine, cls, onInput, onChange }) — a horizontal scalar
  *   log: a log scale (min must be > 0); fine: this fader's Shift divisor (see setKnobLaw)
  *   → { root, get, set(x), show(x), shown, setBase(fn), setDisabled(on), paint, setDefault(x), setLabel(t), dragging() } */
 export function fader(o) {
-  const root = el('div', 'fd' + (o.cls ? ' ' + o.cls : ''));
+  const root = ltr(el('div', 'fd' + (o.cls ? ' ' + o.cls : '')));
   const fill = el('div', 'fd-fill', root);
   const edge = el('div', 'fd-edge', root);
-  const lbl = el('div', 'fd-lbl', root, o.label || '');
+  const lbl = label(el('div', 'fd-lbl', root), o.label || '');
   const val = el('div', 'fd-val', root);
   let v = o.value, def = o.value, dragging = false, lastX = 0;
   const lo = o.min, hi = o.max;
@@ -420,7 +452,7 @@ export function fader(o) {
   root.tabIndex = 0;
   root.setAttribute('role', 'slider');
   const ariaName = o.aria || o.label;
-  if (ariaName) root.setAttribute('aria-label', mathPlain(ariaName));
+  if (ariaName) ariaLabel(root, ariaName);
   root.setAttribute('aria-valuemin', String(lo));
   root.setAttribute('aria-valuemax', String(hi));
   let saidNow = null, saidText = null, baseOf = null, disabled = false;
@@ -430,13 +462,13 @@ export function fader(o) {
     let b = null;
     if (baseOf) { try { const x = baseOf(); if (Number.isFinite(x)) b = x; } catch (_) {} }
     if (b !== null) {
-      const now = String(fromUser ? v : b), text = fmt(fromUser ? v : b) + ' · base · modulated';
+      const now = String(fromUser ? v : b), text = tx('{value} · base · modulated', { value: fmt(fromUser ? v : b) });
       if (saidNow !== now) { saidNow = now; root.setAttribute('aria-valuenow', now); }
       if (saidText !== text) { saidText = text; root.setAttribute('aria-valuetext', text); }
       return;
     }
     if (!fromUser && root === document.activeElement) return;
-    const now = String(v), text = shown !== null && !dragging ? fmt(v) + ' · modulated' : val.textContent;
+    const now = String(v), text = shown !== null && !dragging ? tx('{value} · modulated', { value: fmt(v) }) : val.textContent;
     if (saidNow !== now) { saidNow = now; root.setAttribute('aria-valuenow', now); }
     if (saidText !== text) { saidText = text; root.setAttribute('aria-valuetext', text); }
   }
@@ -472,13 +504,13 @@ export function fader(o) {
     /** a dead fader says so and gives up its seat, as the knob does */
     setDisabled(on) { disabled = !!on; root.classList.toggle('disabled', disabled); root.tabIndex = disabled ? -1 : 0; root.setAttribute('aria-disabled', String(disabled));
       if (disabled && root === document.activeElement) { const dev = root.closest('.dev'); const seat = dev && dev.querySelector('.dev-power'); if (seat) seat.focus(); else root.blur(); } },
-    paint, setDefault(x) { def = x; }, setLabel(t) { lbl.textContent = t; }, dragging: () => dragging };
+    paint, setDefault(x) { def = x; }, setLabel(s) { label(lbl, s); }, dragging: () => dragging };
 }
 
 /** readout({ label, value, cls }) — a labelled number */
 export function readout(o) {
   const root = el('div', 'ro' + (o.cls ? ' ' + o.cls : ''));
-  el('div', 'ro-lbl', root, o.label);
+  label(el('div', 'ro-lbl', root), o.label);
   const val = el('div', 'ro-val', root, o.value === undefined ? '—' : String(o.value));
   el('div', 'ro-sub', root, o.sub || '');
   /* WAVE 69 · both writers take the `<m>` marker, so a readout can print `⟨p⟩ gained` or
@@ -525,19 +557,19 @@ export function device(o) {
   const headHint = (st) => { const name = mathPlain(o.eyebrow || o.id || 'window'); head.title = st ? name + ': ' + mathPlain(st) : name; };
   headHint(o.status || '');
   const idz = el('div', 'dev-id', head);
-  el('div', 'dev-eyebrow', idz, o.eyebrow || '');
+  label(el('div', 'dev-eyebrow', idz), o.eyebrow || '');
   /* WAVE 62 · TWENTY-FIVE NAMED REGIONS, for three lines.  A <section> is only a landmark once it has
      an accessible name, and the name it should carry is the <h2> already sitting in its header — so a
      screen-reader user navigates this rack BY REGION rather than by four hundred Tab presses.  This is
      the real answer to "hundreds of tab stops" for the population that has region navigation; the two
      skip links in index.html are the answer for the population that does not. */
-  const h2 = el('h2', 'dev-title', idz, o.eyebrow || o.id || 'window');
+  const h2 = o.eyebrow ? label(el('h2', 'dev-title', idz), o.eyebrow) : el('h2', 'dev-title', idz, o.id || 'window');   // an id is never translated
   h2.id = 'devt-' + o.id;
   root.setAttribute('aria-labelledby', h2.id);
   const stat = el('div', 'dev-stat', head, o.status || '');
   const util = el('div', 'dev-util', head);
   const power = el('button', 'dev-power', util, ''); power.type = 'button'; power.title = 'Turn this window on or off'; power.setAttribute('aria-pressed', 'true');
-  power.setAttribute('aria-label', 'power');                 // it has no content, so that 90-character `title` WAS its accessible name
+  ariaLabel(power, 'power');                 // it has no content, so that 90-character `title` WAS its accessible name
   const fold = el('button', 'dev-fold', util); fold.type = 'button'; fold.title = 'Collapse or expand this window';
   chip(fold, 'chevronDown', 'fold or unfold this window');   // ONE drawing: `.folded` turns it a quarter turn, which is the caret's own idiom (glyph.js, chevronDown)
   /* ── WAVE 55 · THE POP-OUT, and the rail beside it ──────────────────────────────────────────────
@@ -583,7 +615,7 @@ export function device(o) {
   /* the mark a waiting card shows: o.loadingMark is an element, a selector, or false for none (default: the wordmark's) */
   const markSrc = o.loadingMark === false ? null : o.loadingMark instanceof Element ? o.loadingMark : document.querySelector(typeof o.loadingMark === 'string' ? o.loadingMark : '#title .mark');
   if (markSrc) loading.appendChild(markSrc.cloneNode(true));
-  el('span', 'dev-loading-label', loading, 'CALCULATING');
+  label(el('span', 'dev-loading-label', loading), 'CALCULATING');
   const setLoading = (v, key = 'work') => {
     if (v) loadingKeys.add(key); else loadingKeys.delete(key);
     const on = loadingKeys.size > 0;
@@ -601,9 +633,9 @@ export function device(o) {
 }
 
 /** a labelled group inside a device body */
-export function group(parent, label) {
+export function group(parent, text) {
   const g = el('div', 'grp', parent);
-  if (label) el('div', 'grp-lbl', g, label);
+  if (text) label(el('div', 'grp-lbl', g), text);
   return g;
 }
 export const N_COLOR = ['', 'var(--n1)', 'var(--n2)', 'var(--n3)', 'var(--n4)', 'var(--n5)', 'var(--n6)'];

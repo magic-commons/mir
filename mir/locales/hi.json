@@ -1,0 +1,30 @@
+{
+ "tag": "hi",
+ "name": "हिन्दी",
+ "dir": "ltr",
+ "reviewed": false,
+ "fonts": [
+  {
+   "family": "Noto Sans Devanagari",
+   "role": "ui",
+   "script": "Devanagari",
+   "licence": "OFL-1.1",
+   "file": null,
+   "status": "held"
+  },
+  {
+   "family": "Tiro Devanagari Hindi",
+   "role": "display",
+   "script": "Devanagari",
+   "licence": "OFL-1.1",
+   "file": null,
+   "status": "held"
+  }
+ ],
+ "type": {
+  "case": "none",
+  "tracking": 0,
+  "lineHeight": 1.7
+ },
+ "strings": {}
+}

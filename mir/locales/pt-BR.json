@@ -1,0 +1,30 @@
+{
+ "tag": "pt-BR",
+ "name": "Português",
+ "dir": "ltr",
+ "reviewed": false,
+ "fonts": [
+  {
+   "family": "Roboto",
+   "role": "ui",
+   "script": "Latin (a fuller cut: Latin-1 and Latin Extended-A)",
+   "licence": "OFL-1.1",
+   "file": null,
+   "status": "held"
+  },
+  {
+   "family": "Noto Serif Display",
+   "role": "display",
+   "script": "Latin",
+   "licence": "OFL-1.1",
+   "file": null,
+   "status": "held"
+  }
+ ],
+ "type": {
+  "case": "uppercase",
+  "tracking": "house",
+  "lineHeight": 1.45
+ },
+ "strings": {}
+}

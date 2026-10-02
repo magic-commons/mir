@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>MIR · languages</title>
+<!-- THE LANGUAGE MECHANISM, LIVE: the kit's controls in a window, the menubar with LANGUAGE after ABOUT, and the
+     notebook's ABOUT face — switched without a reload between English, the pseudo-language and its right-to-left twin
+     (and any real pack, which falls back to English until it is translated).  The count says how many strings asked
+     for in this language fell back to English.  Docs: docs/LANGUAGES.md.
+     ?lang=qps | qps-rtl | es …  starts in that language. -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/shell/shell.css">
+<link rel="stylesheet" href="../mir/shell/stage.css">
+<link rel="stylesheet" href="../mir/locales/locales.css">
+<style>
+  /* the page's own layout only: a rack column on the start side and a strip of switches; nothing restyles the kit */
+  .g-rack { position: absolute; inset-inline-start: 16px; top: 64px; width: 300px; display: flex; flex-direction: column; gap: 12px; }
+  .g-switch { position: absolute; inset-inline-end: 16px; top: 12px; display: flex; gap: 6px; align-items: center; font: var(--fs-tiny) var(--font-ui); color: var(--ink-key); z-index: 40; }
+  .g-switch button { font: inherit; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--glass-hairline); background: var(--glass-raise); color: var(--fg-soft); cursor: pointer; }
+  .g-switch button[aria-pressed="true"] { color: var(--acc); }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted" class="disconnected">
+<div id="lab"><div id="stage"></div></div>
+<script type="module">
+import { el, knob, fader, seg, sw, trig, readout, device, group } from '../mir/kit.js';
+import { t, setLanguage, language, missing, onLanguage } from '../mir/core/i18n.js';
+import { installControlHelp } from '../mir/control-help.js';
+import { wordmark } from '../mir/shell/wordmark.js';
+import { createMenubar } from '../mir/shell/menubar.js';
+import { createNotebook } from '../mir/shell/notebook.js';
+import { createAccent } from '../mir/shell/accent.js';
+import { kitType, gplLicence } from '../mir/shell/about.js';
+import { languageMenu } from '../mir/shell/language.js';
+
+const q = new URLSearchParams(location.search);
+const lab = document.getElementById('lab'), stage = document.getElementById('stage');
+document.documentElement.style.setProperty('--rack-w', '0px');
+const accent = createAccent();
+const title = wordmark(stage, { word: 'MIR', sub: 'LANGUAGES' });
+
+/* ── a window with the kit's controls ── */
+const rack = el('div', 'g-rack', stage);
+const d = device({ id: 'lang', eyebrow: 'SOUND', status: '' , loadingMark: false });
+rack.appendChild(d.root);
+const g1 = group(d.body, 'SHAPE');
+const row = el('div', 'row', g1);
+const k1 = knob({ label: 'EXPOSURE', min: 0, max: 1, value: 0.62, title: 'how bright the picture is' }); row.appendChild(k1.root);
+const k2 = knob({ label: 'HUE', min: 0, max: 360, value: 120, wrap: true, fmt: (x) => x.toFixed(0) + '°' }); row.appendChild(k2.root);
+const k3 = knob({ label: 'RATE', min: 0.1, max: 20, value: 2, log: true, fmt: (x) => x.toFixed(2) + ' Hz' }); row.appendChild(k3.root);
+const f1 = fader({ label: 'DEPTH', min: 0, max: 1, value: 0.4, fmt: (x) => (x * 100).toFixed(0) + ' %' }); g1.appendChild(f1.root);
+const g2 = group(d.body, 'MODE');
+const s1 = seg({ label: 'WAVE', value: 'sine', options: [{ id: 'sine', label: 'SINE' }, { id: 'tri', label: 'TRIANGLE', title: 'a straight rise and fall' }, { id: 'sq', label: 'SQUARE' }] }); g2.appendChild(s1.root);
+const r2 = el('div', 'row', g2);
+const w1 = sw({ label: 'SYNC', value: true, title: 'lock the rate to the tempo' }); r2.appendChild(w1.root);
+const t1 = trig({ label: 'RESET', title: 'start the cycle again' }); r2.appendChild(t1.root);
+const ro = readout({ label: 'PERIOD', value: '0.50 s' }); g2.appendChild(ro.root);
+
+/* ── the menubar: the app's menus, then LANGUAGE after ABOUT ── */
+let notebook = null;
+const MENUS = {
+  FILE: () => [['NEW'], ['OPEN…'], ['SAVE\tCtrl+S'], null, ['EXPORT (.json)']],
+  EDIT: () => [['UNDO\tCtrl+Z', null, () => true], ['REDO\tCtrl+Shift+Z', null, () => true]],
+  VIEW: () => [['THEME · LIGHT', () => { document.body.dataset.theme = 'light'; accent.apply(); }], ['THEME · DARK', () => { document.body.dataset.theme = 'dark'; accent.apply(); }]],
+  WINDOW: () => [['NOTEBOOK\tJ', () => notebook.toggle()]],
+  ABOUT: () => [['ABOUT MIR', () => notebook.open('about')]],
+  LANGUAGE: languageMenu({ dev: true }),
+};
+const menubar = createMenubar({ opener: title, host: lab, menus: MENUS });
+
+notebook = createNotebook({
+  host: stage, name: 'MIR', storageKey: 'mir.gallery.language.notebook',
+  about: {
+    version: '1.5.0 · languages · 2026-10-01',
+    tagline: { t: 'One translation seam for the whole kit: English is the key and the fallback, and every label changes language without a reload.' },
+    copyright: '© 2026 Joshua Hosain • Magic Commons',
+    licence: gplLicence('MIR', { license: '../LICENSE', notice: null }),
+    type: kitType([], '../fonts/'),
+    home: { label: 'RETURN HOME', href: 'https://magic-commons.com/' },
+  },
+  onLogo: () => accent.paintMarks(),
+});
+accent.apply();
+installControlHelp(document);
+
+/* ── the switches and the count ── */
+const strip = el('div', 'g-switch', document.body); strip.translate = false;
+const count = el('span', 'g-count', strip);
+const btns = ['en', 'qps', 'qps-rtl', 'es'].map((tag) => { const b = el('button', null, strip, tag); b.type = 'button'; b.dataset.lang = tag; b.addEventListener('click', () => setLanguage(tag)); return b; });
+const show = () => {
+  for (const b of btns) b.setAttribute('aria-pressed', String(b.dataset.lang === language()));
+  count.textContent = missing().length + ' fell back to English';
+};
+onLanguage(() => requestAnimationFrame(show)); show();
+
+window.__LANG = { setLanguage, language, missing, t, menubar, notebook, controls: { k1, k2, k3, f1, s1, w1, t1, ro, d } };
+await setLanguage(q.get('lang') || 'en');
+notebook.open('about');
+window.__ready = true;
+</script>
+</body>
+</html>

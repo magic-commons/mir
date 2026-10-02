@@ -1,0 +1,30 @@
+{
+ "tag": "bn",
+ "name": "বাংলা",
+ "dir": "ltr",
+ "reviewed": false,
+ "fonts": [
+  {
+   "family": "Noto Sans Bengali",
+   "role": "ui",
+   "script": "Bengali",
+   "licence": "OFL-1.1",
+   "file": null,
+   "status": "held"
+  },
+  {
+   "family": "Tiro Bangla",
+   "role": "display",
+   "script": "Bengali",
+   "licence": "OFL-1.1",
+   "file": null,
+   "status": "held"
+  }
+ ],
+ "type": {
+  "case": "none",
+  "tracking": 0,
+  "lineHeight": 1.7
+ },
+ "strings": {}
+}

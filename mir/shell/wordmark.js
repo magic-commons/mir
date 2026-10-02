@@ -9,6 +9,9 @@
  *
  * The wordmark is also the MENU OPENER: shell/menubar.js takes it as `opener`.
  *
+ * 1.5.4 · A NAME IS NEVER TRANSLATED AND A MARK NEVER MIRRORS: the element says translate="no" (so a browser's own
+ * page translator leaves it alone too) and dir="ltr", so λ stays before WAVES under an Arabic page.
+ *
  * wordmark(parent, { lead, word, sub, id }) → the #title element */
 const SVG = 'http://www.w3.org/2000/svg';
 const FIRST_PAINT = ['#5ee7d8', '#78e1f0', '#f5f7fa', '#d97ce8', '#2b3f7a', '#5ee7d8', '#ffbe5a', '#d97ce8', '#78e1f0'];
@@ -29,7 +32,7 @@ export function markSvg() {
 }
 
 export function wordmark(parent, { lead = '', word = 'MIR', sub = '', id = 'title' } = {}) {
-  const t = document.createElement('div'); t.id = id;
+  const t = document.createElement('div'); t.id = id; t.translate = false; t.dir = 'ltr';
   if (lead) { const s = document.createElement('span'); s.className = 'lam'; s.textContent = lead; t.appendChild(s); }
   const w = document.createElement('span'); w.className = 'word'; w.textContent = word; t.appendChild(w);
   t.appendChild(markSvg());

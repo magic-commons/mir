@@ -1,0 +1,30 @@
+{
+ "tag": "ru",
+ "name": "Русский",
+ "dir": "ltr",
+ "reviewed": false,
+ "fonts": [
+  {
+   "family": "Roboto",
+   "role": "ui",
+   "script": "Cyrillic (a fuller cut)",
+   "licence": "OFL-1.1",
+   "file": null,
+   "status": "held"
+  },
+  {
+   "family": "Noto Serif Display",
+   "role": "display",
+   "script": "Cyrillic",
+   "licence": "OFL-1.1",
+   "file": null,
+   "status": "held"
+  }
+ ],
+ "type": {
+  "case": "uppercase",
+  "tracking": "house",
+  "lineHeight": 1.45
+ },
+ "strings": {}
+}
