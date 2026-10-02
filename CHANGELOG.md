@@ -1,5 +1,19 @@
 # MIR — changelog
 
+## 1.5.0-alpha.10 — 2026-10-02 · FOLDERS lands in BASINS
+
+Not released: built on branch `worktree-mir-1.5`.
+
+**Behaviour changes:**
+- **The FOLDERS gallery's paddings and corner are BASINS'**: explorer padding 9 px 9 px 0 and a 12 px corner, crumb 4 px 6 px, the count with −9 px on the right, folder button 8 px, foot 8 px.
+- **The picture ground is black** (`--folders-thumb-ground`: `hsl(0 0% 0%)`, was `hsl(220 14% 6%)`).
+- **A segment in a modulation-material window is the plugin's own button**: a 1 px edge in the pane's edge colour, `--m2-button-r`, 11 px type at 1.32 px, `--m2-button-pad`, ink `--fg` unchosen; CHOSEN keeps its ruled ON face.
+- **Disabled controls in that material show `cursor: not-allowed`**, as the plugin's own.
+
+**A rail tier for an app's window law:** `win.stackAt(z, { railOffset })` and `createWindow({ railTier })` (default 1): an app that keeps its rails in a tier above its windows passes it (`docs/WINDOWS.md`).
+
+**For the record.** On alpha.9, BASINS replaced its SAVE window with `createFolders`. Its own SAVE gate scored 38/40, with the same two failures as before. An old library loaded whole: 37 entries, 9 folders, 9 pictures and the window rect. The gallery compared at zero open differences over 36 elements in 5 states. And 1,261 cloned rules (205 kB at boot) were deleted. With this release's geometry BASINS can delete the last of its `save.css`.
+
 ## 1.5.0-alpha.9 — 2026-10-02 · BASINS parity, round three
 
 Not released: built on branch `worktree-mir-1.5`. FOLDERS (`material: 'modulation'`) now computes what BASINS' SAVE window computes, element by element, at BASINS' boot, at Josh's FROST recipe and in the light TINTED seats; what still differs is ruled (`docs/THEMES.md`).

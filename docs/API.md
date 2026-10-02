@@ -1,6 +1,6 @@
 # MIR · API
 
-Every module the kit exports, what each export is, and what it returns. MIR 1.5.0-alpha.9.
+Every module the kit exports, what each export is, and what it returns. MIR 1.5.0-alpha.10.
 
 Each module's own header holds its laws and their reasons. This page is the map to them.
 
@@ -610,7 +610,7 @@ The window loads two sheets, `mir/modulation/modhost.css` and then `mir/modulati
 ## `mir/window/` and `mir/history/`: additions (1.5.0-alpha.5, alpha.7, alpha.8)
 
 - `window/window.js` `createWindow({ …, material, railGap })` (1.5.0-alpha.8; the full signature is `docs/WINDOWS.md`): `material: 'modulation'` (or `true`) — the window wears the modulation window's material: rail, chips, controls, resize corner; no CSS cloning (`data-mir-material="modulation"` on the window and its rail). `railGap` (default `RAIL.gap`, 8 px): a floating window's rail sits that far off the pane's right edge, flush on the left, top and bottom; a docked rail stays flush. `dock: { span, guide, anchor: { rect, clip?, subscribe? }, guideClass }`: the anchor dock docks a window onto another element's seat, corner to corner (reach 96, capture 32), follows it, is clipped to `clip()` and hides while the seat is gone.
-- `window/window.js` (1.5.0-alpha.9): `windowOf(el)` → the kit window whose pane or rail is `el` (or holds it), or null; a window's `pair` is `{ root, rail }`; `win.stackAt(z)` puts the pane at z-index `z` and its rail at `z + 1`, so an app's own stacking law never parts them.
+- `window/window.js` (1.5.0-alpha.9): `windowOf(el)` → the kit window whose pane or rail is `el` (or holds it), or null; a window's `pair` is `{ root, rail }`; `win.stackAt(z, { railOffset })` puts the pane at z-index `z` and its rail at `z + railOffset` (default `createWindow({ railTier })`, itself default 1), so an app's own stacking law never parts them, and an app that keeps its rails in a tier above its windows passes `railTier` (1.5.0-alpha.10).
 - `window/rail.js`: `RAIL.gap`, `gapOf(gap, side)`; `chipPosition(side, box, w, h, view, pad, gap)`, `seatOn(…, pad, gap)`, `seatRail({ …, gap })`, `roomFor(…, pad, gap)` (gap default 0, so the modulation window seats as BASINS' `positionChips` does).
 - `window/dock.js`: `anchorTarget(box, seat, { reach })`, `anchorBox(seat, height)`; `createDockGuide({ layer, enabled, window, cls })` (one guide drawing; its overlays carry `data-mir-guide="dock"`, `data-window`, `data-edge` and the app's class), whose `track(box, o, seat?)` takes the seat as a third argument.
 - `core/pointer.js` `drag()`: a non-primary press is refused only when it is trusted (a real second finger); a scripted `PointerEvent` (isPrimary unset) is a press (1.5.0-alpha.8).

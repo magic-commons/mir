@@ -986,7 +986,7 @@ The project window (docs/FOLDERS.md).
 
 | token | tier | type | dark | light | owner | skin | status | intent | note |
 |---|---|---|---|---|---|---|---|---|---|
-| `--folders-thumb-ground` | component | color | `hsl(220 14% 6%)` |  | kit | ✓ | stable |  | the ground behind a project's picture while it loads (also on the carried ghost) |
+| `--folders-thumb-ground` | component | color | `hsl(0 0% 0%)` |  | kit | ✓ | stable |  | the ground behind a project's picture while it loads (also on the carried ghost) (1.5.0-alpha.10: black, as BASINS) |
 | `--folders-over-ink` | component | color | `hsl(0 0% 100%)` |  | kit | ✓ | stable |  | words and glyphs drawn on a project's picture (the chosen tile's name and verbs, a folder cover's name) |
 | `--folders-over-scrim` | component | color | `hsl(0 0% 0% / .8)` |  | kit | ✓ | stable |  | the gradient that keeps words on a picture legible |
 | `--folders-over-scrim-soft` | component | color | `hsl(0 0% 0% / .35)` |  | kit | ✓ | stable |  | the face of a button drawn on a picture |
