@@ -363,10 +363,13 @@
 
 /* THE GLASS RECIPE. #modwin reads border-width/style from here; so do .m2ppick.glass, .m2deadpick.glass and the two .m2workbar.glass boxes. */
 /* index.html:1290   was:  .glass, .panel, .chip  */
-/* 1.5.0-alpha.9 · a transport mounted in a work bar (`bar: 'work'`) keeps the house's tinted pane and its shadow
-   inside a modulation window: its own pane (the tinted fill, no sheen, as BASINS'), and the house's shadow (revert-layer) */
-.mir-modwindow .glass.mir-transport[data-bar="work"] { background-color: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); background-image: none; box-shadow: revert-layer; }
-body[data-card="refractive"] .mir-modwindow .glass.mir-transport[data-bar="work"] { background-color: var(--surface-veil, transparent); }
+/* 1.5.0-alpha.9 · a transport mounted in a work bar (`bar: 'work'`) is the HOUSE pane inside a modulation window, not
+   the artifact's glass recipe.  1.5.0-alpha.12: one rule with no card selector, so a copy re-scoped to another window
+   keeps it — the fill is the pane's by CARD STYLE (--pane-fill, skin.css: TINTED .58 under FROST, REFRACTIVE the veil),
+   no sheen, the house's pane shadow, and the house's filter (revert-layer) — as BASINS draws its timeline-mounted
+   transport.  (revert-layer is not used for the fill: Chromium reverts a longhand of a var() shorthand to transparent.) */
+.mir-modwindow .glass.mir-transport[data-bar="work"] { background-color: var(--pane-fill, hsl(var(--glass-tint) / var(--card-opacity))); background-image: none;
+  box-shadow: var(--surface-shadow, var(--glass-shadow)); -webkit-backdrop-filter: revert-layer; backdrop-filter: revert-layer; }
 .glass.mir-modwindow, .mir-modwindow .glass {
   /* TWO LAYERS, and they are two layers rather than one on purpose: the
      background-COLOR is the scrim (the accessibility control), and the

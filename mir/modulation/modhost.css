@@ -269,6 +269,17 @@
 }
 /* @outside */ :root {
   --m2-fd-alpha: .45;
+  --m2-fdrange-top: 18px;
+  --m2-fdrange-h: 2px;
+  --m2-fdrange-alpha: .9;
+  --m2-fddot: 4px;
+  --m2-fddot-top: 16px;
+}
+/* @own */ .fd > .m2fdrange {
+  --m2-fdrange-ink: color-mix(in srgb, var(--acc2) 85%, transparent);
+}
+/* @own */ .fd > .m2fdrangedot {
+  --m2-fddot-glow: 0 0 2px color-mix(in srgb, var(--acc2) 70%, transparent);
 }
 /* @own */ #modwin .aud-range-output {
   --m2-aud-range-output-glow: 0 0 5px color-mix(in srgb,var(--aud-live) 45%,transparent);
@@ -559,7 +570,8 @@ body[data-text] :is(.mir-modwindow, .kwin-chiprail, .m2ghost) {
 /* CONTROL FACES · GLASS (BASINS material.css §1): the dial's puck face goes clear and keeps a hairline; the plugin's
    other control faces (--m2-mat-control) are clear already.  SOLID: the window's chassis is the opaque pane. */
 :where(body[data-faces="glass"]:is([data-card="refractive"], .frost):not([data-card="solid"])) .mir-modwindow {
-  --m2-dialink-b-wash: transparent; }
+  --m2-dialink-b-wash: transparent;
+  --m2-add-face: transparent; }   /* + MACRO, + DEVICE: clear, as BASINS' faces (1.5.0-alpha.12); the accent edge and label stay */
 body[data-card="solid"] .mir-modwindow, body[data-card="solid"] #modwin.mir-modwindow {
   --m2-mat-chassis: hsl(var(--glass-tint) / 1); }
 
@@ -633,8 +645,11 @@ body[data-card="solid"] .mir-modwindow, body[data-card="solid"] #modwin.mir-modw
 /* THE THREE INSIDE THE OFFICIATION BLOCK.  Already correct in KIND — a wash, a wash, a shade — and
    they only need their alphas moved in step with --m2-mat-inner and the state ramp. */
 #modwin.mir-modwindow .m2dev .m2head {
-  background-image: var(--surface-sheen, var(--m2-head-wash));
+  background-image: var(--m2-head-wash);
   box-shadow: var(--m2-head-shadow); }
+/* the head's .06 wash is the device head's own light, not the pane's sheen: GLASS faces and REFRACTIVE keep it, as
+   BASINS' head does; only the flat tier (no sheen anywhere) takes it off (BASINS skin.css: body.flat … .m2head) */
+:where(html[data-ui-tier="flat"]) #modwin.mir-modwindow .m2dev .m2head { background-image: none; }
 /* RETIRED wave 105 — the officiation .m2hero wash: the plot box is ONE element carrying `m2edit m2hero`
    (modwindow.js:824) and entry 72 sets `background-image: none` on `.m2edit, .m2hero`, later. */
 #modwin.mir-modwindow button:active:not(:disabled),
@@ -1079,7 +1094,7 @@ body[data-card="refractive"] .mir-modwindow,
 body[data-card="refractive"] #modwin.mir-modwindow { --m2-mat-chassis: var(--surface-veil, transparent); }
 body[data-card="tinted"] .mir-modwindow,
 body[data-card="tinted"] #modwin.mir-modwindow {
-  --m2-mat-chassis: var(--surface-fill, hsl(var(--glass-tint) / var(--glass-opacity))); }
+  --m2-mat-chassis: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }   /* the cards, rail and work bar: .58 under FROST with every tinted pane, as BASINS' (1.5.0-alpha.12); the window's root reads --m2-mat-pane */
 body.frost[data-card="refractive"] .mir-modwindow,
 body.frost[data-card="refractive"] #modwin.mir-modwindow { --m2-mat-chassis: var(--surface-veil, hsl(0 0% 100% / .10)); }
 /* AND FROST'S WHISPER INVERTS ON DARK — skin.css:326, which the first cut of this wave missed and the
@@ -1088,6 +1103,9 @@ body.frost[data-card="refractive"] #modwin.mir-modwindow { --m2-mat-chassis: var
    line, quoted: `body.frost[data-theme="dark"] .dev, … .glass { background: hsl(0 0% 0% / .10) }`. */
 body.frost[data-card="refractive"][data-theme="dark"] .mir-modwindow,
 body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --m2-mat-chassis: var(--surface-veil, hsl(0 0% 0% / .10)); }
+/* THE TWO-STOP WASH IS OFF (T6: --gl-fill-a/-b transparent), so the artifact's image layer on every glass box is
+   `none`, not a transparent gradient: the same paint, and the layer BASINS draws (1.5.0-alpha.12) */
+.glass.mir-modwindow, .mir-modwindow .glass { --m2-glass-wash: none; }
 /* and the window's own pane follows the same three, so a TINTED window is a tinted window */
 /* RETIRED wave 105 — the two FROST pane fills: --m2-pane has no reader. */
 
@@ -1428,10 +1446,10 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 
 #modwin.mir-modwindow .m2macadd,
 #modwin.mir-modwindow .m2macdel {
-  border: 0; background: var(--m2-face-w06); }
+  border: 0; background: var(--m2-add-face, var(--m2-face-w06)); }
 body[data-theme="light"] #modwin.mir-modwindow .m2macadd,
 body[data-theme="light"] #modwin.mir-modwindow .m2macdel {
-  border: 0; background: var(--m2-macadd-face); }
+  border: 0; background: var(--m2-add-face, var(--m2-macadd-face)); }
 #modwin.mir-modwindow .m2macadd:active:not(:disabled) { background: var(--acc2-soft); }
 #modwin.mir-modwindow .m2macdel:active:not(:disabled) { background: var(--state-press, var(--glass-press)); }  /* 70 */
 
@@ -2291,12 +2309,12 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin.mir-modwindow .m2macadd,
 #modwin.mir-modwindow .m2devadd {
   flex:1 1 0;min-width:0;height:44px;min-height:44px;padding:0 5px;border:0;
-  border-radius:var(--m2-r-7);background:var(--m2-face-w06);color:var(--acc2);
+  border-radius:var(--m2-r-7);background:var(--m2-add-face, var(--m2-face-w06));color:var(--acc2);
   font:var(--m2-macadd-font);letter-spacing:var(--label-tracking, var(--m2-tr-08));white-space:nowrap;
   transition:scale var(--t-fast) var(--m2-ease),background-color var(--t-fast) var(--m2-ease),box-shadow var(--t-fast) var(--m2-ease); }
 body[data-theme="light"] #modwin.mir-modwindow .m2macadd,
 body[data-theme="light"] #modwin.mir-modwindow .m2devadd {
-  background:var(--m2-macadd-face); }
+  background:var(--m2-add-face, var(--m2-macadd-face)); }
 #modwin.mir-modwindow .m2macadd:hover:not(:disabled),
 #modwin.mir-modwindow .m2devadd:hover:not(:disabled) {
   background:var(--state-hover, var(--m2-hover)); }
@@ -2417,11 +2435,16 @@ body.mod-arming .fd[data-param].mod-drop > .fd-lbl { color: var(--acc2); }
 body.mod-arming :is(.sw, .seg, .trig, .k:not([data-param]), .fd:not([data-param])) { opacity: var(--m2-fd-alpha); }
 
 /* A FADER CARRIES A ROUTE AS A RANGE BAR: the selected route's span along the track (window.js writes the two
-   numbers), a band on the fader's floor in accent B.  Dormant, it is the faint ink. */
+   numbers).  1.5.0-alpha.12, BASINS' drawing (colour.css:119-122; Josh: "a thin bar below or above the slider"): a 2 px
+   pill line across the track at 18 px in accent B (85 %, at .9), and the live value as a 4 px accent-B dot with a glow
+   (`.m2fdrangedot`, window.js).  Dormant, the line is the faint ink.  The values are the FROST block's (@outside, @own). */
 .fd > .m2fdrange { position: absolute; left: calc(var(--m2-route-lo, 0) * 100%); width: calc(var(--m2-route-span, 0) * 100%);
-  bottom: 0; height: 3px; background: var(--acc2); pointer-events: none; }
-.fd > .m2fdrange[hidden] { display: none; }
+  top: var(--m2-fdrange-top); height: var(--m2-fdrange-h); border-radius: var(--r-pill);
+  background: var(--m2-fdrange-ink); opacity: var(--m2-fdrange-alpha); pointer-events: none; }
+.fd > .m2fdrange[hidden], .fd > .m2fdrangedot[hidden] { display: none; }
 .fd > .m2fdrange.is-dormant { background: var(--ink-faint); }
+.fd > .m2fdrangedot { position: absolute; left: calc(var(--fill, 0) * 100%); top: var(--m2-fddot-top); width: var(--m2-fddot); height: var(--m2-fddot);
+  margin-left: calc(var(--m2-fddot) / -2); border-radius: 50%; background: var(--acc2); box-shadow: var(--m2-fddot-glow); pointer-events: none; }
 /* its value line is the knob's needle: accent A while routed, accent B while its macro or source is chosen */
 .fd.has-ring > .fd-edge { background: var(--acc); }
 .fd.has-ring.mod-selected > .fd-edge { background: var(--acc2); }
@@ -2440,7 +2463,7 @@ body.mod-arming :is(.sw, .seg, .trig, .k:not([data-param]), .fd:not([data-param]
 :is(.k, .fd).ring-focus > .k-route-x { display: grid; place-items: center; }
 .k-route-x:is(:hover, :active) { color: var(--bad); }
 .fd.has-ring.ring-focus { overflow: visible; }
-.fd.has-ring.ring-focus > :is(.fd-fill, .m2fdrange) { clip-path: inset(0 round var(--r-sm)); }
+.fd.has-ring.ring-focus > :is(.fd-fill, .m2fdrange, .m2fdrangedot) { clip-path: inset(0 round var(--r-sm)); }
 
 /* THE POP-OVER — a held press or the right button; one menu, two doors */
 .mod-pop { position: fixed; z-index: calc(var(--z-banner) + 4); min-width: 210px; max-width: 280px;

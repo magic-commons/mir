@@ -173,7 +173,9 @@ export function lookSchema({ tier = () => null } = {}) {
     { key: 'spacing', type: 'enum', values: ['0', 'tight', 'default', 'airy'], default: 'default', apply: [
       { on: 'html', prop: '--rack-gap', map: (v) => spacingPx(v).gap + 'px' },
       { on: 'html', prop: '--rack-inset', map: (v) => spacingPx(v).inset + 'px' },
-      { on: 'html', prop: '--pane-pad', map: (v) => spacingPx(v).pad + 'px' },
+      /* DEFAULT leaves the pane's padding as the sheets have it (7 · 7 · 10, BASINS' numbers: BASINS wrote nothing there),
+         so choosing DEFAULT changes nothing inside a window (1.5.0-alpha.12) */
+      { on: 'html', prop: '--pane-pad', map: (v) => (v === 'default' ? null : spacingPx(v).pad + 'px') },
       { on: 'html', prop: '--rail-gap', map: (v) => spacingPx(v).rail + 'px' },
       { on: 'html', attr: 'data-flush', map: (v) => (v === '0' ? '' : null) }] },
     { key: 'motion', type: 'enum', values: ['auto', 'full', 'reduced', 'off'], default: 'auto', apply: [{ run: (v) => setMotionPolicy(v) }] },

@@ -93,7 +93,7 @@
   --abar-track: hsl(0 0% 100% / .07);
   --frost-veil-dark: hsl(0 0% 0% / .10);                          /* REFRACTIVE under FROST, dark theme: the thin veil over the blur */
   --frost-veil-light: hsl(0 0% 100% / .10);                       /* … and the disconnected body-card's, in every other theme */
-  --disc-chip-lift: brightness(1.03) saturate(1.03);              /* the disconnected bar-chip's non-blur lift (--surface-lift reaches it) */
+  --disc-chip-lift: brightness(1.03) saturate(1.03);              /* the 1.4 disconnected head's non-blur lift: unread since 1.5.0-alpha.12 (the head is a pane, as BASINS'); kept declared for the schema */
   --fx-v-scale: .92em;
   --font-help-glyph: Georgia, 'Times New Roman', serif;           /* the italic i of every help button */
   --help-glyph-size: 12px;
@@ -416,7 +416,7 @@ select.sel { border-color: transparent; background: var(--glass-well); box-shado
    press and chosen rules above, as BASINS' ladder did.  The relief, the rims, the scale and the accent label stay. */
 body[data-faces="glass"]:is([data-card="refractive"], .frost):not([data-card="solid"]) :is(.k-dial, .trig:not(.on):not([aria-expanded="true"]):not([aria-pressed="true"]),
   .seg, .seg-b, .sw:not(.on), select.sel, .fd, .ro, .dev-power, .native-info-button, .badge,
-  .mir-folders :is(.sv-split, .sv-parts, .sv-field input, .sv-input, .sv-card, .sv-folder, .sv-context, .sr-section)) { background-color: transparent; background-image: none; }   /* FOLDERS' seats: BASINS' SAVE seats (material.css) */
+  .mir-folders :is(.sv-split, .sv-parts, .sv-field input, .sv-input, .sv-card, .sv-folder, .sv-context:not(.sv-ask), .sr-section)) { background-color: transparent; background-image: none; }   /* FOLDERS' seats: BASINS' SAVE seats (material.css) */
 body:is([data-faces="glass"], [data-faces="blend"]):is([data-card="refractive"], .frost):not([data-card="solid"]) :is(.k-dial, .trig:not(.on):not([aria-expanded="true"]):not([aria-pressed="true"]),
   .sw:not(.on), .seg, select.sel, .fd, .ro) { border-color: var(--glass-hairline); }
 /* … and BLEND's crossing layer, over the face, under the label (BASINS material.css BLEND) */
@@ -534,6 +534,14 @@ body.frost[data-card="refractive"][data-theme="dark"] .dev, body.frost[data-card
 body.frost.frost-hold .dev, body.frost.frost-hold .glass, body.frost.frost-hold :where([data-mir-surface]:not([data-mir-surface="island"])) { -webkit-backdrop-filter: none; backdrop-filter: none; }
 body.frost.frost-hold[data-card="refractive"] .dev, body.frost.frost-hold[data-card="refractive"] .glass, body.frost.frost-hold[data-card="refractive"] :where([data-mir-surface]:not([data-mir-surface="island"])) {
   background: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
+/* 1.5.0-alpha.12 · THE PANE'S FILL BY CARD STYLE, as one name on <body> (no sheen): what a pane is filled with in this
+   seat, for a surface that sits inside another material's sheet and cannot carry the body's card selectors itself
+   (the work-bar transport inside a modulation window, and an app's re-scoped copy of that rule).  Each value is the
+   pane's own, above; it resolves on <body>, where --glass-tint, --card-opacity and the store's --surface-* live. */
+body:is([data-card="tinted"], [data-card="solid"]) { --pane-fill: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
+body[data-card="refractive"] { --pane-fill: var(--surface-veil, transparent); }
+body.frost[data-card="refractive"][data-theme="dark"] { --pane-fill: var(--surface-veil, var(--frost-veil-dark)); }
+body.frost.frost-hold[data-card="refractive"] { --pane-fill: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
 
 /* A live WebGPU canvas makes every blurred/inset child shadow in a translucent rack a recurring
    compositor cost on iPad. During motion the card silhouette, borders, fills and state colours stay;
@@ -555,10 +563,6 @@ body.disconnected:not(.phone) .dev > .dev-body, body.disconnected:not(.phone) :w
   border: var(--surface-edge-width, var(--glass-border)) solid var(--pane-edge, var(--surface-edge, var(--glass-border-color))); border-radius: var(--surface-radius, var(--disc-r)); box-shadow: var(--surface-shadow, var(--glass-shadow)); }
 
 
-/* the chip's non-blur LIFT is its own token: it is neither the blur nor the pane, and the tier turns it off */
-body.disconnected:not(.phone) .dev > .dev-head { background: var(--glass-raise);
-  -webkit-backdrop-filter: var(--surface-lift, var(--disc-chip-lift));
-  backdrop-filter: var(--surface-lift, var(--disc-chip-lift)); }
 /* THE BODY-CARD wears whatever CARD STYLE says the pane is — REFRACTIVE leaves it the field itself. */
 body.disconnected:is([data-card="tinted"], [data-card="solid"]):not(.phone) .dev > .dev-body { background: var(--surface-sheen, var(--glass-sheen)), var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
 body.disconnected:is([data-card="tinted"], [data-card="solid"]):not(.phone) :where([data-mir-surface="island"]) { background: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }   /* an island: the tinted fill, no 160° sheen (BASINS' islands have none) */
@@ -567,24 +571,20 @@ body.disconnected:is([data-card="tinted"], [data-card="solid"]):not(.phone) :whe
 body.disconnected.frost[data-card="refractive"]:not(.phone) .dev > .dev-body, body.disconnected.frost[data-card="refractive"]:not(.phone) :where([data-mir-surface="island"]) { background: var(--surface-veil, var(--frost-veil-light)); }
 body.disconnected.frost[data-card="refractive"][data-theme="dark"]:not(.phone) .dev > .dev-body, body.disconnected.frost[data-card="refractive"][data-theme="dark"]:not(.phone) :where([data-mir-surface="island"]) { background: var(--surface-veil, var(--frost-veil-dark)); }
 body.disconnected.frost:not([data-card="solid"]):not(.phone) .dev > .dev-body, body.disconnected.frost:not([data-card="solid"]):not(.phone) :where([data-mir-surface="island"]) { -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter)); backdrop-filter: var(--surface-filter, var(--frost-filter)); }
-/* the WHOLE chain is the fallback: a set --surface-filter replaces it, so `none` is the whole value, never `none brightness(…)` */
-body.disconnected.frost:not([data-card="solid"]):not(.phone) .dev > .dev-head {
-  -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter) var(--disc-chip-lift));
-  backdrop-filter: var(--surface-filter, var(--frost-filter) var(--disc-chip-lift)); }
 body.disconnected.frost.frost-hold:not(.phone) .dev > .dev-head,
 body.disconnected.frost.frost-hold:not(.phone) .dev > .dev-body, body.disconnected.frost.frost-hold:not(.phone) :where([data-mir-surface="island"]) { -webkit-backdrop-filter: none; backdrop-filter: none; }
 body.disconnected.frost.frost-hold[data-card="refractive"]:not(.phone) .dev > .dev-body, body.disconnected.frost.frost-hold[data-card="refractive"]:not(.phone) :where([data-mir-surface="island"]) { background: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
-/* 1.5.0-alpha.8 · UNDER THE LOOK ENGINE (html[data-skin], written by the GUI window's store) a disconnected window's
-   head is a pane like its body, as BASINS draws it: the fill by CARD STYLE, the blur under FROST, the shadow.  A page
-   with no store keeps the 1.4 head (the lighter chip). */
-:where(html[data-skin]) body.disconnected:not(.phone) .dev > .dev-head { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
-:where(html[data-skin]) body.disconnected:is([data-card="tinted"], [data-card="solid"]):not(.phone) .dev > .dev-head { background: var(--surface-sheen, var(--glass-sheen)), var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
-:where(html[data-skin]) body.disconnected.frost[data-card="refractive"]:not(.phone) .dev > .dev-head {
+/* A disconnected window's HEAD is a pane like its body, as BASINS draws it: the fill by CARD STYLE, the blur under
+   FROST, the shadow (1.5.0-alpha.8 under the look engine; since 1.5.0-alpha.12 on every page — the 1.4 head, the
+   lighter chip with its brightness(1.03) saturate(1.03) lift, is gone: BASINS draws the .58 pane there). */
+body.disconnected:not(.phone) .dev > .dev-head { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+body.disconnected:is([data-card="tinted"], [data-card="solid"]):not(.phone) .dev > .dev-head { background: var(--surface-sheen, var(--glass-sheen)), var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
+body.disconnected.frost[data-card="refractive"]:not(.phone) .dev > .dev-head {
   background: var(--surface-veil, var(--frost-veil-light)); -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter)); backdrop-filter: var(--surface-filter, var(--frost-filter)); }
-:where(html[data-skin]) body.disconnected.frost[data-card="refractive"][data-theme="dark"]:not(.phone) .dev > .dev-head { background: var(--surface-veil, var(--frost-veil-dark)); }
-:where(html[data-skin]) body.disconnected.frost[data-card="tinted"]:not(.phone) .dev > .dev-head { -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter)); backdrop-filter: var(--surface-filter, var(--frost-filter)); }   /* alpha.11: the tinted head thins with its body and blurs */
-:where(html[data-skin]) body.disconnected.frost.frost-hold:not(.phone) .dev > .dev-head { -webkit-backdrop-filter: none; backdrop-filter: none; }
-:where(html[data-skin]) body.disconnected.frost.frost-hold[data-card="refractive"]:not(.phone) .dev > .dev-head { background: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
+body.disconnected.frost[data-card="refractive"][data-theme="dark"]:not(.phone) .dev > .dev-head { background: var(--surface-veil, var(--frost-veil-dark)); }
+body.disconnected.frost[data-card="tinted"]:not(.phone) .dev > .dev-head { -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter)); backdrop-filter: var(--surface-filter, var(--frost-filter)); }   /* alpha.11: the tinted head thins with its body and blurs */
+body.disconnected.frost.frost-hold:not(.phone) .dev > .dev-head { -webkit-backdrop-filter: none; backdrop-filter: none; }
+body.disconnected.frost.frost-hold[data-card="refractive"]:not(.phone) .dev > .dev-head { background: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
 /* A COMPACT window is one rail and nothing else: the body is gone, so there is no constellation and the
    chip is the whole window.  A FOLDED one is the same shape, and both fall out of `display: none` on the
    body without a rule — stated here only so the next reader does not go looking for one.
