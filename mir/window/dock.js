@@ -54,17 +54,67 @@ export function dockTargets(o) {
   return out;
 }
 
-/** createDockGuide({ layer, enabled }) — the drop-here guide for the two docks (reach 96, capture 32, as BASINS has
- *  it).  track(box, geometryInputs) measures and paints; end() → the captured target or null (release lands there);
- *  cancel() clears at once (Escape, blur, a hidden page — proximity.js listens).  enabled() false is the host's
- *  Display switch: nothing is drawn and the snap still works. */
-export function createDockGuide({ layer, enabled = () => true } = {}) {
-  const prox = createProximity({ layer, reach: DOCK.reach, capture: DOCK.capture, enabled });
+/** anchorTarget(box, seat, { reach }) — BASINS mod-window-snap.js anchorTarget (Josh's fix: the PATTERN window seated on
+ *  its ENV device): another element's rect is a dock target too.  The landing is the seat's left, top and width with the
+ *  window's own height; distance is measured CORNER TO CORNER (the window's top-left to the seat's), with the same reach
+ *  and capture as an edge dock.  → a proximity target, or null when there is no seat or it is out of reach */
+export function anchorTarget(box, seat, { reach = DOCK.reach } = {}) {
+  if (!seat || !(seat.width > 0)) return null;
+  const L = box.left ?? box.x, T = box.top ?? box.y, sl = seat.left ?? seat.x, st = seat.top ?? seat.y;
+  if (Math.hypot(L - sl, T - st) >= reach) return null;
+  return { id: 'anchor', rect: anchorBox(seat, box.height), hit: { x: sl, y: st }, shape: 'rect', side: null };
+}
+/** anchorBox(seat, height) — where a window docked on an anchor lands: the seat's left, top and width, its own height */
+export const anchorBox = (seat, height) => ({ left: Math.round(seat.left ?? seat.x), top: Math.round(seat.top ?? seat.y), width: Math.round(seat.width), height: Math.round(height) });
+
+/** createDockGuide({ layer, enabled, window, cls }) — the drop-here guide for the two edge docks and, when the host
+ *  gives one, an anchor seat (reach 96, capture 32, as BASINS has it).  track(box, geometryInputs, seat?) measures
+ *  and paints (the edges by the window's box, the anchor corner to corner); end() → the captured target or null
+ *  (release lands there; the nearer one wins when both capture); cancel() clears at once (Escape, blur, a hidden page
+ *  — proximity.js listens).  enabled() false is the host's Display switch: nothing is drawn and the snap still works.
+ *  ONE DRAWING: the kit's proximity guide (core.css .mir-prox).  Its overlays carry stable hooks so an adopting app's
+ *  rigs keep their selectors: `data-mir-guide="dock"`, `data-window="<window>"`, `data-edge="top|bottom|anchor"` while
+ *  lit, and the classes in `cls` (BASINS: { window: 'patternwin', cls: 'mod-snap-guide' } keeps its rigs'
+ *  `.mod-snap-guide[data-window="patternwin"]`). */
+export function createDockGuide({ layer, enabled = () => true, window: owner = '', cls = '' } = {}) {
+  /* both proximities paint into the host's layer, as before (an app or a test may select `#floats > .mir-prox`).  Which
+     pooled overlays are this guide's is learnt by the one thing that is exact: an overlay lit at one of THIS guide's
+     landing rects is this guide's, and stays so (a proximity never lends its pool) */
+  const edges = createProximity({ layer, reach: DOCK.reach, capture: DOCK.capture, enabled });
+  const seat = createProximity({ layer, reach: DOCK.reach, capture: DOCK.capture, enabled });
+  const classes = String(cls || '').split(/\s+/).filter(Boolean);
+  const mine = new Set();
+  let lit = [];                                                      // [{ id, rect }] painted by the last track
+  const at = (o, r) => o.style.left === `${r.left}px` && o.style.top === `${r.top}px` && o.style.width === `${r.width}px` && o.style.height === `${r.height}px`;
+  const tag = () => {
+    for (const o of layer.querySelectorAll(':scope > .mir-prox[data-prox]')) {
+      if (mine.has(o) || o.dataset.mirGuide || !lit.some((t) => at(o, t.rect))) continue;
+      mine.add(o); o.dataset.mirGuide = 'dock'; if (owner) o.dataset.window = owner; for (const c of classes) o.classList.add(c);
+    }
+    for (const o of mine) {
+      const t = o.dataset.prox ? lit.find((x) => at(o, x.rect)) : null;
+      if (t) { if (o.dataset.edge !== t.id) o.dataset.edge = t.id; } else if (o.dataset.edge) delete o.dataset.edge;
+    }
+  };
   return {
-    track: (box, o) => prox.update(box, dockTargets(o)),
-    end() { const m = prox.end(); return m && m.captured ? m.captured : null; },
-    cancel: () => prox.cancel(),
-    destroy: () => prox.destroy(),
+    track(box, o, anchor) {
+      const t = dockTargets(o);
+      const m = edges.update(box, t);
+      const a = anchor ? anchorTarget(box, anchor) : null;
+      if (a) seat.update({ x: box.left ?? box.x, y: box.top ?? box.y }, [a]); else seat.end();
+      lit = [...t, ...(a ? [a] : [])].map((x) => ({ id: x.id, rect: x.rect }));
+      frame.write(tag);
+      return m;
+    },
+    end() {
+      const me = edges.end(), ma = seat.end();
+      const e = me && me.captured ? me : null, a = ma && ma.captured ? ma : null;
+      lit = []; frame.write(tag);
+      if (e && a) return a.distance <= e.distance ? a.captured : e.captured;
+      return (a || e) ? (a || e).captured : null;
+    },
+    cancel() { edges.cancel(); seat.cancel(); lit = []; tag(); },
+    destroy() { edges.destroy(); seat.destroy(); mine.clear(); },
   };
 }
 

@@ -2,7 +2,7 @@
  * fallback when a side has no room, and THE GUIDE IS THE LANDING: the proximity target's rect is dockGeometry()'s, and
  * the window lays out (windowLayout) into that same rect once docked.  Also the persisted shape. */
 import assert from 'node:assert/strict';
-import { DOCK, dockGeometry, dockTargets } from '../mir/window/dock.js';
+import { DOCK, dockGeometry, dockTargets, anchorTarget, anchorBox } from '../mir/window/dock.js';
 import { windowLayout, dockInput, readShape } from '../mir/window/window.js';
 import { measure } from '../mir/core/proximity.js';
 
@@ -77,6 +77,23 @@ const geo = (side, dock = 'bottom', height = 300, s = span) => dockGeometry({ sp
     { x: null, y: null, w: 520, h: 360, open: false, dock: null, chipSide: 'left' }, 'every bad field falls back');
   assert.deepEqual(Object.keys(readShape({}, d)), ['x', 'y', 'w', 'h', 'open', 'dock', 'chipSide']);
   pass('the one persistence shape { x, y, w, h, open, dock, chipSide }: every field checked, nothing else kept');
+}
+
+{
+  /* the anchor seat (BASINS mod-window-snap.js anchorTarget): corner to corner, the same reach and capture as an edge */
+  const seatR = { left: 500, top: 300, width: 420, height: 40 };
+  const near = anchorTarget({ left: 520, top: 320, width: 300, height: 200 }, seatR);
+  assert.equal(near.id, 'anchor'); assert.deepEqual(near.rect, { left: 500, top: 300, width: 420, height: 200 }, 'the seat\'s left, top, width; the window\'s height');
+  assert.equal(anchorTarget({ left: 600, top: 400, width: 300, height: 200 }, seatR), null, '141 px corner to corner: out of reach (96)');
+  assert.equal(anchorTarget({ left: 520, top: 320, width: 300, height: 200 }, null), null, 'no seat, no target');
+  const m = measure({ x: 520, y: 320 }, [near], { reach: DOCK.reach, capture: DOCK.capture });
+  assert.ok(m.captured && m.captured.id === 'anchor', '28 px corner to corner: captured');
+  const L = windowLayout({ x: 0, y: 0, w: 300, h: 200, open: true, dock: 'anchor', chipSide: 'left' }, { view: viewport, sizes: railSizes, span, anchor: seatR });
+  assert.deepEqual(L.box, anchorBox(seatR, 200), 'the guide IS the landing for an anchor too'); assert.equal(L.docked, 'anchor');
+  const gone = windowLayout({ x: 0, y: 0, w: 300, h: 200, open: true, dock: 'anchor', chipSide: 'left' }, { view: viewport, sizes: railSizes, span, anchor: null });
+  assert.ok(gone.away && gone.docked === 'anchor', 'the seat gone: away, and the wish kept');
+  assert.equal(readShape({ dock: 'anchor' }, { w: 1, h: 1 }).dock, 'anchor', 'an anchor dock persists');
+  pass('anchorTarget: a seat on another element is a dock target, corner to corner; the landing is the guide; away when it leaves');
 }
 
 console.log(`ALL ${n} MIR window dock and layout laws passed`);

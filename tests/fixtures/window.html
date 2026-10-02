@@ -62,11 +62,27 @@ const A = createWindow({ id: 'alpha', title: 'ALPHA', host, size: { w: 480, h: 3
 const B = createWindow({ id: 'beta', title: 'BETA', host, size: { w: 340, h: 220 }, persist: persistFor('B'),
   body: (el) => { el.textContent = 'BETA'; }, chips: [{ name: 'pin', kind: 'toggle', glyph: 'lock', label: 'Pin' }] });
 
+/* GAMMA: a window that can sit on a SEAT (BASINS' pattern window on its ENV), clipped to the seat's box, wearing a
+   material name, with an app rig's guide class; the test moves the seat and says so */
+const seatBox = document.createElement('div'); seatBox.id = 'seatbox';
+seatBox.style.cssText = 'position:fixed;left:380px;top:430px;width:520px;height:300px;overflow:hidden;';
+const seatEl = document.createElement('div'); seatEl.id = 'seat';
+seatEl.style.cssText = 'position:absolute;left:40px;top:20px;width:360px;height:30px;background:#2a3446;';
+seatBox.appendChild(seatEl); document.body.appendChild(seatBox);
+const seatFns = new Set();
+const seatMoved = () => { for (const f of seatFns) f(); };
+const C = createWindow({ id: 'gamma', title: 'GAMMA', host, size: { w: 300, h: 160 }, material: 'modulation',
+  dock: { span, guideClass: 'mod-snap-guide', anchor: {
+    rect: () => (seatEl.isConnected && !seatEl.hidden ? seatEl.getBoundingClientRect() : null),
+    clip: () => seatBox.getBoundingClientRect(),
+    subscribe: (f) => { seatFns.add(f); return () => seatFns.delete(f); } } },
+  body: (el) => { el.textContent = 'GAMMA'; } });
+
 /* the modulation window's own rail, built by its own builder, for the computed-style comparison */
 const mw = createModWindow({}); $('modfloats').appendChild(mw); buildChipRail(mw, {});
 const modRail = document.querySelector('.kwin-chiprail'); modRail.style.left = '-400px'; modRail.style.top = '0px';
 
-window.__T = { A, B, span, store, writes, moved, motion, frame, perf, modRail };
+window.__T = { A, B, C, seatEl, seatBox, seatMoved, span, store, writes, moved, motion, frame, perf, modRail };
 window.__ready = true;
 </script>
 </body>

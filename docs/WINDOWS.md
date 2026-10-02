@@ -19,22 +19,39 @@ Three modules in `mir/window/` and one sheet. (The rack's windows, the `.dev` ca
 ## The API
 
 **`window/window.js`**
-- `createWindow({ id, title, host, chips, body | panels, size, min, resizable, emptyDrag, dock, persist, onMoved, onOpen, onClose })` returns `{ root, body, rail, panels, open(), close(), toggle(), isOpen(), rect(), place(rect | pos, { animate }), setChip(name, state), tab(name), raise(), state(), destroy() }`.
+- `createWindow({ id, title, host, chips, body | panels, size, min, resizable, emptyDrag, dock, persist, material, railGap, onMoved, onOpen, onClose })` returns `{ root, body, rail, panels, open(), close(), toggle(), isOpen(), rect(), place(rect | pos, { animate }), setChip(name, state), tab(name), raise(), state(), destroy() }`.
   - `body` is a Node or `fn(bodyEl)`. `panels` is `[{ name, body }]`, one shown at a time; a radio chip named like a panel switches to it.
-  - `dock` is `{ span, guide }`. `span` is `{ read(), subscribe(fn) }` (from `observeSpan`); `guide()` is the Display switch, which hides the guide and keeps the snap.
+  - `dock` is `{ span, guide, anchor?, guideClass? }`.
+    - `span` is `{ read(), subscribe(fn) }` (from `observeSpan`).
+    - `guide()` is the Display switch, which hides the guide and keeps the snap.
+    - `anchor` is a **seat on another element** the window can dock to: BASINS' `anchorTarget`, the PATTERN window seated on its ENV device. It is `{ rect() → DOMRect | null, clip?() → DOMRect | null, subscribe?(fn) → off }`.
+      - Dragged within 96 px, corner to corner, of the seat, the window lights the same guide as an edge dock. Within 32 px, release lands it there.
+      - It lands at the seat's left, top and width, at the window's own height, clamp-free (as kwin's `place`).
+      - It follows the seat when the host calls the subscribed function.
+      - It is cut to `clip()` (a `clip-path: inset(…)` on the pane).
+      - It hides (window and rail `visibility: hidden`, `data-anchor="away"`) while the seat is gone or clipped away entirely.
+      - `dock: 'anchor'` persists. Dragging it away detaches it, as an edge dock does.
+    - `guideClass` is a class list put on this window's guide overlays, so an app's rigs keep their selector. BASINS: `guideClass: 'mod-snap-guide'` with the window id `patternwin` keeps `.mod-snap-guide[data-window="patternwin"]`.
+  - `material` writes `data-mir-material="<name>"` on the window's root and on its rail. That is all it does: the sheet chooses a material by it (the modulation window's material on SAVE / TIMELINE / COLOUR, in place of kwin's cloned rules).
+  - `railGap` is how far a **floating** window's rail sits from its pane: one number, or `{ left, right, top, bottom }`. The default `RAIL.gap` is kwin's: 8 px on the right, flush on the left, top and bottom. A docked rail is always flush, in its lane, as snap-window seats it.
   - `persist` is `{ read() → shape | null, write(shape) }`. It is written on release, resize end, dock, a kept seat, open, close and `place`; never mid-gesture or on cancel.
   - A window whose persisted shape says it was **open** opens one microtask after `createWindow` returns, not inside the call. So its `onOpen` may already use the returned window and anything the host builds right after the call; `isOpen()` is `false` until then. A window destroyed before that microtask never opens.
-- Pure: `readShape(raw, defaults, min)`, `windowLayout(state, env)`, `dockInput(state, env)`, `CLAMP` (120 px across and 52 px down stay on screen).
+- Pure: `readShape(raw, defaults, min)` (dock `top | bottom | anchor`), `windowLayout(state, env)` (env may carry `gap`, default 0, and `anchor`, the seat rect), `dockInput(state, env)`, `CLAMP` (120 px across and 52 px down stay on screen).
+- **A scripted press is a press.** A `PointerEvent` built in script is `isPrimary: false` unless it says otherwise, and `core/pointer.js` `drag()` takes only a primary pointer. BASINS' `save-gate.js` drags the grip and the corner with such events, as it did kwin's. So the window re-sends an **untrusted**, primary-button press that did not say `isPrimary` as primary, once, from the same target. A real second finger (trusted) is still refused, and everything after the press is the drag's own law.
 
 **`window/rail.js`**
 - `createRail({ id, title, chips, layer, seats, onChip, onSide, onNudge })` returns `{ el, grip, chip(name), setChip(name, state), state(name), measure(), sizes(), seat(seat, { animate }), holding(), destroy() }`. `window.js` makes it; use it directly only for a rail without a window.
 - A chip is `{ name, kind, label, hint?, glyph? | text?, group?, states?, state?, press?(state, win) }`, where kind is `close | action | toggle | radio | cycle | grip`. A toggle or radio may give `states: { true: {…}, false: {…} }`. A cycle gives `states: [{ id, pressed: true | false | 'mixed', label, hint, glyph | text }]` in its order. The close chip and the grip are added when absent.
-- Pure: `seatRail({ prefer, box, sizes, view })`, `seatOn(side, …)`, `chipPosition`, `nearestSide(x, y, box)`, `roomFor(box, side, sizes, view)`, `chipTable(spec)`, `nextState(spec, state)`, `SIDES`, `RAIL`.
+- Pure: `seatRail({ prefer, box, sizes, view, gap })`, `seatOn(side, box, sizes, view, pad, gap)`, `chipPosition(side, box, w, h, view, pad, gap)`, `nearestSide(x, y, box)`, `roomFor(box, side, sizes, view, pad, gap)` (the window makes room for rail and gap), `chipTable(spec)`, `nextState(spec, state)`, `gapOf(gap, side)`, `SIDES`, `RAIL` (`RAIL.gap` = kwin's `{ left: 0, right: 8, top: 0, bottom: 0 }`). Every `gap` defaults to 0, which is how the modulation window seats its rail (BASINS `positionChips`).
 
 **`window/dock.js`**
 - `dockGeometry({ span, side, dock, height, railSizes, viewport })` returns `{ left, top, width, height, side } | null`.
 - `dockTargets(o)` returns the two docks as proximity targets, each with `rect` = `dockGeometry()`.
-- `createDockGuide({ layer, enabled })` returns `{ track(box, o), end() → target | null, cancel(), destroy() }`.
+- `createDockGuide({ layer, enabled, window, cls })` returns `{ track(box, o, seat?), end() → target | null, cancel(), destroy() }`.
+  - With a `seat`, the anchor is a third target. The nearer one wins when both capture.
+  - There is one drawing, the kit's (`core.css .mir-prox`), painted into `layer` as before.
+  - The overlays carry stable hooks: `data-mir-guide="dock"`, `data-window="<window>"`, `data-edge="top | bottom | anchor"` while lit, and the classes in `cls`.
+- `anchorTarget(box, seat, { reach })` returns the anchor as a proximity target: corner to corner, landing at `anchorBox(seat, height)`.
 - `observeSpan({ left, right, edge, view, occupied, narrow, active })` returns `{ read(), subscribe(fn), setActive(on), active, destroy() }`, where `read()` gives `{ left, right, width, top, bottom }`. Make **one** per page (a rack's is `rack.span()`). It is BASINS' `observeRackBounds`, so a window docks where BASINS docked it:
   - each rack's edge is its logical edge: `--rack-shadow-gutter` is subtracted;
   - a rack is absent (the span runs to the screen edge, 8 px in) when it is missing or `hidden`, when it holds no open window (`occupied`, default `.dev:not(.closed):not([hidden])`; `false` counts any rack), when it is `display: none` or `visibility: hidden`, under `body.phone` or `body.ui-hidden`, or when the viewport is `narrow` (860) px wide or less;

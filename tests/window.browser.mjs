@@ -209,6 +209,47 @@ try {
   check('chip geometry matches the modulation rail in all 8 seats: target, disc, border, radius, gap, type (docked: disc + --rail-gap along the rail)', geomOk, JSON.stringify(Object.fromEntries(Object.entries(mismatch).filter(([k]) => GEOM.includes(k) || k.startsWith('chip ') && k !== 'chip color' || k === 'gap'))));
   for (const [k, v] of Object.entries(mismatch)) if (!GEOM.includes(k)) console.log(`INFO  differs from the modulation rail · ${k}: ${[...new Set(v.map((x) => x.replace(/^[^:]+: /, '')))].join('  /  ')}  (in ${v.length} of 8 seats)`);
 
+  /* ── a SCRIPTED drag: BASINS save-gate.js's helper, verbatim — untrusted PointerEvents with no isPrimary ─────── */
+  r = await run(`const sleep = wait;
+    const gate = async (n, dx, dy) => { const b = n.getBoundingClientRect(), x0 = b.left + b.width / 2, y0 = b.top + b.height / 2;
+      const ev = (t, x, y) => n.dispatchEvent(new PointerEvent(t, { bubbles: true, cancelable: true, pointerId: 11, pointerType: 'mouse', clientX: x, clientY: y, button: 0, buttons: t === 'pointerup' ? 0 : 1 }));
+      ev('pointerdown', x0, y0); for (let i = 1; i <= 8; i++) { ev('pointermove', x0 + dx * i / 8, y0 + dy * i / 8); await sleep(16); } ev('pointerup', x0 + dx, y0 + dy); await sleep(150); };
+    A.place({ x: 400, y: 200, width: 480, height: 300 }); await rest(A);
+    const w0 = R(A.root); await gate(A.root.querySelector('.mir-win-resize'), 60, 40); await rest(A); const w1 = R(A.root), r0 = R(A.rail.el);
+    await gate(A.rail.grip, -80, 30); await rest(A); const w2 = R(A.root), r1 = R(A.rail.el);
+    return { w0, w1, w2, r0, r1, stored: T.store.A };`);
+  check('scripted drag (save-gate.js\'s own helper): the corner resizes by exactly (+60, +40), the grip moves window and rail by (−80, +30), and it persists',
+    Math.round(r.w1.width - r.w0.width) === 60 && Math.round(r.w1.height - r.w0.height) === 40 && Math.round(r.w2.left - r.w1.left) === -80 && Math.round(r.w2.top - r.w1.top) === 30
+    && Math.round(r.r1.left - r.r0.left) === -80 && Math.round(r.r1.top - r.r0.top) === 30 && r.stored.w === Math.round(r.w1.width) && r.stored.x === Math.round(r.w2.left), JSON.stringify(r));
+
+  /* ── the anchor seat: the guide is the landing, it follows the seat, it is clipped, it hides when the seat goes ── */
+  {
+    await run(`T.C.place({ x: 600, y: 80 }); T.C.open(); await rest(T.C); return 0;`);
+    const cg = await at(`__T.C.rail.grip`), seat = await at(`__T.seatEl`), cb = await at(`__T.C.root`);
+    let mid = null;
+    await dragBy(cg.x, cg.y, Math.round(seat.left - cb.left + 10), Math.round(seat.top - cb.top + 8), { end: async () => {
+      mid = await run(`const g = [...document.querySelectorAll('.mod-snap-guide[data-window="gamma"]')].find((o) => o.dataset.edge === 'anchor' && o.dataset.prox === 'capture');
+        return g ? { rect: R(g), hook: g.dataset.mirGuide, cls: g.classList.contains('mir-prox'), n: document.querySelectorAll('.mir-prox[data-prox]').length } : null;`);
+      await mouse('mouseReleased', cg.x + Math.round(seat.left - cb.left + 10), cg.y + Math.round(seat.top - cb.top + 8)); } });
+    r = await run(`await rest(T.C); const b = R(T.C.root), s = R(T.seatEl);
+      return { b, s, dock: T.C.root.dataset.dock, stored: T.C.state().dock, mat: T.C.root.dataset.mirMaterial + '/' + T.C.rail.el.dataset.mirMaterial };`);
+    const mat = r.mat;
+    check('anchor: dragged near its seat, ONE guide (the kit\'s) is lit with the app\'s hooks — .mod-snap-guide[data-window="gamma"][data-edge="anchor"], data-mir-guide="dock"',
+      !!mid && mid.hook === 'dock' && mid.cls, JSON.stringify(mid));
+    check('anchor: release lands exactly on the guide — the seat\'s left, top and width, the window\'s own height; the dock persists',
+      !!mid && r.dock === 'anchor' && r.stored === 'anchor' && Math.abs(r.b.left - r.s.left) < 0.5 && Math.abs(r.b.top - r.s.top) < 0.5 && Math.abs(r.b.width - r.s.width) < 0.5
+      && Math.abs(mid.rect.left - r.b.left) < 0.5 && Math.abs(mid.rect.top - r.b.top) < 0.5 && Math.abs(mid.rect.width - r.b.width) < 0.5, JSON.stringify({ mid, r }));
+    r = await run(`T.seatEl.style.top = '200px'; T.seatMoved(); await rest(T.C);
+      const b = R(T.C.root), s = R(T.seatEl), cp = getComputedStyle(T.C.root).clipPath, vis1 = getComputedStyle(T.C.root).visibility;
+      T.seatEl.hidden = true; T.seatMoved(); await wait(30); const away = { vis: getComputedStyle(T.C.root).visibility, rail: getComputedStyle(T.C.rail.el).visibility, a: T.C.root.dataset.anchor };
+      T.seatEl.hidden = false; T.seatEl.style.top = '20px'; T.seatMoved(); await rest(T.C); const back = { vis: getComputedStyle(T.C.root).visibility, top: Math.round(R(T.C.root).top) };
+      T.C.close(); await rest(T.C);
+      return { follow: Math.abs(b.top - s.top) < 0.5, cp, vis1, away, back };`);
+    check('anchor: it follows its seat, is clipped where the seat\'s box clips it, hides while the seat is gone and returns with it',
+      r.follow && /^inset\(0px 0px 60px( 0px)?\)$/.test(r.cp) && r.vis1 === 'visible' && r.away.vis === 'hidden' && r.away.rail === 'hidden' && r.away.a === 'away' && r.back.vis === 'visible' && r.back.top === 450, JSON.stringify(r));
+    check('material: createWindow({ material }) writes data-mir-material on the window and on its rail', mat === 'modulation/modulation', mat);
+  }
+
   /* ── the idle law ──────────────────────────────────────────────────────────────────────────────────────── */
   await p.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 640, y: 795 });
   await sleep(500);

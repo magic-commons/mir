@@ -1,7 +1,7 @@
 /* window-rail.node.mjs — the chip rail's pure laws: the seating solver (every fallback branch, and the preference
  * is never written), the nearest edge, the window making room, and the chip state tables (toggle, radio, cycle). */
 import assert from 'node:assert/strict';
-import { SIDES, chipPosition, seatRail, nearestSide, roomFor, chipTable, nextState } from '../mir/window/rail.js';
+import { SIDES, RAIL, chipPosition, seatRail, seatOn, nearestSide, roomFor, chipTable, nextState } from '../mir/window/rail.js';
 
 let n = 0;
 const pass = (name, detail) => { n++; console.log(`PASS ${name}${detail ? ` — ${detail}` : ''}`); };
@@ -97,6 +97,27 @@ const box = (left, top, width = 400, height = 300) => ({ left, top, width, heigh
   assert.equal(sort.get('az').text, 'A–Z'); assert.equal(sort.get('new').pressed, 'false', 'a cycle state without pressed is not pressed');
   assert.throws(() => chipTable({ name: 'x', kind: 'cycle', label: 'x' }), /needs states/);
   pass('cycle: one row per declared state, aria-pressed true|false|mixed as declared, text or glyph ink, the order wraps');
+}
+
+{
+  /* kwin.js RAIL_GAP: a floating window's rail sits 8 px off its RIGHT edge and flush on the left; kwin has no top or
+     bottom rail and BASINS' mod-window-snap seats those flush; a docked rail (seatOn in its lane) is flush */
+  assert.deepEqual({ ...RAIL.gap }, { left: 0, right: 8, top: 0, bottom: 0 }, 'kwin\'s numbers');
+  const b = box(400, 200);
+  assert.equal(chipPosition('right', b, 62, 270, view, 4, 8).left, 808, 'right: the box\'s right (800) + 8');
+  assert.equal(chipPosition('left', b, 62, 270, view, 4, 0).left, 338, 'left: flush (400 − 62)');
+  assert.equal(chipPosition('top', b, 270, 62, view, 4, 0).top, 138, 'top: flush');
+  assert.equal(chipPosition('bottom', b, 270, 62, view, 4, 0).top, 500, 'bottom: flush');
+  assert.equal(seatRail({ prefer: 'right', box: b, sizes, view, gap: RAIL.gap }).left, 808, 'the solver carries the gap');
+  assert.equal(seatRail({ prefer: 'left', box: b, sizes, view, gap: RAIL.gap }).left, 338);
+  assert.equal(seatRail({ prefer: 'right', box: b, sizes, view }).left, 800, 'no gap asked: flush (the modulation window, as BASINS draws it)');
+  assert.equal(seatOn('right', b, sizes, view).left, 800, 'a docked lane is flush');
+  /* the right edge with the gap does not fit: the window makes room for rail AND gap */
+  const tight = box(1280 - 4 - 400 - 62, 200);
+  assert.equal(seatRail({ prefer: 'right', box: tight, sizes, view, gap: RAIL.gap }).side, 'left', 'rail + gap no longer fits on the right: the solver goes left');
+  assert.equal(roomFor(tight, 'right', sizes, view, 4, RAIL.gap).left, 1280 - 4 - 62 - 8 - 400, 'roomFor moves the window by the gap too');
+  assert.equal(roomFor(tight, 'right', sizes, view).left, tight.left, 'without a gap it already fits');
+  pass('the rail\'s gap from its window is kwin\'s: right 8, left / top / bottom 0, docked 0; the solver and roomFor follow it');
 }
 
 console.log(`ALL ${n} MIR window rail laws passed`);

@@ -26,17 +26,23 @@ import { tweenRect, flip, owns } from '../core/motion.js';
 import { createProximity } from '../core/proximity.js';
 
 export const SIDES = Object.freeze(['left', 'right', 'top', 'bottom']);
-export const RAIL = Object.freeze({ pad: 4, longPress: 450, slop: 6, nudge: 24 });
+/* gap: how far a FLOATING window's rail sits from its pane, per side — kwin.js's RAIL_GAP (BASINS): 8 px on the right,
+   flush on the left; kwin has no top or bottom rail, and BASINS' mod-window-snap seats those flush.  A docked rail
+   (seatOn in its lane) is flush: snap-window seats it there. */
+export const RAIL = Object.freeze({ pad: 4, longPress: 450, slop: 6, nudge: 24, gap: Object.freeze({ left: 0, right: 8, top: 0, bottom: 0 }) });
+/** gapOf(gap, side) — a gap given as one number or as a per-side table */
+export const gapOf = (g, side) => (typeof g === 'number' ? g : (g && g[side]) || 0);
 const vertical = (side) => side === 'left' || side === 'right';
 const clamp = (n, lo, hi) => Math.max(lo, Math.min(Math.max(lo, hi), n));
 const R = (b) => ({ left: b.left ?? b.x, top: b.top ?? b.y, width: b.width, height: b.height });
 
 /* ── the pure geometry ──────────────────────────────────────────────────────────────────────────────────────── */
-/** chipPosition(side, box, w, h, view) — the rail beside `box` on `side`, centred along it, clamped into the view */
-export function chipPosition(side, box, w, h, view, pad = RAIL.pad) {
+/** chipPosition(side, box, w, h, view, pad, gap) — the rail beside `box` on `side`, `gap` px from it, centred along it,
+ *  clamped into the view */
+export function chipPosition(side, box, w, h, view, pad = RAIL.pad, gap = 0) {
   const b = R(box), right = b.left + b.width, bottom = b.top + b.height;
-  const x = side === 'left' ? b.left - w : side === 'right' ? right : b.left + (b.width - w) / 2;
-  const y = side === 'top' ? b.top - h : side === 'bottom' ? bottom : b.top + (b.height - h) / 2;
+  const x = side === 'left' ? b.left - w - gap : side === 'right' ? right + gap : b.left + (b.width - w) / 2;
+  const y = side === 'top' ? b.top - h - gap : side === 'bottom' ? bottom + gap : b.top + (b.height - h) / 2;
   return { left: Math.round(clamp(x, pad, view.width - w - pad)), top: Math.round(clamp(y, pad, view.height - h - pad)),
     fits: x >= pad && x + w <= view.width - pad && y >= pad && y + h <= view.height - pad };
 }
@@ -45,20 +51,20 @@ export function chipPosition(side, box, w, h, view, pad = RAIL.pad) {
  *  preference: the order of SIDES).  The preferred side if it fits; else the first other side that fits; else the
  *  first side the rail can fit on at all, clamped; else the preference, clamped.  Pure: the preference is an input,
  *  never written.  → { side, left, top, width, height, fits } — the exact landing rect of the rail */
-export function seatRail({ prefer = 'left', box, sizes, view, pad = RAIL.pad }) {
+export function seatRail({ prefer = 'left', box, sizes, view, pad = RAIL.pad, gap = 0 }) {
   const order = SIDES.includes(prefer) ? [prefer, ...SIDES.filter((s) => s !== prefer)] : SIDES;
   let reachable = null;
   for (const side of order) {
-    const s = seatOn(side, box, sizes, view, pad);
+    const s = seatOn(side, box, sizes, view, pad, gapOf(gap, side));
     if (s.fits) return s;
     if (!reachable && s.width <= view.width - 2 * pad && s.height <= view.height - 2 * pad) reachable = side;
   }
-  return seatOn(reachable || order[0], box, sizes, view, pad);
+  return seatOn(reachable || order[0], box, sizes, view, pad, gapOf(gap, reachable || order[0]));
 }
 /** seatOn(side, box, sizes, view) — the rail on that side and no other, clamped: a docked window's lane, which the
  *  dock geometry has already made room for */
-export function seatOn(side, box, sizes, view, pad = RAIL.pad) {
-  const { w, h } = sizes[vertical(side) ? 'vertical' : 'horizontal'], pos = chipPosition(side, box, w, h, view, pad);
+export function seatOn(side, box, sizes, view, pad = RAIL.pad, gap = 0) {
+  const { w, h } = sizes[vertical(side) ? 'vertical' : 'horizontal'], pos = chipPosition(side, box, w, h, view, pad, gapOf(gap, side));
   return { side, left: pos.left, top: pos.top, width: w, height: h, fits: pos.fits };
 }
 
@@ -72,8 +78,9 @@ export function nearestSide(x, y, box) {
 
 /** roomFor(box, side, sizes, view) — where a FLOATING window moves so its rail fits on `side` (the window makes
  *  room when the hand chose that side); unchanged when it already fits or when window and rail cannot both fit */
-export function roomFor(box, side, sizes, view, pad = RAIL.pad) {
-  const b = R(box), { w, h } = sizes[vertical(side) ? 'vertical' : 'horizontal'];
+export function roomFor(box, side, sizes, view, pad = RAIL.pad, gap = 0) {
+  const b = R(box), g = gapOf(gap, side), { w: w0, h: h0 } = sizes[vertical(side) ? 'vertical' : 'horizontal'];
+  const w = vertical(side) ? w0 + g : w0, h = vertical(side) ? h0 : h0 + g;   // the gap is room the rail needs too
   let { left, top } = b;
   if (side === 'left' && b.width + w <= view.width - 2 * pad) left = clamp(left, pad + w, view.width - pad - b.width);
   if (side === 'right' && b.width + w <= view.width - 2 * pad) left = clamp(left, pad, view.width - pad - w - b.width);

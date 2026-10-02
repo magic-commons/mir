@@ -27,7 +27,7 @@ import { presence, tweenRect, owns, settled } from '../core/motion.js';
 import { rect, setVar, setAttr } from '../core/perf.js';
 import { ariaLabel } from '../kit.js';
 import { createRail, seatRail, seatOn, nearestSide, roomFor, markForwarded, RAIL } from './rail.js';
-import { dockGeometry, createDockGuide } from './dock.js';
+import { dockGeometry, createDockGuide, anchorBox } from './dock.js';
 
 /** the house clamp (kwin.js): 120 px of a window stays across the screen, 52 px of it stays below its top */
 export const CLAMP = Object.freeze({ x: 120, y: 52, inset: 16, top: 56 });
@@ -45,7 +45,7 @@ export function readShape(raw, d, min = { w: 0, h: 0 }) {
     x: num(r.x, d.x ?? null), y: num(r.y, d.y ?? null),
     w: Math.max(min.w, num(r.w, d.w)), h: Math.max(min.h, num(r.h, d.h)),
     open: typeof r.open === 'boolean' ? r.open : !!d.open,
-    dock: r.dock === 'top' || r.dock === 'bottom' ? r.dock : null,
+    dock: r.dock === 'top' || r.dock === 'bottom' || r.dock === 'anchor' ? r.dock : null,
     chipSide: CHIP_SIDES.includes(r.chipSide) ? r.chipSide : (d.chipSide || 'left'),
   };
 }
@@ -55,18 +55,25 @@ export function dockInput(P, env) {
     railSizes: env.sizes, viewport: env.view };
 }
 /** windowLayout(P, env) — the state to the pane's rect and the rail's seat.  env = { view: { width, height },
- *  sizes: the rail's { vertical, horizontal }, span: the dock span or null }.  Docked when it can be; a dock with no
+ *  sizes: the rail's { vertical, horizontal }, span: the dock span or null, gap?: the floating rail's gap (a number or
+ *  per side; default 0 — createWindow passes kwin's RAIL.gap), anchor?: the seat rect when docked on an anchor }.  Docked when it can be; a dock with no
  *  room floats for now and keeps the wish (P.dock is not touched).  → { box, seat, docked } */
 export function windowLayout(P, env) {
   const { view, sizes } = env;
-  if (P.dock && env.span) {
+  /* seated on an anchor (BASINS: the PATTERN window on its ENV): where the seat is, clamp-free (kwin.js place()) — the
+     seat scrolls with its owner and the host's clip cuts what the owner cuts; no seat (it left): `away` */
+  if (P.dock === 'anchor') {
+    if (env.anchor && env.anchor.width > 0) { const box = anchorBox(env.anchor, Math.min(P.h, view.height - CLAMP.inset)); return { box, seat: seatRail({ prefer: P.chipSide, box, sizes, view, gap: env.gap ?? 0 }), docked: 'anchor' }; }
+    if (env.anchor !== undefined) return { box: null, seat: null, docked: 'anchor', away: true };
+  }
+  if (P.dock && P.dock !== 'anchor' && env.span) {
     const g = dockGeometry({ ...dockInput(P, env), dock: P.dock });
     if (g) { const box = { left: g.left, top: g.top, width: g.width, height: g.height }; return { box, seat: seatOn(g.side, box, sizes, view), docked: P.dock }; }
   }
   const w = Math.min(P.w, view.width - CLAMP.inset), h = Math.min(P.h, view.height - CLAMP.inset);
   const x = P.x ?? Math.round((view.width - w) / 2), y = P.y ?? Math.round(Math.max(CLAMP.top, (view.height - h) / 2));
   const box = { left: clamp(x, CLAMP.x - w, view.width - CLAMP.x), top: clamp(y, 0, view.height - CLAMP.y), width: w, height: h };
-  return { box, seat: seatRail({ prefer: P.chipSide, box, sizes, view }), docked: null };
+  return { box, seat: seatRail({ prefer: P.chipSide, box, sizes, view, gap: env.gap ?? 0 }), docked: null };
 }
 
 /* ── the raise: one stack for every window, the pair rises together ────────────────────────────────────────── */
@@ -86,19 +93,25 @@ const PRESSABLE = 'button, input, select, textarea, a[href], label, summary, [co
 /** along(p, lo, size, next) — where a span of `next` starts so the point p keeps its place on it (detaching a dock) */
 const along = (p, lo, size, next) => (p < lo ? lo : p > lo + size ? lo + size - next : p - ((p - lo) / size) * next);
 
-/** createWindow({ id, title, host, chips, body | panels, size, min, resizable, emptyDrag, dock, persist, onMoved,
- *  onOpen, onClose })
+/** createWindow({ id, title, host, chips, body | panels, size, min, resizable, emptyDrag, dock, persist, material,
+ *  railGap, onMoved, onOpen, onClose })
  *    chips      rail chip specs (window/rail.js); a chip may carry press(state, win).  The close chip and the grip are
  *               added when absent; a radio chip named like a panel switches to it
  *    body       a Node, or fn(bodyEl) that fills the body;  panels: [{ name, body }] — one shown at a time (tab())
  *    size, min  { w, h } floating size and its floor;  resizable adds the corner;  emptyDrag true or a selector of
  *               the host's own pressable things
- *    dock       { span: { read(), subscribe(fn) } (dock.js observeSpan), guide: () => bool (the Display switch) }
+ *    dock       { span: { read(), subscribe(fn) } (dock.js observeSpan), guide: () => bool (the Display switch),
+ *                 anchor?: { rect() → DOMRect | null, clip?() → DOMRect | null, subscribe?(fn) → off } — a seat on another
+ *                 element the window can dock to (BASINS' anchorTarget): it follows it, is clipped to clip(), and hides
+ *                 while the seat is gone or clipped away;  guideClass?: classes for the guide's overlays (an app's rig
+ *                 selector, BASINS 'mod-snap-guide'); the overlays always carry data-mir-guide="dock" data-window="<id>" }
+ *    material   a name written as data-mir-material on the window and its rail (the sheet chooses a material by it)
+ *    railGap    the floating rail's gap from the pane, a number or { left, right, top, bottom } (default RAIL.gap: kwin's)
  *    persist    { read() → shape | null, write(shape) }
  *  → { root, body, rail, open(), close(), toggle(), isOpen(), rect(), place(rect | pos, { animate }), setChip, tab,
  *      raise(), state(), destroy() } */
 export function createWindow({ id, title = id, host, chips = [], body, panels, size = { w: 520, h: 360 }, min = { w: 240, h: 160 },
-  resizable = false, emptyDrag = false, dock = null, persist = null, onMoved, onOpen, onClose } = {}) {
+  resizable = false, emptyDrag = false, dock = null, persist = null, material = null, railGap = RAIL.gap, onMoved, onOpen, onClose } = {}) {
   const doc = host.ownerDocument, view = doc.defaultView;
   installOnce(doc);
   const mk = (tag, cls, parent) => { const n = doc.createElement(tag); if (cls) n.className = cls; if (parent) parent.appendChild(n); return n; };
@@ -106,6 +119,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
   /* ── the DOM ── */
   const root = mk('div', 'mir-win glass');
   root.dataset.mirWindow = id;
+  if (material) root.dataset.mirMaterial = String(material);   // a hook only: the sheet paints by it (docs/WINDOWS.md)
   root.setAttribute('role', 'group');
   ariaLabel(root, String(title));   // no toUpperCase: it would upper-case a translation
   root.hidden = true;
@@ -123,7 +137,9 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
   const P = readShape(persist && persist.read ? persist.read() : null, { w: size.w, h: size.h, chipSide: 'left' }, min);
   const wantOpen = P.open; P.open = false;
   let box = null, moving = null, deferred = false, gest = null, kbBefore = null, active = panels && panels.length ? panels[0].name : null;
-  const env = () => ({ view: { width: view.innerWidth, height: view.innerHeight }, sizes: rail.sizes(), span: dock ? dock.span.read() : null });
+  const seatOf = () => (dock && dock.anchor && typeof dock.anchor.rect === 'function' ? dock.anchor.rect() || null : undefined);
+  const env = () => ({ view: { width: view.innerWidth, height: view.innerHeight }, sizes: rail.sizes(), span: dock ? dock.span.read() : null,
+    gap: railGap, anchor: P.dock === 'anchor' ? seatOf() : undefined });
   const shape = () => ({ x: P.x, y: P.y, w: P.w, h: P.h, open: P.open, dock: P.dock, chipSide: P.chipSide });
   const save = () => { if (persist && persist.write) persist.write(shape()); };
 
@@ -144,8 +160,9 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
     onNudge(dx, dy) { if (P.dock || !box) return; P.x = box.left + dx; P.y = box.top + dy; layout({ animate: true }); save(); },
   });
   host.appendChild(rail.el);
+  if (material) rail.el.dataset.mirMaterial = String(material);
   const pair = { root, rail: rail.el };
-  const guide = dock ? createDockGuide({ layer: host, enabled: dock.guide || (() => true) }) : null;
+  const guide = dock ? createDockGuide({ layer: host, enabled: dock.guide || (() => true), window: id, cls: dock.guideClass || '' }) : null;
 
   /* ── THE ONE PLACE THAT PLACES IT ── */
   function layout({ animate = false } = {}) {
@@ -159,6 +176,13 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
     rail.setDock(P.dock && dock ? P.dock : null);                  // the docked rail sits tighter (window.css --rail-gap)
     let L = windowLayout(P, env());
     if ((L.docked || null) !== (P.dock && dock ? P.dock : null)) { rail.setDock(L.docked); L = windowLayout(P, env()); }
+    /* an anchored window whose seat has gone, or is clipped away entirely, is not painted; otherwise it is cut to the clip */
+    const clipTo = L.docked === 'anchor' && L.box && dock.anchor.clip ? dock.anchor.clip() : null;
+    const out = L.away || (clipTo && (L.box.left >= clipTo.right || L.box.left + L.box.width <= clipTo.left || L.box.top >= clipTo.bottom || L.box.top + L.box.height <= clipTo.top));
+    setVar(root, 'visibility', out ? 'hidden' : null); setVar(rail.el, 'visibility', out ? 'hidden' : null);
+    setAttr(root, 'data-anchor', L.docked === 'anchor' ? (out ? 'away' : 'seated') : null);
+    if (L.away) { if (onMoved) onMoved(null); return box; }
+    setVar(root, 'clip-path', clipTo && !out ? `inset(${Math.max(0, clipTo.top - L.box.top)}px ${Math.max(0, L.box.left + L.box.width - clipTo.right)}px ${Math.max(0, L.box.top + L.box.height - clipTo.bottom)}px ${Math.max(0, clipTo.left - L.box.left)}px)` : null);
     box = L.box;
     setAttr(root, 'data-dock', L.docked);
     if (animate) {
@@ -179,7 +203,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
   /** the state after the hand chooses `side`: a floating window makes room for its rail there */
   function relocated(side) {
     const Q = { ...P, chipSide: side }, e = env();
-    if (!Q.dock || !e.span) { const r = roomFor(windowLayout(Q, e).box, side, e.sizes, e.view); Q.x = r.left; Q.y = r.top; }
+    if (!Q.dock || !e.span) { const r = roomFor(windowLayout(Q, e).box, side, e.sizes, e.view, RAIL.pad, railGap); Q.x = r.left; Q.y = r.top; }
     return { Q, seat: windowLayout(Q, e).seat };
   }
   function relocate(side) { Object.assign(P, relocated(side).Q); layout({ animate: true }); }
@@ -205,7 +229,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
       }
       P.x = Math.round(s.x - gest.anchor.dx); P.y = Math.round(s.y - gest.anchor.dy);
       layout();
-      if (guide) guide.track(box, dockInput(P, env()));
+      if (guide) guide.track(box, dockInput(P, env()), seatOf() || null);
     },
     onEnd() {
       rail.grip.classList.remove('drag');
@@ -252,13 +276,30 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
     onCancel() { root.classList.remove('resizing'); if (rz) { Object.assign(P, rz); rz = null; layout(); } },
   });
 
+  /* ── A SCRIPTED PRESS IS A PRESS.  `new PointerEvent('pointerdown', …)` is isPrimary: false unless it says so, and
+     core/pointer.js drag() only takes a primary pointer (a second finger must not start a gesture).  An app's rig (BASINS
+     save-gate.js) drags the grip and the corner with exactly such a sequence, as it did kwin's, which never asked.  So an
+     UNTRUSTED primary-button press that did not say isPrimary is re-sent as primary, once, from the same target: a real
+     second finger (trusted) is still refused, and everything after the press is the drag's own law. */
+  const asPrimary = (e) => {
+    if (e.isTrusted || e.isPrimary || e.button !== 0) return;
+    e.stopImmediatePropagation(); e.preventDefault();
+    e.target.dispatchEvent(new view.PointerEvent('pointerdown', { bubbles: true, cancelable: true, composed: true, isPrimary: true,
+      pointerId: e.pointerId, pointerType: e.pointerType || 'mouse', button: 0, buttons: e.buttons || 1, clientX: e.clientX, clientY: e.clientY,
+      shiftKey: e.shiftKey, altKey: e.altKey, ctrlKey: e.ctrlKey, metaKey: e.metaKey }));
+  };
+  root.addEventListener('pointerdown', asPrimary, true);
+  rail.el.addEventListener('pointerdown', asPrimary, true);
+
   /* ── the raise, the viewport, the racks ── */
   const raise = () => raisePair(pair);
   root.addEventListener('pointerdown', raise, true);
   rail.el.addEventListener('pointerdown', raise, true);
   const resized = () => layout();
   view.addEventListener('resize', resized, { passive: true });
-  const unSpan = dock && dock.span.subscribe ? dock.span.subscribe(() => { if (P.dock) layout(); }) : null;
+  const unSpan = dock && dock.span.subscribe ? dock.span.subscribe(() => { if (P.dock && P.dock !== 'anchor') layout(); }) : null;
+  /* an anchored window follows its seat: the host says when the seat moved (a scroll, a relayout of its owner) */
+  const unSeat = dock && dock.anchor && typeof dock.anchor.subscribe === 'function' ? dock.anchor.subscribe(() => { if (P.dock === 'anchor' && !gest) layout(); }) : null;
 
   function tab(name) {
     if (!panelEls.has(name)) return active;
@@ -307,7 +348,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
     state: shape,
     destroy() {
       dead = true; api.close(); gripDrag.destroy(); if (cornerDrag) cornerDrag.destroy(); if (guide) guide.destroy();
-      if (unSpan) unSpan(); view.removeEventListener('resize', resized);
+      if (unSpan) unSpan(); if (typeof unSeat === 'function') unSeat(); view.removeEventListener('resize', resized);
       const i = STACK.indexOf(pair); if (i >= 0) STACK.splice(i, 1);
       rail.destroy(); root.remove();
     },
