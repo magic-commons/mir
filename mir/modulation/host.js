@@ -45,6 +45,8 @@ export { M as model };
  *  that was away, not a frame.  It bites free sync and envelope time; wall sync
  *  derives its beat from the absolute stamp and is untouched by it (see above). */
 export const MAX_WALL_STEP = 0.25;
+/** the automation sampling grids, in beats (SAMPLING › AUTOMATION: FRAME · 1/32 · 1/16 · 1/8) */
+export const AUTOMATION_GRIDS = Object.freeze([0, 1 / 32, 1 / 16, 1 / 8]);
 
 /** The pause law's two settings.  BASE is what ships: when the transport stops, every
  *  source-driven control returns to the knob the user left it on.  HOLD freezes it
@@ -218,6 +220,12 @@ export function createModClock(opts) {
   let modulationEnabled = true;    /* deterministic clients may drive automation without macro routes */
   let exactResume = !!o.exactResume; /* arrangements can own an exact play cursor; legacy ships */
   let automationHold = !!o.automationHold; /* paused arrangement baseline is independent of LFO BASE/HOLD */
+  /* THE AUTOMATION SAMPLING GRID (BASINS modulation.js, docs TIMELINE-SAMPLING 2026-10-01): 0 = every frame; 1/32, 1/16,
+     1/8 floor the beat the provider is asked for, so a value only changes when the transport crosses a grid line.
+     Bypassed inside the recorder's deterministic step (exactStep): an export always samples per frame. */
+  let automationGrid = AUTOMATION_GRIDS.includes(+o.automationGrid) ? +o.automationGrid : 0;
+  let exactStep = 0;
+  const automationBeat = (beats) => (automationGrid && exactStep === 0 ? Math.floor(beats / automationGrid) * automationGrid : beats);
   const stats = { plays: 0, pauses: 0, autoPauses: 0, resumes: 0, frames: 0, steps: 0,
                   seconds: 0, sets: 0, restores: 0, presents: 0, refusedPlays: 0,
                   arms: 0, disarms: 0, quantised: 0, beatsRewound: 0 };
@@ -257,7 +265,7 @@ export function createModClock(opts) {
     const st = registry.state(id);
     if (!enabled && stepping === 0) return null;
     const active = running || stepping > 0 || pauseMode === 'HOLD';
-    const sample = (active || (automationHold && !hidden)) && automation ? automation.value(id, M.transport.beats) : null;
+    const sample = (active || (automationHold && !hidden)) && automation ? automation.value(id, automationBeat(M.transport.beats)) : null;
     const baseline = Number.isFinite(sample) ? sample : st.baseNorm;
     const pausedBaseline = automationHold && !running && stepping === 0 && pauseMode === 'BASE' && Number.isFinite(sample);
     const v = modulationEnabled ? M.targetValue(id, baseline, st.wrap, pausedBaseline) : NaN;
@@ -451,7 +459,7 @@ export function createModClock(opts) {
      *  running, exactly as the source's video clock does. */
     step(dt) {
       const d = Number.isFinite(dt) && dt > 0 ? dt : 0;
-      stepping++;
+      stepping++; exactStep++;
       try {
         if (wall === 0) M.advance(0, wall); // establish the zero-time anchor before advancing
         wall += d;
@@ -461,7 +469,7 @@ export function createModClock(opts) {
         M.advance(d, wall);
         applyAll(false);
         requestPresentation(running ? 'modulation-output' : 'manual-step');
-      } finally { stepping--; }
+      } finally { stepping--; exactStep--; }
       return d;
     },
 
@@ -512,6 +520,9 @@ export function createModClock(opts) {
     isModulationEnabled: () => modulationEnabled,
     setExactResume(on) { exactResume = !!on; return exactResume; },
     isExactResume: () => exactResume,
+    /** the sampling grid in beats: 0 (FRAME), 1/32, 1/16 or 1/8; anything else is 0.  → the grid now */
+    setAutomationGrid(g) { automationGrid = AUTOMATION_GRIDS.includes(+g) ? +g : 0; applyAll(true); requestPresentation('automation-grid'); return automationGrid; },
+    automationGrid: () => automationGrid,
     setAutomationHold(on) { automationHold = !!on; applyAll(true); requestPresentation('automation-hold'); return automationHold; },
     isAutomationHold: () => automationHold,
     /** Seek musical time through the model, including a stopped transport preview. */
@@ -572,7 +583,7 @@ export function createModClock(opts) {
       exactResume = !!state.exactResume; automationHold = !!state.automationHold;
       automation = state.automation; demands.clear(); for (const id of state.demands) demands.add(String(id));
       lastResume = { ...state.lastResume }; Object.assign(stats, state.stats);
-      wall = at; prevWall = null; stepping = 0; realtimeOwner = null;
+      wall = at; prevWall = null; stepping = 0; exactStep = 0; realtimeOwner = null;
       if (hidden && M.transport.hold) M.holdEnd();
       M.transport.playing = playing;
       running = enabled && playing && !hidden && available() && anyLive();

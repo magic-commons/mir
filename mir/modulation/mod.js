@@ -2857,6 +2857,17 @@ export function presetApply(id) {
            counts: { macros: macros.length, sources: sources.length, routes: routes.length } };
 }
 
+/** A PROJECT'S PRESET (1.5.0-alpha.12, BASINS project-session.js upsertProjectPreset): the rack saved under the name in
+    CAPS (Josh 10-01: "All caps in titles for modulation preset name"), replacing its own earlier self; a name a factory
+    preset owns takes the free copy name, in CAPS.  The name is data, not a label: its case is the law, not the font. */
+export function presetUpsertCaps(name, rack) {
+  const nm = String(name == null ? '' : name).trim().toUpperCase();
+  if (!nm || !rack) return { ok: false, error: 'name' };
+  let r = presetSave(nm, rack, { replace: true });
+  if (r && r.error === 'factory-name' && r.suggest) r = presetSave(String(r.suggest).toUpperCase(), rack, { replace: true });
+  return r || { ok: false };
+}
+
 /* Saves a rack as a preset. */
 export function presetSave(name, rack, opts) {
   const o = opts || {};

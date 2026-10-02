@@ -147,6 +147,18 @@ function chipWords(name, state) {
 /** along(p, lo, size, next) — where a span of `next` starts so the point p keeps its place on it (a dock detaching) */
 const along = (p, lo, size, next) => (p < lo ? lo : p > lo + size ? lo + size - next : p - ((p - lo) / size) * next);
 
+/* ═══ THE MACRO ROW'S GESTURES, IMPORTABLE (1.5.0-alpha.12) ════════════════════════════════════════════════════════════
+   Another face of the macro row (BASINS' transport tempo panel: transport.js buildMacros) uses THIS window's own
+   gestures, never copies: the routing grip (drag to route, tap to arm), the numbered depth seat (vertical drag, keys,
+   double-tap to 100 %), its paint, and the reorder.  The model is one per page (mod.js), so the window is too: these
+   reach the window createModulation mounted last, and do nothing (→ false) while none is mounted.
+     wireGrip(grip, macroId) · wireDepth(seat, macroId, n) · paintDepth(seat, arc, macroId) · moveMacro(macroId, to) */
+let liveApi = null;
+export function wireGrip(grip, macroId) { if (!liveApi) return false; liveApi.wireGrip(grip, macroId); return true; }
+export function wireDepth(seat, macroId, n) { if (!liveApi) return false; liveApi.wireDepth(seat, macroId, n); return true; }
+export function paintDepth(seat, arc, macroId) { if (!liveApi) return false; liveApi.paintDepth(seat, arc, macroId); return true; }
+export function moveMacro(macroId, to) { if (!liveApi) return false; liveApi.moveMacro(macroId, to); return true; }
+
 /* ═══════════════════════════════════════════════════════════════════════════════════════════
  *  THE WINDOW
  * ═══════════════════════════════════════════════════════════════════════════════════════════
@@ -3311,6 +3323,7 @@ export function createModulation(host, port) {
   if (devOrder().length === 0) { M.addSource('lfo'); M.addSource('env'); }
 
   rebuild();
+  liveApi = api;                                                       // the importable macro gestures reach this window
 
   return {
     root, rail: rail.el, chipRail: rail, api, paint, sync, rebuild, presentation, restore, setAccent,
@@ -3322,6 +3335,7 @@ export function createModulation(host, port) {
     /** the window OPENING re-reads the model; it does not restart it */
     wake() { rebuild(); paint(true); },
     dispose() {
+      if (liveApi === api) liveApi = null;
       off(); offLanguage(); if (ro) { ro.disconnect(); ro = null; } if (boxRO) boxRO.disconnect();
       document.removeEventListener('pointerdown', armTap, true);
       document.removeEventListener('pointerdown', popAway, true);

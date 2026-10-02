@@ -52,6 +52,29 @@ export function localStore(key) {
   return { read, write(patch) { try { globalThis.localStorage.setItem(key, JSON.stringify({ ...read(), ...patch })); } catch (_) { /* storage refused */ } } };
 }
 
+/* THE LIVE INSTALL.  The model is one per page (mod.js), so the seam is too: the module-level doors below reach the
+   modulation installModulation made last, and do nothing while none is installed. */
+let live = null;
+
+/** setAutomationGrid(value) — the AUTOMATION sampling grid (Settings › SAMPLING: FRAME 0 · 1/32 · 1/16 · 1/8, in beats):
+ *  the arrangement's value is read at the beat floored to the grid, so it only changes on a grid line; a recorder's
+ *  deterministic step always samples per frame.  Stored with the modulation's record.  → the grid now, or null with no
+ *  modulation installed.  (BASINS modulation.js setAutomationGrid, docs/TIMELINE-SAMPLING-2026-10-01.md) */
+export function setAutomationGrid(value) { return live ? live.setAutomationGrid(value) : null; }
+/** automationGrid() → the grid now (0 = FRAME), or null with no modulation installed */
+export function automationGrid() { return live ? live.automationGrid() : null; }
+
+/** upsertProjectPreset(name, rack?) — A PROJECT SAVE IS ALSO A PRESET (Josh 10-01: "always write and include the
+ *  modulation as it's own preset … All caps in titles"): the rack (default: the live one) is saved as a user preset
+ *  named the project in CAPS, replacing its own earlier self; a name a factory preset owns takes the store's free
+ *  copy name, in CAPS.  → presetSave's { ok, id, name, replaced, folder } or { ok: false, error }.
+ *  (BASINS project-session.js upsertProjectPreset, called by its save window after every save) */
+export function upsertProjectPreset(name, rack) {
+  const r = M.presetUpsertCaps(name, rack || M.serializeRack());
+  if (r && r.ok && live && live.view) live.view.rebuild();
+  return r || { ok: false };
+}
+
 /** the registry roots a parameter list implies: the first segment of every id, once */
 export function rootsOf(params) { return [...new Set(params.map((p) => String(p.id).split('.')[0]))]; }
 
@@ -114,7 +137,8 @@ export function installModulation(o) {
     if (present) present();
   });
 
-  const stateRecord = () => ({ modulationState: M.serialize(), modwin: view ? view.presentation() : prefs.modwin, modArm: armed, modCadence: cadence });
+  const stateRecord = () => ({ modulationState: M.serialize(), modwin: view ? view.presentation() : prefs.modwin, modArm: armed, modCadence: cadence,
+    automationGrid: host.clock.automationGrid() });
   function persistNow() { if (saveTimer) { clearTimeout(saveTimer); saveTimer = 0; } store.write(stateRecord()); }
   function persistSoon() { if (saveTimer) clearTimeout(saveTimer); saveTimer = setTimeout(persistNow, 180); }
 
@@ -237,6 +261,8 @@ export function installModulation(o) {
   };
   view = mount ? createModulation(mount, port) : null;              // no mount: the seam without its window (node tests)
   try { if (view) view.restore(prefs.modwin); } catch (_) { /* a record this window cannot read */ }
+  /* the stored AUTOMATION grid, once everything its present() reaches exists (BASINS' 10-01 boot ReferenceError) */
+  host.clock.setAutomationGrid(o.automationGrid !== undefined ? o.automationGrid : prefs.automationGrid);
   setArm(armed, { quiet: true, announce: true });
 
   /* ── targets that come and go, and the first route in one call (1.5.0-alpha.5) ── */
@@ -302,7 +328,7 @@ export function installModulation(o) {
   if (doc) doc.addEventListener('visibilitychange', onVisibility);
   if (win) win.addEventListener('pagehide', persistNow);
 
-  return Object.freeze({
+  const self = Object.freeze({
     host, view, registry: host.registry, M,
     open: () => view && view.open(), close: () => view && view.close(), toggle: () => view && view.toggle(),
     get isOpen() { return !!(view && view.isOpen); },
@@ -331,10 +357,16 @@ export function installModulation(o) {
     running: () => host.clock.isRunning(),
     bpm: () => M.transport.bpm,
     syncBases, persist: persistNow, paintWidgets,
+    /** the AUTOMATION sampling grid (see the module's setAutomationGrid) */
+    setAutomationGrid(g) { const now = host.clock.setAutomationGrid(g); persistSoon(); if (present) present(); requestLoop(); return now; },
+    automationGrid: () => host.clock.automationGrid(),
     dispose() {
+      if (live === self) live = null;
       disposed = true; frame.cancel(TICK); frame.cancel(PAINT);
       if (doc) doc.removeEventListener('visibilitychange', onVisibility); if (win) win.removeEventListener('pagehide', persistNow);
       offHeld(); persistNow(); if (audioCap) audioCap.stop(); if (view) view.dispose(); host.dispose();
     },
   });
+  live = self;
+  return self;
 }
