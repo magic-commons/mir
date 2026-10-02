@@ -38,7 +38,7 @@ import { createPrefs } from '../core/prefs.js';
 import { setMotionPolicy } from '../core/motion.js';
 import { frame } from '../core/frame.js';
 import { setText, setVar } from '../core/perf.js';
-import { glassTint as lookTint, glassVeil, lightIsHome, solidInk, spacingPx } from '../core/look.js';
+import { glassTint as lookTint, glassVeil, lightIsHome, autoInk, solidRelief, spacingPx } from '../core/look.js';
 import { createAccent } from './accent.js';
 import { richText, safeHref } from './about.js';
 import { THEMES, themeById, themeValues, toneValues, matchTone } from './themes.js';
@@ -94,17 +94,22 @@ export function lookSchema() {
        solid face); SATURATION multiplies the tint's chroma, as BASINS' does */
     { key: 'bright', type: 'number', step: 0.01, min: -1, max: 1, default: 0 },
     { key: 'hue', type: 'number', step: 1, min: 0, max: 360, wrap: true, default: 0 },
-    { key: 'tint', type: 'number', step: 0.01, min: 0, max: 1, default: 0, apply: [{ on: 'body', prop: '--glass-tint', map: (v, s, e) => lookTint(s, e.theme) }] },
+    { key: 'tint', type: 'number', step: 0.01, min: 0, max: 1, default: 0, apply: [{ on: 'body', prop: '--glass-tint', map: (v, s, e) => lookTint(s, e.theme) },
+      /* SOLID's relief mixes and the shine's gain follow the pane's lightness (core/look.js solidRelief) */
+      { on: 'body', prop: '--solid-lift', map: (v, s, e) => (s.card === 'solid' ? solidRelief(s, e.theme).lift + '%' : null) },
+      { on: 'body', prop: '--solid-sink', map: (v, s, e) => (s.card === 'solid' ? solidRelief(s, e.theme).sink + '%' : null) },
+      { on: 'body', prop: '--shine-gain', map: (v, s, e) => (s.shine > 0 ? String(solidRelief(s, e.theme).gain) : null) }] },
     /* CONTROL FACES — GLASS · SOLID, and BLEND (0 % solid … 100 % glass) while SOLID (BASINS skin.js setFaces / setFaceBlend) */
     { key: 'faces', type: 'enum', values: ['solid', 'glass'], default: 'glass', apply: [{ on: 'body', attr: 'data-faces',
       map: (v, s) => (v === 'glass' || s.faceBlend >= 1 ? 'glass' : s.faceBlend > 0 ? 'blend' : null) }] },
     { key: 'faceBlend', type: 'number', step: 0.01, min: 0, max: 1, default: 0, apply: [
       { on: 'body', prop: '--faces-solid-pct', map: (v, s) => (s.faces === 'solid' && v > 0 && v < 1 ? ((1 - v) * 100).toFixed(2) + '%' : null) },
       { on: 'body', prop: '--faces-transition-alpha', map: (v, s) => (s.faces === 'solid' && v > 0 && v < 1 ? (Math.sin(Math.PI * v) * 0.22).toFixed(3) : null) }] },
-    /* TEXT — AUTO · LIGHT · DARK (BASINS skin.js setText): white or black ink everywhere, or the theme's.  On a SOLID
-       pane AUTO follows the pane's lightness, with no sampling (BASINS' picture sampler is the app's, not the kit's) */
-    { key: 'text', type: 'enum', values: ['theme', 'light', 'dark'], default: 'light', apply: [{ on: 'body', attr: 'data-text',
-      map: (v, s, e) => (v !== 'theme' ? v : s.card === 'solid' ? solidInk(s, e.theme) : null) }] },
+    /* TEXT — AUTO · LIGHT · DARK (BASINS skin.js setText): white or black ink everywhere, or AUTO (core/look.js autoInk):
+       under glass BASINS' unsampled seat, the pure ladder in the mode's polarity (white in dark, black in light); on a
+       SOLID pane the pane's lightness; on a TINTED pane the house ladder.  No sampling: BASINS' sampler is the app's */
+    { key: 'text', type: 'enum', values: ['theme', 'light', 'dark'], default: 'theme', apply: [{ on: 'body', attr: 'data-text',
+      map: (v, s, e) => (v !== 'theme' ? v : autoInk(s, e.theme)) }] },
     { key: 'relief', type: 'enum', values: ['default', 'flat'], default: 'default', apply: [
       { on: 'html', prop: '--relief-raise', map: (v) => (v === 'flat' ? ZERO_SHADOW : null) },
       { on: 'html', prop: '--relief-well', map: (v) => (v === 'flat' ? ZERO_SHADOW : null) }] },
@@ -145,6 +150,19 @@ export function lookSchema() {
 /** the presets the store matches: each vanilla theme's options (its colours are its tones'; shell/themes.js).
  *  Breaking in 1.5.0-alpha.5: LOOK_PRESETS.light is gone (SWIFT replaces it); every theme is here. */
 export const LOOK_PRESETS = Object.freeze(Object.fromEntries(THEMES.map((t) => [t.id, t.values])));
+
+/** migrateShadow(key, win) — alpha.4 stored SHADOW as a switch: `false` becomes 0 %; `true` becomes the amount of the
+ *  theme the rest of the stored look matches (FROST: 200 %), or 100 % (the kit's own shadows) when it matches none */
+export function migrateShadow(key = 'mir.gui', win = globalThis) {
+  try {
+    const S = win.localStorage, raw = S && S.getItem(key), o = raw && JSON.parse(raw);
+    if (!o || typeof o.shadow !== 'boolean') return null;
+    const t = o.shadow && THEMES.find((x) => Object.entries(x.values).every(([k, v]) => k === 'shadow' || !(k in o) || o[k] === v));
+    o.shadow = !o.shadow ? 0 : t ? t.values.shadow : 1;
+    S.setItem(key, JSON.stringify(o));
+    return o.shadow;
+  } catch (_) { return null; }
+}
 
 /* ── THE STEPPER: `‹ NAME ›`, two 44 px buttons around a live label (BASINS colour-window.js blend-mode picker) ───── */
 /** stepper({ label, aria, items: [{ id, label, coming? }], value, onChange, wrap }) → { root, get, set(id), setItems(items, id) }
@@ -218,6 +236,7 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   /* ── the store, the accent, the pointer effects ── */
   const ctx = { doc, accent: accent === false ? null : accent || createAccent(), moving: false, lastAccent: null, fx: null };
   const schema = lookSchema().map((r) => (r.key in defaults ? { ...r, default: defaults[r.key] } : r));
+  if (!prefs) migrateShadow(storageKey, win);
   const P = prefs || createPrefs({ key: storageKey, schema, presets: LOOK_PRESETS, context: ctx });
   const light = createPointerLight({ doc, enabled: () => P.get('glow') });
   const plx = createParallax({ doc, enabled: () => P.get('parallax') });

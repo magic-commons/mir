@@ -98,7 +98,7 @@ Every control on MIR OPTIONS changes what is drawn through a hook a kit sheet or
 | | POINTER GLOW | switch | `fx/pointer-light.js` (below) | on (ruling 13) |
 | | PARALLAX | switch | `fx/parallax.js` (below) | on |
 | | DROP GUIDES | switch | `gui.dropGuides()`, handed to `createWindow({ dock: { guide } })` | on |
-| TEXT | INK auto · light · dark | seg | `<body data-text>`: white or black, the pure ladder, no emboss (BASINS' TEXT). AUTO follows the theme; on a SOLID pane, its lightness | auto (FROST: light) |
+| TEXT | INK auto · light · dark | seg | `<body data-text>`: white or black, the pure ladder, no emboss (BASINS' TEXT). AUTO: under glass the ladder in the mode's polarity (BASINS' unsampled seat), on a SOLID pane its lightness, on a TINTED pane the house ladder | auto |
 | | HINTS | switch | `body.control-hints-off` (`control-help.js`) | on |
 | | HELP | switch | `body.window-info-off` (skin.css hides every ⓘ) | on |
 | QUALITY | FULL · BALANCED · LIGHT | seg | `<html data-ui-tier>`: none · `lite` · `flat` (`docs/TIERS.md`) | FULL |

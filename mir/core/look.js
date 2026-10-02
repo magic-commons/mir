@@ -89,3 +89,21 @@ export function spacingPx(s) {
   const v = Math.max(0, Math.min(1, num(s, 0.4)));
   return v === 0 ? { gap: 0, inset: 0, pad: 0 } : { gap: Math.round(16 * v), inset: Math.round(16 * v), pad: Math.round(3 + 6.4 * v) };
 }
+
+/** solidRelief(state, theme) → { lift, sink, gain } — the SOLID relief's mixes as functions of the pane's lightness L
+ *  (0…100), so a dark pane lifts as clearly as a light one.  The highlight is the pane mixed toward white enough to rise
+ *  ΔL = 8 + 20·(1 − L/100) (more on a dark pane), the shade toward black enough to fall ΔL = 6 + 14·L/100 (more on a
+ *  light one): lift = ΔL/(100 − L), sink = ΔL/L, as percentages.  gain multiplies the shine: 1 + 1.2·(1 − L/100). */
+export function solidRelief(o, theme) {
+  const L = paneLightness(o, theme), pct = (v) => Math.round(Math.max(0, Math.min(1, v)) * 1000) / 10;
+  return { lift: pct((8 + 20 * (1 - L / 100)) / Math.max(1, 100 - L)), sink: pct((6 + 14 * L / 100) / Math.max(1, L)), gain: +(1 + 1.2 * (1 - L / 100)).toFixed(3) };
+}
+
+/** autoInk(state, theme) → what TEXT · AUTO writes on <body data-text>: on a SOLID pane the pane's lightness decides
+ *  (solidInk); under glass (REFRACTIVE, or FROST on a tinted pane) BASINS' unsampled seat, the pure ladder in the mode's
+ *  polarity ('light' ink in dark, 'dark' in light); on a TINTED pane with no frost nothing (the house ladder). */
+export function autoInk(o, theme) {
+  if (o.card === 'solid') return solidInk(o, theme);
+  if (o.card === 'refractive' || (o.frost && o.frost !== 'off')) return theme === 'light' ? 'dark' : 'light';
+  return null;
+}

@@ -1,7 +1,7 @@
 /* look.node.mjs — the look's arithmetic (mir/core/look.js) against BASINS' own numbers, and the vanilla themes as data
  * (mir/shell/themes.js): every theme states every theme option and nothing else, every tone only colours. */
 import assert from 'node:assert/strict';
-import { glassTint, glassVeil, paneShadow, lightOffset, lightIsHome, solidInk, spacingPx, LIGHT_HOME } from '../mir/core/look.js';
+import { glassTint, glassVeil, paneShadow, lightOffset, lightIsHome, solidInk, solidRelief, autoInk, spacingPx, LIGHT_HOME } from '../mir/core/look.js';
 import { THEMES, THEME_KEYS, COLOUR_KEYS, themeValues, matchTheme, matchTone } from '../mir/shell/themes.js';
 import { lookSchema } from '../mir/shell/gui.js';
 
@@ -33,7 +33,7 @@ const pass = (name, detail) => { n++; console.log(`PASS ${name}${detail ? ` — 
 {
   const rows = new Map(lookSchema().map((r) => [r.key, r]));
   for (const t of THEMES) {
-    assert.deepEqual(Object.keys(t.values).sort(), [...THEME_KEYS].sort(), t.id + ' states every theme option');
+    assert.deepEqual(Object.keys(t.values).filter((k) => k !== 'theme').sort(), [...THEME_KEYS].sort(), t.id + ' states every theme option (and THEME only if it is one-mode)');
     for (const [k, v] of Object.entries(t.values)) { const r = rows.get(k); assert.ok(r, k + ' is a look option'); assert.ok(r.type === 'bool' ? typeof v === 'boolean' : r.type === 'enum' ? r.values.includes(v) : v >= r.min && v <= r.max, `${t.id}.${k} = ${v} is in range`); }
     assert.ok(t.tones.length >= 2, t.id + ' has tones');
     for (const o of t.tones) { assert.deepEqual(Object.keys(o.values).sort(), [...COLOUR_KEYS].sort(), `${t.id}/${o.id} sets only the colours`); for (const [k, v] of Object.entries(o.values)) { const r = rows.get(k); assert.ok(v >= r.min && v <= r.max, `${t.id}/${o.id}.${k}`); } }
@@ -42,6 +42,10 @@ const pass = (name, detail) => { n++; console.log(`PASS ${name}${detail ? ` — 
   assert.equal(new Set(THEMES.map((t) => JSON.stringify(t.values))).size, THEMES.length, 'no two themes are the same set');
   for (const k of [...THEME_KEYS, ...COLOUR_KEYS]) assert.ok(rows.has(k), k);
   for (const k of ['theme', 'hints', 'help', 'dropGuides']) assert.ok(!THEME_KEYS.includes(k) && !COLOUR_KEYS.includes(k), k + ' is the user\'s own');
+  assert.deepEqual(THEMES.filter((t) => 'theme' in t.values).map((t) => t.id + ':' + t.values.theme), ['neon:dark'], 'only NEON states its mode');
+  { const d = solidRelief({ bright: 0 }, 'dark'), l = solidRelief({ bright: 0 }, 'light');
+    assert.ok(d.lift > 18 && d.gain > l.gain && l.sink < d.sink, 'a dark pane lifts more and shines more'); }
+  assert.equal(autoInk({ card: 'refractive' }, 'dark'), 'light'); assert.equal(autoInk({ card: 'refractive' }, 'light'), 'dark'); assert.equal(autoInk({ card: 'tinted', frost: 'off' }, 'dark'), null);
   assert.deepEqual(Object.keys(themeValues('frost')).filter((k) => !rows.has(k)), []);
   pass('themes are data: whole, in range, distinct; tones are colours only', THEMES.map((t) => `${t.name} (${t.tones.map((o) => o.name).join('/')})`).join(' · '));
 }

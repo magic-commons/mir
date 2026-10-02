@@ -108,6 +108,68 @@ try {
   if (p.logs.length) check('no page errors', !p.logs.some((l) => l.startsWith('EXCEPTION')), p.logs.slice(0, 4).join(' | '));
 } finally { await p.close(); }
 
+/* ── both modes: FROST's ink, the cast's cap, MORPH's relief, the alpha.4 switch, and every tile's label contrast ── */
+const COLOR = `const cv = document.createElement('canvas'); cv.width = cv.height = 1; const cx = cv.getContext('2d', { willReadFrequently: true });
+  const rgba = (c) => { cx.clearRect(0, 0, 1, 1); cx.fillStyle = '#000'; cx.fillStyle = c; cx.fillRect(0, 0, 1, 1); const d = cx.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2], d[3] / 255]; };
+  const over = (top, under) => { const a = top[3]; return [0, 1, 2].map((i) => top[i] * a + under[i] * (1 - a)).concat(1); };
+  const lum = (c) => { const f = (v) => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }; return .2126 * f(c[0]) + .7152 * f(c[1]) + .0722 * f(c[2]); };
+  const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };`;
+p = await launch({ width: 1440, height: 900 });
+try {
+  await p.goto(URL_ + '?fresh', 900); await ready();
+  let r = await J(`const L = () => ['--fg', '--fg-soft', '--ink-key', '--dim', '--ink-faint'].map((n) => getComputedStyle(document.body).getPropertyValue(n).trim());
+    G.applyTheme('frost'); P.set('theme', 'dark'); await wait(200); const auto = L(), attr = document.body.dataset.text;
+    P.set('text', 'light'); await wait(150); const white = L(); P.set('text', 'theme'); P.set('theme', 'light'); await wait(200); const light = L(); P.set('theme', 'dark'); await wait(150);
+    return { auto, white, attr, light };`);
+  check("FROST dark: TEXT AUTO computes the recipe's white ladder exactly (the same as TEXT LIGHT); FROST light: the black ladder", r.attr === 'light' && JSON.stringify(r.auto) === JSON.stringify(r.white) && r.auto[0] === 'hsl(0 0% 100%)' && r.light[0] === 'hsl(0 0% 0%)', JSON.stringify(r));
+  r = await J(`${COLOR} G.applyTheme('frost'); await wait(200); const i = document.createElement('i'); i.style.cssText = 'position:fixed;left:0;top:0;width:4px;height:4px;box-shadow:var(--surface-shadow-menu)'; document.body.appendChild(i);
+    const s = getComputedStyle(i).boxShadow; i.remove(); const alphas = s.split(/,(?![^(]*\\))/).filter((t) => !/inset/.test(t)).map((t) => rgba(t.match(/(rgba?|color)\\([^)]*\\)/)[0])[3]);
+    return { max: Math.max(...alphas), s };`);
+  check('FROST (SHADOW 200 %): the menu cast is no darker than BASINS\' own pane shadow at 200 % (alpha ≤ .40)', r.max <= 0.401, JSON.stringify(r));
+  report.push(`FROST menu cast at 200 %: darkest layer alpha ${r.max.toFixed(2)} (cap .40, BASINS' pane at 200 %)`);
+  const relief = async (mode) => J(`${COLOR} G.applyTheme('morph'); P.set('theme', '${mode}'); await wait(250); const v = (n) => rgba(getComputedStyle(document.body).getPropertyValue(n).trim());
+    const pane = v('--solid-pane'), lit = v('--solid-lit'), shade = v('--solid-shade'); return { lit: +ratio(lit, pane).toFixed(2), shade: +ratio(pane, shade).toFixed(2), gain: getComputedStyle(document.body).getPropertyValue('--shine-gain').trim() };`);
+  const rd = await relief('dark'), rl = await relief('light');
+  check('MORPH: the relief reads as clearly on a dark pane as on a light one (lift × sink contrast, dark ≥ 90 % of light), and the dark pane shines more', rd.lit * rd.shade >= 0.9 * rl.lit * rl.shade && +rd.gain > +rl.gain, JSON.stringify({ dark: rd, light: rl }));
+  report.push(`MORPH relief contrast (highlight · shade against the pane): dark ${rd.lit} · ${rd.shade}, light ${rl.lit} · ${rl.shade}; shine gain dark ${rd.gain}, light ${rl.gain}`);
+  /* the alpha.4 switch, migrated */
+  const mig = [];
+  for (const [blob, want] of [[{ card: 'refractive', frost: 'always', blur: 11, veil: 0, saturation: 1.3, corners: 24, shadow: true }, 2], [{ card: 'tinted', blur: 20, shadow: true }, 1], [{ card: 'refractive', shadow: false }, 0]]) {
+    await p.eval(`localStorage.setItem('mir.gui', ${JSON.stringify(JSON.stringify(blob))}); 0`); await p.goto(URL_, 700); await ready();
+    mig.push([await p.eval('__T.P.get("shadow")'), want]);
+  }
+  check('an alpha.4 SHADOW switch is migrated: on → the matched theme\'s amount (FROST 200 %, else 100 %), off → 0', mig.every(([g, w]) => g === w), JSON.stringify(mig));
+  /* every tile of the wall: the label ink against its pane, in both modes */
+  const { THEMES } = await import('../mir/shell/themes.js');
+  const tiles = [], bad = [];
+  for (const mode of ['dark', 'light']) for (const t of THEMES) for (const o of t.tones) {
+    await p.goto(`${BASE}/gallery/themes.html?scene&theme=${t.id}&tone=${o.id}&mode=${mode}`, 500); await ready();
+    const c = JSON.parse(await p.eval(`(() => { ${COLOR} const ground = rgba(getComputedStyle(document.body).backgroundColor), mode = document.body.dataset.theme, card = document.body.dataset.card;
+      const dev = document.querySelector('.mir-rack .dev'), pane = over(rgba(getComputedStyle(dev).backgroundColor), ground);
+      const on = document.querySelector('.mir-rack .sw.on'), trg = document.querySelector('.mir-rack .trig'), lbl = document.querySelector('.mir-rack .k-lbl');
+      const face = (n) => over(rgba(getComputedStyle(n).backgroundColor), pane), ink = (n) => over(rgba(getComputedStyle(n).color), face(n));
+      const pairs = { on: ratio(ink(on), face(on)), trigger: ratio(ink(trg), face(trg)), label: ratio(over(rgba(getComputedStyle(lbl).color), pane), pane) };
+      const inkLight = lum(rgba(getComputedStyle(on).color)) > .5;
+      return JSON.stringify({ mode, card, min: +Math.min(...Object.values(pairs)).toFixed(2), pairs, agree: (mode === 'dark') === inkLight }); })()`));
+    const glass = c.card === 'refractive';
+    const ok = glass ? c.agree : c.min >= 4.5;
+    tiles.push(`${t.name}·${o.name} ${mode}${c.mode !== mode ? '→' + c.mode : ''}: ${c.min}${glass ? ' (glass, over the ground)' : ''}`);
+    if (!ok) bad.push(`${t.id}/${o.id} ${mode}: ${JSON.stringify(c)}`);
+  }
+  check('every tile of the wall, both modes: label ink ≥ 4.5 : 1 on SOLID and TINTED panes; on glass the ink agrees with the mode', bad.length === 0, bad.join(' ; '));
+  report.push('label contrast per tile (min of the ON label, a trigger, a knob label): ' + tiles.join(' · '));
+  /* the wall's own DARK / LIGHT control */
+  const wall = [];
+  for (const mode of ['dark', 'light']) {
+    await p.goto(`${BASE}/gallery/themes.html`, 900); await ready();
+    await p.eval(`__T.gui.prefs.set('theme', '${mode}'); 0`); await sleep(300);
+    wall.push(JSON.parse(await p.eval(`(() => { ${COLOR} const b = [...document.querySelectorAll('.w-modes .seg-b')], ground = rgba(getComputedStyle(document.body).backgroundColor);
+      return JSON.stringify(b.map((n) => { const f = over(rgba(getComputedStyle(n).backgroundColor), ground), i = rgba(getComputedStyle(n).color); return { label: n.textContent, ratio: +ratio(over(i, f), f).toFixed(2), agree: (document.body.dataset.theme === 'dark') === (lum(i) > .5) }; })); })()`)));
+  }
+  check('the wall\'s own DARK / LIGHT control: its ink agrees with the mode in both modes', wall.flat().every((x) => x.agree), JSON.stringify(wall));
+  report.push('wall DARK/LIGHT control (over the plain ground): ' + JSON.stringify(wall));
+} finally { await p.close(); }
+
 /* ── the modulation plugin: the power seat, and a skin's focus ring ── */
 p = await launch({ width: 1440, height: 900 });
 try {

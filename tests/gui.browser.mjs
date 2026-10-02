@@ -139,7 +139,7 @@ try {
   check('option HINTS off: body.control-hints-off, and a hovered control\'s hint no longer shows', hHit && r && hintOn && !hintOff, `before ${hintOn} · after ${hintOff}`);
   await option('HELP off', () => click(swB('text', 1), 'HELP'), `document.body.classList.contains('window-info-off')`, true, `cs('.native-info', 'display')`);
   await option('INK dark (black text)', () => click(segB('text', 0, 2), 'INK DARK'), `document.body.dataset.text`, 'dark', `bv('--fg')`);
-  await option('INK auto (the theme\'s)', () => click(segB('text', 0, 0), 'INK AUTO'), `document.body.hasAttribute('data-text')`, false, `bv('--fg')`);
+  await option('INK auto (under glass in dark: the white ladder)', () => click(segB('text', 0, 0), 'INK AUTO'), `document.body.dataset.text`, 'light', `bv('--fg')`);
   await option('QUALITY balanced', () => click(segB('quality', 0, 1), 'BALANCED'), `document.documentElement.dataset.uiTier`, 'lite', `cs('#pane', 'backdrop-filter')`);
   await option('QUALITY light', () => click(segB('quality', 0, 2), 'LIGHT'), `document.documentElement.dataset.uiTier`, 'flat', `cs('#knob .k-dial', 'transition-duration')`);
   await click(segB('quality', 0, 0), 'FULL');

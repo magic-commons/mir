@@ -76,9 +76,9 @@ if (q.has('scene')) {
   document.body.classList.add('scene');
   const P = createPrefs({ key: 'scene', schema: lookSchema(), storage: null, presets: {} });
   const theme = q.get('theme') || 'frost', mode = q.get('mode') === 'light' ? 'light' : 'dark';
-  P.set({ ...themeValues(theme), ...(q.get('tone') ? toneValues(theme, q.get('tone')) : {}), theme: mode, glow: false, parallax: false });
+  P.set({ theme: mode, ...themeValues(theme), ...(q.get('tone') ? toneValues(theme, q.get('tone')) : {}), glow: false, parallax: false });   // a one-mode theme (NEON) wins over the mode
   P.apply({ now: true });
-  paintGround(mode === 'light');
+  paintGround(P.env().theme === 'light');   // the mode the theme leaves (NEON is dark in either)
   const rack = createRack({ host: $('lab'), store: { get: () => null, set() {} }, chrome: false });
   rack.register({ id: 'a', title: 'CONTROLS', side: 'right', open: true, build(b) {
     const r1 = el('div', 'row', b); r1.append(knob({ label: 'GAIN', min: 0, max: 1, value: .62 }).root, knob({ label: 'HUE', min: 0, max: 360, value: 200, wrap: true, cls: 'accent-dial' }).root);
@@ -121,9 +121,10 @@ if (q.has('scene')) {
   };
   const mark = () => { const s = gui.prefs.all(), t = gui.prefs.preset(), o = matchTone(s, t); for (const b of tiles) b.classList.toggle('on', b.dataset.theme === t && b.dataset.tone === o); };
   build();
-  gui.prefs.subscribe((s, changed) => { if (changed.includes('theme')) { paintGround(mode() === 'light'); build(); } else mark(); });
   const modes = el('div', 'w-modes', document.body);
-  modes.append(seg({ label: '', value: gui.prefs.get('theme'), options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], onChange: (v) => gui.prefs.set('theme', v) }).root,
+  const modeSeg = seg({ label: '', value: mode(), options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], onChange: (v) => gui.prefs.set('theme', v) });
+  gui.prefs.subscribe((s, changed) => { if (changed.includes('theme')) { paintGround(mode() === 'light'); modeSeg.set(mode()); build(); } else mark(); });
+  modes.append(modeSeg.root,
     trig({ label: 'MIR OPTIONS', onFire: () => gui.open('options') }).root);
   const title = wordmark($('lab'), { word: 'MIR', sub: 'THEMES' });
   createMenubar({ opener: title, host: $('lab'), menus: { GUI: () => [['MIR OPTIONS', () => gui.open('options')], ['MIR OPTIONS 2', () => gui.open('options:2')], ['MIR ABOUT', () => gui.open('about')]] } });
