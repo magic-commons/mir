@@ -102,7 +102,7 @@ const PRESSABLE = 'button, input, select, textarea, a[href], label, summary, [co
 const along = (p, lo, size, next) => (p < lo ? lo : p > lo + size ? lo + size - next : p - ((p - lo) / size) * next);
 
 /** createWindow({ id, title, host, chips, body | panels, size, min, resizable, emptyDrag, dock, persist, material,
- *  railGap, onMoved, onOpen, onClose })
+ *  railGap, railTier, onMoved, onOpen, onClose })
  *    chips      rail chip specs (window/rail.js); a chip may carry press(state, win).  The close chip and the grip are
  *               added when absent; a radio chip named like a panel switches to it
  *    body       a Node, or fn(bodyEl) that fills the body;  panels: [{ name, body }] — one shown at a time (tab())
@@ -121,9 +121,12 @@ const along = (p, lo, size, next) => (p < lo ? lo : p > lo + size ? lo + size - 
  *      raise(), stackAt(z), state(), destroy() }
  *    raise()    brings the pane AND its rail to the top of the kit's stack, together (a press on either does it)
  *    pair       { root, rail } — the window's two elements, for an app's own window law that stacks by element
- *    stackAt(z) for an app law with its own counter: the pane at z, its rail at z + 1, so they never part */
+ *    stackAt(z, { railOffset }) for an app law with its own counter: the pane at z, its rail at z + railOffset (default
+ *               railTier), so they never part — or the rail sits in the app's own tier above every window
+ *    railTier   createWindow's default rail offset for stackAt (1: just above its pane; BASINS keeps its rails in a tier
+ *               above every window, e.g. 1000000) */
 export function createWindow({ id, title = id, host, chips = [], body, panels, size = { w: 520, h: 360 }, min = { w: 240, h: 160 },
-  resizable = false, emptyDrag = false, dock = null, persist = null, material = null, railGap = RAIL.gap, onMoved, onOpen, onClose } = {}) {
+  resizable = false, emptyDrag = false, dock = null, persist = null, material = null, railGap = RAIL.gap, railTier = 1, onMoved, onOpen, onClose } = {}) {
   const doc = host.ownerDocument, view = doc.defaultView;
   installOnce(doc);
   const mk = (tag, cls, parent) => { const n = doc.createElement(tag); if (cls) n.className = cls; if (parent) parent.appendChild(n); return n; };
@@ -344,7 +347,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
     },
     setChip: rail.setChip, tab, raise, pair,
     /** stackAt(z) — the pane at z-index z and its rail just above it (an app's own stacking law) */
-    stackAt(z) { const n = Math.round(+z) || 0; setVar(root, 'z-index', String(n)); setVar(rail.el, 'z-index', String(n + 1)); },
+    stackAt(z, { railOffset = railTier } = {}) { const n = Math.round(+z) || 0; setVar(root, 'z-index', String(n)); setVar(rail.el, 'z-index', String(n + (Math.round(+railOffset) || 0))); },
     state: shape,
     destroy() {
       dead = true; api.close(); gripDrag.destroy(); if (cornerDrag) cornerDrag.destroy(); if (guide) guide.destroy();

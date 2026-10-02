@@ -180,8 +180,12 @@ try {
   const law = await run(`const { windowOf } = await import('/mir/window/window.js'); const z = (el) => +getComputedStyle(el).zIndex;
     const viaRail = windowOf(B.rail.el.querySelector('.mir-chip')) === B, viaBody = windowOf(B.body) === B; windowOf(B.rail.el).raise();
     const r1 = { b: z(B.root), br: z(B.rail.el), a: z(A.root), ar: z(A.rail.el) }; A.stackAt(40); const r2 = { a: z(A.root), ar: z(A.rail.el) };
-    A.raise(); return { viaRail, viaBody, r1, r2, pair: A.pair.root === A.root && A.pair.rail === A.rail.el };`);
+    A.stackAt(50, { railOffset: 1000000 }); const r3 = { a: z(A.root), ar: z(A.rail.el) };
+    const { createWindow } = await import('/mir/window/window.js'); const host = A.root.parentElement;
+    const T2 = createWindow({ id: 'tier-probe', host, railTier: 500, body: (b) => { b.textContent = 'tier'; } }); T2.open(); T2.stackAt(7); const r4 = { t: z(T2.root), tr: z(T2.rail.el) }; T2.destroy();
+    A.raise(); return { viaRail, viaBody, r1, r2, r3, r4, pair: A.pair.root === A.root && A.pair.rail === A.rail.el };`);
   check("an app's window law: windowOf(el) finds the window from its rail or body, raise() lifts the pane and the rail together, stackAt(z) seats the rail at z + 1", law.viaRail && law.viaBody && law.pair && law.r1.b > law.r1.ar && law.r1.br === law.r1.b + 1 && law.r2.a === 40 && law.r2.ar === 41, JSON.stringify(law));
+  check("an app's rail tier: stackAt(z, { railOffset }) seats the rail at z + offset, and createWindow({ railTier }) sets the default", law.r3.a === 50 && law.r3.ar === 1000050 && law.r4.t === 7 && law.r4.tr === 507, JSON.stringify({ r3: law.r3, r4: law.r4 }));
 
   /* ── the chip material: follows its pane, and against the modulation window's rail ─────────────────────── */
   const PROPS = ['width', 'height', 'border-top-width', 'border-radius', 'border-top-color', 'box-shadow', 'background-color', 'backdrop-filter'];

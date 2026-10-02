@@ -21,7 +21,7 @@
    1.5.0-alpha.4 · every look value of this sheet, in one place (docs/SKINS.md): the window's, and the carried tile's
    (which lives in <body>, outside the window, so it carries its own); the rules below read names only. */
 .mir-folders {
-  --folders-thumb-ground: hsl(220 14% 6%);           /* behind a picture while it loads */
+  --folders-thumb-ground: hsl(0 0% 0%);              /* behind a picture while it loads: BASINS' black (1.5.0-alpha.10) */
   --folders-over-ink: hsl(0 0% 100%);                /* words and glyphs drawn on a picture */
   --folders-over-scrim: hsl(0 0% 0% / .8);           /* the gradient that keeps those words legible */
   --folders-over-scrim-soft: hsl(0 0% 0% / .35);     /* a button's face on a picture */
@@ -31,7 +31,7 @@
   --folders-zoom: 1.08;                              /* the picture's rest scale inside its tile … */
   --folders-zoom-hot: 1.13;                          /* … and hovered or chosen */
 }
-.sv-ghost { --folders-thumb-ground: hsl(220 14% 6%); --folders-carry-scale: .5; --folders-ghost-fade: .92; }
+.sv-ghost { --folders-thumb-ground: hsl(0 0% 0%); --folders-carry-scale: .5; --folders-ghost-fade: .92; }
 /* ── end of the values ── */
 
 /* ── the body: a column whose explorer is the one scroller ─────────────────────────────────────────────────── */
@@ -86,16 +86,16 @@
   border-radius: var(--r-sm); background: var(--glass-well); box-shadow: var(--relief-well, var(--neu-inset)); color: var(--fg); font: var(--w-med) var(--fs-base)/1.2 var(--font-ui); }
 .mir-folders .sv-input::placeholder { color: var(--ink-faint); }
 .mir-folders .sv-input:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
-.mir-folders .sv-count { flex: 0 0 auto; display: flex; justify-content: flex-end; padding: var(--sp-1) var(--sp-1) 0; touch-action: none;
+.mir-folders .sv-count { flex: 0 0 auto; display: flex; justify-content: flex-end; padding: 0; margin-right: -9px; touch-action: none;   /* BASINS' geometry: flush to the explorer's inset */
   font: var(--w-semi) var(--fs-micro)/1.3 var(--font-ui); letter-spacing: var(--tr-wide); color: var(--ink-faint); }
 
 /* ── the explorer ─────────────────────────────────────────────────────────────────────────────────────────── */
-.mir-folders .sv-explorer { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; min-width: 0; }
+.mir-folders .sv-explorer { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; min-width: 0; padding: 9px 9px 0; border-radius: var(--r-lg); }   /* BASINS' geometry */
 .mir-folders .sv-explorer-scroll { flex: 1 1 auto; min-height: 0; overflow: hidden auto; overscroll-behavior: contain;
   scrollbar-width: thin; scrollbar-color: var(--glass-hairline) transparent; touch-action: pan-y; }
 .mir-folders .sv-grid { display: flex; flex-direction: column; gap: var(--sp-2); }
 .mir-folders .sv-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }
-.mir-folders .sv-crumb { max-width: 100%; white-space: normal; overflow-wrap: anywhere; min-height: 30px; padding: var(--sp-1) var(--sp-2); border: 0;
+.mir-folders .sv-crumb { max-width: 100%; white-space: normal; overflow-wrap: anywhere; min-height: 30px; padding: 4px 6px; border: 0;
   border-radius: var(--r-sm); background: none; color: var(--acc); font: var(--w-semi) var(--fs-micro)/1 var(--font-ui); letter-spacing: var(--tr-wide); cursor: pointer; }
 .mir-folders .sv-crumb:hover:not(:disabled) { background: var(--state-hover, var(--glass-raise)); }
 .mir-folders .sv-crumb:disabled { color: var(--fg-soft); cursor: default; }
@@ -131,7 +131,7 @@
 .mir-folders .sv-shot:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: -3px; }
 .mir-folders :is(.sv-shot, .sv-folder-shot):is(:active, .press) { scale: var(--state-press-scale, .96); }
 
-.mir-folders .sv-folder-shot { position: relative; display: flex; align-items: center; gap: var(--sp-2); width: 100%; min-height: 44px; padding: var(--sp-3);
+.mir-folders .sv-folder-shot { position: relative; display: flex; align-items: center; gap: var(--sp-2); width: 100%; min-height: 44px; padding: 8px;
   border: 0; border-radius: 0; background: transparent; color: var(--fg-soft); cursor: pointer; isolation: isolate; transition: scale var(--motion-micro) var(--ease-out); }
 .mir-folders .sv-folder-shot:hover { background: var(--state-hover, var(--glass-raise)); }
 .mir-folders .sv-folder-shot:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: -3px; }
@@ -182,7 +182,7 @@
 .mir-folders .sv-moveto .sv-act.trig { flex: 0 1 auto; }
 .mir-folders .sv-primary.trig .trig-l { color: var(--acc); }
 .mir-folders :is(.sv-danger, .armed).trig .trig-l { color: var(--bad); }
-.mir-folders .sv-foot { display: flex; flex-direction: column; gap: var(--sp-1); padding-top: var(--sp-3); border-top: 1px solid var(--glass-hairline); }
+.mir-folders .sv-foot { display: flex; flex-direction: column; gap: var(--sp-1); padding-top: 8px; border-top: 1px solid var(--glass-hairline); }
 .mir-folders .sv-foot[hidden] { display: none; }
 
 /* a docked or paged gallery (an app's rack card): two columns, four rows a page */
