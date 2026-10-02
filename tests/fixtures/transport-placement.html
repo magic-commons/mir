@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MIR · the one bar that moves, and the workspace stack</title>
+<!-- tests/transport-placement.browser.mjs.  The stage transport (BASINS' basic bar) and the kit's real TIMELINE, built
+     without a transport of its own (`transport: false`): the page moves THE ONE BAR into the timeline's work lane while
+     that lane shows (`tr.mountIn(editor.transportHost)`) and back to the stage when it hides or the window closes, as the
+     timeline's join hunk will (.tmp/W12/T/ASKS.md).  UPPER is a kit window standing in for MODULATION in the lego stack
+     (window/workspaces.js); its switch chip and the transport's door in the work lane swap the two. -->
+<link rel="stylesheet" href="../../mir/mir.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0f18; }
+  #floats { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  #floats > * { pointer-events: auto; }
+</style>
+<script>
+  window.__rafCalls = 0;
+  const raf0 = window.requestAnimationFrame.bind(window);
+  window.requestAnimationFrame = (f) => { window.__rafCalls++; return raf0(f); };
+</script>
+</head>
+<body data-theme="dark" class="frost" data-card="refractive">
+<div id="ground"><div id="transport"></div></div>
+<div id="floats"></div>
+<script type="module">
+import { createTransport } from '../../mir/shell/transport.js';
+import { installModulation } from '../../mir/modulation/bind.js';
+import { installTimeline } from '../../mir/timeline/bind.js';
+import { createWindow } from '../../mir/window/window.js';
+import { createWorkspaces, workspaceSwitch } from '../../mir/window/workspaces.js';
+import { frame } from '../../mir/core/frame.js';
+import * as motion from '../../mir/core/motion.js';
+import * as M from '../../mir/modulation/mod.js';
+
+try { localStorage.clear(); } catch (_) { /* private mode */ }
+const $ = (id) => document.getElementById(id);
+const S = { size: 0.5 };
+const mod = installModulation({ mount: $('floats'), storageKey: 'mir.fx.tp.mod', presetKey: 'mir.fx.tp.presets',
+  params: [{ id: 'scene.size', label: 'SIZE', min: 0, max: 1, map: 'linear', get: () => S.size, set: (v) => { S.size = v; } }] });
+if (!M.macroList().length) { M.addMacro && M.addMacro(); }
+mod.view && mod.view.rebuild && mod.view.rebuild();
+
+let tr = null, tl = null, ws = null;
+/* the timeline, without its own transport: the page hands it THE one bar (the join hunk does this inside createTimeline) */
+const seat = () => tr && tl && tr.mountIn(tl.isOpen() && tl.editor.workLane() !== 'hidden' ? tl.editor.transportHost : null);
+tl = installTimeline({ mount: $('floats'), mod, transport: false, storageKey: 'mir.fx.tp',
+  initial: { open: false, x: 220, y: 360, w: 900, h: 420, chipSide: 'left' },
+  onWindow: () => { seat(); if (ws) ws.sync(); },
+  moved: (r) => { if (ws) ws.moved('lower', r); } });
+tl.root.addEventListener('timeline-work-lane', seat);
+/* alpha.11's createTimeline reads `port.transport || {}`, so `transport: false` still builds its own work-bar transport:
+   the page removes it until the join's hunk (.tmp/W12/T/ASKS.md) makes the timeline take the app's one bar */
+if (tl.transport) { tl.transport.destroy(); tl.transport.root.remove(); }
+tr = createTransport({ root: $('transport'), clock: { play() { return { ok: true }; }, pause() { return { ok: true }; }, isPlaying: () => false },
+  mod, key: 'mir.fx.tp.transport', onSwitch: () => ws.show('upper') });
+tr.start();
+
+/* UPPER: a kit window in MODULATION's seat; its MIR switch swaps to the timeline */
+const sw = workspaceSwitch({ run: () => ws.show('lower') });
+const upper = createWindow({ id: 'upper', title: 'UPPER', host: $('floats'), size: { w: 600, h: 200 }, min: { w: 240, h: 120 },
+  body: (b) => { b.appendChild(sw.root); }, onOpen: () => ws && ws.sync(), onClose: () => ws && ws.sync(),
+  onMoved: (r) => { if (ws) ws.moved('upper', r); } });
+ws = createWorkspaces({ upper, lower: tl.win });
+
+window.__T = { tr, tl, upper, ws, sw, mod, M, motion, frame, seat };
+window.__ready = true;
+</script>
+</body>
+</html>

@@ -19,6 +19,10 @@
  *   5. WINDOW AND RAIL RISE TOGETHER, by one stack shared by every window: a press anywhere on either puts the pair on
  *      top; z is the pair's place in the stack, so it stays small and nothing reads a sibling's style.
  *   6. IT SAYS WHERE IT IS: onMoved(rect) after every layout (null when it closes), so a host can dodge it.
+ *   7. THE LEGO STACK (1.5.0-alpha.12, BASINS shell.js syncWorkspaceStack / modwindow.js stackAbove / timeline-window.js
+ *      reserveTop): reserveTop(px) keeps a band above the window free (its dock span's top and its floating floor), and
+ *      stackAbove(anchor) seats the window 8 px above another one's rect; a hand dragging it away ends the stack.  The
+ *      pairing itself is window/workspaces.js.
  * Harvested from BASINS mir-plugins/kwin/kwin.js (the shell, the raise law, empty-glass drag), snap-window.js (the
  * drag, the Shift seat, the dock commit), save-window.js and timeline-window.js (how a window is made today).
  */
@@ -54,6 +58,16 @@ export function dockInput(P, env) {
   return { span: env.span, side: P.chipSide === 'auto' ? 'left' : P.chipSide, height: Math.min(P.h, env.view.height - CLAMP.inset),
     railSizes: env.sizes, viewport: env.view };
 }
+/** stackedAt(box, anchor, view, gap) — BASINS modwindow.js stackAbove: the left edge on the anchor's (kept 8 px inside
+ *  the screen), the bottom `gap` px above the anchor's top (the top never above 8).  → { left, top } */
+export function stackedAt(box, anchor, view, gap = 8) {
+  const edge = 8;
+  return { left: Math.round(Math.max(edge, Math.min(view.width - box.width - edge, anchor.left))), top: Math.round(Math.max(edge, anchor.top - gap - box.height)) };
+}
+/** withReserve(span, reserve, edge) — the span with a band of `reserve` px kept free at its top (BASINS reserveTop:
+ *  the bounds' top becomes 8 + reserve) */
+export const withReserve = (span, reserve, edge = 8) => (reserve > 0 && span ? { ...span, top: Math.max(span.top ?? edge, edge + reserve) } : span);
+
 /** windowLayout(P, env) — the state to the pane's rect and the rail's seat.  env = { view: { width, height },
  *  sizes: the rail's { vertical, horizontal }, span: the dock span or null, gap?: the floating rail's gap (a number or
  *  per side; default 0 — createWindow passes kwin's RAIL.gap), anchor?: the seat rect when docked on an anchor }.  Docked when it can be; a dock with no
@@ -71,7 +85,8 @@ export function windowLayout(P, env) {
     if (g) { const box = { left: g.left, top: g.top, width: g.width, height: g.height }; return { box, seat: seatOn(g.side, box, sizes, view), docked: P.dock }; }
   }
   const w = Math.min(P.w, view.width - CLAMP.inset), h = Math.min(P.h, view.height - CLAMP.inset);
-  const x = P.x ?? Math.round((view.width - w) / 2), y = P.y ?? Math.round(Math.max(CLAMP.top, (view.height - h) / 2));
+  /* env.top: a floating window stays below a reserved band (BASINS snap-window.js: P.y = max(P.y, bounds().top)) */
+  const x = P.x ?? Math.round((view.width - w) / 2), y = Math.max(env.top ?? -Infinity, P.y ?? Math.round(Math.max(CLAMP.top, (view.height - h) / 2)));
   const box = { left: clamp(x, CLAMP.x - w, view.width - CLAMP.x), top: clamp(y, 0, view.height - CLAMP.y), width: w, height: h };
   return { box, seat: seatRail({ prefer: P.chipSide, box, sizes, view, gap: env.gap ?? 0 }), docked: null };
 }
@@ -153,9 +168,10 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
   const P = readShape(persist && persist.read ? persist.read() : null, { w: size.w, h: size.h, chipSide: 'left' }, min);
   const wantOpen = P.open; P.open = false;
   let box = null, moving = null, deferred = false, gest = null, kbBefore = null, active = panels && panels.length ? panels[0].name : null;
+  let reserve = 0, stack = null;                                     // the lego stack: a band kept free above; the window this one sits on
   const seatOf = () => (dock && dock.anchor && typeof dock.anchor.rect === 'function' ? dock.anchor.rect() || null : undefined);
-  const env = () => ({ view: { width: view.innerWidth, height: view.innerHeight }, sizes: rail.sizes(), span: dock ? dock.span.read() : null,
-    gap: railGap, anchor: P.dock === 'anchor' ? seatOf() : undefined });
+  const env = () => ({ view: { width: view.innerWidth, height: view.innerHeight }, sizes: rail.sizes(), span: dock ? withReserve(dock.span.read(), reserve) : null,
+    gap: railGap, anchor: P.dock === 'anchor' ? seatOf() : undefined, top: reserve > 0 ? 8 + reserve : undefined });
   const shape = () => ({ x: P.x, y: P.y, w: P.w, h: P.h, open: P.open, dock: P.dock, chipSide: P.chipSide });
   const save = () => { if (persist && persist.write) persist.write(shape()); };
 
@@ -189,9 +205,17 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
       if (!deferred) { deferred = true; settled(root).then(() => { deferred = false; layout(); }); }
       return box;
     }
-    rail.setDock(P.dock && dock ? P.dock : null);                  // the docked rail sits tighter (window.css --rail-gap)
-    let L = windowLayout(P, env());
-    if ((L.docked || null) !== (P.dock && dock ? P.dock : null)) { rail.setDock(L.docked); L = windowLayout(P, env()); }
+    /* stacked on another window (the lego stack): it floats where the stack puts it; its own dock is kept as a wish */
+    const on = stack && !gest ? stack() : null;
+    if (on) {
+      rail.setDock(null);
+      const e = env(), w = Math.min(P.w, e.view.width - CLAMP.inset), h = Math.min(P.h, e.view.height - CLAMP.inset), at = stackedAt({ width: w, height: h }, on, e.view);
+      P.x = at.left; P.y = at.top;
+    }
+    rail.setDock(!on && P.dock && dock ? P.dock : null);           // the docked rail sits tighter (window.css --rail-gap)
+    const Q = on ? { ...P, dock: null } : P;
+    let L = windowLayout(Q, on ? { ...env(), top: undefined } : env());
+    if ((L.docked || null) !== (Q.dock && dock ? Q.dock : null)) { rail.setDock(L.docked); L = windowLayout(Q, env()); }
     /* an anchored window whose seat has gone, or is clipped away entirely, is not painted; otherwise it is cut to the clip */
     const clipTo = L.docked === 'anchor' && L.box && dock.anchor.clip ? dock.anchor.clip() : null;
     const out = L.away || (clipTo && (L.box.left >= clipTo.right || L.box.left + L.box.width <= clipTo.left || L.box.top >= clipTo.bottom || L.box.top + L.box.height <= clipTo.top));
@@ -226,7 +250,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
 
   /* ── THE DRAG: the grip (and empty glass, handed to it) ── */
   const gripDrag = drag(rail.grip, { slop: RAIL.slop,
-    onStart() { still(); pin(); gest = { before: { ...P }, anchor: null, shifted: false }; rail.grip.classList.add('drag'); },
+    onStart() { still(); pin(); gest = { before: { ...P }, anchor: null, shifted: false, stack }; stack = null; rail.grip.classList.add('drag'); },   // dragged away, a stacked window leaves its stack (BASINS)
     onMove(s) {
       if (!gest || rail.holding()) return;
       if (s.shiftKey) {                                              // Shift: the nearest edge takes the rail
@@ -259,7 +283,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
       rail.grip.classList.remove('drag');
       if (guide) guide.cancel();
       if (!gest) return;
-      Object.assign(P, gest.before); gest = null;
+      Object.assign(P, gest.before); stack = gest.stack; gest = null;
       still(); layout();
     },
   });
@@ -346,6 +370,16 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
       layout({ animate }); save();
     },
     setChip: rail.setChip, tab, raise, pair,
+    /** reserveTop(px) — keep a band of px above this window free: a dock lands below it, a floating window stays below
+     *  it (BASINS timeline-window.js reserveTop).  Re-places only when the band changed. */
+    reserveTop(px) { const next = Math.max(0, Math.round(+px || 0)); if (next === reserve) return reserve; reserve = next; if (P.open) layout(); return reserve; },
+    get reserved() { return reserve; },
+    /** stackAbove(anchor | null) — sit 8 px above the rect `anchor()` gives (another window's), following it on every
+     *  layout; null, or a drag of this window's grip, ends it (BASINS modwindow.js stackAbove) */
+    stackAbove(anchor) { stack = typeof anchor === 'function' ? anchor : null; if (P.open) layout(); },
+    get isStacked() { return !!stack; },
+    /** stackHeight() — the height the stack must leave free for this window */
+    stackHeight: () => (box ? box.height : Math.min(P.h, view.innerHeight - CLAMP.inset)),
     /** stackAt(z) — the pane at z-index z and its rail just above it (an app's own stacking law) */
     stackAt(z, { railOffset = railTier } = {}) { const n = Math.round(+z) || 0; setVar(root, 'z-index', String(n)); setVar(rail.el, 'z-index', String(n + (Math.round(+railOffset) || 0))); },
     state: shape,

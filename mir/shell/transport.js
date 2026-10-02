@@ -27,15 +27,24 @@
  *   5. EVERY LOOK VALUE IS THE KIT'S.  The bar is a `.glass` pane, so CARD STYLE, FROST, BLUR, RELIEF and the tier
  *      restyle it with no transport code (transport.css); it keeps its own 16 px corner under CORNERS, as BASINS' bar does.
  *   6. NO ENGLISH IN A LOOKUP.  Words go through label() / ariaLabel() / t(); parts are found by class and data-*.
+ *   7. ONE BAR THAT MOVES (1.5.0-alpha.12, BASINS transport-placement.js).  `mountIn(host)` moves THE SAME NODE into a
+ *      work lane (the timeline's) in the work-bar form, and `mountIn(null)` back to the stage: its listeners, its
+ *      tempo, its state go with it; nothing is rebuilt.  The rack's dock wins over both; a bar the user switched off
+ *      (`body.no-transport-bar`, Settings › TRANSPORT BAR) stays off in every seat until the user calls it back.
+ *   8. ONE TEMPO FIELD (BASINS tempo-editor.js).  bindTempoField is the inline BPM editor of every work bar: in the
+ *      work-bar form a click on the pill types the tempo and a drag runs BASINS' travel law; on the stage the pill keeps
+ *      its digit drag and its click opens the tempo panel (Josh: "keep the behavior on the regular center floating
+ *      transport"), and the kit's double click types through the same binder.
  *
  * The pure helpers are exported for node tests. */
-import { el, label, ariaLabel, trig } from '../kit.js';
+import { el, label, ariaLabel, trig, gripDots } from '../kit.js';
 import { onLanguage, phrase } from '../core/i18n.js';
 import { drag } from '../core/pointer.js';
 import { frame } from '../core/frame.js';
 import { setText, setAttr } from '../core/perf.js';
 import { setGlyph, glyphEl, hasGlyph } from '../glyph.js';
-import { markSvg } from './wordmark.js';
+import { markSvg, createMirDiamond } from './wordmark.js';
+import { buildMacroSlot } from '../modulation/modwindow/modwindow.js';
 import * as MOD from '../modulation/mod.js';
 
 /** the numbers the bar keeps (BASINS transport.js measured them) */
@@ -47,7 +56,34 @@ export const TRANSPORT = Object.freeze({
   doubleTap: 320,      // the kit's one double-tap interval (kit.js tapWatcher)
   latchTap: 240,       // a bend tapped quicker than this latches (BASINS transport.js:126)
   bpmMin: 20, bpmMax: 300,
+  fieldChars: 8,       // the inline tempo field takes eight characters (BASINS tempo-editor.js)
+  travel: 220,         // the work bars' drag: the whole tempo range in 220 px (BASINS tempo-editor.js) …
+  travelTouch: 320,    // … 320 px for a finger …
+  travelFine: 1760,    // … and 1760 px with Shift held
+  panelGap: 16,        // the tempo panel opens below when that much room is left under it (BASINS positionTempo)
 });
+/** the placements of the one bar (BASINS transport-placement.js): on the stage, in a work lane, docked in the rack */
+export const PLACEMENTS = Object.freeze(['stage', 'work', 'rack']);
+/** placementOf({ docked, host }) — BASINS' rule: the rack's dock wins, then a work lane that shows, else the stage */
+export const placementOf = ({ docked = false, host = null } = {}) => (docked ? 'rack' : host ? 'work' : 'stage');
+/** tempoDirection(bar, panelHeight, viewHeight) — BASINS positionTempo: below while the room under the bar holds the
+ *  panel and a 16 px margin, or while there is at least as much room below as above; else above */
+export function tempoDirection(r, height, vh) {
+  const below = vh - r.bottom;
+  return below >= height + TRANSPORT.panelGap || below >= r.top ? 'below' : 'above';
+}
+/** travelBpm(start, rise, { shift, touch, min, max }) — BASINS tempo-editor.js drag: the range over 220 px (a finger
+ *  320, Shift 1760), clamped to the tenth */
+export function travelBpm(start, rise, { shift = false, touch = false, min = TRANSPORT.bpmMin, max = TRANSPORT.bpmMax } = {}) {
+  const travel = shift ? TRANSPORT.travelFine : touch ? TRANSPORT.travelTouch : TRANSPORT.travel;
+  return clampBpm(start + (rise / travel) * (max - min), min, max);
+}
+/** reorderTo(key, at, count) — BASINS wireTileReorder's keys on a tile's reorder grip: ← → one place, ↑ ↓ two (a row
+ *  of the two-column rail), Home and End; → the new index, clamped, or −1 for a key it does not take */
+export function reorderTo(key, at, count) {
+  const to = key === 'Home' ? 0 : key === 'End' ? count - 1 : key === 'ArrowLeft' ? at - 1 : key === 'ArrowRight' ? at + 1 : key === 'ArrowUp' ? at - 2 : key === 'ArrowDown' ? at + 2 : null;
+  return to === null ? -1 : Math.max(0, Math.min(count - 1, to));
+}
 /** the seats a user may choose on the stage (Josh 2026-10-01); docking into the rack is BASINS' dock chip */
 export const SEATS = Object.freeze(['bottom', 'top', 'compact']);
 const SEAT_WORD = { bottom: phrase('BOTTOM'), top: phrase('TOP'), compact: phrase('COMPACT') };
@@ -238,23 +274,71 @@ export function modPower({ mod, signal } = {}) {
   return { root, sync, destroy: () => life.abort() };
 }
 
-/** modDoor({ mod }) — the door to the modulation window (BASINS / λWAVES `.mod-exp.mod-logo`: the MIR mark in a
- *  round seat).  A press opens or closes the window; `aria-expanded` says which. */
-export function modDoor({ mod, signal } = {}) {
+/** modDoor({ mod, mark, onSwitch, work }) — the door to the modulation window (BASINS / λWAVES `.mod-exp.mod-logo`).
+ *  `mark: 'palette'` (default, BASINS) seats the MIR palette diamond, whose squares step through MIR's nine colours
+ *  while a mouse hovers it (wordmark.js createMirDiamond); `mark: 'mark'` seats the nine squares the accent paints
+ *  (λWAVES).  A press opens or closes the window; in a work bar (`work()` true) with `onSwitch`, it SWITCHES to the
+ *  modulation workspace instead (BASINS: the timeline's MIR button swaps to MODULATION).  `aria-expanded` says which. */
+export function modDoor({ mod, mark = 'palette', onSwitch = null, work = () => false, signal } = {}) {
   const life = lifeOf(signal), root = el('button', 'mod-exp mod-logo'); root.type = 'button';
-  if (typeof document !== 'undefined') root.appendChild(markSvg());
+  let diamond = null;
+  if (typeof document !== 'undefined') { if (mark === 'mark') root.appendChild(markSvg()); else diamond = createMirDiamond(root); }
   ariaLabel(root, 'Open the modulation window'); root.title = 'Open the modulation window'; root.setAttribute('aria-expanded', 'false');
   function sync() { setAttr(root, 'aria-expanded', String(isOpenOf(mod))); }
-  root.addEventListener('click', () => { if (mod) mod.toggle(); }, { signal: life.signal });
-  if (!mod) root.hidden = true;
-  return { root, sync, destroy: () => life.abort() };
+  root.addEventListener('click', () => { if (onSwitch && work()) onSwitch(); else if (mod) mod.toggle(); }, { signal: life.signal });
+  if (!mod && !onSwitch) root.hidden = true;
+  return { root, sync, destroy() { life.abort(); if (diamond) diamond.destroy(); } };
 }
 
-/** tempoPill({ tempo, panel }) — BASINS' BPM pill (`.tbtn.tempo-expand`: the number, BPM, the Hz, the chevron).
- *  Drag up or down: the digit under the pointer is the step; the wheel by that digit; ↑ → up and ↓ ← down by one,
- *  Shift a tenth, PageUp/PageDown ten.  A click opens the tempo panel (BASINS); a double click types the tempo in
- *  a field in the pill's seat (the kit's: Enter or leaving takes it, Escape does not). */
-export function tempoPill({ tempo, panel = null, signal } = {}) {
+/** bindTempoField({ button, input, tempo, enabled, drag, paint }) — THE inline BPM editor of the work bars (BASINS
+ *  tempo-editor.js `bindTempoEditor`, one module for the modulation and timeline work bars).  A click on `button` (when
+ *  `enabled()`) puts `input` in its seat at the button's size with the tempo as it is, selected; Enter or leaving takes
+ *  it, Escape does not (focus goes back to the button); 8 characters, decimals.  `drag: true` also gives the button
+ *  BASINS' drag (the whole range in 220 px, a finger 320, Shift 1760; a drag is not a click).  `tempo` is
+ *  createTempo's { get, set, commit, min, max }.  → { open(), close(take), editing, destroy() } */
+export function bindTempoField({ button, input, tempo, enabled = () => true, drag: dragToo = false, paint = () => {}, signal } = {}) {
+  const life = lifeOf(signal), on = { signal: life.signal };
+  input.maxLength = TRANSPORT.fieldChars; input.spellcheck = false; input.inputMode = 'decimal'; input.dir = 'ltr';
+  if (!input.type || input.type === 'text') input.type = 'text';
+  let editing = false, dragged = false;
+  function open() {
+    if (editing || !enabled()) return false;
+    const seat = button.getBoundingClientRect();
+    Object.assign(input.style, { width: seat.width + 'px', flex: '0 0 ' + seat.width + 'px', height: seat.height + 'px' });
+    button.hidden = true; input.hidden = false; input.value = String(tempo.get()); editing = true;
+    input.focus({ preventScroll: true }); input.select();
+    return true;
+  }
+  function close(take = true, refocus = false) {
+    if (!editing) return; editing = false;
+    if (take) { const v = parseBpm(input.value); if (v !== null) { tempo.set(v); tempo.commit(); } }
+    input.hidden = true; button.hidden = false;
+    if (refocus) button.focus({ preventScroll: true });
+    paint();
+  }
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(e.key === 'Enter', true); }
+  }, on);
+  input.addEventListener('blur', () => close(true), on);
+  let g = null;
+  const gesture = dragToo ? drag(button, { slop: TRANSPORT.slop,
+    onStart: (s) => { if (!enabled()) return; g = { bpm: tempo.get(), touch: s.pointerType === 'touch' }; },
+    onMove: (s) => { if (!g) return; tempo.set(travelBpm(g.bpm, -s.dy, { shift: s.shiftKey, touch: g.touch, min: tempo.min, max: tempo.max })); paint(); },
+    onEnd: () => { if (!g) return; g = null; dragged = true; tempo.commit(); },
+    onCancel: () => { if (!g) return; const b = g.bpm; g = null; tempo.set(b); paint(); } }) : null;
+  if (dragToo) {
+    button.addEventListener('pointerdown', () => { dragged = false; }, on);
+    button.addEventListener('click', () => { if (dragged) { dragged = false; return; } open(); }, on);
+  }
+  return { open, close: (take = true) => close(take), get editing() { return editing; }, destroy() { close(false); if (gesture) gesture.destroy(); life.abort(); } };
+}
+
+/** tempoPill({ tempo, panel, work }) — BASINS' BPM pill (`.tbtn.tempo-expand`: the number, BPM, the Hz, the chevron).
+ *  On the stage: drag up or down, the digit under the pointer is the step; the wheel by that digit; ↑ → up and ↓ ←
+ *  down by one, Shift a tenth, PageUp/PageDown ten.  A click opens the tempo panel (BASINS); a double click types the
+ *  tempo (the kit's) through bindTempoField.  In a work bar (`work()` true, BASINS' timeline form): a click types the
+ *  tempo and a drag runs BASINS' travel law (bindTempoField), the look unchanged (Josh: "Don't change the look"). */
+export function tempoPill({ tempo, panel = null, work = () => false, signal } = {}) {
   const life = lifeOf(signal), on = { signal: life.signal };
   const wrap = el('span', 'tempo-seat');
   const root = tbtn('tempo-expand'); wrap.appendChild(root);
@@ -264,8 +348,9 @@ export function tempoPill({ tempo, panel = null, signal } = {}) {
   el('span', 'tempo-chevron', root).setAttribute('aria-hidden', 'true');
   label(unit, 'BPM'); num.dir = 'ltr'; hz.dir = 'ltr';
   const field = el('input', 'modtempoin transport-tempo-input', wrap);
-  field.type = 'text'; field.inputMode = 'decimal'; field.maxLength = 8; field.spellcheck = false; field.hidden = true; field.dir = 'ltr';
+  field.type = 'text'; field.hidden = true;
   ariaLabel(field, 'Type the tempo in BPM');
+  const typer = bindTempoField({ button: root, input: field, tempo, paint: () => sync(), signal: life.signal });
   const doc = root.ownerDocument;
   function stepAt(x) {
     const n = num.firstChild; if (!n || n.nodeType !== 3) return 1;
@@ -273,15 +358,19 @@ export function tempoPill({ tempo, panel = null, signal } = {}) {
     for (let i = 0; i < s.length; i++) { r.setStart(n, i); r.setEnd(n, i + 1); const b = r.getBoundingClientRect(); boxes.push({ left: b.left, right: b.right }); }
     return digitStep(s, charAt(boxes, x));
   }
-  let dragged = false, g0 = null, lastClick = 0, editing = false, shownBpm = '';
+  let dragged = false, g0 = null, lastClick = 0, shownBpm = '';
+  /* one gesture, two laws: on the stage the digit under the pointer is the step (BASINS transport.js); in a work bar
+     the travel law of the one tempo field (BASINS tempo-editor.js) */
   const g = drag(root, { slop: TRANSPORT.slop,
-    onStart: (s) => { const touch = s.pointerType === 'touch'; g0 = { bpm: tempo.get(), touch, step: touch ? 1 : stepAt(s.x0) }; root.classList.add('drag'); },
-    onMove: (s) => { if (g0) { tempo.set(dragBpm(g0.bpm, -s.dy, g0.step, g0.touch, tempo)); sync(); } },
+    onStart: (s) => { const touch = s.pointerType === 'touch'; g0 = { bpm: tempo.get(), touch, travel: !!work(), step: touch ? 1 : stepAt(s.x0) }; root.classList.add('drag'); },
+    onMove: (s) => { if (!g0) return;
+      tempo.set(g0.travel ? travelBpm(g0.bpm, -s.dy, { shift: s.shiftKey, touch: g0.touch, min: tempo.min, max: tempo.max }) : dragBpm(g0.bpm, -s.dy, g0.step, g0.touch, tempo)); sync(); },
     onEnd: () => { if (!g0) return; g0 = null; dragged = true; root.classList.remove('drag'); tempo.commit(); },
     onCancel: () => { if (!g0) return; const b = g0.bpm; g0 = null; root.classList.remove('drag'); tempo.set(b); sync(); } });
   root.addEventListener('pointerdown', () => { dragged = false; }, on);
   root.addEventListener('click', (e) => {
     if (dragged) { dragged = false; return; }
+    if (work()) { lastClick = 0; if (panel && panel.isOpen()) panel.close(); edit(); return; }   // the work bar's pill types the tempo (BASINS)
     const now = e.timeStamp;
     if (now - lastClick < TRANSPORT.doubleTap) { lastClick = 0; if (panel && panel.isOpen()) panel.close(); edit(); return; }
     lastClick = now;
@@ -296,24 +385,7 @@ export function tempoPill({ tempo, panel = null, signal } = {}) {
     const k = keyStep(e.code, e.shiftKey); if (!k) return;
     e.preventDefault(); tempo.set(tempo.get() + k); sync(); tempo.commit();
   }, on);
-  function edit() {
-    if (editing) return; editing = true;
-    const r = root.getBoundingClientRect();
-    field.style.width = r.width + 'px'; field.style.height = r.height + 'px';
-    field.value = formatBpm(tempo.get()); root.hidden = true; field.hidden = false;
-    field.focus({ preventScroll: true }); field.select();
-  }
-  function close(take, refocus) {
-    if (!editing) return; editing = false;
-    if (take) { const v = parseBpm(field.value); if (v !== null) { tempo.set(v); tempo.commit(); } }
-    field.hidden = true; root.hidden = false;
-    if (refocus) root.focus({ preventScroll: true });
-    sync();
-  }
-  field.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(e.key === 'Enter', true); }
-  }, on);
-  field.addEventListener('blur', () => close(true, false), on);
+  const edit = () => typer.open();
   function sync() {
     const bpm = tempo.get(), n = formatBpm(bpm);
     setText(num, n); setText(hz, (bpm / 60).toFixed(2) + ' Hz'); setAttr(root, 'aria-valuenow', n);
@@ -322,16 +394,24 @@ export function tempoPill({ tempo, panel = null, signal } = {}) {
   }
   const offLang = onLanguage(() => { shownBpm = ''; sync(); });
   sync();
-  return { root: wrap, pill: root, field, sync, edit, destroy() { g.destroy(); life.abort(); offLang(); } };
+  return { root: wrap, pill: root, field, sync, edit, typer, cancel() { typer.close(false); if (g0) g.cancel(); },
+    destroy() { g.destroy(); typer.destroy(); life.abort(); offLang(); } };
 }
 
-/** tempoPanel({ tempo, mod }) — BASINS' tempo panel (`.native-tempo`), its CLOCK tiles: TAP, WALL / FREE, the
- *  cadence (when the seam has one), ÷2 ×2 ×4 (hold to bend, tap to latch) and HOLD ¼ / HOLD 1 (the stutter).
- *  Opened by a click on the pill.  BASINS' macro rail is not here (docs/TRANSPORT.md). */
-export function tempoPanel({ tempo, mod = null, signal } = {}) {
+/** tempoPanel({ tempo, mod, macros }) — BASINS' tempo panel (`.native-tempo`): MACROS | CLOCK.
+ *  THE MACRO RAIL (BASINS transport.js buildMacros / wireTileReorder): the modulation window's own macro rows
+ *  (modwindow.js buildMacroSlot) as tiles with their faces hidden — the routing grip (drag to route, tap to arm,
+ *  double-tap to reset), the numbered depth seat with its arc, and the reorder grip (drag among the tiles; ← → one
+ *  place, ↑ ↓ a row, Home, End).  The gestures are the window's, never copies: `mod.view.api` (wireGrip, wireDepth,
+ *  paintDepth, moveMacro).  No macros: one line says where to add one.  `macros: false` leaves the rail out.
+ *  THE CLOCK TILES: TAP, WALL / FREE, the cadence (when the seam has one), ÷2 ×2 ×4 (hold to bend, tap to latch) and
+ *  HOLD ¼ / HOLD 1 (the stutter).  Opened by a click on the pill. */
+export function tempoPanel({ tempo, mod = null, macros = true, signal } = {}) {
   const life = lifeOf(signal), on = { signal: life.signal };
   const C = mod && mod.host && mod.host.clock, M = tempo.model || MOD;
   const root = el('div', 'native-tempo'); root.hidden = true;
+  const rail = macros && mod && typeof M.macroList === 'function' ? macroRail({ M, api: () => (mod.view && mod.view.api) || null, signal: life.signal }) : null;
+  if (rail) { root.appendChild(rail.root); root.classList.add('with-macros'); }
   const pane = el('div', 'tempo-pane tempo-clock', root); ariaLabel(pane, 'clock');
   const grid = el('div', 'tempo-grid', pane);
   let taps = [];
@@ -369,12 +449,62 @@ export function tempoPanel({ tempo, mod = null, signal } = {}) {
     for (const { b, word } of bends) lit(b, bend.which === word);
     const T = M.transport || {};
     for (const { b, note } of holds) lit(b, !!T.hold && T.holdNote === note);
+    if (rail && !root.hidden) rail.sync();                            // hidden costs nothing
   }
   const subs = new Set();
   const set = (v) => { if (v === !root.hidden) return; root.hidden = !v; for (const f of subs) f(v); sync(); };
   sync();
-  return { root, sync, isOpen: () => !root.hidden, open: () => set(true), close: () => set(false), toggle: () => set(root.hidden),
+  return { root, sync, rail, isOpen: () => !root.hidden, open: () => set(true), close: () => set(false), toggle: () => set(root.hidden),
     onToggle(fn) { subs.add(fn); return () => subs.delete(fn); }, destroy: () => life.abort() };
+}
+
+/** macroRail({ M, api }) — the tempo panel's MACROS pane (BASINS transport.js §76–107), rebuilt only when the list of
+ *  macros (or the window's presence) changes; the depth arcs repaint after a hand works a tile, never on a timer
+ *  (BASINS re-read it every 200 ms while the panel was open).  → { root, rail, sync(), tiles } */
+export function macroRail({ M, api, signal } = {}) {
+  const life = lifeOf(signal), on = { signal: life.signal };
+  const root = el('div', 'tempo-pane tempo-macros'); ariaLabel(root, 'macros');
+  const rail = el('div', 'tempo-rail', root);
+  const tiles = new Map(); let sig = '';
+  function build() {
+    const A = api(), list = M.macroList();
+    const s = list.map((m) => m.id + ':' + m.kind).join('|') + (A ? '+' : '-');
+    if (s === sig) return false; sig = s; rail.textContent = ''; tiles.clear();
+    list.forEach((m, i) => {
+      const rec = buildMacroSlot(rail, m, i + 1); rec.root.classList.add('tempo-tile');
+      for (const x of [rec.val, rec.pad, rec.del, rec.erow]) if (x) x.hidden = true;
+      if (A) { A.wireGrip(rec.grip, m.id); A.wireDepth(rec.numSeat, m.id, i + 1); wireReorder(rec, m.id, A); }
+      rec.reorder.replaceChildren(gripDots()); rec.grip.title = 'Drag to route; tap to arm; double-tap to reset'; rec.reorder.title = 'Drag to reorder';
+      tiles.set(m.id, rec);
+    });
+    if (!list.length) label(el('div', 'tempo-empty', rail), 'No macros yet — add one in the modulation window.');
+    return true;
+  }
+  function paint() { const A = api(); if (!A) return; for (const [id, rec] of tiles) A.paintDepth(rec.numSeat, rec.depthArc, id); }
+  const rebuild = () => { sig = ''; build(); paint(); };
+  function wireReorder(rec, macroId, A) {
+    let d = null;
+    const at = (list, x, y) => { for (let i = 0; i < list.length; i++) { const b = list[i].getBoundingClientRect(); if (y < b.top || y > b.bottom) continue; if (x < b.left + b.width / 2) return i; if (x <= b.right) return i + 1; } return -1; };
+    drag(rec.reorder, { slop: TRANSPORT.slop,
+      onStart: () => { d = true; rec.root.classList.add('m2reorder'); },
+      onMove: (s) => {
+        if (!d) return;
+        const list = [...rail.querySelectorAll('.tempo-tile')].filter((t) => t !== rec.root), i = at(list, s.x, s.y); if (i < 0) return;
+        const before = list[Math.min(i, list.length)] || null;
+        if (before && before !== rec.root.nextSibling) rail.insertBefore(rec.root, before); else if (!before && rail.lastElementChild !== rec.root) rail.appendChild(rec.root);
+      },
+      onEnd: () => { if (!d) return; d = null; rec.root.classList.remove('m2reorder'); A.moveMacro(macroId, [...rail.querySelectorAll('.tempo-tile')].indexOf(rec.root)); rebuild(); },
+      onCancel: () => { if (!d) return; d = null; rec.root.classList.remove('m2reorder'); rebuild(); } });
+    rec.reorder.addEventListener('keydown', (e) => {
+      const list = M.macroList(), to = reorderTo(e.key, list.findIndex((m) => m.id === macroId), list.length); if (to < 0) return;
+      e.preventDefault(); e.stopPropagation(); A.moveMacro(macroId, to); rebuild();
+      const t = tiles.get(macroId); if (t) t.reorder.focus({ preventScroll: true });
+    }, on);
+  }
+  /* a hand on a tile (a depth drag, a key) repaints the arcs once per frame */
+  const soon = () => frame.coalesce('mir.transport.macros', paint);
+  for (const t of ['pointermove', 'pointerup', 'keydown', 'wheel']) root.addEventListener(t, soon, { passive: true, signal: life.signal });
+  return { root, rail, tiles, sync() { build(); paint(); }, rebuild, destroy: () => life.abort() };
 }
 
 /** tapButton({ tempo }) — TAP as a seat of its own on the bar (BASINS and λWAVES keep it in the tempo panel) */
@@ -460,10 +590,15 @@ function dockOf(R) {
  *    model, setBpm, persist   the tempo (createTempo)
  *    bar         'float' (default: on the stage) or 'work' (inside a work bar: the to-start, send-to-rack and logo seats
  *                take the bar's own button face, 34 px with radius 8, and the bar's padding is 3 px — BASINS' timeline)
- *    openers, rack, keys, store, key, opener, onRefused, onInterface, host, root, id — as in docs/TRANSPORT.md */
+ *    door        'palette' (default, BASINS: the MIR palette diamond that cycles under a mouse) or 'mark' (λWAVES)
+ *    onSwitch    in a work bar the door switches to the modulation workspace (BASINS): window/workspaces.js `show('upper')`
+ *    macros      false leaves the macro rail out of the tempo panel (default true when there is a `mod`)
+ *    openers, rack, keys, store, key, opener, onRefused, onInterface, host, root, id — as in docs/TRANSPORT.md
+ *  The api's mountIn(host | null) moves the one bar into a work lane and back (docs/TRANSPORT.md "The one bar that moves"). */
 export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = globalThis.document && document.body, root = null, id = 'transport',
   clock = null, mod = null, model = MOD, setBpm = null, persist = null, openers = [], rack = null, keys = null, store = null,
-  key = 'mir.transport', opener = true, onRefused = null, onInterface = null, bar: barKind = 'float' } = {}) {
+  key = 'mir.transport', opener = true, onRefused = null, onInterface = null, bar: barKind = 'float', door: doorMark = 'palette',
+  onSwitch = null, macros = true } = {}) {
   const doc = host.ownerDocument, view = doc.defaultView, body = doc.body;
   const life = new AbortController(), on = { signal: life.signal }, signal = life.signal;
   const S = store || localSeatStore(key);
@@ -486,7 +621,7 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
     switch (name) {
       case 'play': return one(playPart);
       case 'power': return one(modPower({ mod, signal }));
-      case 'door': return one(modDoor({ mod, signal }));
+      case 'door': return one(modDoor({ mod, mark: doorMark, onSwitch, work: () => placement === 'work', signal }));
       case 'tempo': return one(pillPart());
       case 'panel': return panelPart().root;
       case 'tap': return one(tapButton({ tempo, signal }));
@@ -504,10 +639,10 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
   };
   const playPart = playButton({ clock, onRefused, signal });
   let pillP = null;
-  function panelPart() { if (!panel) { panel = tempoPanel({ tempo, mod, signal }); parts.push(panel); panel.onToggle((v) => {   /* the bar keeps its width while the panel opens beneath its row (BASINS #transport.tempo-open) */
-      if (v && !docked) bar.style.width = bar.getBoundingClientRect().width + 'px'; else bar.style.removeProperty('width');
-      bar.classList.toggle('tempo-open', v); if (pillP) pillP.sync(); }); } return panel; }
-  function pillPart() { if (!pillP) pillP = tempoPill({ tempo, panel: layoutNames(layout).includes('panel') ? panelPart() : null, signal }); return pillP; }
+  function panelPart() { if (!panel) { panel = tempoPanel({ tempo, mod, macros, signal }); parts.push(panel); panel.onToggle((v) => {   /* the bar keeps its width while the panel opens beneath its row (BASINS #transport.tempo-open) */
+      if (v && !docked && placement === 'stage') bar.style.width = bar.getBoundingClientRect().width + 'px'; else bar.style.removeProperty('width');
+      bar.classList.toggle('tempo-open', v); aimPanel(); if (pillP) pillP.sync(); }); } return panel; }
+  function pillPart() { if (!pillP) pillP = tempoPill({ tempo, panel: layoutNames(layout).includes('panel') ? panelPart() : null, work: () => placement === 'work', signal }); return pillP; }
   const place = (list, parent) => {
     for (const item of list) {
       if (item && typeof item === 'object' && item.nodeType !== 1 && Array.isArray(item.items)) { const g = el('div', item.group || 'tr-group', parent); place(item.items, g); continue; }
@@ -518,12 +653,37 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
   place(layout, bar);
   const back = wayBack({ run: () => { if (onInterface) onInterface(); else { const R = rackOf(); if (R && typeof R.setInterface === 'function') R.setInterface(true); else body.classList.remove('ui-hidden'); } }, signal });
   bar.appendChild(back.root);
-  /* in a work bar, the round seats are the bar's buttons (BASINS transport-placement.js barFace) */
-  const work = barKind === 'work';
-  setAttr(bar, 'data-bar', work ? 'work' : 'float');
-  for (const b of bar.querySelectorAll(BAR_SEATS)) b.classList.toggle('trig', work);
-  /* in a work bar a click on the pill types the tempo (BASINS' timeline form, tempo-editor.js); the panel stays the floating bar's */
-  if (work && pillP) pillP.pill.addEventListener('click', (e) => { if (pillP.pill.classList.contains('drag')) return; e.stopImmediatePropagation(); pillP.edit(); }, { capture: true, signal });
+  /* ── THE ONE BAR THAT MOVES (BASINS transport-placement.js): stage · work lane · rack.  The same node goes; in a work
+     bar its round seats are the bar's buttons (barFace) and a click on the pill types the tempo (tempoPill's work()) ── */
+  let placement = barKind === 'work' ? 'work' : 'stage', workHost = barKind === 'work' ? stageHost : null, docked = false;
+  const barFace = (on) => { setAttr(bar, 'data-bar', on ? 'work' : 'float'); for (const b of bar.querySelectorAll(BAR_SEATS)) b.classList.toggle('trig', on); };
+  barFace(placement === 'work');
+  /** the tempo panel opens toward the free side in a work bar (BASINS positionTempo) */
+  function aimPanel() {
+    if (!panel || !panel.isOpen() || placement !== 'work') { bar.removeAttribute('data-tempo-direction'); return; }
+    setAttr(bar, 'data-tempo-direction', tempoDirection(bar.getBoundingClientRect(), panel.root.getBoundingClientRect().height, view.innerHeight));
+  }
+  function seatBar() {
+    const host = workHost && workHost.isConnected ? workHost : null;
+    const next = placementOf({ docked, host });
+    if (next === 'work') { bar.classList.remove('mini', 'docked'); if (bar.parentElement !== host) host.appendChild(bar); barFace(true); }
+    else if (next === 'stage') { barFace(false); bar.classList.remove('docked'); bar.classList.add('mini'); if (bar.parentElement !== stageHost) stageHost.appendChild(bar); }
+    else barFace(false);                                              // docked: setDocked keeps the rack window's form
+    if (next === placement) { aimPanel(); return placement; }
+    placement = next;
+    /* BASINS placementChanged: the panel and the field close, a drag in flight ends */
+    if (panel) panel.close();
+    if (pillP) pillP.cancel();
+    bar.style.removeProperty('width');
+    if (next === 'stage') { const R = rackOf(); if (R && typeof R.dodge === 'function') R.dodge(lastRect); }
+    bar.dispatchEvent(new view.CustomEvent('transport-placement', { detail: { placement: next } }));
+    rove(null); soon();
+    return placement;
+  }
+  /** mountIn(host | null) — the work lane that shows (the timeline's transport host), or null when it hides or its window
+   *  closes.  Docked in the rack, the wish is kept and the bar stays docked: the rack wins. → the placement */
+  function mountIn(host) { workHost = host && host.nodeType === 1 ? host : null; return seatBar(); }
+  view.addEventListener('resize', () => { if (panel && panel.isOpen()) aimPanel(); }, { passive: true, signal });
 
   /* ── the latches, from data, redrawn only when the list changes ── */
   let latches = [], latchSig = '';
@@ -560,7 +720,7 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
   }, on);
 
   /* ── the seats on the stage (BOTTOM, TOP, COMPACT: ruled 2026-10-01), remembered; the rack's dodge moves the bar ── */
-  let seat = 'bottom', lastRect = null, docked = false;
+  let seat = 'bottom', lastRect = null;
   const menu = el('div', 'glass mb-list mir-transport-seats', host); menu.hidden = true; menu.setAttribute('role', 'menu'); made.push(menu);
   ariaLabel(menu, 'Where the transport sits');
   const seatItems = SEATS.map((s) => {
@@ -624,7 +784,7 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
     docked = !!v;
     bar.classList.toggle('docked', docked); bar.classList.toggle('mini', !docked);
     if (dockB) { setAttr(dockB, 'aria-pressed', String(docked)); setGlyph(dockB, docked ? 'reopen' : 'north', { label: docked ? 'Undock the transport' : 'Dock the transport into the rack' }); }
-    if (!docked) { if (bar.parentElement !== stageHost) stageHost.appendChild(bar); const R = rackOf(); if (R && typeof R.dodge === 'function') R.dodge(lastRect); }
+    seatBar();                                                      // undocked: back to the work lane if one shows, else the stage
     rove(null); soon();
   }
   function wireDock() {
@@ -639,7 +799,7 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
   /** moved(rect | null) — a floating window reports where it is: the rack's dodge moves the bar (on the stage) */
   function moved(r) {
     lastRect = r || null;
-    const R = rackOf(); if (R && typeof R.dodge === 'function' && !docked) R.dodge(lastRect);
+    const R = rackOf(); if (R && typeof R.dodge === 'function' && placement === 'stage') R.dodge(lastRect);
     soon();
   }
 
@@ -664,7 +824,7 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
   seat = seatOf(savedSeat);
   setAttr(bar, 'data-home', homeOf(seat)); setAttr(bar, 'data-form', seat === 'compact' ? 'compact' : 'bar');
   let started = false;
-  const start = () => { if (started || signal.aborted) return; started = true; wireDock(); if (!docked) applySeat(seat); sync(); };
+  const start = () => { if (started || signal.aborted) return; started = true; wireDock(); if (!docked && placement === 'stage') applySeat(seat); sync(); };
   queueMicrotask(start);
   sync(); rove(null);
 
@@ -679,6 +839,11 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
     get bpm() { return tempo.get(); },
     edit: () => pillP && pillP.edit(),
     setSeat: (s) => applySeat(s, { save: true }), get seat() { return seat; }, get docked() { return docked; },
+    mountIn, get placement() { return placement; },
+    /** closed — the user switched the bar off (Settings › TRANSPORT BAR: body.no-transport-bar); it stays off in every seat */
+    get closed() { return body.classList.contains('no-transport-bar'); },
+    /** tempoPanel(show) — open or close the tempo panel from code (BASINS toggleTempo) */
+    tempoPanel: (show = true) => { if (!panel) return false; if (show) panel.open(); else panel.close(); return panel.isOpen(); },
     dock: (v = true) => { const R = rackOf(); if (!R) return; if (v && !docked) R.open(DOCK_ID, { index: 0 }); else if (!v && docked) R.close(DOCK_ID); },
     seatMenu: (show = true) => seatMenu(show),
     start,
@@ -687,9 +852,9 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
       endHold(); life.abort(); for (const p of parts) if (p.destroy) p.destroy(); for (const l of latches) l.p.destroy();
       for (const off of offs) if (typeof off === 'function') off();
       const R = rackOf(); const d = R && docks.get(R); if (d) { d.open = null; d.close = null; }
-      if (docked && bar.parentElement !== stageHost) stageHost.appendChild(bar);
+      if (bar.parentElement !== stageHost) stageHost.appendChild(bar);
       for (const n of made) n.remove();
-      if (!made.includes(bar)) { bar.removeAttribute('data-bar'); bar.textContent = ''; bar.classList.remove('mir-transport', 'mini', 'docked', 'tempo-open'); for (const a of ['data-home', 'data-form']) bar.removeAttribute(a); delete bar.dataset.opener; }
+      if (!made.includes(bar)) { bar.removeAttribute('data-bar'); bar.textContent = ''; bar.classList.remove('mir-transport', 'mini', 'docked', 'tempo-open'); for (const a of ['data-home', 'data-form', 'data-tempo-direction']) bar.removeAttribute(a); delete bar.dataset.opener; }
     },
   };
 }

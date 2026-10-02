@@ -15,6 +15,16 @@ Three modules in `mir/window/` and one sheet. (The rack's windows, the `.dev` ca
 9. **A chip says one thing in one place.** Each state is a row of one table, declared with the chip. The row sets `.on`, `aria-pressed` (true/false/mixed), `data-state`, the label, the hint (title) and the ink (a glyph or short text).
 10. **Three hands can move the rail.** Shift-drag on the grip: the nearest edge wins. A long press on the grip (450 ms): four seat guides appear and the finger picks one. The keyboard on the grip: arrows preview, Enter keeps, Escape restores, and Shift+arrows nudge the window by 24 px.
 11. **It says where it is.** `onMoved(rect)` fires after every layout and `onMoved(null)` on close.
+12. **The resize corner keeps BASINS' docked rules** (`resizable`; BASINS `snap-window.js`, `docs/TIMELINE-SHELL-2026-09-30.md`):
+
+    | Seat | The corner | What a drag changes |
+    |---|---|---|
+    | Floating | bottom right | the width and the height (down and right grow it) |
+    | Docked at the top | bottom right | the height only, inward (down grows it); the dock keeps the span's full width |
+    | Docked at the bottom | **upper right** (the corner turns: `data-dock="bottom"` puts it on the top edge, mirrored) | the height only, inward (up grows it) |
+    | Detached (dragged off a dock) | — | the window comes back at its **floating** width: a dock never rewrote it (the width a docked window shows is the dock's, `P.w` is the floating one) |
+
+13. **Two windows stack like legos** (`window/workspaces.js`, below): `reserveTop(px)` keeps a band above a window free, `stackAbove(anchor)` seats a window 8 px above another, and a drag of the stacked window's grip ends it.
 
 ## The API
 
@@ -38,10 +48,31 @@ Three modules in `mir/window/` and one sheet. (The rack's windows, the `.dev` ca
     - `guideClass` is a class list put on this window's guide overlays, so an app's rigs keep their selector. BASINS: `guideClass: 'mod-snap-guide'` with the window id `patternwin` keeps `.mod-snap-guide[data-window="patternwin"]`.
   - `material: 'modulation'` (or `true`): the window wears the modulation window's material: rail, chips, controls, resize corner; no CSS cloning. It writes `data-mir-material="modulation"` on the window's root and on its rail, and `mir/window/window.css` and `mir/css/skin.css` key on that one name (the modulation window's material on SAVE / TIMELINE / COLOUR, in place of kwin's cloned rules). `'modulation'` is the only material name today.
   - `railGap` is how far a **floating** window's rail sits from its pane: one number, or `{ left, right, top, bottom }`. The default `RAIL.gap` is kwin's: 8 px on the right, flush on the left, top and bottom. A docked rail is always flush, in its lane, as snap-window seats it.
+  - **The lego stack.** `reserveTop(px)` keeps a band of `px` free above the window: a dock lands below it (the dock span's top becomes 8 + px) and a floating window stays below it (BASINS `reserveTop`); it re-places only when the band changes; `reserved` reads it. `stackAbove(anchor | null)` seats the window above the rect `anchor()` returns, 8 px over its top with the left edges together and inside the screen (`stackedAt`), on every layout; its own dock is kept as a wish while stacked; `null` ends it, and so does a drag of its grip (a cancelled drag puts it back). `isStacked` and `stackHeight()` read it. `window/workspaces.js` pairs two windows with these.
   - `persist` is `{ read() → shape | null, write(shape) }`. It is written on release, resize end, dock, a kept seat, open, close and `place`; never mid-gesture or on cancel.
   - A window whose persisted shape says it was **open** opens one microtask after `createWindow` returns, not inside the call. So its `onOpen` may already use the returned window and anything the host builds right after the call; `isOpen()` is `false` until then. A window destroyed before that microtask never opens.
-- Pure: `readShape(raw, defaults, min)` (dock `top | bottom | anchor`), `windowLayout(state, env)` (env may carry `gap`, default 0, and `anchor`, the seat rect), `dockInput(state, env)`, `CLAMP` (120 px across and 52 px down stay on screen).
+- Pure: `readShape(raw, defaults, min)` (dock `top | bottom | anchor`), `windowLayout(state, env)` (env may carry `gap`, default 0, `anchor`, the seat rect, and `top`, a floor for a floating window), `dockInput(state, env)`, `stackedAt(box, anchor, view, gap)`, `withReserve(span, px)`, `CLAMP` (120 px across and 52 px down stay on screen).
 - **A scripted press is a press.** A `PointerEvent` built in script is `isPrimary: false` unless it says otherwise, and `core/pointer.js` `drag()` takes only a primary pointer. BASINS' `save-gate.js` drags the grip and the corner with such events, as it did kwin's. So the window re-sends an **untrusted**, primary-button press that did not say `isPrimary` as primary, once, from the same target. A real second finger (trusted) is still refused, and everything after the press is the drag's own law.
+
+**`window/workspaces.js`: two big workspaces, stacked like legos, and the MIR switch**
+
+Josh: *"Add the MIR Logo to the mod window placed to the right of the preset picker arrows … This will swap between the two; however they can exist at the same time if called by the other means like 'M' or through the menu bar, if that's the case, make it snap to the top of the timeline, so they're like legos. Do not change any Modulation window geometry rules."*
+
+```js
+import { createWorkspaces, workspaceSwitch } from './mir/window/workspaces.js';
+const ws = createWorkspaces({ upper: modulationWindow, lower: tl.win });   // the timeline's kit window
+// each window's onMoved → ws.moved('upper' | 'lower', rect); its onOpen / onClose → ws.sync()
+const sw = workspaceSwitch({ run: () => ws.show('lower') });              // seat sw.root after the preset picker arrows
+const tr = createTransport({ …, onSwitch: () => ws.show('upper') });     // the door in the timeline's work lane swaps back
+```
+
+- `createWorkspaces({ upper, lower, gap })` → `{ sync(), moved(which, rect | null), show(which), stacked, destroy() }`. `upper` is `{ isOpen(), open(), close(), stackAbove(anchor | null), isStacked, stackHeight() }` (a kit window has them all; the modulation window gains them at the join); `lower` is `{ isOpen(), open(), close(), rect(), reserveTop(px) }` (a kit window).
+- **The switch swaps; any other opener adds.** `show('lower')` closes the upper and opens the lower, and back. M, a menu row or a latch opens one without closing the other: then they stack.
+- **Both open, they stack**: the upper seats 8 px above the lower with their left edges together, and the lower keeps that band free at its top (docked at the top too). Only the upper's place moves; its own geometry rules are untouched.
+- **Dragged away, the upper leaves the stack**; the lower gives the band back. Opening or closing either one stacks them again.
+- **A report never re-places its reporter.** `moved('upper')` only resizes the lower's band; `moved('lower')` re-seats the upper, at once, or one frame later when the upper's own report is what moved the lower. (BASINS guarded this loop with `followingStack` and still re-placed the reporter inside its own report.)
+- `workspaceSwitch({ run, title })` → `{ root, destroy() }`: BASINS' switch, the MIR palette diamond (it steps its colours under a hovering mouse) in a 44 × 34 seat with no face (`.m2-workspace-switch.mir-workspace-switch`, `window.css`). The app seats it.
+- Pure: `stackPlan(upperOpen, lowerOpen)`, `stackedAt`, `WORKSPACE.gap` (8).
 
 **`window/rail.js`**
 - `createRail({ id, title, chips, layer, seats, onChip, onSide, onNudge })` returns `{ el, grip, chip(name), setChip(name, state), state(name), measure(), sizes(), seat(seat, { animate }), holding(), destroy() }`. `window.js` makes it; use it directly only for a rail without a window.
@@ -105,8 +136,8 @@ Paths are in BASINS `app/`, as listed in survey B (vault `MIR 1.5 SURVEY 2026-10
 **TIMELINE (`timeline-window.js`).**
 1. Replace `createKwin` + `snapWindow` with `createWindow({ id: 'timeline', resizable: true, size: { w: 1080, h: 440 }, min: { w: 320, h: 400 }, dock: { span, guide }, persist, body: editorShell })`.
 2. Chips: WORK BARS `cycle`; + lane and − lane are `action`; reset size is `action` with `press: (s, w) => w.place({ width: 1080, height: 440 })`.
-3. The lego stack (`reserveTop`) becomes the host's span: `{ read: () => ({ ...span.read(), top: 8 + inset }), subscribe: span.subscribe }`. `dockGeometry` already honours `span.top`.
-4. Delete `rack-bounds.js`'s second instance. The `followingStack` guard can go once MOD stacks through TIMELINE's span instead of calling `place()`. `onMoved` must never place the window that reported it: nothing here guards against that re-entry.
+3. The lego stack is built: `reserveTop` / `stackAbove` on the window and `window/workspaces.js` (above) replace BASINS' `reserveTop`, `stackAbove`, `syncWorkspaceStack`, `workspaceMoved` and the `followingStack` guard.
+4. Delete `rack-bounds.js`'s second instance.
 
 **SAVE → FOLDERS (`save-window.js`).**
 1. Use `createWindow({ id: 'folders', title: 'FOLDERS', panels: [{ name: 'gallery' }, { name: 'render' }], resizable: true, emptyDrag: '.sv-card, .sv-folder, .sv-context', size: { w: 380, h: 680 }, min: { w: 280, h: 360 } })`.
@@ -130,4 +161,5 @@ Paths are in BASINS `app/`, as listed in survey B (vault `MIR 1.5 SURVEY 2026-10
   - Shift-drag, long press and keyboard, each moving the rail while the window makes room;
   - the guide switch, the raise, and the disc against its pane in 8 seats;
   - geometry against the modulation rail, and the idle law.
-- Not proven: WebKit or a real iPad (the long press ran under Chromium's touch emulation); a hidden page (CDP cannot hide a headless page).
+- `tests/transport-placement.browser.mjs` (the lego stack, with the kit's real timeline as the lower window and a kit window as the upper): both open → the upper sits 8 px above, left edges together, the band = its height + 8; a real drag of the upper's grip → it leaves the stack and the band is 0; the switch chip (hit-tested) swaps to the timeline and the transport's door in the timeline's work lane swaps back. `tests/transport-placement.node.mjs`: `stackedAt`, `withReserve`, the floating floor.
+- Not proven: the modulation window as the upper (it needs the join's hunk), the stack with the lower docked at the top under a real hand, WebKit or a real iPad (the long press ran under Chromium's touch emulation); a hidden page (CDP cannot hide a headless page).

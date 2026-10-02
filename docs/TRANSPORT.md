@@ -58,15 +58,43 @@ LAMBDAWAVES_LAYOUT = [{ group: 'native-play-row', items: ['play', 'power', 'rewi
 
 ## The API, as built
 
-**`createTransport(options)`** — `layout` (default `BASINS_LAYOUT`), `nodes`, `clock`, `mod`, `model` (`mir/modulation/mod.js`), `setBpm`, `persist`, `openers` (array or function), `rack` (or `() => rack`), `keys`, `store` / `key` (the seat), `opener` (default `true`), `onRefused`, `onInterface`, `host`, `root` (an element to adopt, e.g. BASINS' `#transport`), `id`.
+**`createTransport(options)`** — `layout` (default `BASINS_LAYOUT`), `nodes`, `clock`, `mod`, `model` (`mir/modulation/mod.js`), `setBpm`, `persist`, `openers` (array or function), `rack` (or `() => rack`), `keys`, `store` / `key` (the seat), `opener` (default `true`), `onRefused`, `onInterface`, `host`, `root` (an element to adopt, e.g. BASINS' `#transport`), `id`, `bar` (`'float'` | `'work'`), `door` (`'palette'`, the default, BASINS' palette diamond; or `'mark'`, λWAVES' nine squares the accent paints), `onSwitch` (in a work bar the door switches workspace), `macros` (`false` leaves the macro rail out of the tempo panel).
 
-It returns `{ root, layout, parts, el: { play, power, door, pill, field, panel, seat, dock, back, menu, openers }, toggle(), play(), pause(), setBpm(v), bpm, edit(), moved(rect | null), setSeat(seat), seat, dock(on), docked, seatMenu(show), sync(), refresh(), start(), destroy() }`. `destroy()` leaves an adopted root empty, so the app can build another layout on it (the gallery's switch does).
+It returns `{ root, layout, parts, el: { play, power, door, pill, field, panel, seat, dock, back, menu, openers }, toggle(), play(), pause(), setBpm(v), bpm, edit(), moved(rect | null), setSeat(seat), seat, dock(on), docked, mountIn(host | null), placement, closed, tempoPanel(show), seatMenu(show), sync(), refresh(), start(), destroy() }`. `destroy()` leaves an adopted root empty, so the app can build another layout on it (the gallery's switch does).
 
 **The parts** each return `{ root, sync(), destroy() }` and take a `signal` (an AbortSignal) that ends their listeners. **`createTempo({ model, setBpm, mod, persist })`** → `{ get, set(v), commit(), min, max, onChange(fn) }` is the one read and write every tempo part shares: it writes through the modulation clock's `setBpm` when there is one (it re-anchors, so the beat is continuous), else `model.setTransport`.
 
 **`transportActions(get)`** is the key table's row for the one play: id `PLAY_ACTION` (`'transport.play'`, exported), Space, `overControls: true` (Space plays with a button, a latch or a knob focused, as in BASINS; a text field still types it).
 
-**Pure helpers** (`tests/transport.node.mjs`): `formatBpm`, `clampBpm`, `digitStep`, `charAt`, `dragBpm`, `keyStep`, `parseBpm`, `seatOf`, `homeOf`, `seatRect`, `menuSide`, `firstRun`, `localSeatStore`, `menuRow`, `openerRows`, `isOpenOf`, `toggleOf`, `rackOpeners`, `transportActions`, `layoutNames`; `TRANSPORT`, `SEATS`, `DOCK_ID`, `SVG_REWIND`.
+**`bindTempoField({ button, input, tempo, enabled, drag, paint })`** → `{ open(), close(take), editing, destroy() }` is THE inline BPM editor of every work bar (BASINS `tempo-editor.js`, one module for the modulation and timeline work bars): a click puts the field in the button's seat at its size, holding the tempo; Enter or leaving takes it, Escape does not (focus returns to the button); 8 characters; decimals. With `drag: true` the button also gets BASINS' drag: the whole tempo range in 220 px (a finger 320 px, Shift 1760 px), and a drag is not a click. The pill uses it (below); the modulation window's own BPM field can too.
+
+**`macroRail({ M, api })`** is the tempo panel's MACROS pane on its own (the panel builds it).
+
+**Pure helpers** (`tests/transport.node.mjs`, `tests/transport-placement.node.mjs`): `formatBpm`, `clampBpm`, `digitStep`, `charAt`, `dragBpm`, `keyStep`, `parseBpm`, `seatOf`, `homeOf`, `seatRect`, `menuSide`, `firstRun`, `localSeatStore`, `menuRow`, `openerRows`, `isOpenOf`, `toggleOf`, `rackOpeners`, `transportActions`, `layoutNames`, `placementOf`, `tempoDirection`, `travelBpm`, `reorderTo`; `TRANSPORT`, `SEATS`, `PLACEMENTS`, `DOCK_ID`, `SVG_REWIND`.
+
+## The one bar that moves
+
+Josh: *"when the timeline is open and the toolbar is hidden, let the center transport return. Hide center floating transport when the toolbar comes back."* · *"If timeline is hidden then bring back transport"* · *"If Transport was already selected to be closed, then let it stay closed until called back by the user."*
+
+An app has **one** transport. `tr.mountIn(host)` moves that same node (its listeners, its tempo, its state; nothing is rebuilt) into a work lane in the work-bar form, and `tr.mountIn(null)` puts it back on the stage. The timeline calls it: with the window open and its work lane showing, `mountIn(editor.transportHost)`; with the lane hidden (WORK BARS) or the window closed, `mountIn(null)`.
+
+| Rule | How |
+|---|---|
+| The rack's dock wins | docked in the rack's TRANSPORT window, `mountIn` keeps the wish and the bar stays docked; undocked, it goes to the lane if one shows, else the stage (`placementOf({ docked, host })`) |
+| A bar the user switched off stays off | `body.no-transport-bar` (Settings › TRANSPORT BAR; the GUI row sets it) hides the bar on the stage, in a work lane and in the rack's window; `tr.closed` reads it |
+| Moving closes what was open | the tempo panel and the tempo field close, a drag in flight ends (BASINS `placementChanged`) |
+| It says where it is | `tr.placement` is `'stage' \| 'work' \| 'rack'`; a `transport-placement` event (`detail.placement`) fires on the bar when it changes |
+| On the stage only, it dodges | `moved(rect)` reaches the rack's dodge only while the bar is on the stage; in a lane a hidden rack does not slide it away |
+
+In the work-bar form the bar is BASINS' timeline transport: the seats take the bar's button face, **a click on the BPM pill types the tempo** and **a drag runs the travel law** (`bindTempoField`), with the pill's look unchanged (Josh: *"Don't change the look but make the click behavior change or type in BPM, the same UI module … that the bpm on the modulation window uses"*). On the stage the pill keeps its digit drag, and **its click opens the tempo panel** (*"Keep the behavior on the regular center floating transport that the BPM button opens more timing options and macro routings"*); the kit's double click types through the same binder. In a work bar **the door switches** to the modulation workspace when the app passes `onSwitch` (BASINS: the timeline's MIR button), and the tempo panel, opened from code (`tr.tempoPanel(true)`), floats over the lanes **toward the free side**: below while the room under the bar holds it and 16 px, or while there is at least as much room below as above; else above (`tempoDirection`, BASINS `positionTempo`; `data-tempo-direction` on the bar).
+
+## The tempo panel: MACROS | CLOCK
+
+The panel is BASINS' two panes. **MACROS** is the modulation window's own macro rows as tiles (`modwindow.js buildMacroSlot`, faces hidden): the routing grip (drag to route, tap to arm, double-tap to reset), the numbered depth seat and its arc (drag, keys, double-tap to 100 %), and the reorder grip (drag among the tiles; ← → one place, ↑ ↓ a row of two, Home, End). The gestures are the window's, never copies (`mod.view.api`: `wireGrip`, `wireDepth`, `paintDepth`, `moveMacro`). It rebuilds only when the list of macros changes and repaints the arcs after a hand works a tile: BASINS re-read the rail every 200 ms while the panel was open, and that timer is gone. With no macros, one line says where to add one. **CLOCK** is TAP, WALL / FREE, the cadence (60 / 120 Hz: `installModulation` exposes `cadence()` / `setCadence()`, so the tile shows), ÷2 ×2 ×4, HOLD ¼ and HOLD 1.
+
+## The door's palette diamond
+
+The door to the modulation window is BASINS' MIR palette diamond (`wordmark.js createMirDiamond`): the nine squares in MIR's nine colours (JL-LOGOS mir-light.svg's rainbow diamond, `MIR_PALETTE`). While a **mouse** hovers it the colours step one square every 240 ms, exact swatches, never interpolated; leaving, a window blur or a hidden page puts them back. Nothing runs unless a mouse is on it, and nothing runs under reduced or no motion. `createTransport({ door: 'mark' })` keeps λWAVES' nine squares, painted by the accent.
 
 ## Whose design each piece is
 
@@ -117,7 +145,7 @@ Every look value of the bar is the kit's, so the GUI window restyles it with no 
 
 ## In a work bar
 
-`createTransport({ bar: 'work' })` (`data-bar="work"` on the bar; `BARS` is `['float', 'work']`) is BASINS' timeline-mounted transport: the bar sits in its host's flow (no seat, no dodge), 52 px tall with 3 px of padding, and the seats named in `BAR_SEATS` (to-start, send-to-rack, the logo) carry `.trig`, the kit's button face, so the GUI's look paints them exactly as it paints the work bar's own buttons. `gallery/transport.html` shows one in a mock work bar beside two ordinary work-bar buttons (EDIT, SNAP); the test checks that the three seats match them in size, corner, face and relief. The timeline itself (and its tempo panel opening above or below the bar) is not in the kit yet.
+`createTransport({ bar: 'work' })` (`data-bar="work"` on the bar; `BARS` is `['float', 'work']`) is BASINS' timeline-mounted transport: the bar sits in its host's flow (no seat, no dodge), 52 px tall with 3 px of padding, and the seats named in `BAR_SEATS` (to-start, send-to-rack, the logo) carry `.trig`, the kit's button face, so the GUI's look paints them exactly as it paints the work bar's own buttons. `gallery/transport.html` shows one in a mock work bar beside two ordinary work-bar buttons (EDIT, SNAP); the test checks that the three seats match them in size, corner, face and relief. The same form is what `mountIn(host)` puts the stage bar in (below, "The one bar that moves").
 
 ## The opener law
 
@@ -142,17 +170,14 @@ Every look value of the bar is the kit's, so the GUI window restyles it with no 
 
 | App | Deletes |
 |---|---|
-| BASINS | `app/transport.js` (the bar, the pill and its drag, wheel and keys, the tempo panel's clock tiles, the dock chip and the door, the 250 ms sync interval; the macro rail stays), `transport-controls.js` and `.css` (the play and power faces and their `!important` layer), `transport-dodge.js` (its timers; the rack's dodge replaces it), the stage and rack seats of `transport-placement.js`, the `#transport` rules in `skin.css` §12 and 441–490 and in `lab.css` 177–179, 299–349, 558 |
+| BASINS | `app/transport.js` whole (the bar, the pill and its drag, wheel and keys, the tempo panel with its macro rail and clock tiles, `positionTempo`, the dock chip and the door, the 200 ms panel timer and the 250 ms sync interval; the 10ⁿ readout becomes an `app:` node), `transport-placement.js` whole (`mountIn`), `tempo-editor.js` whole (`bindTempoField`), `createMirDiamond` / `installPaletteCycle` / `MIR_PALETTE` in `brand-motion.js` (`wordmark.js`), `transport-controls.js` and `.css` (the play and power faces and their `!important` layer), `transport-dodge.js` (its timers; the rack's dodge replaces it), the `#transport` rules in `skin.css` §12, 354–386 and 441–490, `timeline-window.css` 64–95, `lab.css` 177–179, 299–349, 558, 575–577, and `material.css` 237–238 (`no-transport-bar`) |
 | λWAVES (at 1.5) | the transport strip's play / MOD / rewind wiring in `lab/rack.js` §25, the tempo pill and panel in `native-ui.js`, the dock chip and the logo door, the `#transport` rules in `lab.css` / `skin.css`, and `modDodge`; it keeps its scrub, readouts, RATE and ⟳ and passes them as `nodes` |
 | A NEBULA-port app | its transport card and its `modDodge` copy |
 
 ## Left for later
 
-- **The timeline-mounted form** (BASINS `timeline-mounted`).
-- **The macro rail** in the tempo panel: it needs the modulation window's `buildMacroSlot` and its `wireGrip` / `wireDepth` / `moveMacro`, which `mir/modulation/window.js` keeps inside the window.
-- **The cadence tile** shows only when the seam has `cadence()` / `setCadence()` (installModulation does not expose them yet).
 - **BASINS' 10ⁿ depth readout** (an app node: pass it in `nodes`).
-- **The door's hover motion** (BASINS cycles the mark's colours, λWAVES spins it): the kit's mark is static here.
+- **λWAVES' spinning door** (λWAVES spins its mark on hover; `door: 'mark'` is static).
 - **TOP with a rack** needs the rack's `setHome` (one hunk at the join); until then TOP is offered disabled when a rack is present.
 
 ## Proofs
@@ -161,4 +186,6 @@ Every look value of the bar is the kit's, so the GUI window restyles it with no 
 - `tests/transport.browser.mjs` on `gallery/transport.html`, real CDP pointer, wheel and keys, every press hit-tested with `elementFromPoint`: first run; 30.0; BASINS' new sizes (the tempo 18 px, BPM / Hz 8 px, the pill about 90 px, play's 32 px glyph in a 40 px seat with no face, to-start's ring); the work-bar match; play runs the clock; **the power button toggles modulation and never the clock, and play never the power**; the drag by tens, tenths and ones; the wheel; BASINS' keys; a click opens the tempo panel and TAP there sets the tempo; a double click types it; the resting pill is not a well and the field is (under GLASS faces both are clear, as BASINS draws them); latches and closing from the window; the door; the dodge; the dock chip, in and out; **the settings check in both layouts** (card, frost, BLUR, CORNERS, RELIEF, the flat tier); the λWAVES layout from the switch, its one play; in λWAVES' layout and in COMPACT, after the size change, the wheel on the tens digit, a click opening the panel, and play; H; idle; the seat and the layout across a reload; `qps`.
 - Plates (`MIR_PLATES=1`): `docs/plates/transport/transport-first-run.png`, `transport-basins-dark.png`, `transport-basins-light.png`, `transport-lambdawaves-dark.png`, `transport-lambdawaves-light.png`.
 
-**Not proven:** the way back on a real touch screen (the CSS rule is on `any-pointer: coarse`; the headless run is a fine pointer), the long press, WebKit and a real iPad, a screen reader.
+- `tests/transport-placement.browser.mjs` on `tests/fixtures/transport-placement.html` (the kit's real timeline built without a transport of its own, the stage bar, a kit window in MODULATION's seat), real CDP input, every press hit-tested with `elementFromPoint`: the timeline opens → the same node is in its work lane in the work-bar form, play and the pill are what the pointer finds; a click on the pill types the tempo (Enter takes 123.5, Escape does not), a 22 px drag is the travel law; the tempo panel opens below the bar, 8 px off, its tiles hit; WORK BARS → bottom (stays), → hidden (back on the stage), → top (back in the lane); TRANSPORT BAR off hides it in the lane and on the stage, on again brings it back; the stage pill opens MACROS | CLOCK, a tile's grip and depth seat hit; the lego stack and the switches (docs/WINDOWS.md); the door's diamond steps under a hovering mouse and rests on leave.
+
+**Not proven:** the timeline's own call to `mountIn` (the kit's timeline still builds its own work-bar transport until the join applies the hunk; the fixture makes the same calls from the page), the macro tiles' route drag onto a control from the panel (it is the window's own `wireGrip`, proven there), the way back on a real touch screen (the CSS rule is on `any-pointer: coarse`; the headless run is a fine pointer), the long press, WebKit and a real iPad, a screen reader.

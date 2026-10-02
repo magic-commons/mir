@@ -49,6 +49,20 @@
   --xport-scrub-line: hsl(0 0% 100% / .14);                                   /* λWAVES' scrub line (skin.css:87) */
   --xport-flat: 0 0 0 0 transparent;                                          /* no relief */
   --xport-hover-wash: inset 0 0 0 99px var(--state-hover, var(--glass-raise)); /* a lighter face over a raise */
+  --xport-diamond: 19px;             /* the door's palette diamond (BASINS lab.css:577) */
+  --xport-pop-w: 560px;              /* the tempo panel in a work bar: its width (BASINS timeline-window.css:80) … */
+  --xport-pop-gap: 8px;              /* … its gap from the bar … */
+  --xport-pop-r: 16px;               /* … and its corner */
+  --xport-rail-h: 92px;              /* the macro rail: two rows of tiles, then it scrolls (BASINS skin.css:362) */
+  --xport-tile: 44px;                /* a macro tile's seats (BASINS skin.css:363–366) */
+  --xport-tile-r: 8px;               /* … their corner */
+  --xport-tile-seat-r: 7px;          /* the depth seat's corner (BASINS skin.css:369) */
+  --xport-tile-grip-r: 6px;          /* the reorder grip's corner (BASINS skin.css:379) */
+  --xport-macro-num: 10px;           /* the macro's number (BASINS skin.css:371) */
+  --xport-depth-w: 2.2;              /* the depth arc's stroke (BASINS skin.css:373) … */
+  --xport-depth-w-drag: 3;           /* … while it is dragged */
+  --xport-rail-thumb: color-mix(in srgb, var(--fg) 22%, transparent);        /* the rail's thin scrollbar (BASINS skin.css:362) */
+  --xport-seat-focus: color-mix(in srgb, var(--fg) 72%, transparent);        /* a depth seat's focus line (BASINS skin.css:370) */
 }
 /* CONTROL FACES · GLASS (1.5.0-alpha.5): under REFRACTIVE or FROST the pill's face is clear, as BASINS' transport
    seats are (material.css §1); the hairline keeps its outline */
@@ -179,6 +193,59 @@
   width: var(--xport-work-seat); height: var(--xport-work-seat); min-width: var(--xport-work-seat); min-height: var(--xport-work-seat); padding: 0;
   border: var(--glass-border) solid var(--glass-hairline); border-radius: var(--xport-work-r); background: var(--trig-face); box-shadow: var(--relief-raise, var(--neu-raise)); }   /* the bar's hairline, as BASINS draws its seats beside the tools (1.5.0-alpha.11) */
 .mir-transport[data-bar="work"] .tbtn.tempo-expand { height: var(--xport-work-seat); border-radius: var(--xport-work-r); }
+
+/* ── THE ONE BAR THAT MOVES (1.5.0-alpha.12): in a work lane the bar is the work bar's (data-bar="work" above); the rack
+   hiding does not slide it away, as it does on the stage (the window it sits in has its own presence) ──────────── */
+body.rack-hidden .mir-transport.mir-rack-transport[data-bar="work"] { translate: none; visibility: inherit; }
+/* … its tempo panel floats over the lanes, toward the free side (BASINS timeline-window.css:79–87, positionTempo) */
+.mir-transport[data-bar="work"] .native-tempo {
+  position: absolute; top: calc(100% + var(--xport-pop-gap)); left: 0; width: min(var(--xport-pop-w), calc(100vw - 32px)); z-index: 1;
+  padding: 8px; border: var(--glass-border) solid var(--glass-border-color); border-radius: var(--xport-pop-r);
+  background: var(--surface-fill, var(--glass-well)); box-shadow: var(--surface-shadow, var(--glass-shadow));
+  -webkit-backdrop-filter: var(--surface-filter, blur(var(--glass-blur))); backdrop-filter: var(--surface-filter, blur(var(--glass-blur)));
+}
+.mir-transport[data-bar="work"] { position: relative; inset: auto; z-index: 5; }   /* the panel's containing block, above the lanes it floats over (BASINS timeline-window.css:64–69: relative, z 5) */
+.mir-transport[data-bar="work"].tempo-open { flex-wrap: nowrap; padding-bottom: 3px; }
+.mir-transport[data-bar="work"][data-tempo-direction="above"] .native-tempo { top: auto; bottom: calc(100% + var(--xport-pop-gap)); }
+
+/* ── TRANSPORT BAR off (Settings: body.no-transport-bar, BASINS material.css:237): hidden in every seat — the stage,
+   a work lane, the rack's TRANSPORT window — until the user calls it back ─────────────────────────────────────── */
+body.no-transport-bar .mir-transport, body.no-transport-bar .dev[data-id="transport"] { display: none; }
+
+/* ── the door's palette diamond (BASINS lab.css:577) ───────────────────────────────────────────────────────── */
+.mir-transport .mod-exp > svg.mod-palette-mark { display: block; width: var(--xport-diamond); height: var(--xport-diamond); margin: auto; overflow: visible; }
+
+/* ── THE MACRO RAIL in the tempo panel: the modulation window's own rows as tiles (BASINS skin.css:355–386, which
+   copied modwindow.css 583–607 and modhost's overrides, re-scoped to the rail).  MACROS | CLOCK ──────────────── */
+.mir-transport .native-tempo.with-macros:not([hidden]) { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 12px; }
+.mir-transport .tempo-pane { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.mir-transport .tempo-rail { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 6px; max-height: var(--xport-rail-h); overflow-y: auto; overflow-x: hidden;
+  scrollbar-width: thin; scrollbar-color: var(--xport-rail-thumb) transparent; align-content: start; }
+.mir-transport .tempo-tile { position: relative; height: var(--xport-tile); border-radius: var(--xport-tile-r); }
+.mir-transport .tempo-tile.m2reorder { opacity: .55; }
+.mir-transport .tempo-tile .m2slotrow { display: grid; grid-template-columns: var(--xport-tile) var(--xport-tile) 18px; align-items: center; height: var(--xport-tile); }
+.mir-transport .tempo-tile .m2grip { flex: 0 0 var(--xport-tile); width: var(--xport-tile); min-width: var(--xport-tile); height: var(--xport-tile); min-height: var(--xport-tile); align-self: center; padding: 0; border: 0;
+  background: transparent; color: var(--acc2); touch-action: none; display: flex; align-items: center; justify-content: center; border-radius: var(--xport-tile-r); }
+.mir-transport .tempo-tile .m2grip svg { width: 18px; height: 18px; display: block; pointer-events: none; }
+.mir-transport .tempo-tile .m2grip:active { color: var(--fg); background: var(--state-press, var(--glass-press)); }
+.mir-transport .tempo-tile .m2numseat { position: relative; display: flex; align-items: center; justify-content: center; width: var(--xport-tile); height: 100%; padding: 0; border: 0;
+  border-radius: var(--xport-tile-seat-r); background: transparent; touch-action: none; cursor: ns-resize; }
+.mir-transport .tempo-tile .m2numseat:focus-visible { outline: 1px solid var(--xport-seat-focus); outline-offset: -3px; }
+.mir-transport .tempo-tile .m2num { position: relative; z-index: 1; flex: 0 0 auto; pointer-events: none; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px;
+  border-radius: 50%; border: 0; color: var(--acc2); font: var(--w-semi) var(--xport-macro-num) / 1 var(--font-num); }
+.mir-transport .tempo-tile .m2depthring { position: absolute; z-index: 2; left: 7px; top: 50%; width: 30px; height: 30px; margin-top: -15px; overflow: visible; pointer-events: none; transform: rotate(-90deg); }
+.mir-transport .tempo-tile :is(.m2depthtrack, .m2deptharc) { fill: none; stroke-width: var(--xport-depth-w); }
+.mir-transport .tempo-tile .m2depthtrack { stroke: transparent; }
+.mir-transport .tempo-tile .m2deptharc { stroke: var(--acc); stroke-linecap: round; }
+.mir-transport .tempo-tile .m2numseat.m2zero .m2deptharc { opacity: 0; }
+.mir-transport .tempo-tile .m2numseat.drag .m2deptharc { stroke-width: var(--xport-depth-w-drag); }
+.mir-transport .tempo-tile .m2slottools { display: flex; align-items: center; width: 18px; height: var(--xport-tile); }
+.mir-transport .tempo-tile .m2rowgrip { width: 18px; height: var(--xport-tile); padding: 0; border: 0; background: transparent; color: var(--acc2); opacity: .6; touch-action: none; cursor: grab;
+  display: flex; align-items: center; justify-content: center; border-radius: var(--xport-tile-grip-r); }
+.mir-transport .tempo-tile .m2rowgrip:is(:hover, :active) { opacity: 1; }
+.mir-transport .tempo-tile .m2rowgrip svg { width: 13px; height: 13px; pointer-events: none; }
+.mir-transport .tempo-tile [hidden] { display: none; }
+.mir-transport .tempo-empty { grid-column: 1 / -1; font-size: var(--fs-micro); color: var(--ink-faint); line-height: 1.4; }
 
 /* ── DOCKED: the bar in the rack's TRANSPORT window (BASINS / λWAVES lab.css:317) ──────────────────────────── */
 .mir-transport.docked { position: static; transform: none; min-width: 0; max-width: none; width: auto; height: auto; flex-wrap: wrap; padding: 6px; gap: 6px;
