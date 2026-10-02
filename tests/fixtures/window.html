@@ -40,7 +40,7 @@ import { createModWindow, buildChipRail } from '../../mir/modulation/modwindow/m
 
 const $ = (id) => document.getElementById(id);
 const host = $('floats');
-const span = observeSpan({ left: $('rackL'), right: $('rackR') });
+const span = observeSpan({ left: $('rackL'), right: $('rackR'), occupied: false });   // the mock racks hold no windows; they count as present
 const store = { A: null, B: { x: 700, y: 120, w: 340, h: 220, open: false, dock: null, chipSide: 'right' } };
 const writes = { A: [], B: [] };
 const persistFor = (k) => ({ read: () => store[k], write: (s) => { store[k] = s; writes[k].push(s); } });

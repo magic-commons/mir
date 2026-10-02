@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MIR · rack adoption fixture (BASINS' markup)</title>
+<!-- AN APP THAT ALREADY HAS A RACK, the way BASINS has one: #rackL / #rack / #floats / #rackToggle / #rackAdd / #rackFav in
+     its own index.html, styled by its own unlayered rules on those ids (BASINS lab.css §2 and material.css's 48-px shadow
+     gutter, copied below), every window built EAGERLY by the app's own builder with device(), and the TRANSPORT card (a
+     .dev that is not a window) standing in the left rack.  The kit's rack.css is loaded too, as it would be after adoption. -->
+<link rel="stylesheet" href="../../mir/css/base.css">
+<link rel="stylesheet" href="../../mir/css/skin.css">
+<link rel="stylesheet" href="../../mir/core/core.css">
+<link rel="stylesheet" href="../../mir/shell/rack.css">
+<style>
+  /* the app's own sheet (BASINS lab.css:13-37, 360-368, 554-555; material.css:243-251), unlayered */
+  #lab { position: fixed; inset: 0; } #ground { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #rack, #rackL { position: absolute; top: 0; right: 0; bottom: auto; max-height: 100%; width: var(--rack-w); z-index: var(--z-chrome); min-height: 0; overflow: hidden auto;
+    padding: var(--sp-2); display: flex; flex-direction: column; gap: var(--sp-2); background: transparent; border: 0; pointer-events: auto; touch-action: pan-y; transition: transform .28s ease; }
+  #rack > *, #rackL > * { pointer-events: auto; }
+  #rackL { right: auto; left: 0; }
+  body.rack-hidden #rackL { transform: translateX(calc(-100% - 12px)); }
+  body.rack-hidden #rack { transform: translateX(calc(100% + 12px)); }
+  body.rack-hidden #rack, body.rack-hidden #rackL { visibility: hidden; transition: transform .28s ease, visibility 0s linear .28s; }
+  #rackToggle, #rackAdd, #rackFav { position: absolute; right: calc(var(--rack-w) + 14px); top: 8px; z-index: calc(var(--z-chrome) + 1); width: 30px; height: 30px; border-radius: 50%; padding: 0; }
+  #rackAdd { top: 44px; } #rackFav { top: 80px; }
+  #rackAddList, #rackFavList { position: absolute; right: calc(var(--rack-w) + 14px); top: 116px; z-index: calc(var(--z-chrome) + 3); display: flex; flex-direction: column; min-width: 260px; padding: 4px; }
+  #floats { position: absolute; inset: 0; z-index: calc(var(--z-chrome) + 2); pointer-events: none; }
+  #floats > .dev { position: absolute; pointer-events: auto; width: var(--float-w, var(--rack-w)); }
+  @media (min-width: 861px) {
+    body:not(.phone) :is(#rack, #rackL) { --rack-shadow-gutter: 48px; width: calc(var(--rack-w) + var(--rack-shadow-gutter)); pointer-events: none; }
+    body:not(.phone) #rack { padding-left: calc(var(--card-gap) + var(--rack-shadow-gutter)); }
+    body:not(.phone) #rackL { padding-right: calc(var(--card-gap) + var(--rack-shadow-gutter)); }
+  }
+  .fill { height: 50px; }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted" class="disconnected">
+<div id="lab">
+  <canvas id="ground"></canvas>
+  <div id="rackL"></div>
+  <div id="rack"></div>
+  <div id="floats"></div>
+  <button id="rackToggle" class="glass" type="button" aria-label="hide or show the rack">◧</button>
+  <button id="rackAdd" class="glass" type="button" title="reopen a closed window">+</button>
+  <button id="rackFav" class="glass" type="button" aria-label="favourite layouts">☆</button>
+  <div id="rackAddList" class="glass" hidden></div>
+  <div id="rackFavList" class="glass" hidden></div>
+</div>
+<script type="module">
+import { device, knob } from '../../mir/kit.js';
+import { createRack } from '../../mir/shell/rack.js';
+import * as motion from '../../mir/core/motion.js';
+
+const $ = (id) => document.getElementById(id);
+const g = $('ground'); g.width = innerWidth; g.height = innerHeight;
+const c = g.getContext('2d'); for (let i = 0; i < 40; i++) { c.fillStyle = `hsl(${i * 37} 70% 45%)`; c.fillRect((i * 97) % innerWidth, (i * 53) % innerHeight, 160, 120); }
+localStorage.removeItem('basins.settings'); localStorage.removeItem('mir.test.basins');
+
+/* THE APP'S OWN BUILDER, eager, as BASINS' (shell.js → rk.addWindow(device(…), home)) */
+const built = {};
+const make = (id, home) => {
+  const d = device({ id, eyebrow: id.toUpperCase(), loadingMark: false });
+  d.body.appendChild(knob({ label: 'K', min: 0, max: 1, value: .5 }).root);
+  const f = document.createElement('div'); f.className = 'fill'; d.body.appendChild(f);
+  d.root.dataset.home = home; (home === 'L' ? $('rackL') : $('rack')).appendChild(d.root);
+  d.root.__builtBy = 'app';                     // the rack must take THIS node, never rebuild it
+  built[id] = d; return d;
+};
+const wTr = make('transport', 'L');             // BASINS' transport card: a .dev in the rack that is not a window
+for (const [id, home] of [['colour', 'L'], ['camera', 'L'], ['controls', 'R'], ['settings', 'R'], ['history', 'R'], ['rackSave', 'R']]) make(id, home);
+built.rackSave.root.classList.add('closed');    // BASINS starts the file cards closed
+
+/* the store: BASINS' prefs blob (☆ layouts at basins.settings.layouts) behind the kit's { get, set } */
+const prefs = () => { try { return JSON.parse(localStorage.getItem('basins.settings') || '{}') || {}; } catch { return {}; } };
+const store = { get: () => ({ favs: prefs().layouts || {}, layout: prefs().rackLayout || null }),
+  set: (v) => localStorage.setItem('basins.settings', JSON.stringify({ ...prefs(), layouts: v.favs || prefs().layouts || {}, rackLayout: v.layout || null })) };
+
+const rack = createRack({ host: $('lab'), store, handle: 'never' });
+rack.register({ id: 'transport', el: wTr, card: true });
+for (const id of ['colour', 'camera', 'controls', 'settings', 'history', 'rackSave']) rack.register({ id, el: built[id] });
+/* and one window the app wants built now but not shown: eager */
+let notesBuilt = 0;
+rack.register({ id: 'notes', title: 'NOTES', side: 'right', eager: true, build: () => { notesBuilt++; } });
+rack.start();
+const span = rack.span();
+const spans = []; span.subscribe((s) => spans.push(s));
+window.__T = { rack, built, wTr, span, spans, motion, get notesBuilt() { return notesBuilt; } };
+window.__ready = true;
+</script>
+</body>
+</html>

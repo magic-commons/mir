@@ -35,7 +35,12 @@ Three modules in `mir/window/` and one sheet. (The rack's windows, the `.dev` ca
 - `dockGeometry({ span, side, dock, height, railSizes, viewport })` returns `{ left, top, width, height, side } | null`.
 - `dockTargets(o)` returns the two docks as proximity targets, each with `rect` = `dockGeometry()`.
 - `createDockGuide({ layer, enabled })` returns `{ track(box, o), end() → target | null, cancel(), destroy() }`.
-- `observeSpan({ left, right, edge, view })` returns `{ read(), subscribe(fn), destroy() }`. Make **one** per page. It does no work while idle: a rack's own transition is followed through the one frame until it ends.
+- `observeSpan({ left, right, edge, view, occupied, narrow, active })` returns `{ read(), subscribe(fn), setActive(on), active, destroy() }`, where `read()` gives `{ left, right, width, top, bottom }`. Make **one** per page (a rack's is `rack.span()`). It is BASINS' `observeRackBounds`, so a window docks where BASINS docked it:
+  - each rack's edge is its logical edge: `--rack-shadow-gutter` is subtracted;
+  - a rack is absent (the span runs to the screen edge, 8 px in) when it is missing or `hidden`, when it holds no open window (`occupied`, default `.dev:not(.closed):not([hidden])`; `false` counts any rack), when it is `display: none` or `visibility: hidden`, under `body.phone` or `body.ui-hidden`, or when the viewport is `narrow` (860) px wide or less;
+  - `setActive(false)` stops it publishing, while `read()` still answers.
+
+  It does no work while idle: a resize, a ResizeObserver tick or a class / membership change books one read, and a rack's own transition is followed through the one frame until it ends.
 
 **`window/window.css`** declares these tokens on `.mir-rail`:
 - `--chip-fill` and `--chip-filter`: the pane's seat ladder.

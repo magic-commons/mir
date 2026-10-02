@@ -41,6 +41,7 @@ import { createProximity } from '../core/proximity.js';
 import { frame } from '../core/frame.js';
 import { setVar, setAttr } from '../core/perf.js';
 import { createWindowActivity } from '../window-activity.js';
+import { observeSpan } from '../window/dock.js';
 import { glyphEl, hasGlyph } from '../glyph.js';
 
 export const SIDES = Object.freeze(['left', 'right']);
@@ -171,15 +172,29 @@ export function localStore(key, view = globalThis) {
  *    phone       () => boolean — the phone law (default: the kit's --phone sentinel, or body.phone)
  *    chrome      false: build no hide / + / ☆ buttons (the app drives the api itself)
  *    handle      'coarse' (default): the edge handle shows for a coarse pointer only; 'always'; 'never'
- *    onChange    (layout) after every persisted change */
+ *    look        'auto' (default): nodes the rack creates wear the kit's look (rack.css), nodes the app already had
+ *                (#rack, #rackL, #floats, #rackAdd …, found by id) keep the app's; 'kit': the kit's look on both
+ *    onChange    (layout) after every persisted change
+ *  An app that already has a rack adopts it in place: see docs/RACK.md "Adopting into an app that has a rack". */
 export function createRack({ host = globalThis.document && document.body, sides = SIDES, key = 'mir.rack', store, favourites = RACK.favourites,
-  transport = null, seats = { top: RACK.seatTop, bottom: RACK.seatBottom }, phone, chrome = true, handle = 'coarse', onChange } = {}) {
+  transport = null, seats = { top: RACK.seatTop, bottom: RACK.seatBottom }, phone, chrome = true, handle = 'coarse', look = 'auto', onChange } = {}) {
   const doc = host.ownerDocument, view = doc.defaultView, body = doc.body;
   const life = new AbortController(), on = { signal: life.signal }, passive = { passive: true, signal: life.signal };
   const S = store || localStore(key, view);
   const isPhone = phone || (() => body.classList.contains('phone') || (parseFloat(view.getComputedStyle(doc.documentElement).getPropertyValue('--phone')) || 0) >= 1);
   const made = [];                                                  // nodes this rack created, removed by destroy()
-  const take = (id, tag, cls) => { let n = doc.getElementById(id); if (!n) { n = el(tag, '', host); n.id = id; made.push(n); } for (const c of cls.split(' ')) n.classList.add(c); return n; };
+  /* ADOPTION: a node the app already has (BASINS' #rack, #rackL, #floats, #rackAdd …) is used AS IT IS — same element,
+     same id, same classes, so every app rule and script that names it keeps working, and no second container is made.
+     It gets the rack's behaviour hooks (data-side, data-mir-adopted) but not the kit's look classes, unless the app
+     asks for the kit's look (`look: 'kit'`).  A node the rack creates wears the kit's look (rack.css). */
+  const adopted = new Set();
+  const take = (id, tag, cls) => {
+    let n = doc.getElementById(id);
+    if (!n) { n = el(tag, '', host); n.id = id; made.push(n); }
+    else { adopted.add(n); n.dataset.mirAdopted = ''; }
+    if (!adopted.has(n) || look === 'kit') for (const c of cls.split(' ')) n.classList.add(c);
+    return n;
+  };
 
   /* ── the DOM: the racks, the float layer, the grip, the chrome ── */
   const racks = {};
@@ -189,6 +204,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
     racks[side] = r;
   }
   const rackOf = (side) => racks[side] || racks.right || racks.left;
+  const isRack = (n) => !!n && (n === racks.left || n === racks.right);
   const floats = take('floats', 'div', 'mir-rack-floats');
   const grip = el('div', 'mir-rack-grip', host); grip.setAttribute('aria-hidden', 'true'); made.push(grip);
   const btn = (id, kind, text, label) => { const b = take(id, 'button', 'glass mir-rack-btn'); b.type = 'button'; b.dataset.rackBtn = kind; if (text) b.textContent = text; b.setAttribute('aria-label', label); b.title = label; return b; };
@@ -205,12 +221,15 @@ export function createRack({ host = globalThis.document && document.body, sides 
     h.addEventListener('click', () => { setInterface(true); setHidden(false); }, on);
     return h;
   });
-  if (transport) transport.classList.add('mir-rack-transport');
+  /* the transport wears the kit's hide rule only beside the kit's racks: an app with its own racks hides its own transport */
+  const kitLook = look === 'kit' || !Object.values(racks).some((r) => adopted.has(r));
+  if (transport && kitLook) transport.classList.add('mir-rack-transport');
 
   /* ── the registry and its windows ── */
   const reg = new Map();                                             // id → { spec, dev, api, present }
   const floatState = new Map();                                      // id → { home: { side, index }, x, y, w, compact }
   const stack = [];                                                  // floating windows, back-most first
+  let spanObs = null;
   let built = 0, started = false, saved = null, phoneOn = false, phoneMem = null, peek = '', trPeek = false, rackW = 0;
 
   const cards = (rk, all = false) => (rk ? [...rk.children].filter((c) => c.classList.contains('dev') && (all || (!c.hidden && !c.classList.contains('closed')))) : []);
@@ -242,9 +261,47 @@ export function createRack({ host = globalThis.document && document.body, sides 
     const dev = device({ id, eyebrow: w.spec.title, status: w.spec.status || '', loadingMark: w.spec.loadingMark,
       onPower: (live) => { call(w, 'onPower', live); save(); } });
     w.dev = dev;
-    const root = dev.root, head = root.querySelector('.dev-head');
-    root.dataset.home = w.spec.side; root.classList.add('closed');
-    rackOf(w.spec.side).appendChild(root);
+    dev.root.dataset.home = w.spec.side; dev.root.classList.add('closed');
+    rackOf(w.spec.side).appendChild(dev.root);
+    wire(w);
+    try { if (w.spec.build) w.spec.build(dev.body, w.api); } catch (err) { console.warn('rack: build ' + id, err); }
+    return w;
+  }
+  /** adopt(w, x) — take over a window the app ALREADY BUILT (BASINS builds every window eagerly with its own builder):
+   *  x is device()'s return value (best: its fold / setOff are used) or the `.dev` element itself.  Nothing is rebuilt
+   *  or moved; it keeps its rack, its place, its classes and its listeners. */
+  let passing = false;                                               // a shim's own click on a header button, let through
+  function adopt(w, x) {
+    const root = x && x.nodeType === 1 ? x : x && x.root;
+    if (!root) throw new Error('rack.register: `el` is a .dev element or a device() result');
+    root.dataset.id = w.spec.id;
+    const q = (sel) => root.querySelector(sel);
+    const press = (sel, cls, v) => { if (root.classList.contains(cls) === !!v) return; const b = q(sel); if (!b) { root.classList.toggle(cls, !!v); return; } passing = true; try { b.click(); } finally { passing = false; } };
+    w.dev = x.nodeType === 1 ? {
+      root, body: q('.dev-body') || root,
+      fold: (v) => press('.dev-fold', 'folded', v),
+      setOff: (v) => press('.dev-power', 'off', v),
+      get off() { return root.classList.contains('off'); },
+      setStatus: (t) => { const st = q('.dev-stat'); if (st && st.textContent !== t) st.textContent = t; },
+    } : x;
+    if (!root.dataset.home) root.dataset.home = w.spec.side;
+    if (w.spec.closed === true) root.classList.add('closed');           // BASINS' addWindow(dev, side, { closed: true })
+    /* an adopted window that already floats is put on the float stack where it stands */
+    if (root.classList.contains('floating')) {
+      const r = root.getBoundingClientRect();
+      floatState.set(w.spec.id, { home: { side: w.spec.side, index: 0 }, x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width) || 300, compact: root.classList.contains('compact') });
+      raiseFloat(root);
+    }
+    /* power: an adopted window's own power button tells the rack after it has acted */
+    const pw = q('.dev-power');
+    if (pw) pw.addEventListener('click', () => { call(w, 'onPower', !root.classList.contains('off')); save(); }, on);
+    wire(w);
+    return w;
+  }
+  /** the rack's hands on a window, built or adopted: the header (pointer, keyboard), close / fold / pop / rail through
+   *  the rack, the float raise, the window's api, and window-activity */
+  function wire(w) {
+    const id = w.spec.id, dev = w.dev, root = dev.root, head = root.querySelector('.dev-head') || root;
     /* the header: a handle for the hand (pointer pre-gesture) and for the keyboard */
     head.tabIndex = 0; head.setAttribute('aria-roledescription', 'rack window');
     head.setAttribute('aria-keyshortcuts', 'ArrowUp ArrowDown ArrowLeft ArrowRight Enter');
@@ -252,7 +309,9 @@ export function createRack({ host = globalThis.document && document.body, sides 
     head.addEventListener('keydown', headKey, on);
     /* close, fold and double-click go through the rack so the neighbours travel (flip) and the layout is kept */
     root.addEventListener('click', (e) => {
+      if (passing) return;
       const b = e.target.closest && e.target.closest('button'); if (!b || !root.contains(b)) return;
+      if (w.spec.card && !b.classList.contains('dev-fold')) return;   // an app card keeps its own buttons
       if (b.classList.contains('dev-close')) { e.stopPropagation(); close(id); }
       else if (b.classList.contains('dev-fold')) { e.stopPropagation(); fold(id); }
       else if (b.classList.contains('dev-pop')) { e.stopPropagation(); toggleFloat(id); }
@@ -271,7 +330,6 @@ export function createRack({ host = globalThis.document && document.body, sides 
       get side() { return sideFor(root); },
     };
     built++;
-    try { if (w.spec.build) w.spec.build(dev.body, w.api); } catch (err) { console.warn('rack: build ' + id, err); }
     activity.track(root);
     return w;
   }
@@ -304,7 +362,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
     if (!root.classList.contains('closed')) { if (o.side || o.index !== undefined) move(id, o); return true; }
     if (root.classList.contains('floating')) { root.classList.remove('closed'); raiseFloat(root); }
     else {
-      const rk = phoneOn ? rackOf('right') : o.side ? rackOf(o.side) : root.parentElement && root.parentElement.classList.contains('mir-rack') ? root.parentElement : rackOf(w.spec.side);
+      const rk = phoneOn ? rackOf('right') : o.side ? rackOf(o.side) : isRack(root.parentElement) ? root.parentElement : rackOf(w.spec.side);
       if (phoneOn && o.side === 'left') root.dataset.phoneFrom = 'left';
       flip(neighbours(rk), () => { root.classList.remove('closed'); const list = cards(rk).filter((c) => c !== root); rk.insertBefore(root, list[Math.max(0, Math.min(o.index ?? 0, list.length))] || null); });
       enter(root);
@@ -319,7 +377,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
     const root = w.dev.root; if (root.classList.contains('closed')) return true;
     if (G && G.card === root) drg.cancel();
     const rk = root.parentElement;
-    if (rk && rk.classList.contains('mir-rack')) flip(neighbours(rk), () => root.classList.add('closed')); else root.classList.add('closed');
+    if (isRack(rk)) flip(neighbours(rk), () => root.classList.add('closed')); else root.classList.add('closed');
     root.dispatchEvent(new CustomEvent('devclose', { bubbles: true }));
     call(w, 'onClose'); call(w, 'onSleep');
     save(); return true;
@@ -332,7 +390,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
     const root = w.dev.root, now = root.classList.contains('folded'), next = want === undefined ? !now : !!want;
     if (next === now) return true;
     const rk = root.parentElement;
-    if (rk && rk.classList.contains('mir-rack')) flip(neighbours(rk), () => w.dev.fold(next)); else w.dev.fold(next);
+    if (isRack(rk)) flip(neighbours(rk), () => w.dev.fold(next)); else w.dev.fold(next);
     call(w, 'onFold', next); save(); return true;
   }
   /** raise(id) — open it, unfold it, show the rack, and bring it to the top of its rack (or the front, floating) */
@@ -672,7 +730,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
   }
   function drawAdd() {
     addList.innerHTML = ''; queue = [];
-    const closed = [...reg.values()].filter((w) => !isOpen(w.spec.id)).sort((a, b) => titleOf(a).localeCompare(titleOf(b), undefined, { sensitivity: 'base' }));
+    const closed = [...reg.values()].filter((w) => !w.spec.card && !isOpen(w.spec.id)).sort((a, b) => titleOf(a).localeCompare(titleOf(b), undefined, { sensitivity: 'base' }));
     if (!closed.length) el('div', 'rack-add-none', addList, 'every window is open — × on a window closes it');
     const fav = lastFavIds();
     for (const w of closed) {
@@ -724,12 +782,15 @@ export function createRack({ host = globalThis.document && document.body, sides 
   }
   /** apply(layout) — arrange every registered window as the layout says; an id it does not know is ignored */
   function apply(raw) {
-    const L = readLayout(raw, new Set(reg.keys()));
+    const L = readLayout(raw, new Set([...reg.keys(), ...appCards().keys()]));
     dockAll(false);
     const named = new Set();
     for (const c of L.cards) {
       named.add(c.id);
       const w = reg.get(c.id);
+      /* an app card (registered with `card: true`, or a .dev the app put in a rack and never registered): it keeps its
+         PLACE in the order; its state (hidden, closed, docked) is the app's */
+      if (!w || w.spec.card) { const n = w ? w.dev.root : appCards().get(c.id); if (n && !n.classList.contains('floating')) (phoneOn ? rackOf('right') : rackOf(c.side)).appendChild(n); continue; }
       if (!c.open && !w.dev) continue;                                 // closed and never built: it stays a name
       build(c.id);
       const root = w.dev.root, rk = phoneOn ? rackOf('right') : rackOf(c.side);
@@ -747,6 +808,12 @@ export function createRack({ host = globalThis.document && document.body, sides 
     if (phoneOn) phoneMem = { ...(phoneMem || {}), hidden: L.hidden }; else setHidden(L.hidden, { keep: false });
     save();
     return named;
+  }
+  /** the .dev elements standing in the racks that are not registered windows (an app's own cards), by id */
+  function appCards() {
+    const m = new Map();
+    for (const rk of Object.values(racks)) for (const n of cards(rk, true)) if (n.dataset.id && !reg.has(n.dataset.id)) m.set(n.dataset.id, n);
+    return m;
   }
   const favs = () => { const v = S.get(); return v && v.favs && typeof v.favs === 'object' ? v.favs : {}; };
   const writeFavs = (m) => { const v = S.get(); S.set({ ...(v && typeof v === 'object' ? v : {}), v: 1, favs: m }); };
@@ -783,16 +850,26 @@ export function createRack({ host = globalThis.document && document.body, sides 
   /** windowMenu({ rack }) — one row per registered window: ↑ raises an open one, ⊕ opens a closed one; `rack: true`
    *  adds a separator and HIDE / SHOW the rack.  A row is [label, run, disabled, hint] (shell/menubar.js). */
   function windowMenu({ rack: rackRow = false, rackKey = '' } = {}) {
-    const rows = [...reg.values()].map((w) => [(isOpen(w.spec.id) ? '↑  ' : '⊕  ') + w.spec.title + (w.spec.key ? '\t' + w.spec.key : ''),
+    const rows = [...reg.values()].filter((w) => !w.spec.card).map((w) => [(isOpen(w.spec.id) ? '↑  ' : '⊕  ') + w.spec.title + (w.spec.key ? '\t' + w.spec.key : ''),
       () => raise(w.spec.id), false, w.spec.hint || (isOpen(w.spec.id) ? 'bring it to the top of its rack' : 'open it')]);
     if (rackRow) rows.push(null, ['HIDE / SHOW the rack' + (rackKey ? '\t' + rackKey : ''), () => setHidden(!isHidden())]);
     return rows;
   }
 
-  /** register({ id, title, side, build, … }) → id — a window by name; nothing is built until it first opens */
+  /** register({ id, title, side, build, … }) → id — a window by name; nothing is built until it first opens.
+   *  { el }: a window the app ALREADY BUILT (device()'s result or its .dev) is taken over in place, never rebuilt;
+   *  { closed: true } with it starts it closed.  { eager: true }: built now (closed until the layout or `open` opens it).
+   *  { card: true } with { el }: an app card that is not a window (BASINS' transport card): it keeps its place in the
+   *  order and in saved layouts, drags and folds with the rest, and is in neither the + list nor the WINDOW menu. */
   function register(spec) {
     if (!spec || typeof spec.id !== 'string' || reg.has(spec.id)) throw new Error('rack.register: a new string id is required');
-    reg.set(spec.id, { spec: { title: spec.id.toUpperCase(), ...spec, side: sideOf(spec.side === undefined ? 'right' : spec.side) }, dev: null, api: null, present: null });
+    /* an adopted window's home is the rack it is standing in, unless the app says otherwise */
+    const node = spec.el && (spec.el.nodeType === 1 ? spec.el : spec.el.root);
+    const inSide = node && isRack(node.parentElement) ? node.parentElement.dataset.side : undefined;
+    const w = { spec: { title: spec.id.toUpperCase(), ...spec, side: sideOf(spec.side ?? inSide ?? 'right') }, dev: null, api: null, present: null };
+    reg.set(spec.id, w);
+    if (spec.el) { adopt(w, spec.el); return spec.id; }                 // already built: taken over, never rebuilt
+    if (spec.eager) build(spec.id);                                  // built now, opened by the layout or its `open`
     if (started) {                                                   // registered late: its saved record (or its default) applies now
       const c = saved && saved.cards.find((x) => x.id === spec.id);
       if (c ? c.open : spec.open) { open(spec.id, { side: c ? c.side : undefined }); if (c && c.folded) fold(spec.id, true); }
@@ -804,12 +881,12 @@ export function createRack({ host = globalThis.document && document.body, sides 
   function start() {
     if (started) return api;
     const raw = S.get();
-    saved = readLayout(raw && raw.layout, new Set(reg.keys()));
+    saved = readLayout(raw && raw.layout, new Set([...reg.keys(), ...appCards().keys()]));
     syncPhone();
     if (raw && raw.layout) {
       const listed = new Set(saved.cards.map((c) => c.id));
       apply({ ...saved, cards: [...saved.cards, ...[...reg.values()].filter((w) => !listed.has(w.spec.id) && w.spec.open).map((w) => ({ id: w.spec.id, side: w.spec.side, open: true }))] });
-    } else apply({ v: 1, hidden: false, cards: [...reg.values()].filter((w) => w.spec.open).map((w) => ({ id: w.spec.id, side: w.spec.side, open: true })) });
+    } else apply({ v: 1, hidden: isHidden(), cards: [...reg.values()].filter((w) => w.spec.open && !w.spec.el).map((w) => ({ id: w.spec.id, side: w.spec.side, open: true })) });   // an adopted window is already where the app put it
     started = true; save();
     return api;
   }
@@ -828,7 +905,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
     get registered() { return [...reg.keys()]; },
     isBuilt: (id) => !!(reg.get(id) && reg.get(id).dev),
     /** windows() — every registered window, in registration order: [{ id, title, side, open, built, floating, folded }] */
-    windows: () => [...reg.values()].map((w) => ({ id: w.spec.id, title: w.spec.title, side: (w.dev && w.dev.root.parentElement && w.dev.root.parentElement.dataset.side) || w.spec.side, open: isOpen(w.spec.id), built: !!w.dev,
+    windows: () => [...reg.values()].map((w) => ({ id: w.spec.id, card: !!w.spec.card, title: w.spec.title, side: (w.dev && w.dev.root.parentElement && w.dev.root.parentElement.dataset.side) || w.spec.side, open: isOpen(w.spec.id), built: !!w.dev,
       floating: !!(w.dev && w.dev.root.classList.contains('floating')), folded: !!(w.dev && w.dev.root.classList.contains('folded')) })),
     /** keepClear() — the rects a new floating window should not land on: each rack showing a window, and the transport */
     keepClear() {
@@ -849,9 +926,13 @@ export function createRack({ host = globalThis.document && document.body, sides 
     get dragging() { return !!G; },
     cancelDrag: () => drg.cancel(),
     activity,
+    /** span() — THE dock span for every docking window on the page: dock.js observeSpan on these two racks (BASINS'
+     *  rack-bounds: the shadow gutter out, an empty / hidden / phone / narrow rack absent).  Made once, on first ask. */
+    span() { if (!spanObs) spanObs = observeSpan({ left: racks.left || null, right: racks.right || null, view }); return spanObs; },
     el: { racks: { ...racks }, floats, grip, toggle: toggleBtn, add: addBtn, addList, fav: favBtn, favList, handles: handles.slice() },
     sync: syncPhone,
     destroy() {
+      if (spanObs) spanObs.destroy();
       drg.cancel(); drg.destroy(); landProx.destroy(); edgeProx.destroy(); life.abort(); activity.disconnect();
       if (run) run.cancel(); frame.cancel('mir-rack:save');
       for (const w of reg.values()) if (w.dev) w.dev.root.remove();

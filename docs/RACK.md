@@ -47,11 +47,15 @@ A registered window costs one Map entry. Its `device()` shell is made, and its `
 | `phone` | the kit's `--phone` sentinel, or `body.phone` | `() => boolean` |
 | `chrome` | `true` | `false` builds no hide / `+` / `☆` buttons |
 | `handle` | `'coarse'` | when the edge handle shows under H: `'coarse'` (touch), `'always'`, `'never'` |
+| `look` | `'auto'` | nodes the rack creates wear the kit's look (`rack.css`); nodes the app already had (found by id) keep the app's. `'kit'` puts the kit's look on both |
 | `onChange` | — | `(layout)` after every saved change |
 
 **`rack.register(spec)` → id.** `spec` is:
 - `id` (required, unique), `title` (default: the id in capitals), `side` (`'left'` / `'right'`, its home), `open` (open by default), `glyph` (a `glyph.js` name, shown in the `+` list), `hint`, `key` (a key hint for the WINDOW row), `status`, `loadingMark`;
 - `build(body, api)`, run once, on first open;
+- or `el`: a window the app **already built** (`device()`'s result, best, or its `.dev`). It is taken over where it stands: never rebuilt, never moved. `closed: true` starts it closed (BASINS' `addWindow(dev, side, { closed: true })`). Its home side is the rack it stands in unless `side` says otherwise;
+- or `eager: true`: built at once, closed until the layout or `open` opens it;
+- `card: true` (with `el`): an app card that is not a window, such as BASINS' transport card. It keeps its place in the order and in saved layouts, drags and folds with the rest, keeps its own buttons, and is in neither the `+` list nor the WINDOW menu. A `.dev` the app puts in a rack and never registers is treated the same way;
 - the lifecycle hooks, each called with `api` last: `onOpen`, `onWake` (a reopen), `onClose` and `onSleep` (the same moment, two names), `onFold(folded)`, `onPower(live)`, `onPresent(canPresent)`.
 
 The window's `api` is `{ id, dev, root, body, setStatus, canPresent(), open(), close(), raise(), isOpen, floating, side }`.
@@ -84,6 +88,8 @@ The window's `api` is `{ id, dev, root, body, setStatus, canPresent(), open(), c
 - `built`: how many windows exist. `registered`, `isBuilt(id)`, `window(id)` (the window's `api`).
 - `order(side)`, `floating()`, `floatOf(id)`, `peek`, `phone`, `dragging`, `cancelDrag()`.
 - `activity`: the rack's `window-activity.js` instance. `el` holds the nodes it made. `sync()` re-checks the phone. `start()`, `destroy()`.
+
+**The dock span.** `span()` returns the page's one dock span (`window/dock.js` `observeSpan` on these two racks), made on first ask. Hand it to every docking window: `createWindow({ dock: { span: rack.span() } })`.
 
 **Pure helpers** (node-tested in `tests/rack.node.mjs`):
 - `reorderIndex(boxes, at, center, hyst)`, `insertionIndex(boxes, y)`, `slotRect(col, boxes, index)`, `moveId`;
@@ -230,6 +236,55 @@ The brief asked for survey C's 65-item rack list. Survey C has no numbered list 
 
 An app with retired ids maps them before calling `apply`.
 
+## Adopting into an app that has a rack
+
+The recipe for BASINS, and for any app whose rack predates the kit. It goes in four stages. Each one stands on its own, ships on its own, and deletes something.
+
+**1. The dock span.** Replace every `observeRackBounds()` with **one** `observeSpan({ left: $('rackL'), right: $('rack') })`, or with `rack.span()` after stage 3.
+- It is BASINS' rack-bounds:
+  - the shadow gutter is subtracted;
+  - a rack with no open window, a hidden one (once its slide ends), `phone`, `ui-hidden` and a viewport of 860 px or less count as absent;
+  - it has `subscribe` and `setActive`.
+- `read()` gives `{ left, right, width }` as before, plus `top` and `bottom`. So `timeline-window.js`, `pattern-window.js` and `rack-scrollbars.js` keep their calls.
+- **Deletes:**
+  - `rack-bounds.js` (35 lines);
+  - the second and third instances (each with its own observers and 350 ms rAF loop);
+  - the gutter arithmetic it repeated: `rack.js:399-402`, `scene-input-guard.js:40`, modwindow `dockBounds`.
+
+**2. The rack takes the windows; the motion goes with it.** Call `createRack({ host: $('lab'), store, chrome: false })`. Then turn each `rk.addWindow(dev, side, o)` into `rack.register({ id, el: dev, side, closed: o && o.closed, onPower, onClose })`, and register the transport card with `card: true`.
+- The containers are adopted as they are: `#rack`, `#rackL` and `#floats`, with their ids, classes and the app's sheets. The rack adds only `data-side` and `data-mir-adopted`.
+- The store is a three-line adapter onto `basins.settings`. The ☆ slots are at `layouts`, and the kit keeps its current layout beside them (tested).
+- The app's `layout` verbs map one to one, and outside `rack.js` BASINS calls only four of them:
+  - `raise` → `rack.raise`;
+  - `toggleRack` → `rack.toggleHidden`;
+  - `resetLayout` → `rack.apply({ cards })` with the defaults;
+  - `dockTransport` stays the transport's.
+- **Deletes:**
+  - in `rack.js`: the float layer, the verbs, the drag and its two pumps, the peek, the phone crossing and `wire()` (about 450 of its 618 lines);
+  - `createRackMotion` (`rack-motion.js` 1–135);
+  - the `.rack-drop` rule.
+
+**3. The `+` and ☆ menus.** Set `chrome: true`. `#rackToggle`, `#rackAdd`, `#rackFav` and their lists are found by id and keep their look.
+- **Deletes:**
+  - `rack.js` 307–392 (the menus);
+  - the toggle's wiring;
+  - the hand-written WINDOW rows (`shell.js:206`), which become `...rack.windowMenu()`.
+
+**4. The containers' look.** Delete the app's rack rules (`lab.css` §2, 360–378, 554–557, the narrow rule; `material.css` 203–251). Pass `look: 'kit'`, or let the rack create its own nodes, and `rack.css` draws them. This is the only stage that changes pixels, so it waits for Josh's eye. The ids stay, so the app's scripts that name `#rack` keep working.
+
+### What BASINS' rack does that the kit still does not
+
+Each item is exact. "Stays" means it stays in BASINS until the kit has it.
+1. **Height motion.** `createRackMotion` animates a card's height and FLIPs its neighbours on ANY size change (a ResizeObserver: a body growing, a section opening). The kit animates only its own acts: open, close, fold, move and drag. A height change inside a window jumps. Kit law forbids layout animation (CORE law 2), so this needs a ruling: drop it, or animate the neighbours only.
+2. **The scrollbar seat** (`rack-scrollbars.js`, 62 lines). Stays, fed by the kit's span.
+3. **The touch-tablet clamp.** On a coarse pointer wider than 700 px, BASINS clamps a float fully inside the visual viewport (`clampFloat(…, touchTablet)`). The kit's clamp is the desktop one everywhere.
+4. **Retired ids** (`retired: { old: heir }`). The kit drops unknown ids. BASINS maps its old ids before `apply`.
+5. **A layout's `docked` and `nb`.** The kit reads the cards and `rackHidden` from a BASINS record. Docking the transport and the notebook's size are the app's: it reads them from the record and acts on them before or after `loadLayout`.
+6. **What persists across a reload.** BASINS keeps only the closed list (`closed`, plus the one-shot `rackFileWindowsV1` migration) and `phoneRack` / `phoneTr`. The kit keeps the whole arrangement (order, sides, folds, floats). The first adoption must seed the kit's record from `closed`, or the first load opens the defaults.
+7. **`copyDigest` / `digest`.** These are app verbs, and they stay.
+8. **The transport card's docking** (`dockTransport`, `dockSide`, `dockIndex`, `wTr`). The card's PLACE is the kit's (`card: true`). Docking it and undocking it are the transport's (`shell/transport.js` in the kit, or BASINS' own).
+9. **`body.rack-l`.** BASINS sets it when the left rack has children, and nothing in BASINS reads it now. Not built.
+
 ## Proofs
 
 - `tests/rack.node.mjs`: the pure part (7 groups).
@@ -251,6 +306,12 @@ An app with retired ids maps them before calling `apply`.
   - the WINDOW menu;
   - the layout across a reload;
   - an unknown saved id ignored.
+- `tests/rack-adopt.browser.mjs` on `tests/fixtures/rack-basins.html` (BASINS' markup and id rules, windows built eagerly by the app, the transport card in the left rack). 12 checks:
+  - the span: the 48-px gutter is subtracted; an empty rack, a hidden one, the phone, H and a viewport of 860 px or less are absent; `setActive(false)` is quiet;
+  - adoption: one of each container, no kit look class, the app's own width, every window the same node (never rebuilt), the eager window built once, the app's order kept;
+  - an adopted window drags (hit-tested);
+  - the app's own `+` opens the kit's list, and the card is in neither menu;
+  - a ☆ layout written by **BASINS' own `rack.js`** (`tests/fixtures/basins-layout.json`) loads through the store adapter: order, sides, fold, close, the float at (520, 180), and the transport card's place.
 - Plates: `docs/plates/rack/rack-dark.png`, `rack-light.png`, `rack-mid-drag-slot.png`.
 
 **Not proven:**

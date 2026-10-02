@@ -1,0 +1,76 @@
+{
+ "source": "written by BASINS app/rack.js layout.saveLayout() (worktree mir-1.5-adopt, copied verbatim into a scratch page with stubbed prefs/kwin), 2026-10-02: dockTransport, moveCard(history,0), popOut(settings,{x:520,y:180}), fold camera, close rackSave",
+ "slot": 1,
+ "layout": {
+  "v": 3,
+  "at": 1790921378798,
+  "cards": [
+   {
+    "id": "transport",
+    "side": "L",
+    "folded": false,
+    "closed": false,
+    "off": false,
+    "float": null
+   },
+   {
+    "id": "colour",
+    "side": "L",
+    "folded": false,
+    "closed": false,
+    "off": false,
+    "float": null
+   },
+   {
+    "id": "camera",
+    "side": "L",
+    "folded": true,
+    "closed": false,
+    "off": false,
+    "float": null
+   },
+   {
+    "id": "history",
+    "side": "R",
+    "folded": false,
+    "closed": false,
+    "off": false,
+    "float": null
+   },
+   {
+    "id": "controls",
+    "side": "R",
+    "folded": false,
+    "closed": false,
+    "off": false,
+    "float": null
+   },
+   {
+    "id": "rackSave",
+    "side": "R",
+    "folded": false,
+    "closed": true,
+    "off": false,
+    "float": null
+   },
+   {
+    "id": "settings",
+    "side": "R",
+    "folded": false,
+    "closed": false,
+    "off": false,
+    "float": {
+     "x": 520,
+     "y": 180,
+     "w": 284,
+     "compact": false,
+     "z": 1,
+     "index": 2
+    }
+   }
+  ],
+  "docked": true,
+  "rackHidden": false,
+  "nb": null
+ }
+}

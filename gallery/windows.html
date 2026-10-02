@@ -64,7 +64,7 @@ paint(); addEventListener('resize', paint);
 
 /* ── the mock racks: cards of glass, slid away by HIDE RACKS (the docked window follows its span) ── */
 for (const id of ['rackL', 'rackR']) for (let i = 0; i < 4; i++) el('div', 'g-card glass', document.getElementById(id));
-const span = observeSpan({ left: document.getElementById('rackL'), right: document.getElementById('rackR') });   // ONE, for every window
+const span = observeSpan({ left: document.getElementById('rackL'), right: document.getElementById('rackR'), occupied: '.g-card' });   // ONE, for every window
 
 /* ── the windows ── */
 const host = document.getElementById('floats');
