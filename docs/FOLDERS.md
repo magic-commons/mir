@@ -16,14 +16,17 @@ registerProjectPart('camera', { capture: () => camera.state(), restore: (v) => c
 registerProjectPart('pages', pages.part());          // shell/pages.js: a project carries its pages
 
 const folders = createFolders({
-  host: document.getElementById('floats'),          // the floating-window layer
+  host: rack.el.floats,                               // the kit's float layer (#floats): the window takes the pointer there
   app: 'myapp',                                       // the app id a project file names (another app's is refused)
   adapter: { thumbnail: () => myCanvas },             // the picture a saved project wears
+  rack,                                               // its first seat keeps clear of the racks and the bar
   onMoved: (r) => rack.dodge(r),                      // the transport gives way
   seeds: STARTERS,                                    // optional: shipped projects, added once
 });
 menu.add('FOLDERS\tS', () => folders.toggle());
 ```
+
+With `createApp()` (`mir/app.js`) FOLDERS is made for you (`app.folders`, F and Ctrl/⌘+S in the key table, a latch on the bar), and every `app.param()` is already a project part (`params`: each parameter's base, never a modulated reading).
 
 An app that registers its parts gets SAVE, SAVE AS, NEW, OPEN, export and import with nothing else. FOLDERS never learns what a part is.
 
@@ -63,7 +66,8 @@ An app that registers its parts gets SAVE, SAVE AS, NEW, OPEN, export and import
 | `size`, `min` | `380×680`, `280×360` | the floating size and its floor |
 | `dock` | none | `{ span, guide }` as `createWindow` takes it; omitted, FOLDERS floats |
 | `onMoved(rect \| null)` | — | after every layout; `rack.dodge` fits here |
-| `firstSeat()` | top right | `{ x, y }` for the first open, before a hand has placed it |
+| `rack` | — | the rack (or `() => rack`): the first seat keeps clear of what `rack.keepClear()` names, the racks showing a window and the transport bar |
+| `firstSeat()` | centred in the free stage (`freeSeat`) | `{ x, y, h? }` for the first open, before a hand has placed it. The default centres the window between the racks, 72 px down, shortened to end above the bar; `freeSeat({ vw, vh, w, h, minH, clear })` is exported and pure |
 | `say(text, warn)` | the window's status line | the app's own voice instead (a toast) |
 | `download(blob, name)` | an `<a download>` | how an export leaves |
 | `picture(entry)` | the saved thumbnail | a canvas or Blob to embed the project in on EXPORT › PICTURE (the app's own render, at full size) |

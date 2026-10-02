@@ -23,11 +23,12 @@
  *   4. ENGLISH.  A model reads the labels as the app wrote them (the English keys), whatever language the page shows.
  *   5. HIDDEN MEANS HIDDEN FROM A POLITE READER.  Anyone who opens the project file can read every page.
  *
- * createDescribe({ app, rack?, params?, pages?, keys?, prefs?, mod?, doc?, mount?, max? })
+ * createDescribe({ app, rack?, params?, pages?, keys?, prefs?, mod?, transport?, doc?, mount?, max? })
  *     → { describe(), dump(), refresh(), observe(event), events(), errors(), destroy() }
  *   app     { name, version?, what? }          what the app is, in its own words
- *   rack    a shell/rack.js rack                its windows: id, title, open, built, side, floating
- *   params  [{ id, label, unit?, min, max, get() }]   the same rows installModulation takes
+ *   rack    a shell/rack.js rack                its windows (rack.windows()): id, title, open, built, side, floating
+ *   params  [{ id, label, unit?, min, max, get() }], or a function returning them (createApp's live list)
+ *   transport  a shell/transport.js bar          the one clock: playing, the tempo (with mod: the power too)
  *   pages   a shell/pages.js model              only its shared pages are read
  *   keys    a shell/keys.js table               its actions and their keys
  *   prefs   a core/prefs.js store (the GUI window's: gui.prefs)
@@ -82,10 +83,17 @@ const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? +v.toFixed(4) 
 const cell = (s) => String(s ?? '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
 
 /** describeText(state) — state: { app, windows, params, keys, pages } with values already read */
-export function describeText({ app = {}, windows = [], params = [], keys = [], pages = [] } = {}) {
+export function describeText({ app = {}, windows = [], params = [], keys = [], pages = [], clock = null } = {}) {
   const out = [`# ${app.name || 'An MIR app'}${app.version ? ' ' + app.version : ''} · MIR ${MIR_VERSION}`];
   if (app.what) out.push('', app.what);
   out.push('', 'Built on MIR, Magic Commons\' interface kit. The kit draws every control; an app passes data and options.');
+  if (clock) {
+    const bits = [];
+    if (clock.playing !== undefined) bits.push(clock.playing ? 'playing' : 'paused');
+    if (Number.isFinite(clock.tempo)) bits.push(`${num(clock.tempo)} BPM`);
+    if (clock.power !== undefined) bits.push(`modulation ${clock.power ? 'on' : 'off (bypassed)'}`);
+    if (bits.length) out.push('', `**Clock:** ${bits.join(' · ')}. One play (Space, the transport's ▶) runs the app's clock; modulation's power only bypasses its routes.`);
+  }
   if (windows.length) {
     out.push('', '## Windows', '', '| id | title | state |', '|---|---|---|');
     for (const w of windows) out.push(`| ${cell(w.id)} | ${cell(w.title)} | ${w.open ? 'open' : 'closed'}${w.built ? '' : ', never built'}${w.side ? ', ' + w.side + ' rack' : ''}${w.floating ? ', floating' : ''}${w.folded ? ', folded' : ''} |`);
@@ -123,9 +131,11 @@ export function dumpText(s = {}) {
   return out.join('\n');
 }
 
-/** the rack's windows in registration order: titles come from its WINDOW menu rows, state from capture() */
+/** the rack's windows in registration order: rack.windows() (1.5.0-alpha.5); an older rack is read from its WINDOW
+ *  menu rows and capture() */
 function windowsOf(rack) {
   if (!rack) return [];
+  if (typeof rack.windows === 'function') return rack.windows();
   const ids = rack.registered || [], rows = (rack.windowMenu ? rack.windowMenu() : []).filter(Boolean);
   const cards = new Map(((rack.capture && rack.capture().cards) || []).map((c) => [c.id, c]));
   return ids.map((id, i) => {
@@ -135,7 +145,16 @@ function windowsOf(rack) {
   });
 }
 
-export function createDescribe({ app = {}, rack = null, params = [], pages = null, keys = null, prefs = null, mod = null,
+/** the one clock and modulation's power: { playing, tempo, power } from the transport bar and the modulation seam */
+function clockOf(transport, mod) {
+  if (!transport && !mod) return null;
+  const has = (k) => !!mod && typeof mod[k] === 'function';
+  const pressed = transport && transport.el && transport.el.play ? transport.el.play.getAttribute('aria-pressed') : null;
+  return { playing: pressed !== null ? pressed === 'true' : has('playing') ? mod.playing() : undefined,
+    tempo: transport ? transport.bpm : has('bpm') ? mod.bpm() : undefined, power: has('power') ? mod.power() : undefined };
+}
+
+export function createDescribe({ app = {}, rack = null, params = [], pages = null, keys = null, prefs = null, mod = null, transport = null,
   doc = globalThis.document || null, mount = true, max = 20 } = {}) {
   const t0 = globalThis.performance ? performance.now() : Date.now();
   const at = () => Math.round((globalThis.performance ? performance.now() : Date.now()) - t0);
@@ -146,7 +165,8 @@ export function createDescribe({ app = {}, rack = null, params = [], pages = nul
     return {
       app,
       windows: windowsOf(rack),
-      params: params.map((p) => {
+      clock: clockOf(transport, mod),
+      params: (typeof params === 'function' ? params() : params).map((p) => {
         const driven = !!(mod && mod.isModulated(p.id));
         return { id: p.id, label: p.label, unit: p.unit || '', min: p.min, max: p.max, value: driven ? mod.currentOf(p.id) : p.get(), driven, base: driven ? mod.baseOf(p.id) : undefined };
       }),

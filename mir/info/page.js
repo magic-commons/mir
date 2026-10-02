@@ -27,12 +27,15 @@
  *                  layer's document-wide overlay (info/layer.js, THE OVERLAY).
  *   THE GREETING   greet() shows pages[0] when pages.shouldGreet(): it holds still 2500 ms, then leaves on Escape or
  *                  on the first press on the stage (the layer is click-through, so that press still reaches the app).
+ *                  `first: true` shows only its first part, up to the first `---`.
  *
  *   parsePage(md)                      → { blocks: [{ md }], labels: [{ anchor, kind, line, title, md }] }
  *   anchorKind(anchor)                 → 'feature' | 'place' | 'control'
  *   showPage(layer, page, { place?, controls?, pane?, hold? }) → { clear(), page, labels, blocks }
  *     page: a pages-model row ({ md }), a markdown string, or a parsed page
- *   greet(layer, pages, { hold?, pane?, place?, controls?, onDismiss? }) → { dismiss(), shown } */
+ *   greet(layer, pages, { hold?, first?, pane?, place?, controls?, onDismiss? }) → { dismiss(), shown }
+ *     first: true shows only the page's first part, up to its first `---` (a long page would fill the picture)
+ *   firstPart(md)                      → the markdown up to the first `---` */
 
 const CALLOUT = /^\s{0,3}>\s?\[!mir\|([^\]\s|]+)(?:\s+([a-z-]+))?\s*\][+-]?[ \t]*(.*)$/i;
 const FENCE = /^\s{0,3}(`{3,}|~{3,})/;
@@ -73,6 +76,24 @@ export function parsePage(md) {
   }
   flush();
   return { blocks, labels };
+}
+/** firstPart(md) — the page up to its first `---` (front matter and fenced code read as parsePage reads them) */
+export function firstPart(md) {
+  const lines = String(md ?? '').replace(/^﻿/, '').replace(/\r\n?/g, '\n').split('\n');
+  let i = 0, fence = null;
+  if ((lines[0] || '').trim() === '---') {
+    const end = lines.findIndex((l, k) => k > 0 && l.trim() === '---');
+    if (end > 0 && lines.slice(1, end).every((l) => /^\s*$|^[\w-]+\s*:|^\s+|^\s*-\s/.test(l))) i = end + 1;
+  }
+  const start = i;
+  for (; i < lines.length; i++) {
+    const line = lines[i];
+    if (fence) { if (line.trim().startsWith(fence)) fence = null; continue; }
+    const f = FENCE.exec(line);
+    if (f) { fence = f[1][0].repeat(3); continue; }
+    if (RULE.test(line) && lines.slice(start, i).some((l) => l.trim())) break;   // a rule before any words is not an end
+  }
+  return lines.slice(start, i).join('\n');
 }
 function trimBlank(ls) { let a = 0, b = ls.length; while (a < b && !ls[a].trim()) a++; while (b > a && !ls[b - 1].trim()) b--; return ls.slice(a, b); }
 
@@ -118,9 +139,10 @@ export function showPage(layer, page, { place = null, controls = null, pane, hol
 
 /** greet(layer, pages, opts) — page 0, if the project wants it: still for `hold` ms, then gone on Escape or on the
  *  first press on the stage.  No title card, no chrome: it is the page, shown as a block. */
-export function greet(layer, pages, { hold = 2500, onDismiss = null, ...opts } = {}) {
+export function greet(layer, pages, { hold = 2500, onDismiss = null, first = false, ...opts } = {}) {
   if (!pages || !pages.shouldGreet()) return { shown: false, dismiss() {} };
-  const shown = showPage(layer, pages.greeting(), { ...opts, hold });
+  const g = pages.greeting();
+  const shown = showPage(layer, first ? firstPart(typeof g === 'string' ? g : g && g.md) : g, { ...opts, hold });
   const stage = layer.stage, win = (stage && stage.ownerDocument.defaultView) || globalThis;
   const life = new AbortController(), until = performance.now() + hold;
   let gone = false;

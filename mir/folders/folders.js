@@ -57,6 +57,29 @@ export function localPrefs(storage, key) {
   };
 }
 
+/** freeSeat({ vw, vh, w, h, minH, clear, top, margin }) → { x, y, h? } — pure: where a new floating window lands.
+ *  `clear` are rects to keep off (rack.keepClear(): the racks showing a window, the transport bar).  A rect at the
+ *  left or right edge is a rack and narrows the free stage; the window is centred in what is left, `top` px down.  Any
+ *  other rect below it (the transport) shortens the window to end above it (never under `minH`); one above it pushes
+ *  it down. */
+export function freeSeat({ vw, vh, w, h, minH = 360, clear = [], top = 72, margin = 16 }) {
+  let L = margin, R = vw - margin;
+  const bars = [];
+  for (const r of clear) {
+    if (r.left <= 24) L = Math.max(L, r.right + margin);             // a rack at an edge narrows the free stage
+    else if (r.right >= vw - 24) R = Math.min(R, r.left - margin);
+    else bars.push(r);
+  }
+  if (R - L < w) { L = margin; R = vw - margin; }                     // no room between the racks: the whole stage
+  const x = Math.round(Math.max(margin, Math.min(vw - w - margin, (L + R) / 2 - w / 2)));
+  let y = top, hh = Math.min(h, vh - top - margin);
+  const across = bars.filter((r) => r.right > x && r.left < x + w);
+  for (const r of across) if (r.bottom <= vh / 2 && r.bottom + margin > y) y = Math.round(r.bottom + margin);
+  hh = Math.min(hh, vh - y - margin);
+  for (const r of across) if (r.top > vh / 2 && y + hh > r.top - margin) hh = Math.max(minH, Math.round(r.top - margin - y));
+  return hh < h ? { x, y, h: hh } : { x, y };
+}
+
 /** toThumb(src, { max, type }) → Promise<data URL | ''> — a canvas, a Blob or a data URL made small for the library */
 export async function toThumb(src, { max = 320, type = 'image/jpeg', quality = 0.84 } = {}) {
   try {
@@ -271,10 +294,14 @@ export function createFolders(options = {}) {
     onEnvelope: (env) => { importEnvelope(env); },
     onReject: (r) => say(t('Could not open that file: {why}', { why: (r.errors && r.errors[0] && r.errors[0].why) || 'unknown' }), true) });
 
-  /* ── the first seat: top right, clear of a rack (the app says where), unless a hand already placed it ── */
-  const firstSeat = typeof o.firstSeat === 'function' ? o.firstSeat
-    : () => ({ x: Math.max(16, view.innerWidth - (o.size ? o.size.w : 380) - 88), y: 72 });
-  const seatOnce = () => { if (win.state().x == null) { const s = firstSeat(); if (s) win.place({ x: s.x, y: s.y }); } };
+  /* ── the first seat: centred in the free stage, clear of the racks and the transport (the rack says where they are),
+        unless the app says where or a hand already placed it ── */
+  const firstSeat = typeof o.firstSeat === 'function' ? o.firstSeat : () => {
+    const st = win.state(), rack = typeof o.rack === 'function' ? o.rack() : o.rack;
+    return freeSeat({ vw: view.innerWidth, vh: view.innerHeight, w: st.w || 380, h: st.h || 680, minH: (o.min || { h: 360 }).h,
+      clear: rack && typeof rack.keepClear === 'function' ? rack.keepClear() : [] });
+  };
+  const seatOnce = () => { if (win.state().x == null) { const s = firstSeat(); if (s) win.place(s.h ? { x: s.x, y: s.y, h: s.h } : { x: s.x, y: s.y }); } };
   if (win.isOpen()) seatOnce();
 
   return {

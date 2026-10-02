@@ -6,38 +6,18 @@
 <meta name="color-scheme" content="light dark">
 <title>STARTER · an MIR app</title>
 <!-- THE STARTER: the smallest whole MIR app.  Copy this folder, keep the kit beside it (../mir, ../fonts, ../LLM.md),
-     and change the picture in app.js.  The kit's sheets come first, in this order; the app's own rules come after them
-     and only lay the page out.  modwindow.css is LAST: nothing may follow it. -->
-<link rel="stylesheet" href="../mir/css/base.css">
-<link rel="stylesheet" href="../mir/css/skin.css">
-<link rel="stylesheet" href="../mir/css/tokens.css">
-<link rel="stylesheet" href="../mir/locales/locales.css">
-<link rel="stylesheet" href="../mir/shell/shell.css">
-<link rel="stylesheet" href="../mir/shell/stage.css">
-<link rel="stylesheet" href="../mir/core/core.css">
-<link rel="stylesheet" href="../mir/window/window.css">
-<link rel="stylesheet" href="../mir/shell/rack.css">
-<link rel="stylesheet" href="../mir/shell/pages.css">
-<link rel="stylesheet" href="../mir/shell/parts.css">
-<link rel="stylesheet" href="../mir/shell/gui.css">
-<link rel="stylesheet" href="../mir/fx/fx.css">
-<link rel="stylesheet" href="../mir/keyboard/keyboard.css">
-<link rel="stylesheet" href="../mir/folders/folders.css">
-<link rel="stylesheet" href="../mir/info/faces.css">
-<link rel="stylesheet" href="../mir/info/info.css">
+     and change the picture in app.js.  mir.css is every kit sheet in the kit's order; the app's own rules only lay
+     the page out, and never restyle a kit part. -->
+<link rel="stylesheet" href="../mir/mir.css">
 <style>
-  /* the app's own: where the picture and the window layer sit.  Never restyle a kit part here. */
+  /* the app's own: where the picture sits */
   #picture { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-  #windows { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
 </style>
-<link rel="stylesheet" href="../mir/modulation/modhost.css">
-<link rel="stylesheet" href="../mir/modulation/modwindow/modwindow.css">
 </head>
 <body data-theme="dark" data-card="tinted">
 <div id="lab">
   <div id="stage"><canvas id="picture" aria-hidden="true"></canvas></div>
 </div>
-<div id="windows"></div>
 <script type="module">
   /* the boot card shows while the app starts, and says in plain words what went wrong if it cannot */
   import { bootCard } from '../mir/shell/boot.js';

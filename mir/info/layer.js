@@ -10,7 +10,9 @@
  *                          the pointer has crossed the subject's centre line by 8 % of the stage width AND stayed there
  *                          350 ms.
  *   REACHING IS NOT FLEEING  a pointer moving toward a block, or on it, never moves it, and lifts it to full strength.
- *   HOLD STILL             Space held (or a long press on touch) freezes every body at full strength.
+ *   HOLD STILL             I held (or a long press on touch) freezes every body at full strength.  Space is the app's
+ *                          one play.  With an app key table (`keys`), the key is a row in it (infoActions) and the
+ *                          layer listens to no key of its own, so the menus and the help view list it.
  *   THE PIN                the first time a block moves away, a small pin shows on it once: this is intended.
  *   FOLLOWING              labels trail their anchors on the spring (viewChanged()), so lines stretch and settle.
  *   EDIT                   a label can be dragged; its neighbours yield through the same force step; the line stays
@@ -31,9 +33,9 @@
  * anchor a label rests on is chosen by info/seats.js, under the force.  CONTROLS: `ui:name` anchors follow an element
  * anywhere in the document; their lines are drawn on THE OVERLAY (below).
  *
- * createInfoLayer({ stage, host, subject, features, style, follow, lines, parallax, drift, pane, controls })
+ * createInfoLayer({ stage, host, subject, features, style, follow, lines, parallax, drift, pane, controls, keys })
  *   → { addLabel({ anchor, title, md, line, control }), addBlock({ md, hold, pane }), setStyle(s), setFollow(on),
- *       setLines(on), setEdit(on), setPane(on), setParallax(on), setDrift(on), freeze(on), viewChanged(), replay(),
+ *       setLines(on), setEdit(on), setPane(on), setParallax(on), setDrift(on), freeze(on), hold(on), viewChanged(), replay(),
  *       clear(kind?), debug(), destroy(), root, stage }
  *   anchor: a feature id (looked up in features() every view change), 'ui:name' (a control), { x, y, r }, or
  *   () => { x, y, r } | null.  Each add returns { el, remove(), id }.  Pages: info/page.js. */
@@ -83,7 +85,16 @@ const spring = () => {
   return (SPRING = ok ? s : { easing: motionToken('out'), ms: 300 });
 };
 
-export function createInfoLayer({ stage, host = stage.parentElement, subject = null, features = null, style = 'auto', follow = true, lines = true, parallax = true, drift = false, pane = false, controls = null } = {}) {
+/** the hold-still key: neither BASINS nor λWAVES has one, and Space is the app's one play, so I (for INFORMATIONAL) */
+export const HOLD_KEY = 'KeyI';
+/** infoActions(get) — the key table's row for hold-still (shell/keys.js; an action with `up`): put it in the app's
+ *  table and pass the table as `keys`, so the layer has no listener of its own.  get() → the layer (or null). */
+export function infoActions(get, { keys = ['I'] } = {}) {
+  return [{ id: 'info-hold', label: 'HOLD THE WORDS STILL', group: 'VIEW', keys, hint: 'hold: the words on the picture stay where they are',
+    run: () => { const l = get(); if (l) l.hold(true); }, up: () => { const l = get(); if (l) l.hold(false); } }];
+}
+
+export function createInfoLayer({ stage, host = stage.parentElement, subject = null, features = null, style = 'auto', follow = true, lines = true, parallax = true, drift = false, pane = false, controls = null, keys = null } = {}) {
   const doc = stage.ownerDocument, win = doc.defaultView;
   const root = doc.createElement('div'); root.className = 'mir-info';
   root.dataset.style = style; root.dataset.lines = lines ? 'on' : 'off';
@@ -631,8 +642,10 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
   };
   win.addEventListener('pointerup', lift, on); win.addEventListener('pointercancel', lift, on);
   const typing = (t) => t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(t.tagName));
-  win.addEventListener('keydown', (e) => { if (e.code === 'Space' && !typing(e.target)) { e.preventDefault(); if (!e.repeat && !held) hold(true); } }, { signal: life.signal });
-  win.addEventListener('keyup', (e) => { if (e.code === 'Space' && held) hold(false); }, { signal: life.signal });
+  if (!keys) {                                                      // no key table: the layer's own listener, on HOLD_KEY
+    win.addEventListener('keydown', (e) => { if (e.code === HOLD_KEY && !e.ctrlKey && !e.metaKey && !e.altKey && !typing(e.target)) { e.preventDefault(); if (!e.repeat && !held) hold(true); } }, { signal: life.signal });
+    win.addEventListener('keyup', (e) => { if (e.code === HOLD_KEY && held) hold(false); }, { signal: life.signal });
+  }
   win.addEventListener('resize', () => api.viewChanged(), on);
   win.addEventListener('scroll', () => { stageBox = null; }, { ...on, capture: true });
   /* a face that arrives late (KaTeX's, or the real serif one day) changes every size: measure again, then glide */
@@ -712,6 +725,8 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
     setLines(v) { root.dataset.lines = v ? 'on' : 'off'; if (over) over.dataset.lines = root.dataset.lines; schedule(); },
     setEdit(v) { edit = !!v; setAttr(root, 'data-edit', edit ? '' : null); },
     freeze(v) { userFrozen = !!v; applyFreeze(); },
+    /** hold(on) — hold-still, as the key does while it is held (infoActions) */
+    hold(v) { if (!!v !== held) hold(!!v); },
     /** viewChanged() — the picture moved: anchors and subject are read again and the labels follow on the spring */
     viewChanged() {
       if (destroyed) return;

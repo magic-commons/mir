@@ -122,12 +122,12 @@ try {
     await wait(300); T.motion.setMotionPolicy('auto'); return { n: kf.length, moves };`);
   check('reduced motion: the entrance is an opacity fade only', r.n > 0 && !r.moves, JSON.stringify(r));
 
-  /* ── HOLD STILL: Space freezes everything ── */
-  await p.send('Input.dispatchKeyEvent', { type: 'keyDown', key: ' ', code: 'Space', windowsVirtualKeyCode: 32 });
+  /* ── HOLD STILL: I freezes everything (1.5.0-alpha.5: Space is the app's one play) ── */
+  await p.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'i', code: 'KeyI', windowsVirtualKeyCode: 73 });
   r = await run(`await wait(30); const f = D().frozen; const h = document.querySelector('.mir-info').hasAttribute('data-hold'); return { f, h };`);
-  await p.send('Input.dispatchKeyEvent', { type: 'keyUp', key: ' ', code: 'Space', windowsVirtualKeyCode: 32 });
+  await p.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'i', code: 'KeyI', windowsVirtualKeyCode: 73 });
   const after = await run(`await wait(30); return D().frozen;`);
-  check('hold still: Space held freezes the layer; released, it lets go', r.f && r.h && after === false, JSON.stringify({ ...r, after }));
+  check('hold still: I held freezes the layer; released, it lets go', r.f && r.h && after === false, JSON.stringify({ ...r, after }));
 
   /* ── the idle law ── */
   await mouse('mouseMoved', 640, 780);

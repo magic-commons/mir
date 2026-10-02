@@ -27,7 +27,9 @@
  *   6. IDLE COSTS NOTHING: no timers, no polling; the listener is one map lookup per keydown.
  *
  * createKeys({ actions, storage?, platform?, target? }) → the table (API at the foot of this header).
- *   action  { id, label, group, keys: ['Mod+S', …], run(event, action), when?(), hint?, inFields?, repeat?, short? }
+ *   action  { id, label, group, keys: ['Mod+S', …], run(event, action), when?(), hint?, inFields?, repeat?, short?, up? }
+ *           up(event, action): a HELD key — run() on the press, up() on that key's release (or when the page loses
+ *           the focus); INFORMATIONAL's hold-still is one (info/layer.js infoActions)
  *           label/group/hint/short are English; `short` is the name a key cap carries (default: the label)
  *   storage { get() → saved object | JSON string | null, set(object) }   (localKeyStorage(name) is one over localStorage)
  *   platform 'mac' | 'other' (default: detected)
@@ -299,9 +301,18 @@ export function createKeys({ actions = [], storage = null, platform = detectPlat
     const a = pickAction(entries(), chord, { field, repeat: e.repeat });
     if (!a) return;
     e.preventDefault();
+    if (a.up) held.set(e.code, a);
     try { a.run && a.run(e, a); } catch (err) { console.warn('keys: ' + a.id, err); }
   };
-  if (view) view.addEventListener('keydown', onKey, { signal: life.signal });
+  /* A HELD KEY (an action with `up`, e.g. INFORMATIONAL's hold-still): its key's release runs up(), and so does
+     leaving the page, so a key let go elsewhere never sticks */
+  const held = new Map();
+  const release = (code) => { const a = held.get(code); if (!a) return; held.delete(code); try { a.up(null, a); } catch (err) { console.warn('keys: ' + a.id, err); } };
+  if (view) {
+    view.addEventListener('keydown', onKey, { signal: life.signal });
+    view.addEventListener('keyup', (e) => { if (held.has(e.code)) { e.preventDefault(); release(e.code); } }, { signal: life.signal });
+    view.addEventListener('blur', () => { for (const code of [...held.keys()]) release(code); }, { signal: life.signal });
+  }
 
   function record() {
     if (rec) rec.done(null);

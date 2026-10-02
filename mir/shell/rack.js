@@ -32,7 +32,8 @@
  *      rack order, through an injected store; readLayout() repairs anything it is handed (unknown ids are dropped,
  *      never thrown on), and reads λWAVES' and BASINS' saved layouts (side 'L'/'R', `closed`) as they are.
  *
- * createRack(options) → api — see docs/RACK.md.  The pure helpers are exported for node tests. */
+ * createRack(options) → api — see docs/RACK.md.  windows() lists the windows with their titles and state (for describe()
+ * and the openers); keepClear() gives the rects a new floating window should not land on (FOLDERS' first seat).  The pure helpers are exported for node tests. */
 import { el, device, chip } from '../kit.js';
 import { drag } from '../core/pointer.js';
 import { flip, sequence, motionPolicy, motionToken } from '../core/motion.js';
@@ -826,6 +827,16 @@ export function createRack({ host = globalThis.document && document.body, sides 
     get built() { return built; },
     get registered() { return [...reg.keys()]; },
     isBuilt: (id) => !!(reg.get(id) && reg.get(id).dev),
+    /** windows() — every registered window, in registration order: [{ id, title, side, open, built, floating, folded }] */
+    windows: () => [...reg.values()].map((w) => ({ id: w.spec.id, title: w.spec.title, side: (w.dev && w.dev.root.parentElement && w.dev.root.parentElement.dataset.side) || w.spec.side, open: isOpen(w.spec.id), built: !!w.dev,
+      floating: !!(w.dev && w.dev.root.classList.contains('floating')), folded: !!(w.dev && w.dev.root.classList.contains('folded')) })),
+    /** keepClear() — the rects a new floating window should not land on: each rack showing a window, and the transport */
+    keepClear() {
+      const out = [];
+      for (const side of SIDES) { const rk = racks[side]; if (rk && cards(rk).length && !(isHidden() && peek !== side)) out.push(rk.getBoundingClientRect()); }
+      if (transport && transport.isConnected && transport.offsetWidth) out.push(transport.getBoundingClientRect());
+      return out.map((r) => ({ left: r.left, top: r.top, right: r.right, bottom: r.bottom }));
+    },
     /** spec(id) — a registered window's own description ({ id, title, side, glyph, key, hint, … }), for the transport's openers */
     spec: (id) => (reg.get(id) ? { ...reg.get(id).spec } : null),
     window: (id) => (reg.get(id) && reg.get(id).api) || null,

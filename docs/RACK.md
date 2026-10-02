@@ -25,6 +25,10 @@ createMenubar({ opener, menus: { WINDOW: () => rack.windowMenu({ rack: true, rac
 kitWindow = createWindow({ …, onMoved: (r) => rack.dodge(r) });   // the transport gives way to it
 ```
 
+With `createApp()` (`mir/app.js`) the rack is made for you (`app.rack`, with the bar as its transport and no `+`/☆ chrome of its own: the bar's latches open the windows); register with `open: !app.first` so a first run shows only the bar. The rack's float layer (`rack.el.floats`, `#floats`) is where the kit's own windows go too (modulation, FOLDERS, GUI, the keys' help): they take the pointer there, so an app writes no window layer of its own.
+
+`rack.windows()` lists every registered window, in registration order: `[{ id, title, side, open, built, floating, folded }]` (what `describe()` and the openers read). `rack.keepClear()` gives the rects a new floating window should not land on: each rack showing a window, and the transport bar (FOLDERS' first seat asks it).
+
 A registered window costs one Map entry. Its `device()` shell is made, and its `build(body, api)` runs, the **first time it opens**: from `+`, from the WINDOW menu, from a saved layout, or because it was registered with `open: true`. A window that is never opened is never in the DOM.
 
 ## The API, as built

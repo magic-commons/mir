@@ -18,13 +18,13 @@ MIR is a kit of plain ES modules and CSS with no build step and no dependencies.
 
    The app is `myapp/app/index.html` + `myapp/app/app.js`; it reads the kit at `../mir/` and its greeting at `../LLM.md`. Never edit anything in `myapp/mir/` or `myapp/fonts/`.
 3. **Change the starter, section by section** (each section of `app.js` starts with a `// ──` line saying what to change):
-   - THE NAME first: `APP` (a unique id; it names every store) and `NAME`.
-   - THE PICTURE: replace `S` and `draw()` with the game. Keep the loop on `frame.coalesce`.
-   - THE PARAMETERS: one `param(key, label, min, max)` per number a player may turn. Each becomes a kit knob (or fader) **and** a target the modulation window can drive.
-   - THE RACK: one `rack.register({ id, title, side, build })` per window, its controls from the kit's builders.
-   - THE KEYS: one row per action in `createKeys({ actions })`; the menus show `keys.menuItem(id)`.
-   - FOLDERS: what a saved game holds, in `registerProjectPart`.
-   - THE PAGES: keep `LLM.md` as page 0 while you build; when the app is done you may replace it with the app's own greeting (page 0 is what greets; `shared: true` is what a visiting model may read).
+   - THE NAME first: `KEY` (a unique id; it names every store) and `NAME`.
+   - THE NUMBERS and THE PICTURE: replace `S` and `draw()` with the game. Keep the loop on `frame.coalesce`; it runs while the app's one clock plays (`app.playing()`).
+   - THE APP: `createApp({ … })` wires everything; change its words, `pages`, `menus` and `keys` (one row per action: `{ id, label, group, keys, run }`; menus show `app.keys.menuItem(id)`). Space is already the one play.
+   - THE PARAMETERS: one `app.param(key, label, min, max)` per number a player may turn. Each becomes a kit knob (or fader), a target the modulation window can drive, **and** part of a saved game.
+   - THE RACK: one `app.rack.register({ id, title, side, open: !app.first, build })` per window; each gets a latch on the transport bar, which is the main opener (a first run shows only the bar).
+   - Anything else a saved game holds: `registerProjectPart(name, { capture, restore })`.
+   - THE PAGES: keep `LLM.md` as page 0 while you build; when the app is done you may replace it with the app's own greeting (page 0 is what greets, up to its first `---`; `shared: true` is what a visiting model may read).
 4. **Keep the one rule: the kit draws; you never restyle a kit part.** Pass data and options to the builders (`knob`, `fader`, `sw`, `seg`, `trig`, `readout`, `rack.register`, `createWindow`, `notice`, `openDialog` …). Write CSS only to lay out your own picture and your own non-kit elements. If the kit lacks a part, build it plainly in your own file and say so in your answer. No accent fills for ON, no dark scrims, light from above (see LLM.md §5).
 
 ## Run it and check it

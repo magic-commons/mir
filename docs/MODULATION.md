@@ -4,40 +4,46 @@ The modulation plugin is the kit's LFO / envelope / audio-follower rack with mac
 
 ## Add it to an app
 
+**The short form** (1.5.0-alpha.5): `createApp()` (`mir/app.js`) installs modulation, puts its power and its door on the transport bar, and makes every `app.param()` a target.
+
+```js
+import { createApp } from './mir/app.js';
+const app = await createApp({ name: 'MYAPP', stage, state: S, present: redraw });
+const size = app.param('size', 'SIZE', 0, 1);          // a knob, a target ('app.size') and a saved value, in one line
+app.rack.register({ id: 'more', title: 'MORE', build(body) {
+  body.append(app.param('bright', 'BRIGHT', 0, 1, { make: fader }).root);   // made in a lazy window: a target when it is built
+} });
+if (app.first) app.mod.route('lfo', 'app.size', 0.35);  // a first route in one call
+```
+
+**The long form**, the same seam by hand:
+
 ```html
-<link rel="stylesheet" href="mir/css/base.css">
-<link rel="stylesheet" href="mir/css/skin.css">
-<link rel="stylesheet" href="mir/modulation/modwindow/modwindow.css">
-<link rel="stylesheet" href="mir/modulation/modhost.css">
-<link rel="stylesheet" href="mir/core/core.css">
+<link rel="stylesheet" href="mir/mir.css">   <!-- or, one by one: base.css, skin.css, …, modhost.css, modwindow.css -->
 ```
 
 ```js
-import { knob, fader } from './mir/kit.js';
+import { makeParam } from './mir/app.js';
 import { installModulation } from './mir/modulation/bind.js';
 import { observeSpan } from './mir/window/dock.js';
 
-const size = knob({ label: 'SIZE', min: 0, max: 1, value: S.size,
-  onInput: (v) => { if (!mod.hand('scene.size', v)) { S.size = v; redraw(); } } });   // the hand law
-const bright = fader({ label: 'BRIGHT', min: 0, max: 1, value: S.bright,
-  onInput: (v) => { if (!mod.hand('scene.bright', v)) { S.bright = v; redraw(); } } });
-
 const mod = installModulation({
-  mount: document.getElementById('floats'),                       // where the window and its rail go
-  params: [
-    { id: 'scene.size', label: 'SIZE', min: 0, max: 1, map: 'linear', get: () => S.size, set: (v) => { S.size = v; redraw(); }, widget: size },
-    { id: 'scene.bright', label: 'BRIGHT', min: 0, max: 1, map: 'linear', get: () => S.bright, set: (v) => { S.bright = v; redraw(); }, widget: bright },
-  ],
+  mount: rack.el.floats,                                          // the kit's float layer: the window takes the pointer there
   present: redraw,                                                // the app draws a frame
   storageKey: 'myapp.modulation', presetKey: 'myapp.modpresets',  // name your own stores
   dock: { span: observeSpan({ left: rackL, right: rackR }) },     // ONE span per page, shared with every window
   audio: createAudioCapture,                                      // optional: the app's microphone edge (lab/audio.js)
 });
-menuItem('MODULATION', () => mod.toggle());
-playButton.onclick = () => mod.togglePlay();      // the app's ONE play: it starts and stops time
-modPowerButton.onclick = () => mod.togglePower(); // the transport bar's MOD power: the same power as the window's
-mod.onPower((on) => modPowerButton.classList.toggle('on', on));
+const size = makeParam({ state: S, key: 'size', label: 'SIZE', min: 0, max: 1, mod, onChange: redraw });   // → mod.add(…)
+// or entirely by hand: a widget whose onInput keeps the hand law, and mod.add({ id, label, min, max, map, get, set, widget })
+const bright = fader({ label: 'BRIGHT', min: 0, max: 1, value: S.bright,
+  onInput: (v) => { if (!mod.hand('app.bright', v)) { S.bright = v; redraw(); } } });            // the hand law
+const off = mod.add({ id: 'app.bright', label: 'BRIGHT', min: 0, max: 1, get: () => S.bright, set: (v) => { S.bright = v; redraw(); }, widget: bright });
+const first = mod.route('lfo', 'app.size', 0.35);                // → { route, macro, source, remove() }
+tr = createTransport({ clock: { play: () => mod.play(true), pause: () => mod.play(false), isPlaying: mod.playing, onChange: mod.onPlay }, mod, … });
 ```
+
+`params` can still be passed to `installModulation` up front, as before; `add` is for the ones that come later. A project saves `size.value()` (the base), never `S.size` while a route drives it.
 
 That is the whole seam. `installModulation` registers every parameter as a target, writes `data-param` on each widget (the routing's one hook) and its `setBase` road, runs the clock through the one frame while it plays, paints routed widgets from the registry each tick, persists the rack and the window, and mounts the window.
 
@@ -45,9 +51,9 @@ That is the whole seam. `installModulation` registers every parameter as a targe
 
 | Option | What it is | Default |
 |---|---|---|
-| `mount` | the element the window and its rail are appended to | required |
+| `mount` | the element the window and its rail are appended to (the rack's `#floats`); `null`: the seam with no window, for node | required |
 | `params` | `[{ id, label, unit, group, hint, min, max, step, map, def, get(), set(v), widget }]`. `id` is `root.name`; `map` is `linear`, `log`, `wrap`, `integer` or `bipolar`; `widget` is a kit `knob()` or `fader()` (anything with `.root`, and `setBase`/`show`/`set` if it has them) | `[]` |
-| `roots` | the registry's id roots | the first segment of every id |
+| `roots` | the registry's id roots (a target added later must sit under one) | the first segment of every id, and `app` |
 | `available()` | may modulation write now (BASINS: `flowActive`; NEBULA: the instrument is ready) | always |
 | `present()` | ask the app for a frame | none |
 | `onWindow(open)` | the window opened or closed | none |
@@ -63,7 +69,9 @@ That is the whole seam. `installModulation` registers every parameter as a targe
 | `enabled` | the MOD arm at first boot | `true` |
 | `showWidgets` | paint routed widgets from the registry each tick | `true` |
 
-It returns `{ host, view, registry, M, open(), close(), toggle(), isOpen, power(), setPower(on), togglePower(), onPower(fn) → off, play(on), togglePlay(), playing(), onPlay(fn) → off, isModulated(id), baseOf(id), currentOf(id), hand(id, v), running(), bpm(), syncBases(), paintWidgets(), persist(), dispose() }`. The stored record is `{ modulationState, modwin, modArm, modCadence, audioDevice }` — the same shape SOLEIL and NEBULA already write, so their settings carry over. `arm(on)`, `armed()` and `onArm(fn)` are the 1.4 names of `setPower`, `power` and `onPower`, kept as aliases.
+It returns `{ host, view, registry, M, open(), close(), toggle(), isOpen, power(), setPower(on), togglePower(), onPower(fn) → off, play(on), togglePlay(), playing(), onPlay(fn) → off, add(param) → remove(), remove(id), route(source, id, depth) → { route, macro, source, remove() } | null, params(), isModulated(id), baseOf(id), currentOf(id), hand(id, v), running(), bpm(), syncBases(), paintWidgets(), persist(), dispose() }`. The stored record is `{ modulationState, modwin, modArm, modCadence, audioDevice }` — the same shape SOLEIL and NEBULA already write, so their settings carry over. `arm(on)`, `armed()` and `onArm(fn)` are the 1.4 names of `setPower`, `power` and `onPower`, kept as aliases.
+
+**`add(param)`** registers one more target after the install (a param as in `params`); an id already added is replaced, keeping its base and routes; a route saved or made against it while it was missing was dormant and wakes now. It returns `remove()`. **`remove(id)`** takes the target away **and every route onto it**, leaving its number on its base. **`route(source, id, depth = 0.5)`**: `source` is a source id, a source, or a kind (`'lfo'`, `'env'`, `'audio'`: the first of that kind, made if none); a macro already carrying that source takes the route, else a free macro; the route swings `depth` of the range up from the base (negative: down). Its `remove()` takes the route away, frees the macro if it bound it, and removes the source if it made it. Play stays the app's: `installModulation` never plays, and power is on unless the stored record or `enabled: false` says otherwise.
 
 ### `createModulation(host, port)` — `mir/modulation/window.js`
 

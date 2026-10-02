@@ -51,23 +51,24 @@ There is no tutorial, guide or tour machinery, and no title card. A guide is wha
 ## The API as built
 
 ```js
-import { createInfoLayer } from './mir/info/layer.js';      // + link mir/info/faces.css, then mir/info/info.css
-import { showPage, greet, parsePage } from './mir/info/page.js';
+import { createInfoLayer, infoActions } from './mir/info/layer.js';   // the sheets: mir/mir.css (or faces.css, then info.css)
+import { showPage, greet, parsePage, firstPart } from './mir/info/page.js';
 import { createPages, pageFromFile } from './mir/shell/pages.js';
 
 const layer = createInfoLayer({ stage, host?, subject?: () => rect, features?: () => [{ id, x, y, r }],
-  style?, follow?, lines?, parallax?, drift?, pane?, controls? });
+  style?, follow?, lines?, parallax?, drift?, pane?, controls?, keys? });   // keys: the app's table (below)
 
 const shown = showPage(layer, page, { place?, controls?, pane?, hold? });   // page: a pages row, a markdown string, or parsePage(md)
 shown.clear();                                   // → a promise, once its exit has landed
-const g = greet(layer, pages, { hold: 2500, onDismiss?, place?, controls?, pane? });   // → { shown, dismiss() }
+const g = greet(layer, pages, { hold: 2500, first?, onDismiss?, place?, controls?, pane? });   // → { shown, dismiss() }
+firstPart(md)                                    // the page up to its first `---`
 
 parsePage(md) → { blocks: [{ md }], labels: [{ anchor, kind: 'feature' | 'place' | 'control', line, title, md }] }
 
 layer.addLabel({ anchor, title, md, line?, control? })   // anchor: a feature id, 'ui:name', { x, y, r }, or () => { x, y, r } | null
 layer.addBlock({ md, hold, pane? })                      // pane: true / false; omitted → the layer's default
 layer.setPane(on); layer.setStyle('auto' | 'diagonal-first' | 'flat-first'); layer.setFollow(on); layer.setLines(on);
-layer.setEdit(on); layer.freeze(on); layer.setParallax(on); layer.setDrift(on);
+layer.setEdit(on); layer.freeze(on); layer.hold(on); layer.setParallax(on); layer.setDrift(on);
 layer.viewChanged();                    // the picture moved: anchors, places and controls are read again
 layer.replay(); layer.clear(kind?); layer.debug(); layer.destroy(); layer.root; layer.stage;
 ```
@@ -76,6 +77,9 @@ layer.replay(); layer.clear(kind?); layer.debug(); layer.destroy(); layer.root; 
 - **Places.** The app passes `place(text) → { x, y, r } | null` in stage CSS pixels; `text` is the anchor without its `@`. It is asked again on every `viewChanged()`. Labels on the same place text share one line (a comb).
 - **Features.** A feature id is looked up in `features()` on every view change, as before.
 - **Controls.** `ui:name` is the element with `data-info~="name"` (a space-separated list, so one element can carry several names), else `id="name"`, anywhere in the document. `controls` (on the layer, on `showPage`, or `control` on one label) narrows that: a node to search inside, or a function `name → element`.
+- **With `createApp()`** (`mir/app.js`) the layer and the greeting are made for you (`app.info`, `app.greeting`): `subject` from `createApp({ subject })`, the app's key table as `keys`, and `greet(…, { first: true })`.
+- **Hold still is a key in the app's table.** Pass the app's key table as `keys` and put `...infoActions(() => layer)` in it: hold-still is then the row `info-hold` (I by default, held: an action with `up`), listed in the menus and the help view, and the layer listens to no key of its own. Without `keys` the layer listens to I itself. Space is the app's one play, never the layer's (neither BASINS nor λWAVES has a hold-still key, so I is the kit's choice).
+- **The greeting, first part only.** `greet(…, { first: true })` shows page 0 only up to its first `---` (`firstPart(md)`), so a long page 0 (the starter's is `LLM.md`) greets with its opening and not the whole manual.
 - **The greeting** holds still for `hold` ms (2500 by default). It leaves on Escape, or on the first pointer press on the stage once the hold is over. The layer is click-through, so that press still reaches the app. If another page replaces it first, `dismiss()` only stops listening.
 - **Coordinates:** `subject()`, `features()` and `place()` answer in the stage's own CSS pixels. The layer sits over the stage inside `host` (default: the stage's parent, which must be positioned).
 - **Pure parts:** `info/page.js` (`parsePage`), `info/seats.js` (the seat chooser), `info/leader.js` (`leader`, `comb`, `route`, `toPath`), `info/bodies.js` (`step`, `resolveRests`, `createRunner`).
@@ -108,7 +112,7 @@ A control usually sits outside the stage, in a window or the rack, and those pai
 | **Against the cursor** | A block rests on the far side of the subject. It changes side after the pointer has crossed the centre line by 8 % of the stage width **and** stayed there 350 ms. With no room beside the subject (a phone), it sits above or below instead |
 | **Reaching is not fleeing** | The pointer counts as reaching when it is on the block (+16 px), within 110 px of it, or heading at it within 60° (its speed fades 140 ms after the last move). Reaching never moves the block and lifts it to full strength. The pointer's push on labels uses the same rule: passing by parts them, heading at one pushes nothing |
 | **Strength** | Blocks fall to .5 while the pointer is on the subject and not reaching, and to .55 while they cross over. They are at 1 when reached for or held |
-| **Hold still** | While Space (or a 480 ms touch press) is held, every body freezes at full strength. The lines still track their anchors |
+| **Hold still** | While I (or a 480 ms touch press) is held, every body freezes at full strength. The lines still track their anchors |
 | **The pin** | The first time a block moves away, a small pin shows on it once (1.9 s) |
 | **Following** | `viewChanged()` moves the rests, and the bodies trail on the spring. In steady motion the lag is about 0.11 s × the speed |
 | **Travelling bodies pass through** | A free body more than 48 px from home is travelling, and two travelling bodies do not push each other (a held body still pushes everything, so a carried label's neighbours yield). Without this, two labels whose seats swap, or a label crossing a column of blocks, wedge against each other for good |
@@ -188,7 +192,7 @@ Plan §2.6 said: "if labels end up overlapping in practice, a simple chooser of 
 - `tests/info-words.browser.mjs` on `gallery/info.html?still` (13 checks): checks every page, bare and on a pane, in both themes, once at rest. No leader segment, on the stage or the overlay, runs through any label's or block's words (real rects, real paths through `getScreenCTM`). A vertical run beside words keeps at least 10 px. Run against the previous build it fails on the two cases it was written for: "Next page" (28 px through its own sentence) and "The centre" (7 px from its own body). `?still` stops the picture's clock and the drift so the bodies rest.
 - `tests/info-leader.node.mjs`: 8,000 random leaders in both styles and 3,000 combs. Every segment is 0°, 45° or 90°, each path is connected, starts on the edge and ends at the label.
 - `tests/info-bodies.node.mjs` (17 checks): rest is exact; overlapping bodies separate; the rest pass leaves no overlap; the energy cut-off; the cap and its reset; the pointer parts but a reach does not; a held body does not yield; reduced motion; walls.
-- `tests/info.browser.mjs` on `tests/fixtures/info.html` (21 checks, real pointer): the far side after the dwell and not before; the pin; reaching never moves the block; a dragged line is legal at 44 sampled frames and the neighbour yields; the drop is kept; following lags and lands exactly; reduced motion is a fade; Space holds; click-through; the idle law; lines by job.
+- `tests/info.browser.mjs` on `tests/fixtures/info.html` (21 checks, real pointer): the far side after the dwell and not before; the pin; reaching never moves the block; a dragged line is legal at 44 sampled frames and the neighbour yields; the drop is kept; following lags and lands exactly; reduced motion is a fade; I holds; click-through; the idle law; lines by job.
 - `tests/info-pages.browser.mjs` on `tests/fixtures/info-pages.html` (14 checks, real pointer and keys):
   - a page with a feature, a place and a `ui:` label shows all three with legal lines;
   - the control's line is on the overlay, its dot on the knob in a rack outside the stage;

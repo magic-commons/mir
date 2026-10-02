@@ -28,9 +28,9 @@ A model's app is laid out as the kit is, so the starter's paths hold: `myapp/mir
 
 ## The starter
 
-`starter/index.html` and `starter/app.js` (161 lines) are the smallest whole MIR app: a ring of dots drawn from four numbers on a 2D canvas, with the wordmark and its seven menus, a rack with two windows (one built only when first opened), the modulation window with an LFO driving one number, the notebook whose first page is `LLM.md` (shared, and the greeting on the picture), FOLDERS, a key table and its help view, a notice on save and the boot card. Every section of `app.js` begins with a line saying what it is and what to change. Run it with `npm run gallery` and open `/starter/`.
+`starter/index.html` and `starter/app.js` (69 lines; 161 before 1.5.0-alpha.5) are the smallest whole MIR app: a ring of dots drawn from five numbers on a 2D canvas, with the transport bar as the main opener (a first run shows only the bar; ▶ and Space are the one play, the ring beside it is modulation's power), the wordmark and its seven menus, a rack with two windows (RING built only when first opened, its knob becoming a modulation target then), the modulation window with an LFO driving one number, the notebook whose first page is `LLM.md` (shared, and its first part the greeting on the picture), FOLDERS, a key table and its help view, a notice on save and the boot card. `index.html` loads one stylesheet, `mir/mir.css`. `createApp()` (`mir/app.js`) does the standard wiring in the kit's order and returns every piece; each piece can be left out (`false`), given options, or built by hand. Every section of `app.js` begins with a line saying what it is and what to change. Run it with `npm run gallery` and open `/starter/`.
 
-**The mod pitch, in one function.** `param(key, label, min, max)` in `app.js` makes one number a kit knob and a target the modulation window can drive. A model adds a drivable number to a game with one line.
+**The mod pitch, in one function.** `app.param(key, label, min, max)` (`makeParam` in `mir/app.js`) makes one number a kit knob, a target the modulation window can drive, and a saved value (a project keeps the base, never the modulated reading). A model adds a drivable number to a game with one line, at the top or inside a window's `build`.
 
 ## `LLM.md`
 
@@ -42,12 +42,12 @@ One page, for a model and for a person (it is the starter's greeting): the one r
 
 ```js
 import { createDescribe } from './mir/core/describe.js';
-const d = createDescribe({ app: { name: 'TETRIS', what: 'Falling blocks.' }, rack, params, pages, keys, prefs: gui.prefs, mod });
+const d = createDescribe({ app: { name: 'TETRIS', what: 'Falling blocks.' }, rack, params, pages, keys, prefs: gui.prefs, mod, transport });   // createApp does this
 ```
 
 | | What it gives |
 |---|---|
-| `describe()` | markdown: the app, its windows (open, built, which rack), every parameter with its range and current value (and, if a route drives it, its base), the key actions, and **only the pages marked shared**. The same text sits in the page in a hidden element, `#mir-describe`, for agents that only read the DOM; it is rewritten when the pages or keys change and at the end of a gesture, never on a timer |
+| `describe()` | markdown: the app, the clock (playing, the tempo, modulation's power), its windows (`rack.windows()`: open, built, which rack), every parameter with its range and current value (and, if a route drives it, its base), the key actions, and **only the pages marked shared**. The same text sits in the page in a hidden element, `#mir-describe`, for agents that only read the DOM; it is rewritten when the pages or keys change and at the end of a gesture, never on a timer |
 | `dump()` | one block to paste to a model: the kit version, the browser, the look (skin, theme, card, frost, language, motion, viewport), the GUI preferences, the rack layout, the cost meter (`core/perf.js`), the last 20 errors and the last 20 input events, then `describe()` |
 | `window.__MIR.describe()`, `window.__MIR.dump()` | the same, for an agent with a console |
 | the notebook's ABOUT › COPY DUMP | the dump, when the app passes `dump: () => d.dump()` to `createNotebook` (the starter does) |
@@ -65,5 +65,6 @@ const d = createDescribe({ app: { name: 'TETRIS', what: 'Falling blocks.' }, rac
 ## Proofs
 
 - `tests/describe.node.mjs`: `describe()` lists the windows, the parameters (live values, the modulated base) and the keys, and quotes only shared pages; `dump()` keeps the versions, layout, cost, errors and events, and a secret typed into a field (key by key, and leaked into an error message) is absent, as is the unshared page.
-- `tests/starter.browser.mjs` (real pointer and keys, every press hit-tested with `elementFromPoint`): no console error; the greeting is `LLM.md`'s first heading; a knob drag moves its number; the LFO moves SIZE; the PLAY window is built only when opened; GUI opens MIR OPTIONS; `?` opens the help view; `qps` relabels; SAVE, a knob change and opening the saved project restores it; the hidden describe element holds the shared page and not the unshared one. `MIR_STARTER=/app/index.html` runs it against a copied-out app; `MIR_PLATES=1` writes `docs/plates/starter/{dark,light,modulation}.png`.
+- `tests/app.node.mjs`: `makeParam` (a control, a target, a saved base), `mod.add` after the install (a dormant route wakes), `mod.route`, removing a target removes its routes, FOLDERS' free seat, the greeting's first part, `describe` with `rack.windows()` and the clock. `tests/mir-css.node.mjs`: `mir/mir.css` imports every kit sheet exactly once.
+- `tests/starter.browser.mjs` (real pointer and keys, every press hit-tested with `elementFromPoint`): a first run shows only the bar and a greeting of LLM.md's first part; a latch opens its window; a knob drag moves its number; Space plays and pauses the one clock without touching the power, and the power button leaves play alone; the LFO moves SIZE; the lazy RING window's knob becomes a target when built and a route moves it; FOLDERS opens clear of the racks and the bar; SAVE while routed keeps the base, and OPEN after a knob change restores it; GUI opens; `?` opens the help view; `qps` relabels; describe holds the clock and only the shared page; no console error. `MIR_STARTER=/app/index.html` runs it against a copied-out app; it passes against the built skill (`node tools/make-skill.mjs`, served from `dist/mir-builder/`); `MIR_PLATES=1` writes `docs/plates/starter/{first-run,windows,light}.png`.
 - The built skill: the same test passes against `dist/mir-builder/` served as it is, and against an app copied out of it by `SKILL.md`'s own command.

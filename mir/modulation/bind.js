@@ -9,7 +9,11 @@
  * those seams with their differences as options.
  *   installModulation({ mount, params, … }) → { host, view, registry, M, open, close, toggle, isOpen,
  *     power, setPower, togglePower, onPower (arm, armed, onArm: the same, 1.4 names), play, togglePlay, playing, onPlay,
- *     isModulated, baseOf, currentOf, hand, running, bpm, syncBases, paintWidgets, persist, dispose }
+ *     add, remove, route, params, isModulated, baseOf, currentOf, hand, running, bpm, syncBases, paintWidgets, persist,
+ *     dispose }
+ *   Targets come and go (1.5.0-alpha.5): add(param) registers one more after the install (a lazily built window adds
+ *   its controls when it is built; a route already saved against it wakes up), and its remove() — or remove(id) —
+ *   takes it away with its routes.  route(source, id, depth) is a first route in one call.
  *
  * THE LAWS IT KEEPS
  *   1. THE HAND OWNS THE BASE.  A hand on a routed control writes the registry's base (hand(id, v) → true); the
@@ -52,11 +56,11 @@ export function rootsOf(params) { return [...new Set(params.map((p) => String(p.
 
 /**
  * installModulation(o)
- *   mount        the element the window and its rail go in (`#floats`)
+ *   mount        the element the window and its rail go in (`#floats`); null: the seam with no window (headless)
  *   params       [{ id, label, unit, group, hint, min, max, step, map, def, get(), set(v), widget }]
  *                id is 'root.name'; map linear | log | wrap | integer | bipolar; widget is a kit knob() or fader()
  *                (anything with .root, and setBase / paint if it has them) — it becomes routable
- *   roots        the registry's id roots (default: rootsOf(params))
+ *   roots        the registry's id roots (default: rootsOf(params) and 'app'; a target added later must sit under one)
  *   available()  the capability gate: may modulation write now (default: always)
  *   present()    ask the app for a frame (the renderer re-reads the parameters)
  *   onWindow(open)  the window opened or closed
@@ -69,7 +73,8 @@ export function rootsOf(params) { return [...new Set(params.map((p) => String(p.
  *   showWidgets  paint routed widgets from the registry each tick (default true; law 4b)
  */
 export function installModulation(o) {
-  const { mount, params = [], present, onWindow } = o;
+  const { mount, present, onWindow } = o;
+  let { params = [] } = o;
   const store = o.store || localStore(o.storageKey || 'mir.modulation');
   const prefs = store.read() || {};
   if (o.presetKey) M.setPresetKey(o.presetKey);
@@ -79,26 +84,29 @@ export function installModulation(o) {
   let cadence = prefs.modCadence === 120 ? 120 : 60;
   let armed = prefs.modArm === undefined ? o.enabled !== false : prefs.modArm !== false;
   let audioCap = null;
+  params = params.slice();                                         // the live list: add() and remove() change it
   const byId = new Map(params.map((p) => [p.id, p])), armWatchers = new Set();
   const available = typeof o.available === 'function' ? o.available : () => true;
 
   /* ONE CLOCK (1.5.0-alpha.4): the clock is always enabled — the app's play starts and stops it; modulation's POWER is
      host.js setModulationEnabled, which bypasses the routes and leaves time alone (BASINS modulation.js setArm) */
-  const host = createModHost({ roots: o.roots || rootsOf(params), available, presentationActive: false, enabled: true,
+  const host = createModHost({ roots: o.roots || [...new Set([...rootsOf(params), 'app'])], available, presentationActive: false, enabled: true,
     present: () => { if (present) present(); requestLoop(); paintSoon(); } });
 
-  host.install(params.map((p) => ({
+  const spec = (p) => ({
     id: p.id, label: p.label, unit: p.unit || '', group: p.group || p.id.split('.')[0], hint: p.hint || '',
     min: p.min, max: p.max, step: Number.isFinite(p.step) ? p.step : 0, map: p.map || 'linear', def: p.def,
     get: () => p.get(),
     set: (value) => { if (!rebasing) p.set(value); if (present) present(); },
-  })));
+  });
   /* every widget becomes a target: data-param is the routing's one hook (never the label), setBase its base road */
-  for (const p of params) {
-    if (!p.widget || !p.widget.root) continue;
+  function wire(p) {
+    if (!p.widget || !p.widget.root) return;
     p.widget.root.dataset.param = p.id;
     if (p.widget.setBase) p.widget.setBase(() => (host.registry.isModulated(p.id) ? host.registry.baseOf(p.id) : null));
   }
+  host.install(params.map(spec));
+  for (const p of params) wire(p);
   const offHeld = host.registry.subscribe('*', (event) => {
     const p = byId.get(event.id);
     if (p && p.widget && p.widget.root) p.widget.root.classList.toggle('mod-held', host.registry.isModulated(event.id));
@@ -200,9 +208,10 @@ export function installModulation(o) {
   }
   const playWatchers = new Set();
 
+  const applyNow = () => { host.clock.applyAll(false); persistSoon(); if (present) present(); requestLoop(); paintSoon(); };
   const port = {
     M, registry: host.registry, targets: host.targets, clock: host.clock,
-    apply: () => { host.clock.applyAll(false); persistSoon(); if (present) present(); requestLoop(); paintSoon(); },
+    apply: applyNow,
     cadence: () => cadence,
     setCadence: (hz) => { cadence = hz === 120 ? 120 : 60; persistSoon(); requestLoop(); return cadence; },
     armed: () => armed, arm: (on) => setArm(on),
@@ -220,18 +229,77 @@ export function installModulation(o) {
       sync: audioSync, devices: () => capture().devices(),
     } : null,
   };
-  view = createModulation(mount, port);
-  try { view.restore(prefs.modwin); } catch (_) { /* a record this window cannot read */ }
+  view = mount ? createModulation(mount, port) : null;              // no mount: the seam without its window (node tests)
+  try { if (view) view.restore(prefs.modwin); } catch (_) { /* a record this window cannot read */ }
   setArm(armed, { quiet: true, announce: true });
 
+  /* ── targets that come and go, and the first route in one call (1.5.0-alpha.5) ── */
+  /** add(param) — one more target after the install: { id, label, min, max, map, get(), set(v), widget }, as in
+   *  `params`.  An id already added is replaced (the registry keeps its base and its routes).  → remove() */
+  function add(p) {
+    if (!p || typeof p.get !== 'function' || typeof p.set !== 'function') throw new TypeError('mod.add: a parameter needs an id, get() and set()');
+    const old = byId.get(p.id);
+    if (old) params[params.indexOf(old)] = p; else params.push(p);
+    byId.set(p.id, p);
+    host.targets.installOne(p.id, spec(p));                          // a dormant route onto it wakes now
+    wire(p);
+    if (p.widget && p.widget.root) p.widget.root.classList.toggle('mod-held', host.registry.isModulated(p.id));
+    host.clock.recomputeRunning(); if (view) view.rebuild(); paintSoon(); requestLoop();
+    return () => remove(p.id);
+  }
+  /** remove(id) — the target and every route onto it go; its number is left on its base */
+  function remove(id) {
+    const p = byId.get(id); if (!p) return false;
+    M.removeRoutesOfTarget(id);
+    host.targets.uninstall(id);
+    byId.delete(id); params.splice(params.indexOf(p), 1);
+    if (p.widget && p.widget.root) { delete p.widget.root.dataset.param; p.widget.root.classList.remove('mod-held'); if (p.widget.show) p.widget.set(p.get()); }
+    host.clock.recomputeRunning(); if (view) view.rebuild(); applyNow();
+    return true;
+  }
+  /** route(source, id, depth) — a first route in one call: `source` is a source id, a source, or a kind ('lfo', 'env',
+   *  'audio': the first source of that kind, made if there is none); a macro already carrying it, or a free one, takes
+   *  it; the route swings `depth` of the target's range up from its base (negative: down).  A route onto a target not
+   *  added yet waits, dormant, until it is.  → { route, macro, source, remove() } or null (no macro free) */
+  function route(source, id, depth = 0.5) {
+    let src = typeof source === 'object' && source ? source : M.sourceOf(source), made = false;
+    if (!src && typeof source === 'string') {
+      src = M.sourceList().find((s) => s.kind === source) || null;
+      if (!src) { const r = M.addSource(source); src = r && typeof r === 'object' ? r : M.sourceOf(r); made = !!src; }
+    }
+    if (!src) return null;
+    let macro = M.macroList().find((m) => m.sourceId === src.id), bound = false;
+    if (!macro) {
+      macro = M.macroList().find((m) => !m.sourceId && m.kind !== 'trigger' && !M.routeCountOfMacro(m.id)) || M.addMacro(null);
+      if (!macro || !M.setMacro(macro.id, { sourceId: src.id })) return null;
+      bound = true;
+    }
+    const d = Math.max(-1, Math.min(1, Number(depth) || 0));
+    syncBases();                                                     // the route starts from the knob (law 2)
+    const r = M.addRoute(macro.id, id, d < 0 ? -d : 0, d < 0 ? 0 : d);
+    if (!r) return null;
+    host.targets.sync(); host.clock.recomputeRunning(); applyNow(); if (view) view.rebuild();
+    const out = { route: r.route, macro, source: src,
+      remove() {
+        M.removeRoute(r.route.id);
+        if (host.registry.has(id) && !M.routeCountOfTarget(id)) host.registry.restoreBase(id);
+        if (bound && !M.routeCountOfMacro(macro.id)) M.setMacro(macro.id, { sourceId: null });
+        if (made) M.removeSource(src.id);
+        host.clock.recomputeRunning(); applyNow(); if (view) view.rebuild();
+        return true;
+      } };
+    return out;
+  }
+
   const onVisibility = () => { host.clock.setHidden(document.hidden); if (audioCap) audioCap.setHidden(document.hidden); if (!document.hidden) requestLoop(); };
-  document.addEventListener('visibilitychange', onVisibility);
-  window.addEventListener('pagehide', persistNow);
+  const doc = globalThis.document || null, win = globalThis.window || null;
+  if (doc) doc.addEventListener('visibilitychange', onVisibility);
+  if (win) win.addEventListener('pagehide', persistNow);
 
   return Object.freeze({
     host, view, registry: host.registry, M,
-    open: () => view.open(), close: () => view.close(), toggle: () => view.toggle(),
-    get isOpen() { return view.isOpen; },
+    open: () => view && view.open(), close: () => view && view.close(), toggle: () => view && view.toggle(),
+    get isOpen() { return !!(view && view.isOpen); },
     /** the power (1.5.0-alpha.4): power() reads it, setPower(on) sets it, togglePower() flips it, onPower(fn) → off hears
      *  every change.  arm / armed / onArm are the same three under their 1.4 names, kept as aliases. */
     power: () => armed, setPower: (on) => setArm(on), togglePower: () => setArm(!armed),
@@ -249,13 +317,16 @@ export function installModulation(o) {
       if (!host.registry.has(id) || !host.registry.isModulated(id)) return false;
       host.registry.write(id, value); persistSoon(); requestLoop(); paintSoon(); return true;
     },
+    add, remove, route,
+    /** the targets now, in order: [{ id, label, min, max, get, set, widget, … }] (a copy) */
+    params: () => params.slice(),
     running: () => host.clock.isRunning(),
     bpm: () => M.transport.bpm,
     syncBases, persist: persistNow, paintWidgets,
     dispose() {
       disposed = true; frame.cancel(TICK); frame.cancel(PAINT);
-      document.removeEventListener('visibilitychange', onVisibility); window.removeEventListener('pagehide', persistNow);
-      offHeld(); persistNow(); if (audioCap) audioCap.stop(); view.dispose(); host.dispose();
+      if (doc) doc.removeEventListener('visibilitychange', onVisibility); if (win) win.removeEventListener('pagehide', persistNow);
+      offHeld(); persistNow(); if (audioCap) audioCap.stop(); if (view) view.dispose(); host.dispose();
     },
   });
 }

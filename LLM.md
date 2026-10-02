@@ -2,7 +2,7 @@
 
 This is **MIR**, Magic Commons' interface kit: glass, controls, windows, menus, pages and a modulation system, as plain ES modules and CSS with no build step. This page is the starter app's greeting and its manual. You are reading it on the picture; a model reads the same page through the app.
 
-Press **J** for the notebook, **M** for modulation, **?** for the keys. Escape or a press on the picture puts these words away.
+The bar at the bottom opens everything: **Space** (or ▶) plays, the ring beside it is modulation's power, the latches open the windows, the MIR mark opens modulation. **J** the notebook, **?** the keys. Escape or a press on the picture puts these words away.
 
 ---
 
@@ -35,32 +35,31 @@ myapp/
 
 ## 3. The starter, section by section
 
-`app/app.js` is one file, under 200 lines. Every section starts with a `// ──` line saying what it is and what to change.
+`app/app.js` is one file of about 70 lines. Every section starts with a `// ──` line saying what it is and what to change. `index.html` loads one stylesheet, `../mir/mir.css` (every kit sheet, in order), shows the boot card, and imports `app.js`.
 
 | Section | What it is | What you change |
 |---|---|---|
-| **THE NAME** | `APP` names every store in the browser (`APP + '.rack'` …) | both names, first |
-| **THE LOOK** | `createGui`: the GUI window, which applies the user's stored theme, accent and glass before anything draws | nothing |
-| **THE PICTURE** | a 2D canvas drawn from the numbers in `S`; the loop runs through `frame.coalesce`, only while PLAY is on | `S` and `draw()`: this is where Tetris goes |
-| **THE PARAMETERS** | `param(key, label, min, max, make?, more?)`: one call makes `S[key]` a kit control **and** a modulation target | one call per number a player may turn |
-| **THE RACK** | `createRack` + `rack.register({ id, title, side, open, build })`; `build` runs on first open (PLAY is lazy) | your windows |
-| **MODULATION** | `installModulation({ mount, params, … })`; an LFO is routed onto SIZE on a first visit | which number the first route drives |
-| **THE PAGES** | `createPages`: page 0 is this file, `shared`; page 1 has a label pointing at the SIZE knob | your greeting and pages |
-| **INFORMATIONAL** | `createInfoLayer` + `greet`: page 0's first block on the picture | `subject()`: where your picture's subject is |
-| **FOLDERS** | `registerProjectPart('scene', { capture, restore })` + `createFolders`: SAVE, OPEN, NEW, export | what a saved game holds |
-| **THE KEYS** | `createKeys({ actions })`: the keyboard, once, as data; `createKeysHelp` is the help view | your actions |
-| **THE MENUS** | `createMenubar({ menus })`: FILE · EDIT · VIEW · WINDOW · ABOUT · LANGUAGE · GUI as data | the rows |
-| **DESCRIBE** | `createDescribe`: what a visiting model can read | `what`: one sentence |
+| **THE NAME** | `KEY` names every store in the browser (`KEY + '.rack'` …) | both names, first |
+| **THE NUMBERS** | `S`: every number the picture is drawn from | your game's numbers |
+| **THE PICTURE** | a 2D canvas drawn from `S`; the loop runs through `frame.coalesce`, only while the app's one clock plays | `draw()`: this is where Tetris goes |
+| **THE APP** | `createApp({ name, key, stage, state: S, present, pages, menus, … })` (`../mir/app.js`): the look, the language, the key table, the transport bar, the rack, modulation, the pages, the notebook, FOLDERS, the words on the picture, the menus and describe, wired in the kit's order | the words, `pages`, `menus` |
+| **THE PARAMETERS** | `app.param(key, label, min, max, more?)`: one call makes `S[key]` a kit control, a modulation target **and** a saved value | one call per number a player may turn |
+| **THE RACK** | `app.rack.register({ id, title, side, open: !app.first, build })`; each window gets a latch on the bar; `build` runs on first open | your windows |
+| **MODULATION** | `app.mod.route('lfo', 'app.size', 0.35)` on a first run: an LFO drives SIZE | which number the first route drives |
 
-`index.html` loads the kit's sheets in order (`mir/modulation/modwindow/modwindow.css` last, always), shows the boot card, and imports `app.js`.
-
-The pitch, in one function: **register any number and the modulation window can drive it.** That is `param()`, and it is the whole seam:
+The pitch, in one function: **register any number and the modulation window can drive it.** That is `app.param()`, and it is the whole seam:
 
 ```js
-const gravity = param('gravity', 'GRAVITY', 0, 4);    // a knob, and a target an LFO, an envelope or the microphone can drive
+const gravity = app.param('gravity', 'GRAVITY', 0, 4);    // a knob, a target an LFO can drive, and part of a saved game
 ```
 
-A route writes its target as a base plus a swing, $x(t) = b + d\,\sin(2\pi f t)$; the hand moves $b$, never the swing.
+A route writes its target as a base plus a swing, $x(t) = b + d\,\sin(2\pi f t)$; the hand moves $b$, never the swing, and a project saves $b$ (`param.value()`), never the swinging reading.
+
+**One clock.** The app has one play: the bar's ▶ and **Space**. Modulation has a power button (the ring on the bar): off, every route lets go and every number is back on its base; it never plays or pauses. The starter's picture turns while the clock plays (`app.playing()`); a reload never plays by itself.
+
+**The bar is the opener.** On a first run (nothing saved) `app.first` is true and every window stays closed: only the bar is on screen, and each window opens from its latch.
+
+Any piece `createApp` wires can be left out (`folders: false`), given more options (`rack: { favourites: 4 }`), or built by hand with the builders below: each is returned (`app.rack`, `app.mod`, `app.keys`, `app.folders`, `app.info`, `app.pages`, `app.notebook`, `app.gui`, `app.transport`, `app.describe`).
 
 ## 4. The builders
 
@@ -68,13 +67,15 @@ One line each. Paths are from `app/`.
 
 | Builder | Import | What it makes |
 |---|---|---|
+| `createApp`, `makeParam` | `../mir/app.js` | the standard wiring in one call; one number as a control, a target and a saved value |
 | `knob`, `fader`, `sw`, `seg`, `trig`, `readout`, `group`, `device`, `el`, `label` | `../mir/kit.js` | the controls; `el(tag, cls, parent, text)` for plain DOM |
 | `frame.coalesce(key, fn)`, `frame.read`, `frame.write` | `../mir/core/frame.js` | the one frame: every animation and DOM write |
 | `drag(el, { onMove, onEnd, onCancel })`, `installPress` | `../mir/core/pointer.js` | a gesture; the pressed look on buttons |
 | `presence`, `tweenRect`, `flip` | `../mir/core/motion.js` | motion, by transform, honouring reduced motion |
 | `registerProjectPart(name, { capture, restore })` | `../mir/core/project.js` | a piece of the project FOLDERS saves |
 | `createDescribe` | `../mir/core/describe.js` | `describe()` and `dump()` |
-| `createRack` | `../mir/shell/rack.js` | the racks of windows at the edges |
+| `createRack` | `../mir/shell/rack.js` | the racks of windows at the edges; `rack.windows()` lists them |
+| `createTransport`, `firstRun`, `transportActions` | `../mir/shell/transport.js` | the transport bar: the one play, modulation's power, the tempo, the latches |
 | `createWindow({ id, title, host, body, size })` | `../mir/window/window.js` | one floating window |
 | `wordmark`, `createMenubar`, `createAccent` | `../mir/shell/wordmark.js`, `menubar.js`, `accent.js` | the name, its menus, the accent pair |
 | `createNotebook`, `createPages` | `../mir/shell/notebook.js`, `pages.js` | the notebook (J) and the project's pages |
@@ -82,9 +83,9 @@ One line each. Paths are from `app/`.
 | `createKeys`, `createKeysHelp`, `createKeyboardWindow` | `../mir/shell/keys.js`, `../mir/keyboard/keyboard.js` | keys as data, the help view, the rebinding window |
 | `languageMenu`, `t` | `../mir/shell/language.js`, `../mir/core/i18n.js` | the LANGUAGE menu; translate your own sentences |
 | `notice`, `openDialog`, `confirmDialog`, `bootCard`, `busyMark`, `settingsRows` | `../mir/shell/notice.js`, `dialog.js`, `boot.js`, `busy.js`, `settings-rows.js` | a toast, a dialog, the boot card, the loading mark, a settings panel |
-| `installModulation` | `../mir/modulation/bind.js` | the modulation window, routed onto your parameters |
+| `installModulation` | `../mir/modulation/bind.js` | the modulation window; `mod.add(param)`, `mod.route(source, id, depth)`, `mod.play(on)`, `mod.setPower(on)` |
 | `createFolders` | `../mir/folders/folders.js` | the project window |
-| `createInfoLayer`, `showPage`, `greet` | `../mir/info/layer.js`, `../mir/info/page.js` | words on the picture |
+| `createInfoLayer`, `infoActions`, `showPage`, `greet` | `../mir/info/layer.js`, `../mir/info/page.js` | words on the picture; `greet(…, { first: true })` shows page 0 up to its first `---` |
 
 Every export is in the kit's `docs/API.md`; every part has its own page in `docs/`.
 
@@ -102,31 +103,35 @@ Every export is in the kit's `docs/API.md`; every part has its own page in `docs
 | **Pressed** | the kit's sink and small scale | a translate, a well |
 | **Focus** | the kit's ring outside, on `:focus-visible` | a ring on hover, or none |
 | **Colour** | spend it on meaning; resting chrome is grey | colour a panel to decorate it |
+| **Time** | one play: the bar's ▶ and Space run the app's clock; modulation has a power button, which only bypasses its routes | a second play button, or a play inside a window |
+| **Opening** | the transport bar is the main opener: on a first run only the bar shows (`open: !app.first`), and every window has a latch on it | open windows on a first run, or hide a window's only way in inside a menu |
 
 The full table is `docs/INTENT.md`.
 
 ## 6. How to add
 
-- **A window:** `rack.register({ id: 'score', title: 'SCORE', side: 'left', open: true, build(body) { body.append(readout({ label: 'LINES', value: '0' }).root); } })`. It is in the WINDOW menu by itself.
+- **A window:** `app.rack.register({ id: 'score', title: 'SCORE', side: 'left', open: !app.first, build(body) { body.append(readout({ label: 'LINES', value: '0' }).root); } })`. It gets a latch on the bar and a row in the WINDOW menu by itself.
 - **A control:** inside a window's `build`, a kit builder: `body.append(trig({ label: 'DROP', onFire: hardDrop }).root)`.
-- **A modulation target:** `param('fall', 'FALL', 0.1, 4)`, before `installModulation` runs. The widgets must exist then, so build them with `param()` and put them in a window's `build`.
-- **A page:** `pages.add({ title: 'How to play', md: '…', shared: true })`. A label on a control is a callout naming its `data-info`:
+- **A modulation target:** `app.param('fall', 'FALL', 0.1, 4)`, anywhere: at the top, or inside a window's `build` (it becomes a target when the window is first built). `{ map: 'log' | 'wrap' | 'integer', make: fader, fmt }` shape it.
+- **A route, in code:** `app.mod.route('lfo', 'app.fall', 0.4)` (a source kind or id, the parameter's id `app.<key>`, how far it swings); its `remove()` undoes it.
+- **A page:** add a row to `createApp({ pages })`, or `app.pages.add({ title: 'How to play', md: '…', shared: true })`. A label on a control is a callout naming its key:
 
   ```md
   > [!mir|ui:size] SIZE
   > What this knob does.
   ```
 
-- **A key:** a row in `createKeys({ actions })`: `{ id: 'rotate', label: 'ROTATE', group: 'GAME', keys: ['ArrowUp', 'X'], run: rotate }`. Menus show it with `keys.menuItem('rotate')`.
+- **A key:** a row in `createApp({ keys: [...] })`: `{ id: 'rotate', label: 'ROTATE', group: 'GAME', keys: ['ArrowUp', 'X'], run: rotate }`. Menus show it with `app.keys.menuItem('rotate')`. Space is already the one play; I holds the words on the picture still.
+- **A menu row:** `createApp({ menus: { EDIT: () => [['UNDO', undo]] } })`; FILE, WINDOW, ABOUT, LANGUAGE and GUI are the kit's unless you pass your own.
 - **A setting:** an engine option goes in a window built with `settingsRows(body, rows)`. A look option (theme, accent, glass) is the GUI window's, never yours. Preferences never go in a project.
-- **A saved thing:** `registerProjectPart('board', { capture: () => board.slice(), restore: (v) => load(v || EMPTY) })`. `restore(null)` is NEW.
+- **A saved thing:** every `app.param()` is saved already. Anything else: `registerProjectPart('board', { capture: () => board.slice(), restore: (v) => load(v || EMPTY) })`. `restore(null)` is NEW.
 
 ## 7. A skin
 
 A skin is token values only, in one file:
 
 ```json
-{ "mir": 1, "kind": "skin", "kit": "1.5.0-alpha.3", "name": "ember",
+{ "mir": 1, "kind": "skin", "kit": "1.5.0-alpha.5", "name": "ember",
   "data": { "tokens": { "--hue-acc": "28", "--glass-blur": "14px" }, "light": { "--lum-acc": "30%" } } }
 ```
 
@@ -135,7 +140,7 @@ Every key must be a token whose row in `mir/tokens.json` says `skin: true`. Chec
 ## 8. Check your work
 
 1. Serve the folder and load the page in a browser (headless is fine): **no console error**.
-2. Drag a control: the picture changes. Press its key: the action runs. Open the window from the WINDOW menu.
+2. A first load shows only the bar. Open a window from its latch, drag a control: the picture changes. Space plays. Press a key: its action runs.
 3. `window.__MIR.describe()` in the console reads like this app; `window.__MIR.dump()` is the block to paste when something is wrong.
 4. A skin passes `node tools/check-envelope.mjs`.
 
@@ -152,12 +157,11 @@ Every key must be a token whose row in `mir/tokens.json` says `skin: true`. Chec
 6. **Opening `index.html` as a file**: nothing loads. Serve it.
 7. **Editing `mir/`** to change a look. The kit is copied, never edited; ask for the change in the kit.
 8. **Wrong paths** after moving the starter: the app is one folder below the kit (`../mir/`, `../LLM.md`).
-9. **Breaking the hand law**: a control's `onInput` writing the number directly while a route drives it, so the hand and the LFO fight. Use `mod.hand(id, v)` first, as `param()` does.
-10. **Making targets inside a lazy window**: `installModulation` needs the widgets when it runs; a lazy window's `build` has not run yet.
-11. **Finding things by their words**: `querySelector` by label text, or `.toUpperCase()` on a label. Labels translate; use `data-` hooks.
-12. **One name for two apps**: leaving `APP = 'starter'`, so two apps share their saved layout, keys and projects.
-13. **Space for an action**: the words on the picture hold still while Space is held. The starter plays on **P**.
-14. **A sheet after `modwindow.css`.** It must be the last stylesheet.
+9. **A knob made by hand for a number modulation drives**, with an `onInput` that writes the number: the hand and the LFO fight, and a save stores the LFO's reading. Make it with `app.param()`.
+10. **Finding things by their words**: `querySelector` by label text, or `.toUpperCase()` on a label. Labels translate; use `data-` hooks.
+11. **One name for two apps**: leaving `KEY = 'starter'`, so two apps share their saved layout, keys and projects.
+12. **A second play**: a PLAY switch in a window, or modulation's power used as a play. There is one clock; Space and the bar's ▶ run it.
+13. **Opening windows on a first run** (`open: true`): the bar is the opener; use `open: !app.first`.
 
 ### Observed
 

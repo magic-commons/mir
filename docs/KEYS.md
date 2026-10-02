@@ -35,7 +35,11 @@ keys.hints(document);                                             // every [data
 keys.onChange(() => keys.hints(document));
 ```
 
-An action is `{ id, label, group, keys, run, when?, hint?, inFields?, repeat?, short? }`. `label`, `group`, `hint` and `short` are English; they are translated where they are shown. `short` is the name a drawn key carries (default: the label). `run(event, action)` gets the keydown, or `null` when a menu or button ran it.
+With `createApp()` (`mir/app.js`) the table is made for you (`app.keys`): the app's own rows (`createApp({ keys: [...] })`) first, then the kit's: Space the one play (`transportActions`), Ctrl/⌘+S save, F FOLDERS, M modulation, J the notebook, ? the help view, and I held to hold the words on the picture still (`infoActions`). It writes the hints again whenever a window is built, so a lazily built window's `[data-key-action]` shows its key too.
+
+**A held key.** An action with `up(event, action)` is held: `run` on the press, `up` on that key's release, or when the page loses the focus. INFORMATIONAL's hold-still is one (`infoActions(() => layer)` in `mir/info/layer.js`): in the table, it is listed in the menus and the help view, and Space stays free for play.
+
+An action is `{ id, label, group, keys, run, when?, hint?, inFields?, repeat?, short?, up? }`. `label`, `group`, `hint` and `short` are English; they are translated where they are shown. `short` is the name a drawn key carries (default: the label). `run(event, action)` gets the keydown, or `null` when a menu or button ran it.
 
 ## 2. The chord spelling
 
