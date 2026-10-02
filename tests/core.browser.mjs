@@ -170,6 +170,18 @@ try {
   await touch('touchEnd', 0, 0); await sleep(30);
   const released = await p.eval(`!document.getElementById('btn').classList.contains('press')`);
   check('press: a finger gets .press on pointerdown and loses it on lift', pressed && released, `pressed ${pressed} · released ${released}`);
+
+  /* a SCRIPTED press is a press: new PointerEvent('pointerdown') is isPrimary: false unless it says so (an app's rig,
+     BASINS' save-gate.js); drag() refuses a non-primary press only when it is trusted (a real second finger) */
+  await resetBox();
+  r = await run(`const b = $('box'), at = b.getBoundingClientRect(), x = at.left + 10, y = at.top + 10;
+    const ev = (type, dx, dy, o = {}) => b.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true, pointerId: 7, pointerType: 'mouse', button: 0, buttons: type === 'pointerup' ? 0 : 1, clientX: x + dx, clientY: y + dy, ...o }));
+    ev('pointerdown', 0, 0); for (let i = 1; i <= 5; i++) ev('pointermove', i * 12, i * 6); await new Promise((f) => requestAnimationFrame(() => requestAnimationFrame(f))); ev('pointerup', 60, 30);
+    await new Promise((f) => setTimeout(f, 80));
+    const kinds = T.log.map((e) => e[0]), moved = b.getBoundingClientRect().left - at.left;
+    T.log.length = 0; ev('pointerdown', 0, 0, { isPrimary: false, button: 2 }); ev('pointermove', 30, 0); ev('pointerup', 30, 0);
+    return { kinds: [...new Set(kinds)], moved, rightButton: T.log.length };`);
+  check('drag: a scripted press (isPrimary unset) starts a gesture and the box follows; another button still does nothing', r.kinds.includes('start') && r.kinds.includes('end') && Math.abs(r.moved - 60) < 0.5 && r.rightButton === 0, JSON.stringify(r));
   await p.send('Emulation.setTouchEmulationEnabled', { enabled: false });
 
   /* ── proximity ─────────────────────────────────────────────────────────────────────────────────────────── */

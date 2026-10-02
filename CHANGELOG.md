@@ -1,5 +1,36 @@
 # MIR — changelog
 
+## 1.5.0-alpha.8 — 2026-10-02 · BASINS parity, round two
+
+Not released: built on branch `worktree-mir-1.5`.
+
+**Behaviour and breaking changes (read these first):**
+- **A floating window's right-side rail sits 8 px from the window** (kwin's gap, `RAIL.gap`, `createWindow({ railGap })`); it is flush on the left, top and bottom, and a docked rail stays flush.
+- **`dragToFolder` is off by default in FOLDERS** (as BASINS): drag-to-folder and MOVE TO are an option; the FOLDERS gallery page turns it on.
+- **FOLDERS wears the modulation window's material** by default (`material: 'modulation'`: rail, chips, controls, resize corner, as BASINS' SAVE window); `material: null` gives the plain house glass.
+- **With the look store, a pane's shadow at SHADOW 100 % is BASINS' material shadow**, not the 1.4 one. A page with no store is unchanged.
+- **A scripted pointer press can start a drag**: `core/pointer.js` `drag()` (and a window's empty-glass drag and its rail's relocation) refuse a non-primary press only when it is trusted. A `new PointerEvent('pointerdown')` from a rig (isPrimary unset) is a press; a real second finger is still refused.
+- The modulation chip rail honours VEIL; SHADOW never reaches the value tooltip (`--tip-shadow`); a `chip` surface takes SATURATION; a disconnected window head is a pane under the look engine.
+- FOLDERS' cover wash is BASINS' .65 (was .62); its gallery inset is 13 px; a press that travels 10 px is not a tap.
+- Under GLASS control faces the house clears its wells by rule, not through `--glass-well` (an app's own fader track keeps its well, as BASINS'); the transport bar clears its own tempo field and panel, as BASINS' transport does.
+
+### The window material, without cloning
+- `createWindow({ material: 'modulation' })` writes `data-mir-material="modulation"` on the window and its rail: the window wears the modulation window's material (its rail, chips, controls and resize corner) through **eight rules in `window.css` and one shared value block in `skin.css`** (`--m2-mat-frost`, the controls' `--glass-hairline`, `--m2-rail-track`, declared once for `.mir-modwindow, .kwin-chiprail, .m2ghost, [data-mir-material="modulation"]`). **No CSS is cloned.**
+- **An adopting app deletes** BASINS' `kwin.js adoptMaterial` and the about 1,250 rules it cloned for the SAVE, TIMELINE and COLOUR windows: pass `material: 'modulation'` instead.
+
+### The look engine's last gaps
+- BASINS' list a–g: the engine always draws BASINS' material shadow (at SHADOW 100 % too); a `chip` surface takes SATURATION; a disconnected window head is a pane under the engine; the modulation chip rail honours VEIL; GLASS faces keep an app's own fader track; SHADOW never reaches the value tooltip. The GUI window writes `--frost-filter` on `<html>` (blur and saturate, FULL tier only). `tests/themes.browser.mjs` proves each.
+
+### Docking to an element
+- **The anchor dock** (BASINS' `anchorTarget`): `createWindow({ dock: { anchor: { rect, clip?, subscribe? } } })` docks a window onto another element's seat, corner to corner (reach 96, capture 32); it follows the seat, is clipped to `clip()`, and hides while the seat is gone. `dock.js` gains `anchorTarget` and `anchorBox`; `createDockGuide({ window, cls })` is one guide drawing whose overlays carry `data-mir-guide="dock"`, `data-window`, `data-edge` and the app's class.
+
+### The FOLDERS gallery
+- BASINS' gallery by default: the options disclosure is BASINS' plain button, a folder counts with `mandelbrotSmall` (`folderGlyph`), the cover wash has BASINS' .65, the tile parallax follows a finger, a press that travels 10 px is not a tap, the gallery inset is 13 px (`--folders-inset`); drag-to-folder and MOVE TO are an option (`dragToFolder`); `onOpen` (BASINS seeds there, a persisted open included); `material` and `railGap` pass through.
+- FOLDERS with BASINS' options (`tests/fixtures/folders-basins.html`) wears the material without the page setting it, its rail sits 8 px off the window, and BASINS' gate drives it (`tests/folders-basins.browser.mjs`).
+
+### What BASINS can delete now
+- `kwin.js adoptMaterial` and its ~1,250 cloned rules (`material: 'modulation'`); `kwin`'s anchor docking (`dock: { anchor }`); the shim its rig needed (none now). The full list and the rules only BASINS can change (its card's 14 px corner, the COLOUR lane controls, the segment's 9 px corner and the raise on its chosen segment) are `docs/ADOPTING-1.5.md` §7.
+
 ## 1.5.0-alpha.7 — 2026-10-02 · BASINS parity
 
 Not released: built on branch `worktree-mir-1.5`. Josh, 10-02: "Prefer BASINS." Each part below was measured against BASINS' own.

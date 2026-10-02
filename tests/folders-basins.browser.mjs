@@ -9,6 +9,7 @@
  * Each check is tagged: RAN (the gate's check as written), STAND-IN (the gate's check against the fixture's stand-in
  * engine or RENDER panel: it proves the seat, not BASINS' engine), or listed under NEEDS APP and not run.
  * Standalone: MIR_BASE=http://127.0.0.1:8801 node tests/folders-basins.browser.mjs */
+import fs from 'node:fs';
 import { launch, sleep } from '../tools/cdp.mjs';
 
 const BASE = process.env.MIR_BASE || 'http://127.0.0.1:8801';
@@ -189,6 +190,27 @@ try {
   const out = await p.eval(GATE);
   for (const [v, tag, name, detail] of out.checks) results.push(`${v}  [${tag}] ${name}${v === 'FAIL' && detail ? '  — ' + detail : ''}`);
   if (!out.closeAt150) results.push('NOTE  the gate waits 150 ms after close; the kit window\'s exit motion (ruled: windows animate open, close and minimise) takes --motion-ui, so the check is read again 300 ms later');
+  /* ── the combination (1.5.0-alpha.8): FOLDERS with BASINS' options wears the modulation window's material by itself
+     (no attribute set by the fixture), its rail sits 8 px off the window's right edge, and a scripted corner drag (a
+     PointerEvent with isPrimary unset, as a rig writes it) resizes the window ── */
+  await p.eval('localStorage.clear(); location.reload(); 1'); await sleep(900);
+  for (let i = 0; i < 50 && !(await p.eval('!!window.__ready').catch(() => false)); i++) await sleep(100);
+  await p.eval(`window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyS', key: 's', bubbles: true })); 1`); await sleep(1500);
+  const combo = JSON.parse(await p.eval(`(async () => {
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    const root = document.getElementById('savewin'), rail = document.querySelector('[data-mir-rail="savewin"]');
+    const R = (n) => n.getBoundingClientRect(), w0 = R(root), r0 = R(rail);
+    const c = root.querySelector('.mir-win-resize'), cr = R(c), x0 = cr.left + cr.width / 2, y0 = cr.top + cr.height / 2;
+    const ev = (t, x, y) => c.dispatchEvent(new PointerEvent(t, { bubbles: true, cancelable: true, pointerId: 12, pointerType: 'mouse', clientX: x, clientY: y, button: 0, buttons: t === 'pointerup' ? 0 : 1 }));
+    ev('pointerdown', x0, y0); for (let i = 1; i <= 8; i++) { ev('pointermove', x0 + 40 * i / 8, y0 + 30 * i / 8); await sleep(16); } ev('pointerup', x0 + 40, y0 + 30); await sleep(300);
+    const w1 = R(root);
+    return JSON.stringify({ rootMat: root.dataset.mirMaterial || null, railMat: rail.dataset.mirMaterial || null,
+      gap: Math.round(r0.left - w0.right), dw: Math.round(w1.width - w0.width), dh: Math.round(w1.height - w0.height) });
+  })()`));
+  combo.setByFixture = /mir-?material/i.test(fs.readFileSync(new URL('./fixtures/folders-basins.html', import.meta.url), 'utf8'));
+  results.push(`${combo.rootMat === 'modulation' && combo.railMat === 'modulation' && !combo.setByFixture ? 'PASS' : 'FAIL'}  [JOIN] the window and its rail wear data-mir-material="modulation" from createFolders' default, not the fixture  — ${JSON.stringify(combo)}`);
+  results.push(`${combo.gap === 8 ? 'PASS' : 'FAIL'}  [JOIN] the rail sits 8 px off the window's right edge (kwin's gap)  — gap ${combo.gap}`);
+  results.push(`${combo.dw === 40 && combo.dh === 30 ? 'PASS' : 'FAIL'}  [JOIN] a scripted corner drag (isPrimary unset) resizes the window by exactly (+40, +30)  — (${combo.dw}, ${combo.dh})`);
   const errs = p.logs.filter((l) => /EXCEPTION|error/.test(l));
   results.push(`${errs.length ? 'FAIL' : 'PASS'}  no page exceptions or console errors${errs.length ? '  — ' + errs.slice(0, 3).join(' | ') : ''}`);
   /* the plate: a fresh device, S, as BASINS opens it (the gate above leaves the window moved and resized) */

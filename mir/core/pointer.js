@@ -47,7 +47,7 @@ export function drag(el, { slop = 4, button = 0, onStart, onMove, onEnd, onCance
     return was;
   };
   function down(e) {
-    if (g || e.button !== button || !e.isPrimary) return;
+    if (g || e.button !== button || (!e.isPrimary && e.isTrusted)) return;   // a real second finger is refused; a scripted press (isPrimary defaults to false) is a press
     e.preventDefault();
     g = { id: e.pointerId, started: false, s: { x0: e.clientX, y0: e.clientY, pointerType: e.pointerType, pointerId: e.pointerId } };
     sample(e);

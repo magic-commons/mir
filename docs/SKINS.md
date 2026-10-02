@@ -6,6 +6,10 @@ A **skin is a set of token values**. Nothing else in the kit's sheets carries a 
 
 This page is for whoever writes a vanilla theme or a 'name'-spec against these names (FROST is the values the blocks hold; METRO will be a 'name'-spec beside it) and for a model writing a skin against the schema (`mir/tokens.json`, `docs/LLM-MODS.md`). Plan: `MIR CLAUDE 1.5 PLAN 2026-10-01.md` §5.2, §7 (1.5.5), §8.3. The modulation plugin's two sheets follow the same law in their own blocks (`docs/TIERS.md`, "The modulation plugin").
 
+## The window material (1.5.0-alpha.8)
+
+`createWindow({ material: 'modulation' })` (FOLDERS passes it by default) writes `data-mir-material="modulation"` on a kit window's root and its rail: the window wears the modulation window's material: rail, chips, controls, resize corner; no CSS cloning. The shared values (`--m2-mat-frost`, the controls' `--glass-hairline`, `--m2-rail-track`) are declared once in `mir/css/skin.css` on `.mir-modwindow, .kwin-chiprail, .m2ghost, [data-mir-material="modulation"]`; `mir/window/window.css` adds the corner and trigger values (`--win-corner*`, `--win-trig-*`) and eight rules. A skin that sets those names restyles the modulation window and every window that wears its material together.
+
 ## The four rules a skin follows
 
 | Rule | Why |

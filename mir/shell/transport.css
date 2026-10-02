@@ -52,7 +52,7 @@
 }
 /* CONTROL FACES · GLASS (1.5.0-alpha.5): under REFRACTIVE or FROST the pill's face is clear, as BASINS' transport
    seats are (material.css §1); the hairline keeps its outline */
-:where(body[data-faces="glass"]:is([data-card="refractive"], .frost):not([data-card="solid"])) .mir-transport { --xport-face: transparent; }
+:where(body[data-faces="glass"]:is([data-card="refractive"], .frost):not([data-card="solid"])) .mir-transport { --xport-face: transparent; --glass-well: transparent; }   /* … and its wells (the tempo field, the panel): since 1.5.0-alpha.8 the house clears wells by rule, not by token, so the bar clears its own, as BASINS' transport does */
 /* ── end of the values ── */
 
 /* ── the bar, on the stage (BASINS `#transport.mini`) ─────────────────────────────────────────────────────── */

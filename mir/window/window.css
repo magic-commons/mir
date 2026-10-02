@@ -19,10 +19,10 @@
    the rail and re-pointed seat by seat (theme × card × frost) on the selectors it always had, in the order it always
    had; the rules below read names only. */
 :root { --chip-hover-scale: 1.06; --chip-press-scale: .92; }     /* HOVER grows the disc 6 %, PRESS sinks it to 92 % */
-/* 1.5.0-alpha.8 · THE WINDOW MATERIAL ([data-mir-material] on a window's root and its rail): the modulation window's
+/* 1.5.0-alpha.8 · THE WINDOW MATERIAL ([data-mir-material="modulation"] on a window's root and its rail): the modulation window's
    rail, controls and corner, as BASINS' SAVE, TIMELINE and COLOUR windows wear them — by sharing the plugin's values
    (one block in mir/css/skin.css: --m2-mat-frost, --glass-hairline .09, --m2-rail-track), not by cloning its rules. */
-[data-mir-material] {
+[data-mir-material="modulation"] {
   --win-corner: 18px; --win-corner-inset: 2px; --win-corner-rest: .5; --win-corner-z: 4;   /* the resize corner (BASINS kwin) */
   --win-trig-size: 11px; --win-trig-track: .12em;                                         /* a trigger's type: 11 px, 1.32 px */
 }
@@ -51,15 +51,15 @@ body.frost[data-card="refractive"][data-theme="dark"] .mir-rail { --chip-fill: v
 body.frost.frost-hold[data-card="refractive"] .mir-rail { --chip-filter: none; --chip-fill: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }   /* FROST · STILL: the chip holds with its pane (skin.css) */
 /* ── end of the values ── */
 /* THE MATERIAL'S RULES (eight; the values are above and in skin.css) */
-.mir-rail[data-mir-material] .mir-chip { letter-spacing: var(--m2-rail-track); }
-.mir-rail[data-mir-material] { --chip-on: var(--m2-mat-frost); --chip-on-rim: inset 0 0 0 1px var(--chip-rim); }
-.mir-win[data-mir-material] .trig { font-size: var(--win-trig-size); letter-spacing: var(--win-trig-track); }
-.mir-win[data-mir-material] .mir-win-resize {
+.mir-rail[data-mir-material="modulation"] .mir-chip { letter-spacing: var(--m2-rail-track); }
+.mir-rail[data-mir-material="modulation"] { --chip-on: var(--m2-mat-frost); --chip-on-rim: inset 0 0 0 1px var(--chip-rim); }
+.mir-win[data-mir-material="modulation"] .trig { font-size: var(--win-trig-size); letter-spacing: var(--win-trig-track); }
+.mir-win[data-mir-material="modulation"] .mir-win-resize {
   width: var(--win-corner); height: var(--win-corner); right: var(--win-corner-inset); bottom: var(--win-corner-inset); z-index: var(--win-corner-z);
   opacity: var(--win-corner-rest); transition: opacity var(--motion-micro) var(--ease-out);
   background-image: linear-gradient(135deg, transparent 52%, var(--ink-key) 52% 58%, transparent 58% 70%, var(--ink-key) 70% 76%, transparent 76%); }
-.mir-win[data-mir-material] .mir-win-resize:hover, .mir-win[data-mir-material].resizing .mir-win-resize { opacity: 1; }
-.mir-win[data-mir-material][data-dock="bottom"] .mir-win-resize { top: var(--win-corner-inset); bottom: auto; }
+.mir-win[data-mir-material="modulation"] .mir-win-resize:hover, .mir-win[data-mir-material="modulation"].resizing .mir-win-resize { opacity: 1; }
+.mir-win[data-mir-material="modulation"][data-dock="bottom"] .mir-win-resize { top: var(--win-corner-inset); bottom: auto; }
 
 /* ── THE PANE ─────────────────────────────────────────────────────────────────────────────────────────────── */
 .mir-win {

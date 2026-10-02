@@ -105,7 +105,8 @@ const along = (p, lo, size, next) => (p < lo ? lo : p > lo + size ? lo + size - 
  *                 element the window can dock to (BASINS' anchorTarget): it follows it, is clipped to clip(), and hides
  *                 while the seat is gone or clipped away;  guideClass?: classes for the guide's overlays (an app's rig
  *                 selector, BASINS 'mod-snap-guide'); the overlays always carry data-mir-guide="dock" data-window="<id>" }
- *    material   a name written as data-mir-material on the window and its rail (the sheet chooses a material by it)
+ *    material   'modulation' (or true): the window wears the modulation window's material (rail, chips, controls, resize corner;
+ *               no CSS cloning), written as data-mir-material="modulation" on the window and its rail; window.css and skin.css key on that name
  *    railGap    the floating rail's gap from the pane, a number or { left, right, top, bottom } (default RAIL.gap: kwin's)
  *    persist    { read() → shape | null, write(shape) }
  *  → { root, body, rail, open(), close(), toggle(), isOpen(), rect(), place(rect | pos, { animate }), setChip, tab,
@@ -119,7 +120,8 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
   /* ── the DOM ── */
   const root = mk('div', 'mir-win glass');
   root.dataset.mirWindow = id;
-  if (material) root.dataset.mirMaterial = String(material);   // a hook only: the sheet paints by it (docs/WINDOWS.md)
+  const mat = material === true ? 'modulation' : material || null;
+  if (mat) root.dataset.mirMaterial = String(mat);   // a hook only: the sheet paints by it (docs/WINDOWS.md)
   root.setAttribute('role', 'group');
   ariaLabel(root, String(title));   // no toUpperCase: it would upper-case a translation
   root.hidden = true;
@@ -160,7 +162,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
     onNudge(dx, dy) { if (P.dock || !box) return; P.x = box.left + dx; P.y = box.top + dy; layout({ animate: true }); save(); },
   });
   host.appendChild(rail.el);
-  if (material) rail.el.dataset.mirMaterial = String(material);
+  if (mat) rail.el.dataset.mirMaterial = String(mat);
   const pair = { root, rail: rail.el };
   const guide = dock ? createDockGuide({ layer: host, enabled: dock.guide || (() => true), window: id, cls: dock.guideClass || '' }) : null;
 
@@ -249,7 +251,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
   });
   const onEmpty = (e) => {
     const t = e.target;
-    if (e.button !== 0 || !e.isPrimary || gripDrag.active || !(t instanceof view.Element)) return;
+    if (e.button !== 0 || (!e.isPrimary && e.isTrusted) || gripDrag.active || !(t instanceof view.Element)) return;
     if (t.closest(PRESSABLE + (typeof emptyDrag === 'string' ? ', ' + emptyDrag : ''))) return;
     if (t.scrollHeight > t.clientHeight || t.scrollWidth > t.clientWidth) {    // a scroller's own scrollbar is not glass
       const r = t.getBoundingClientRect();
@@ -275,21 +277,6 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
     onEnd() { root.classList.remove('resizing'); rz = null; save(); },
     onCancel() { root.classList.remove('resizing'); if (rz) { Object.assign(P, rz); rz = null; layout(); } },
   });
-
-  /* ── A SCRIPTED PRESS IS A PRESS.  `new PointerEvent('pointerdown', …)` is isPrimary: false unless it says so, and
-     core/pointer.js drag() only takes a primary pointer (a second finger must not start a gesture).  An app's rig (BASINS
-     save-gate.js) drags the grip and the corner with exactly such a sequence, as it did kwin's, which never asked.  So an
-     UNTRUSTED primary-button press that did not say isPrimary is re-sent as primary, once, from the same target: a real
-     second finger (trusted) is still refused, and everything after the press is the drag's own law. */
-  const asPrimary = (e) => {
-    if (e.isTrusted || e.isPrimary || e.button !== 0) return;
-    e.stopImmediatePropagation(); e.preventDefault();
-    e.target.dispatchEvent(new view.PointerEvent('pointerdown', { bubbles: true, cancelable: true, composed: true, isPrimary: true,
-      pointerId: e.pointerId, pointerType: e.pointerType || 'mouse', button: 0, buttons: e.buttons || 1, clientX: e.clientX, clientY: e.clientY,
-      shiftKey: e.shiftKey, altKey: e.altKey, ctrlKey: e.ctrlKey, metaKey: e.metaKey }));
-  };
-  root.addEventListener('pointerdown', asPrimary, true);
-  rail.el.addEventListener('pointerdown', asPrimary, true);
 
   /* ── the raise, the viewport, the racks ── */
   const raise = () => raisePair(pair);

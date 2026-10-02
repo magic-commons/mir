@@ -212,7 +212,7 @@ export function createRail({ id, title, chips = [], layer, seats, onChip, onSide
   function endPick() { picking = false; grip.classList.remove('armed'); setAttr(el, 'data-picking', null); }
   const holdDown = (e) => {
     held = false;
-    if (forwarded.has(e) || !e.isPrimary || e.button !== 0) return;
+    if (forwarded.has(e) || (!e.isPrimary && e.isTrusted) || e.button !== 0) return;   // a scripted press is a press (core/pointer.js)
     hold = { id: e.pointerId, x: e.clientX, y: e.clientY, timer: setTimeout(() => {
       hold.timer = 0; picking = held = true; grip.classList.add('armed'); setAttr(el, 'data-picking', 'true');
       prox.update({ x: hold.x, y: hold.y }, seatsNow());

@@ -1,6 +1,6 @@
 # MIR · API
 
-Every module the kit exports, what each export is, and what it returns. MIR 1.5.0-alpha.7.
+Every module the kit exports, what each export is, and what it returns. MIR 1.5.0-alpha.8.
 
 Each module's own header holds its laws and their reasons. This page is the map to them.
 
@@ -442,7 +442,7 @@ Load `mir/shell/parts.css` after the kit's sheets.
   capturePicture, savePicture, pictureStale, onInspect, onOpened, galleryCopy, files, emptyDragExcept })` → `{ win, files, gallery, adapter,
   seeded, intake, views, panels, tab(id?), activeTab(), mountGallery(el, { pageSize, prefsKey, actions, factory, onInspect }), open(), close(),
   toggle(), isOpen(), save(), saveAs(), fresh(), openEntry(), current(), dirty(), seed(), exportProject(), importEnvelope(), ingest(), say(),
-  state(), destroy() }` (1.5.0-alpha.7: BASINS' toolbar and panels by default)
+  state(), destroy() }` (1.5.0-alpha.7: BASINS' toolbar and panels by default). 1.5.0-alpha.8 adds `dragToFolder` (off; drag-to-folder and MOVE TO), `folderGlyph` (BASINS' `mandelbrotSmall` by default), `onOpen` (a persisted open included), `material` (default `'modulation'`: the window wears the modulation window's material; `null` for the house glass) and `railGap`
 - `DEFAULT_ACTIONS` (BASINS' toolbar: PROJECT · CAPTURE · DOWNLOAD · DUPLICATE · NEW · ⋯), `FOLDERS_ACTIONS` (SAVE · SAVE AS · NEW · OPEN FILE · EXPORT), `GALLERY_PANEL`; `freeSeat({ …, anchor: 'centre' | 'right', gutter })`
 - `localPrefs(storage, key)` → `{ read, write }` · `toThumb(src, { max, type, quality })` → `Promise<data URL>` · `FOLDERS_COPY`
 
@@ -607,7 +607,12 @@ The window loads two sheets, `mir/modulation/modhost.css` and then `mir/modulati
 
 ---
 
-## `mir/window/` and `mir/history/`: additions (1.5.0-alpha.5, alpha.7)
+## `mir/window/` and `mir/history/`: additions (1.5.0-alpha.5, alpha.7, alpha.8)
+
+- `window/window.js` `createWindow({ …, material, railGap })` (1.5.0-alpha.8; the full signature is `docs/WINDOWS.md`): `material: 'modulation'` (or `true`) — the window wears the modulation window's material: rail, chips, controls, resize corner; no CSS cloning (`data-mir-material="modulation"` on the window and its rail). `railGap` (default `RAIL.gap`, 8 px): a floating window's rail sits that far off the pane's right edge, flush on the left, top and bottom; a docked rail stays flush. `dock: { span, guide, anchor: { rect, clip?, subscribe? }, guideClass }`: the anchor dock docks a window onto another element's seat, corner to corner (reach 96, capture 32), follows it, is clipped to `clip()` and hides while the seat is gone.
+- `window/rail.js`: `RAIL.gap`, `gapOf(gap, side)`; `chipPosition(side, box, w, h, view, pad, gap)`, `seatOn(…, pad, gap)`, `seatRail({ …, gap })`, `roomFor(…, pad, gap)` (gap default 0, so the modulation window seats as BASINS' `positionChips` does).
+- `window/dock.js`: `anchorTarget(box, seat, { reach })`, `anchorBox(seat, height)`; `createDockGuide({ layer, enabled, window, cls })` (one guide drawing; its overlays carry `data-mir-guide="dock"`, `data-window`, `data-edge` and the app's class), whose `track(box, o, seat?)` takes the seat as a third argument.
+- `core/pointer.js` `drag()`: a non-primary press is refused only when it is trusted (a real second finger); a scripted `PointerEvent` (isPrimary unset) is a press (1.5.0-alpha.8).
 
 - `window/dock.js` `observeSpan({ left, right, edge, view, occupied, narrow, active })` → `{ read() → { left, right, width, top, bottom }, subscribe(fn), setActive(on), active, destroy() }` (1.5.0-alpha.7, BASINS' rack-bounds): the rack's shadow gutter is subtracted; a rack with no open window (`occupied`, default `.dev:not(.closed):not([hidden])`; `false` counts any rack), a hidden one, `phone`, `ui-hidden` or a viewport of at most `narrow` (860) px counts as absent.
 

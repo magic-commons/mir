@@ -251,14 +251,14 @@ html[data-shine] body {
 .fd-fill { --fd-fill-color: color-mix(in srgb, var(--acc) 16%, transparent); }
 .native-info .native-info-content, .control-help { --popover-fill: hsl(var(--glass-tint) / .98); }
 /* 1.5.0-alpha.8 · THE MODULATION WINDOW'S MATERIAL, SHARED: one set of values, two readers — the plugin's roots
-   (mir/modulation/modhost.css) and a kit window that wears the material ([data-mir-material], mir/window/window.css).
+   (mir/modulation/modhost.css) and a kit window that wears the material ([data-mir-material="modulation"], mir/window/window.css).
    Here, in the house, because both readers load this sheet and neither loads the other's. */
-.mir-modwindow, .kwin-chiprail, .m2ghost, [data-mir-material] {
+.mir-modwindow, .kwin-chiprail, .m2ghost, [data-mir-material="modulation"] {
   --m2-mat-frost: hsl(0 0% 100% / 0.13);                         /* the chip rail's ON face */
   --glass-hairline: hsl(0 0% 100% / 0.09);                       /* the controls' hairline, dark */
   --m2-rail-track: 1.2px;                                         /* the chip rail's tracking (BASINS kwin) */
 }
-body[data-theme="light"] :is(.mir-modwindow, .kwin-chiprail, .m2ghost, [data-mir-material]) { --glass-hairline: hsl(214 30% 30% / .16); }   /* … light */
+body[data-theme="light"] :is(.mir-modwindow, .kwin-chiprail, .m2ghost, [data-mir-material="modulation"]) { --glass-hairline: hsl(214 30% 30% / .16); }   /* … light */
 /* CONTROL FACES · GLASS and BLEND on the faces that declare their own fill (after them, at their weight) */
 :where(body[data-faces="glass"]:is([data-card="refractive"], .frost):not([data-card="solid"])) .k-dial { --knob-face: transparent; --k-dial-sheen: transparent; --glass-groove: transparent; }
 :where(body[data-faces="glass"]:is([data-card="refractive"], .frost):not([data-card="solid"])) .trig { --trig-face: transparent; }

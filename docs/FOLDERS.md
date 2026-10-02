@@ -84,7 +84,7 @@ Read from BASINS (`save-window.js`, `mir-plugins/kwin/kwin.js`, `shell.js`; adop
 | `dragToFolder` | `false` | drag a tile onto a folder (the proximity glow), with MOVE TO and the tile's MOVE verb as its touch and keyboard way. BASINS' gallery has neither; `gallery/folders.html` turns it on |
 | `folderGlyph` | `'mandelbrotSmall'` (BASINS') | the mark beside a folder's count |
 | `onOpen(api)` | — | every open, a window persisted open included (BASINS seeds its factory gallery and JOSH'S LIBRARY here) |
-| `material`, `railGap` | `'modulation'`, the kit's | the window and rail material (`[data-mir-material]`, window.css: BASINS' SAVE window wore the modulation window's); `null` for the plain house glass |
+| `material`, `railGap` | `'modulation'`, the kit's | `'modulation'`: the window wears the modulation window's material: rail, chips, controls, resize corner; no CSS cloning (`[data-mir-material="modulation"]`, window.css; BASINS' SAVE window wore it); `null` for the plain house glass |
 | `head`, `status` | `false`, `false` | the name line with UNSAVED CHANGES; a status line in the window instead of the toast |
 | `chipSide` | `'right'` | the rail's side before the user moves it |
 | `seeds` / `seededKey` | — / `store + '.seeded'` | starter projects (below) |
