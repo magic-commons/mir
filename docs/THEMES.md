@@ -8,7 +8,7 @@ See them all at `gallery/themes.html` (every theme × every tone, live; click on
 
 | Theme | What it is | Its settings (beyond the kit's home) | Tones |
 |---|---|---|---|
-| **FROST** | Glassmorphism. Josh's recipe, the new user's look | REFRACTIVE, FROST always, BLUR 11, VEIL 0, SATURATION 130 %, CORNERS 24, CONTROL FACES glass, TEXT auto (white in dark, as the recipe says; black in light), EDGE off, SHADOW 200 %, SPACING DEFAULT | CLEAR · ROSE · AZURE |
+| **FROST** | Glassmorphism. Josh's recipe, the new user's look | REFRACTIVE, FROST always, BLUR 11 (20 on a touch device, alpha.12), VEIL 0, SATURATION 130 %, CORNERS 24, CONTROL FACES glass, TEXT auto (white in dark, as the recipe says; black in light), EDGE off, SHADOW 200 %, SPACING DEFAULT | CLEAR · ROSE · AZURE |
 | **MORPH** | Neumorphism | SOLID, CORNERS 20, EDGE off, LIGHT ANGLE 315° (upper left) with the relief LINKED, SHADOW 140 %, DISTANCE 6, SOFTNESS 14, SHINE 70 %, SHINE SOFT 14, glow and parallax off, SPACING AIRY | CLAY · MINT · LILAC · SLATE |
 | **CLASSIC** | The 1.4 spirit | TINTED, FROST off (1.4's own default; turned on, the pane thins to .58 and blurs at 22 px, as 1.4 did), solid faces, the relief, CORNERS 14, the house veil, BLUR 22 (1.4's own), SPACING DEFAULT | HOUSE · INK · EMBER |
 | **SWIFT** | The fast one (it replaces the preset called LIGHT) | SOLID, relief FLAT, SHADOW 0, MOTION off, glow and parallax off, QUALITY light (the flat tier), SPACING TIGHT | GRAPHITE · SAND · STEEL |
@@ -211,7 +211,19 @@ Josh ruled INTENT O12 on 2026-10-02: *"tinted can blur, the blur knob can reach 
 
 **Against BASINS** (`.tmp/W11/V/basins-o12.mjs` · `kit-o12.mjs`; BASINS read-only; TINTED + FROST, dark and light, BLUR 11 and 0): rack cards, rack buttons, the bar, the menus, the hint and the ⓘ panel, the disconnected heads and bodies, the modulation rail's discs, the kit rail's discs and the work bar all compute BASINS' fill (`hsl(tint / .58)`) and filter. What stays different is ruled: the tinted pane's 160° sheen (rule 4: tint + sheen; BASINS' ONE MATERIAL drew none), `none` against `blur(0px) saturate(1.3)` at BLUR 0, and the toast, which blurs with the panes in the kit (BASINS leaves its toast unblurred under TINTED).
 
+## BASINS' missing rows (1.5.0-alpha.12)
+
+| Setting | What it does | From |
+|---|---|---|
+| TEXT · AUTO, sampled | With an ink sampler (`core/ink.js`, `docs/INK.md`) each label is white or black from the picture beneath it, per label; the theme seat is only what a label wears before its first sample. No pane is repainted and no text shadow is drawn | BASINS `adaptive-ink.js`, `ink.css` §1 |
+| ACCENT BRIGHTNESS | 0–100 %: both accents mixed toward white in OKLCH; `--acc`, `--acc2` and every token derived from them follow | BASINS `skin.js setAccentBright` |
+| The accents in the project | ACCENT A, B, VIVID and BRIGHTNESS are the one look setting a project carries (`accent` part); opening a project applies them | BASINS `skin.js accentProject` |
+| QUALITY · AUTO | the device's tier, measured once (A, B → FULL; C → BALANCED) | BASINS `settings.js` §2 |
+| BLUR on first run | 11 px on a desktop, 20 px on a touch device; FROST's BLUR is the device's | BASINS `skin.js newUserBlur`, ruled 2026-10-02 |
+
+**Themes and AUTO.** A theme states every look option, QUALITY included. Since alpha.12 every theme but SWIFT says **AUTO** (the device decides; it was FULL), and SWIFT keeps LIGHT. Every tone states BRIGHTNESS 0, so a tone resets it and a BRIGHTNESS above 0 reads as a CUSTOM tone, as a moved ACCENT A does.
+
 ## What an app can delete
 
-- **BASINS:** Settings › LOOK's implementation in `skin.js` (`setFaces`, `setFaceBlend`, `setText`, `setMaterial`, `setMaterialPreset`, `applyGlass`, `setBlur`, `setUIDropShadow`'s pane part, and their prefs keys), `surface-material.js` + `surface-material.css`, the glass-face and popover rules of `material.css` (§1, §2, §4 and the window-edge rule), the TEXT seats of `ink.css` (§1's body and forced seats; the per-cell sampler `adaptive-ink.js` stays the app's), and the work bar's `.modxport.mir-mod-power` 44 px rule in `transport-controls.css`. Since 1.5.0-alpha.11 (TINTED can blur) also: the tinted-frost .58 rule of `basins.css` (`body.frost:not(.frost-hold)[data-card="tinted"] .dev, … .glass, … .dev-body`), the frost-filter rules of its `skin.css` (`--frost-filter` on body, the tinted `#transport.mini` filter, the refractive pane filter and the `frost-hold` release), and in `lab.css` §56 the disc's fill and filter by card (`--chip-fill` tinted · tinted-frost .58 · refractive · refractive-frost, `--chip-filter` under FROST and its hold): the kit draws each.
+- **BASINS:** Settings › LOOK's implementation in `skin.js` (`setFaces`, `setFaceBlend`, `setText`, `setMaterial`, `setMaterialPreset`, `applyGlass`, `setBlur`, `setUIDropShadow`'s pane part, and their prefs keys), `surface-material.js` + `surface-material.css`, the glass-face and popover rules of `material.css` (§1, §2, §4 and the window-edge rule), the TEXT seats of `ink.css` (§1's body and forced seats, and since alpha.12 the sampled seats and §3's generated rungs; `adaptive-ink.js` too, keeping only its 64 × 36 GPU read as the `sample()` it hands `createInkSampler`), and the work bar's `.modxport.mir-mod-power` 44 px rule in `transport-controls.css`. Since 1.5.0-alpha.11 (TINTED can blur) also: the tinted-frost .58 rule of `basins.css` (`body.frost:not(.frost-hold)[data-card="tinted"] .dev, … .glass, … .dev-body`), the frost-filter rules of its `skin.css` (`--frost-filter` on body, the tinted `#transport.mini` filter, the refractive pane filter and the `frost-hold` release), and in `lab.css` §56 the disc's fill and filter by card (`--chip-fill` tinted · tinted-frost .58 · refractive · refractive-frost, `--chip-filter` under FROST and its hold): the kit draws each.
 - **Any app:** a rule that drew its own neumorphic relief, its own pane-shadow direction, or its own rack gaps.

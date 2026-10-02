@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MIR · ink fixture</title>
+<link rel="stylesheet" href="../../mir/css/base.css">
+<link rel="stylesheet" href="../../mir/css/skin.css">
+<link rel="stylesheet" href="../../mir/css/tokens.css">
+<link rel="stylesheet" href="../../mir/shell/shell.css">
+<link rel="stylesheet" href="../../mir/core/core.css">
+<link rel="stylesheet" href="../../mir/window/window.css">
+<link rel="stylesheet" href="../../mir/shell/gui.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b1020; }
+  #pic { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+  #pane { position: fixed; left: 40px; top: 40px; width: 240px; height: 84px; border-radius: 14px; padding: 12px; box-sizing: border-box; z-index: 10; }
+  #word { font-size: 20px; color: var(--fg); }
+  #badges { position: fixed; left: 320px; top: 40px; z-index: 10; }
+  #floats { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted">
+<canvas id="pic" width="1280" height="720"></canvas>
+<div id="pane" class="glass"><span id="word">BLUR</span></div>
+<div id="badges"><span class="badge">EXACT</span></div>
+<div id="floats"></div>
+<script type="module">
+import { createGui } from '../../mir/shell/gui.js';
+import { createInkSampler, canvasSample } from '../../mir/core/ink.js';
+import { captureProject, restoreProject } from '../../mir/core/project.js';
+
+const pic = document.getElementById('pic'), g = pic.getContext('2d');
+/** paint(left, right) — the picture: the left half one grey, the right half another */
+const paint = (left, right) => { g.fillStyle = left; g.fillRect(0, 0, 640, 720); g.fillStyle = right; g.fillRect(640, 0, 640, 720); };
+paint('#000', '#fff');
+const ink = createInkSampler({ sample: canvasSample(pic), stage: pic });
+const gui = createGui({ host: document.getElementById('floats'), app: { name: 'INK' }, inkSampler: ink, tierBench: async () => ({ periodMs: 16.7, passMs: 2 }) });
+window.__T = { gui, ink, paint, captureProject, restoreProject };
+window.__ready = true;
+</script>
+</body>
+</html>

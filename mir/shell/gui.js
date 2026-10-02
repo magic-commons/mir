@@ -22,9 +22,10 @@
  *     change; and each theme shows the reading taken when it was applied, beside its name.
  *   · The pointer glow and the parallax (mir/fx/) are installed here, because their two switches live here.
  *
- * createGui({ host, prefs, app: { name, version }, about, accent, defaults, storageKey }) →
+ * createGui({ host, prefs, app: { name, version }, about, accent, defaults, storageKey, inkSampler, tierBench, sampling,
+ *             projectAccent, rack }) →
  *   { root, prefs, open(page?), close(), toggle(page?), get page, turn(dir), moving(bool), dropGuides(), census(),
- *     applyTheme(id), applyTone(id), themeCost(id?), destroy() }
+ *     applyTheme(id), applyTone(id), themeCost(id?), tier(), measureTier(force?), sampling(), destroy() }
  *   host       where the window goes (a fixed layer above the stage)
  *   prefs      a store from core/prefs.js made with LOOK_SCHEMA (default: one is made, key `storageKey` = 'mir.gui')
  *   defaults   { key: value } — the app's own home look, over the kit's (e.g. { theme: 'light' })
@@ -32,8 +33,19 @@
  *   about      { github, credits: [line…], fonts: href-prefix } — extras for the ABOUT page (shell/about.js richText lines)
  *   moving(b)  the app says the picture is moving: under FROST · STILL the frost is held (body.frost-hold) while it moves
  *   dropGuides() the DROP GUIDES switch, for createWindow({ dock: { guide: gui.dropGuides } })
- *   inkSampler true: the app samples the picture under each label itself; TEXT offers SAMPLED, which writes no
- *              data-text and leaves the ink to it */
+ *   inkSampler a sampler from core/ink.js (createInkSampler): TEXT · AUTO samples the picture under each label (BASINS'
+ *              AUTO), LIGHT · DARK stop it.  `true` (1.5.0-alpha.7): the app runs a sampler of its own; TEXT offers
+ *              SAMPLED, which writes no data-text and leaves the ink to it
+ *   tierBench  async ({ win, doc, budgetMs }) → { periodMs, passMs }: QUALITY · AUTO's benchmark (default: the UI's own
+ *              cost, uiBench).  An app with a GPU engine passes its own pass (BASINS: its present pass at its own size)
+ *   sampling   { automation(grid), frameMs() } — the SAMPLING rows' two reaches: the automation grid's setter (default:
+ *              modulation/bind.js setAutomationGrid, loaded only when the row moves) and the last frame time for the
+ *              SCRUB · LIVE warning (default: the window's own FRAME reading)
+ *   projectAccent  default true: ACCENT A, B, VIVID and BRIGHTNESS ride the project (registerProjectPart('accent'))
+ *   rack       the app's rack (shell/rack.js): THEME shows RESET LAYOUT (rack.resetLayout()) only when it is handed in
+ *
+ * 1.5.0-alpha.12 (BASINS' missing rows): STATUS TAGS, FORGET, TRANSPORT BAR, ACCENT BRIGHTNESS, SAMPLING (SCRUB ·
+ * AUTOMATION), QUALITY · AUTO with the device tier, the first-run blur by device, body.touch-tablet. */
 import { el, knob, seg, sw, trig, readout, label, ariaLabel } from '../kit.js';
 import { phrase } from '../core/i18n.js';
 import { createWindow } from '../window/window.js';
@@ -41,8 +53,10 @@ import { createPrefs } from '../core/prefs.js';
 import { setMotionPolicy } from '../core/motion.js';
 import { frame } from '../core/frame.js';
 import { setText, setVar } from '../core/perf.js';
-import { glassTint as lookTint, glassVeil, autoInk, solidRelief, spacingPx } from '../core/look.js';
-import { createAccent } from './accent.js';
+import { registerProjectPart } from '../core/project.js';
+import { glassTint as lookTint, glassVeil, autoInk, solidRelief, spacingPx, DEVICE_BLUR, TIER_LAW, classifyTier, qualityOfTier, isIPad, TOUCH_TABLET_MQ } from '../core/look.js';
+import { createAccent, accentPart } from './accent.js';
+import { notice } from './notice.js';
 import { richText, safeHref } from './about.js';
 import { THEMES, themeById, themeValues, toneValues, matchTone } from './themes.js';
 import { createPointerLight } from '../fx/pointer-light.js';
@@ -65,27 +79,37 @@ export function glassTint(bright, hue, tint, theme, saturation = 1) { return loo
    Rows are applied in this order inside one frame job, so THEME is on <body> before the accent reads it, and the tier
    and the motion policy are written before the pointer effects re-ask their off rules (the last row).  The defaults are
    FROST with its CLEAR tone (shell/themes.js): a new user starts there. */
-export function lookSchema() {
-  const full = (s) => s.quality === 'full';
+/** the automation grid's levels, in beats (BASINS settings-window.js AUTOMATION_GRID_BY_ID): FRAME samples every frame */
+export const AUTOMATION_GRID = Object.freeze({ frame: 0, 32: 1 / 32, 16: 1 / 16, 8: 1 / 8 });
+/** effectiveQuality(quality, tier) — what QUALITY stands for now: AUTO is the device tier's (core/look.js qualityOfTier) */
+export const effectiveQuality = (q, tier) => (q === 'auto' ? qualityOfTier(tier) : q);
+
+/** lookSchema({ tier }) — tier() → 'A' | 'B' | 'C' | null, the device's measured tier that QUALITY · AUTO reads */
+export function lookSchema({ tier = () => null } = {}) {
+  const q = (s) => effectiveQuality(s.quality, tier());
+  const full = (s) => q(s) === 'full';
   const offShadow = (s) => s.shadow === 0 || !s.dropShadow;           // SHADOW at 0 %, or DROP SHADOW off: no pane shadow at all
   return [
     { key: 'skin', type: 'enum', values: ['frost'], default: 'frost', apply: [{ on: 'html', attr: 'data-skin' }] },
     { key: 'theme', type: 'enum', values: ['dark', 'light', 'system'], default: 'dark', apply: [{ on: 'body', attr: 'data-theme', map: (v, s, e) => e.theme }] },
     { key: 'accentA', type: 'number', step: 1, min: 0, max: 360, wrap: true, default: 30 },
     { key: 'accentB', type: 'number', step: 1, min: 0, max: 360, wrap: true, default: 300 },
-    { key: 'vivid', type: 'number', step: 0.01, min: 0, max: 1, default: 0.1, apply: [{ run(v, s, e, c) {     // ACCENT A, B and VIVID are one call
+    /* BRIGHTNESS (BASINS, 2026-10-01): both accents toward white in OKLCH, 0 … 100 % (shell/accent.js) */
+    { key: 'accentBright', type: 'number', step: 0.01, min: 0, max: 1, default: 0 },
+    { key: 'vivid', type: 'number', step: 0.01, min: 0, max: 1, default: 0.1, apply: [{ run(v, s, e, c) {     // ACCENT A, B, VIVID and BRIGHTNESS are one call
       if (!c || !c.accent) return;
-      const k = [s.accentA, s.accentB, v, e.theme].join();
+      const k = [s.accentA, s.accentB, v, s.accentBright, e.theme].join();
       if (c.lastAccent === k) return;
-      c.lastAccent = k; c.accent.set({ a: s.accentA, b: s.accentB, vivid: v });
+      c.lastAccent = k; c.accent.set({ a: s.accentA, b: s.accentB, vivid: v, bright: s.accentBright });
     } }] },
     { key: 'card', type: 'enum', values: ['tinted', 'refractive', 'solid'], default: 'refractive', apply: [{ on: 'body', attr: 'data-card' }] },
     { key: 'frost', type: 'enum', values: ['off', 'still', 'always'], default: 'always', apply: [
       { on: 'body', cls: 'frost', when: (v) => v !== 'off' },
       { run(v, s, e, c) { const b = c && c.doc && c.doc.body; if (b) b.classList.toggle('frost-hold', v === 'still' && !!c.moving); } }] },
     /* BLUR is always written: 0–24 px.  BASINS' range stops at 20, the WebKit ceiling; it reaches 22 only so CLASSIC can
-       be 1.4's own blur exactly (WebKit draws anything over 20 as 20) */
-    { key: 'blur', type: 'number', step: 1, min: 0, max: 24, default: 11, apply: [{ on: 'html', prop: '--glass-blur', map: (v) => v + 'px' }] },
+       be 1.4's own blur exactly (WebKit draws anything over 20 as 20).  A new user's is the device's (alpha.12): 11 px on
+       a desktop, 20 on a touch device (core/look.js DEVICE_BLUR, read once) */
+    { key: 'blur', type: 'number', step: 1, min: 0, max: 24, default: DEVICE_BLUR, apply: [{ on: 'html', prop: '--glass-blur', map: (v) => v + 'px' }] },
     /* VEIL — BASINS' veil (core/look.js glassVeil): the theme's signed whiteness, plus ½·BRIGHT, toward HUE by TINT */
     { key: 'veil', type: 'number', step: 1, min: 0, max: 60, default: 0, apply: [{ on: 'body', prop: '--surface-veil',
       map: (v, s, e) => (!full(s) ? null : glassVeil(s, e.theme, HOME.veil)) }] },
@@ -158,8 +182,19 @@ export function lookSchema() {
     { key: 'dropGuides', type: 'bool', default: true },              // read by createWindow({ dock: { guide } }) → gui.dropGuides()
     { key: 'hints', type: 'bool', default: true, apply: [{ on: 'body', cls: 'control-hints-off', when: (v) => !v }] },
     { key: 'help', type: 'bool', default: true, apply: [{ on: 'body', cls: 'window-info-off', when: (v) => !v }] },
-    { key: 'quality', type: 'enum', values: ['full', 'balanced', 'light'], default: 'full', apply: [
-      { on: 'html', attr: 'data-ui-tier', map: (v) => (v === 'balanced' ? 'lite' : v === 'light' ? 'flat' : null) },
+    /* STATUS TAGS (BASINS Settings › DISPLAY, skin.js setBadges): off is body.no-badges; a new user starts with them off
+       (BASINS NEW_USER: "Status Tags, Help: OFF") */
+    { key: 'badges', type: 'bool', default: false, apply: [{ on: 'body', cls: 'no-badges', when: (v) => !v }] },
+    /* TRANSPORT BAR (BASINS skin.js setTransportBar): off is body.no-transport-bar, which the transport's sheet reads */
+    { key: 'transportBar', type: 'bool', default: true, apply: [{ on: 'body', cls: 'no-transport-bar', when: (v) => !v }] },
+    /* SAMPLING (BASINS docs/TIMELINE-SAMPLING-2026-10-01.md): SCRUB is read by the timeline's transport controller at each
+       scrub's start (createTransportController({ scrubLevel })); AUTOMATION is pushed to the modulation host when it moves */
+    { key: 'scrub', type: 'enum', values: ['live', 'light', 'release'], default: 'live' },
+    { key: 'automation', type: 'enum', values: ['frame', '32', '16', '8'], default: 'frame' },
+    /* QUALITY — AUTO (alpha.12) is the device's tier, measured once (BASINS settings.js §2): A and B are FULL, C is
+       BALANCED.  A choice of FULL, BALANCED or LIGHT is the user's override and always wins. */
+    { key: 'quality', type: 'enum', values: ['auto', 'full', 'balanced', 'light'], default: 'auto', apply: [
+      { on: 'html', attr: 'data-ui-tier', map: (v, s) => { const e = q(s); return e === 'balanced' ? 'lite' : e === 'light' ? 'flat' : null; } },
       { run(v, s, e, c) { if (c && c.fx) c.fx(); } }] },
   ];
 }
@@ -238,26 +273,106 @@ export function census(doc = document) {
   return { blur, shadow, shine };
 }
 
+/* ── THE DEVICE TIER (BASINS settings.js §2): a ≤ 3 s benchmark, once per device, that sorts it A / B / C ──────────── */
+export const TIER_KEY = 'mir.tier';
+const lsGet = (S, k) => { try { const t = S && S.getItem(k); const o = t && JSON.parse(t); return o && typeof o === 'object' ? o : null; } catch (_) { return null; } };
+/** storedTier(storage, key) → the reading this device kept, if it was taken under the current law; else null */
+export function storedTier(storage = globalThis.localStorage, key = TIER_KEY) {
+  const o = lsGet(storage, key);
+  return o && o.version === TIER_LAW.VERSION && ['A', 'B', 'C'].includes(o.tier) ? o : null;
+}
+/** uiBench({ win, doc, budgetMs }) → { periodMs, passMs } — the kit's own benchmark: the display's period (the median of
+ *  20 animation-frame gaps) and the UI's own pass (the best of three whole-page style and layout passes, forced by a
+ *  custom property on <html> that every element inherits).  An app with a GPU engine hands its own instead. */
+export async function uiBench({ win = globalThis.window, doc = win.document, budgetMs = TIER_LAW.BUDGET_MS } = {}) {
+  const t0 = win.performance.now();
+  const periodMs = await new Promise((done) => {
+    const gaps = []; let last = 0, over = false;
+    const stop = win.setTimeout(() => { over = true; done(gaps.length ? median(gaps) : 0); }, Math.max(200, budgetMs / 2));
+    const tick = (now) => { if (over) return; if (last) gaps.push(now - last); last = now;
+      if (gaps.length < 20) win.requestAnimationFrame(tick); else { win.clearTimeout(stop); done(median(gaps)); } };
+    win.requestAnimationFrame(tick);
+  });
+  const de = doc.documentElement; let passMs = Infinity;
+  for (let i = 0; i < 3 && win.performance.now() - t0 < budgetMs; i++) {
+    const a = win.performance.now();
+    de.style.setProperty('--mir-bench', String(i + 1)); void doc.body.offsetHeight; void win.getComputedStyle(doc.body).color;
+    passMs = Math.min(passMs, win.performance.now() - a);
+  }
+  de.style.removeProperty('--mir-bench');
+  return { periodMs, passMs: Number.isFinite(passMs) ? passMs : 0 };
+}
+const median = (a) => { const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
+/** measureTier({ bench, storage, key, force, win }) → { tier, hz, periodMs, passMs, headroom, ms, at, version, why } —
+ *  BASINS measureTier: a stored reading under the current law is trusted (one storage read); otherwise the bench runs
+ *  (≤ 3 s), the device is judged against itself (core/look.js classifyTier) and the reading is kept for this device. */
+export async function measureTier({ bench = uiBench, storage = globalThis.localStorage, key = TIER_KEY, force = false, win = globalThis.window } = {}) {
+  const kept = !force && storedTier(storage, key);
+  if (kept) return kept;
+  const t0 = win.performance.now();
+  let r = null, why = '';
+  try { r = await bench({ win, doc: win.document, budgetMs: TIER_LAW.BUDGET_MS }); } catch (e) { why = 'the bench threw: ' + String((e && e.message) || e); }
+  const periodMs = +(r && r.periodMs) || 0, passMs = +(r && r.passMs) || 0;
+  const hz = periodMs > 0 ? 1000 / periodMs : 60, headroom = periodMs > 0 && passMs > 0 ? periodMs / passMs : 0;
+  const tier = classifyTier(hz, headroom);
+  const out = { tier, hz: +hz.toFixed(1), periodMs: +periodMs.toFixed(3), passMs: +passMs.toFixed(4), headroom: +headroom.toFixed(2),
+    ms: +(win.performance.now() - t0).toFixed(1), at: Date.now(), version: TIER_LAW.VERSION,
+    why: headroom > 0 ? `${tier}: a ${passMs.toFixed(2)} ms pass in a ${periodMs.toFixed(2)} ms panel = headroom ×${headroom.toFixed(1)} at ${hz.toFixed(0)} Hz (A ≥ ×${TIER_LAW.HEAD_A} at ≥ ${TIER_LAW.HZ_A} Hz, B ≥ ×${TIER_LAW.HEAD_B})`
+      : (why || 'B: the pass could not be measured, so the middle rung') };
+  try { if (storage) storage.setItem(key, JSON.stringify(out)); } catch (_) {}
+  return out;
+}
+
+/** touchTablet(doc, signal) — body.touch-tablet on an iPad (one that says it is a Mac included) or a coarse pointer on a
+ *  screen wider than a phone, followed live (BASINS skin.js syncTablet).  The GUI window installs it. */
+export function touchTablet(doc = globalThis.document, signal) {
+  const win = doc.defaultView, mq = win.matchMedia ? win.matchMedia(TOUCH_TABLET_MQ) : null;
+  const sync = () => doc.body.classList.toggle('touch-tablet', isIPad(win.navigator) || !!(mq && mq.matches));
+  sync();
+  if (mq && mq.addEventListener) mq.addEventListener('change', sync, signal ? { signal } : undefined);
+  return sync;
+}
+
 /* the narrow layout: the OPTIONS groups as sheets, stepped sideways by the page turner; page 2's groups are sheet 5 */
 const NARROW = '(max-width: 720px)';
-const SHEETS = { theme: 1, accent: 1, material: 2, controls: 3, text: 3, quality: 3, motion: 4, light: 5, windows: 5 };
-const PAGE_OF = { theme: 1, accent: 1, material: 1, controls: 1, text: 1, quality: 1, motion: 1, light: 2, windows: 2 };
+const SHEETS = { theme: 1, accent: 1, material: 2, controls: 3, text: 3, quality: 3, motion: 4, light: 5, windows: 5, sampling: 5 };
+const PAGE_OF = { theme: 1, accent: 1, material: 1, controls: 1, text: 1, quality: 1, motion: 1, light: 2, windows: 2, sampling: 2 };
 const SHEET_COUNT = 5;
+const ACCENT_KEYS = ['accentA', 'accentB', 'vivid', 'accentBright'];
 
-export function createGui({ host, prefs, app = {}, about = {}, accent, defaults = {}, storageKey = 'mir.gui', inkSampler = false } = {}) {
+export function createGui({ host, prefs, app = {}, about = {}, accent, defaults = {}, storageKey = 'mir.gui', inkSampler = false, tierBench, sampling = {}, projectAccent = true, rack = null } = {}) {
   const doc = host.ownerDocument, win = doc.defaultView;
   const life = new AbortController(), on = { signal: life.signal };
   const appName = app.name || 'This app';
+  const sampler = inkSampler && typeof inkSampler === 'object' && typeof inkSampler.mode === 'function' ? inkSampler : null;
 
-  /* ── the store, the accent, the pointer effects ── */
+  /* ── the store, the accent, the pointer effects, the device ── */
+  let tierReading = (() => { try { return storedTier(win.localStorage); } catch (_) { return null; } })();   // read before the first paint, so AUTO paints the known tier
   const ctx = { doc, accent: accent === false ? null : accent || createAccent(), moving: false, lastAccent: null, fx: null };
-  const schema = lookSchema().map((r) => (r.key in defaults ? { ...r, default: defaults[r.key] } : r));
+  const schema = lookSchema({ tier: () => (tierReading ? tierReading.tier : null) }).map((r) => (r.key in defaults ? { ...r, default: defaults[r.key] } : r));
   if (!prefs) migrateShadow(storageKey, win);
   const P = prefs || createPrefs({ key: storageKey, schema, presets: LOOK_PRESETS, context: ctx });
   const light = createPointerLight({ doc, enabled: () => P.get('glow') });
   const plx = createParallax({ doc, enabled: () => P.get('parallax') });
   ctx.fx = () => { light.refresh(); plx.refresh(); };
+  touchTablet(doc, life.signal);
   P.apply({ now: true });                                            // the first paint wears the stored look
+
+  /* QUALITY · AUTO: the benchmark runs once per device, after the first paint and out of the boot's way (BASINS kicks it
+     off 200 ms after the picture is up), and only while AUTO is chosen; a reading this device kept costs one storage read */
+  let tierRun = null, tierTimer = 0;
+  const runTier = (force) => {
+    if (tierRun) return tierRun;
+    tierRun = measureTier({ bench: tierBench, storage: win.localStorage, force, win }).then((t) => { tierReading = t; tierRun = null; P.apply(); paintTier(); return t; }, () => { tierRun = null; return null; });
+    return tierRun;
+  };
+  const wantTier = () => { if (P.get('quality') === 'auto' && !tierReading && !tierTimer && !tierRun) tierTimer = win.setTimeout(() => { tierTimer = 0; runTier(false); }, 200); };
+
+  /* THE ACCENTS RIDE THE PROJECT (BASINS skin.js accentProject): the one look setting a project carries */
+  const unpart = projectAccent ? registerProjectPart('accent', accentPart({
+    get: () => ({ a: P.get('accentA'), b: P.get('accentB'), vivid: P.get('vivid'), bright: P.get('accentBright') }),
+    set: (v) => P.set({ accentA: v.a, accentB: v.b, vivid: v.vivid, accentBright: v.bright }),
+    subscribe: (fn) => P.subscribe((s, changed) => { if (changed.some((k) => ACCENT_KEYS.includes(k))) fn(); }) })) : null;
 
   /** applyTheme(id) — the theme's options and its own tone, in one set; its cost is measured once it has painted */
   let costFor = null;
@@ -292,10 +407,14 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   skinStep.root.classList.add('gui-skin'); toneStep.root.classList.add('gui-tone');
   line(g, 'gui-pair').append(skinStep.root, toneStep.root);
   const costNote = el('div', 'gui-note gui-theme-cost', g); costNote.title = 'What this theme cost when it was applied: surfaces that blur, shadows drawn, shine layers, the mean frame time';
-  label(el('div', 'gui-note gui-coming', g), '{skins} — coming (“name”-specs)', { skins: SKINS.filter((s) => s.coming).map((s) => s.label).join(' · ') });   // tr: a “name”-spec is a theme with its own rules or art, outside the built-in settings; METRO and SPRITES are names
+  label(el('div', 'gui-note gui-coming gui-help', g), '{skins} — coming (“name”-specs)', { skins: SKINS.filter((s) => s.coming).map((s) => s.label).join(' · ') });   // tr: a “name”-spec is a theme with its own rules or art, outside the built-in settings; METRO and SPRITES are names
   const themeLine = line(g, 'gui-pair');
   themeLine.append(segOf('theme', phrase('THEME'), [['light', phrase('LIGHT', 'theme mode')], ['dark', phrase('DARK', 'theme mode')], ['system', phrase('SYSTEM'), phrase('Follow the system')]]).root,   // tr[THEME]: THEME: LIGHT, DARK or SYSTEM, the light or dark mode (not the SKIN)
-    trig({ label: 'RESET LOOK', title: 'Every look option back home: the {:name::FROST} theme', onFire: () => { costFor = 'frost'; P.reset(); } }).root);
+    trig({ label: 'RESET LOOK', title: 'Every look option back home: the {:name::FROST} theme', onFire: () => { costFor = 'frost'; P.reset(); } }).root,
+    /* RESET LAYOUT (BASINS settings-window.js:130, before FORGET): the rack's windows back to their default places */
+    ...(rack && typeof rack.resetLayout === 'function' ? [trig({ label: 'RESET LAYOUT', title: 'Restore the default window layout', onFire: () => rack.resetLayout() }).root] : []),
+    /* FORGET (BASINS Settings › LOOK): this browser's saved look is wiped and the page reloads at the new user's look */
+    trig({ label: 'FORGET', title: 'Clear saved interface settings and reload', onFire: () => { if (P.forget) P.forget(); else P.reset(); win.location.reload(); } }).root);
 
   /* ACCENT — a hue is cyclic, so it is an arc (INTENT rule 2): the kit's accent dial */
   g = groupEl('accent', phrase('ACCENT'));
@@ -304,17 +423,31 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   const kV = knobOf('vivid', phrase('VIVID'), hundred);
   const swA = sweep(kA), swB = sweep(kB); swA(P.get('accentA')); swB(P.get('accentB'));
   line(g, 'gui-knobs').append(kA.root, kB.root, kV.root);
+  /* BRIGHTNESS (BASINS, Josh 2026-10-01): both accents toward white; it rides the project with them */
+  const kBr = knobOf('accentBright', phrase('BRIGHTNESS'), { ...hundred, aria: 'ACCENT BRIGHTNESS', title: 'BRIGHTNESS — shifts both accents toward white. Saved with the project, like the accents.' });   // tr[BRIGHTNESS]: how far both accent colours are mixed toward white (not the glass's BRIGHT)
+  line(g, 'gui-knobs').append(kBr.root, seat(), seat());
 
-  /* TEXT — BASINS' TEXT seg (AUTO here follows the theme; BASINS' AUTO samples the picture), then what shows */
+  /* TEXT — BASINS' TEXT seg.  AUTO with an ink sampler (core/ink.js) is BASINS' AUTO: each label from the picture under
+     it; with none it follows the theme.  Then what shows */
   g = groupEl('text', phrase('TEXT'));
-  line(g).append(segOf('text', phrase('INK'), [['theme', phrase('AUTO'), phrase('Follow the theme (on a {:SOLID} pane, its lightness)')], ['light', phrase('LIGHT', 'text ink'), phrase('White text on every label')], ['dark', phrase('DARK', 'text ink'), phrase('Black text on every label')],
-    ...(inkSampler ? [['sampled', phrase('SAMPLED', 'text ink'), phrase('Each label’s ink from the picture under it (this app’s sampler)')]] : [])]).root);   // tr[SAMPLED]: TEXT (the label ink) set by the app itself, from the picture under each label: "measured", not "a sample" // tr[Each label’s ink from the picture under it (this app’s sampler)]: the app's own sampler reads the picture behind each word and picks white or black ink
+  line(g).append(segOf('text', phrase('INK'), [['theme', phrase('AUTO'), sampler ? phrase('Each label turns white or black from the picture beneath it') : phrase('Follow the theme (on a {:SOLID} pane, its lightness)')], ['light', phrase('LIGHT', 'text ink'), phrase('White text on every label')], ['dark', phrase('DARK', 'text ink'), phrase('Black text on every label')],
+    ...(inkSampler === true ? [['sampled', phrase('SAMPLED', 'text ink'), phrase('Each label’s ink from the picture under it (this app’s sampler)')]] : [])]).root);   // tr[SAMPLED]: TEXT (the label ink) set by the app itself, from the picture under each label: "measured", not "a sample" // tr[Each label’s ink from the picture under it (this app’s sampler)]: the app's own sampler reads the picture behind each word and picks white or black ink
   const shows = el('div', 'segw gui-show', line(g)); label(el('div', 'k-lbl', shows), 'SHOW');
-  el('div', 'gui-line gui-sws gui-col', shows).append(swOf('hints', phrase('HINTS'), phrase('Hover hints on controls')).root, swOf('help', phrase('HELP'), phrase('The ⓘ panels on windows')).root);
+  el('div', 'gui-line gui-sws gui-col', shows).append(swOf('hints', phrase('HINTS'), phrase('Hover hints on controls')).root, swOf('help', phrase('HELP'), phrase('The ⓘ panels on windows')).root,
+    swOf('badges', phrase('STATUS TAGS'), phrase('Show status tags at the top')).root);   // tr[STATUS TAGS]: the small status labels over the picture (BASINS' badges and stats bar)
 
-  /* QUALITY — and what it costs */
+  /* QUALITY — AUTO (the device's tier), the three tiers by hand, and what it costs */
   g = groupEl('quality', phrase('QUALITY'));
-  line(g).append(segOf('quality', phrase('TIER'), [['full', phrase('FULL', 'quality tier'), phrase('Everything')], ['balanced', phrase('BALANCED'), phrase('No blur anywhere, one shadow layer')], ['light', phrase('LIGHT', 'quality tier'), phrase('No blur, no relief, no shadows, no motion')]]).root);
+  line(g).append(segOf('quality', phrase('TIER'), [['full', phrase('FULL', 'quality tier'), phrase('Everything')], ['balanced', phrase('BALANCED'), phrase('No blur anywhere, one shadow layer')], ['light', phrase('LIGHT', 'quality tier'), phrase('No blur, no relief, no shadows, no motion')],
+    ['auto', phrase('AUTO', 'quality tier'), phrase('This device’s tier, measured once: A and B are {:FULL}, C is {:BALANCED}')]]).root);   // tr[This device’s tier, measured once: A and B are {:FULL}, C is {:BALANCED}]: a short benchmark sorts this device into tier A, B or C
+  const tierNote = el('div', 'gui-note gui-tier', g);
+  const paintTier = () => {
+    const t = tierReading;
+    if (!t) label(tierNote, P.get('quality') === 'auto' ? 'AUTO: measuring this device' : 'AUTO: not measured');
+    else label(tierNote, 'AUTO: tier {tier} → {quality}', { tier: t.tier, quality: { t: effectiveQuality('auto', t.tier).toUpperCase() } });
+    tierNote.title = t ? t.why : '';
+  };
+  paintTier();
   const roBlur = readout({ label: 'BLUR', value: '—' }), roShadow = readout({ label: 'SHADOW', value: '—' }), roFrame = readout({ label: 'FRAME', value: '—' });   // tr[FRAME]: the time to draw one frame of the screen, in milliseconds (not a picture frame)
   for (const r of [roBlur, roShadow, roFrame]) { r.root.classList.add('gui-ro'); r.root.title = 'What the look costs, measured after the last change'; }
   roBlur.root.title = 'Surfaces that blur what is behind them: one compositor pass each';
@@ -377,9 +510,25 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   /* WINDOWS — the pane's rim, its drop shadow, its header apart */
   g = groupEl('windows', phrase('WINDOWS'));
   line(g, 'gui-sws gui-col').append(swOf('dropShadow', phrase('DROP SHADOW'), phrase('Pane shadows ({:SHADOW} sets their strength)')).root, swOf('edge', phrase('EDGE'), phrase('The pane’s hairline rim')).root,
-    swOf('disconnected', phrase('DISCONNECTED'), phrase('Separate window headers from their bodies')).root);
+    swOf('disconnected', phrase('DISCONNECTED'), phrase('Separate window headers from their bodies')).root,
+    /* TRANSPORT BAR (BASINS Settings › DISPLAY): the main transport bar in every seat; the transport's sheet reads the class */
+    swOf('transportBar', phrase('TRANSPORT BAR'), phrase('Show the main transport bar, floating or docked')).root);
   line(g).append(segOf('spacing', phrase('SPACING'), [['0', '0', phrase('Rack windows flush to each other and to the screen’s edge')], ['tight', phrase('TIGHT'), phrase('3 px between rack windows and from the edge')],
     ['default', phrase('DEFAULT'), phrase('6 px between rack windows and from the edge')], ['airy', phrase('AIRY'), phrase('16 px between rack windows and from the edge')]]).root);   // BASINS' row (settings-window.js), and AIRY
+
+  /* SAMPLING (BASINS Settings › QUALITY › SAMPLING, docs/TIMELINE-SAMPLING-2026-10-01.md): how a scrub and the automation
+     read the engine.  BASINS' words, its cost toasts and its note (prose: it hides with HELP) */
+  g = groupEl('sampling', phrase('SAMPLING'));
+  const frameMs = () => { const v = sampling.frameMs ? +sampling.frameMs() : +roFrame.root.dataset.ms; return Number.isFinite(v) ? v : 0; };
+  const toAutomation = sampling.automation || ((grid) => import('../modulation/bind.js').then((m) => m.setAutomationGrid && m.setAutomationGrid(grid)).catch(() => null));
+  const segAfter = (key, lbl, options, after) => bind(key, seg({ label: lbl, options: options.map(([id, l, title]) => ({ id, label: l, title })), value: P.get(key), onChange: (v) => { P.set(key, v); after(v); } }));
+  line(g).append(segAfter('scrub', phrase('SCRUB'), [['live', phrase('LIVE', 'scrub'), phrase('Seek the picture on every scrub move. Smoothest when a frame is fast; can lag at a deep place.')],
+    ['light', phrase('LIGHT', 'scrub'), phrase('Seek about once every three moves. The hand always stays smooth.')], ['release', phrase('RELEASE'), phrase('The picture waits until you let go. The playhead and readers move at once.')]],
+  (v) => { const ms = frameMs(); if (v === 'live' && ms > 16) notice('the last frame took ' + Math.round(ms) + ' ms — scrubbing will lag; LIGHT keeps the hand smooth'); }).root);
+  line(g).append(segAfter('automation', phrase('AUTOMATION'), [['frame', phrase('FRAME', 'automation'), phrase('Sample the arrangement every rendered frame. The CLOCK tile sets how often modulation ticks at all.')],
+    ['32', '1/32', phrase('Sample on a 1/32-beat grid. Values step on the grid.')], ['16', '1/16', phrase('Sample on a 1/16-beat grid. Values step on the grid.')], ['8', '1/8', phrase('Sample on a 1/8-beat grid. Values step on the grid.')]],
+  (v) => { const grid = AUTOMATION_GRID[v] || 0; toAutomation(grid); if (grid) notice('values step on the grid'); }).root);
+  label(el('div', 'gui-note gui-help', g), 'SCRUB is how the picture follows a ruler drag. AUTOMATION is how playback reads the Timeline into the engine; never during a recorded render.');
 
   /* ── ABOUT ── */
   const ab = el('div', 'gui-page gui-about');
@@ -514,7 +663,9 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
     const theme = P.preset();
     skinStep.set(theme); toneStep.setItems(toneItems(theme), theme === 'custom' ? undefined : matchTone(state, theme));
     paintVer(); paintCost();
-    const full = state.quality === 'full', lit = state.shadow > 0 && state.dropShadow;
+    if (changed.includes('quality')) { paintTier(); wantTier(); }
+    if (sampler && (!changed.length || changed.includes('text'))) sampler.mode(state.text === 'light' || state.text === 'dark' ? 'off' : 'auto');   // LIGHT · DARK: the ink is chosen, nothing is sampled
+    const full = effectiveQuality(state.quality, tierReading && tierReading.tier) === 'full', lit = state.shadow > 0 && state.dropShadow;
     kBlur.setDisabled(!full || state.card === 'solid'); kSat.setDisabled(!full || state.card === 'solid'); kVeil.setDisabled(!full || state.card !== 'refractive');
     kHue.setDisabled(!state.tint);                                    // HUE shows only through TINT
     kBlend.setDisabled(state.faces !== 'solid');                      // BLEND moves SOLID faces toward glass (BASINS)
@@ -525,6 +676,7 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   }
   const unsub = P.subscribe(sync);
   sync(P.all(), []);
+  wantTier();
 
   return {
     root: W.root, window: W, prefs: P,
@@ -543,6 +695,13 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
     /** themeCost(id?) — what a theme cost when it was last applied: { blur, shadow, shine, ms }, or all of them */
     themeCost: (id) => (id ? costs[id] || null : { ...costs }),
     light, parallax: plx,
-    destroy() { unsub(); life.abort(); costRun++; frame.cancel('gui:cost'); light.destroy(); plx.destroy(); W.destroy(); if (!prefs) P.destroy(); },
+    /** tier() — this device's reading ({ tier, hz, periodMs, passMs, headroom, why, … }) or null; measureTier(force) runs
+     *  the benchmark (force: again, ignoring the kept reading) → a Promise of the reading */
+    tier: () => (tierReading ? { ...tierReading } : null),
+    measureTier: (force = false) => runTier(force),
+    /** sampling() → { scrub, grid }: the SCRUB level (for createTransportController({ scrubLevel })) and the automation
+     *  grid in beats (0 = every frame) for the modulation host at install */
+    sampling: () => ({ scrub: P.get('scrub'), grid: AUTOMATION_GRID[P.get('automation')] || 0 }),
+    destroy() { unsub(); life.abort(); costRun++; frame.cancel('gui:cost'); if (tierTimer) win.clearTimeout(tierTimer); if (unpart) unpart(); light.destroy(); plx.destroy(); W.destroy(); if (!prefs) P.destroy(); },
   };
 }

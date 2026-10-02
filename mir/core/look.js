@@ -14,7 +14,9 @@
  *     `--light-angle`; lightOffset() is the same arithmetic for a test or a script.
  *
  * Exports: THEME_GLASS, hslRgb, glassTint, glassVeil, paneShadow, lightOffset, lightIsHome, paneLightness, solidInk, SPACING, spacingPx,
- *          LIGHT_HOME. */
+ *          LIGHT_HOME, autoInk; the device (alpha.12): isMobile, isIPad, TOUCH_TABLET_MQ, BLUR_DESKTOP, BLUR_TOUCH,
+ *          firstRunBlur, DEVICE_BLUR, TIER_LAW, classifyTier, qualityOfTier.  The device tests read `navigator` and
+ *          `matchMedia` only when they are not handed them. */
 
 /** the theme's own glass, as the kit ships it (skin.css :root and body[data-theme="light"]): the tinted pane's H S L
  *  and the refractive frost's veil as a signed whiteness (+ white, − black) — BASINS skin.js THEME_GLASS, verbatim */
@@ -101,6 +103,45 @@ export function solidRelief(o, theme) {
   const L = paneLightness(o, theme), pct = (v) => Math.round(Math.max(0, Math.min(1, v)) * 1000) / 10;
   return { lift: pct((8 + 20 * (1 - L / 100)) / Math.max(1, 100 - L)), sink: pct((6 + 14 * L / 100) / Math.max(1, L)), gain: +(1 + 1.2 * (1 - L / 100)).toFixed(3) };
 }
+
+/* ── THE DEVICE (1.5.0-alpha.12, BASINS skin.js isMobile / newUserBlur / syncTablet, settings.js §2) ─────────────────── */
+/** isMobile(nav, matchMedia) — BASINS' test, verbatim: a touch-first phone or tablet (an iPad that says it is a Mac
+ *  included), or a page with no hover and a coarse pointer.  Desktops, Safari on a Mac included, are not. */
+export function isMobile(nav = globalThis.navigator, mm = globalThis.matchMedia ? (q) => globalThis.matchMedia(q) : null) {
+  try {
+    if (!nav) return false;
+    const ua = nav.userAgent || '';
+    if (nav.userAgentData && nav.userAgentData.mobile) return true;
+    if (/Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (nav.platform === 'MacIntel' && nav.maxTouchPoints > 1)) return true;
+    return !!(mm && mm('(hover: none) and (pointer: coarse)').matches);
+  } catch (_) { return false; }
+}
+/** isIPad(nav) — an iPad, even one that says it is a Mac (BASINS syncTablet) */
+export function isIPad(nav = globalThis.navigator) { return !!nav && (/iPad/i.test(nav.userAgent || '') || (nav.platform === 'MacIntel' && nav.maxTouchPoints > 1)); }
+/** TOUCH_TABLET_MQ — the other half of body.touch-tablet: a coarse pointer anywhere and a screen wider than a phone */
+export const TOUCH_TABLET_MQ = '(any-pointer: coarse) and (min-width: 701px)';
+/** the first-run blur, px: Josh (2026-09-26): "New users get 4px blur on desktop and 20px blur on Apple devices (because
+ *  for some reason the blur is less intense there)"; ruled 2026-10-02: a desktop starts at FROST's 11 px, a touch device
+ *  at 20 px (BASINS' newUserBlur ceiling, the WebKit maximum) */
+export const BLUR_DESKTOP = 11, BLUR_TOUCH = 20;
+export const firstRunBlur = (mobile = isMobile()) => (mobile ? BLUR_TOUCH : BLUR_DESKTOP);
+/** DEVICE_BLUR — read once, when the kit loads (BASINS reads its FRESH test once, at import) */
+export const DEVICE_BLUR = firstRunBlur();
+
+/** THE DEVICE TIER — BASINS settings.js §2, "the device-relative law": a device is judged AGAINST ITSELF.  headroom = its
+ *  own panel period ÷ the cost of its own pass; A needs headroom ≥ 3 on a ≥ 90 Hz panel, B ≥ 1.5, C is the rest.  The
+ *  whole benchmark fits in 3 s and runs once per device. */
+export const TIER_LAW = Object.freeze({ HEAD_A: 3, HEAD_B: 1.5, HZ_A: 90, BUDGET_MS: 3000, VERSION: 1 });
+/** classifyTier(hz, headroom) → 'A' | 'B' | 'C' (BASINS `classify`); nothing measured is B, the honest middle */
+export function classifyTier(hz, headroom, law = TIER_LAW) {
+  if (!(headroom > 0)) return 'B';
+  if (headroom >= law.HEAD_A && hz >= law.HZ_A) return 'A';
+  if (headroom >= law.HEAD_B) return 'B';
+  return 'C';
+}
+/** qualityOfTier(tier) → the QUALITY that AUTO stands for: BASINS seeds its glass FULL on A and B and OFF on C, so A and B
+ *  are FULL and C is BALANCED (the kit's tier with no blur anywhere: BASINS' "a flat panel") */
+export const qualityOfTier = (t) => (t === 'C' ? 'balanced' : 'full');
 
 /** autoInk(state, theme) → what TEXT · AUTO writes on <body data-text>: on a SOLID pane the pane's lightness decides
  *  (solidInk); under glass (REFRACTIVE, or FROST on a tinted pane) BASINS' unsampled seat, the pure ladder in the mode's

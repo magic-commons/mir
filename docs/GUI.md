@@ -48,7 +48,14 @@ engine.onMoving((moving) => gui.moving(moving));               // FROST · STILL
 ## The API
 
 **`shell/gui.js`**
-- `createGui({ host, prefs, app, about, accent, defaults, storageKey })` → `{ root, window, prefs, open(page), close(), toggle(page), page, turn(dir), moving(bool), dropGuides(), census(), applyTheme(id), applyTone(id), themeCost(id?), light, parallax, destroy() }`.
+- `createGui({ host, prefs, app, about, accent, defaults, storageKey, inkSampler, tierBench, sampling, projectAccent, rack })` → `{ root, window, prefs, open(page), close(), toggle(page), page, turn(dir), moving(bool), dropGuides(), census(), applyTheme(id), applyTone(id), themeCost(id?), tier(), measureTier(force?), sampling(), light, parallax, destroy() }`.
+  - `inkSampler`: a sampler from `core/ink.js` (`createInkSampler`) makes TEXT · AUTO sample the picture under each label (`docs/INK.md`); `true` is the 1.5.0-alpha.7 contract (the app runs its own sampler; TEXT offers SAMPLED).
+  - `tierBench`: QUALITY · AUTO's benchmark, `async ({ win, doc, budgetMs }) → { periodMs, passMs }` (default `uiBench`, below).
+  - `sampling`: `{ automation(grid), frameMs() }`, the SAMPLING rows' two reaches (defaults: `modulation/bind.js setAutomationGrid`, loaded only when the row moves; the window's own FRAME reading).
+  - `projectAccent` (default true): ACCENT A, B, VIVID and BRIGHTNESS ride the project as the part `accent`.
+  - `rack`: the app's rack; THEME then shows RESET LAYOUT (`rack.resetLayout()`).
+  - `tier()` → this device's reading `{ tier, hz, periodMs, passMs, headroom, ms, why, … }` or null; `measureTier(force)` → a Promise of it; `sampling()` → `{ scrub, grid }` (the SCRUB level for `createTransportController({ scrubLevel })`, the automation grid in beats for the modulation host).
+- `measureTier({ bench, storage, key, force, win })`, `storedTier(storage, key)`, `uiBench({ win, doc, budgetMs })`, `TIER_KEY` (`'mir.tier'`), `AUTOMATION_GRID`, `effectiveQuality(quality, tier)`, `touchTablet(doc, signal)` (alpha.12).
   - `open('options' | 'options:2' | 'about')`; `turn(±1)` steps the page turner; `page` is `'options'` or `'about'`.
   - `applyTheme(id)` sets a vanilla theme and its own tone; `applyTone(id)` one of the current theme's tones; `themeCost(id)` → `{ blur, shadow, shine, ms }` measured when that theme was applied (or every theme's, without an id).
   - `prefs` is the store (below): `gui.prefs.set('theme', 'light')`, `gui.prefs.subscribe(fn)`; `gui.prefs.preset()` names the theme the options match, or `'custom'`.
@@ -82,11 +89,14 @@ Every control on MIR OPTIONS changes what is drawn through a hook a kit sheet or
 | | the cost line | note | what the theme cost when it was applied: blurred surfaces · shadows · shine layers · frame time | |
 | | THEME light · dark · system | seg | `<body data-theme>`; SYSTEM follows `prefers-color-scheme` live | dark |
 | | RESET LOOK | trig | every option home (FROST); the stored key is removed | |
+| | RESET LAYOUT | trig | `rack.resetLayout()` (BASINS: "Restore the default window layout"); shown only when `createGui({ rack })` | |
+| | FORGET | trig | `prefs.forget()` then a reload (BASINS: "Clear saved interface settings and reload") | |
 | ACCENT | A, B | arc dials (`.accent-dial`, cyclic: INTENT rule 2) | `shell/accent.js` `set({ a, b })` → `--acc`, `--acc2` on `<body>` | 30°, 300° |
 | | VIVID | dial | `accent.set({ vivid })` → `--acc-glow` and the chroma | 10 % |
+| | BRIGHTNESS 0–100 % | dial | `accent.set({ bright })`: both accents mixed toward white in OKLCH, so `--acc`, `--acc2` and everything derived from them follow; `--acc-white` on `<body>` while above 0. Rides the project with A, B and VIVID | 0 |
 | MATERIAL | PANE tinted · refractive · solid | seg | `<body data-card>`; SOLID is the opaque pane in the tint's colour (`docs/THEMES.md`) | tinted |
 | | FROST off · still · always | seg | `body.frost`; under STILL, `body.frost-hold` while `gui.moving(true)` | off |
-| | BLUR 0–24 px | dial | `--glass-blur` on `<html>` (it feeds `--frost-filter` there), always written; 0 is no blur: it writes `--surface-filter: none` and `--frost-filter: none`, the whole value, never `blur(0)` (a TINTED pane under FROST stays at its .58 there, as BASINS'; INTENT rule 4). BASINS' range is 0–20 (20 is the WebKit ceiling); it reaches 22 so CLASSIC is 1.4's blur exactly. Disabled below FULL and under SOLID | FROST: 11 |
+| | BLUR 0–24 px | dial | `--glass-blur` on `<html>` (it feeds `--frost-filter` there), always written; 0 is no blur: it writes `--surface-filter: none` and `--frost-filter: none`, the whole value, never `blur(0)` (a TINTED pane under FROST stays at its .58 there, as BASINS'; INTENT rule 4). BASINS' range is 0–20 (20 is the WebKit ceiling); it reaches 22 so CLASSIC is 1.4's blur exactly. Disabled below FULL and under SOLID | FROST: 11 on a desktop, 20 on a touch device |
 | | VEIL 0–60 % | dial | `--surface-veil` on `<body>`: BASINS' veil, the theme's signed whiteness (white on light, black on dark) plus ½·BRIGHT, coloured toward HUE by TINT (`core/look.js glassVeil`). Disabled unless REFRACTIVE at FULL | the house veils |
 | | SATURATION 0–200 % | dial | `--surface-filter: blur(Npx) saturate(s)` on `<body>`, and it multiplies the tint's chroma (BASINS). Disabled below FULL and under SOLID | 100 % |
 | | CORNERS 0–24 px | dial | `--surface-radius` on `<body>`: rack cards, kit windows, the notebook, menus, popovers, the modulation panes, an app pane with `data-mir-surface` (the transport bar keeps its own 16 px, as BASINS) | 14 px |
@@ -98,10 +108,11 @@ Every control on MIR OPTIONS changes what is drawn through a hook a kit sheet or
 | | POINTER GLOW | switch | `fx/pointer-light.js` (below) | on (ruling 13) |
 | | PARALLAX | switch | `fx/parallax.js` (below) | on |
 | | DROP GUIDES | switch | `gui.dropGuides()`, handed to `createWindow({ dock: { guide } })` | on |
-| TEXT | INK auto · light · dark | seg | `<body data-text>`: white or black, the pure ladder, no emboss (BASINS' TEXT). AUTO: under glass the ladder in the mode's polarity (BASINS' unsampled seat), on a SOLID pane its lightness, on a TINTED pane the house ladder | auto |
+| TEXT | INK auto · light · dark | seg | `<body data-text>`: white or black, the pure ladder, no emboss (BASINS' TEXT). AUTO: under glass the ladder in the mode's polarity (BASINS' unsampled seat), on a SOLID pane its lightness, on a TINTED pane the house ladder. **With an ink sampler** (`createGui({ inkSampler })`, `docs/INK.md`) AUTO is BASINS' AUTO: each label white or black from the picture beneath it, and LIGHT · DARK stop the sampler | auto |
 | | HINTS | switch | `body.control-hints-off` (`control-help.js`) | on |
-| | HELP | switch | `body.window-info-off` (skin.css hides every ⓘ) | on |
-| QUALITY | FULL · BALANCED · LIGHT | seg | `<html data-ui-tier>`: none · `lite` · `flat` (`docs/TIERS.md`) | FULL |
+| | HELP | switch | `body.window-info-off` (skin.css hides every ⓘ; the GUI's own help prose goes with it) | on |
+| | STATUS TAGS | switch | off: `body.no-badges` hides `#badges` or an app's `[data-mir-badges]` strip (BASINS' badges and stats bar) | off (BASINS' new user) |
+| QUALITY | FULL · BALANCED · LIGHT · AUTO | seg | `<html data-ui-tier>`: none · `lite` · `flat` (`docs/TIERS.md`). AUTO is the device's tier (below): A and B are FULL, C is BALANCED | AUTO |
 | | BLUR · SHADOW · FRAME | readouts | the cost of the look (below); SHADOW counts shine layers too | |
 | LIGHT (page 2) | ANGLE 0–360° (an arc) | dial | `--light-angle` on `<html>`: the pane shadow falls away from it, the shine sits toward it (`docs/THEMES.md`) | 0° (above) |
 | | RELIEF 0–360° (an arc) · LINK | dial · switch | `--relief-angle` on `<html>`: the controls' raise and wells turn with it; LINK writes LIGHT ANGLE there instead. RELIEF is disabled while linked or FLAT | 315° (upper left: 1.4, BASINS) · off |
@@ -112,6 +123,9 @@ Every control on MIR OPTIONS changes what is drawn through a hook a kit sheet or
 | | EDGE | switch | off: `--pane-edge: transparent` on `<body>` (window panes; menus and popovers keep their rim) | on (FROST: off) |
 | | DISCONNECTED | switch | `body.disconnected` | off |
 | | SPACING 0 · TIGHT · DEFAULT · AIRY | seg | BASINS' row (AIRY added): `--rack-gap`, `--rack-inset`, `--pane-pad`, `--rail-gap` on `<html>`; 0 is `html[data-flush]` (`docs/THEMES.md`) | DEFAULT |
+| | TRANSPORT BAR | switch | off: `body.no-transport-bar` (the transport's sheet hides the bar in every seat) | on |
+| SAMPLING (page 2) | SCRUB live · light · release | seg | stored; the app hands `() => gui.prefs.get('scrub')` to `createTransportController({ scrubLevel })`. Choosing LIVE while the last frame took over 16 ms says so in a toast (BASINS) | LIVE |
+| | AUTOMATION frame · 1/32 · 1/16 · 1/8 | seg | `setAutomationGrid(beats)` of `modulation/bind.js` (or `sampling.automation`); a grid says "values step on the grid" in a toast | FRAME |
 
 **The themes** (`docs/THEMES.md`) set every option but THEME (light · dark · system), HINTS, HELP and DROP GUIDES, which are the user's own; their tones set only the colours.
 
@@ -121,7 +135,13 @@ Every control on MIR OPTIONS changes what is drawn through a hook a kit sheet or
 
 **FROST is whole.** WHITE TEXT, GLASS CONTROL FACES and SHADOW maxed (200 %), the three parts of Josh's recipe that waited for a hook in alpha.4, are built-in settings since alpha.5, so FROST is a vanilla theme with nothing faked. Against BASINS at the same recipe, `docs/THEMES.md` lists what still differs and why.
 
-**QUALITY is the tier.** FULL is no attribute, BALANCED is `lite` (no blur anywhere, one shadow layer, a legible tinted pane) and LIGHT is `flat` (lite, plus no relief, no shadows, no sheen, no motion). Below FULL the tier owns the pane, so BLUR, VEIL and SATURATION stand down: they write nothing and their dials are disabled. AUTO and the governor are not built: there is no tier logic without a measurement on a real app.
+**QUALITY is the tier.** FULL is no attribute, BALANCED is `lite` (no blur anywhere, one shadow layer, a legible tinted pane) and LIGHT is `flat` (lite, plus no relief, no shadows, no sheen, no motion). Below FULL the tier owns the pane, so BLUR, VEIL and SATURATION stand down: they write nothing and their dials are disabled.
+
+**QUALITY · AUTO is the device's tier** (1.5.0-alpha.12, BASINS `settings.js` §2). A benchmark of at most 3 s runs once per device, 200 ms after the first paint and only while AUTO is chosen; its reading is kept in `localStorage['mir.tier']`, so every later boot costs one storage read. It judges the device against itself: headroom = the display's own frame period ÷ the cost of its own pass; **A** needs headroom ≥ 3 on a ≥ 90 Hz panel, **B** ≥ 1.5, **C** is the rest (BASINS' constants). A and B are FULL and C is BALANCED, as BASINS seeds its glass FULL on A and B and OFF on C. A new user starts on AUTO; FULL, BALANCED or LIGHT chosen by hand is the override and always wins. The kit's own bench (`uiBench`) measures the UI: the median of 20 frame gaps and the best of three whole-page style-and-layout passes (on the RTX workstation: 0.7 ms in a 16.7 ms panel, ×24 at 60 Hz → B, in 331 ms). An app with a GPU engine hands its own pass: `createGui({ tierBench: async () => ({ periodMs, passMs }) })`. The QUALITY group says what AUTO stands for (`AUTO: tier B → FULL`; its title is the reading's sentence). The governor (a tier that changes while the app runs) is not built.
+
+**The first-run blur is the device's** (Josh: "4px blur on desktop and 20px blur on Apple devices (because for some reason the blur is less intense there)"; ruled 2026-10-02: a desktop starts at FROST's 11 px, a touch device at 20). BASINS' `isMobile` test, read once when the kit loads (`core/look.js DEVICE_BLUR`), is the BLUR option's default and FROST's own BLUR, so a new iPad user is on FROST at 20 px and applying FROST on an iPad gives 20.
+
+**`body.touch-tablet`** is set by the GUI window on an iPad (one that says it is a Mac included) or a coarse pointer on a screen wider than 700 px, and followed live (BASINS `skin.js syncTablet`); the kit's tablet seats key on it.
 
 **The cost reading** answers "beautiful but cost heavy". After every change, while MIR OPTIONS is showing, QUALITY reads:
 - **BLUR** — how many visible surfaces (elements and their drawn `::before`/`::after`) carry a backdrop filter: each is a compositor pass.
@@ -137,10 +157,9 @@ These are in the plan's table but have no hook a kit sheet reads yet. A control 
 | Option | Waits for |
 |---|---|
 | RELIEF › ACCENT BARS | a kit hook for the selected window's accent head. λWAVES draws it app-side (`.dev.native-selected > .dev-head`) |
-| TEXT › AUTO by sampling the picture | BASINS' `adaptive-ink.js` (a GPU sampler of the app's picture). The kit's AUTO follows the theme, or a SOLID pane's lightness |
-| TEXT › STATUS TAGS | a kit class that hides the badges. `body.no-badges` is BASINS' `lab.css` |
 | SKIN › METRO, SPRITES | they are 'name'-specs: rules or art outside the settings (plan §8.3, 1.5.5) |
-| QUALITY › AUTO | the governor, after a measured reason |
+| QUALITY › the governor | a tier that changes while the app runs, after a measured reason (AUTO is built: the tier measured once) |
+| DOWNLOAD SETTINGS | it is in BASINS' SAVE window (SETTINGS & FILES), not its Settings: it belongs to FOLDERS (`prefs.download({ app })`) |
 
 ## The window
 
@@ -179,9 +198,22 @@ The look reaches every pane the kit draws. An app's own pane (a card of its own 
 
 It is the very rules a kit pane is in, at no weight of its own, so an app's sheet that paints the same property still wins: delete the app's own material rules for that pane. `tests/themes.browser.mjs` proves a `pane` computes what a kit card beside it computes in every card style × frost × tier.
 
-## TEXT with an app's own ink sampler
+## TEXT with an ink sampler
 
-An app that samples the picture under each label (BASINS' `adaptive-ink.js`) creates the window with `createGui({ inkSampler: true })`: TEXT then offers **SAMPLED**, which writes no `data-text` at all, so the app's per-label ink decides. The app keeps its sampler and the CSS that turns its per-label attribute into the ink ladder; the kit's AUTO (the mode's ladder under glass, a SOLID pane's lightness, the house ladder on a tinted pane) stays for apps with no sampler. To start a user on it: `createGui({ inkSampler: true, defaults: { text: 'sampled' } })`.
+Since 1.5.0-alpha.12 the sampler is the kit's (`core/ink.js`, `docs/INK.md`): the app hands only a picture sampler.
+
+```js
+import { createInkSampler } from './mir/core/ink.js';
+const ink = createInkSampler({ sample: () => myEngine.lumaGrid(64, 36), stage: canvas });   // → { luma, w, h }
+const gui = createGui({ host, inkSampler: ink });
+engine.onPresent(() => ink.update());                                                       // at most 4 a second
+```
+
+TEXT keeps BASINS' face, **AUTO · LIGHT · DARK**: AUTO samples (the label's ink from the picture beneath it; the body wears the mode's ladder until the first sample), LIGHT and DARK stop the sampler and clear every cell. The old contract stands for an app that still runs a sampler of its own: `createGui({ inkSampler: true })` offers **SAMPLED**, which writes no `data-text`.
+
+## The accents ride the project
+
+Josh, 2026-10-01: *"let Accent A and Accent B from the settings be the only thing that gets saved from settings into project information. Let it change the UI."* The GUI window registers the project part **`accent`** (`registerProjectPart`, `core/project.js`; `accentPart` in `shell/accent.js`): capture → `{ a, b, vivid, bright }`; opening a project sets them live (and they become this browser's accents, as BASINS' do); a project saved before the accents rode it leaves the UI alone; the signature is the four numbers. Every other look option stays a preference. `createGui({ projectAccent: false })` leaves the part out.
 
 ## The pointer helpers
 
@@ -241,6 +273,7 @@ Those are the defaults (`--light-blend`, `--light-strength`). It is a softer thi
   - no panel overflows at 1280×720 or at 390×844 (every sheet);
   - the glow follows the pointer and a still pointer writes nothing;
   - glow and parallax are off under reduced motion, in the flat tier and on a coarse pointer.
+- `tests/ink.browser.mjs` on `tests/fixtures/ink.html` (alpha.12): adaptive ink under a pane over a two-tone canvas, TEXT · LIGHT and AUTO, BRIGHTNESS by a real drag, the accent part's round trip, STATUS TAGS, TRANSPORT BAR and SCRUB by real clicks, QUALITY · AUTO's reading kept.
 - `tests/themes.browser.mjs` — a theme writes only look-store options; a reload keeps theme and tone; SOLID is opaque; the shadow falls away from LIGHT ANGLE and the shine sits opposite; SHINE 0 and the lite and flat tiers draw no shine; SPACING by a real drag, to 0 px; each theme's cost.
 - Plates in `docs/plates/gui/`: OPTIONS 1 and 2 and ABOUT under FROST (dark and light), MORPH and CLASSIC; the glow on the glass; the six phone pages. The themes: `docs/plates/themes/`.
 - **FROST · STILL on a joined pane is held by the kit:** while `body.frost-hold` is set, a REFRACTIVE or TINTED pane (joined or disconnected, and its rail chip) stops blurring and wears the full tinted fill (TINTED's .58 thinning lifts with it) (`mir/css/skin.css`; proved in `tests/intent.browser.mjs`), so STILL differs from ALWAYS on every window.

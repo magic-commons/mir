@@ -14,11 +14,18 @@
  *   3 : 1 floor against the ground it is drawn on (palette.js visibleInk) — the header's over the STAGE, the
  *   notebook's over the CARD.  A TURN is one pass of the palette through the squares; BUSY loops it.
  *
- * createAccent(options) → { apply, set, wheelColor, accentColor, paintMarks, turn, busy, hueSat, a, b, vivid }
+ * createAccent(options) → { apply, set, wheelColor, accentColor, paintMarks, turn, busy, hueSat, a, b, vivid, bright }
+ * accentPart({ get, set, subscribe }) → a project part (core/project.js) carrying ACCENT A, B, VIVID and BRIGHTNESS
+ * towardWhite(rgb, k) → rgb mixed toward white in OKLCH
  *   options.accentStops  palette stops the two UI accents read          (default: palette 'lambda')
  *   options.wheelStops   palette stops the mark and a `paletteOn` app read (default: palette 'prism')
  *   options.paletteOn    true: the accents read the wheel palette too  (default false, as λWAVES ships)
- *   options.a, .b, .vivid, .hueShift                                    (defaults 30, 300, 0.1, 0)
+ *   options.a, .b, .vivid, .hueShift, .bright                           (defaults 30, 300, 0.1, 0, 0)
+ *   BRIGHTNESS (BASINS skin.js, Josh 2026-10-01: "a new knob that's 'brightness' to make accent color shift to white"):
+ *                        both accents mixed toward white in OKLCH, 0 as chosen … 1 white, after the legibility hold and
+ *                        VIVID, so --acc, --acc2 and every token derived from them follow; while it is above 0, <body>
+ *                        carries --acc-white (BASINS' name, the percentage) for a sheet that builds a tint from the hue
+ *                        numbers and must mix it the same way.
  *   options.stageGround  () => [r,g,b] 0…1 under the header mark         (default: the theme's stage ground)
  *   options.gamut        (rgb) => CSS colour string                      (default: sRGB hex)
  *   options.onAccent     (hueSatA, hueSatB) => void — hand the angles to a window that derives its own tints
@@ -45,8 +52,16 @@ export function hueSat(rgb) {
   return [Math.round(h), Math.round(100 * Math.min(1, sat))];
 }
 
+/** towardWhite(rgb, k) — BASINS' `color-mix(in oklch, c, white k)`: white has no chroma and takes the colour's hue, so in
+ *  OKLab the lightness goes k of the way to 1 and the chroma shrinks by (1 − k) */
+export function towardWhite(rgb, k) {
+  if (!(k > 0)) return rgb;
+  const t = Math.min(1, k), lab = rgbToOklab(rgb);
+  return oklabToRgb([lab[0] + (1 - lab[0]) * t, lab[1] * (1 - t), lab[2] * (1 - t)]).map((v) => Math.max(0, Math.min(1, v)));
+}
+
 export function createAccent(options = {}) {
-  const o = { a: 30, b: 300, vivid: 0.1, hueShift: 0, paletteOn: false, ...options };
+  const o = { a: 30, b: 300, vivid: 0.1, hueShift: 0, paletteOn: false, bright: 0, ...options };
   let accentLUT = toLUT(o.accentStops || PRESET_BY_ID.get('lambda').stops);
   let wheelLUT = toLUT(o.wheelStops || PRESET_BY_ID.get('prism').stops);
   const gamut = o.gamut || ((rgb) => rgbToHex(rgb));
@@ -106,20 +121,47 @@ export function createAccent(options = {}) {
   function busy(want) { if (want) ensureTurnCSS(); const m = document.querySelector('#title .mark'); if (m) m.classList.toggle('busy', !!want); }
 
   function apply() {
-    const A = boost(legible(accentColor(o.a))), B = boost(legible(accentColor(o.b))), st = document.body.style;
+    const k = Math.max(0, Math.min(1, +o.bright || 0)), st = document.body.style;
+    const A = towardWhite(boost(legible(accentColor(o.a))), k), B = towardWhite(boost(legible(accentColor(o.b))), k);
+    if (k > 0) st.setProperty('--acc-white', Math.round(k * 1000) / 10 + '%'); else st.removeProperty('--acc-white');
     st.setProperty('--acc-glow', '0 0 ' + (8 + 18 * o.vivid).toFixed(0) + 'px color-mix(in srgb, var(--acc) ' + Math.round(55 + 40 * o.vivid) + '%, transparent)');
     st.setProperty('--acc', gamut(A)); st.setProperty('--acc2', gamut(B)); st.setProperty('--acc-ink', rgbToOklab(A)[0] > 0.6 ? '#071114' : '#f2f5f7');
     setAccentRGB(A.map((v) => Math.round(v * 255)), B.map((v) => Math.round(v * 255)));
     if (o.onAccent) o.onAccent(hueSat(A), hueSat(B));
     paintMarks();
   }
-  /** change any of: a, b, vivid, hueShift, paletteOn, accentStops, wheelStops — then the house is repainted */
+  /** change any of: a, b, vivid, bright, hueShift, paletteOn, accentStops, wheelStops — then the house is repainted */
   function set(patch = {}) {
-    for (const k of ['a', 'b', 'vivid', 'hueShift', 'paletteOn']) if (patch[k] !== undefined) o[k] = patch[k];
+    for (const k of ['a', 'b', 'vivid', 'bright', 'hueShift', 'paletteOn']) if (patch[k] !== undefined) o[k] = patch[k];
     if (patch.accentStops) accentLUT = toLUT(patch.accentStops);
     if (patch.wheelStops) wheelLUT = toLUT(patch.wheelStops);
     apply();
   }
   return { apply, set, wheelColor, accentColor, markInk, paintMarks, turn, busy, hueSat,
-    get a() { return o.a; }, get b() { return o.b; }, get vivid() { return o.vivid; }, get hueShift() { return o.hueShift; }, get paletteOn() { return o.paletteOn; } };
+    get a() { return o.a; }, get b() { return o.b; }, get vivid() { return o.vivid; }, get bright() { return o.bright; }, get hueShift() { return o.hueShift; }, get paletteOn() { return o.paletteOn; } };
+}
+
+/* ── THE ACCENTS RIDE THE PROJECT ─────────────────────────────────────────────────────────────────────────────────
+   Josh, 2026-10-01: "let Accent A and Accent B from the settings be the only thing that gets saved from settings into
+   project information.  Let it change the UI."  BASINS skin.js accentProject: capture → { a, b, vivid, bright }; restore
+   applies them live (and they become the browser's accents too, as BASINS' setAccent persists them); a project saved
+   before the accents rode it restores null and leaves the UI alone; the signature is the four numbers to four places. */
+const wrapDeg = (d) => ((d % 360) + 360) % 360;
+const unit = (v) => Math.max(0, Math.min(1, +v));
+/** accentPart({ get() → { a, b, vivid, bright }, set({ a, b, vivid, bright }), subscribe?(fn) → off }) → the part
+ *  `registerProjectPart('accent', …)` takes.  The GUI window registers one over its look store (shell/gui.js). */
+export function accentPart({ get, set, subscribe }) {
+  const now = () => { const v = get() || {}; return { a: wrapDeg(+v.a || 0), b: wrapDeg(+v.b || 0), vivid: +v.vivid || 0, bright: +v.bright || 0 }; };
+  return {
+    capture: () => now(),
+    restore(saved) {
+      if (!saved || typeof saved !== 'object' || ![saved.a, saved.b].every((v) => v !== null && v !== '' && Number.isFinite(+v))) return false;
+      const cur = now();
+      set({ a: wrapDeg(+saved.a), b: wrapDeg(+saved.b), vivid: Number.isFinite(+saved.vivid) && saved.vivid !== null ? unit(saved.vivid) : cur.vivid,
+        bright: Number.isFinite(+saved.bright) && saved.bright !== null ? unit(saved.bright) : 0 });
+      return true;
+    },
+    signature: () => { const v = now(); return [v.a, v.b, v.vivid, v.bright].map((x) => (+x).toFixed(4)).join(','); },
+    ...(typeof subscribe === 'function' ? { subscribe } : {}),
+  };
 }

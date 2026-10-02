@@ -149,6 +149,32 @@ body[data-text="light"] { --fg: hsl(0 0% 100%); --fg-soft: hsl(0 0% 100% / .96);
 body[data-text="dark"] { --fg: hsl(0 0% 0%); --fg-soft: hsl(0 0% 0% / .96); --ink-key: hsl(0 0% 0% / .86); --dim: hsl(0 0% 0% / .82); --ink-faint: hsl(0 0% 0% / .70); --ink-shadow: none; }
 /* INTENT O3, BASINS' answer (ink.css): under glass (REFRACTIVE, or FROST) the ink carries no emboss; a TINTED pane keeps it. */
 body:is([data-card="refractive"], .frost) { --ink-shadow: none; }
+/* 1.5.0-alpha.12 · ADAPTIVE INK (core/ink.js, BASINS ink.css §1 "the sampled seats"): while the sampler runs
+   (body[data-ink-live]) each label it found carries data-ink="w" (white) or "k" (black) from the picture beneath it.  The
+   whole ladder is declared again ON THE CELL, because a custom property that holds a var() resolves where it is declared:
+   then every colour the kit (and the modulation plugin, through its --m2-ink rungs) writes as a token re-resolves under
+   it.  The pure ladder, 1 · .96 · .86 · .82 · .70, and no relief on ink.  The accents never read it, so they never flip;
+   the glass is not touched. */
+:where(body[data-ink-live]) [data-ink="w"] { --ink-cell: 0 0% 100%; --ink-cell-contra: 0 0% 0%; }
+:where(body[data-ink-live]) [data-ink="k"] { --ink-cell: 0 0% 0%; --ink-cell-contra: 0 0% 100%; }
+:where(body[data-ink-live]) [data-ink] {
+  --fg: hsl(var(--ink-cell) / 1); --fg-soft: hsl(var(--ink-cell) / .96); --ink-key: hsl(var(--ink-cell) / .86);
+  --dim: hsl(var(--ink-cell) / .82); --ink-faint: hsl(var(--ink-cell) / .70); --ink-shadow: none;
+  --m2-ink-hi: hsl(var(--ink-cell) / 1); --m2-ink: hsl(var(--ink-cell) / .96); --m2-ink-soft: hsl(var(--ink-cell) / .86); --m2-ink-faint: hsl(var(--ink-cell) / .82);
+  --mark-under: hsl(var(--ink-cell-contra) / .38);
+  /* the plugin's own ink rungs (modhost.css, the dark seat's alphas): BASINS ink.css §3b, as tokens instead of 35 rules */
+  --m2-ink-a28: hsl(var(--ink-cell) / .28); --m2-ink-a30: hsl(var(--ink-cell) / .30); --m2-ink-a32: hsl(var(--ink-cell) / .32); --m2-ink-a34: hsl(var(--ink-cell) / .34);
+  --m2-ink-a38: hsl(var(--ink-cell) / .38); --m2-ink-a40: hsl(var(--ink-cell) / .40); --m2-ink-a42: hsl(var(--ink-cell) / .42); --m2-ink-a44: hsl(var(--ink-cell) / .44);
+  --m2-ink-a46: hsl(var(--ink-cell) / .46); --m2-ink-a48: hsl(var(--ink-cell) / .48); --m2-ink-a50: hsl(var(--ink-cell) / .50); --m2-ink-a52: hsl(var(--ink-cell) / .52);
+  --m2-ink-a54: hsl(var(--ink-cell) / .54); --m2-ink-a55: hsl(var(--ink-cell) / .55); --m2-ink-a56: hsl(var(--ink-cell) / .56); --m2-ink-a58: hsl(var(--ink-cell) / .58);
+  --m2-ink-a60: hsl(var(--ink-cell) / .60); --m2-ink-a62: hsl(var(--ink-cell) / .62); --m2-ink-a66: hsl(var(--ink-cell) / .66); --m2-ink-a68: hsl(var(--ink-cell) / .68);
+  --m2-ink-a70: hsl(var(--ink-cell) / .70); --m2-ink-a72: hsl(var(--ink-cell) / .72); --m2-ink-a78: hsl(var(--ink-cell) / .78); --m2-ink-a82: hsl(var(--ink-cell) / .82);
+  --m2-ink-a85: hsl(var(--ink-cell) / .85); --m2-ink-a88: hsl(var(--ink-cell) / .88); --m2-ink-a90: hsl(var(--ink-cell) / .90); --m2-ink-a92: hsl(var(--ink-cell) / .92);
+  --m2-ink-a94: hsl(var(--ink-cell) / .94);
+}
+/* STATUS TAGS off (body.no-badges, BASINS lab.css: Settings › DISPLAY › STATUS TAGS): the status strip over the stage goes —
+   BASINS' #badges, or an app's own strip marked data-mir-badges */
+body.no-badges :is(#badges, [data-mir-badges]) { display: none; }
 /* CARD STYLE · SOLID (body[data-card="solid"]): the pane at full opacity, no blur, no veil, no sheen.  Its colour is
    --glass-tint, so HUE picks it, TINT is its saturation and BRIGHT its lightness (core/look.js glassTint); with TINT 0
    it is the theme's own.  The faces wear the pane's colour, the wells a darker mix of it, and the relief is mixed from

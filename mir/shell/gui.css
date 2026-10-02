@@ -35,7 +35,10 @@
   grid-template-columns: repeat(5, var(--gui-col));         /* equal columns: shared edges, equal gutters */
   grid-template-areas: "theme theme accent text quality" "material material controls motion motion";
 }
-.gui-grid[data-page="2"] { grid-template-columns: repeat(3, var(--gui-col)); grid-template-areas: "light light windows"; }
+.gui-grid[data-page="2"] { grid-template-columns: repeat(4, var(--gui-col)); grid-template-areas: "light light windows sampling"; }
+.gui-grp[data-group="sampling"] { grid-area: sampling; }
+/* help prose goes with HELP (BASINS: "make it go away when 'help' is OFF") */
+body.window-info-off .mir-gui .gui-help { display: none; }
 /* MIR OPTIONS 1 · 2: one page's grid at a time */
 .gui-options[data-page="1"] > .gui-grid[data-page="2"], .gui-options[data-page="2"] > .gui-grid[data-page="1"] { display: none; }
 .gui-grp[data-group="theme"] { grid-area: theme; }
@@ -61,9 +64,9 @@
 /* SPACING's four levels (0 · TIGHT · DEFAULT · AIRY) on one line in the one-column WINDOWS group: the segment fills the
    row and its seats take the house's smallest inline padding (a mouse; a finger keeps the 44 px seats, which may wrap) */
 @media not (pointer: coarse) {
-  .gui-grp[data-group="windows"] .segw { flex: 1 1 100%; }
-  .gui-grp[data-group="windows"] .seg { display: flex; flex-wrap: nowrap; width: 100%; }
-  .gui-grp[data-group="windows"] .seg-b { min-width: 0; padding-inline: var(--sp-2); }
+  .gui-grp:is([data-group="windows"], [data-group="sampling"], [data-group="quality"]) .segw { flex: 1 1 100%; }
+  .gui-grp:is([data-group="windows"], [data-group="sampling"], [data-group="quality"]) .seg { display: flex; flex-wrap: nowrap; width: 100%; }
+  .gui-grp:is([data-group="windows"], [data-group="sampling"], [data-group="quality"]) .seg-b { min-width: 0; padding-inline: var(--sp-2); }
 }
 .gui-line.gui-sws > .sw { flex: 1 1 0; justify-content: flex-start; }
 .gui-line.gui-col { flex-direction: column; align-items: stretch; }   /* switches one under another */
