@@ -19,6 +19,8 @@
  *   HISTORY.  With `history` (mir/history createHistory), the timeline is one delegated domain (history.js adoptTimeline).
  *   KEYS.  With `keys` (createKeys), the rows are added to it; without, the timeline makes its own small table on the
  *     document.  The one play's Space row (transportActions) is added when the table has none.
+ *   THE MODULATION.  mod.setTimeline(tl) when the seam has it: → TL on the LFO and ENV heads, and the PATTERN's sequencer
+ *     reads the pattern clips; dispose() takes it back.
  *   THE TICK.  The playhead paints from the app's present: an app passes `present` to installModulation that calls
  *     tl.paintHead() (BASINS shell.js:60); a modulation seam with onTick(fn) is subscribed directly. */
 import { createTimelineModel } from './model.js';
@@ -50,6 +52,7 @@ export function installTimeline(o) {
 
   const tl = createTimeline(o.mount, { model, mod, present: o.present, say: o.say, dock: o.dock, store, initial: o.initial, keys: o.keys || null,
     transport: o.transport, audio: o.audio, scrubLevel: o.scrubLevel, busy: o.busy, moved: o.moved, onWindow: o.onWindow, storageKey });
+  if (typeof mod.setTimeline === 'function') mod.setTimeline(tl);   // → TL on the device heads; the PATTERN reads its clips (1.5.0-alpha.12)
 
   /* THE KEYS: rows of the app's one table */
   let keys = o.keys || null, ownKeys = false;
@@ -64,6 +67,7 @@ export function installTimeline(o) {
       for (const off of offs.splice(0)) { try { if (typeof off === 'function') off(); } catch (_) { /* gone */ } }
       if (o.automation !== false) { host.clock.setAutomation(null); host.clock.demand('timeline', false); }
       if (ownKeys) keys.destroy();
+      if (typeof mod.setTimeline === 'function' && mod.timeline && mod.timeline() === tl) mod.setTimeline(null);
       tl.destroy();
     },
   });

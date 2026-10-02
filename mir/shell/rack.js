@@ -174,6 +174,12 @@ export function readLayout(raw, known, retired) {
   }
   return out;
 }
+/** closedLayout(windows, { phoneShown, at }) — BASINS' reload record (createRack({ persist: 'closed' })): each window
+ *  [{ id, side, open }] in registration order on its own side, open or closed, and nothing the hand arranged (no
+ *  order, fold, float or hidden rack); readLayout reads it as any layout. */
+export function closedLayout(windows, { phoneShown = false, at = Date.now() } = {}) {
+  return { v: 1, at, hidden: false, phoneShown: !!phoneShown, cards: (windows || []).map((w) => ({ id: String(w.id), side: sideOf(w.side), open: !!w.open })) };
+}
 /** digestText({ name, title, status, rows, at }) — COPY's text (BASINS rack.js digest): a head line, the status, then
  *  one tab-separated line per readout [label, value, sub] */
 export function digestText({ name = '', title = '', status = '', rows = [], at = new Date() }) {
@@ -347,10 +353,13 @@ export function createRackMotion(hosts, view = globalThis) {
  *    retired     { oldId: heirId }: saved layouts that name an old window open its heir
  *    notebook    the notebook ({ size() → { w, h, custom } | [w, h], resize(w, h) }) or () => it: ☆ layouts keep its size
  *    name        the app's name, the head of COPY's text (BASINS: 'BASINS REDUX')
+ *    persist     what a reload keeps: 'all' (default: every window's side, order, fold, float and the rack hidden) or
+ *                'closed' (BASINS rack.js persist: only which windows are closed, and the phone rack shown; each window
+ *                comes back on its own side, in registration order).  The ☆ layouts keep everything either way.
  *  An app that already has a rack adopts it in place: see docs/RACK.md "Adopting into an app that has a rack". */
 export function createRack({ host = globalThis.document && document.body, sides = SIDES, key = 'mir.rack', store, favourites = RACK.favourites,
   transport = null, seats = { top: RACK.seatTop, bottom: RACK.seatBottom }, phone, chrome = true, handle = 'coarse', look = 'auto', onChange,
-  scrollbar = false, tabletClamp = true, retired = null, notebook = null, name = '' } = {}) {
+  scrollbar = false, tabletClamp = true, retired = null, notebook = null, name = '', persist: keep = 'all' } = {}) {
   const doc = host.ownerDocument, view = doc.defaultView, body = doc.body;
   const life = new AbortController(), on = { signal: life.signal }, passive = { passive: true, signal: life.signal };
   const S = store || localStore(key, view);
@@ -424,7 +433,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
   const save = () => { if (started) frame.coalesce('mir-rack:save', persist); };
   function persist() {
     if (G) return;
-    const value = S.get(); const next = { ...(value && typeof value === 'object' ? value : {}), v: 1, layout: capture() };
+    const value = S.get(); const next = { ...(value && typeof value === 'object' ? value : {}), v: 1, layout: keep === 'closed' ? captureClosed() : capture() };
     S.set(next);
     if (onChange) onChange(next.layout);
   }
@@ -965,6 +974,9 @@ export function createRack({ host = globalThis.document && document.body, sides 
     const nb = nbSize(); if (nb) L.nb = nb;                            // λWAVES rack.js:3551, BASINS captureLayout: a layout keeps the notebook's size
     return L;
   }
+  /** BASINS' reload record (persist: 'closed'): which windows are open or closed, each on its own side in registration
+   *  order, and the phone rack shown — nothing about where the hand put them */
+  const captureClosed = () => closedLayout([...reg.values()].filter((w) => !w.spec.card).map((w) => ({ id: w.spec.id, side: w.spec.side, open: isOpen(w.spec.id) })), { phoneShown });
   /* the notebook, when the app gave one: its size as [w, h] (null at its default size, as BASINS' unset style), and its resize */
   const nbOf = () => { try { return typeof notebook === 'function' ? notebook() : notebook; } catch { return null; } };
   function nbSize() {

@@ -63,7 +63,9 @@ try {
     await key(SEAT_KEY[side][0], SEAT_KEY[side][0], SEAT_KEY[side][1]); await key('Enter', 'Enter', 13);
     await run(`await rest(); return 1;`);
     const g = await at(`__MOD.mod.view.chipRail.grip`);
-    const s = await run(`const pl = api.placement(); return { side: pl.side, chipSide: pl.chipSide, box: pl.box, land: pl.landing.bottom };`);
+    /* BASINS' dock: the CONTENT box (the rack and the work bars) lands at the edge, so the drag, the guide and the landing
+       are all the content's (placement().content) */
+    const s = await run(`const pl = api.placement(); return { side: pl.side, chipSide: pl.chipSide, box: pl.content, land: pl.landing.bottom };`);
     const dy = Math.round(s.land.top + s.land.height - (s.box.top + s.box.height)) + 6;
     await press(g.x, g.y, 0, dy);
     r = await run(`await frames(3);
@@ -71,13 +73,13 @@ try {
       return { guide: guide ? R(guide) : null, land: api.placement().landing.bottom };`);
     await mouse('mouseReleased', g.x, g.y + dy); await sleep(40);
     const mid = await run(`return { moving: api.placement().moving, anims: win.getAnimations().length };`);
-    const end = await run(`await rest(); return { rect: R(win), dock: api.placement().dock, anims: win.getAnimations().length, transform: getComputedStyle(win).translate, side: api.placement().side,
+    const end = await run(`await rest(); const pc = api.placement().content, rw = R(win); return { rect: { left: rw.left, width: rw.width, top: pc.top, height: pc.height }, dock: api.placement().dock, anims: win.getAnimations().length, transform: getComputedStyle(win).translate, side: api.placement().side,
       seat: R(rail), railHits: [...rail.querySelectorAll('[data-mir-chip]')].filter((c) => getComputedStyle(c).display !== 'none').every(hits) };`);
     const d = r.guide ? Math.max(...['left', 'top', 'width', 'height'].map((k) => Math.abs(r.guide[k] - end.rect[k]))) : Infinity;
     check(`dock · chips ${side}: the dotted guide's rect equals the landing rect (≤ 1 px)`, s.chipSide === side && !!r.guide && d <= 1 && end.dock === 'bottom',
       `seat ${s.side}, guide ${JSON.stringify(r.guide)} landing ${JSON.stringify(end.rect)} Δ ${d.toFixed(2)}`);
     check(`dock · chips ${side}: the landing travels (a transform) and ends exactly, clean`, mid.moving && mid.anims > 0 && end.anims === 0 && (end.transform === 'none' || end.transform === '') && off(end.rect, r.land) <= 0.5 && end.railHits,
-      JSON.stringify({ mid, anims: end.anims, side: end.side }));
+      JSON.stringify({ mid, anims: end.anims, side: end.side, rect: end.rect, land: r.land, hits: end.railHits, tr: end.transform, seat: end.seat }));
     if (side !== 'left') await shot('rail-' + side);
     /* drag it away again: the dock detaches (the point keeps its place) */
     const g2 = await at(`__MOD.mod.view.chipRail.grip`);
@@ -228,7 +230,7 @@ try {
       const back = { add: win.querySelector('.m2macadd').textContent, cap: win.querySelector('.m2dev.lfo .m2macbox').dataset.cap, chip: view.chipRail.chip('compact').getAttribute('aria-label') };
       return { out, all, back };`);
     check('language: under qps the window’s labels, chip names, CSS captions and painted words are translated, and English comes back',
-      Object.values(r.all).every(Boolean) && r.back.add === 'ADD MACRO' && r.back.cap === 'OUT' && r.back.chip === 'COMPACT', JSON.stringify(r));
+      Object.values(r.all).every(Boolean) && r.back.add === 'ADD MACRO' && r.back.cap === 'OUT' && r.back.chip === 'Devices: Full. Tap for Compact', JSON.stringify(r));
   }
 
   /* ── 9 · idle after a drag is zero frames ── */

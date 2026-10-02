@@ -15,10 +15,10 @@ const RUN = await (async () => {
     await page.evaluate(() => { const W = window.__W; W.tl.open(); W.mod.open(); W.ws.sync(); });
     await page.waitForTimeout(700);
     const stack = await page.evaluate(() => {
-      const W = window.__W, m = W.mod.view.root.getBoundingClientRect(), t = W.tl.win.root.getBoundingClientRect();
-      return { stacked: W.ws.stacked, modBottom: Math.round(m.bottom), modLeft: Math.round(m.left), tlTop: Math.round(t.top), tlLeft: Math.round(t.left) };
+      const W = window.__W, m = W.mod.view.root.getBoundingClientRect(), c = W.mod.view.api.placement().content, t = W.tl.win.root.getBoundingClientRect();
+      return { stacked: W.ws.stacked, modBottom: Math.round(c.top + c.height), modLeft: Math.round(m.left), tlTop: Math.round(t.top), tlLeft: Math.round(t.left) };
     });
-    L.ck(stack.stacked && Math.abs(stack.tlTop - stack.modBottom - 8) <= 1 && Math.abs(stack.modLeft - stack.tlLeft) <= 1, 'both open: MODULATION seats 8 px above TIMELINE, left edges together', stack);
+    L.ck(stack.stacked && Math.abs(stack.tlTop - stack.modBottom - 8) <= 1 && Math.abs(stack.modLeft - stack.tlLeft) <= 1, 'both open: MODULATION\'s content (rack + bars) seats 8 px above TIMELINE, left edges together (BASINS stackAbove)', stack);
     const sw = await page.locator('#modwin .m2-workspace-switch').boundingBox();
     const hit = sw && await page.evaluate(([x, y]) => { const n = document.elementFromPoint(x, y); return !!(n && n.closest('.m2-workspace-switch')); }, [sw.x + sw.width / 2, sw.y + sw.height / 2]);
     L.ck(!!sw && sw.width >= 40 && hit, 'the MIR switch sits in the preset bar and is what a hand presses there (elementFromPoint)', sw);

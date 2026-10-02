@@ -36,6 +36,8 @@ import { installBanner } from './shell/banner.js';
 import { createSceneGuard, uiSpace } from './shell/scene-guard.js';
 import { recentRows } from './folders/files.js';
 import * as modBind from './modulation/bind.js';
+import { installPattern } from './pattern/window.js';
+import { createWorkspaces } from './window/workspaces.js';
 import { createAccent } from './shell/accent.js';
 import { createNotebook } from './shell/notebook.js';
 import { gplLicence, kitType } from './shell/about.js';
@@ -102,8 +104,13 @@ export function makeParam({ state, key, label = String(key).toUpperCase(), min =
  *   pages          rows to add to the pages ({ title, md, shared }); page 0 is the greeting
  *   thumbnail      () → the canvas FOLDERS takes a project's picture from
  *   about          extra ABOUT options (tagline, copyright …); sub: the line under the wordmark
- *   and one entry per piece — gui, transport, rack, mod, notebook, folders, info, greet, help, menubar, describe, banner,
- *   sceneGuard, wakeLock — each `false` to leave it out, or an object of extra options for its constructor.
+ *   and one entry per piece — gui, transport, rack, mod, pattern, notebook, folders, info, greet, help, menubar, describe,
+ *   banner, sceneGuard, wakeLock — each `false` to leave it out, or an object of extra options for its constructor.
+ *   pattern        the PATTERN window (mir/pattern/window.js) with the modulation: PATT on every ENV face, WINDOW › PATTERN
+ *   factory        the app's bundled starter presets, handed to installModulation (`{ presets, folder, apply }` or a list)
+ *   timeline       off by default; true or installTimeline's options: the TIMELINE (mir/timeline/bind.js) on the
+ *                  modulation's clock, and with it the lego stack (window/workspaces.js): MODULATION seats over TIMELINE
+ *                  when both are open, and the MIR switch in the modulation preset bar swaps the two
  *   canvas         the picture's element the scene guard watches (default: the first <canvas> in the stage)
  *   coming         [[NAME, hint], …] windows to come: disabled '○  NAME  (coming)' rows at the foot of WINDOW
  *   session        off by default.  true (or { key, …createSession options, auto }) keeps the live project — every
@@ -116,7 +123,7 @@ export function makeParam({ state, key, label = String(key).toUpperCase(), min =
  *   subject        () → { left, top, width, height } in stage px: the thing the words on the picture talk about (the
  *                  board, the ring); the greeting rests beside it, never under the bar or a rack (default: none)
  *   → { first, param, params, playing(), play(), pause(), safeRect(), hideInterface(), dump(), rack, keys, gui, accent,
- *       transport, mod, pages, notebook, folders, info, greeting, help, menubar, describe, floats, banner, sceneGuard,
+ *       transport, mod, pattern, timeline, workspaces, pages, notebook, folders, info, greeting, help, menubar, describe, floats, banner, sceneGuard,
  *       wakeLock, session }   (also window.__MIR.app, the live shell object for a rig or the console: BASINS' __BASINS)
  *   The app's `present()` is also called when the theme or the look changes and when a window opens or closes.
  */
@@ -125,7 +132,7 @@ export async function createApp(o = {}) {
   const stage = o.stage, host = o.host || stage.parentElement, state = o.state || {};
   const present = () => { if (o.present) o.present(); };
   const want = (piece) => o[piece] !== false;
-  let tr = null, rack = null, mod = null, notebook = null, folders = null, info = null, help = null;
+  let tr = null, rack = null, mod = null, notebook = null, folders = null, info = null, help = null, pattern = null, timeline = null, ws = null;
 
   /* 0. THE BANNER first, so a problem anywhere below is on the screen (BASINS: "the only debugger on an iPad") */
   const banner = want('banner') ? installBanner({ host: stage, ...opt(o.banner) }) : null;
@@ -165,6 +172,8 @@ export async function createApp(o = {}) {
     { id: 'save', label: 'SAVE', group: 'FILE', keys: K('save'), inFields: true, run: () => folders && folders.save() },
     { id: 'folders', label: 'FOLDERS', group: 'WINDOW', keys: K('folders'), run: () => folders && folders.toggle() },
     { id: 'modulation', label: 'MODULATION', group: 'WINDOW', keys: K('modulation'), run: () => mod && mod.toggle() },
+    { id: 'pattern', label: 'PATTERN', group: 'WINDOW', keys: [], run: () => pattern && pattern.toggle() },
+    { id: 'timeline', label: 'TIMELINE', group: 'WINDOW', keys: [], run: () => timeline && timeline.toggle() },
     { id: 'notebook', label: 'NOTEBOOK', group: 'WINDOW', keys: K('notebook'), run: () => notebook && notebook.toggle() },
     { id: 'help', label: 'KEYS', group: 'WINDOW', keys: K('help'), run: () => help && help.toggle() },
     ...(want('rack') ? [{ id: 'rack', label: 'HIDE / SHOW the rack', group: 'WINDOW', keys: K('rack'), run: () => rack && rack.toggleHidden() }] : []),
@@ -175,8 +184,24 @@ export async function createApp(o = {}) {
   ] });
 
   /* 5. MODULATION: the window and its seam.  Targets arrive through app.param(), a lazily built window's when it is built */
-  if (want('mod')) mod = modBind.installModulation({ mount: floats, params: [], present, storageKey: key + '.modulation', presetKey: key + '.modpresets', moved,
-    ...(gui && typeof gui.sampling === 'function' ? { automationGrid: gui.sampling().grid } : {}), ...opt(o.mod) });   // GUI › SAMPLING · AUTOMATION, saved
+  /* with a timeline, the two windows stack like legos (window/workspaces.js): each reports its moves and its open/close
+     to the stack as well as to the bar's dodge; the MIR switch after the preset arrows swaps them */
+  const modMoved = (r) => { moved(r); if (ws) ws.moved('upper', r); };
+  if (want('mod')) mod = modBind.installModulation({ mount: floats, params: [], present, storageKey: key + '.modulation', presetKey: key + '.modpresets', moved: modMoved,
+    ...(gui && typeof gui.sampling === 'function' ? { automationGrid: gui.sampling().grid } : {}),   // GUI › SAMPLING · AUTOMATION, saved
+    ...(o.factory ? { factory: o.factory } : {}),
+    ...(o.timeline ? { switchWorkspace: () => ws && ws.show('lower'), onWindow: () => { if (ws) ws.sync(); present(); } } : {}),
+    ...opt(o.mod) });
+  /* 5b. THE PATTERN (the ENVs' step sequencer) with the modulation; 5c. THE TIMELINE when the app asks for one */
+  if (mod && want('pattern')) pattern = installPattern({ mount: floats, mod, storageKey: key + '.pattern', dock: rack && rack.span ? { span: rack.span() } : undefined,
+    say: (text) => notice(text, { kind: 'warn' }), moved, ...opt(o.pattern) });
+  if (mod && o.timeline) {
+    const { installTimeline } = await import('./timeline/bind.js');
+    timeline = installTimeline({ mount: floats, mod, present, keys, storageKey: key + '.timeline', say: (text) => notice(text),
+      moved: (r) => { moved(r); if (ws) ws.moved('lower', r); }, onWindow: () => { if (ws) ws.sync(); present(); }, ...opt(o.timeline) });
+    ws = createWorkspaces({ upper: mod.view, lower: timeline.win });
+    ws.sync();
+  }
 
   /* 6. THE ONE CLOCK and THE TRANSPORT BAR, the main opener: ▶ (and Space) plays; the power ring is modulation's */
   const clock = o.clock || (mod ? { play: () => mod.play(true), pause: () => mod.play(false), isPlaying: () => mod.playing(), onChange: (fn) => mod.onPlay(fn) } : null);
@@ -246,7 +271,7 @@ export async function createApp(o = {}) {
       ...(folders ? recentRows(folders.files, 5, (id) => { folders.open(); folders.openEntry(id); }) : []))),
     EDIT: M.EDIT || (() => rows(bar ? k('transport.play') : undefined, bar ? null : undefined, purgeRow({ name }))),
     VIEW: M.VIEW || (() => rows(k('hide'), k('fullscreen'))),
-    WINDOW: M.WINDOW || (() => rows(mod ? k('modulation') : undefined, folders ? k('folders') : undefined, notebook ? k('notebook') : undefined,
+    WINDOW: M.WINDOW || (() => rows(mod ? k('modulation') : undefined, timeline ? k('timeline') : undefined, pattern ? k('pattern') : undefined, folders ? k('folders') : undefined, notebook ? k('notebook') : undefined,
       help ? k('help') : undefined, k('rack'), k('dock'), ...(rack ? [null, ...rack.windowMenu()] : []),
       ...((o.coming || []).length ? [null, ...o.coming.map(([n, h]) => comingRow(n, h))] : []))),
     ...Object.fromEntries(Object.entries(M).filter(([g]) => !['FILE', 'EDIT', 'VIEW', 'WINDOW', 'ABOUT', 'LANGUAGE', 'GUI'].includes(g))),
@@ -319,7 +344,7 @@ export async function createApp(o = {}) {
     playing: () => !!(clock && clock.isPlaying()),
     play: () => (tr ? tr.play() : clock && !clock.isPlaying() ? clock.play() : null),
     pause: () => (tr ? tr.pause() : clock && clock.isPlaying() ? clock.pause() : null),
-    accent, gui, keys, transport: tr, rack, mod, pages, notebook, folders, info, greeting, help, menubar, describe, floats,
+    accent, gui, keys, transport: tr, rack, mod, pattern, timeline, workspaces: ws, pages, notebook, folders, info, greeting, help, menubar, describe, floats,
     banner, sceneGuard, wakeLock, session };
   (globalThis.__MIR = globalThis.__MIR || {}).app = app;     // the live shell object for a rig or the console (BASINS' window.__BASINS)
   return app;

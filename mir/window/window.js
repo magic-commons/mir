@@ -132,7 +132,7 @@ const along = (p, lo, size, next) => (p < lo ? lo : p > lo + size ? lo + size - 
  *               no CSS cloning), written as data-mir-material="modulation" on the window and its rail; window.css and skin.css key on that name
  *    railGap    the floating rail's gap from the pane, a number or { left, right, top, bottom } (default RAIL.gap: kwin's)
  *    persist    { read() → shape | null, write(shape) }
- *  → { root, body, rail, pair, open(), close(), toggle(), isOpen(), rect(), place(rect | pos, { animate }), setChip, tab,
+ *  → { root, body, rail, pair, open(), close(), toggle(), isOpen(), rect(), place(rect | pos, { animate }), resize({ w, h }), setChip, tab,
  *      raise(), stackAt(z), state(), destroy() }
  *    raise()    brings the pane AND its rail to the top of the kit's stack, together (a press on either does it)
  *    pair       { root, rail } — the window's two elements, for an app's own window law that stacks by element
@@ -368,6 +368,13 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
         if (t.height || t.h) P.h = Math.max(min.h, Math.round(t.height || t.h));
       }
       layout({ animate }); save();
+    },
+    /** resize({ w, h }) — the window's own size (docked: the height the dock or the anchor lands at), keeping the dock;
+     *  one layout, saved.  A host whose content decides the height (the PATTERN window's rows) calls it. */
+    resize({ w, h } = {}) {
+      if (Number.isFinite(w)) P.w = Math.max(min.w, Math.round(w));
+      if (Number.isFinite(h)) P.h = Math.max(min.h, Math.round(h));
+      layout(); save();
     },
     setChip: rail.setChip, tab, raise, pair,
     /** reserveTop(px) — keep a band of px above this window free: a dock lands below it, a floating window stays below

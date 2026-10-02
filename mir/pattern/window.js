@@ -108,7 +108,7 @@ export function installPattern(o) {
       anchor: { rect: () => seat(H), clip: runClip, subscribe(fn) { anchorFns.add(fn); return () => anchorFns.delete(fn); } } },
     chips: [{ name: 'addEnv', kind: 'action', glyph: 'plus', label: 'Add an envelope to the rack',
       press: () => { M.addSource('env'); if (view) view.rebuild(); clock.recomputeRunning(); sync(); } }],
-    onMoved: (r) => { clipRail(r); fitHeight(r); overflow(); if (o.moved) o.moved(r); },
+    onMoved: (r) => { clipRail(r); overflow(); if (o.moved) o.moved(r); },
     onOpen: () => { if (o.dock && o.dock.span && o.dock.span.setActive) o.dock.span.setActive(true); sync(); paintMarkers(true); if (o.onWindow) o.onWindow(true); },
     onClose: () => { closeMenu(); if (o.onWindow) o.onWindow(false); },
   });
@@ -122,9 +122,6 @@ export function installPattern(o) {
     const q = railEl.getBoundingClientRect(), l = Math.max(0, Math.round(box.left - q.left)), rt = Math.max(0, Math.round(q.right - box.right));
     railEl.style.clipPath = l || rt ? `inset(-40px ${rt}px -40px ${l}px)` : '';
   }
-  /* HEIGHT = ROWS.  The window set's resize door when it has one (1.5.0-alpha.12 ask); until then the pane's height is
-     written after each layout */
-  function fitHeight(r) { if (r && typeof win.resize !== 'function' && root.style.height !== H + 'px') root.style.height = H + 'px'; }
 
   const surface = el('div', 'pt-surface', win.body);
   const list = el('div', 'pt-rows', surface);
@@ -225,7 +222,7 @@ export function installPattern(o) {
     const want = Math.round(chrome + Math.max(1, envs().length) * (parseFloat(a.getPropertyValue('--pt-row')) || 40));
     if (want === H) return;
     H = want;
-    if (typeof win.resize === 'function') win.resize({ h: H }); else if (win.isOpen()) notifySeat();
+    win.resize({ h: H });                                // the window set's door: the dock (and the anchor) is kept, the rail seats for it
   }
   /* ── the playing bar, from the existing tick: placed by the steps' own left formula (--i, --q) — WebKit resolves a
      percentage translate against a snapped width (measured 4.7 px off at step 15), so no translate, and nothing measured ── */

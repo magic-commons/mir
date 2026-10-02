@@ -32,6 +32,9 @@ const mod = installModulation({ mount: document.getElementById('floats'), params
 /* the rack: LFO, ENV (the window's two), then three more LFOs so the device run is wider than the window can be */
 for (let i = 0; i < 3; i++) mod.M.addSource('lfo');
 mod.view.rebuild();
+/* the rack is wider than the screen leaves room for a side rail, so the modulation rail would take the top, where the
+   pattern window seats: this page puts it at the bottom */
+mod.view.restore({ ...mod.view.presentation(), chipSide: 'bottom' });
 const history = createHistory();
 const pattern = installPattern({ mount: document.getElementById('floats'), mod, history, model: createPatternModel(), storageKey: 'mir.test.pattern.win' });
 window.__P = { mod, pattern, history, S };

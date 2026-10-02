@@ -321,7 +321,7 @@ export function createModulation(host, port) {
 
   /* ── PRESENTATION STATE.  The window's own, never the model's, never the project's. ────── */
   P = { x: 0, y: 0, lane: 'bottom', ribbon: false, modes: {}, audioMini: {}, open: false, folder: {}, macroSide: 'left', macroMin: false, compactMode: 'F',
-        dock: null, chipSide: 'left' };
+        dock: null, chipSide: 'auto' };
   /* THE STORED MODES ARE ADOPTED ONCE, AND A DEAD ID TAKES ITS MODE WITH IT.  `modReset()` recycles
      source ids — the next `s1` is a different device — so a mode kept by id and never pruned puts a
      brand-new LFO on the screen folded because something called `s1` was folded last session.  The
@@ -365,13 +365,31 @@ export function createModulation(host, port) {
   const view = () => ({ width: window.innerWidth, height: window.innerHeight });
   const viewSpan = (v) => ({ left: 8, right: v.width - 8, top: 8, bottom: v.height - 8 });
   const env = () => { const v = view(); return { view: v, sizes: rail.sizes(), span: dockOpt ? (dockOpt.span ? dockOpt.span.read() : viewSpan(v)) : null }; };
-  const stateFor = (Q) => { const b = lawBox(); return { x: Q.x, y: Q.y, w: b.w, h: b.h, dock: stackOn ? null : Q.dock, chipSide: Q.chipSide }; };
+  /* THE RAIL'S DEFAULT SEAT IS `auto` (BASINS modwindow.js positionChips): the macros' side — left, or right when the
+     macro rail sits on the right.  A side the hand chose (Shift-drag, the keyboard, a long press) is kept as chosen. */
+  const sideOf = (Q) => (Q.chipSide === 'auto' || !Q.chipSide ? (Q.macroSide === 'right' ? 'right' : 'left') : Q.chipSide);
+  const stateFor = (Q) => { const b = lawBox(); return { x: Q.x, y: Q.y, w: b.w, h: b.h, dock: stackOn ? null : Q.dock, chipSide: sideOf(Q) }; };
   let box = null, moving = null, deferred = false, rackOff = null, gest = null, kbBefore = null, stack = null, stackOn = false;
+  /* THE CONTENT BOX DOCKS (BASINS modwindow.js place(): "shift = dock top ? geometry.y - content.top : geometry.bottom
+     - content.bottom"): the rack and the work bars that show meet the dock edge, not the window's own box, whose float
+     room and a lane above the rack would leave a gap or overhang.  The offsets are measured once each layout (placeLane). */
+  let contentOff = null;
   /** the window's box and its rail's seat for a state.  On a side seat the rail centres on the RACK, as it always
    *  has (the work-bar lane below the rack is not what the chips belong to). */
   function layoutOf(Q) {
-    const e = env(), L = windowLayout(stateFor(Q), e);
+    const e = env();
+    let L = windowLayout(stateFor(Q), e);
+    if ((L.docked === 'top' || L.docked === 'bottom') && contentOff) {
+      const shifted = { ...L.box, top: Math.round(L.box.top + (L.docked === 'top' ? -contentOff.top : contentOff.bottom)) };
+      L = { ...L, box: shifted, seat: seatOn(L.seat.side, shifted, e.sizes, e.view) };
+    }
     let seat = L.seat;
+    /* a top or bottom rail sits outside the CONTENT too (BASINS chipBox = the content box): work bars that hang outside
+       the window's box would otherwise sit under it; the outer of the two edges (the window's own glass is never under it) */
+    if ((seat.side === 'top' || seat.side === 'bottom') && contentOff && (contentOff.top < 0 || contentOff.bottom < 0)) {
+      const top = L.box.top + Math.min(0, contentOff.top), bottom = L.box.top + L.box.height - Math.min(0, contentOff.bottom);
+      seat = seatOn(seat.side, { left: L.box.left, width: L.box.width, top, height: bottom - top }, e.sizes, e.view);
+    }
     if ((seat.side === 'left' || seat.side === 'right') && rackOff) {
       seat = seatOn(seat.side, { left: L.box.left, width: L.box.width, top: L.box.top + rackOff.top, height: Math.min(rackOff.height, L.box.height) }, e.sizes, e.view);
     }
@@ -412,7 +430,10 @@ export function createModulation(host, port) {
     /* THE LEGO STACK (window/workspaces.js, BASINS stackAbove): 8 px above the window stack() names, left edges together */
     const on = stack && !gest ? stack() : null;
     stackOn = !!on;
-    if (on) { const at = stackedAt({ width: w, height: lb.h }, on, v); P.x = at.left; P.y = at.top; }
+    if (on) {   /* BASINS: the CONTENT's bottom 8 px over the lower window, the window's left on the lower's */
+      const off = contentOff || { top: 0, bottom: 0 };
+      const at = stackedAt({ width: w, height: lb.h - off.top - off.bottom }, on, v); P.x = at.left; P.y = at.top - off.top;
+    }
     const wantDock = !on && P.dock && dockOpt ? P.dock : null;
     rail.setDock(wantDock);
     let { L, seat } = layoutOf(P);
@@ -510,6 +531,12 @@ export function createModulation(host, port) {
     const rootBox = rackEl.root ? rackEl.root.getBoundingClientRect() : null;
     const winBox = root.getBoundingClientRect();
     if (rootBox && rootBox.height > 0) rackOff = { top: rootBox.top - winBox.top, height: rootBox.height };
+    if (rootBox && rootBox.height > 0 && !moving) {
+      const cb = contentBox(), next = { top: Math.round(cb.top - winBox.top), bottom: Math.round(winBox.bottom - cb.bottom) };
+      const was = contentOff; contentOff = next;
+      /* the content's offset moved (the lane went up or down, the bars stacked): a docked or stacked window places again */
+      if ((P.dock || stack) && (!was || was.top !== next.top || was.bottom !== next.bottom)) queueMicrotask(() => { if (P.open) place(); });
+    }
     /* WAVE 87 · THE LANE'S LIFT, WRITTEN WHERE THE BARS CAN READ IT — on the window root, an ancestor of both the
        rack and the bars (custom properties inherit down, never sideways), and MEASURED FROM THE BAR ITSELF: the
        bar does not start where the root ends.  Skipped while the lane is already up, because the bar's rect is
@@ -615,7 +642,12 @@ export function createModulation(host, port) {
       }
       P.x = Math.round(s.x - gest.anchor.dx); P.y = Math.round(s.y - gest.anchor.dy);
       place();
-      if (guide) guide.track(box, dockInput(stateFor(P), env()));
+      /* the guide is the landing: the CONTENT box lands at the edge (BASINS snapTarget(contentBox())), so the guide is drawn
+         at the content's height and measured from the content */
+      if (guide) {
+        const off = contentOff || { top: 0, bottom: 0 }, inp = dockInput(stateFor(P), env());
+        guide.track({ ...box, top: box.top + off.top, height: box.height - off.top - off.bottom }, { ...inp, height: Math.max(52, inp.height - off.top - off.bottom) });
+      }
     },
     onEnd() {
       rail.grip.classList.remove('drag');
@@ -918,7 +950,7 @@ export function createModulation(host, port) {
     paintRings(idx);
   }
   function dropRing(rec) {
-    if (rec.svg) rec.svg.remove(); if (rec.range) rec.range.remove(); if (rec.depth) rec.depth.root.remove(); if (rec.x) rec.x.remove();
+    if (rec.svg) rec.svg.remove(); if (rec.range) rec.range.remove(); if (rec.dot) rec.dot.remove(); if (rec.depth) rec.depth.root.remove(); if (rec.x) rec.x.remove();
     if (ringFocus === rec.id) ringFocus = null;
     rec.host.classList.remove('has-ring', 'mod-selected', 'ring-focus');
   }
@@ -949,6 +981,9 @@ export function createModulation(host, port) {
     if (fader) {
       rec.range = el('i', 'm2fdrange', hostEl);
       rec.range.setAttribute('aria-hidden', 'true');
+      /* BASINS' live dot on the bar (colour-controls.js laneFader .fd-range-dot): the composed value, pure CSS off the
+         fader's own --fill — no paint of its own */
+      rec.dot = el('i', 'm2fdrangedot', hostEl); rec.dot.setAttribute('aria-hidden', 'true'); rec.dot.hidden = true;
     } else {
       const svg = document.createElementNS(SVGNS, 'svg');
       svg.setAttribute('class', 'k-ring'); svg.setAttribute('viewBox', '0 0 60 60');
@@ -1074,11 +1109,11 @@ export function createModulation(host, port) {
    *  by two custom properties (.m2fdrange draws it); the live value needs no write — fader() keeps --fill live */
   function paintFaderRange(rec, q) {
     const id = rec.id, er = q && registry.has(id) ? editRouteOf(id) : null;
-    if (!er) { rec.range.hidden = true; return; }
+    if (!er) { rec.range.hidden = true; if (rec.dot) rec.dot.hidden = true; return; }
     const b = registry.state(id).baseNorm, sp = routeSpan(er);
     let lo = clamp01(b + sp.lo), hi = clamp01(b + sp.hi);
     if (hi < lo) { const s = lo; lo = hi; hi = s; }
-    rec.range.hidden = false;
+    rec.range.hidden = false; if (rec.dot) rec.dot.hidden = false;
     rec.range.style.setProperty('--m2-route-lo', lo.toFixed(4));
     rec.range.style.setProperty('--m2-route-span', Math.max(1e-4, hi - lo).toFixed(4));
     rec.range.classList.toggle('is-dormant', !liveSpan(er));
@@ -1781,6 +1816,7 @@ export function createModulation(host, port) {
     P.macroSide = side;
     const macro = root.querySelector('.m2rail');
     if (macro) macro.style.order = side === 'right' ? '2' : '0';
+    if (P.open && P.chipSide === 'auto') place();             // `auto` follows the macros' side
   }
   const macroHead = root.querySelector('.m2railhead');
   const sideGrip = el('button', 'm2-side-grip', macroHead, '⠿');
@@ -3287,7 +3323,7 @@ export function createModulation(host, port) {
     setWorkLane(panel, P.lane);
     P.ribbon = !!o.ribbon; rackEl.root.classList.toggle('m2ribbon', P.ribbon);
     P.dock = o.dock === 'top' || o.dock === 'bottom' ? o.dock : null;
-    P.chipSide = ['left', 'right', 'top', 'bottom', 'auto'].includes(o.chipSide) ? o.chipSide : 'left';
+    P.chipSide = ['left', 'right', 'top', 'bottom', 'auto'].includes(o.chipSide) ? o.chipSide : 'auto';
     for (const bag of [P.modes, P.audioMini, P.folder, saved]) for (const key of Object.keys(bag)) delete bag[key];
     audBands.clear(); audRoutes.clear();
     if (o.modes) { Object.assign(P.modes, o.modes); Object.assign(saved, o.modes); } // live project rows read P; boot-time rows claim saved once
@@ -3312,6 +3348,9 @@ export function createModulation(host, port) {
     P.open = true;
     root.hidden = false; rail.el.hidden = false;
     if (port.opened) port.opened();
+    /* THE RAIL RISES WITH ITS WINDOW, just above it (BASINS: rails in their own tier above the windows): a rail seated on
+       the content's edge may lie over the window's empty float room, and must take the hand there */
+    { const z = parseInt(getComputedStyle(root).zIndex, 10); if (Number.isFinite(z)) rail.el.style.zIndex = String(z + 1); }
     rebuild(); rail.measure(); place(); paint(true);
     if (wasHidden) { root.hidden = true; rail.el.hidden = true; }
     if (wasHidden || exiting) { presence(root, true); presence(rail.el, true); }
@@ -3421,12 +3460,16 @@ export function createModulation(host, port) {
                rail: rail.el.getAttribute('aria-label'), chips: Object.keys(chips).length };
     },
     /** where the window is and where it would land: { box (the state's rect), dock, chipSide, side (the rail's seat),
-     *  landing: { top, bottom } — dockGeometry's rect for each dock with the chips where they are (the guide's rect) } */
+     *  landing: { top, bottom } — dockGeometry's rect for each dock with the chips where they are (the guide's rect: the
+     *  CONTENT box, rack + bars, which is what docks), content: the content box now } */
     placement() {
       const e = env(), S = stateFor(P), L = layoutOf(P);
       const landing = {};
-      for (const dk of ['top', 'bottom']) { const g = windowLayout({ ...S, dock: dk }, e); landing[dk] = g.docked ? g.box : null; }
-      return { box: box ? { ...box } : null, dock: P.dock, chipSide: P.chipSide, side: L.seat.side, seat: { ...L.seat }, landing, moving: !!moving };
+      const off = contentOff || { top: 0, bottom: 0 };   // the CONTENT lands at the edge: the landing (and the guide) is the content's rect
+      for (const dk of ['top', 'bottom']) { const g = windowLayout({ ...S, h: Math.max(52, S.h - off.top - off.bottom), dock: dk }, e); landing[dk] = g.docked ? g.box : null; }
+      const cb = P.open ? contentBox() : null;
+      return { box: box ? { ...box } : null, dock: P.dock, chipSide: P.chipSide, side: L.seat.side, seat: { ...L.seat }, landing, moving: !!moving,
+        content: cb ? { left: cb.left, top: cb.top, width: cb.right - cb.left, height: cb.bottom - cb.top } : null };
     },
     curve(id) {
       const s = M.sourceOf(id), rec = devRows.get(String(id));

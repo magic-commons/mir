@@ -100,6 +100,7 @@ For an app that builds its own seam (λWAVES' rack does). `port` is `{ M, regist
 | Law | What it means |
 |---|---|
 | **One window set** | The chip rail is `window/rail.js` `createRail` (Shift-drag, long press and keyboard relocation come with it); placement is `window/window.js` `windowLayout` (the house clamp, the dock); the drag is `core/pointer.js` `drag` (Escape, a lost capture, a blur or a hidden page rolls it back); open and close are `motion.presence`; the dock landing and every relocation travel by `motion.tweenRect`. |
+| **BASINS' geometry (1.5.0-alpha.12)** | The rail's default seat is **`auto`**: the macros' side (left, or right when the macro rail sits right); a side the hand chose is kept. **The CONTENT docks**: the rack and the work bars that show meet the dock edge, not the window's own box (its float room and a lane above the rack would leave a gap or overhang); the guide, `placement().landing` and the stack over the TIMELINE are all the content's (`placement().content` reads it). A top or bottom rail sits outside the content; the rail rises just above its window. |
 | **The guide is the landing** | The dotted guide is `dock.js` `dockGeometry` with the chip lane on the side the chips sit — the same function the landing uses. BASINS' guide reserved a left lane always and landed elsewhere. |
 | **The look does not move** | The rail keeps the plugin's own material (`.kwin-chiprail[data-mir-rail="modulation"] .crail-chip`), and the pane stays `#modwin` (it lays out `overflow: visible` with work bars and pickers outside its box, which a `.mir-win` pane would cut). Proved by `tools/stylehash.mjs` (below). |
 | **A fader is a target like a knob** | `.fd[data-param]` routes. A knob wears the ring; a fader wears a range bar (`.m2fdrange`, the selected route's span along its track). Both get the range dial and the × while the hand is on them. `bind.js` shows the modulated value on the widget (`fader().show`), so the fader moves. |
@@ -162,5 +163,5 @@ As BASINS has it (`modulation.js setArm` → `host.clock.setModulationEnabled`; 
 ## Not done
 
 - Not proven in WebKit or on an iPad; the long press is proven by `tests/window.browser.mjs` for the window set, not here.
-- BASINS' rail default seat `auto` (preferred side = the macros' side) and its dock that aligns the CONTENT box (rack + bars) with the dock edge are not ported: the kit's window set seats the rail `left` and docks the window's box (wave 4 parity).
+
 - The preset sheet's and the open button's accessible names come from `COPY.presetSheetLabel` / `presetOpenLabel`, which the catalogue tool cannot see (they are object values, not a choke point); they translate at run time if a pack has them.

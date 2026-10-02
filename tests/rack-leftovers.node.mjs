@@ -1,7 +1,7 @@
 /* rack-leftovers.node.mjs — the pure part of BASINS' rack leftovers: retired ids and the notebook's size in readLayout,
  * the touch-tablet clamp, the scrollbar's seat and thumb, and COPY's text. */
 import assert from 'node:assert/strict';
-import { readLayout, clampFloatTablet, digestText } from '../mir/shell/rack.js';
+import { readLayout, clampFloatTablet, digestText, closedLayout } from '../mir/shell/rack.js';
 import { scrollbarSeat, thumbOf } from '../mir/shell/rack-scrollbar.js';
 
 let n = 0;
@@ -17,6 +17,15 @@ const pass = (name) => { n++; console.log(`PASS ${name}`); };
   assert.deepEqual(readLayout({ cards: [], nb: [500.4, 380] }).nb, [500, 380]);
   for (const bad of [[0, 300], ['x', 1], null, 'big']) assert.equal(readLayout({ cards: [], nb: bad }).nb, undefined);
   pass('readLayout: a retired id resolves to its heir unless the heir is named; nb is kept when it is a size');
+}
+{
+  /* createRack({ persist: 'closed' }) — BASINS keeps only which windows are closed (and the phone rack shown) */
+  const L = closedLayout([{ id: 'scope', side: 'left', open: true }, { id: 'tone', side: 'right', open: false }], { phoneShown: true, at: 1 });
+  assert.deepEqual(L, { v: 1, at: 1, hidden: false, phoneShown: true, cards: [{ id: 'scope', side: 'left', open: true }, { id: 'tone', side: 'right', open: false }] });
+  const back = readLayout(L, new Set(['scope', 'tone']));
+  assert.deepEqual(back.cards.map((c) => [c.id, c.side, c.open, c.folded, c.float]), [['scope', 'left', true, false, null], ['tone', 'right', false, false, null]], 'it reads back with nothing the hand arranged');
+  assert.equal(back.phoneShown, true); assert.equal(back.hidden, false);
+  pass("closedLayout: persist 'closed' keeps the closed list and the phone rack, nothing else (BASINS)");
 }
 {
   const vv = { width: 1280, height: 800, top: 0, vh: 800 };
