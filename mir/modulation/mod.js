@@ -2857,14 +2857,42 @@ export function presetApply(id) {
            counts: { macros: macros.length, sources: sources.length, routes: routes.length } };
 }
 
+/** presetCaps(name) — a preset name as Josh's law writes it: trimmed, in CAPS (10-01: "All caps in titles for
+    modulation preset name").  The name is data, not a label. */
+export function presetCaps(name) { return String(name == null ? '' : name).trim().toUpperCase(); }
+
+/** THE BUNDLED STARTERS (BASINS starter-modulation.js): the app's authored racks, listed apart from the user's saves and
+    the model's FACTORY_PRESETS, named in CAPS, in their own folder.  bundledPresets(list, folder) → the public rows
+    [{ id, name, folder, bundled: 1, rack }] (ids are the app's; a row without a rack or a name is dropped). */
+export function bundledPresets(list, folder = 'STARTERS') {
+  const out = [];
+  for (const p of Array.isArray(list) ? list : []) {
+    if (!p || !p.rack || typeof p.rack !== 'object') continue;
+    const name = presetCaps(p.name); if (!name) continue;
+    out.push(Object.freeze({ id: String(p.id || 'starter.' + name), name, folder: p.folder ? String(p.folder) : folder, bundled: 1, factory: 0, rack: p.rack }));
+  }
+  return out;
+}
+/** rackApply(rack, fromV) — load a rack that is not in the store (a bundled starter): migrated from its model version
+    (default this one), the transport untouched.  → { ok, counts } or { ok: false, error } */
+export function rackApply(rack, fromV) {
+  let body = null;
+  try { body = JSON.parse(JSON.stringify(rack)); } catch (_) { return { ok: false, error: 'rack' }; }
+  const migrated = migrateRack(body, Number.isFinite(fromV) ? fromV : MOD_STATE_V);
+  if (!migrated) return { ok: false, error: 'version' };
+  deserializeRack(migrated);
+  modStat.presetLoads++;
+  return { ok: true, counts: { macros: macros.length, sources: sources.length, routes: routes.length } };
+}
+
 /** A PROJECT'S PRESET (1.5.0-alpha.12, BASINS project-session.js upsertProjectPreset): the rack saved under the name in
     CAPS (Josh 10-01: "All caps in titles for modulation preset name"), replacing its own earlier self; a name a factory
     preset owns takes the free copy name, in CAPS.  The name is data, not a label: its case is the law, not the font. */
 export function presetUpsertCaps(name, rack) {
-  const nm = String(name == null ? '' : name).trim().toUpperCase();
+  const nm = presetCaps(name);
   if (!nm || !rack) return { ok: false, error: 'name' };
   let r = presetSave(nm, rack, { replace: true });
-  if (r && r.error === 'factory-name' && r.suggest) r = presetSave(String(r.suggest).toUpperCase(), rack, { replace: true });
+  if (r && r.error === 'factory-name' && r.suggest) r = presetSave(presetCaps(r.suggest), rack, { replace: true });
   return r || { ok: false };
 }
 

@@ -150,4 +150,24 @@ const runTo = (r, beat, dt) => { const log = []; while (M.transport.beats < beat
   let heard = 0; const off = part.subscribe(() => heard++); shared.rackChanged(); shared.setStep('s1', 1, 9); off();
   ok(heard === 1, 'a rack move is not a project edit', heard);
 }
+{ // A RECORDING IN A HIDDEN TAB (BASINS' open item, 10-01): the velocity reaches the target exactly as in a visible tab —
+  // the sequencer rides the real clock's advance notice, inside the recorder's deterministic step
+  const { createModHost } = await import('../mir/modulation/host.js');
+  const take = (hidden) => {
+    const H = createModHost({ roots: ['test'], presentationActive: false }); H.model.modReset(); H.model.setTransport({ bpm: 120, sync: 'free' });
+    let value = 0; H.targets.install({ id: 'test.level', map: 'linear', min: 0, max: 1, get: () => value, set: (v) => { value = v; } });
+    const env = H.model.addSource('env', { a: 0, hold: 0, d: 0.2, s: 0, r: 0.05 }), m1 = H.model.macroList()[0];
+    H.model.setMacro(m1.id, { sourceId: env.id }); H.model.addRoute(m1.id, 'test.level', 0, 1); H.targets.sync();
+    const model = createPatternModel(); model.setStep(env.id, 0, 64); model.setStep(env.id, 4, 32); model.setLive(env.id, true);
+    const seq = createPatternSequencer({ M: H.model, clock: H.clock, pattern: model });
+    H.clock.onAdvance((kind) => (kind === 'seek' ? seq.reset() : seq.tick()));
+    H.clock.setHidden(hidden); H.clock.play(0); seq.reset(0);
+    const values = []; for (let i = 0; i < 90; i++) { H.clock.step(1 / 60); values.push(+value.toFixed(9)); }
+    return { values, running: H.clock.isRunning(), fires: env.fires };
+  };
+  const shown = take(false), hidden = take(true);
+  ok(hidden.running === false && shown.running === true, 'the hidden take really has its realtime clock stopped', { shown: shown.running, hidden: hidden.running });
+  ok(Math.max(...shown.values) > 0.2 && Math.max(...shown.values) <= 64 / 127 + 1e-9, 'the visible take carries velocity 64/127 (never full strength)', Math.max(...shown.values));
+  ok(hidden.values.join() === shown.values.join(), 'the hidden take renders the same values, frame for frame', { shown: shown.values.slice(0, 8), hidden: hidden.values.slice(0, 8) });
+}
 console.log(`PASS pattern: ${pass} assertions (step ${STEP_BEATS} beat)`);

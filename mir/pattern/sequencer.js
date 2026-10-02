@@ -18,7 +18,8 @@
  *   2. NOTHING FIRES WHILE STOPPED; the memory follows the beat.  A seek or a jump the elapsed time cannot explain
  *      (> 1 beat) resets the memory: never a burst.
  *   3. VELOCITY is the ENV's macros carrying out × velocity/127, written after the clock advanced and applied once; it
- *      stops the moment anything else fires the ENV.
+ *      stops the moment anything else fires the ENV.  It is applied the same in a hidden tab: inside the recorder's
+ *      deterministic step (clock.isStepping) as while the clock runs.
  *   4. THE CLIP UNDER THE PLAYHEAD WINS over the row for its ENV; a muted clip gives the ENV back to its row. */
 import { STEP_BEATS, VEL_MAX } from './model.js';
 
@@ -118,7 +119,9 @@ export function createPatternSequencer({ M, clock, pattern, timeline = null, ste
       if (h.v >= 1) continue;
       for (const m of M.macroList()) if (m.sourceId === envId) { M.setMacro(m.id, { value: s.out * h.v }); touched = true; }
     }
-    if (touched && clock.isRunning()) clock.applyAll(false);
+    /* applied while the clock runs, AND inside the recorder's deterministic step: a hidden tab stops the realtime clock,
+       and a recording made there used to keep the full-strength values the step had applied (BASINS' open item, 10-01) */
+    if (touched && (clock.isRunning() || (clock.isStepping && clock.isStepping()))) clock.applyAll(false);
     return touched;
   }
   /** a seek or a loop jump: forget the previous beat (no burst), let held gates go */

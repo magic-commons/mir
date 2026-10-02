@@ -10,7 +10,9 @@
  *   installModulation({ mount, params, … }) → { host, view, registry, M, open, close, toggle, isOpen,
  *     power, setPower, togglePower, onPower (arm, armed, onArm: the same, 1.4 names), play, togglePlay, playing, onPlay,
  *     add, remove, route, params, isModulated, baseOf, currentOf, hand, running, bpm, syncBases, paintWidgets, persist,
- *     dispose }
+ *     setTimeline, timeline, setAutomationGrid, automationGrid, dispose }
+ *   And three doors on the module (1.5.0-alpha.12), reaching the install made last: setAutomationGrid(value),
+ *   automationGrid(), upsertProjectPreset(name, rack?).
  *   Targets come and go (1.5.0-alpha.5): add(param) registers one more after the install (a lazily built window adds
  *   its controls when it is built; a route already saved against it wakes up), and its remove() — or remove(id) —
  *   takes it away with its routes.  route(source, id, depth) is a first route in one call.
@@ -95,6 +97,13 @@ export function rootsOf(params) { return [...new Set(params.map((p) => String(p.
  *   dock, copy, targets, routeGlow, toast   passed to the window (window.js createModulation's port; toast(msg): where a
  *                refusal is said — absent, the window's own status line)
  *   enabled      modulation's power at first boot, when the store has none (default true)
+ *   switchWorkspace()  the MIR switch after the preset arrows swaps to the other workspace (BASINS:
+ *                installModulation({ switchWorkspace: () => layout.switchWorkspace('timeline') })); absent, no switch
+ *   automationGrid  the AUTOMATION sampling grid at install (0 FRAME · 1/32 · 1/16 · 1/8 beats); absent, the record's
+ *                own `automationGrid` (the store's), else FRAME.  setAutomationGrid(value) changes it later
+ *   factory      the app's bundled starter presets: [{ id, name, rack, folder? }] or { presets, folder?, apply?(preset) }
+ *                — listed apart from the user's, named in CAPS, in their own folder (default STARTERS); apply(preset)
+ *                → a rack to load (an app remaps its routes there), default the preset's own rack
  *   showWidgets  paint routed widgets from the registry each tick (default true; law 4b)
  */
 export function installModulation(o) {
@@ -109,6 +118,9 @@ export function installModulation(o) {
   let cadence = prefs.modCadence === 120 ? 120 : 60;
   let armed = prefs.modArm === undefined ? o.enabled !== false : prefs.modArm !== false;
   let audioCap = null, timelineRef = null;
+  /* the app's bundled starter presets (o.factory): a list, or { presets, folder, apply(preset) → rack } */
+  const factory = Array.isArray(o.factory) ? { presets: o.factory } : (o.factory && typeof o.factory === 'object' ? o.factory : null);
+  const starters = factory ? M.bundledPresets(factory.presets, factory.folder) : [];
   params = params.slice();                                         // the live list: add() and remove() change it
   const byId = new Map(params.map((p) => [p.id, p])), armWatchers = new Set();
   const available = typeof o.available === 'function' ? o.available : () => true;
@@ -248,6 +260,18 @@ export function installModulation(o) {
     armed: () => armed, arm: (on) => setArm(on),
     knobOf: (rid) => { const p = byId.get(rid); return p ? p.widget || null : null; },
     moved: o.moved || (() => {}),
+    switchWorkspace: typeof o.switchWorkspace === 'function' ? o.switchWorkspace : null,   // the MIR switch in the preset bar (window/workspaces.js)
+    /* THE BUNDLED STARTERS (row 94): the window lists them first, tagged STARTER, and loads one through applyStarterPreset */
+    starterPresets: () => starters,
+    applyStarterPreset(id) {
+      const p = starters.find((x) => x.id === id); if (!p) return { ok: false, error: 'missing' };
+      const rack = factory && typeof factory.apply === 'function' ? factory.apply(p) : p.rack;
+      if (!rack) return { ok: false, error: 'missing' };
+      host.registry.restoreAll();
+      const r = M.rackApply(rack);
+      if (r.ok) { M.syncDormant((tid) => host.registry.has(tid)); host.targets.sync(); host.clock.recomputeRunning(); }
+      return { ...r, id: p.id, name: p.name };
+    },
     opened: () => { host.clock.setPresentationActive(true); if (onWindow) onWindow(true); requestLoop(); },
     closed: () => { host.clock.setPresentationActive(false); if (onWindow) onWindow(false); },
     persist: persistNow,

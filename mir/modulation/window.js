@@ -43,7 +43,9 @@ import { svgPoint, curveHit, curveAction, pointDrag, pointAddValue, tensionDelta
          editablePresetForWave } from './curve-gesture.js';
 import { createRail, seatRail, seatOn, nearestSide, roomFor, SIDES, RAIL } from '../window/rail.js';
 import { createDockGuide } from '../window/dock.js';
-import { windowLayout, dockInput } from '../window/window.js';
+import { windowLayout, dockInput, stackedAt } from '../window/window.js';
+import { workspaceSwitch } from '../window/workspaces.js';
+import { bindTempoField } from '../shell/transport.js';
 import { drag as pointerDrag } from '../core/pointer.js';
 import { tweenRect, presence, owns, settled } from '../core/motion.js';
 import { createProximity } from '../core/proximity.js';
@@ -52,6 +54,9 @@ import { t, tn, phrase, onLanguage } from '../core/i18n.js';
 import { clipKinds } from '../timeline/kinds.js';
 import { normalizeTimelinePoints } from '../timeline/source.js';
 import { STEP_BEATS } from '../pattern/model.js';
+import { createReadoutLayer } from '../timeline/readout.js';
+import { createModCursor } from './mod-cursor.js';
+import { createLayoutMotion } from './layout-motion.js';
 
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const pct = (u) => (100 * clamp01(u)).toFixed(2) + '%';
@@ -63,8 +68,9 @@ const svgEl = (tag, cls, parent) => {
   return e;
 };
 /* the house drag ladder, from kit.js's own knob: 220 px is a full scale, 900 with Shift, 320
-   under a finger.  Reused rather than re-chosen so the artifact's dials feel like the lab's. */
-const TRAVEL = (e, touch) => (e.shiftKey ? 900 : touch ? 320 : 220);
+   under a finger.  Reused rather than re-chosen so the artifact's dials feel like the lab's.  Shift is 1/8 (1760), as BASINS
+   has it (Josh 09-12: "currently holding shift gives a 1/4 fine tuning, can we make this 1/8?"). */
+const TRAVEL = (e, touch) => (e.shiftKey ? 1760 : touch ? 320 : 220);
 const TENSION_PX = 114, GRAB = 20;
 
 /** the controls a macro may route onto: a knob and a fader, each carrying the registry id in data-param */
@@ -115,7 +121,8 @@ function polyOf(pts, n) {
 const envDrawn = (s) => s.a + s.hold + s.d + s.r;
 
 const stochastic = (s) => s.wave === 'sh' || s.wave === 'drift';
-const cyclesShown = (s) => (stochastic(s) ? 4 : 1);
+const cyclesShown = (s) => (s.shapeMode !== 'curve' && stochastic(s) ? 4 : 1);
+const fmtBeat = (v) => (v >= 10 ? v.toFixed(1) : v >= 1 ? v.toFixed(2) : v.toFixed(3)) + ' beat';
 const SHAPES = ['tri', 'sawup', 'sine', 'square', 'msaw', 'mtri'];
 
 
@@ -133,7 +140,10 @@ const CHECK_HINT = {
 const GRIP_HINT = phrase('Drag window · Shift-drag, or hold, to move these controls to another edge · arrows when focused');
 const RAIL_CHIPS = Object.freeze([
   { name: 'close', kind: 'close', glyph: 'close', label: 'Close window', hint: 'Close window' },
-  { name: 'compact', kind: 'toggle', glyph: 'compact', label: 'COMPACT', hint: 'COMPACT' },
+  { name: 'compact', kind: 'cycle', label: 'COMPACT', states: [
+    { id: 'F', pressed: false, glyph: 'compact', label: 'Devices: Full. Tap for Compact', hint: 'COMPACT · FULL' },
+    { id: 'C', pressed: true, glyph: 'compact', label: 'Devices: Compact. Tap for Minimized', hint: 'COMPACT · COMPACT' },
+    { id: 'M', pressed: 'mixed', glyph: 'compact', label: 'Devices: Minimized. Tap for Full', hint: 'COMPACT · MINIMIZED' }] },
   { name: 'workbars', kind: 'cycle', label: 'Work bars', states: [
     { id: 'bottom', pressed: false, glyph: 'barsTop', label: 'Work bars: below. Tap to move them above', hint: 'WORK BARS · BOTTOM' },
     { id: 'top', pressed: true, glyph: 'barsTop', label: 'Work bars: above. Tap to hide them', hint: 'WORK BARS · TOP' },
@@ -251,6 +261,13 @@ export function createModulation(host, port) {
      for window-level actions only. */
   const mw = root.modwindow;
   const panel = mw.panel, foot = mw.foot, transport = mw.transport, rackEl = mw.rack;
+  /* BASINS' LAYOUT MOTION (layout-motion.js): a fold, COMPACT, the macro rail folding and a reorder animate the real
+     widths and the travel; the dragged device or macro follows the hand.  The window's own box is not registered with
+     the one-writer registry (its placement would wait on it). */
+  const layoutMotion = createLayoutMotion(() => [root, panel, rackEl.rail,
+    ...rackEl.run.querySelectorAll('.m2dev'), ...rackEl.slots.querySelectorAll('.m2slot'),
+    foot.prebar, transport.root].filter(Boolean), { skipOwn: (n) => n === root });
+  let cancelReorder = null;
   /** the English name of an audio-sheet row (COPY.audioSheetRows), never read back from the DOM */
   const sheetWord = (key) => { const r = (mw.copy.audioSheetRows || []).find((x) => x[0] === key); return r ? r[1] : key; };
 
@@ -303,13 +320,22 @@ export function createModulation(host, port) {
   }
 
   /* ── PRESENTATION STATE.  The window's own, never the model's, never the project's. ────── */
-  P = { x: 0, y: 0, lane: 'bottom', ribbon: false, modes: {}, audioMini: {}, open: false, folder: {}, macroSide: 'left', macroMin: false,
+  P = { x: 0, y: 0, lane: 'bottom', ribbon: false, modes: {}, audioMini: {}, open: false, folder: {}, macroSide: 'left', macroMin: false, compactMode: 'F',
         dock: null, chipSide: 'left' };
   /* THE STORED MODES ARE ADOPTED ONCE, AND A DEAD ID TAKES ITS MODE WITH IT.  `modReset()` recycles
      source ids — the next `s1` is a different device — so a mode kept by id and never pruned puts a
      brand-new LFO on the screen folded because something called `s1` was folded last session.  The
      settings key lands in `saved`; a source claims its entry the first time it is built and the
      entry is spent; and `rebuildDevices` drops the mode of every id the rack no longer has. */
+  /* DOCKED, A VERTICAL WHEEL SCROLLS THE DEVICE RUN SIDEWAYS (BASINS deviceWheel): a docked window is as wide as the span
+     and its run scrolls; a mouse has only a vertical wheel.  A horizontal wheel, Ctrl (zoom) and a run that fits pass. */
+  const deviceWheel = (e) => {
+    if (!P.dock || e.defaultPrevented || e.ctrlKey || Math.abs(e.deltaX) >= Math.abs(e.deltaY)
+      || rackEl.run.scrollWidth <= rackEl.run.clientWidth) return;
+    const step = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? rackEl.run.clientWidth : 1;
+    e.preventDefault(); e.stopPropagation(); rackEl.run.scrollLeft += e.deltaY * step;
+  };
+  rackEl.run.addEventListener('wheel', deviceWheel, { passive: false });
   const saved = {};
   let placed = false;
   /* WAVE 98 · the lane's width law reads the dormant count; this is what tells it the count moved */
@@ -324,6 +350,7 @@ export function createModulation(host, port) {
     const s = M.sourceOf(id); return s && s.minimized ? 'M' : 'F'; };   /* the model's own folded flag, when the window has said nothing */
   const cardModes = () => devOrder().map((s) => modeOf(s.id));
 
+  let stackedLane = false;                            // docked and narrow: the work bars in two rows (placeLane)
   /** the law's box: the width from the cards, the height from the chrome — and what the window's box is */
   function lawBox() {
     const macroTrim = P.macroMin && !P.ribbon ? GEOM.RAIL_W - MACRO_MIN_W : 0;
@@ -331,15 +358,15 @@ export function createModulation(host, port) {
     const lawH = sizeLaw.height({ uiScale: 1 });
     /* WAVE 95 · the card lost 32 (modhost §96) and the float's room came down 18 → 6 (§42): `sizeLaw.height` still
        returns chrome + CARD_FULL, and these two numbers are the only place that difference is spent. */
-    return { w, h: lawH - CARD_TRIM + FLOAT_ROOM, lawH };
+    return { w, h: lawH - CARD_TRIM + FLOAT_ROOM + (stackedLane ? 52 : 0), lawH };
   }
   /* ═══ THE PLACE: one state, one layout — window/window.js windowLayout, the same function the guide asks ══════ */
   const dockOpt = port.dock === false ? null : (port.dock || {});
   const view = () => ({ width: window.innerWidth, height: window.innerHeight });
   const viewSpan = (v) => ({ left: 8, right: v.width - 8, top: 8, bottom: v.height - 8 });
   const env = () => { const v = view(); return { view: v, sizes: rail.sizes(), span: dockOpt ? (dockOpt.span ? dockOpt.span.read() : viewSpan(v)) : null }; };
-  const stateFor = (Q) => { const b = lawBox(); return { x: Q.x, y: Q.y, w: b.w, h: b.h, dock: Q.dock, chipSide: Q.chipSide }; };
-  let box = null, moving = null, deferred = false, rackOff = null, gest = null, kbBefore = null;
+  const stateFor = (Q) => { const b = lawBox(); return { x: Q.x, y: Q.y, w: b.w, h: b.h, dock: stackOn ? null : Q.dock, chipSide: Q.chipSide }; };
+  let box = null, moving = null, deferred = false, rackOff = null, gest = null, kbBefore = null, stack = null, stackOn = false;
   /** the window's box and its rail's seat for a state.  On a side seat the rail centres on the RACK, as it always
    *  has (the work-bar lane below the rack is not what the chips belong to). */
   function layoutOf(Q) {
@@ -382,7 +409,11 @@ export function createModulation(host, port) {
       lastW = w;
     }
     /* the rail carries the dock (data-dock): docked at the top or bottom its chips sit tighter, so its length is set first */
-    const wantDock = P.dock && dockOpt ? P.dock : null;
+    /* THE LEGO STACK (window/workspaces.js, BASINS stackAbove): 8 px above the window stack() names, left edges together */
+    const on = stack && !gest ? stack() : null;
+    stackOn = !!on;
+    if (on) { const at = stackedAt({ width: w, height: lb.h }, on, v); P.x = at.left; P.y = at.top; }
+    const wantDock = !on && P.dock && dockOpt ? P.dock : null;
     rail.setDock(wantDock);
     let { L, seat } = layoutOf(P);
     if ((L.docked || null) !== wantDock) { rail.setDock(L.docked); ({ L, seat } = layoutOf(P)); }   // no room to dock: it floats for now
@@ -431,6 +462,12 @@ export function createModulation(host, port) {
   function placeLane() {
     const v = view();
     const bars = sizeLaw.workBars(box.left + box.width, v.width, M.dormantCount() > 0);
+    /* the MIR switch takes 44 px of the preset bar (BASINS: the extended bar clamps inside a narrow window, never past it) */
+    if (wsSwitch) {
+      const deadWidth = bars.presetW - bars.coreW;
+      bars.coreW = Math.min(bars.coreW + 44, Math.max(200, box.width - 22 - deadWidth));
+      bars.presetW = bars.coreW + deadWidth;
+    }
     foot.prebar.style.width = bars.presetW + 'px';
     foot.prebar.style.setProperty('--m2-precore-w', bars.coreW + 'px');
 
@@ -457,7 +494,18 @@ export function createModulation(host, port) {
       const fr = footEl.getBoundingClientRect();
       if (edge > fr.left) preLeft = (edge - fr.left) - tw;
     }
-    foot.pre.style.left = Math.round(Math.max(preLeft, minPre)) + 'px';
+    /* DOCKED AND NARROW, THE TWO WORK BARS TAKE TWO ROWS (BASINS place(): "two geometry rows only when the central span
+       cannot fit both"): the timing bar drops to a second 52 px row, right-aligned, and scrolls under a finger when even
+       that row is too short; the window's height grows by the row (lawBox), so a dock keeps its edge. */
+    const barRoom = Math.round(rackEl.root.getBoundingClientRect().width) || box.width - 22;
+    const stacked = !!P.dock && P.lane !== 'hidden' && barRoom < bars.presetW + tw + GEOM.WORK_GAP_MIN;
+    if (footEl) { footEl.style.height = stacked ? '104px' : ''; footEl.style.flexBasis = stacked ? '104px' : ''; }
+    foot.pre.style.top = stacked ? '52px' : '';
+    foot.pre.style.overflowX = stacked && tw > barRoom ? 'auto' : '';
+    foot.pre.style.overflowY = stacked && tw > barRoom ? 'hidden' : '';
+    if (stacked && tw > barRoom) foot.pre.style.width = barRoom + 'px';
+    foot.pre.style.left = Math.round(stacked ? Math.max(0, barRoom - tw) : Math.max(preLeft, minPre)) + 'px';
+    if (stacked !== stackedLane) { stackedLane = stacked; queueMicrotask(() => { if (P.open) place(); }); }   // the height changed: one more place
 
     const rootBox = rackEl.root ? rackEl.root.getBoundingClientRect() : null;
     const winBox = root.getBoundingClientRect();
@@ -472,7 +520,7 @@ export function createModulation(host, port) {
       const cb = cardEl.getBoundingClientRect();
       const bb = foot.prebar.getBoundingClientRect();
       const gap = Math.round(bb.top - cb.bottom);
-      root.style.setProperty('--m2-lane-lift', Math.round(bb.top - (cb.top - gap - bb.height)) + 'px');
+      root.style.setProperty('--m2-lane-lift', Math.round(bb.top - (cb.top - gap - bb.height - (stackedLane ? 52 : 0))) + 'px');
     } else if (rootBox && rootBox.height > 0 && !root.style.getPropertyValue('--m2-lane-lift')) {
       root.style.setProperty('--m2-lane-lift', Math.round(rootBox.height + 52) + 'px');
     }
@@ -489,18 +537,33 @@ export function createModulation(host, port) {
 
   /* ═══ THE CHIP RAIL'S PRESSES ═════════════════════════════════════════════════════════════ */
   const WORK_LANES = ['bottom', 'top', 'hidden'];
+  /** the rack's COMPACT state, read from its devices (any Full → F, else any Compact → C, else M) */
+  const compactMode = () => {
+    const all = devOrder();
+    if (all.some((x) => modeOf(x.id) === 'F')) return 'F';
+    if (all.some((x) => modeOf(x.id) === 'C')) return 'C';
+    return all.length ? 'M' : P.compactMode;
+  };
+  function setMacroMin(on) {
+    P.macroMin = !!on;
+    rackEl.rail.classList.toggle('m2railmin', P.macroMin);
+    root.querySelector('.m2railhead').setAttribute('aria-expanded', String(!P.macroMin));
+  }
   function syncWorkbarChip() {
     setChip('workbars', P.lane);
     chips.workbars.dataset.workLane = P.lane;
   }
   function chipPressed(name, state) {
     if (name === 'close') { close(); return; }
-    if (name === 'compact') {
-      const all = devOrder();
-      const toC = all.some((s) => modeOf(s.id) === 'F');
-      for (const s of all) setMode(s.id, toC ? 'C' : 'F');
-      setChip('compact', toC);
-      place(); paint(true); persist();
+    if (name === 'compact') {             // BASINS: F → C → M → F, read from the devices, the macro rail folding at M
+      const next = { F: 'C', C: 'M', M: 'F' }[compactMode()];
+      P.compactMode = next;
+      layoutMotion.change(() => {
+        for (const s of devOrder()) setMode(s.id, next);
+        setMacroMin(next === 'M');
+        syncChips(); place(); paint(true);
+      });
+      persist();
       return;
     }
     if (name === 'workbars') {
@@ -533,7 +596,7 @@ export function createModulation(host, port) {
     box = { left: Math.round(r.left), top: Math.round(r.top), width: Math.round(r.width), height: Math.round(r.height) };
   }
   const gripDrag = pointerDrag(rail.grip, { slop: RAIL.slop,
-    onStart() { still(); pin(); placed = true; gest = { before: { ...P }, anchor: null, shifted: false }; rail.grip.classList.add('drag'); },
+    onStart() { still(); pin(); placed = true; gest = { before: { ...P }, anchor: null, shifted: false, stack }; stack = null; stackOn = false; rail.grip.classList.add('drag'); },
     onMove(s) {
       if (!gest || rail.holding()) return;
       if (s.shiftKey) {
@@ -566,7 +629,7 @@ export function createModulation(host, port) {
       rail.grip.classList.remove('drag');
       if (guide) guide.cancel();
       if (!gest) return;
-      Object.assign(P, gest.before); gest = null;
+      Object.assign(P, gest.before); stack = gest.stack; gest = null;
       still(); place();
     },
   });
@@ -593,51 +656,13 @@ export function createModulation(host, port) {
   const nativeRate = port.rateControl && port.rateControl();
   if (nativeRate) { nativeRate.root.classList.add('m2-native-rate'); transport.xport.parentNode.insertBefore(nativeRate.root, transport.tempo); }
 
-  /* THE TEMPO FIELD.  `.modtempo` and `.modtempoin` stand in the same seat and swap `hidden`;
-     the number never goes, only its unit and its derived Hz (`.tight`, then `.tighter`). */
+  /* THE TEMPO FIELD — the house's one inline BPM editor (shell/transport.js bindTempoField; BASINS tempo-editor.js, shared
+     by the modulation and timeline work bars): a click types it (8 characters, decimals; Enter or blur commits, Escape
+     cancels and gives the focus back), a vertical drag turns it (220 px for the whole range, a finger 320, Shift 1760);
+     a drag is not a click. */
   transport.tempo.title = 'Set the modulation clock in beats per minute';
-  let tempoDragged = false;
-  transport.tempo.addEventListener('click', () => {
-    if (tempoDragged) { tempoDragged = false; return; }
-    const seat=transport.tempo.getBoundingClientRect();transport.tempoIn.style.width=seat.width+'px';transport.tempoIn.style.flex='0 0 '+seat.width+'px';transport.tempoIn.style.height=seat.height+'px';
-    transport.tempo.hidden = true; transport.tempoIn.hidden = false;
-    transport.tempoIn.value = String(Math.round(M.transport.bpm));
-    transport.tempoIn.focus(); transport.tempoIn.select();
-  });
-  const closeTempo = (take) => {
-    if (transport.tempoIn.hidden) return;
-    if (take) { const v = parseFloat(transport.tempoIn.value); if (Number.isFinite(v)) clock.setBpm(v); }
-    transport.tempoIn.hidden = true; transport.tempo.hidden = false; paint(true);
-  };
-  transport.tempoIn.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); closeTempo(true); }
-    else if (e.key === 'Escape') { e.preventDefault(); closeTempo(false); }
-  });
-  transport.tempoIn.addEventListener('blur', () => closeTempo(true));
-  /* AND IT IS A DIAL TOO: a vertical drag on the number is the BPM knob this strip has no room
-     for, on the house ladder — 220 px of travel over the model's own [20, 300]. */
-  {
-    let d = null;
-    transport.tempo.addEventListener('pointerdown', (e) => {
-      if (e.button) return;
-      d = { y: e.clientY, bpm: M.transport.bpm, moved: false, touch: e.pointerType === 'touch' };
-      try { transport.tempo.setPointerCapture(e.pointerId); } catch (_) {}
-    });
-    transport.tempo.addEventListener('pointermove', (e) => {
-      if (!d) return;
-      if (!d.moved && Math.abs(e.clientY - d.y) < 4) return;
-      d.moved = true;
-      const span = M.BPM_MAX - M.BPM_MIN;
-      clock.setBpm(d.bpm + (d.y - e.clientY) / TRAVEL(e, d.touch) * span);
-      paint(true);
-    });
-    /* A DRAG IS NOT A TAP.  `click` fires after `pointerup` whatever the pointer did, so the
-       drag leaves a mark the click handler reads and clears — without it every dial turn also
-       opened the type-in field over the number it had just moved. */
-    const stop = () => { if (!d) return; if (d.moved) tempoDragged = true; d = null; };
-    transport.tempo.addEventListener('pointerup', stop);
-    transport.tempo.addEventListener('pointercancel', () => { d = null; });
-  }
+  const tempoField = bindTempoField({ button: transport.tempo, input: transport.tempoIn, drag: true, paint: () => paint(true),
+    tempo: { get: () => M.transport.bpm, set: (v) => clock.setBpm(v), commit: () => {}, min: M.BPM_MIN, max: M.BPM_MAX } });
 
   /* TAP.  Wave 60 refused a tap tempo — "nobody taps a fractal" — and the artifact ships the
      button, so the refusal is reversed rather than left as a dead 44 px seat: BPM is the LOOP
@@ -670,7 +695,7 @@ export function createModulation(host, port) {
   });
 
   /* ═══ THE PRESET BAR ════════════════════════════════════════════════════════════════════ */
-  let presetOpen = false;
+  let presetOpen = false, activePresetId = null;
   foot.open.addEventListener('click', () => { presetOpen ? closePresets() : openPresets(); });
   foot.save.addEventListener('click', () => {
     const name = (foot.name.value || '').trim();
@@ -679,28 +704,39 @@ export function createModulation(host, port) {
     /* A NAME THAT IS ALREADY TAKEN IS A REPLACE, not a refusal — the model asks first and
        this window answers yes, because SAVE on a name you just loaded means "keep this". */
     if (r && r.error === 'exists') r = M.presetSave(name, M.serializeRack(), { replace: true });
-    if (r && r.ok) { foot.name.classList.remove('m2predirty'); status(t('saved “{name}”', { name: r.name }), ''); }
+    if (r && r.ok) { activePresetId = r.id; foot.name.classList.remove('m2predirty'); status(t('saved “{name}”', { name: r.name }), ''); }
     else status(r && r.error === 'factory-name' ? t('that name belongs to a factory preset — try “{name}”', { name: r.suggest }) : t('could not save that preset'), 'warn');
     if (presetOpen) openPresets();
   });
 
 
-  const userPresets = () => M.presetList().filter((p) => !p.factory);
+  /* THE BUNDLED STARTERS (BASINS starter-modulation.js; installModulation({ factory })): the app's authored presets, in
+     their own folder, named in CAPS, apart from the user's saves — listed first, tagged STARTER, never deleted; SAVE on
+     one keeps an editable user preset.  port.applyStarterPreset(id) loads one (bind.js; an app may remap its routes). */
+  const bundledPresets = () => (port.starterPresets ? port.starterPresets() : []);
+  const userPresets = () => bundledPresets().concat(M.presetList().filter((p) => !p.factory));
   const folderLabel = (name) => name === M.PRESET_FOLDER_DEFAULT ? t('MY PRESETS') : name;
   const stepPreset = (dir) => {
     const list = userPresets();
     if (!list.length) { status(t('no presets yet — type a name and press {:SAVE}'), 'warn'); return; }
-    const cur = list.findIndex((p) => p.name === foot.name.value);
+    let cur = list.findIndex((p) => p.id === activePresetId && p.name === foot.name.value);
+    if (cur < 0) cur = list.findIndex((p) => p.name === foot.name.value);
     const next = list[((cur < 0 ? (dir > 0 ? -1 : 0) : cur) + dir + list.length) % list.length];
     loadPreset(next.id);
   };
   foot.prev.addEventListener('click', () => stepPreset(-1));
   foot.next.addEventListener('click', () => stepPreset(1));
+  /* THE MIR SWITCH (BASINS modwindow.js 563–566): after the picker arrows; it swaps to the timeline.  Only when the host has
+     two workspaces (port.switchWorkspace). */
+  const wsSwitch = typeof port.switchWorkspace === 'function' ? workspaceSwitch({ run: () => port.switchWorkspace(), title: 'Switch to Timeline' }) : null;
+  if (wsSwitch) foot.core.appendChild(wsSwitch.root);
   foot.name.addEventListener('input', () => foot.name.classList.add('m2predirty'));
 
   function loadPreset(id) {
-    const r = M.presetApply(id);
+    const bundled = bundledPresets().some((p) => p.id === id);
+    const r = bundled && port.applyStarterPreset ? port.applyStarterPreset(id) : M.presetApply(id);
     if (!r || r.ok === false) { status(r && r.error === 'foreign' ? t('that preset was written by a model this build cannot honour') : t('that preset could not be loaded'), 'warn'); return; }
+    activePresetId = id;
     foot.name.value = r.name || ''; foot.name.classList.remove('m2predirty');
     M.syncDormant((id2) => registry.has(id2));
     clock.recomputeRunning(); apply(); rebuild();
@@ -712,7 +748,9 @@ export function createModulation(host, port) {
     psheet.root.innerHTML = '';
     const all = userPresets();
     const cur = foot.name.value;
-    for (const f of M.presetFolders().filter((f) => !f.factory)) {
+    const folders = M.presetFolders().filter((f) => !f.factory);
+    for (const p of bundledPresets()) if (!folders.some((f) => f.name === p.folder)) folders.unshift({ name: p.folder });
+    for (const f of folders) {
       const mine = all.filter((p) => p.folder === f.name);
       const shut = !!P.folder[f.name];
       const grp = psheet.group(folderLabel(f.name), shut, false);
@@ -720,9 +758,14 @@ export function createModulation(host, port) {
       grp.fold.addEventListener('click', () => { P.folder[f.name] = !P.folder[f.name]; openPresets(); persist(); });
       if (shut) continue;
       for (const p of mine) {
-        const row = grp.row(p.name, { factory: !!p.factory, on: p.name === cur, stale: !!p.stale });
+        const row = grp.row(p.name, { factory: !!p.factory, on: activePresetId ? p.id === activePresetId : p.name === cur, stale: !!p.stale });
         row.btn.addEventListener('click', () => { closePresets(); loadPreset(p.id); });
-        if (row.del) row.del.addEventListener('click', (e) => {
+        if (p.bundled) {
+          label(row.tag, 'STARTER');   // tr[STARTER]: a preset the app ships (a starter project's modulation), not one the user saved
+          row.btn.title = 'Bundled starter modulation · Save keeps an editable user preset';
+          if (row.del) row.del.remove();
+        }
+        if (!p.bundled && row.del) row.del.addEventListener('click', (e) => {
           e.stopPropagation(); M.presetDelete(p.id); openPresets();
           status(t('deleted “{name}”', { name: p.name }), '');
         });
@@ -1368,60 +1411,76 @@ export function createModulation(host, port) {
 
   /* Reordering has a dedicated grip. The value face is therefore only a value
      control, and compact mode can hide that face without losing rearranging. */
-  function wireMacroReorder(rec, macroId, rename) {
-    let d = null;
-    const renameTap = tapWatcher(rename);
-    const detach = () => {
-      document.removeEventListener('pointermove', move, true);
-      document.removeEventListener('pointerup', up, true);
-      document.removeEventListener('pointercancel', cancel, true);
-    };
-    const move = (e) => {
-      if (!d || e.pointerId !== d.pointerId) return;
-      if (!d.moved && Math.abs(e.clientY - d.y) < 6) return;
-      d.moved = true;
-      e.preventDefault(); e.stopPropagation();
-      rec.root.classList.add('m2reorder');
-      const rows = [...rackEl.slots.querySelectorAll(':scope > .m2slot')].filter((r) => r !== rec.root);
-      const before = rows.find((r) => e.clientY < r.getBoundingClientRect().top + r.getBoundingClientRect().height / 2);
-      if (before) rackEl.slots.insertBefore(rec.root, before); else rackEl.slots.appendChild(rec.root);
-    };
-    const stop = (e, cancel) => {
-      if (!d || e.pointerId !== d.pointerId) return;
-      const moved = d.moved; d = null;
-      detach();
-      rec.root.classList.remove('m2reorder');
-      if (!moved) { if (!cancel) renameTap(); return; }
-      e.preventDefault(); e.stopPropagation();
-      if (!cancel) {
-        const to = [...rackEl.slots.querySelectorAll(':scope > .m2slot')].indexOf(rec.root);
-        M.moveMacro(macroId, to); apply();
-      }
-      rebuild();
-    };
-    const up = (e) => stop(e, false);
-    const cancel = (e) => stop(e, true);
-    rec.reorder.addEventListener('pointerdown', (e) => {
-      if (e.button) return;
-      e.preventDefault(); e.stopPropagation();
-      try { rec.reorder.setPointerCapture(e.pointerId); } catch (_) {}
-      d = { y: e.clientY, pointerId: e.pointerId, moved: false };
-      document.addEventListener('pointermove', move, true);
-      document.addEventListener('pointerup', up, true);
-      document.addEventListener('pointercancel', cancel, true);
+  /* THE REORDER, ANIMATED (BASINS modwindow.js wireReorder + rack-motion.js; Josh: "Copy the same thing to the
+     modulation window devices and macros").  The grip's drag is core/pointer.js (the last sample flushed before the commit;
+     Escape, a lost capture, a blur or a hidden page cancel it).  The held node follows the hand along its axis; crossing a
+     neighbour's middle (8 px past it) moves the neighbours past it in the DOM inside a layout transaction, so they glide;
+     nothing is rebuilt during the drag.  Release commits the order to the model and the node settles into its slot; a
+     cancel puts it back where it was.  A press that never travels is a tap (`tap`). */
+  function wireReorder(grip, node, host, selector, axis, commit, tap = () => {}) {
+    let d = null, dragged = false;
+    grip.addEventListener('pointerdown', (e) => { if (!e.button) { e.stopPropagation(); dragged = false; } });   // the grip's press is not the device's nor the window's
+    const gd = pointerDrag(grip, { slop: 3,
+      onStart(st) {
+        if (cancelReorder) cancelReorder();
+        dragged = true;
+        const r = node.getBoundingClientRect();
+        d = { dx: st.x0 - r.left, dy: st.y0 - r.top, left: r.left, top: r.top, next: node.nextSibling };
+        node.classList.add(axis === 'x' ? 'm2drag' : 'm2reorder');
+        layoutMotion.hold(node);
+        cancelReorder = () => gd.cancel();
+      },
+      onMove(st) {
+        if (!d) return;
+        const r = layoutMotion.layoutRect(node), rows = [...host.querySelectorAll(selector)], at = rows.indexOf(node);
+        const center = axis === 'x' ? st.x - d.dx + r.width / 2 : st.y - d.dy + r.height / 2;
+        const natural = axis === 'x' ? r.left + r.width / 2 : r.top + r.height / 2;
+        const backward = center < natural;
+        const candidates = backward ? rows.slice(0, at).reverse() : rows.slice(at + 1);
+        let crossed = null;
+        for (const other of candidates) {
+          const q = layoutMotion.layoutRect(other), mid = axis === 'x' ? q.left + q.width / 2 : q.top + q.height / 2;
+          if (backward ? center < mid - 8 : center > mid + 8) crossed = other;
+          else break;
+        }
+        /* the NEIGHBOURS move, never the held node: re-inserting the node that holds the pointer would release its capture
+           (BASINS moved the node and listened on the document; core/pointer.js keeps the gesture on the grip) */
+        if (crossed) layoutMotion.change(() => {
+          const ci = rows.indexOf(crossed);
+          if (backward) { const ref = node.nextSibling; for (const n of rows.slice(ci, at)) host.insertBefore(n, ref); }
+          else for (const n of rows.slice(at + 1, ci + 1)) host.insertBefore(n, node);
+        }, false);
+        layoutMotion.follow(node, axis === 'x' ? st.x - d.dx : d.left, axis === 'y' ? st.y - d.dy : d.top);
+      },
+      onEnd() { finish(false); },
+      onCancel() { finish(true); },
     });
+    function finish(cancel) {
+      if (!d) return;
+      const old = d; d = null; cancelReorder = null;
+      node.classList.remove('m2drag', 'm2reorder');
+      if (cancel) layoutMotion.change(() => host.insertBefore(node, old.next && old.next.parentElement === host ? old.next : null), false);
+      else commit([...host.querySelectorAll(selector)].indexOf(node));
+      layoutMotion.release(node); apply(); paint(true); persist();
+    }
+    grip.addEventListener('pointerup', (e) => { if (!e.button && !dragged) tap(); });
+  }
+  function wireMacroReorder(rec, macroId, rename) {
+    wireReorder(rec.reorder, rec.root, rackEl.slots, ':scope > .m2slot', 'y', (to) => M.moveMacro(macroId, to), tapWatcher(rename));
     rec.reorder.addEventListener('keydown', (e) => {
       if (!['ArrowUp', 'ArrowDown', 'Home', 'End', 'Enter', 'NumpadEnter'].includes(e.key)) return;
       e.preventDefault(); e.stopPropagation();
       if (e.key === 'Enter' || e.key === 'NumpadEnter') { rename(); return; }
       const list = M.macroList(), at = list.findIndex((m) => m.id === macroId);
-      const to = e.key === 'Home' ? 0 : e.key === 'End' ? list.length - 1
-        : at + (e.key === 'ArrowUp' ? -1 : 1);
-      M.moveMacro(macroId, to); apply(); rebuild();
+      const to = e.key === 'Home' ? 0 : e.key === 'End' ? list.length - 1 : at + (e.key === 'ArrowUp' ? -1 : 1);
+      const rows = [...rackEl.slots.querySelectorAll(':scope > .m2slot')], target = rows[Math.max(0, Math.min(rows.length - 1, to))];
+      if (target && target !== rec.root) layoutMotion.change(() => rackEl.slots.insertBefore(rec.root, to < at ? target : target.nextSibling), false);
+      M.moveMacro(macroId, to); apply(); paint(true); persist();
     });
   }
 
   function rebuildMacros() {
+    if (cancelReorder) cancelReorder();
     rackEl.slots.innerHTML = ''; macRows.clear();
     let n = 0;
     for (const m of M.macroList()) {
@@ -1595,7 +1654,7 @@ export function createModulation(host, port) {
   rackEl.devadd.addEventListener('click', () => setDevPick(!devPickOpen));
 
 
-  const rackMode = () => (chips.compact && chips.compact.classList.contains('on') ? 'C' : 'F');
+  const rackMode = () => compactMode();
   for (const kind of ['lfo', 'env', 'audio']) {
     if (!pick.btns[kind]) continue;
     pick.btns[kind].addEventListener('click', () => {
@@ -1709,10 +1768,8 @@ export function createModulation(host, port) {
     chev.className = 'm2chev';
     head.insertBefore(chev, head.firstChild);
     const toggle = () => {
-      const rail = head.closest('.m2rail');
-      const on = rail.classList.toggle('m2railmin'); P.macroMin = on;
-      head.setAttribute('aria-expanded', String(!on));
-      paint(true);place(); persist();
+      layoutMotion.change(() => { setMacroMin(!P.macroMin); syncChips(); paint(true); place(); });
+      persist();
     };
     head.addEventListener('click', toggle);
     head.addEventListener('keydown', (e) => {
@@ -1851,17 +1908,22 @@ export function createModulation(host, port) {
       t.dot.style.setProperty('--ty', Y(0.5));
       return;
     }
-    if (force || !t.sig) {
-      t.sig = sigOf(s, 26, 200);
+    const sig = sigOf(s, 26, 200);
+    if (force || sig !== t.sig) {
+      t.sig = sig;
       const sm = sampleShape(s, 96);
       let d = '';
-      for (let i = 0; i < sm.length; i++) d += (i ? 'L' : 'M') + X(sm[i][1]) + ' ' + Y(sm[i][0]);
+      for (let i = 0; i < sm.length; i++) {
+        const value = s.steps >= M.STEPS_MIN ? M.stepQuant(sm[i][1], s.steps) : sm[i][1];
+        if (i && s.steps >= M.STEPS_MIN) d += 'L' + X(M.stepQuant(sm[i - 1][1], s.steps)) + ' ' + Y(sm[i][0]);
+        d += (i ? 'L' : 'M') + X(value) + ' ' + Y(sm[i][0]);
+      }
       t.path.setAttribute('d', d);
       /* the body is the band between the REST line and the trace, so a shape reads as a shape and not
          as a hairline at 26 px — closed back along the rest line, never along the box's edge */
       t.fill.setAttribute('d', d ? d + 'L50 ' + Y(1) + 'L50 ' + Y(0) + 'Z' : '');
     }
-    t.dot.style.setProperty('--tx', X(s.out));
+    t.dot.style.setProperty('--tx', X(shapeAtHead(s)));
     t.dot.style.setProperty('--ty', Y(headU(s)));
   }
 
@@ -1875,7 +1937,8 @@ export function createModulation(host, port) {
     }
   }) : null;
   function rebuildDevices() {
-    for (const rec of devRows.values()) { if (boxRO) boxRO.unobserve(rec.dev.ed.box); rec.dev.root.remove(); }
+    if (cancelReorder) cancelReorder();
+    for (const rec of devRows.values()) { if (rec.readout) rec.readout.dispose(); if (boxRO) boxRO.unobserve(rec.dev.ed.box); rec.dev.root.remove(); }
     devRows.clear();
     const live = new Set(devOrder().map((s) => s.id));
     for (const k of Object.keys(P.modes)) if (!live.has(k)) delete P.modes[k];
@@ -1914,9 +1977,12 @@ export function createModulation(host, port) {
       dev.fold.title = 'Collapse or expand this device';
     dev.fold.addEventListener('click', () => {
       const next = modeOf(s.id) === 'M' ? 'F' : 'M';
-      setMode(s.id, next);
-      dev.fold.setAttribute('aria-expanded', next === 'F' ? 'true' : 'false');
-      place(); paint(true); persist();
+      layoutMotion.change(() => {
+        setMode(s.id, next);
+        dev.fold.setAttribute('aria-expanded', next === 'F' ? 'true' : 'false');
+        syncChips(); place(); paint(true);
+      });
+      persist();
     });
       dev.pow.title = 'Bypass this device and keep its settings';
     dev.pow.addEventListener('click', () => { M.setSource(s.id, { on: !s.on }); clock.recomputeRunning(); apply(); sync(); });
@@ -2185,7 +2251,16 @@ export function createModulation(host, port) {
     rec.g = { box: dev.ed.box, svg: dev.ed.svg, ed: dev.ed, w: 0, h: 0, X: (u) => u, Y: (v) => v,
               samples: [], levels: 0, hseg: [], pts: null, sig: '' };
     boxRec.set(dev.ed.box, rec); if (boxRO) boxRO.observe(dev.ed.box);
+    rec.drag = null;
     wireEditor(rec);
+    /* THE SAME READOUT LAYER THE TIMELINE HAS (BASINS mod-cursor.js on readout-layer.js, MODWINDOW-READOUT 10-01), on this
+       device's own curve editor: time in beats of the cycle when synced, seconds when free; held, it locks to the dragged
+       point.  AUDIO has no curve to hover, and a closed window mounts none (its document listeners would idle). */
+    if (s.kind === 'audio' || !P.open) rec.readout = null;
+    else {
+      const cursor = createModCursor({ rec, timeTextAt: cursorTimeText, inkOf: cursorInk });
+      rec.readout = createReadoutLayer({ mount: rec.g.box, resolve: (ev) => (document.body.classList.contains('ui-hidden') ? null : cursor.gesture() || cursor.resolve(ev)) });
+    }
     if(s.kind==='audio')buildAudioRanges(rec);
     seatMinTrace(rec);                  // wave 97: the folded strip's one indicator
 
@@ -2257,50 +2332,14 @@ export function createModulation(host, port) {
   /** the grab handle reorders the rack.  The run order IS the fire order, which is why the
    *  handle sits beside the name and not in a menu. */
   function wireGrab(rec) {
-    const g = rec.dev.grab;
-    let d = null;
-    g.title = 'Drag to reorder';
-
-
-    let onMove = null, onUp = null;
-    const release = () => {
-      if (onMove) window.removeEventListener('pointermove', onMove);
-      if (onUp) { window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onUp); }
-      onMove = onUp = null;
-    };
-    g.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      d = { x: e.clientX, i: M.sourceIndexOf(rec.id) };
-      rec.dev.root.classList.add('m2drag');
-      release();
-      onMove = (ev) => moveTo(ev);
-      onUp = () => { release(); stop(); };
-      window.addEventListener('pointermove', onMove);
-      window.addEventListener('pointerup', onUp);
-      window.addEventListener('pointercancel', onUp);
+    rec.dev.grab.title = 'Drag to reorder';
+    wireReorder(rec.dev.grab, rec.dev.root, rackEl.run, ':scope > .m2dev', 'x', () => {
+      const rest = M.sourceList().filter((x) => x.id !== rec.id);
+      const next = rec.dev.root.nextElementSibling && rec.dev.root.nextElementSibling.dataset.id;
+      const previous = rec.dev.root.previousElementSibling && rec.dev.root.previousElementSibling.dataset.id;
+      const to = next ? rest.findIndex((x) => x.id === next) : previous ? rest.findIndex((x) => x.id === previous) + 1 : 0;
+      M.moveSource(rec.id, Math.max(0, to));
     });
-    function moveTo(e) {
-      if (!d) return;
-      const el2 = document.elementFromPoint(e.clientX, e.clientY);
-      const card = el2 && el2.closest && el2.closest('.m2dev');
-      if (!card || card === rec.dev.root) return;
-      const over = card.dataset.id;
-      const j = M.sourceIndexOf(over);
-      if (j < 0 || j === M.sourceIndexOf(rec.id)) return;
-      M.moveSource(rec.id, j);
-      rebuildDevices(); paint(true);
-      const again = devRows.get(rec.id);
-      if (again) { again.dev.root.classList.add('m2drag'); }
-    }
-    const stop = () => {
-      if (!d) return;
-      d = null;
-      /* the card under the hand may be a DIFFERENT element than the one the drag began on, so the
-         class comes off whatever is carrying it now — and off every card, in case a rebuild landed
-         between the last move and the release. */
-      for (const r of devRows.values()) r.dev.root.classList.remove('m2drag');
-      persist();
-    };
   }
 
   let clip = null;
@@ -2379,6 +2418,23 @@ export function createModulation(host, port) {
     const n = cyclesShown(s);
     return n === 1 ? p : clamp01(((cycleNow(s) - cycleBase(s)) + p) / n);
   }
+  /** the drawn shape's value under the play head (the dot sits ON the curve, stepped when STEPS quantises) — BASINS */
+  function shapeAtHead(s) {
+    const u = headU(s), points = editPoints(s);
+    const value = points ? curveEval(points, u) : M.waveAt(s.wave, s.phase + s.phaseOff, { cycles: cycleNow(s), seed: s.rseed });
+    return s.steps >= M.STEPS_MIN ? M.stepQuant(value, s.steps) : value;
+  }
+  /* THE READOUT'S TIME UNIT — beats of one cycle when BPM-synced (M.beatsPerCycle), seconds/ms when free; an ENV is always
+     free against its own timeScale window.  `cyclesShown` decides how many periods the box draws, so u's elapsed amount
+     is u times that many periods — the same accounting headU and sampleShape use. */
+  function cursorTimeText(s, u) {
+    const elapsed = u * cyclesShown(s);
+    if (s.kind === 'env') return fmtSec(elapsed * s.timeScale);
+    if (s.sync) return fmtBeat(elapsed * M.beatsPerCycle(s));
+    const hz = M.lfoHz(s);
+    return fmtSec(hz > 0 ? elapsed / hz : 0);
+  }
+  const cursorInk = (rec) => getComputedStyle(rec.dev.ed.path).stroke;
   /** the points a drawing may be EDITED through — null in wave mode, which is read-only */
   const editPoints = (s) => (s.kind === 'env' ? M.envPoints(s) : (s.shapeMode === 'curve' ? s.points : null));
 
@@ -2658,6 +2714,7 @@ export function createModulation(host, port) {
       y0 = p.y;
       if (mode === 'handle') base = g.pts[idx].tension;
       if (mode === 'handle' && s.kind === 'env') key = envMapOf(s).tens[idx];
+      rec.drag = { kind: mode, index: idx };               // the readout's held state, same frame
     });
 
     svg.addEventListener('pointermove', (e) => {
@@ -2682,7 +2739,7 @@ export function createModulation(host, port) {
       }
     });
 
-    const end = (e) => { if (pid !== e.pointerId) return; pid = null; mode = null; key = null; };
+    const end = (e) => { if (pid !== e.pointerId) return; pid = null; mode = null; key = null; rec.drag = null; };
     svg.addEventListener('pointerup', end);
     svg.addEventListener('pointercancel', end);
     svg.addEventListener('lostpointercapture', end);
@@ -2955,6 +3012,7 @@ export function createModulation(host, port) {
 
   let lastPaint = 0, paintCalls = 0, paintRuns = 0, paintMs = 0;
   function paint(force) {
+    if (document.body.classList.contains('ui-hidden')) return false;   // H: the interface is hidden, the paint costs nothing (BASINS)
     const t0 = performance.now();
     paintCalls++;
     if (!force && t0 - lastPaint < 33) return false;      // 30 Hz is plenty for a number to be read at
@@ -2997,6 +3055,8 @@ export function createModulation(host, port) {
       const src = m.sourceId ? M.sourceOf(m.sourceId) : null;
       const shownDepth = m.masterDepth;
       if (force) {
+        rec.index = M.macroList().indexOf(m) + 1;
+        if (rec.num && rec.num.textContent !== String(rec.index)) rec.num.textContent = String(rec.index);
         rec.vname.textContent = m.name;
         rec.root.classList.toggle('m2locked', !!m.sourceId);
         rec.root.style.setProperty('--m2-slot-ink',
@@ -3083,9 +3143,13 @@ export function createModulation(host, port) {
         const sig = sigOf(s, w, h);
         if (sig !== g.sig) { g.sig = sig; render(rec); paintPresetGlyphs(rec); }
       } else if (!g.sig) continue;
+      else {                                            // a shape the clock changed (a route on a device knob) redraws, at the paint's 30 Hz
+        const sig = sigOf(s, g.w, g.h + 14);
+        if (sig !== g.sig) { g.sig = sig; render(rec); }
+      }
       const x = g.X(headU(s)).toFixed(2);
       dev.ed.play.setAttribute('x1', x); dev.ed.play.setAttribute('x2', x);
-      dev.ed.pdot.setAttribute('cx', x); dev.ed.pdot.setAttribute('cy', g.Y(s.out).toFixed(2));
+      dev.ed.pdot.setAttribute('cx', x); dev.ed.pdot.setAttribute('cy', g.Y(shapeAtHead(s)).toFixed(2));
       if (force && dev.minWavePath) dev.minWavePath.setAttribute('d', minShapeD(s));
     }
 
@@ -3205,14 +3269,14 @@ export function createModulation(host, port) {
   /** the window's own state, for the host's settings.  dock and chipSide are window.js's shape (readShape). */
   function presentation() {
     return { x: P.x, y: P.y, lane: P.lane, ribbon: P.ribbon, modes: { ...P.modes }, audioMini: { ...P.audioMini }, open: P.open,
-      folder: { ...P.folder }, macroSide: P.macroSide, macroMin: P.macroMin, selectedMacro: selMacro, selectedSource: selSource,
+      folder: { ...P.folder }, macroSide: P.macroSide, macroMin: P.macroMin, compactMode: compactMode(), selectedMacro: selMacro, selectedSource: selSource,
       audioBands: Object.fromEntries(audBands), audioRoutes: Object.fromEntries(audRoutes), dock: P.dock, chipSide: P.chipSide };
   }
   /* WAVE 105 · THE CHIPS TOLD THE TRUTH ONLY UNTIL A RELOAD — so the three that carry a state are written from the
      state on every rebuild and restore, through the rail's own tables. */
   function syncChips() {
     const all = devOrder();
-    setChip('compact', all.length > 0 && all.every((x) => modeOf(x.id) !== 'F'));
+    setChip('compact', compactMode()); chips.compact.dataset.compactMode = compactMode();
     setChip('ribbon', P.ribbon);
     syncWorkbarChip();
   }
@@ -3234,7 +3298,8 @@ export function createModulation(host, port) {
     selSource = typeof o.selectedSource === 'string' && M.sourceOf(o.selectedSource) ? o.selectedSource : null;
     if (o.folder) Object.assign(P.folder, o.folder);
     setMacroSide(o.macroSide === 'right' ? 'right' : 'left');
-    P.macroMin = !!o.macroMin; root.querySelector('.m2rail').classList.toggle('m2railmin', P.macroMin);root.querySelector('.m2railhead').setAttribute('aria-expanded',String(!P.macroMin));
+    P.compactMode = ['F', 'C', 'M'].includes(o.compactMode) ? o.compactMode : 'F';
+    setMacroMin(o.macroMin);
     for (const s of devOrder()) { const r = devRows.get(s.id); if (r) { setDeviceMode(r.dev, modeOf(s.id)); if (r.syncMiniMeter) r.syncMiniMeter(); } }
     syncChips();
     if (o.open) open();
@@ -3268,6 +3333,9 @@ export function createModulation(host, port) {
     closePop(); closePresets(); closeDead();
     if (matrix.open) closeMatrix();
     if (was && port.moved) { try { port.moved(null); } catch (_) {} }
+    if (cancelReorder) cancelReorder(); tempoField.close(false);
+    /* the per-editor readouts' document listeners have nothing to follow while the window is hidden; open() rebuilds them */
+    for (const rec of devRows.values()) { if (rec.readout) { rec.readout.dispose(); rec.readout = null; } }
     persist(); geometryChanged();
     return true;
   }
@@ -3310,6 +3378,10 @@ export function createModulation(host, port) {
     span: spanOf,
     selected: () => selectedMacro(),
     select: (id) => { selectMacro(id); return selectedMacro(); },
+    /** a press on a routed control's dial, for a host whose dial takes its own presses (BASINS' COLOUR arc knobs): THIS
+     *  window's rule — the control wears its badges (focusRing), and the route whose macro is selected, else the first
+     *  live one, selects that macro.  → the macro id now selected, or null. */
+    selectForTarget: (id) => { if (rings.has(id)) focusRing(id); const rs = M.routesOfTarget(id).filter((r) => !r.dormant); const chosen = rs.find(routeSelected) || rs[0]; if (!chosen) return null; selectMacro(chosen.macroId); return selectedMacro(); },
     drops: () => routables().map((k) => k.dataset.param),
     arming: () => (armed ? { macro: armed.macroId, mode: armed.mode, over: armed.over ? armed.over.dataset.param : null } : null),
     defaultRange: (id) => (registry.has(id) ? defaultRange(id) : null),
@@ -3400,7 +3472,7 @@ export function createModulation(host, port) {
                hi: whole ? d.max : registry.fromNorm(id, st.wrap ? ((hi % 1) + 1) % 1 : clamp01(hi)),
                live: sp.live, label: d ? d.label : id };
     },
-    presets: () => M.presetList().map((p) => ({ id: p.id, name: p.name, folder: p.folder, factory: !!p.factory })),
+    presets: () => bundledPresets().concat(M.presetList()).map((p) => ({ id: p.id, name: p.name, folder: p.folder, factory: !!p.factory, bundled: !!p.bundled })),
     presetKey: () => (M.presetStoreState ? M.presetStoreState().key : null),
     dead: () => M.dormantRoutes().map((r) => ({ id: r.id, macro: r.macroId, target: r.targetId })),
     performance: () => ({ calls: paintCalls, paints: paintRuns, ms: paintMs, averageMs: paintRuns ? paintMs / paintRuns : 0 }),
@@ -3435,9 +3507,17 @@ export function createModulation(host, port) {
     get isOpen() { return P.open; },
     /** the window OPENING re-reads the model; it does not restart it */
     wake() { rebuild(); paint(true); },
+    /** the lego stack (window/workspaces.js): sit 8 px above anchor() (another window's rect); null ends it; a grip drag ends it */
+    stackAbove(anchor) { stack = typeof anchor === 'function' ? anchor : null; stackOn = false; if (P.open) place(); },
+    get isStacked() { return !!stack; },
+    stackHeight: () => (box ? box.height : lawBox().h),
     dispose() {
       if (liveApi === api) liveApi = null;
       if (offPattern) { offPattern(); offPattern = null; } geometryWatchers.clear();
+      rackEl.run.removeEventListener('wheel', deviceWheel);
+      if (wsSwitch) wsSwitch.destroy(); tempoField.destroy();
+      if (cancelReorder) cancelReorder(); layoutMotion.destroy();
+      for (const rec of devRows.values()) if (rec.readout) rec.readout.dispose();
       off(); offLanguage(); if (ro) { ro.disconnect(); ro = null; } if (boxRO) boxRO.disconnect();
       document.removeEventListener('pointerdown', armTap, true);
       document.removeEventListener('pointerdown', popAway, true);

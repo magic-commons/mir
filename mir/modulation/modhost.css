@@ -113,7 +113,7 @@
   --m2-aud-range-value-font: 600 7.5px/1 var(--font-num);
   --m2-audsreadout-font: 650 var(--fs-tiny) var(--font-num);
   --m2-chip-ink-drop: drop-shadow(0 1px 0 var(--glass-raise));
-  --m2-chk-on-shadow: var(--m2-on-rim), inset 0 -2px 0 hsl(var(--hue-acc) var(--sat-acc) 66% / .64);
+  --m2-chk-on-shadow: var(--m2-on-rim), inset 0 -2px 0 color-mix(in oklch, hsl(var(--hue-acc) var(--sat-acc) 66% / .64), white var(--acc-white, 0%));
   --m2-dialink-b-wash: repeating-conic-gradient(var(--glass-groove) 0deg 1.6deg, transparent 1.6deg 30deg), radial-gradient(circle at 35% 30%, hsl(0 0% 100% / .07), transparent 62%), hsl(var(--glass-tint) / 1);
   --m2-ease: ease;
   --m2-face-tint-18: hsl(var(--glass-tint) / .18);
@@ -125,8 +125,8 @@
   --m2-face-w10: hsl(0 0% 100% / .10);
   --m2-face-w18: hsl(0 0% 100% / 0.18);
   --m2-fill-tint-100: hsl(var(--glass-tint) / 1);
-  --m2-focus-shadow: 0 0 0 3px hsl(var(--hue-acc) var(--sat-acc) 66% / 0.30);   /* the focus ring's soft halo (the ring itself is --m2-focus-ring, an outline) */
-  --m2-focus-ring: 1px solid hsl(var(--hue-acc) var(--sat-acc) 52%);          /* the focus ring: an OUTLINE, like --state-focus, which a skin may set */
+  --m2-focus-shadow: 0 0 0 3px color-mix(in oklch, hsl(var(--hue-acc) var(--sat-acc) 66% / 0.30), white var(--acc-white, 0%));   /* the focus ring's soft halo (the ring itself is --m2-focus-ring, an outline) */
+  --m2-focus-ring: 1px solid color-mix(in oklch, hsl(var(--hue-acc) var(--sat-acc) 52%), white var(--acc-white, 0%));          /* the focus ring: an OUTLINE, like --state-focus, which a skin may set */
   --m2-fs-12: 12px;
   --m2-grab-dots: radial-gradient(circle at 50% 50%, currentColor 1px, transparent 1.1px);
   --m2-grab-dots-frost: radial-gradient(circle at 50% 50%,currentColor 1.1px,transparent 1.3px);
@@ -380,7 +380,7 @@ body.frost .glass:where(.mir-modwindow, .mir-modwindow *, .kwin-chiprail, .kwin-
   /* the signal glow is BASINS' own value, restated here for one reason: at `:root` it substitutes
      where --hue-acc2 is not declared, so it froze at the 288 fallback and never followed the wheel.
      Declared in this scope it reads the live accent setAccent() writes inline on the window. */
-  --m2-signal-glow: 0 0 4px hsl(var(--hue-acc2) var(--sat-acc2) 68% / 0.20);
+  --m2-signal-glow: 0 0 4px color-mix(in oklch, hsl(var(--hue-acc2) var(--sat-acc2) 68% / 0.20), white var(--acc-white, 0%));
 
   /* ── T3 · THE INK — five rungs, sized on L2, the thinnest ground ────────────────── */
   /* the solved floors on L2 over the worst sampled ground, both themes:
@@ -515,7 +515,7 @@ body[data-theme="light"] .m2ghost {
      (hsl(214 30% 12%)), so the artifact's five-rung hierarchy is preserved exactly. */
 
 
-  --m2-env-ink: hsl(calc(var(--hue-acc) - 52) calc(var(--sat-acc) + 3%) 66%);   /* the artifact declares this
+  --m2-env-ink: color-mix(in oklch, hsl(calc(var(--hue-acc) - 52) calc(var(--sat-acc) + 3%) 66%), white var(--acc-white, 0%));   /* the artifact declares this
                                                     on `.m2dev.env` only; the macro rail's indicator needs
                                                     it too (wave 79), so it is raised to the seat. */
   --m2-rule: hsl(214 12% 72% / 0.34);
@@ -542,11 +542,19 @@ body[data-theme="light"] .m2ghost {
    the light seat's weight (0,2,1) and after it, so the choice wins in either theme.
    TEXT · WHITE / BLACK (body[data-text], BASINS ink.css §3a): the plugin's four ink rungs become the pure ladder, and its
    halo goes with every other relief on ink. */
-body[data-text="light"] .mir-modwindow, body[data-text="light"] .kwin-chiprail, body[data-text="light"] .m2ghost {
-  --m2-ink-hi: hsl(0 0% 100%); --m2-ink: hsl(0 0% 100% / .96); --m2-ink-soft: hsl(0 0% 100% / .86); --m2-ink-faint: hsl(0 0% 100% / .82);
-  --ink-shadow: none; }
-body[data-text="dark"] .mir-modwindow, body[data-text="dark"] .kwin-chiprail, body[data-text="dark"] .m2ghost {
-  --m2-ink-hi: hsl(0 0% 0%); --m2-ink: hsl(0 0% 0% / .96); --m2-ink-soft: hsl(0 0% 0% / .86); --m2-ink-faint: hsl(0 0% 0% / .82);
+body[data-text="light"] .mir-modwindow, body[data-text="light"] .kwin-chiprail, body[data-text="light"] .m2ghost { --m2-text: 0 0% 100%; }
+body[data-text="dark"] .mir-modwindow, body[data-text="dark"] .kwin-chiprail, body[data-text="dark"] .m2ghost { --m2-text: 0 0% 0%; }
+/* TEXT · LIGHT / DARK reach the plugin's own 29 alpha rungs too (BASINS ink.css §3b; 1.5.0-alpha.12) */
+body[data-text] :is(.mir-modwindow, .kwin-chiprail, .m2ghost) {
+  --m2-ink-hi: hsl(var(--m2-text) / 1); --m2-ink: hsl(var(--m2-text) / .96); --m2-ink-soft: hsl(var(--m2-text) / .86); --m2-ink-faint: hsl(var(--m2-text) / .82);
+  --m2-ink-a28: hsl(var(--m2-text) / .28); --m2-ink-a30: hsl(var(--m2-text) / .30); --m2-ink-a32: hsl(var(--m2-text) / .32); --m2-ink-a34: hsl(var(--m2-text) / .34);
+  --m2-ink-a38: hsl(var(--m2-text) / .38); --m2-ink-a40: hsl(var(--m2-text) / .40); --m2-ink-a42: hsl(var(--m2-text) / .42); --m2-ink-a44: hsl(var(--m2-text) / .44);
+  --m2-ink-a46: hsl(var(--m2-text) / .46); --m2-ink-a48: hsl(var(--m2-text) / .48); --m2-ink-a50: hsl(var(--m2-text) / .50); --m2-ink-a52: hsl(var(--m2-text) / .52);
+  --m2-ink-a54: hsl(var(--m2-text) / .54); --m2-ink-a55: hsl(var(--m2-text) / .55); --m2-ink-a56: hsl(var(--m2-text) / .56); --m2-ink-a58: hsl(var(--m2-text) / .58);
+  --m2-ink-a60: hsl(var(--m2-text) / .60); --m2-ink-a62: hsl(var(--m2-text) / .62); --m2-ink-a66: hsl(var(--m2-text) / .66); --m2-ink-a68: hsl(var(--m2-text) / .68);
+  --m2-ink-a70: hsl(var(--m2-text) / .70); --m2-ink-a72: hsl(var(--m2-text) / .72); --m2-ink-a78: hsl(var(--m2-text) / .78); --m2-ink-a82: hsl(var(--m2-text) / .82);
+  --m2-ink-a85: hsl(var(--m2-text) / .85); --m2-ink-a88: hsl(var(--m2-text) / .88); --m2-ink-a90: hsl(var(--m2-text) / .90); --m2-ink-a92: hsl(var(--m2-text) / .92);
+  --m2-ink-a94: hsl(var(--m2-text) / .94);
   --ink-shadow: none; }
 /* CONTROL FACES · GLASS (BASINS material.css §1): the dial's puck face goes clear and keeps a hairline; the plugin's
    other control faces (--m2-mat-control) are clear already.  SOLID: the window's chassis is the opaque pane. */
@@ -2457,6 +2465,12 @@ body.mod-arming :is(.sw, .seg, .trig, .k:not([data-param]), .fd:not([data-param]
 #modwin.mir-modwindow .m2dev.m2cmp.env .m2zoom.m2patt { display: block; order: 2; width: 100%; height: 100%; min-height: 0; }
 #modwin.mir-modwindow .m2dev .m2zoom.m2patt { --m2-patt-on-rim: inset 0 0 0 1px color-mix(in srgb, var(--acc) 55%, transparent); }
 #modwin.mir-modwindow .m2dev .m2zoom.m2patt.on { color: var(--acc); box-shadow: var(--m2-patt-on-rim); }
+/* THE MIR SWITCH after the preset arrows (window/workspaces.js; BASINS skin.css:652–654): the plugin's own button rules
+   above would give it a face, a rim and a stroke; it keeps the switch's own seat (window.css's tokens): no face, the
+   diamond's tiles unstroked */
+#modwin.mir-modwindow .m2-workspace-switch { flex: 0 0 var(--ws-w); width: var(--ws-w); height: var(--ws-h); padding: 0; border: 0; background: none;
+  box-shadow: var(--ws-flat); border-radius: var(--ws-r); }
+#modwin.mir-modwindow .m2-workspace-switch .mod-palette-mark, #modwin.mir-modwindow .m2-workspace-switch .mod-palette-mark rect { stroke: none; }
 /* → TL on an LFO or ENV head (only while a timeline is attached) */
 #modwin.mir-modwindow .m2dev .m2ab.m2tl { width: 30px; }
 }   /* end @layer mir.kit.plugin.host */

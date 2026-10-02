@@ -413,6 +413,8 @@ export function createModClock(opts) {
       };
     },
     isRealtimeSuspended: () => realtimeOwner !== null,
+    /** true inside a deterministic step (the recorder's door): what is applied now is applied as though running */
+    isStepping: () => stepping > 0,
 
     /** Unrouted sources run only to animate their editor. Routed sources remain machinery and
      *  continue when the editor closes. This changes presentation demand, never transport state. */
@@ -476,8 +478,10 @@ export function createModClock(opts) {
         M.advance(d, wall);
         applyAll(false);
         requestPresentation(running ? 'modulation-output' : 'manual-step');
+        /* the notice is heard INSIDE the deterministic door, so what a client applies (the pattern's velocity) is applied
+           as though running even while the page is hidden — a recording in a hidden tab plays exactly as a visible one */
+        if (advanceWatchers.size) advanced('step');
       } finally { stepping--; exactStep--; }
-      if (advanceWatchers.size) advanced('step');
       return d;
     },
 
