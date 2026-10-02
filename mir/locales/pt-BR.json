@@ -973,7 +973,21 @@
   "{what} {i} name — type your own": "nome de {what} {i} — digite o seu",
   "{why} — what was open before is back": "{why} — o que estava aberto voltou",
   "{why}, and putting back what was open before failed too ({back})": "{why}, e também não foi possível restaurar o que estava aberto ({back})",
-  "© 2026 Joshua Hosain · Magic Commons. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": "© 2026 Joshua Hosain · Magic Commons. Construído por agentes de programação com IA — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI)."
+  "© 2026 Joshua Hosain · Magic Commons. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": "© 2026 Joshua Hosain · Magic Commons. Construído por agentes de programação com IA — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).",
+  "Capture image": "Capturar imagem",
+  "Download image — capture first": "Baixar imagem — capture primeiro",
+  "Download image — {name}, {size}": "Baixar imagem — {name}, {size}",
+  "Download {name} · {w} × {h}": "Baixar {name} · {w} × {h}",
+  "Each label’s ink from the picture under it (this app’s sampler)": "A tinta de cada rótulo, tirada da imagem que está embaixo dele (o amostrador deste app)",
+  "GALLERY": "GALERIA",
+  "Gallery — browse saved projects": "Galeria — navegar pelos projetos salvos",
+  "LINK": "VÍNCULO",
+  "Making image": "Criando imagem",
+  "RELIEF ANGLE": "ÂNGULO DO RELEVO",
+  "RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})": "ÂNGULO DO RELEVO — onde está a luz dos controles: o relevo e as cavidades giram com ela (os painéis seguem {:ANGLE})",
+  "The controls take the panes’ light: one {:ANGLE} for everything": "Os controles pegam a luz dos painéis: um único {:ANGLE} para tudo",
+  "The {panel} panel could not be built: {why}": "Não foi possível construir o painel {panel}: {why}",
+  "text ink::SAMPLED": "AMOSTRADA"
  },
  "review": {}
 }

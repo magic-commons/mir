@@ -963,7 +963,21 @@
   "{what} {i} name — type your own": "nama {what} {i} — ketik nama Anda sendiri",
   "{why} — what was open before is back": "{why} — apa yang terbuka sebelumnya telah kembali",
   "{why}, and putting back what was open before failed too ({back})": "{why}, dan memulihkan apa yang terbuka sebelumnya juga gagal ({back})",
-  "© 2026 Joshua Hosain · Magic Commons. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": "© 2026 Joshua Hosain · Magic Commons. Dibuat oleh agen pemrograman AI — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI)."
+  "© 2026 Joshua Hosain · Magic Commons. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": "© 2026 Joshua Hosain · Magic Commons. Dibuat oleh agen pemrograman AI — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).",
+  "Capture image": "Tangkap gambar",
+  "Download image — capture first": "Unduh gambar — tangkap dulu",
+  "Download image — {name}, {size}": "Unduh gambar — {name}, {size}",
+  "Download {name} · {w} × {h}": "Unduh {name} · {w} × {h}",
+  "Each label’s ink from the picture under it (this app’s sampler)": "Tinta setiap label diambil dari gambar di bawahnya (sampler aplikasi ini)",
+  "GALLERY": "GALERI",
+  "Gallery — browse saved projects": "Galeri — jelajahi proyek tersimpan",
+  "LINK": "TAUTAN",
+  "Making image": "Membuat gambar",
+  "RELIEF ANGLE": "SUDUT RELIEF",
+  "RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})": "SUDUT RELIEF — di mana cahaya kontrol berada: relief dan cekungannya berputar bersamanya (panel mengikuti {:ANGLE})",
+  "The controls take the panes’ light: one {:ANGLE} for everything": "Kontrol memakai cahaya panel: satu {:ANGLE} untuk semuanya",
+  "The {panel} panel could not be built: {why}": "Panel {panel} tidak dapat dibangun: {why}",
+  "text ink::SAMPLED": "TERSAMPEL"
  },
  "review": {}
 }
