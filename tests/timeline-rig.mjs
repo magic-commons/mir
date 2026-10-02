@@ -10,7 +10,7 @@
  *   ledger(name) → { ck(ok, label, evidence), finish(), checks } (BASINS pw.mjs ledger) */
 import { launch, sleep, keyOf } from '../tools/cdp.mjs';
 
-export const BASE = process.env.MIR_BASE || 'http://127.0.0.1:8830/';
+export const BASE = (process.env.MIR_BASE || 'http://127.0.0.1:8830').replace(/\/?$/, '/');   // tests/run.mjs passes it without the slash
 const MOD_BITS = { Alt: 1, Control: 2, Meta: 4, Shift: 8 };
 const BUTTON_BITS = { left: 1, right: 2, middle: 4 };
 const KEY_NAMES = { Control: 'ControlLeft', Shift: 'ShiftLeft', Alt: 'AltLeft' };
