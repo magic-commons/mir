@@ -58,6 +58,13 @@
 .gui-line.gui-knobs { justify-content: space-between; flex-wrap: nowrap; }
 .gui-line.gui-knobs > .sw.gui-link { flex: 0 0 auto; align-self: center; }   /* RELIEF's LINK, in a dial row */
 .gui-line.gui-pair { gap: var(--gui-gap); flex-wrap: nowrap; }
+/* SPACING's four levels (0 · TIGHT · DEFAULT · AIRY) on one line in the one-column WINDOWS group: the segment fills the
+   row and its seats take the house's smallest inline padding (a mouse; a finger keeps the 44 px seats, which may wrap) */
+@media not (pointer: coarse) {
+  .gui-grp[data-group="windows"] .segw { flex: 1 1 100%; }
+  .gui-grp[data-group="windows"] .seg { display: flex; flex-wrap: nowrap; width: 100%; }
+  .gui-grp[data-group="windows"] .seg-b { min-width: 0; padding-inline: var(--sp-2); }
+}
 .gui-line.gui-sws > .sw { flex: 1 1 0; justify-content: flex-start; }
 .gui-line.gui-col { flex-direction: column; align-items: stretch; }   /* switches one under another */
 .gui-show { flex: 1 1 auto; align-items: stretch; }

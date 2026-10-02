@@ -182,7 +182,8 @@ export async function createApp(o = {}) {
     about: { version: o.version || '', licence: gplLicence(name, { license: LICENSE, notice: null }), type: kitType([], FONTS), ...opt(o.about) },
     onLogo: () => accent.paintMarks(), dump: () => (describe ? describe.dump() : ''), ...opt(o.notebook) });
 
-  /* 10. FOLDERS: SAVE, OPEN, NEW, export — every registered project part, for free */
+  /* 10. FOLDERS: every registered project part, for free; its toolbar is BASINS' (PROJECT · CAPTURE · DOWNLOAD · DUPLICATE · NEW),
+        and FILE › SAVE / Ctrl+S (the key table's 'save' row) save over the open project */
   if (want('folders')) folders = createFolders({ host: floats, app: key, store: key + '.folders', rack,
     adapter: o.thumbnail ? { thumbnail: o.thumbnail } : {}, onMoved: moved,
     say: (text, warn) => notice(text, { kind: warn ? 'warn' : 'ok' }), ...opt(o.folders) });

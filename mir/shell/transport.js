@@ -24,8 +24,8 @@
  *      Docked (BASINS' dock chip), the bar lives in a rack window named TRANSPORT and does not dodge.
  *   4. LATCHES SAY THE TRUTH, AND NOTHING POLLS.  After a click or a key on the page, a rack window opening or closing,
  *      the arm, the clock: ONE paint in the next frame.  Idle costs nothing.  BASINS' 250 ms sync interval is gone.
- *   5. EVERY LOOK VALUE IS THE KIT'S.  The bar is a `.glass` pane, so CARD STYLE, FROST, BLUR, CORNERS (via
- *      --surface-radius), RELIEF and the tier restyle it with no transport code (transport.css).
+ *   5. EVERY LOOK VALUE IS THE KIT'S.  The bar is a `.glass` pane, so CARD STYLE, FROST, BLUR, RELIEF and the tier
+ *      restyle it with no transport code (transport.css); it keeps its own 16 px corner under CORNERS, as BASINS' bar does.
  *   6. NO ENGLISH IN A LOOKUP.  Words go through label() / ariaLabel() / t(); parts are found by class and data-*.
  *
  * The pure helpers are exported for node tests. */

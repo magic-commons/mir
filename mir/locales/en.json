@@ -105,6 +105,7 @@
   "CUSTOM: no theme to cost": "CUSTOM: no theme to cost",
   "Cancel": "Cancel",
   "Cancelled: “{action}” keeps its keys": "Cancelled: “{action}” keeps its keys",
+  "Capture image": "Capture image",
   "Capture this view as an image. Capture again to try another version.": "Capture this view as an image. Capture again to try another version.",
   "Check the connection and reload. If you serve the app yourself, check that every file was copied.": "Check the connection and reload. If you serve the app yourself, check that every file was copied.",
   "Choose a key, with any modifiers.": "Choose a key, with any modifiers.",
@@ -165,7 +166,10 @@
   "Disable backdrop filtering": "Disable backdrop filtering",
   "Disconnect the source from this macro": "Disconnect the source from this macro",
   "Dock the transport into the rack": "Dock the transport into the rack",
+  "Download image — capture first": "Download image — capture first",
+  "Download image — {name}, {size}": "Download image — {name}, {size}",
   "Download the captured image to your photos or files.": "Download the captured image to your photos or files.",
+  "Download {name} · {w} × {h}": "Download {name} · {w} × {h}",
   "Drag sideways to set; double-tap the row grip to rename": "Drag sideways to set; double-tap the row grip to rename",
   "Drag to reorder": "Drag to reorder",
   "Drag to reorder; double-tap to rename": "Drag to reorder; double-tap to rename",
@@ -187,6 +191,7 @@
   "EXPORT": "EXPORT",
   "EXPORT .MD": "EXPORT .MD",
   "EXPOSURE": "EXPOSURE",
+  "Each label’s ink from the picture under it (this app’s sampler)": "Each label’s ink from the picture under it (this app’s sampler)",
   "Edit or preview the notebook": "Edit or preview the notebook",
   "Enable or bypass modulation": "Enable or bypass modulation",
   "Enable route": "Enable route",
@@ -227,6 +232,7 @@
   "Follow the system": "Follow the system",
   "Follow the theme (on a {:SOLID} pane, its lightness)": "Follow the theme (on a {:SOLID} pane, its lightness)",
   "GAIN": "GAIN",
+  "GALLERY": "GALLERY",
   "GATE": "GATE",
   "GATE HOLD": "GATE HOLD",
   "GATE dB": "GATE dB",
@@ -237,6 +243,7 @@
   "GRAIN": "GRAIN",
   "GUI": "GUI",
   "GUI — MIR OPTIONS and MIR ABOUT": "GUI — MIR OPTIONS and MIR ABOUT",
+  "Gallery — browse saved projects": "Gallery — browse saved projects",
   "H": "H",
   "HAND": "HAND",
   "HELP": "HELP",
@@ -280,6 +287,7 @@
   "LEVEL": "LEVEL",
   "LFO": "LFO",
   "LIGHT ANGLE": "LIGHT ANGLE",
+  "LINK": "LINK",
   "LISTENING…": "LISTENING…",
   "LIVE": "LIVE",
   "LOAD LAYOUT": "LOAD LAYOUT",
@@ -321,6 +329,7 @@
   "MY PRESETS": "MY PRESETS",
   "Mac and iPad": "Mac and iPad",
   "Macro": "Macro",
+  "Making image": "Making image",
   "Marked layers drift against the pointer (never on touch)": "Marked layers drift against the pointer (never on touch)",
   "Master depth for this macro. Double-tap for 100%.": "Master depth for this macro. Double-tap for 100%.",
   "Master depth for {macro}": "Master depth for {macro}",
@@ -416,6 +425,8 @@
   "REL": "REL",
   "RELEASE": "RELEASE",
   "RELIEF": "RELIEF",
+  "RELIEF ANGLE": "RELIEF ANGLE",
+  "RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})": "RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})",
   "REMOVE": "REMOVE",
   "REMOVE ALL": "REMOVE ALL",
   "RES": "RES",
@@ -564,6 +575,7 @@
   "Tap the tempo: four taps set it": "Tap the tempo: four taps set it",
   "The MIR logo is outlined from Butler Free Extra Bold by {who}.": "The MIR logo is outlined from Butler Free Extra Bold by {who}.",
   "The browser has WebGPU but found no graphics adapter to use.": "The browser has WebGPU but found no graphics adapter to use.",
+  "The controls take the panes’ light: one {:ANGLE} for everything": "The controls take the panes’ light: one {:ANGLE} for everything",
   "The dotted guide where a dragged window will land": "The dotted guide where a dragged window will land",
   "The factory gallery is already complete.": "The factory gallery is already complete.",
   "The graphics device was lost: the GPU was reset, its driver changed, or it ran out of memory.": "The graphics device was lost: the GPU was reset, its driver changed, or it ran out of memory.",
@@ -575,6 +587,7 @@
   "The shadow’s blur": "The shadow’s blur",
   "The shine’s blur": "The shine’s blur",
   "The view moved since the picture was made — capture it again.": "The view moved since the picture was made — capture it again.",
+  "The {panel} panel could not be built: {why}": "The {panel} panel could not be built: {why}",
   "The ⓘ panels on windows": "The ⓘ panels on windows",
   "Theme-coloured glass fill. Zero is clear.": "Theme-coloured glass fill. Zero is clear.",
   "This browser has no WebGPU, which this app draws with.": "This browser has no WebGPU, which this app draws with.",
@@ -804,6 +817,7 @@
   "test card": "test card",
   "text ink::DARK": "DARK",
   "text ink::LIGHT": "LIGHT",
+  "text ink::SAMPLED": "SAMPLED",
   "that input did not open": "that input did not open",
   "that item is not inside {folder}": "that item is not inside {folder}",
   "that macro cannot carry a route": "that macro cannot carry a route",
@@ -1353,6 +1367,9 @@
   "Cancelled: “{action}” keeps its keys": [
    "mir/keyboard/keyboard.js"
   ],
+  "Capture image": [
+   "mir/folders/gallery.js"
+  ],
   "Capture this view as an image. Capture again to try another version.": [
    "mir/folders/gallery.js"
   ],
@@ -1536,7 +1553,16 @@
   "Dock the transport into the rack": [
    "mir/shell/transport.js"
   ],
+  "Download image — capture first": [
+   "mir/folders/gallery.js"
+  ],
+  "Download image — {name}, {size}": [
+   "mir/folders/gallery.js"
+  ],
   "Download the captured image to your photos or files.": [
+   "mir/folders/gallery.js"
+  ],
+  "Download {name} · {w} × {h}": [
    "mir/folders/gallery.js"
   ],
   "Drag sideways to set; double-tap the row grip to rename": [
@@ -1594,6 +1620,9 @@
   ],
   "EXPOSURE": [
    "mir/modulation/host.js"
+  ],
+  "Each label’s ink from the picture under it (this app’s sampler)": [
+   "mir/shell/gui.js"
   ],
   "Edit or preview the notebook": [
    "mir/shell/notebook.js"
@@ -1702,6 +1731,9 @@
    "mir/modulation/modwindow/modwindow.js",
    "mir/modulation/window.js"
   ],
+  "GALLERY": [
+   "mir/folders/folders.js"
+  ],
   "GATE": [
    "mir/modulation/modwindow/modwindow.js",
    "mir/modulation/window.js"
@@ -1732,6 +1764,9 @@
   ],
   "GUI — MIR OPTIONS and MIR ABOUT": [
    "mir/shell/gui.js"
+  ],
+  "Gallery — browse saved projects": [
+   "mir/folders/folders.js"
   ],
   "H": [
    "mir/modulation/window.js"
@@ -1873,6 +1908,9 @@
   "LIGHT ANGLE": [
    "mir/shell/gui.js"
   ],
+  "LINK": [
+   "mir/shell/gui.js"
+  ],
   "LISTENING…": [
    "mir/keyboard/keyboard.js"
   ],
@@ -2000,6 +2038,9 @@
   ],
   "Macro": [
    "mir/modulation/modwindow/modwindow.js"
+  ],
+  "Making image": [
+   "mir/folders/gallery.js"
   ],
   "Marked layers drift against the pointer (never on touch)": [
    "mir/shell/gui.js"
@@ -2294,6 +2335,12 @@
    "mir/modulation/window.js"
   ],
   "RELIEF": [
+   "mir/shell/gui.js"
+  ],
+  "RELIEF ANGLE": [
+   "mir/shell/gui.js"
+  ],
+  "RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})": [
    "mir/shell/gui.js"
   ],
   "REMOVE": [
@@ -2750,6 +2797,9 @@
   "The browser has WebGPU but found no graphics adapter to use.": [
    "mir/shell/boot.js"
   ],
+  "The controls take the panes’ light: one {:ANGLE} for everything": [
+   "mir/shell/gui.js"
+  ],
   "The dotted guide where a dragged window will land": [
    "mir/shell/gui.js"
   ],
@@ -2782,6 +2832,9 @@
   ],
   "The view moved since the picture was made — capture it again.": [
    "mir/folders/gallery.js"
+  ],
+  "The {panel} panel could not be built: {why}": [
+   "mir/folders/folders.js"
   ],
   "The ⓘ panels on windows": [
    "mir/shell/gui.js"
@@ -3537,6 +3590,9 @@
    "mir/shell/gui.js"
   ],
   "text ink::LIGHT": [
+   "mir/shell/gui.js"
+  ],
+  "text ink::SAMPLED": [
    "mir/shell/gui.js"
   ],
   "that input did not open": [

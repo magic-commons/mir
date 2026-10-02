@@ -147,11 +147,17 @@ try {
 
   /* ── SAVE while the LFO drives SIZE keeps its base; a knob change, then OPEN, brings the base back ── */
   const atSave = await ev(`return { base: A.mod.baseOf('app.size'), now: S.size, routed: A.mod.isModulated('app.size') };`);
-  await click(`A.folders.win.root.querySelector('[data-action="save"]')`, 'FOLDERS › SAVE');
+  await click(`A.folders.win.root.querySelector('[data-action="project"]')`, 'FOLDERS › PROJECT');   // BASINS' toolbar (1.5.0-alpha.7): PROJECT stores what is on screen
   await sleep(300);
   r = await ev(`const e = A.folders.current(); return { name: e && e.name, n: A.folders.files.entries().length, notice: document.querySelectorAll('.mir-notice').length };`);
-  check('SAVE in FOLDERS saves the project and says so in a notice', r.name && r.n === 1 && r.notice > 0, JSON.stringify(r));
+  check('PROJECT in FOLDERS (BASINS\' toolbar) saves the project and says so in a notice', r.name && r.n === 1 && r.notice > 0, JSON.stringify(r));
   const name = r.name;
+  /* FILE › SAVE and Ctrl/⌘+S still save: over the open project, so there is still one, under the same name */
+  await ev(`document.querySelectorAll('.mir-notice').forEach((n) => n.remove()); return 0;`);
+  await key('s', 'KeyS', 83, 2);
+  await sleep(300);
+  r = await ev(`const e = A.folders.current(); return { name: e && e.name, n: A.folders.files.entries().length, notice: document.querySelectorAll('.mir-notice').length };`);
+  check('Ctrl+S (FILE › SAVE) saves over the open project and says so', r.name === name && r.n === 1 && r.notice > 0, JSON.stringify(r));
   await dragUp(knob('size'), 'SIZE knob (after save)', -50);
   const changed = await ev(`return A.mod.baseOf('app.size');`);
   const tile = `[...A.folders.win.root.querySelectorAll('.sv-card')].find((c) => c.dataset.name === ${JSON.stringify(name)}).querySelector('.sv-shot')`;

@@ -109,7 +109,7 @@ Every look value of the bar is the kit's, so the GUI window restyles it with no 
 | CARD STYLE | TINTED: the tint, never a blur; REFRACTIVE: the veil and the blur | the bar is `.glass` |
 | FROST | off: no blur anywhere | skin.css |
 | BLUR | the blur's radius | `--glass-blur` |
-| CORNERS | the bar's corner, the same as every pane's (BASINS' 16 px, `--xport-radius`, only where the 1.5 surface tokens are absent) | `border-radius: var(--surface-radius, var(--xport-radius))` |
+| CORNERS | does not reach the bar: it keeps its own 16 px corner under any CORNERS, as BASINS' bar does (1.5.0-alpha.7) | `border-radius: var(--xport-radius)` |
 | RELIEF | flat: the pill loses its raise | `--relief-raise` |
 | SHADOW, the tier | flat tier: no shadow, no blur, no relief | `--surface-shadow`, the tier's tokens |
 

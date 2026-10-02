@@ -341,7 +341,7 @@ const NAMED = new Set(('transparent currentcolor black white silver gray grey re
 const COLOR_FNS = new Set(['rgb', 'rgba', 'hsl', 'hsla', 'hwb', 'lab', 'lch', 'oklab', 'oklch', 'color', 'color-mix', 'light-dark']);
 const COLOR_WORDS = new Set(['in', 'from', 'none', 'srgb', 'srgb-linear', 'display-p3', 'a98-rgb', 'prophoto-rgb', 'rec2020', 'xyz', 'xyz-d50', 'xyz-d65',
   'hsl', 'hwb', 'lab', 'lch', 'oklab', 'oklch', 'shorter', 'longer', 'increasing', 'decreasing', 'hue', 'r', 'g', 'b', 'h', 's', 'l', 'w', 'a', 'c', 'x', 'y', 'z', 'alpha']);
-const MATH_FNS = new Set(['calc', 'min', 'max', 'clamp', '']);
+const MATH_FNS = new Set(['calc', 'min', 'max', 'clamp', 'sqrt', '']);   // sqrt: the relief's exact √2 offsets (1.5.0-alpha.7)
 const GRAD_FNS = new Set(['linear-gradient', 'radial-gradient', 'conic-gradient', 'repeating-linear-gradient', 'repeating-radial-gradient', 'repeating-conic-gradient']);
 const GRAD_WORDS = new Set(['to', 'at', 'top', 'bottom', 'left', 'right', 'center', 'circle', 'ellipse', 'closest-side', 'closest-corner', 'farthest-side', 'farthest-corner', 'from', ...COLOR_WORDS]);
 const FILTER_FNS = new Set(['blur', 'brightness', 'contrast', 'saturate', 'grayscale', 'sepia', 'invert', 'opacity', 'hue-rotate', 'drop-shadow']);

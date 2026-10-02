@@ -1,6 +1,6 @@
 # MIR · API
 
-Every module the kit exports, what each export is, and what it returns. MIR 1.5.0-alpha.6.
+Every module the kit exports, what each export is, and what it returns. MIR 1.5.0-alpha.7.
 
 Each module's own header holds its laws and their reasons. This page is the map to them.
 
@@ -273,9 +273,10 @@ Storage: `{ items: { [path]: { path, folder, name, saved, opened, title, md } },
 
 ### The rack: `mir/shell/rack.js` ([RACK.md](RACK.md))
 
-- `createRack({ host, sides, key, store, favourites, transport, seats, phone, chrome, handle, onChange })` → `rack`
+- `createRack({ host, sides, key, store, favourites, transport, seats, phone, chrome, handle, look, onChange })` → `rack`. With an app's existing rack in the page (`#rack`, `#rackL`, `#floats`, the chrome ids) it adopts it: no second container, no kit look class on them (`look: 'kit'` opts in; `docs/RACK.md` "Adopting into an app that has a rack").
 - **Windows.**
-  - `rack.register({ id, title, side, open, glyph, hint, key, status, build(body, api), onOpen, onWake, onClose, onSleep, onFold, onPower, onPresent })` → id. Built on first open.
+  - `rack.register({ id, title, side, open, glyph, hint, key, status, el, closed, eager, card, build(body, api), onOpen, onWake, onClose, onSleep, onFold, onPower, onPresent })` → id. Built on first open.
+  - `el` takes over an already-built window; `closed: true` starts it closed; `eager: true` builds it at once; `card: true` marks an app card that is not a window (it keeps its place in the order and in saved layouts, as an unregistered `.dev` in a rack does). `rack.span()` is the page's one dock span; `rack.windows()` rows carry `card`.
   - `rack.start()` applies the saved layout. It also runs by itself after the creating task.
   - `rack.open(id, { side, index })`, `close(id)`, `toggle(id)`, `isOpen(id)`, `raise(id)`, `fold(id, on?)`, `move(id, { side, index })`.
   - `rack.float(id, at)`, `dock(id, { side, index })`, `toggleFloat(id)`, `setCompact(id, on)`.
@@ -296,10 +297,14 @@ Storage: `{ items: { [path]: { path, folder, name, saved, opened, title, md } },
 
 ### The GUI window: `mir/shell/gui.js` ([GUI.md](GUI.md), [THEMES.md](THEMES.md))
 
-- `createGui({ host, prefs, app, about, accent, defaults, storageKey })` → `{ root, window, prefs, open(page), close(), toggle(page), page, turn(dir), moving(bool), dropGuides(), census(), applyTheme(id), applyTone(id), themeCost(id?), light, parallax, destroy() }`; `open('options' | 'options:2' | 'about')`.
+- `createGui({ host, prefs, app, about, accent, defaults, storageKey, inkSampler })` (`inkSampler: true` offers TEXT · SAMPLED, the `text` option `'sampled'`: no `data-text` is written, so the app's own per-label ink sampler decides; 1.5.0-alpha.7) → `{ root, window, prefs, open(page), close(), toggle(page), page, turn(dir), moving(bool), dropGuides(), census(), applyTheme(id), applyTone(id), themeCost(id?), light, parallax, destroy() }`; `open('options' | 'options:2' | 'about')`.
 - `lookSchema()` → the schema rows (35 options) · `LOOK_PRESETS` → `{ [themeId]: theme options }` · `THEMES`.
 - `glassTint(bright, hue, tint, theme, saturation = 1)` → `'H S% L%'` | null · `census(doc)` → `{ blur, shadow, shine }` · `stepper(o)` · `migrateShadow(key, win)` · `SKINS`, `MIR_VERSION`, `MIR_WORDS`.
 - Sheet: `mir/shell/gui.css`.
+
+### An app's own panes: `[data-mir-surface]` (1.5.0-alpha.7, [GUI.md](GUI.md))
+
+`data-mir-surface="pane | float | menu | chip | island"` on an app's own element gives it the kit's material: `pane`, `float` and `menu` are the three heights, `chip` keeps its own corner, `island` is a pane only while DISCONNECTED. It is in every rule a `.glass` pane is in, at no weight of its own. The look options `reliefAngle` (0–360, default 315) and `reliefLink` (default off) are the second light (`THEME_KEYS` has both).
 
 ### The vanilla themes: `mir/shell/themes.js`
 
@@ -383,7 +388,7 @@ Load `mir/shell/parts.css` after the kit's sheets.
 ### `mir/shell/notice.js`
 | Export | |
 |---|---|
-| `notice(text, { kind = 'info' \| 'ok' \| 'warn' \| 'error', ms, action: { label, run }, seat = 'toast' \| 'corner', stack, offset, max = 4 })` → `{ close(), root }` | **toast** (default, BASINS'): one centred seat, `offset` from the bottom (default 84 px), replaced by the next notice, no ×, 3 s. **corner** (`seat: 'corner'` or `stack: true`, NEBULA's): a stack of up to `max`, each with a ×, 5 s (9 s for an error). `ms: 0` stays; hover or focus holds either |
+| `notice(text, { kind = 'info' \| 'ok' \| 'warn' \| 'error', ms, action: { label, run }, seat = 'toast' \| 'corner', stack, offset, max = 4 })` → `{ close(), root }` | **toast** (default, BASINS'): one centred seat, `offset` from the bottom (default 84 px), replaced by the next notice, no ×, 3 s. **corner** (`seat: 'corner'` or `stack: true`, NEBULA's): a stack of up to `max`, each with a ×, 5 s (9 s for an error). `ms: 0` stays; hover or focus holds either. The toast is `#mir-toast.glass`, takes no press (an action does), z-index 50 (1.5.0-alpha.7) |
 | `guarded(fn)` → fn's result | a throw or a rejection becomes an error notice (the toast) |
 
 ### `mir/shell/busy.js`
@@ -431,11 +436,14 @@ Load `mir/shell/parts.css` after the kit's sheets.
 ## FOLDERS: `mir/folders/`, the project window ([FOLDERS.md](FOLDERS.md))
 
 **`folders/folders.js`**
-- `createFolders({ host, id = 'folders', title = 'FOLDERS', store = 'mir.folders', storage, prefs, app, adapter, seeds, seededKey,
-  size, min, dock, onMoved, firstSeat, say, download, picture, defaultName, capChars, parts, sorts, actions, depthOf, factory,
-  capturePicture, savePicture, pictureStale, onInspect, onOpened })` → `{ win, files, gallery, adapter, seeded, intake, open(), close(),
-  toggle(), isOpen(), save(), saveAs({ name, folder }), fresh(), openEntry(id, { force }), current(), dirty(), seed(list),
-  exportProject('mir' | 'png'), importEnvelope(env), ingest(input), say(text, warn), state(), destroy() }`
+- `createFolders({ host, id = 'folders', domId, title = 'FOLDERS', store = 'mir.folders', storage, prefs, app, adapter, actions = DEFAULT_ACTIONS,
+  panels, galleryPanel, onTab, head = false, status = false, chipSide = 'right', seeds, seededKey, size, min, dock, onMoved, rack, firstSeat,
+  anchor = 'right', top = 162, say, download, picture, defaultName, capChars, parts, sorts, depthOf, factory, freshLoses, locked, projection,
+  capturePicture, savePicture, pictureStale, onInspect, onOpened, galleryCopy, files, emptyDragExcept })` → `{ win, files, gallery, adapter,
+  seeded, intake, views, panels, tab(id?), activeTab(), mountGallery(el, { pageSize, prefsKey, actions, factory, onInspect }), open(), close(),
+  toggle(), isOpen(), save(), saveAs(), fresh(), openEntry(), current(), dirty(), seed(), exportProject(), importEnvelope(), ingest(), say(),
+  state(), destroy() }` (1.5.0-alpha.7: BASINS' toolbar and panels by default)
+- `DEFAULT_ACTIONS` (BASINS' toolbar: PROJECT · CAPTURE · DOWNLOAD · DUPLICATE · NEW · ⋯), `FOLDERS_ACTIONS` (SAVE · SAVE AS · NEW · OPEN FILE · EXPORT), `GALLERY_PANEL`; `freeSeat({ …, anchor: 'centre' | 'right', gutter })`
 - `localPrefs(storage, key)` → `{ read, write }` · `toThumb(src, { max, type, quality })` → `Promise<data URL>` · `FOLDERS_COPY`
 
 `createFolders({ rack })`: the first seat keeps clear of the racks and the transport bar · `freeSeat({ vw, vh, w, h, minH, clear, top, margin })` → `{ x, y, h? }` (pure; 1.5.0-alpha.5).
@@ -599,7 +607,9 @@ The window loads two sheets, `mir/modulation/modhost.css` and then `mir/modulati
 
 ---
 
-## `mir/window/` and `mir/history/`: additions (1.5.0-alpha.5)
+## `mir/window/` and `mir/history/`: additions (1.5.0-alpha.5, alpha.7)
+
+- `window/dock.js` `observeSpan({ left, right, edge, view, occupied, narrow, active })` → `{ read() → { left, right, width, top, bottom }, subscribe(fn), setActive(on), active, destroy() }` (1.5.0-alpha.7, BASINS' rack-bounds): the rack's shadow gutter is subtracted; a rack with no open window (`occupied`, default `.dev:not(.closed):not([hidden])`; `false` counts any rack), a hidden one, `phone`, `ui-hidden` or a viewport of at most `narrow` (860) px counts as absent.
 
 - `window/rail.js` `createRail(…)` → adds `setDock('top' | 'bottom' | null)`: docked at the top or bottom, the rail's chips sit tighter (its disc plus `--rail-gap` along the rail). `createWindow` calls it from its layout, so every kit window's docked rail tightens.
 - `history/history-list.js`: `historyList(history, host, { tools = true, count = true })` → `{ root, paint, state(), onChange(fn) → off, destroy }`; `tools: false` / `count: false` leave UNDO / REDO and the count to the host; `state()` is `{ canUndo, canRedo, length, count }`. `historyState(history)` is the same state, pure.

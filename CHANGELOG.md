@@ -1,5 +1,51 @@
 # MIR — changelog
 
+## 1.5.0-alpha.7 — 2026-10-02 · BASINS parity
+
+Not released: built on branch `worktree-mir-1.5`. Josh, 10-02: "Prefer BASINS." Each part below was measured against BASINS' own.
+
+**Behaviour and breaking changes (read these first):**
+- **FOLDERS' default toolbar is BASINS'**: PROJECT · CAPTURE · DOWNLOAD · DUPLICATE · NEW · ⋯ (`DEFAULT_ACTIONS`). FOLDERS' own SAVE · SAVE AS · NEW · OPEN FILE · EXPORT is `actions: FOLDERS_ACTIONS`. Its rail is on the right, and **its first seat is top right** (BASINS'; `anchor: 'centre'` for the old one). The name and status lines are options (`head`, `status`): what happened is said by the toast. `createApp`'s FILE › SAVE and Ctrl/⌘+S still save over the open project.
+- **The notice toast takes no pointer and is drawn as a pane**: a `.glass` pane (`#mir-toast`), so REFRACTIVE + FROST blur it; a press at the toast reaches what is beneath it (with an action, only the action takes the pointer); z-index 50.
+- **`observeSpan` treats an empty or hidden rack as absent** (no open `.dev`, hidden, `phone`, `ui-hidden`, or a viewport of 860 px or less) **and subtracts the rack's shadow gutter**. A page whose rack is a plain card passes `occupied: false`.
+- **FROST's controls are lit from the upper left again (two lights)**: the controls' raise and wells turn with RELIEF ANGLE (default 315°), the panes with LIGHT ANGLE (0°). alpha.5's straight-down control relief is gone: every control is back to its 1.4 relief (stylehash against alpha.4: no relief differs). MORPH links the two at 315°.
+- **Glass control faces are clear in every state** (BASINS' `material.css` §1): a chosen segment, a hovered switch or segment, a pressed trigger included; a knob has no image; knobs, triggers, switches, tracks, fields, faders and readouts carry the .08 hairline.
+- **The transport bar keeps its own 16 px corner** under CORNERS (BASINS).
+- **`createRack` adopts an app's existing rack**: with `#rack`, `#rackL` and `#floats` in the page it uses them as they are and puts no kit look class on them (`look: 'kit'` opts in).
+
+### The look reaches an app's own panes
+- **`data-mir-surface`**: an app's own pane takes the kit's material with one attribute: `pane` · `float` · `menu` (the height) · `chip` (its own corner) · `island` (a pane only while DISCONNECTED). It is in every rule a `.glass` pane is in, at no weight of its own; a hooked pane computes what a kit card computes in every card style × frost × tier (`tests/themes.browser.mjs`).
+- **TEXT · SAMPLED** (`createGui({ inkSampler: true })`): writes no `data-text`, so an app's own per-label ink sampler decides. AUTO is unchanged for apps without one.
+- **Menus and pickers under REFRACTIVE + FROST** wear the theme's .10 frost veil (or VEIL) and the blur, no sheen; FROST · STILL holds the pickers.
+- **A pane shadow written as `none` breaks nothing**: the carried window's ring, the tooltip's and the badge's seat and the modulation window's resize ring are outlines now, outside the pane shadow's list (`--seat-edge`, `--dev-carried-edge`, `--m2-resizing-edge`). `docs/ADOPTING-1.5.md` §8 says what an app may write.
+
+### Two lights
+- **RELIEF ANGLE** (an arc) and **LINK** beside LIGHT ANGLE: LIGHT ANGLE turns the pane shadows and the shine, RELIEF ANGLE the controls' raise and wells, LINK makes them one light (INTENT O2 settled). FROST, CLASSIC, AURORA and NEON are 0° / 315°: panes straight down, controls down-right, BASINS and the 1.4 relief to the pixel. New look options `reliefAngle` (0–360, default 315) and `reliefLink` (default off); `--relief-angle`, `--relief-sin`, `--relief-cos`; `--neu-raise` / `--neu-inset` use exact √2 offsets (the format checker now accepts `sqrt()` inside a length).
+- The GUI window's OPTIONS page 2 keeps SPACING's four levels on one line (a mouse; a finger keeps the 44 px seats).
+
+### Glass faces as BASINS draws them
+- Under CONTROL FACES · GLASS every neutral face is clear in every state, as BASINS' `material.css` §1 draws it; `docs/THEMES.md` lists each state where this differs from INTENT's wording. `tests/intent.browser.mjs` accepts a clear chosen segment under GLASS faces, with its rim and accent label.
+
+### The toast
+- `notice()`'s toast is BASINS' `#toast` value for value: fill `color-mix(var(--glass-tint-color, hsl(212 12% 17%)) 82%)` (`--glass-tint-color` is BASINS' to write), shadow `--glass-shadow`, z-index 50 (`calc(var(--z-veil) + 10)`), no pointer. Measured against BASINS' toast in four seats: identical but for the dark ink.
+
+### The dock span and adopting an existing rack
+- **The dock span is BASINS' rack-bounds** (`window/dock.js` `observeSpan`): the shadow gutter subtracted; an empty, hidden, phone, ui-hidden or narrow rack absent; `setActive(on)`; `read()` adds `width`; options `occupied` and `narrow`. BASINS' docked modulation window lands where it did.
+- **`createRack` adopts an app's existing rack**: `register({ id, el })` takes over an already-built window, `closed: true` starts it closed, `eager: true` builds it at once, `card: true` marks an app card that is not a window (it keeps its place in the order and in saved layouts); `rack.span()` is the page's one dock span. Proven against a ☆ layout written by BASINS' own `rack.js`. `docs/RACK.md` gains "Adopting into an app that has a rack" (four stages) and "What BASINS' rack does that the kit still does not".
+
+### FOLDERS with BASINS' toolbar and panels
+- The toolbar is data (`actions`), BASINS' by default; `panels: [{ id, label, glyph, hint, build, onShow }]` after the built-in gallery, with BASINS' radio chips on the rail; BASINS' top-right first seat (`freeSeat({ anchor: 'right' })`); an open over an unknown screen asks first; the root carries its id (`#savewin` for BASINS); `mountGallery()` for a rack card's second view, every view sharing one store and adapter; `freshLoses`, `locked` and `projection` passed through. BASINS' own SAVE gate runs against it (`tests/folders-basins.browser.mjs`).
+
+### What BASINS can delete now
+- `surface-material.js` + `.css` (with `data-mir-surface` on its own panes); the face, popover, menu-veil and window-edge rules of `material.css`; with TEXT · SAMPLED, every override of the kit in `ink.css` (its sampler seats stay).
+- `toast()` and `#toast` (it keeps writing `--glass-tint-color`).
+- `rack-bounds.js` and its extra instances; in stages, `rack.js` (`docs/RACK.md`).
+- `save-window.js`, in stages (`docs/FOLDERS.md`).
+- The full list, by part: `docs/ADOPTING-1.5.md` §7; the staged rack and FOLDERS adoptions: §9.
+
+### Also
+- `docs/LLM-MODS.md` "First runs": round two, a fresh Haiku on the fixed skill, built a playing Tetris with none of the round-one workarounds.
+
 ## 1.5.0-alpha.6 — 2026-10-02 · what three models hit, ten complete draft translations, a checker that plays
 
 Not released: built on branch `worktree-mir-1.5`.

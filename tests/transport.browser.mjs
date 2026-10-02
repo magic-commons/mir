@@ -207,9 +207,9 @@ try {
     P.set({ quality: 'full', corners: 24, card: 'tinted', blur: 11 }); await settle();
     return out;`);
   const lookOk = (o) => o.tinted === 'none' && /blur\(/.test(o.refr) && /blur\(4px\)/.test(o.blur4) && /blur\(16px\)/.test(o.blur16) && o.frostOff === 'none'
-    && o.home !== o.corners6 && o.corners6 === '6px' && o.pillRaised && !o.pillFlat && o.shadow && !o.flatShadow && o.flatBlur === 'none' && !o.flatPill;
+    && o.home === '16px' && o.corners6 === o.home && o.pillRaised   /* 1.5.0-alpha.7: the bar keeps its own 16 px corner under CORNERS (BASINS) */ && !o.pillFlat && o.shadow && !o.flatShadow && o.flatBlur === 'none' && !o.flatPill;
   const looksB = await looks();
-  check('settings (BASINS layout): TINTED no blur, REFRACTIVE blurs by BLUR (4 px, 16 px), FROST off none, CORNERS (home → 6 px), RELIEF flat flattens the pill, the flat tier: no shadow, no blur', lookOk(looksB), JSON.stringify(looksB));
+  check('settings (BASINS layout): TINTED no blur, REFRACTIVE blurs by BLUR (4 px, 16 px), FROST off none, CORNERS leaves the bar its own 16 px (BASINS), RELIEF flat flattens the pill, the flat tier: no shadow, no blur', lookOk(looksB), JSON.stringify(looksB));
 
   /* ── λWAVES' layout from the same parts: the switch flips it ─────────────────────────────────────────────── */
   h = await click(`[...document.querySelectorAll('#layoutSwitch .seg-b')].find((b) => b.dataset.id === 'lambdawaves' || /WAVES/.test(b.textContent))`);

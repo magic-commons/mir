@@ -103,7 +103,7 @@ const params = P.map((p) => {
 });
 
 /* ── THE PLUGIN: one call ── */
-const span = observeSpan({ left: rack });
+const span = observeSpan({ left: rack, occupied: false });   // this page's rack is a plain card, not kit windows: it always counts
 mod = installModulation({ mount: document.getElementById('floats'), params, present, storageKey, presetKey, dock: { span } });
 
 /* first visit: an LFO drives MACRO 1, routed onto a knob (SIZE) and a fader (BRIGHT); the ENV drives MACRO 2 → HUE */
