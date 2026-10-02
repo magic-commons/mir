@@ -981,7 +981,21 @@
   "{what} {i} name — type your own": "{what} {i} の名前：自分で入力してください",
   "{why} — what was open before is back": "{why}：以前開いていたものは元に戻りました",
   "{why}, and putting back what was open before failed too ({back})": "{why}。さらに、以前開いていたものを戻すこともできませんでした（{back}）",
-  "© 2026 Joshua Hosain · Magic Commons. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": "© 2026 Joshua Hosain · Magic Commons。AI コーディングエージェントによって構築：Claude（Anthropic）· Gemini（Google）· GPT（OpenAI）。"
+  "© 2026 Joshua Hosain · Magic Commons. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": "© 2026 Joshua Hosain · Magic Commons。AI コーディングエージェントによって構築：Claude（Anthropic）· Gemini（Google）· GPT（OpenAI）。",
+  "Capture image": "画像をキャプチャ",
+  "Download image — capture first": "画像をダウンロード：先にキャプチャしてください",
+  "Download image — {name}, {size}": "画像をダウンロード：{name}、{size}",
+  "Download {name} · {w} × {h}": "{name} をダウンロード · {w} × {h}",
+  "Each label’s ink from the picture under it (this app’s sampler)": "各ラベルの文字色を、その下の画像から取ります（このアプリのサンプラー）",
+  "GALLERY": "ギャラリー",
+  "Gallery — browse saved projects": "ギャラリー：保存済みのプロジェクトを見る",
+  "LINK": "リンク",
+  "Making image": "画像を作成中",
+  "RELIEF ANGLE": "レリーフの角度",
+  "RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})": "レリーフの角度：コントロールの光の位置。隆起とくぼみがそれに合わせて回ります（ペインは {:ANGLE} に従います）",
+  "The controls take the panes’ light: one {:ANGLE} for everything": "コントロールはペインの光を使います：すべてに 1 つの {:ANGLE}",
+  "The {panel} panel could not be built: {why}": "{panel} パネルを構築できませんでした：{why}",
+  "text ink::SAMPLED": "サンプル"
  },
  "review": {}
 }

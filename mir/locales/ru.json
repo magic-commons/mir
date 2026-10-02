@@ -138,7 +138,7 @@
   "GUI — MIR OPTIONS and MIR ABOUT": "GUI — НАСТРОЙКИ MIR и MIR О ПРОГРАММЕ",
   "HAND": "РУЧНОЙ",
   "HSV wheel (the built-in)": "Круг HSV (встроенный)",
-  "HUE": "ОТТЕНОК",
+  "HUE": "ТОН",
   "Handed to the share sheet — choose Save Image or Save to Files.": "Передано в меню «Поделиться»: выберите «Сохранить изображение» или «Сохранить в Файлы».",
   "Hold and repeat {note}; release to resume the original clock": "Удерживать и повторять {note}; отпустите, чтобы вернуться к исходному такту",
   "IDLE": "ОЖИДАНИЕ",
@@ -1038,7 +1038,21 @@
   "{what} {i} name — type your own": "Имя: {what} {i} — введите своё",
   "{why} — what was open before is back": "{why} — то, что было открыто раньше, возвращено",
   "{why}, and putting back what was open before failed too ({back})": "{why}, и вернуть то, что было открыто раньше, тоже не удалось ({back})",
-  "© 2026 Joshua Hosain · Magic Commons. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": "© 2026 Joshua Hosain · Magic Commons. Создано ИИ-агентами для программирования — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI)."
+  "© 2026 Joshua Hosain · Magic Commons. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": "© 2026 Joshua Hosain · Magic Commons. Создано ИИ-агентами для программирования — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).",
+  "Capture image": "Снять картинку",
+  "Download image — capture first": "Скачать картинку — сначала снимите её",
+  "Download image — {name}, {size}": "Скачать картинку — {name}, {size}",
+  "Download {name} · {w} × {h}": "Скачать {name} · {w} × {h}",
+  "Each label’s ink from the picture under it (this app’s sampler)": "Цвет текста каждой подписи берётся из картинки под ней (сэмплер этого приложения)",
+  "GALLERY": "ГАЛЕРЕЯ",
+  "Gallery — browse saved projects": "Галерея — просмотр сохранённых проектов",
+  "LINK": "СВЯЗЬ",
+  "Making image": "Создание картинки",
+  "RELIEF ANGLE": "УГОЛ РЕЛЬЕФА",
+  "RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})": "УГОЛ РЕЛЬЕФА — где свет регуляторов: их выпуклости и лунки поворачиваются вместе с ним (панели следуют за {:ANGLE})",
+  "The controls take the panes’ light: one {:ANGLE} for everything": "Регуляторы берут свет панелей: один {:ANGLE} на всё",
+  "The {panel} panel could not be built: {why}": "Не удалось построить панель {panel}: {why}",
+  "text ink::SAMPLED": "ИЗ КАРТИНКИ"
  },
  "review": {}
 }
