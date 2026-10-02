@@ -206,10 +206,10 @@ try {
     P.set({ quality: 'light' }); await settle(); out.flatShadow = drop(cs().boxShadow); out.flatBlur = cs().backdropFilter; out.flatPill = drop(ps().boxShadow);
     P.set({ quality: 'full', corners: 24, card: 'tinted', blur: 11 }); await settle();
     return out;`);
-  const lookOk = (o) => o.tinted === 'none' && /blur\(/.test(o.refr) && /blur\(4px\)/.test(o.blur4) && /blur\(16px\)/.test(o.blur16) && o.frostOff === 'none'
+  const lookOk = (o) => /blur\(11px\)/.test(o.tinted) && /blur\(/.test(o.refr) && /blur\(4px\)/.test(o.blur4) && /blur\(16px\)/.test(o.blur16) && o.frostOff === 'none'
     && o.home === '16px' && o.corners6 === o.home && o.pillRaised   /* 1.5.0-alpha.7: the bar keeps its own 16 px corner under CORNERS (BASINS) */ && !o.pillFlat && o.shadow && !o.flatShadow && o.flatBlur === 'none' && !o.flatPill;
   const looksB = await looks();
-  check('settings (BASINS layout): TINTED no blur, REFRACTIVE blurs by BLUR (4 px, 16 px), FROST off none, CORNERS leaves the bar its own 16 px (BASINS), RELIEF flat flattens the pill, the flat tier: no shadow, no blur', lookOk(looksB), JSON.stringify(looksB));
+  check('settings (BASINS layout): TINTED + FROST blurs (INTENT O12), REFRACTIVE blurs by BLUR (4 px, 16 px), FROST off none, CORNERS leaves the bar its own 16 px (BASINS), RELIEF flat flattens the pill, the flat tier: no shadow, no blur', lookOk(looksB), JSON.stringify(looksB));
 
   /* ── λWAVES' layout from the same parts: the switch flips it ─────────────────────────────────────────────── */
   h = await click(`[...document.querySelectorAll('#layoutSwitch .seg-b')].find((b) => b.dataset.id === 'lambdawaves' || /WAVES/.test(b.textContent))`);
