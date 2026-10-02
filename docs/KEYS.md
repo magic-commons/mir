@@ -39,7 +39,7 @@ With `createApp()` (`mir/app.js`) the table is made for you (`app.keys`): the ap
 
 **A held key.** An action with `up(event, action)` is held: `run` on the press, `up` on that key's release, or when the page loses the focus. INFORMATIONAL's hold-still is one (`infoActions(() => layer)` in `mir/info/layer.js`): in the table, it is listed in the menus and the help view, and Space stays free for play.
 
-An action is `{ id, label, group, keys, run, when?, hint?, inFields?, repeat?, short?, up? }`. `label`, `group`, `hint` and `short` are English; they are translated where they are shown. `short` is the name a drawn key carries (default: the label). `run(event, action)` gets the keydown, or `null` when a menu or button ran it.
+An action is `{ id, label, group, keys, run, when?, hint?, inFields?, overControls?, repeat?, short?, up? }`. `label`, `group`, `hint` and `short` are English; they are translated where they are shown. `short` is the name a drawn key carries (default: the label). `run(event, action)` gets the keydown, or `null` when a menu or button ran it.
 
 ## 2. The chord spelling
 
@@ -58,6 +58,7 @@ A chord is written one way everywhere: `Mod+Ctrl+Alt+Shift+Meta+<code>`, modifie
 | **One listener.** `createKeys` adds one bubbling `keydown` listener and nothing else | twelve hand-written handlers became one table lookup |
 | **A field keeps its keys.** While the focus is in a text field, only an action marked `inFields` runs (the notebook passes Ctrl/⌘+S and Ctrl/⌘+, through) | typing "s" must never save |
 | **A control keeps the keys it works by.** A focused slider keeps its arrows, Home, End and pages; a radio, tab or option its arrows; a button its Space and Enter | λWAVES' OWNED law |
+| **…unless the action says `overControls`.** Then it runs over a focused control, and the control gets neither the press nor its release (a button clicks on Space's keyup). It still never runs in a text field unless it also says `inFields` | BASINS: Space plays even with a button or a slider focused. Without this, BASINS kept its own Space handler outside the table |
 | **Taken nearer the target is not ours.** A key a control already handled (`defaultPrevented`), an IME composition, or an auto-repeat (unless `repeat: true`) runs nothing | |
 | **Two actions on one chord:** the first in table order whose `when()` holds runs | one key can mean different things in different states, by data |
 | **Rebinding steals, and says from whom.** `bind()` takes the chord from every other holder and returns the losers | no silent theft (λWAVES) |

@@ -58,6 +58,11 @@ try {
   check('history list: UNDO is disabled at the bottom, REDO is not', await ev(`(() => { const t = document.querySelectorAll('.hist-tools .trig'); return t[0].disabled && !t[1].disabled; })()`));
   await ev(`document.querySelectorAll('.hist-tools .trig')[1].click()`); await sleep(100);
   check('history list: REDO steps forward', (await ev('__T.x')) === 1);
+  const bare = JSON.parse(await ev(`(async () => { const { historyList } = await import('/mir/history/history-list.js'); const d = document.createElement('div'); document.body.appendChild(d);
+    const L = historyList(__T.H, d, { tools: false, count: false }); const seen = []; const off = L.onChange((s) => seen.push(s.canUndo));
+    __T.H.undo(); await new Promise((r) => setTimeout(r, 50)); const st = L.state(); off(); __T.H.redo(); L.destroy(); d.remove();
+    return JSON.stringify({ tools: d.querySelectorAll('.hist-tools').length, count: d.querySelectorAll('.hist-count').length, seen, st }); })()`));
+  check('history list: a host can turn off its tools and count and drive its own from state() / onChange', bare.tools === 0 && bare.count === 0 && bare.seen.length >= 1 && bare.st.canRedo === true, JSON.stringify(bare));
   const zKey = (mods) => p.send('Input.dispatchKeyEvent', { type: 'rawKeyDown', code: 'KeyZ', key: 'z', windowsVirtualKeyCode: 90, modifiers: mods });
   await zKey(2 /* Ctrl */); await sleep(100);
   check('keys: Ctrl+Z undoes', (await ev('__T.x')) === 0);

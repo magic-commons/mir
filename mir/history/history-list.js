@@ -6,7 +6,12 @@
  * while its host is visible; it writes the DOM through the kit's `setText`, so an unchanged count costs nothing.
  * It owns no frame, no placement and no persistence — the window around it is the host's.  Pair with history.css.
  *
- *   historyList(history, host, { limitLine = true }) → { root, paint, destroy }
+ *   historyList(history, host, { tools = true, count = true }) → { root, paint, state(), onChange(fn) → off, destroy }
+ *       tools: false   the host draws UNDO / REDO itself (BASINS: ↶ ↷ in the window's head); count: false   the host
+ *       places the count (BASINS: in the foot, beside CLEAR).  state() → { canUndo, canRedo, length, count } is what
+ *       those buttons need; onChange(fn) calls fn(state()) after every change.  `limitLine: false` is the old name of
+ *       count: false.
+ *   historyState(history) → { canUndo, canRedo, length, count }   (pure: count is the line the list writes)
  *   installHistoryKeys(history, { target = window, canAct = () => true, onEmpty }) → remove
  *       Ctrl/Cmd+Z undo · Ctrl/Cmd+Shift+Z and Ctrl/Cmd+Y redo, in the capture phase; a text field keeps its own undo.
  *       canAct() false (a render running) lets the key through untouched; onEmpty(redo) when there was nothing to do.
@@ -18,15 +23,23 @@ import { setText } from '../core/perf.js';
 const TEXT_TYPES = /^(text|search|email|url|password|tel|number)$/i;
 export const editableTarget = (t) => !!t && (t.isContentEditable || t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && TEXT_TYPES.test(t.type || 'text')));
 
+export function historyState(history) {
+  return { canUndo: !!history.canUndo, canRedo: !!history.canRedo, length: history.length,
+    count: history.length + ' of ' + history.limit + ' · ' + (history.bytes / 1048576).toFixed(1) + ' of ' + Math.round(history.maxBytes / 1048576) + ' MB' };
+}
+
 export function historyList(history, host, o = {}) {
   const root = el('div', 'hist', host);
-  const tools = el('div', 'hist-tools', root);
-  const undo = trig({ label: 'UNDO', title: 'Undo (Ctrl+Z)', onFire: () => history.undo() });
-  const redo = trig({ label: 'REDO', title: 'Redo (Ctrl+Shift+Z, Ctrl+Y)', onFire: () => history.redo() });
-  tools.append(undo.root, redo.root);
+  let undo = null, redo = null;
+  if (o.tools !== false) {
+    const tools = el('div', 'hist-tools', root);
+    undo = trig({ label: 'UNDO', title: 'Undo (Ctrl+Z)', onFire: () => history.undo() });
+    redo = trig({ label: 'REDO', title: 'Redo (Ctrl+Shift+Z, Ctrl+Y)', onFire: () => history.redo() });
+    tools.append(undo.root, redo.root);
+  }
   const list = el('div', 'hist-list', root);
   list.setAttribute('role', 'listbox'); ariaLabel(list, 'history rows');
-  const count = o.limitLine === false ? null : el('div', 'hist-count', root);
+  const count = o.count === false || o.limitLine === false ? null : el('div', 'hist-count', root);
   list.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('.hist-row'); if (b) history.goto(+b.dataset.i); });
 
   let raf = 0, dead = false;
@@ -45,14 +58,17 @@ export function historyList(history, host, o = {}) {
       out.push(b);
     }
     list.replaceChildren(...out);
-    undo.root.disabled = !history.canUndo; redo.root.disabled = !history.canRedo;
-    if (count) setText(count, history.length + ' of ' + history.limit + ' · ' + (history.bytes / 1048576).toFixed(1) + ' of ' + Math.round(history.maxBytes / 1048576) + ' MB');
+    if (undo) { undo.root.disabled = !history.canUndo; redo.root.disabled = !history.canRedo; }
+    if (count) setText(count, historyState(history).count);
     const here = list.querySelector('[aria-current]');   // the row you stand on stays in view
     if (here && list.clientHeight) { const b = list.getBoundingClientRect(), a = here.getBoundingClientRect(); if (a.top < b.top || a.bottom > b.bottom) list.scrollTop += a.top < b.top ? a.top - b.top : a.bottom - b.bottom; }
   }
   const off = history.subscribe(() => { if (!raf && !dead) raf = requestAnimationFrame(paint); });
   paint();
-  return { root, paint, destroy() { dead = true; off(); if (raf) cancelAnimationFrame(raf); root.remove(); } };
+  const watchers = new Set();
+  const offWatch = history.subscribe(() => { if (dead) return; const st = historyState(history); for (const fn of watchers) { try { fn(st); } catch (err) { console.warn('history list: a listener threw', err); } } });
+  return { root, paint, state: () => historyState(history), onChange(fn) { watchers.add(fn); return () => watchers.delete(fn); },
+    destroy() { dead = true; off(); offWatch(); watchers.clear(); if (raf) cancelAnimationFrame(raf); root.remove(); } };
 }
 
 export function installHistoryKeys(history, { target = window, canAct = () => true, onEmpty } = {}) {

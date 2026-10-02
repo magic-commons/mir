@@ -14,7 +14,8 @@
  *      parseChord() turns each into the one spelling, and every spelling is ASCII (it fits the envelope's CHORD).
  *   2. ONE LISTENER.  createKeys() adds exactly one bubbling keydown listener.  It never runs an app key
  *      - while a text field has the focus, unless the action says `inFields` (the notebook's Ctrl/⌘+S and Ctrl/⌘+,);
- *      - when a focused control OWNS the key (a slider its arrows, a radio row its arrows, a button its Space/Enter);
+ *      - when a focused control OWNS the key (a slider its arrows, a radio row its arrows, a button its Space/Enter),
+ *        unless the action says `overControls` (BASINS: Space plays over a focused button; its release is taken too);
  *      - when something nearer the target already took the key (defaultPrevented), or the IME is composing;
  *      - on auto-repeat, unless the action says `repeat: true`.
  *      A chord held by two actions runs the FIRST in table order whose `when()` holds.
@@ -27,7 +28,9 @@
  *   6. IDLE COSTS NOTHING: no timers, no polling; the listener is one map lookup per keydown.
  *
  * createKeys({ actions, storage?, platform?, target? }) → the table (API at the foot of this header).
- *   action  { id, label, group, keys: ['Mod+S', …], run(event, action), when?(), hint?, inFields?, repeat?, short?, up? }
+ *   action  { id, label, group, keys: ['Mod+S', …], run(event, action), when?(), hint?, inFields?, overControls?, repeat?, short?, up? }
+ *           overControls: the action runs even when a focused control owns its key (BASINS: Space plays with a button
+ *           or a slider focused) — never in a text field unless it also says inFields
  *           up(event, action): a HELD key — run() on the press, up() on that key's release (or when the page loses
  *           the focus); INFORMATIONAL's hold-still is one (info/layer.js infoActions)
  *           label/group/hint/short are English; `short` is the name a key cap carries (default: the label)
@@ -196,13 +199,15 @@ export function ownsKey(n, chord) {
   return false;
 }
 
-/** pickAction(entries, chord, { field, repeat }) → the entry to run, or null.  Table order; the first whose when()
- *  holds; a field reaches only an `inFields` action; a repeat only a `repeat` one.  A throwing when() is false. */
-export function pickAction(entries, chord, { field = false, repeat = false } = {}) {
+/** pickAction(entries, chord, { field, repeat, owned }) → the entry to run, or null.  Table order; the first whose
+ *  when() holds; a field reaches only an `inFields` action; a key a focused control owns only an `overControls` one;
+ *  a repeat only a `repeat` one.  A throwing when() is false. */
+export function pickAction(entries, chord, { field = false, repeat = false, owned = false } = {}) {
   if (!chord) return null;
   for (const a of entries) {
     if (!a.keys || !a.keys.includes(chord)) continue;
     if (field && !a.inFields) continue;
+    if (owned && !a.overControls) continue;
     if (repeat && !a.repeat) continue;
     let ok = true; if (a.when) { try { ok = !!a.when(); } catch (_) { ok = false; } }
     if (ok) return a;
@@ -297,20 +302,21 @@ export function createKeys({ actions = [], storage = null, platform = detectPlat
     if (rec || e.defaultPrevented || e.isComposing || e.keyCode === 229) return;
     const chord = chordFromEvent(e, platform); if (!chord) return;
     const t = e.target, field = isField(t) || isField(t && t.ownerDocument && t.ownerDocument.activeElement);
-    if (!field && ownsKey(t, chord)) return;
-    const a = pickAction(entries(), chord, { field, repeat: e.repeat });
+    const owned = !field && ownsKey(t, chord);
+    const a = pickAction(entries(), chord, { field, repeat: e.repeat, owned });
     if (!a) return;
     e.preventDefault();
+    if (owned) taken.add(e.code);                  // over a control: its release must not activate it either (a button clicks on Space's keyup)
     if (a.up) held.set(e.code, a);
     try { a.run && a.run(e, a); } catch (err) { console.warn('keys: ' + a.id, err); }
   };
   /* A HELD KEY (an action with `up`, e.g. INFORMATIONAL's hold-still): its key's release runs up(), and so does
      leaving the page, so a key let go elsewhere never sticks */
-  const held = new Map();
+  const held = new Map(), taken = new Set();
   const release = (code) => { const a = held.get(code); if (!a) return; held.delete(code); try { a.up(null, a); } catch (err) { console.warn('keys: ' + a.id, err); } };
   if (view) {
     view.addEventListener('keydown', onKey, { signal: life.signal });
-    view.addEventListener('keyup', (e) => { if (held.has(e.code)) { e.preventDefault(); release(e.code); } }, { signal: life.signal });
+    view.addEventListener('keyup', (e) => { if (taken.delete(e.code)) e.preventDefault(); if (held.has(e.code)) { e.preventDefault(); release(e.code); } }, { capture: true, signal: life.signal });
     view.addEventListener('blur', () => { for (const code of [...held.keys()]) release(code); }, { signal: life.signal });
   }
 

@@ -114,4 +114,15 @@ assert.equal(R.record(['a', 'b'], 'BOTH', { a: { v: 1 }, b: { v: 1 } }, { a: { v
 Object.assign(s1, { v: 2 }); Object.assign(s2, { v: 3 }); R.undo(); assert.deepEqual([s1.v, s2.v], [1, 1]); R.redo(); assert.deepEqual([s1.v, s2.v], [2, 3]);
 assert.equal(R.push({ label: 'BAD' }), false);
 
+/* the list's host state (history-list.js): what a host's own UNDO / REDO / count need when it turns the list's off */
+{
+  const { historyState } = await import('../mir/history/history-list.js');
+  const S = createHistory({ timers }); let v = 0;
+  S.register('v', { read: () => ({ v }), write: (s) => { v = s.v; } });
+  let st = historyState(S); assert.equal(st.canUndo, false); assert.equal(st.canRedo, false);
+  S.change('v', 'ONE', () => { v = 1; }); tick();
+  st = historyState(S); assert.equal(st.canUndo, true); assert.equal(st.length, S.length); assert.match(st.count, /^\d+ of \d+ · [\d.]+ of \d+ MB$/);
+  S.undo(); st = historyState(S); assert.equal(st.canRedo, true);
+}
+
 console.log('History: two domains in order, coalescing under hold, goto, a no-op gesture leaving no row, truncation, travel-is-not-an-edit, 256 rows and 32 MiB pass.');

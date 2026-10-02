@@ -141,4 +141,23 @@ const node = (tag, attrs = {}) => ({ nodeType: 1, tagName: tag.toUpperCase(), ty
   K.destroy();
   pass('generated: the menu key column, a menu entry with its disabled state, the help rows and describe() come from the table');
 }
+{
+  const E = [{ id: 'step', keys: ['Space'] }, { id: 'play', keys: ['Space'], overControls: true }];
+  assert.equal(pickAction(E, 'Space', { owned: true }).id, 'play', 'a key a control owns reaches only an overControls action');
+  assert.equal(pickAction(E, 'Space').id, 'step', 'unowned: table order as ever');
+  assert.equal(pickAction(E, 'Space', { field: true }), null, 'overControls does not reach into a text field');
+  const target = new EventTarget(), ran = [];
+  const K = createKeys({ target, platform: 'other', actions: [
+    { id: 'play', label: 'PLAY', keys: ['Space'], overControls: true, run: () => ran.push('play') },
+    { id: 'next', label: 'NEXT', keys: ['ArrowRight'], run: () => ran.push('next') }] });
+  const e = press(target, 'Space', {}, { target: node('button') });
+  press(target, 'ArrowRight', {}, { target: node('div', { role: 'slider' }) });
+  press(target, 'Space', {}, { target: node('input', { type: 'text' }) });
+  assert.deepEqual(ran, ['play'], 'Space plays over a button; the slider keeps its arrow; a text field keeps its space');
+  assert.equal(e.defaultPrevented, true, 'and the button does not get the press');
+  const up = new Event('keyup', { cancelable: true }); Object.assign(up, { code: 'Space' }); target.dispatchEvent(up);
+  assert.equal(up.defaultPrevented, true, 'nor its release (a button clicks on keyup)');
+  K.destroy();
+  pass('overControls: an action can run over a focused control (BASINS\' Space plays), never inside a text field');
+}
 console.log(`\n${n} passed`);

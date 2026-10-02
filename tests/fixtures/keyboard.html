@@ -30,6 +30,7 @@ import { createKeyboardWindow, createKeysHelp } from '../../mir/keyboard/keyboar
 import { wordmark } from '../../mir/shell/wordmark.js';
 import { createMenubar } from '../../mir/shell/menubar.js';
 import { setLanguage } from '../../mir/core/i18n.js';
+import { trig } from '../../mir/kit.js';
 import { frame } from '../../mir/core/frame.js';
 import * as motion from '../../mir/core/motion.js';
 
@@ -38,7 +39,7 @@ const ran = [];
 const say = (id) => () => { ran.push(id); document.getElementById('last').textContent = id; };
 const A = (id, label, group, keys, more = {}) => ({ id, label, group, keys, run: say(id), ...more });
 const keys = createKeys({ storage: localKeyStorage('mir.test.keys'), platform: q.get('platform') || undefined, actions: [
-  A('play', 'PLAY', 'TRANSPORT', ['Space'], { hint: 'start and stop time' }),
+  A('play', 'PLAY', 'TRANSPORT', ['Space'], { hint: 'start and stop time', overControls: true }),
   A('back', 'STEP BACK', 'TRANSPORT', [','], { hint: 'one frame back' }),
   A('fwd', 'STEP FORWARD', 'TRANSPORT', ['.'], { hint: 'one frame on' }),
   A('home', 'ZERO', 'TRANSPORT', ['0'], { hint: 'back to the start' }),
@@ -61,6 +62,9 @@ const menubar = createMenubar({ opener: title, host: document.getElementById('la
   FILE: () => [keys.menuItem('save'), keys.menuItem('open'), null, keys.menuItem('undo'), keys.menuItem('redo')],
   WINDOW: () => [keys.menuItem('keyboard'), keys.menuItem('help')],
 } });
+/* a kit button that counts its own presses: Space over it must play, and must not press it */
+const btn = trig({ label: 'PRESS', onFire: () => { window.__btn = (window.__btn || 0) + 1; } });
+btn.root.id = 'btn'; Object.assign(btn.root.style, { position: 'fixed', left: '260px', bottom: '16px', zIndex: 31 }); document.body.appendChild(btn.root);
 window.__T = { keys, kb, help, menubar, ran, setLanguage, frame, motion };
 window.__ready = true;
 </script>

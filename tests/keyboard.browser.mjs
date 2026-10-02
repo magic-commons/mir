@@ -64,6 +64,20 @@ try {
   check('typed in a text field: Space and F run nothing; Ctrl+S (inFields) still saves', c.hit && r.length === 1 && r[0] === 'save', JSON.stringify({ hit: c.hit, r }));
   await p.eval(`document.activeElement.blur(); 1`);
 
+  /* ── overControls: Space plays over a focused kit button, and the button is not pressed; in a text field it types ── */
+  c = await click(`document.getElementById('btn')`); await sleep(50);
+  r = await ran(); const before = await p.eval(`window.__btn || 0`);
+  await key('Space');
+  const over = { ran: await ran(), btn: (await p.eval(`window.__btn || 0`)) - before, focus: await p.eval(`document.activeElement.id`) };
+  check('overControls: Space with a kit button focused plays once and does not press the button', c.hit && before === 1 && over.focus === 'btn' && over.ran.length === 1 && over.ran[0] === 'play' && over.btn === 0, JSON.stringify({ before, over }));
+  await click(`document.getElementById('note')`);
+  await p.eval(`document.getElementById('note').value = ''; 1`);
+  await p.send('Input.dispatchKeyEvent', { type: 'keyDown', key: ' ', code: 'Space', text: ' ', windowsVirtualKeyCode: 32 });
+  await p.send('Input.dispatchKeyEvent', { type: 'keyUp', key: ' ', code: 'Space', windowsVirtualKeyCode: 32 }); await sleep(40);
+  const typed = { ran: await ran(), value: await p.eval(`document.getElementById('note').value`) };
+  check('overControls: in a text field Space types a space and does not play', typed.ran.length === 0 && typed.value === ' ', JSON.stringify(typed));
+  await p.eval(`document.activeElement.blur(); 1`);
+
   /* ── the window: open, then a key on the board shows its action ── */
   await run(`W.open(); await rest(W.win); return 0;`);
   c = await click(`__T.kb.root.querySelector('.km-key[data-code="KeyH"]')`);
