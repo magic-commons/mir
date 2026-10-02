@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MIR · live session fixture</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #070a0f; color: #fff; font: 700 14px sans-serif; }
+  button { position: absolute; width: 120px; height: 40px; }
+  #add { left: 20px; top: 20px; } #resume { left: 20px; top: 100px; } #new { left: 160px; top: 100px; }
+  #value { position: absolute; left: 160px; top: 30px; }
+</style>
+</head>
+<body>
+<button id="add" type="button">+1</button><span id="value">0</span>
+<script type="module">
+/* one part (a number), one session; the opener offers RESUME / NEW when there is work, else starts NEW.
+   ?reset wipes the session first. */
+import { registerProjectPart } from '../../mir/core/project.js';
+import { createSession } from '../../mir/core/session.js';
+const KEY = 'fixture.session';
+if (new URLSearchParams(location.search).has('reset')) localStorage.removeItem(KEY);
+let v = 0; const subs = new Set(); const show = () => { document.getElementById('value').textContent = String(v); };
+registerProjectPart('count', { capture: () => ({ v }), restore: (s) => { v = s ? s.v : 0; show(); }, signature: () => String(v),
+  subscribe: (fn) => { subs.add(fn); return () => subs.delete(fn); } });
+document.getElementById('add').addEventListener('click', () => { v++; show(); for (const f of subs) f(); });
+const session = createSession({ key: KEY });
+window.__SESSION = session;
+if (session.hasResume()) {
+  for (const [id, text, act] of [['resume', 'RESUME', () => session.resume()], ['new', 'NEW', () => { session.discard(); }]]) {
+    const b = document.createElement('button'); b.id = id; b.type = 'button'; b.textContent = text;
+    b.addEventListener('click', () => { act(); document.getElementById('resume').remove(); document.getElementById('new').remove(); });
+    document.body.append(b);
+  }
+} else session.discard();
+</script>
+</body>
+</html>

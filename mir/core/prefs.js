@@ -16,8 +16,11 @@
  *      kit's own 1.4 value stands, and an app that never changes an option never sees a write from it.
  *   4. PRESETS ARE NAMED OPTION SETS.  `preset()` names the preset whose every option matches the state, or 'custom'.
  *
- * createPrefs({ key, schema, presets, storage, doc, context }) → { get, set, reset, all, subscribe, apply, preset,
- *                                                                  applyPreset, resolve, destroy }
+ * createPrefs({ key, schema, presets, storage, doc, context, version?, migrate?, projectKeys?, project? }) →
+ *   { get, set, reset, forget, all, subscribe, apply, preset, applyPreset, resolve, migration, settings, download, load, destroy }
+ *   THE SPLIT (Josh 2026-10-01, BASINS app/prefs.js): preferences are the device's, the work is the project's.  With
+ *   `version`, a versioned migration runs once per version (migratePrefs): the `projectKeys` the blob still holds are handed
+ *   to `project(moved)` (core/session.js adoptInto) and removed; `set` refuses a project key ever after.
  *   schema   [{ key, type: 'enum' | 'bool' | 'number', values?, min?, max?, step?, wrap?, default, apply: [spec…] }]
  *            spec = { on: 'html' | 'body', attr, map? }      an attribute; map(v, state, env) → string | null
  *                 | { on, cls, when? }                       a class, present while when(v, state, env) (default: !!v)
@@ -30,6 +33,7 @@
  * Pure exports for tests: repair(raw, schema), defaults(schema), resolve(state, schema, env), matchPreset(state, presets). */
 import { frame } from './frame.js';
 import { setVar, setAttr } from './perf.js';
+import { wrap, stringify, check } from './envelope.js';
 
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 
@@ -79,12 +83,47 @@ export function matchPreset(state, presets = {}) {
   return 'custom';
 }
 
-export function createPrefs({ key = 'mir.gui', schema = [], presets = {}, storage, doc, context } = {}) {
+/** migratePrefs(storage, key, { version, migrate, projectKeys, project }) → { ok, migrated, moved? } — BASINS'
+ *  migratePrefs, any version: when the stored blob's `prefsV` (absent = 1) is below `version`, the project keys it holds
+ *  go to the project FIRST (`project(moved)` → false keeps them here and tries again next load; with no `project` they
+ *  are dropped), then `migrate(blob, from, version)` may reshape the rest, and the blob is marked `prefsV: version`.
+ *  It runs once per version.  A browser with no blob has nothing to move. */
+export function migratePrefs(storage, key, { version, migrate, projectKeys = [], project } = {}) {
+  let blob;
+  try { const raw = storage && storage.getItem(key); if (!raw) return { ok: true, migrated: false }; blob = JSON.parse(raw); } catch (_) { return { ok: false }; }
+  if (!isObj(blob)) return { ok: false };
+  const from = Number.isFinite(blob.prefsV) ? blob.prefsV : 1;
+  if (!version || from >= version) return { ok: true, migrated: false };
+  const moved = {};
+  for (const k of projectKeys) if (Object.hasOwn(blob, k)) moved[k] = blob[k];
+  if (Object.keys(moved).length && typeof project === 'function') {
+    let took = false; try { took = project(moved) !== false; } catch (_) {}
+    if (!took) return { ok: false, moved };
+  }
+  for (const k of projectKeys) delete blob[k];
+  if (typeof migrate === 'function') { try { const b = migrate(blob, from, version); if (isObj(b)) blob = b; } catch (_) { return { ok: false, moved }; } }
+  blob.prefsV = version;
+  try { storage.setItem(key, JSON.stringify(blob)); } catch (_) { return { ok: false, moved }; }
+  return { ok: true, migrated: true, moved };
+}
+
+/** forgetPrefs(key, storage?) — FORGET: this browser's preferences for that key are wiped (BASINS: then reload) */
+export function forgetPrefs(key = 'mir.gui', storage) {
+  const S = storage !== undefined ? storage : (() => { try { return globalThis.localStorage || null; } catch (_) { return null; } })();
+  try { if (S) S.removeItem(key); } catch (_) {}
+}
+
+/** settingsFileName(app, date?) — BASINS' DOWNLOAD SETTINGS name: '<app>-settings-YYYY-MM-DD.json' */
+export const settingsFileName = (app = 'mir', date = new Date()) => String(app || 'mir').toLowerCase().replace(/[^a-z0-9._-]+/g, '-') + '-settings-' + date.toISOString().slice(0, 10) + '.json';
+
+export function createPrefs({ key = 'mir.gui', schema = [], presets = {}, storage, doc, context, version, migrate, projectKeys = [], project } = {}) {
   const D = doc || globalThis.document || null;
   const S = storage !== undefined ? storage : (() => { try { return globalThis.localStorage || null; } catch (_) { return null; } })();
-  const rows = new Map(schema.map((r) => [r.key, r]));
+  const projectSide = new Set(projectKeys);
+  const rows = new Map(schema.filter((r) => !projectSide.has(r.key)).map((r) => [r.key, r]));   // a project key is never written here
+  const migration = version ? migratePrefs(S, key, { version, migrate, projectKeys, project }) : null;
   const read = () => { try { const t = S && S.getItem(key); return t ? JSON.parse(t) : null; } catch (_) { return null; } };
-  const write = () => { try { if (S) S.setItem(key, JSON.stringify(state)); } catch (_) {} };
+  const write = () => { try { if (S) S.setItem(key, JSON.stringify(version ? { ...state, prefsV: version } : state)); } catch (_) {} };
   let state = repair(read(), schema);
   const subs = new Set();
 
@@ -125,12 +164,13 @@ export function createPrefs({ key = 'mir.gui', schema = [], presets = {}, storag
     if (changed.length) { write(); apply(); notify(changed); }
     return changed;
   }
+  function reset() { const was = state; state = defaults(schema); try { if (S) S.removeItem(key); } catch (_) {} apply(); notify(Object.keys(state).filter((k) => was[k] !== state[k])); return { ...state }; }
   return {
     get: (k) => state[k],
     all: () => ({ ...state }),
     set,
     /** reset() — every option home; the stored key is removed */
-    reset() { const was = state; state = defaults(schema); try { if (S) S.removeItem(key); } catch (_) {} apply(); notify(Object.keys(state).filter((k) => was[k] !== state[k])); return { ...state }; },
+    reset,
     /** subscribe(fn(state, changedKeys)) → unsubscribe */
     subscribe(fn) { subs.add(fn); return () => subs.delete(fn); },
     apply,
@@ -141,6 +181,27 @@ export function createPrefs({ key = 'mir.gui', schema = [], presets = {}, storag
     presets,
     resolve: () => resolve(state, schema, env()),
     env,
+    /** forget() — FORGET (BASINS' settings window): the stored key is wiped and every option goes home; the app reloads */
+    forget: reset,
+    /** migration — what the versioned migration did at creation ({ ok, migrated, moved? }), or null without `version` */
+    migration,
+    /** settings({ app, name }) → a 'settings' envelope (core/envelope.js) of this browser's options */
+    settings: ({ app, name } = {}) => wrap('settings', { ...state }, { app, name }),
+    /** download({ app }) — DOWNLOAD SETTINGS: this browser's options as a file, '<app>-settings-<date>.json' */
+    download({ app = 'mir', name } = {}) {
+      if (!D || !D.body || typeof Blob === 'undefined') return false;
+      const blob = new Blob([stringify(wrap('settings', { ...state }, { app, name }))], { type: 'application/json' });
+      const a = D.createElement('a'), url = URL.createObjectURL(blob);
+      a.href = url; a.download = settingsFileName(app); a.rel = 'noopener'; D.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      return true;
+    },
+    /** load(text | envelope) → { ok, changed, errors, warnings } — a settings file read against this schema and set */
+    load(input) {
+      const r = check(input, { settings: schema.filter((row) => !projectSide.has(row.key)) });
+      if (r.ok && r.envelope.kind !== 'settings') return { ok: false, changed: [], errors: [{ path: 'kind', why: 'not a settings file' }], warnings: r.warnings };
+      return r.ok ? { ok: true, changed: set(r.envelope.data), errors: [], warnings: r.warnings } : { ok: false, changed: [], errors: r.errors, warnings: r.warnings };
+    },
     destroy() { subs.clear(); frame.cancel('mir.prefs'); if (MQ && MQ.removeEventListener) MQ.removeEventListener('change', onScheme); },
   };
 }
