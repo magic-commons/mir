@@ -8,12 +8,12 @@ See them all at `gallery/themes.html` (every theme × every tone, live; click on
 
 | Theme | What it is | Its settings (beyond the kit's home) | Tones |
 |---|---|---|---|
-| **FROST** | Glassmorphism. Josh's recipe, the new user's look | REFRACTIVE, FROST always, BLUR 11, VEIL 0, SATURATION 130 %, CORNERS 24, CONTROL FACES glass, TEXT auto (white in dark, as the recipe says; black in light), EDGE off, SHADOW 200 %, SPACING 40 % | CLEAR · ROSE · AZURE |
-| **MORPH** | Neumorphism | SOLID, CORNERS 20, EDGE off, LIGHT ANGLE 315° (upper left), SHADOW 140 %, DISTANCE 6, SOFTNESS 14, SHINE 70 %, SHINE SOFT 14, glow and parallax off, SPACING 75 % | CLAY · MINT · LILAC · SLATE |
-| **CLASSIC** | The 1.4 spirit | TINTED, solid faces, the relief, CORNERS 14, the house veil, BLUR 22 (1.4's own), SPACING 63 % (1.4's 10 px gap) | HOUSE · INK · EMBER |
-| **SWIFT** | The fast one (it replaces the preset called LIGHT) | SOLID, relief FLAT, SHADOW 0, MOTION off, glow and parallax off, QUALITY light (the flat tier), SPACING 25 % | GRAPHITE · SAND · STEEL |
-| **AURORA** | The flashy one | REFRACTIVE, FROST always, BLUR 16, VEIL 6, SATURATION 180 %, CORNERS 22, glass faces, SHADOW 150 %, DISTANCE 3, SOFTNESS 14, SHINE 100 %, SHINE SOFT 18, vivid accents, SPACING 50 % | BOREALIS · DUSK · SOLAR |
-| **NEON** | Near-black panes, accents at full strength: a dark theme in either mode | THEME dark, SOLID, CORNERS 10, EDGE off, SHADOW 0, parallax off, BRIGHT −26 and VIVID 100 % in every tone, SPACING 20 % | VOLT · MAGENTA · CYAN |
+| **FROST** | Glassmorphism. Josh's recipe, the new user's look | REFRACTIVE, FROST always, BLUR 11, VEIL 0, SATURATION 130 %, CORNERS 24, CONTROL FACES glass, TEXT auto (white in dark, as the recipe says; black in light), EDGE off, SHADOW 200 %, SPACING DEFAULT | CLEAR · ROSE · AZURE |
+| **MORPH** | Neumorphism | SOLID, CORNERS 20, EDGE off, LIGHT ANGLE 315° (upper left), SHADOW 140 %, DISTANCE 6, SOFTNESS 14, SHINE 70 %, SHINE SOFT 14, glow and parallax off, SPACING AIRY | CLAY · MINT · LILAC · SLATE |
+| **CLASSIC** | The 1.4 spirit | TINTED, solid faces, the relief, CORNERS 14, the house veil, BLUR 22 (1.4's own), SPACING DEFAULT | HOUSE · INK · EMBER |
+| **SWIFT** | The fast one (it replaces the preset called LIGHT) | SOLID, relief FLAT, SHADOW 0, MOTION off, glow and parallax off, QUALITY light (the flat tier), SPACING TIGHT | GRAPHITE · SAND · STEEL |
+| **AURORA** | The flashy one | REFRACTIVE, FROST always, BLUR 16, VEIL 6, SATURATION 180 %, CORNERS 22, glass faces, SHADOW 150 %, DISTANCE 3, SOFTNESS 14, SHINE 100 %, SHINE SOFT 18, vivid accents, SPACING DEFAULT | BOREALIS · DUSK · SOLAR |
+| **NEON** | Near-black panes, accents at full strength: a dark theme in either mode | THEME dark, SOLID, CORNERS 10, EDGE off, SHADOW 0, parallax off, BRIGHT −26 and VIVID 100 % in every tone, SPACING TIGHT | VOLT · MAGENTA · CYAN |
 
 FROST is Josh's; MORPH and CLASSIC are named in the plan; **AURORA, NEON, SWIFT and every tone name are inventions** (Josh rename and cut freely: each is one line of the table in `mir/shell/themes.js`).
 
@@ -36,7 +36,7 @@ All are options of the GUI window's look store (`docs/GUI.md` has every option a
 | **LIGHT ANGLE** | 0–360° (an arc) | Where the one light is, clockwise from straight up. Pane shadows fall away from it, the shine sits toward it, and the controls' relief turns with it | Josh ("bottom right shadow, upper left shine") |
 | DISTANCE · SOFTNESS | 0–24 px · 0–48 px | How far the shadow falls and how soft it is (the shine uses the same distance) | invention |
 | **SHINE** · SHINE SOFT | 0–100 % · 0–48 px | The shadow's opposite: a light 180° across, blended additively | Josh ("set blend mode to 'add' which is shine") |
-| **SPACING** | 0–100 % | The rack's air: the gap between its windows and its inset from the screen's edge are 16 px × SPACING, the padding inside a window 3 + 6.4 px × SPACING. 0 is flush | Josh ("an option for 0 padding/margins for the rack windows and the edge of the screen") |
+| **SPACING** | 0 · TIGHT · DEFAULT · AIRY | The rack's air: the gap between its windows, its inset from the screen's edge, the padding inside a pane and the gap in a docked chip rail (`--rack-gap`, `--rack-inset`, `--pane-pad`, `--rail-gap`). 0 is flush | Josh ("an option for 0 padding/margins …"); the levels are BASINS' (`skin.js SPACING`); AIRY is an invention |
 
 ### One light
 
@@ -69,14 +69,15 @@ INTENT does not change: a dent is a well or a press, never ON or chosen; ON keep
 
 At 0 (`html[data-flush]`) the rack's windows meet each other and the screen's edge. To leave no sliver of picture and no doubled edge, a rack window in the flush column is **square** (`--surface-radius: 0`), draws **no drop shadow and no shine** (the column is one slab: a shadow would fall across its neighbour), and its top hairline is hidden so only one hairline separates two windows. A window that floats keeps its corner and its shadow. Above 0 nothing of this applies.
 
-| SPACING | gap | inset | padding inside |
-|---|---|---|---|
-| before this release (no setting) | 10 px | 10 px | 7 · 7 · 10 px |
-| **FROST's default, 40 %** | 6 px | 6 px | 6 px |
-| 0 % | 0 | 0 | 0 |
-| 100 % | 16 px | 16 px | 9 px |
+| SPACING | gap | inset | padding inside | chip rail |
+|---|---|---|---|---|
+| before this release (no setting) | 10 px | 10 px | 7 · 7 · 10 px | — |
+| 0 (BASINS) | 0 | 0 | 6 px | 0 |
+| TIGHT (BASINS; SWIFT, NEON) | 3 px | 3 px | 6 px | 2 px |
+| **DEFAULT** (BASINS; FROST, CLASSIC, AURORA) | 6 px | 6 px | 8 px | 4 px |
+| AIRY (invention; MORPH) | 16 px | 16 px | 9 px | 6 px |
 
-The new default is tighter than 1.4's (Josh: "the dock margins are too large"); a control never touches a pane's edge at the default, and coarse-pointer targets keep their 44 px seats. The rack's dock guides and the transport's dodge read the rack's computed padding, so they follow.
+The levels and numbers are BASINS' (Josh's fix, 2026-10-01: `app/skin.js SPACING`, Settings › DISPLAY › SPACING); AIRY is a fourth step after them. A pane's padding never goes under 6 px, so no control touches its edge, and coarse-pointer targets keep their 44 px seats. The rack's dock guides and the transport's dodge read the rack's computed padding, so they follow.
 
 ## Contrast, every tile in both modes
 

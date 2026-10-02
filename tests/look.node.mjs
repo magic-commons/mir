@@ -27,7 +27,8 @@ const pass = (name, detail) => { n++; console.log(`PASS ${name}${detail ? ` — 
   assert.equal(paneShadow({ shadow: 0 }, 'dark'), '0 0 0 0 transparent');
   assert.equal(lightIsHome(LIGHT_HOME), true); assert.equal(lightIsHome({ ...LIGHT_HOME, shine: 0.1 }), false);
   assert.equal(solidInk({ bright: 0 }, 'dark'), 'light'); assert.equal(solidInk({ bright: 0 }, 'light'), 'dark'); assert.equal(solidInk({ bright: -1 }, 'light'), 'light', 'a light theme darkened past the middle takes white');
-  assert.deepEqual(spacingPx(0), { gap: 0, inset: 0, pad: 0 }); assert.deepEqual(spacingPx(0.4), { gap: 6, inset: 6, pad: 6 }); assert.deepEqual(spacingPx(0.63), { gap: 10, inset: 10, pad: 7 });
+  assert.deepEqual(spacingPx('0'), { gap: 0, inset: 0, pad: 6, rail: 0 }); assert.deepEqual(spacingPx('tight'), { gap: 3, inset: 3, pad: 6, rail: 2 });
+  assert.deepEqual(spacingPx('default'), { gap: 6, inset: 6, pad: 8, rail: 4 }, "BASINS' DEFAULT"); assert.deepEqual(spacingPx('nope'), spacingPx('default'));
   pass('one light: the offsets, the cast at FROST, the home; SOLID ink; SPACING');
 }
 {

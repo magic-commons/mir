@@ -13,7 +13,7 @@
  *     left).  A shadow falls away from it, the shine sits toward it.  The sheets draw both with CSS sin()/cos() from
  *     `--light-angle`; lightOffset() is the same arithmetic for a test or a script.
  *
- * Exports: THEME_GLASS, hslRgb, glassTint, glassVeil, paneShadow, lightOffset, lightIsHome, paneLightness, solidInk, spacingPx,
+ * Exports: THEME_GLASS, hslRgb, glassTint, glassVeil, paneShadow, lightOffset, lightIsHome, paneLightness, solidInk, SPACING, spacingPx,
  *          LIGHT_HOME. */
 
 /** the theme's own glass, as the kit ships it (skin.css :root and body[data-theme="light"]): the tinted pane's H S L
@@ -82,12 +82,15 @@ export function paneLightness(o, theme) { return Math.max(2, Math.min(98, T(them
 /** solidInk(state, theme) → 'light' (white ink) on a dark pane, 'dark' (black ink) on a light one: no sampling */
 export function solidInk(o, theme) { return paneLightness(o, theme) > 55 ? 'dark' : 'light'; }
 
-/** spacingPx(spacing 0…1) → { gap, inset, pad } in px: the gap between rack windows and their inset from the screen's
- *  edge are 16·s, the padding inside a window 3 + 6.4·s; 0 is flush (all three 0).  The kit before SPACING was gap 10,
- *  inset 10, padding 7 · 7 · 10 (≈ s .63); the default is s .4: gap 6, inset 6, padding 6. */
-export function spacingPx(s) {
-  const v = Math.max(0, Math.min(1, num(s, 0.4)));
-  return v === 0 ? { gap: 0, inset: 0, pad: 0 } : { gap: Math.round(16 * v), inset: Math.round(16 * v), pad: Math.round(3 + 6.4 * v) };
+/** SPACING, BASINS' three levels (app/skin.js SPACING, Josh 2026-10-01) and one more: px for [the gap between rack
+ *  windows, the rack's inset from the screen's edge, the padding inside a pane, the gap in a docked chip rail].  A pane's
+ *  padding never goes under 6 px, so no control touches its edge.  0 is flush (square panes, no shadow inside the slab).
+ *  AIRY is this kit's invention, after DEFAULT.  The kit before SPACING was 10 · 10 · 7–10. */
+export const SPACING = Object.freeze({ 0: [0, 0, 6, 0], tight: [3, 3, 6, 2], default: [6, 6, 8, 4], airy: [16, 16, 9, 6] });
+/** spacingPx(level) → { gap, inset, pad, rail } in px (an unknown level is DEFAULT) */
+export function spacingPx(level) {
+  const [gap, inset, pad, rail] = SPACING[level] || SPACING.default;
+  return { gap, inset, pad, rail };
 }
 
 /** solidRelief(state, theme) → { lift, sink, gain } — the SOLID relief's mixes as functions of the pane's lightness L

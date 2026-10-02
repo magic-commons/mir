@@ -131,12 +131,14 @@ export function lookSchema() {
       ...['--surface-shadow', '--surface-shadow-float', '--surface-shadow-menu'].map((prop) => ({ on: 'body', prop, map: (v, s) => (offShadow(s) ? ZERO_SHADOW : null) }))] },
     { key: 'disconnected', type: 'bool', default: false, apply: [{ on: 'body', cls: 'disconnected' }] },
     /* SPACING — the rack's air (Josh, 2026-10-01: "the dock margins are too large … an option for 0 padding/margins"):
-       one dial, 0–100 %, to --rack-gap, --rack-inset and --pane-pad (core/look.js spacingPx); 0 is flush (html[data-flush]) */
-    { key: 'spacing', type: 'number', step: 0.01, min: 0, max: 1, default: 0.4, apply: [
+       BASINS' levels 0 · TIGHT · DEFAULT (and AIRY, this kit's) to --rack-gap, --rack-inset, --pane-pad and --rail-gap
+       (core/look.js SPACING); 0 is flush (html[data-flush]) */
+    { key: 'spacing', type: 'enum', values: ['0', 'tight', 'default', 'airy'], default: 'default', apply: [
       { on: 'html', prop: '--rack-gap', map: (v) => spacingPx(v).gap + 'px' },
       { on: 'html', prop: '--rack-inset', map: (v) => spacingPx(v).inset + 'px' },
       { on: 'html', prop: '--pane-pad', map: (v) => spacingPx(v).pad + 'px' },
-      { on: 'html', attr: 'data-flush', map: (v) => (v === 0 ? '' : null) }] },
+      { on: 'html', prop: '--rail-gap', map: (v) => spacingPx(v).rail + 'px' },
+      { on: 'html', attr: 'data-flush', map: (v) => (v === '0' ? '' : null) }] },
     { key: 'motion', type: 'enum', values: ['auto', 'full', 'reduced', 'off'], default: 'auto', apply: [{ run: (v) => setMotionPolicy(v) }] },
     { key: 'glow', type: 'bool', default: true },                    // fx/pointer-light.js — off on touch by its own law (ruling 13)
     { key: 'parallax', type: 'bool', default: true },                // fx/parallax.js
@@ -358,8 +360,8 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   g = groupEl('windows', phrase('WINDOWS'));
   line(g, 'gui-sws gui-col').append(swOf('dropShadow', phrase('DROP SHADOW'), phrase('Pane shadows ({:SHADOW} sets their strength)')).root, swOf('edge', phrase('EDGE'), phrase('The pane’s hairline rim')).root,
     swOf('disconnected', phrase('DISCONNECTED'), phrase('Separate window headers from their bodies')).root);
-  const kSpace = knobOf('spacing', phrase('SPACING'), { ...hundred, title: 'The rack\u2019s air: between its windows, from the screen\u2019s edge and inside each window. 0% is flush.' });
-  line(g, 'gui-knobs').append(kSpace.root, seat(), seat());
+  line(g).append(segOf('spacing', phrase('SPACING'), [['0', '0', phrase('Rack windows flush to each other and to the screen’s edge')], ['tight', phrase('TIGHT'), phrase('3 px between rack windows and from the edge')],
+    ['default', phrase('DEFAULT'), phrase('6 px between rack windows and from the edge')], ['airy', phrase('AIRY'), phrase('16 px between rack windows and from the edge')]]).root);   // BASINS' row (settings-window.js), and AIRY
 
   /* ── ABOUT ── */
   const ab = el('div', 'gui-page gui-about');

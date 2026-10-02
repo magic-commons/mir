@@ -158,7 +158,7 @@ try {
   await option('SHINE', () => dragUp(dial('light', 4), 'SHINE', 40), `[document.documentElement.hasAttribute('data-shine'), cs('#strip .dev', 'mix-blend-mode', '::before')]`, [true, 'plus-lighter'], `cs('#strip .dev', 'box-shadow', '::before')`);
   await option('SHINE SOFT', () => dragUp(dial('light', 5), 'SHINE SOFT', 40), `hv('--shine-soft') === P.get('shineSoft') + 'px'`, true, `cs('#strip .dev', 'box-shadow', '::before')`);
   await option('EDGE off', () => click(swB('windows', 1), 'EDGE'), `bv('--pane-edge')`, 'transparent', `cs('#pane', 'border-top-color')`);
-  await option('SPACING (less air)', () => dragUp(dial('windows', 0), 'SPACING', -50), `[P.get('spacing') < 0.63, hv('--pane-pad') !== '7px', hv('--rack-gap') !== '10px']`, [true, true, true], `cs('#strip .dev > .dev-body', 'padding-top')`);
+  await option('SPACING tight', () => click(segB('windows', 0, 1), 'SPACING TIGHT'), `[P.get('spacing'), hv('--rack-gap'), hv('--pane-pad'), hv('--rail-gap')]`, ['tight', '3px', '6px', '2px'], `cs('#strip .dev > .dev-body', 'padding-top')`);
   await option('DROP SHADOW off', () => click(swB('windows', 0), 'DROP SHADOW'), `bv('--surface-shadow')`, '0 0 0 0 transparent', `cs('#pane', 'box-shadow')`);
   await option('DISCONNECTED on', () => click(swB('windows', 2), 'DISCONNECTED'), `document.body.classList.contains('disconnected')`, true, `cs('.dev', 'visibility')`);
   await click(pageNext, 'turner › (ABOUT)'); await sleep(300); await click(pageNext, 'turner › (OPTIONS 1)'); await sleep(300);

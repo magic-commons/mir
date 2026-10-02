@@ -110,7 +110,7 @@ Every control on MIR OPTIONS changes what is drawn through a hook a kit sheet or
 | WINDOWS (page 2) | DROP SHADOW | switch | off: `--surface-shadow`, `-float`, `-menu` = `0 0 0 0 transparent` on `<body>` | on |
 | | EDGE | switch | off: `--pane-edge: transparent` on `<body>` (window panes; menus and popovers keep their rim) | on (FROST: off) |
 | | DISCONNECTED | switch | `body.disconnected` | off |
-| | SPACING 0–100 % | dial | `--rack-gap`, `--rack-inset`, `--pane-pad` on `<html>`; 0 is `html[data-flush]` | 40 % |
+| | SPACING 0 · TIGHT · DEFAULT · AIRY | seg | BASINS' row (AIRY added): `--rack-gap`, `--rack-inset`, `--pane-pad`, `--rail-gap` on `<html>`; 0 is `html[data-flush]` (`docs/THEMES.md`) | DEFAULT |
 
 **The themes** (`docs/THEMES.md`) set every option but THEME (light · dark · system), HINTS, HELP and DROP GUIDES, which are the user's own; their tones set only the colours.
 

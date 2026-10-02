@@ -26,7 +26,7 @@ export const THEME_KEYS = Object.freeze(['card', 'frost', 'blur', 'veil', 'satur
 
 /* what a theme does not say: the kit's own home for each (shell/gui.js lookSchema defaults, before FROST) */
 const BASE = { card: 'tinted', frost: 'off', blur: 11, veil: 10, saturation: 1, corners: 14, faces: 'solid', faceBlend: 0, text: 'theme', relief: 'default', edge: true,
-  lightAngle: 0, shadow: 1, shadowDist: 2, shadowSoft: 8, shine: 0, shineSoft: 12, dropShadow: true, disconnected: false, spacing: 0.63, motion: 'auto', glow: true, parallax: true, quality: 'full' };
+  lightAngle: 0, shadow: 1, shadowDist: 2, shadowSoft: 8, shine: 0, shineSoft: 12, dropShadow: true, disconnected: false, spacing: 'default', motion: 'auto', glow: true, parallax: true, quality: 'full' };
 const tone = (id, name, hue, tint, bright, accentA, accentB, vivid) => ({ id, name, values: { hue, tint, bright, accentA, accentB, vivid } });
 
 /* ── THE TABLE ─────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -37,25 +37,25 @@ const TABLE = [   // tr: names
      Refractive on and frost always."  BASINS' ABOUT GLASS draws no pane edge (material.css), so EDGE is off.  The white
      text belongs to dark mode: TEXT is AUTO, which under glass is BASINS' pure ladder in the mode's polarity — white in
      dark (the recipe, exactly), black in light. */
-  { id: 'frost', name: 'FROST', values: { card: 'refractive', frost: 'always', blur: 11, veil: 0, saturation: 1.3, corners: 24, faces: 'glass', text: 'theme', edge: false, shadow: 2, spacing: 0.4 },
+  { id: 'frost', name: 'FROST', values: { card: 'refractive', frost: 'always', blur: 11, veil: 0, saturation: 1.3, corners: 24, faces: 'glass', text: 'theme', edge: false, shadow: 2, spacing: 'default' },
     tones: [tone('clear', 'CLEAR', 0, 0, 0, 30, 300, 0.1), tone('rose', 'ROSE', 340, 0.22, 0, 345, 300, 0.25), tone('azure', 'AZURE', 205, 0.28, 0, 200, 280, 0.25)] },
   /* MORPH — neumorphism: the SOLID pane, the light at the upper left, a drop shadow bottom-right and the shine upper-left
      (Josh: "So bottom right shadow, upper left shine"), faces the pane's colour, soft corners, no edge. */
-  { id: 'morph', name: 'MORPH', values: { card: 'solid', corners: 20, edge: false, lightAngle: 315, shadow: 1.4, shadowDist: 6, shadowSoft: 14, shine: 0.7, shineSoft: 14, glow: false, parallax: false, spacing: 0.75 },
+  { id: 'morph', name: 'MORPH', values: { card: 'solid', corners: 20, edge: false, lightAngle: 315, shadow: 1.4, shadowDist: 6, shadowSoft: 14, shine: 0.7, shineSoft: 14, glow: false, parallax: false, spacing: 'airy' },
     tones: [tone('clay', 'CLAY', 24, 0.16, 0, 30, 300, 0.1), tone('mint', 'MINT', 150, 0.18, 0, 140, 300, 0.1), tone('lilac', 'LILAC', 268, 0.2, 0, 280, 30, 0.1), tone('slate', 'SLATE', 0, 0, 0, 30, 300, 0.1)] },
   /* CLASSIC — the 1.4 spirit: the tinted pane, solid faces, the relief, the house corner and veil, and 1.4's 22 px blur. */
   { id: 'classic', name: 'CLASSIC', values: { blur: 22 },
     tones: [tone('house', 'HOUSE', 0, 0, 0, 30, 300, 0.1), tone('ink', 'INK', 214, 0.2, 0, 200, 300, 0.1), tone('ember', 'EMBER', 18, 0.18, 0, 20, 300, 0.15)] },
   /* SWIFT — the high-performance one: SOLID, no blur, no shadow, no shine, flat controls, motion off, pointer glow and
      parallax off, the flat tier.  (It replaces the preset called LIGHT: the name was ambiguous with the light theme.) */
-  { id: 'swift', name: 'SWIFT', values: { card: 'solid', relief: 'flat', shadow: 0, motion: 'off', glow: false, parallax: false, quality: 'light', spacing: 0.25 },
+  { id: 'swift', name: 'SWIFT', values: { card: 'solid', relief: 'flat', shadow: 0, motion: 'off', glow: false, parallax: false, quality: 'light', spacing: 'tight' },
     tones: [tone('graphite', 'GRAPHITE', 0, 0, 0, 30, 300, 0.1), tone('sand', 'SAND', 40, 0.14, 0, 40, 300, 0.1), tone('steel', 'STEEL', 210, 0.16, 0, 200, 300, 0.1)] },
   /* AURORA — the flashy one: refractive, saturation up, a strong shine, vivid accents, pointer glow and parallax on. */
-  { id: 'aurora', name: 'AURORA', values: { card: 'refractive', frost: 'always', blur: 16, veil: 6, saturation: 1.8, corners: 22, faces: 'glass', edge: true, shadow: 1.5, shadowDist: 3, shadowSoft: 14, shine: 1, shineSoft: 18, spacing: 0.5 },
+  { id: 'aurora', name: 'AURORA', values: { card: 'refractive', frost: 'always', blur: 16, veil: 6, saturation: 1.8, corners: 22, faces: 'glass', edge: true, shadow: 1.5, shadowDist: 3, shadowSoft: 14, shine: 1, shineSoft: 18, spacing: 'default' },
     tones: [tone('borealis', 'BOREALIS', 160, 0.3, 0, 120, 280, 0.8), tone('dusk', 'DUSK', 300, 0.3, 0, 320, 40, 0.7), tone('solar', 'SOLAR', 40, 0.3, 0, 45, 200, 0.8)] },
   /* NEON — near-black SOLID panes, accents at full strength with their glow, everything else quiet (no pane shadow, no edge).
      A dark-pane theme in either mode, so it states THEME dark. */
-  { id: 'neon', name: 'NEON', values: { theme: 'dark', card: 'solid', corners: 10, edge: false, shadow: 0, parallax: false, spacing: 0.2 },
+  { id: 'neon', name: 'NEON', values: { theme: 'dark', card: 'solid', corners: 10, edge: false, shadow: 0, parallax: false, spacing: 'tight' },
     tones: [tone('volt', 'VOLT', 0, 0, -0.26, 110, 300, 1), tone('magenta', 'MAGENTA', 300, 0.25, -0.26, 300, 180, 1), tone('cyan', 'CYAN', 190, 0.25, -0.26, 180, 330, 1)] },
 ];
 

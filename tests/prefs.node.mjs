@@ -78,7 +78,7 @@ const mk = (storage) => createPrefs({ key: 'mir.gui', schema, presets: LOOK_PRES
   const home = at(LOOK_PRESETS.classic);
   assert.equal(home['html prop --glass-blur'], '22px', 'BLUR is always written: CLASSIC is the kit\'s own 22'); assert.equal(home['body prop --surface-veil'], null); assert.equal(home['body prop --glass-tint'], null); assert.equal(home['body prop --surface-filter'], null);
   assert.equal(home['html attr data-cast'], null, 'CLASSIC\'s light is at home: the kit\'s own shadows'); assert.equal(home['body attr data-text'], null); assert.equal(home['body attr data-faces'], null); assert.equal(home['body prop --pane-edge'], null);
-  assert.equal(home['html prop --rack-gap'], '10px', 'CLASSIC\'s SPACING is the 1.4 gap'); assert.equal(home['html prop --pane-pad'], '7px');
+  assert.equal(home['html prop --rack-gap'], '6px', 'CLASSIC\'s SPACING is DEFAULT'); assert.equal(home['html prop --pane-pad'], '8px'); assert.equal(home['html prop --rail-gap'], '4px');
   assert.equal(home['body prop --surface-radius'], null); assert.equal(home['html prop --relief-raise'], null); assert.equal(home['body prop --surface-shadow'], null);
   assert.equal(home['html attr data-ui-tier'], null); assert.equal(home['body class frost'], false); assert.equal(home['body attr data-card'], 'tinted');
   const g = at(themeValues('frost'));
@@ -92,7 +92,7 @@ const mk = (storage) => createPrefs({ key: 'mir.gui', schema, presets: LOOK_PRES
   const m = at(themeValues('morph'));
   assert.equal(m['body attr data-card'], 'solid'); assert.equal(m['html prop --light-angle'], '315deg'); assert.equal(m['html attr data-shine'], ''); assert.equal(m['body attr data-text'], 'light', 'AUTO on a dark SOLID pane is white');
   assert.equal(at(themeValues('morph'), { theme: 'light' })['body attr data-text'], 'dark', '… and black on a light one');
-  assert.equal(at({ spacing: 0 })['html attr data-flush'], '', 'SPACING 0 is flush'); assert.equal(at({ spacing: 0 })['html prop --rack-gap'], '0px');
+  assert.equal(at({ spacing: '0' })['html attr data-flush'], '', 'SPACING 0 is flush'); assert.equal(at({ spacing: '0' })['html prop --rack-gap'], '0px'); assert.equal(at({ spacing: '0' })['html prop --pane-pad'], '6px', 'a pane keeps 6 px');
   assert.equal(at({ faces: 'solid', faceBlend: 0.5 })['body attr data-faces'], 'blend'); assert.equal(at({ faces: 'solid', faceBlend: 0.5 })['body prop --faces-solid-pct'], '50.00%');
   assert.equal(at({ dropShadow: false })['body prop --surface-shadow'], '0 0 0 0 transparent', 'DROP SHADOW off: no pane shadow'); assert.equal(at({ dropShadow: false })['html attr data-cast'], null);
   const l = at(LOOK_PRESETS.swift);
