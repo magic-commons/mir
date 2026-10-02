@@ -18,6 +18,8 @@ Not switched by any tier:
 - **The value tooltip and badge glows** in an accent or status colour. They carry meaning.
 - **The carried window's lift** (`.dev.dragging`). It shows only during a drag.
 
+**SOLID, the shine and the cast (1.5.0-alpha.5, `docs/THEMES.md`).** A SOLID pane is already the cheapest surface (no blur, no veil): the tiers still give it one shadow layer (lite) or none (flat), and flat takes its relief. The shine is drawn only at FULL: the lite and flat tiers, reduced transparency and SHINE 0 draw no shine layer at all. The cast (`html[data-cast]`, the pane shadow off its home) is in the house layer, so the tier's shadow values still win over it.
+
 ## How an app or the GUI window sets it
 
 ```js

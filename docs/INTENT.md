@@ -44,16 +44,20 @@ Josh has not ruled these. 1.5.0-alpha.3 built the default in the last column so 
 | # | Question | Before alpha.3 | Built in alpha.3 (a default, not a ruling) |
 |---|---|---|---|
 | O1 | Are the round header chips (⏻ ⧉ ⇄ ▾ ×) "press me" (raised) or flat glyph seats? | flat on `--glass-raise` with a hairline | left as they were; they gained the hover face and the focus ring |
-| O2 | Does "from above" straighten the controls' relief too? `--neu-raise` casts down-right (`2px 2px`) from a top-left light | top-left (skin.css Law 2) | left as it was |
-| O3 | The text emboss `--ink-shadow` under `.glass`: delete it (relief on ink), or keep it as legibility over the live field in TINTED? | on in TINTED; BASINS turns it off under its glass ink | left as it was (L60 stays open) |
+| O2 | Does "from above" straighten the controls' relief too? `--neu-raise` casts down-right (`2px 2px`) from a top-left light | top-left (skin.css Law 2) | **Settled in alpha.5:** the relief follows LIGHT ANGLE (`--light-angle`, `docs/THEMES.md`): highlight toward the light, drop away. At FROST's 0° it is straight down; at 315° it is the 1.4 drawing exactly |
+| O3 | The text emboss `--ink-shadow` under `.glass`: delete it (relief on ink), or keep it as legibility over the live field in TINTED? | on in TINTED; BASINS turns it off under its glass ink | **BASINS' answer, alpha.5:** off under REFRACTIVE or FROST and under a forced ink (TEXT LIGHT · DARK); kept on a TINTED pane |
 | O4 | The value tooltip (`.k-val`): menu height, or no drop at all? | `--neu-flat` + `0 3px 8px` | a tooltip is a popover: menu height, `--surface-shadow-menu` (the `--neu-flat` seat stays, O10) |
 | O5 | A trigger has no LED. Where does its ON light go — the glyph, the label, a dot? | label in accent | the frost face and rim; the label in accent A with the accent glow (`--state-on-light`) |
 | O6 | One disabled fade and one press scale: which numbers? | fades .38 / .3 / .45; scales .92 / .94 / .985 | `--state-disabled: .38` and `--state-press-scale: .96`, one token each |
 | O7 | The TAB window flash (`.dev.tab-hot`, an accent outline inside): is it focus, or its own meaning? | accent outline, offset −1px | left as it was |
-| O8 | The menubar list: TINTED or REFRACTIVE? | a .65 tint *and* a blur | a menu is a pane and wears CARD STYLE: TINTED = the tint, no blur; REFRACTIVE = the veil and the blur. Same for the one tip (`#graphTip`): tinted, no blur |
+| O8 | The menubar list: TINTED or REFRACTIVE? | a .65 tint *and* a blur | a menu is a pane and wears CARD STYLE: TINTED = the tint, no blur; REFRACTIVE = the veil and the blur. Same for the one tip (`#graphTip`): tinted, no blur. **alpha.5, BASINS' design:** under REFRACTIVE with FROST the hover hint and the ⓘ panel are glass too (the veil and the blur), and under GLASS faces a refractive menu loses the tinted pane's sheen |
 | O9 | Drop here: accent A (as core.css draws it) or accent B (it is a relationship)? | accent A | left as it was |
 | O10 | `--neu-flat`, "a resting seat" (a 1 px ring): a meaning, or gone? | on `.sw`, `.badge`, `.k-val` | left as it was |
 | O11 | Plan §5.2 and F1 §5.2 name the same tokens twice (`--relief-raise` / `--face-relief-raise`, `--state-on` / `--face-fill-on` …). Which spelling? | both in the schema as `proposed`; the plan's are listed first | the plan's: `--relief-*`, `--state-*`. The `--face-*` duplicates are read by nothing and can leave the schema |
+
+## The vanilla themes keep it
+
+A theme is a set of built-in settings (`docs/THEMES.md`), so it can move the light, the depth and the faces but not the meanings. Under MORPH (neumorphism: SOLID panes, the light upper-left) every dent still means a well or a press: a resting trigger stands proud, ON and CHOSEN wear the frost face and are not wells, the track is the well, disabled has no relief, and every pane shadow falls away from the light. `tests/intent.browser.mjs` checks these under FROST and MORPH in both themes. **Rule 1 reads, since alpha.5: one light, from LIGHT ANGLE** — above by default and in FROST; a theme may move it, and then every shadow, shine and relief moves with it.
 
 ## How it is kept
 

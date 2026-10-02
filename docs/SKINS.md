@@ -89,6 +89,21 @@ Every block is headed `/* FROST · values */` and closed by `/* ── end of th
 
 `mir/css/tokens.css` is the performance tier, not a FROST block: it switches `--surface-*`, `--relief-*`, `--t-*`, `--motion-*`, `--frost-filter` and `--glass-filter`, and a skin leaves it alone. `mir/shell/rack.css` declares layout only (the rack's gutter and the visibility step easings), `mir/info/faces.css` only `@font-face` rules: no FROST block.
 
+## The built-in settings' hooks (1.5.0-alpha.5)
+
+The GUI window's look store writes these; a vanilla theme is a set of their values (`docs/THEMES.md`). They are read by the house sheets as follows, so a skin may set them too:
+
+| Name / attribute | On | What reads it |
+|---|---|---|
+| `--light-angle` (and `--light-sin`, `--light-cos` from it) | `<html>` | `--neu-raise`, `--neu-inset` (the relief, every theme), the cast and the shine |
+| `--shadow-amount`, `--shadow-dist`, `--shadow-soft` | `<html>` | the cast: `--cast-pane`, `--cast-float`, `--cast-menu` on `html[data-cast] body`, which become `--surface-shadow`, `-float`, `-menu` |
+| `--shine-amount`, `--shine-soft` → `--shine-term` | `<html>` → `html[data-shine] body` | a rack card's `::before` (additive) and every other pane's shadow list |
+| `body[data-card="solid"]` | `<body>` | `--card-opacity: 1`, `--glass-opacity: 1`, `--surface-sheen: none`, `--solid-pane`, `--solid-lit`, `--solid-shade`, the wells and the relief mixed from the pane |
+| `body[data-faces="glass" \| "blend"]`, `--faces-solid-pct`, `--faces-transition-alpha` | `<body>` | the faces' own tokens (`--knob-face`, `--trig-face`, `--sw-fill`, `--glass-well`, `--k-dial-sheen`, `--glass-groove`), the hairline, the blend layer; the modulation dial's `--m2-dialink-b-wash`; the transport pill's `--xport-face` |
+| `body[data-text="light" \| "dark"]` | `<body>` | the ink ladder (`--fg` … `--ink-faint`), `--ink-shadow`, and the plugin's `--m2-ink-*` |
+| `--pane-edge` | `<body>` | the window panes' rim (`.dev`, `.glass`, the islands, the notebook, the modulation panes), before `--surface-edge` |
+| `--rack-gap`, `--rack-inset`, `--pane-pad`; `html[data-flush]` | `<html>` | `rack.css` (the column's gap and padding), `.dev-body`'s padding; flush: a square, shadowless slab |
+
 ## Themed names
 
 | Name | Dark (or no theme) | Light |
