@@ -172,6 +172,10 @@
   /* 1.5.0-alpha.4 · modulation's POWER (BASINS transport-controls.css, its numbers): the drawing's weight and size, the
      halo at rest and lit, the ring's gap while off, and the press motion */
   --m2-power-sw: 1.9;
+  /* 1.5.0-alpha.5 · the docked rail's gap, as the window set's (window.css): two thirds of SPACING's --rack-gap, at most 4 px */
+  --rail-gap-max: 4px;
+  --rail-gap-share: .667;
+  --rail-gap: min(var(--rail-gap-max), calc(var(--rack-gap, 6px) * var(--rail-gap-share)));
   --m2-power-on-ink: var(--acc2);     /* lit in accent B, as BASINS (the time group: the tempo beside it is accent B too) */
   --m2-power-icon: 28px;
   --m2-power-seat: 44px;             /* the power button's seat on the work bar: 44 × 44, as BASINS draws it (transport-controls.css) */
@@ -2373,6 +2377,14 @@ html body :where(.crail.crail-float)[data-mir-rail="modulation"] .crail-chip:whe
    chips lie in a row (the rail measures one orientation and turns it). */
 .kwin-chiprail[data-mir-rail="modulation"]:is([data-side="top"], [data-side="bottom"]) {
   flex-direction: row; width: auto; height: var(--chrome-chip-target); }
+/* 1.5.0-alpha.5 · DOCKED, THE CHIPS SIT TIGHTER (BASINS, Josh 2026-10-01): along the rail each chip is its disc plus
+   --rail-gap and the chips stand --rail-gap apart (21 px disc to disc became 8 at the default); across, the 62 px target
+   stays, so the dock lane does not move. */
+.kwin-chiprail[data-mir-rail="modulation"]:is([data-dock="top"], [data-dock="bottom"]) { gap: var(--rail-gap); }
+.kwin-chiprail[data-mir-rail="modulation"]:is([data-dock="top"], [data-dock="bottom"]):not([data-side="top"], [data-side="bottom"]) .crail-chip {
+  flex-basis: calc(var(--chrome-chip-disc) + var(--rail-gap)); height: calc(var(--chrome-chip-disc) + var(--rail-gap)); min-height: 0; }
+.kwin-chiprail[data-mir-rail="modulation"]:is([data-dock="top"], [data-dock="bottom"]):is([data-side="top"], [data-side="bottom"]) .crail-chip {
+  flex-basis: calc(var(--chrome-chip-disc) + var(--rail-gap)); width: calc(var(--chrome-chip-disc) + var(--rail-gap)); min-width: 0; }
 
 /* ROUTING SHOWS WHERE IT WILL LAND (core/proximity.js).  The glow's overlays live in .m2route-glow, where the accent
    is accent B — a route is a relationship — so core.css draws them in it without a rule of its own. */

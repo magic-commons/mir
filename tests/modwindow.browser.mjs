@@ -238,6 +238,30 @@ try {
     r = await run(`await rest(); await wait(400); const n0 = window.__raf; await wait(1000); return { frames: window.__raf - n0, playing: mod.host.clock.isPlaying(), frame: G.frame.state() };`);
     check('idle: a second after a drag lands, with the transport paused, the page books zero animation frames', r.frames === 0 && !r.playing && !r.frame.scheduled, JSON.stringify(r));
   }
+  /* ── 9b · docked (BASINS 2026-10-01): the right work bar follows the last device; the chips sit tighter ── */
+  {
+    r = await run(`view.restore({ ...view.presentation(), dock: 'bottom', chipSide: 'left', open: true }); await rest(); await frames(3);
+      const bar = () => win.querySelector('.m2pre').getBoundingClientRect(), run = () => win.querySelector('.m2run').getBoundingClientRect();
+      const last = () => { const c = win.querySelectorAll('.m2run .m2dev'); return c[c.length - 1].getBoundingClientRect(); };
+      const two = { devices: win.querySelectorAll('.m2run .m2dev').length, bar: bar().right, last: last().right };
+      const chips = [...rail.querySelectorAll('.crail-chip')].filter((c) => getComputedStyle(c).display !== 'none').map((c) => c.getBoundingClientRect());
+      const step = chips[1].top - chips[0].top, disc = parseFloat(getComputedStyle(rail).getPropertyValue('--chrome-chip-disc')) || 48;
+      const tight = { dock: rail.dataset.dock, step, gapDiscs: step - disc, across: Math.round(chips[0].width) };
+      for (let i = 0; i < 3; i++) M.addSource('lfo');
+      view.rebuild(); await rest(); await frames(3);
+      const over = { devices: win.querySelectorAll('.m2run .m2dev').length, bar: bar().right, run: run().right, last: last().right };
+      const buttons = [...win.querySelectorAll('.m2pre button')].filter((b) => b.getClientRects().length && getComputedStyle(b).visibility !== 'hidden');
+      const missed = buttons.filter((b) => !hits(b)).map((b) => b.className);
+      return { two, over, tight, missed, n: buttons.length };`);
+    check('docked: with two devices the right work bar ends at the last device (≤ 1 px)', r.two.devices === 2 && Math.abs(r.two.bar - r.two.last) <= 1, JSON.stringify(r.two));
+    check('docked: with the run overflowing it ends at the run’s right edge (≤ 1 px), and every button on it answers elementFromPoint',
+      r.over.last > r.over.run && Math.abs(r.over.bar - r.over.run) <= 1 && r.missed.length === 0 && r.n >= 5, JSON.stringify({ over: r.over, missed: r.missed, n: r.n }));
+    check('docked: the rail carries data-dock and its discs stand 8 px apart (4 + 4), the 62 px target kept across', r.tight.dock === 'bottom' && Math.abs(r.tight.gapDiscs - 8) <= 1 && r.tight.across === 62, JSON.stringify(r.tight));
+    await p.mouse(1435, 300); await p.eval(`__MOD.mod.view.say('')`); await sleep(300);   // no hover hint or transient line in the plate
+    await shot('docked');
+    await run(`for (const s of M.sourceList().filter((x) => x.kind === 'lfo').slice(1)) M.removeSource(s.id); view.restore({ ...view.presentation(), dock: null, x: 340, y: 132, open: true }); await rest(); return 1;`);
+  }
+
   /* ── 10 · a reload keeps the power state ── */
   {
     const pow = await at(`document.querySelector('#modwin .modxport')`);

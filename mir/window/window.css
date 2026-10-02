@@ -29,6 +29,12 @@
   /* ON reads the semantic tier (a skin may set it); the fallbacks are §56's: the plugin's frost at its default blend */
   --chip-on: var(--state-on, hsl(0 0% 100% / .086));
   --chip-on-rim: var(--state-on-rim, inset 0 0 0 1px var(--chip-rim), inset 0 1px 0 hsl(0 0% 100% / .12));
+  /* 1.5.0-alpha.5 · A DOCKED RAIL SITS TIGHTER (BASINS, Josh 2026-10-01: "Reduce the padding on all the chips when docked"):
+     along the rail each chip is its disc plus --rail-gap, and the chips stand --rail-gap apart.  It follows SPACING through
+     --rack-gap (gui.js writes it on <html>): two thirds of it, at most 4 px — 4 at the default (6), 2 at tight (3), 0 flush. */
+  --rail-gap-max: 4px;
+  --rail-gap-share: .667;
+  --rail-gap: min(var(--rail-gap-max), calc(var(--rack-gap, 6px) * var(--rail-gap-share)));
 }
 body[data-theme="light"] .mir-rail { --chip-rim: hsl(214 30% 40% / .34); }
 body:is([data-card="tinted"], [data-card="solid"]) .mir-rail { --chip-fill: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
@@ -63,6 +69,12 @@ body.frost.frost-hold[data-card="refractive"] .mir-rail { --chip-filter: none; -
   margin: 0; padding: 0; pointer-events: auto;
 }
 .mir-rail:is([data-side="top"], [data-side="bottom"]) { flex-direction: row; }
+/* docked at the top or bottom: tighter ALONG the rail; across it the 62 px target stays (the dock lane is measured from it) */
+.mir-rail:is([data-dock="top"], [data-dock="bottom"]) { gap: var(--rail-gap); }
+.mir-rail:is([data-dock="top"], [data-dock="bottom"]):not([data-side="top"], [data-side="bottom"]) > .mir-chip {
+  flex-basis: calc(var(--chrome-chip-disc) + var(--rail-gap)); height: calc(var(--chrome-chip-disc) + var(--rail-gap)); }
+.mir-rail:is([data-dock="top"], [data-dock="bottom"]):is([data-side="top"], [data-side="bottom"]) > .mir-chip {
+  flex-basis: calc(var(--chrome-chip-disc) + var(--rail-gap)); width: calc(var(--chrome-chip-disc) + var(--rail-gap)); }
 
 /* ── THE CHIP: a 62 px target around a 48 px disc ─────────────────────────────────────────────────────────── */
 .mir-chip {

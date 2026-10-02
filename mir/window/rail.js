@@ -121,7 +121,10 @@ export const markForwarded = (e) => { forwarded.add(e); return e; };
  *  seats() → [{ id: side, rect }] — where the rail would land on each side (the window's own layout); onSide(side,
  *  phase) with phase 'preview' (keyboard, live), 'commit' or 'cancel' (back to where the keyboard started).
  *  → { el, grip, chip(name), setChip(name, state), state(name), measure(), sizes(), seat(seat, { animate }),
- *      holding(), destroy() } */
+ *      setDock(dock), holding(), destroy() }
+ *  setDock('top' | 'bottom' | null) — the rail carries its window's dock (data-dock): docked at the top or bottom, the
+ *  chips sit tighter along it (window.css, --rail-gap; BASINS 2026-10-01).  Its length changes, so the next sizes()
+ *  measures again; its width across does not (the dock lane is measured from it). */
 export function createRail({ id, title, chips = [], layer, seats, onChip, onSide, onNudge } = {}) {
   const doc = (layer && layer.ownerDocument) || document;
   const el = doc.createElement('div');
@@ -183,6 +186,7 @@ export function createRail({ id, title, chips = [], layer, seats, onChip, onSide
     size = v ? { vertical: a, horizontal: b } : { vertical: b, horizontal: a };
     return size;
   }
+  let stale = false;                                                 // the dock changed the rail's length: measure again
   /** seat(s, { animate }) — land the rail on a seat from seatRail().  Animated: the same orientation travels by
    *  tweenRect (position only), a turn of orientation lands at once and travels by flip. */
   const pos = (n, to) => { setVar(n, 'left', `${Math.round(to.left)}px`); setVar(n, 'top', `${Math.round(to.top)}px`); };
@@ -246,8 +250,9 @@ export function createRail({ id, title, chips = [], layer, seats, onChip, onSide
     chip: (name) => nodes.get(name),
     setChip, state: (name) => states.get(name),
     /* before the rail has ever been seen, the kit's chip target (62) and gap (7) stand in for a measurement */
-    measure, sizes: () => size || measure() || { vertical: { w: 62, h: 69 * nodes.size - 7 }, horizontal: { w: 69 * nodes.size - 7, h: 62 } },
+    measure, sizes: () => { if (stale) { stale = false; measure(); } return size || measure() || { vertical: { w: 62, h: 69 * nodes.size - 7 }, horizontal: { w: 69 * nodes.size - 7, h: 62 } }; },
     seat,
+    setDock(dock) { const d = dock === 'top' || dock === 'bottom' ? dock : null; if ((el.dataset.dock || null) === d) return; setAttr(el, 'data-dock', d); stale = true; },
     /** true from a long press until the next press: the window's drag stands down for it */
     holding: () => held,
     destroy() { holdCancel({}); prox.destroy(); el.remove(); },

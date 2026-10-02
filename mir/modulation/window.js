@@ -251,7 +251,8 @@ export function createModulation(host, port) {
   const status = (msg, cls) => {
     hintMsg = msg || ''; hintCls = cls || '';
     hintAt = hintMsg ? performance.now() : 0;
-    if (hintMsg) mw.hint.textContent = hintMsg; else label(mw.hint, mw.copy.hint);
+    /* a message is not a label: its English key goes, so a language pass never writes the idle hint over it */
+    if (hintMsg) { delete mw.hint.dataset.t; delete mw.hint.dataset.tVars; mw.hint.textContent = hintMsg; } else label(mw.hint, mw.copy.hint);
     mw.hint.classList.toggle('m2dead', !!hintMsg && hintCls === 'warn');
     mw.hint.classList.toggle('m2say', !!hintMsg);
     if (hintTimer) { clearTimeout(hintTimer); hintTimer = 0; }
@@ -365,7 +366,11 @@ export function createModulation(host, port) {
       if (P.x + w > v.width - 8) P.x = Math.max(8, v.width - 8 - w);
       lastW = w;
     }
-    const { L, seat } = layoutOf(P);
+    /* the rail carries the dock (data-dock): docked at the top or bottom its chips sit tighter, so its length is set first */
+    const wantDock = P.dock && dockOpt ? P.dock : null;
+    rail.setDock(wantDock);
+    let { L, seat } = layoutOf(P);
+    if ((L.docked || null) !== wantDock) { rail.setDock(L.docked); ({ L, seat } = layoutOf(P)); }   // no room to dock: it floats for now
     box = L.box;
     /* THE CLAMP IS THE HOUSE'S (window.js CLAMP: a header stays reachable, 120 px across and 52 down); a floating
        window keeps the clamped place as its own */
