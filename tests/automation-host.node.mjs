@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {createModHost} from '../mir/modulation/host.js';
-const H=createModHost({roots:['test'],presentationActive:false});H.model.modReset();let value=.2;
+const H=createModHost({roots:['test'],presentationActive:false});H.model.modReset();H.model.setTransport({bpm:60});let value=.2;   // 60 said out loud: the default is 30 since alpha.4, and the steps below count one beat a second
 H.targets.install({id:'test.level',map:'linear',min:0,max:1,get:()=>value,set:v=>{value=v;}});
 H.clock.setAutomation({value:(id,beat)=>id==='test.level'&&beat<4?beat/4:null});H.clock.demand('automation',true);
 assert.equal(H.clock.play(0).ok,true);assert.equal(value,0);H.clock.step(2);assert.equal(H.model.transport.beats,2);assert.equal(value,.5);assert.equal(H.registry.baseOf('test.level'),.2);

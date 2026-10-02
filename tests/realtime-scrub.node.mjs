@@ -19,7 +19,7 @@ for(const sync of ['wall','free'])for(const playing of [true,false])for(const mo
   H.dispose();
 }
 {
-  const H=createModHost({roots:[],exactResume:true,presentationActive:false}),C=H.clock;H.model.modReset({bare:true});C.demand('transport',true);C.play(1);
+  const H=createModHost({roots:[],exactResume:true,presentationActive:false}),C=H.clock;H.model.modReset({bare:true});H.model.setTransport({bpm:60});C.demand('transport',true);C.play(1);   // 60 said out loud: the default is 30 since alpha.4, and the step below counts beats at one a second
   const release=C.suspendRealtime(1);C.seek(2);C.pause(2);release(10);C.advanceTo(11);assert.equal(C.isPlaying(),false);assert.equal(H.model.transport.beats,2,'User pause during scrub remains paused');
   C.play(11);const stale=C.suspendRealtime(11),runtime=C.captureRuntime();assert.equal(C.restoreRuntime(runtime,{wall:30}),true);assert.equal(stale(50),false);assert.equal(C.isRealtimeSuspended(),false);
   const stepRelease=C.suspendRealtime(30);const beat=H.model.transport.beats;C.step(.125);near(H.model.transport.beats,beat+.125);stepRelease(31);H.dispose();

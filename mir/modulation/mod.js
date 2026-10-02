@@ -41,8 +41,8 @@ const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const frac = (v) => v - Math.floor(v);
 const TAU = 6.283185307179586;
 
-/* Tempo range and default, BPM. */
-export const BPM_MIN = 20, BPM_MAX = 300, BPM_DEFAULT = 60;
+/* Tempo range and default, BPM.  The default is 30 (Josh, 2026-10-01: "Let 30BPM be the default"); it was 60 through 1.5.0-alpha.3. */
+export const BPM_MIN = 20, BPM_MAX = 300, BPM_DEFAULT = 30;
 /* The LFO clock divisions and their labels, 1 down to 1/128. */
 export const LFO_MULTS = [1, 1 / 2, 1 / 4, 1 / 8, 1 / 16, 1 / 32, 1 / 64, 1 / 128];
 export const LFO_MULT_LABEL = ['1', '1/2', '1/4', '1/8', '1/16', '1/32', '1/64', '1/128'];
