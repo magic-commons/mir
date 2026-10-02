@@ -84,7 +84,7 @@ const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? +v.toFixed(4) 
 const cell = (s) => String(s ?? '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
 
 /** describeText(state) — state: { app, windows, params, keys, pages } with values already read */
-export function describeText({ app = {}, windows = [], params = [], keys = [], pages = [], clock = null } = {}) {
+export function describeText({ app = {}, windows = [], params = [], keys = [], pages = [], clock = null, pageText = true } = {}) {
   const out = [`# ${app.name || 'An MIR app'}${app.version ? ' ' + app.version : ''} · MIR ${MIR_VERSION}`];
   if (app.what) out.push('', app.what);
   out.push('', 'Built on MIR, Magic Commons\' interface kit. The kit draws every control; an app passes data and options.');
@@ -114,7 +114,11 @@ export function describeText({ app = {}, windows = [], params = [], keys = [], p
   const shared = pages.filter((p) => p && p.shared === true);
   if (shared.length) {
     out.push('', '## Shared pages');
-    for (const p of shared) out.push('', `### ${p.title || 'Untitled'}`, '', String(p.md || '').trim());
+    for (const p of shared) {
+      const md = String(p.md || '').trim(), n = md ? md.split('\n').length : 0;
+      if (pageText) out.push('', `### ${p.title || 'Untitled'}`, '', md);
+      else out.push('', `- ${p.title || 'Untitled'} (${n} line${n === 1 ? '' : 's'})`);   // describe({ pages: false }): the titles only
+    }
   }
   return out.join('\n') + '\n';
 }
@@ -175,7 +179,7 @@ export function createDescribe({ app = {}, rack = null, params = [], pages = nul
       pages: pages ? pages.list().filter((p) => p.shared === true) : [],
     };
   }
-  const describe = () => describeText(state());
+  const describe = (o) => describeText({ ...state(), pageText: !(o && o.pages === false) });   // describe({ pages: false }): each shared page as its title and line count
 
   function look() {
     if (!doc || !doc.documentElement) return {};

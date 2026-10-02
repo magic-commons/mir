@@ -12,17 +12,18 @@
  *     --expect playing | paused          the app's one clock (read from describe(): "**Clock:** playing")
  *     --expect 'some text'               describe() contains it
  *     --changed 'js expression'          the expression's value is different after the steps (e.g. 'JSON.stringify(window.__GAME.piece)')
- *   --shot out.png   a picture after the steps;  --light   the light theme first
+ *   --shot out.png   a picture after the steps;  --light   the light theme first;  --pages   print each shared page in full
  *
- * Prints every console error and page exception, whether the boot card failed, each step and whether it landed, the
- * WHOLE describe() (the windows, the clock, every parameter, the keys), and each check.  Exit 0 only when the page
+ * Prints every console error and page exception, whether the boot card failed, each step and whether it landed,
+ * describe() (the windows, the clock, every parameter and the keys in full; each shared page as its title and line count
+ * unless --pages), and each check.  --expect still reads the whole describe(), pages included.  Exit 0 only when the page
  * started with no error and every step landed and every check held.  Needs a Chromium on PATH (or CHROMIUM=…). */
 import { launch, sleep } from './cdp.mjs';
 
 const args = process.argv.slice(2);
 const url = args.find((a) => /^https?:/.test(a)) || 'http://127.0.0.1:8800/app/';
 const steps = [], expects = [], changed = [];
-let shot = null, light = false;
+let shot = null, light = false, fullPages = false;
 for (let i = 0; i < args.length; i++) {
   const a = args[i], v = args[i + 1];
   if (a === '--keys') { steps.push({ keys: String(v).split(',').map((k) => k.trim()).filter(Boolean) }); i++; }
@@ -32,6 +33,7 @@ for (let i = 0; i < args.length; i++) {
   else if (a === '--changed') { changed.push(v); i++; }
   else if (a === '--shot') { shot = v; i++; }
   else if (a === '--light') light = true;
+  else if (a === '--pages') fullPages = true;
 }
 const p = await launch({ width: 1280, height: 800 });
 let code = 0;
@@ -61,7 +63,7 @@ try {
   if (errors.length) bad(errors.length + ' console error(s):\n  ' + errors.join('\n  '));
   if (started) {
     const d = String(await p.eval('window.__MIR.describe()'));
-    console.log('\n' + d);
+    console.log('\n' + (fullPages ? d : String(await p.eval('window.__MIR.describe({ pages: false })')) + '(each shared page\'s text: --pages)'));
     for (const e of expects) {
       const ok = e === 'playing' || e === 'paused' ? new RegExp('\\*\\*Clock:\\*\\* ' + e).test(d) : d.includes(e);
       if (ok) console.log('PASS  expect ' + e); else bad('expect ' + e + (e === 'playing' || e === 'paused' ? ': the clock line says ' + ((d.match(/\*\*Clock:\*\*[^.]*/) || ['no clock'])[0]) : ': not in describe()'));

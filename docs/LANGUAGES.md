@@ -197,10 +197,11 @@ All are SIL OFL 1.1. When they land: each in its own `@font-face` with a `unicod
 
 ## 12. Not done yet
 
-- **No pack is reviewed**: the ten packs are drafts (`reviewed: false`) until a native reader checks each. `tests/i18n-packs.node.mjs` checks their shape and placeholders and reports coverage; a key the English has changed shows English until the pack is updated.
+- **No pack is reviewed.** Since 1.5.0-alpha.6 all ten packs are **complete drafts**: every key of the catalogue is translated and no `review` flag is left, but each stays `reviewed: false` (the menu shows DRAFT) until a native reader checks it. `tests/i18n-packs.node.mjs` checks their shape and placeholders and reports coverage; a key the English changes later shows English until the pack is updated.
+- **The weak spots the translators named:** Arabic's and Bengali's glass vocabulary (VEIL, SHINE, RELIEF, SOLID have no settled word); Russian HUE and TINT are both ОТТЕНОК (a reviewer should split them, e.g. ТОН / ПОДКРАСКА); long labels: ADD DEVICE in the Latin-script languages, and Bengali overall, run wider than their buttons. The glossary (`docs/LANGUAGES-GLOSSARY.md`) holds the choices.
 - **Not reached by the catalogue** (`mir/locales/en.unreached.json`, 21): the vendored `modulation/mod.js` (its factory preset notes and the stored-format warning are built from pieces; the kit's own windows never show them, and the file is kept by diff against its source), the envelope checker's and `describe.js`' diagnostic messages (English for a model and a bug report, as COPY DUMP is), thrown developer errors, and the unit and slot letters BPM, A and B.
 - **A device's name** is `{kind} {id}` (`LFO s2`) and a status line `{kind} — {message}`: two short formats with a note, not sentences.
 - **Native tooltips**: a `title` is translated where it becomes a hint (`installControlHelp`). On a page without it, the browser's own tooltip stays English.
 - **A window's head hint** (`name: status`) is assembled from two strings and falls back to English.
-- **Plurals in the drafts**: the mechanism is in (`tn`, plural pack entries); the ten drafts hold only `other` for each count until a translator writes the forms (each is flagged).
+- **Plurals in the drafts**: the mechanism is in (`tn`, plural pack entries) and the top-up wrote the forms each language needs (Russian and Arabic among them); a native reader should check them.
 - **Directional glyphs** (a back chevron) do not flip under right-to-left.

@@ -1,6 +1,6 @@
 # MIR · API
 
-Every module the kit exports, what each export is, and what it returns. MIR 1.5.0-alpha.5.
+Every module the kit exports, what each export is, and what it returns. MIR 1.5.0-alpha.6.
 
 Each module's own header holds its laws and their reasons. This page is the map to them.
 
@@ -14,8 +14,9 @@ Import paths below are from an adopted app's `lab/` folder: `./mir/…`.
 
 | Export | What it is |
 |---|---|
-| `createApp(options)` → `Promise<app>` | The standard wiring, in the kit's order. Options: `name`, `key` (store prefix, default the name in lower case), `version`, `what`, `about` (ABOUT extras; `sub` under the wordmark), `stage`, `host` (default the stage's parent), `state`, `present()`, `clock` (`{ play, pause, isPlaying, onChange }`; default modulation's), `keys` (the app's key rows, ahead of the kit's), `menus` (`{ FILE, EDIT, VIEW, WINDOW, …, ABOUT, LANGUAGE, GUI }`, functions or arrays; given ones replace the kit's), `pages` (rows to add; page 0 greets), `subject()`, `thumbnail()`; and per piece `gui`, `transport`, `rack`, `mod`, `notebook`, `folders`, `info`, `greet`, `help`, `menubar`, `describe`: `false` to leave it out, an object of extra constructor options. Returns `{ name, key, first, param(key, label, min, max, more), params, playing(), clock, accent, gui, keys, transport, rack, mod, pages, notebook, folders, info, greeting, help, menubar, describe, floats }`. |
-| `makeParam({ state, key, label, min, max, map, mod, onChange, id, make, …widget })` | One number as a kit control (`make`, default `knob`), a modulation target (`mod.add`; id `app.<key>`) and a saved value. → `{ id, key, label, unit, min, max, map, widget, root, home, get(), value(), set(v), remove() }`; `value()` is the base, never the modulated reading. |
+| `createApp(options)` → `Promise<app>` | The standard wiring, in the kit's order. Options: `name`, `key` (store prefix, default the name in lower case), `version`, `what`, `about` (ABOUT extras; `sub` under the wordmark), `stage`, `host` (default the stage's parent), `state`, `present()`, `clock` (`{ play, pause, isPlaying, onChange }`; default modulation's), `keys` (the app's key rows, ahead of the kit's), `menus` (`{ FILE, EDIT, VIEW, WINDOW, …, ABOUT, LANGUAGE, GUI }`, functions or arrays; given ones replace the kit's), `pages` (rows to add; page 0 greets), `subject()`, `thumbnail()`; and per piece `gui`, `transport`, `rack`, `mod`, `notebook`, `folders`, `info`, `greet`, `help`, `menubar`, `describe`: `false` to leave it out, an object of extra constructor options. Returns `{ name, key, first, param(key, label, min, max, more), params, playing(), play(), pause(), safeRect(), clock, accent, gui, keys, transport, rack, mod, pages, notebook, folders, info, greeting, help, menubar, describe, floats }`. |
+| `app.safeRect()` → `{ left, top, width, height }` | Where the picture may draw, in stage px: the stage minus the transport bar and the racks showing a window (1.5.0-alpha.6). `createApp` also calls `present` on a theme or look change and on `devopen` / `devclose`, and writes `document.title` from `name` |
+| `makeParam({ state, key, label, min, max, map, mod, onChange, id, make, …widget })` | One number as a kit control (`make`, default `knob`), a modulation target (`mod.add`; id `app.<key>`) and a saved value. → `{ id, key, label, unit, min, max, map, widget, root, home, get(), value(), set(v), remove() }`; `value()` is the base, never the modulated reading. With no `id`, a `key` that does not match `/^[a-z][a-z0-9]*$/` throws a `TypeError` naming it and the fix. |
 | `PRESSABLE` | the selector `installPress` is given (`.sw, .seg-b, .trig, .tbtn, .mir-rack-btn`) |
 
 **`mir/mir.css`**: every kit sheet, by `@import`, in the kit's order: `<link rel="stylesheet" href="mir/mir.css">`. Its header says which order still matters under the cascade layers. `tests/mir-css.node.mjs` fails if a sheet under `mir/` is missing from it or imported twice.
@@ -222,7 +223,7 @@ A pack: `{ tag, name, dir, reviewed, fonts, type, strings: { English: "…" | { 
 
 ### `info/layer.js`: additions
 
-`createInfoLayer({ …, pane = false, controls = null, keys })` (with the app's key table the layer listens to no key of its own); `layer.hold(on)`; `infoActions(get, { keys = ['I'] })` → the `info-hold` row; `HOLD_KEY` (`'KeyI'`); `addLabel({ anchor: 'ui:name', control? })`; `addBlock({ pane? })`; `setPane(on)`; `layer.stage`. A `() => null` anchor hides its labels.
+`createInfoLayer({ …, pane = false, controls = null, keys, avoid })` (`avoid`: viewport rects a block never rests under, e.g. `rack.keepClear()`; a block with no room beside the subject sits over it, dimmed, with `data-over`) (with the app's key table the layer listens to no key of its own); `layer.hold(on)`; `infoActions(get, { keys = ['I'] })` → the `info-hold` row; `HOLD_KEY` (`'KeyI'`); `addLabel({ anchor: 'ui:name', control? })`; `addBlock({ pane? })`; `setPane(on)`; `layer.stage`. A `() => null` anchor hides its labels.
 
 ---
 
@@ -334,7 +335,7 @@ The kit gives the parts and the look; the layout is the app's (BASINS' design, �
   - `openers`: `[{ id, label, glyph?, key?, action?, hint?, open(), close?(), toggle?(), isOpen }]` or a function returning it. Seats BOTTOM / TOP / COMPACT; TOP uses the rack's `setHome(seat)`.
 - Parts (each `→ { root, sync(), destroy() }`, with a `signal`): `playButton({ clock, onRefused })`, `modPower({ mod })`, `modDoor({ mod })`, `tempoPill({ tempo, panel })`, `tempoPanel({ tempo, mod })`, `tapButton({ tempo })`, `barButton({ cls, glyph, svg, text, label, title, run })`, `latch(opener)`, `wayBack({ run })`; `createTempo({ model, setBpm, mod, persist })` → `{ get, set, commit, min, max, onChange }`.
 - `BASINS_LAYOUT`, `LAMBDAWAVES_LAYOUT`, `layoutNames(layout)`, `SVG_REWIND`, `DOCK_ID`. `bar: 'work'` is the transport inside a work bar (BASINS' timeline-mounted form: 52 px tall, its seats the bar's button face); `BARS`, `BAR_SEATS`.
-- `firstRun(...stores)`, `rackOpeners(rack, { only, glyphs })`, `transportActions(get)` (Space: the one play).
+- `firstRun(...stores)`, `rackOpeners(rack, { only, glyphs })`, `transportActions(get)` (Space: the one play; the row has `overControls: true`, so Space plays over a focused button, latch or knob), `PLAY_ACTION` (`'transport.play'`).
 - Pure: `formatBpm`, `clampBpm`, `digitStep`, `charAt`, `dragBpm`, `keyStep`, `parseBpm`, `seatOf`, `homeOf`, `seatRect`, `menuSide`, `localSeatStore`, `menuRow`, `openerRows`, `isOpenOf`, `toggleOf`; `TRANSPORT`, `SEATS`.
 - Sheet: `mir/shell/transport.css` (after `rack.css`), `@layer mir.kit.house`; tokens `--xport-*` on `.mir-transport`.
 
@@ -347,6 +348,7 @@ help view and the KEYBOARD window ([KEYS.md](KEYS.md)). Load `mir/keyboard/keybo
 
 | Export | What it is |
 |---|---|
+| `keys.add(action \| actions)` → the ids added | Rows after the table was made, with their saved keys (1.5.0-alpha.6). `createKeys` and `add` throw a `TypeError` for a declared key that does not parse (a modifier alone), naming the action |
 | `createKeys({ actions, storage, platform, target })` | The table. An action is `{ id, label, group, keys, run(event, action), when?, hint?, inFields?, overControls?, repeat?, short?, up? }` (`overControls`: runs even when a focused control owns the key, never in a text field unless `inFields`; `up(event, action)`: a held key, run on press and `up` on release or blur); `storage` is `{ get(), set(obj) }`; `platform` is `'mac'` or `'other'` (detected). Returns `{ run, bind, unbind, reset, resetAll, check, holders, conflicts, record, answer, stopRecording, recording, menuKey, menuItem, hint, hints, helpRows, describe, list, get, chords, saved, restore, onChange, platform, destroy }` |
 | `localKeyStorage(name)` | A `{ get, set }` over localStorage that survives a private window |
 | `parseChord(s, platform)`, `normalize(s, platform)` | Any accepted spelling → `{ mods, code }` / `'Mod+Shift+KeyS'`, or `null` |
@@ -470,6 +472,10 @@ Load `mir/shell/parts.css` after the kit's sheets.
   write(patch) }` (default `localStore(storageKey || 'mir.modulation')`); `audio`: the app's `createAudioCapture`.
 - `localStore(key)` → `{ read(), write(patch) }` (guarded localStorage, one JSON record).
 - `rootsOf(params)` → the registry roots the ids imply.
+
+### `bind.js`: the app's play is never refused (1.5.0-alpha.6)
+
+`play(true)` holds a demand of its own on the clock (`host.clock.demand('app.play')`), so with no route, no source or the power off, the app still plays. A bare `host.js` keeps its "nothing-to-run" refusal.
 
 ### `bind.js`: targets after the install, and a first route in one call (1.5.0-alpha.5)
 
@@ -605,7 +611,7 @@ The window loads two sheets, `mir/modulation/modhost.css` and then `mir/modulati
 - `createDescribe({ app, rack?, params?, pages?, keys?, prefs?, mod?, transport?, doc?, mount?, max? })` (`params` may be a function; with `transport`, `describe()` carries the clock: playing, the tempo, modulation's power) → `{ describe(), dump(), refresh(), observe(event), events(), errors(), destroy() }`
   - `app` `{ name, version?, what? }`; `rack` a `createRack()`; `params` the rows `installModulation` takes (`{ id, label, unit?, min, max, get() }`); `pages` a `createPages()`; `keys` a `createKeys()`; `prefs` a `createPrefs()` store (the GUI window's `gui.prefs`); `mod` the `installModulation()` handle (which parameters a route drives, and their base).
   - `doc` the document (default: the page's; `null` runs without a DOM); `mount` keeps the hidden `#mir-describe` element (default true); `max` the events and errors kept (default 20 each).
-  - `describe()` → markdown: the app, its windows (open, built, rack side, floating, folded), its parameters (range, live value, base when modulated), its key actions, and only the pages with `shared: true`.
+  - `describe({ pages? })` → markdown (`{ pages: false }`: each shared page as its title and line count, as `tools/check-app.mjs` prints it): the app, its windows (open, built, rack side, floating, folded), its parameters (range, live value, base when modulated), its key actions, and only the pages with `shared: true`.
   - `dump()` → one fenced block: kit version, browser, look (skin, theme, card, frost, language, direction, motion, viewport), the prefs, the rack layout, `perf.snapshot()`, the last errors and the last input events (kind and target hooks only; a key in a field has no key), then `describe()`. Every text a field holds now (4+ characters) is cut out.
   - `refresh()` rewrites the hidden element in one coalesced frame job (it also runs on a pages or keys change and at the end of a gesture). `observe(event)` records one event (the document's capture listeners call it). `destroy()` removes the listeners, the element and the globals.
   - Sets `window.__MIR.describe` and `window.__MIR.dump`.
@@ -628,7 +634,8 @@ The window loads two sheets, `mir/modulation/modhost.css` and then `mir/modulati
 | `tokens-doc.mjs` | Writes `docs/TOKENS.md` from `mir/tokens.json` |
 | `i18n-extract.mjs [--check]` | The English catalogue `mir/locales/en.json` and its report (`npm run i18n`) |
 | `check-envelope.mjs <file> [--app id] [--settings schema.json] [--tokens tokens.json] [--json]` | `ok <kind>` or `error path: why` lines; exit 0 / 1 (2 on bad usage) (`npm run check:envelope`) |
-| `make-skill.mjs [--out <dir>] [--allow-dirty]` | Assembles the installable `mir-builder` skill into `dist/mir-builder/` (SKILL.md, LLM.md, LICENSE, the starter, `mir/`, `fonts/`, `docs/*.md`, `tools/serve.mjs`, `tools/check-envelope.mjs`, `tools/cdp.mjs`, `check-app.mjs`, BUILD.json) and prints its size; refuses a dirty kit unless told (`npm run skill`) |
-| `cdp.mjs` | The headless Chromium under all of them |
+| `make-skill.mjs [--out <dir>] [--allow-dirty]` | Assembles the installable `mir-builder` skill into `dist/mir-builder/` (SKILL.md, LLM.md, LICENSE, the starter, `mir/`, `fonts/`, `docs/*.md`, `tools/serve.mjs`, `tools/check-envelope.mjs`, `tools/cdp.mjs`, `tools/check-app.mjs`, BUILD.json) and prints its size; refuses a dirty kit unless told (`npm run skill`) |
+| `check-app.mjs <url> [--keys a,b] [--click sel] [--wait ms] [--expect playing \| paused \| text] [--changed js] [--light] [--shot file] [--pages]` | Loads an app headless and **plays it**: real keys and hit-tested clicks, then the checks. Prints every console error, each step, and `describe()` (windows, clock, parameters and keys in full; each shared page as its title and line count unless `--pages`). Exit 0 only when it started with no error and every step and check held. The skill ships it in `tools/` |
+| `cdp.mjs` | The headless Chromium under all of them: `launch()`, `page.key(spec, { hold })`, `page.click(selector)` → `{ hit, got }`, the pure `keyOf(spec)` |
 
 `npm test` runs the token lint, `tests/*.node.mjs` and `tests/*.browser.mjs`.

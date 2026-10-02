@@ -1,7 +1,13 @@
 [
  {
+  "file": "mir/app.js",
+  "line": 219,
+  "why": "fragment",
+  "text": " · an MIR app"
+ },
+ {
   "file": "mir/core/describe.js",
-  "line": 222,
+  "line": 226,
   "why": "fragment",
   "text": "unhandled rejection: "
  },

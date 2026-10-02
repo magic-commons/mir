@@ -144,7 +144,7 @@ Every key must be a token whose row in `mir/tokens.json` says `skin: true`. Chec
 ## 8. Check your work
 
 1. Serve the folder (`node tools/serve.mjs 8800`; it prints the app's address) and load the page: **no console error**.
-2. **Play it, headless, with real keys**, from the app's folder: `node tools/check-app.mjs http://127.0.0.1:8800/app/ --keys Space --expect playing --keys ArrowLeft,ArrowUp --changed 'JSON.stringify(window.__GAME.piece)' --shot /tmp/app.png` (`--changed` reads whatever your app puts on `window`). Press your app's main keys and click a latch (`--click '#transport [data-opener="score"]'`); it exits 0 only when every step landed and every check held, and prints the whole `describe()`. Booting is not working: Space must play.
+2. **Play it, headless, with real keys**, from the app's folder: `node tools/check-app.mjs http://127.0.0.1:8800/app/ --keys Space --expect playing --keys ArrowLeft,ArrowUp --changed 'JSON.stringify(window.__GAME.piece)' --shot /tmp/app.png` (`--changed` reads whatever your app puts on `window`). Press your app's main keys and click a latch (`--click '#transport [data-opener="score"]'`); it exits 0 only when every step landed and every check held, and prints `describe()`: the windows, the clock, every parameter and the keys in full, each shared page as its title and line count (`--pages` prints the pages too). Booting is not working: Space must play.
 3. Look at the picture it saved, in both themes (`--light`): the board inside the safe rect, the words beside it, nothing under the bar.
 4. `window.__MIR.dump()` is the block to paste when something is wrong. A skin passes `node tools/check-envelope.mjs`.
 

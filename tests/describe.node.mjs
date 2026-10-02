@@ -56,6 +56,8 @@ ok('describe() quotes the shared pages and never names, counts or quotes an unsh
   const s = createDescribe({ app: { name: 'X' }, pages, doc: null }).describe();
   assert.match(s, /## Shared pages\n\n### LLM\n\n# MIR for models\nThe one rule\./);
   assert.doesNotMatch(s, /Diary|PRIVATE-DIARY-LINE/);
+  const brief = createDescribe({ app: { name: 'X' }, pages, doc: null }).describe({ pages: false });   // tools/check-app.mjs prints this
+  assert.match(brief, /## Shared pages\n\n- LLM \(\d+ lines?\)/); assert.doesNotMatch(brief, /The one rule/, 'describe({ pages: false }): titles and line counts only');
   pages.update(pages.list()[1].id, { shared: true });
   assert.match(createDescribe({ pages, doc: null }).describe(), /PRIVATE-DIARY-LINE/, 'opening the eye shares it');
   pages.update(pages.list()[1].id, { shared: false });

@@ -1,5 +1,32 @@
 # MIR — changelog
 
+## 1.5.0-alpha.6 — 2026-10-02 · what three models hit, ten complete draft translations, a checker that plays
+
+Not released: built on branch `worktree-mir-1.5`.
+
+**Behaviour changes (read these first):**
+- **The app's play no longer needs a modulation source.** `installModulation`'s `play(true)` holds a demand of its own on the clock, so with no route, no source or the power off, Space and ▶ still play. Before, the host refused ("nothing-to-run") and an app had to route an LFO it did not need.
+- **Space plays over a focused button, latch or knob** (the transport's key row is `overControls`, as BASINS).
+- **A modifier-only key and a non-lowercase parameter key now throw.** `createKeys` and `keys.add` refuse a declared key that is not a key (a modifier alone), naming the action; `app.param` refuses a key that is not lowercase letters and digits, naming it and the fix. Both were silent before.
+- **The page title comes from `createApp({ name })`** (`document.title`); the starter's `index.html` and boot card no longer carry a name.
+
+### What three models hit, and what the kit does now
+- "Build me Tetris with MIR" was run on Haiku, Sonnet and Opus with only the skill: **all three built a playing Tetris from the skill alone**. Every one had to route an LFO just so Space would play, two found Space pressing a just-clicked latch, one bound hard drop to Shift alone (silently dropped), one put the greeting under the bar. **A fourth run on the fixed skill needed no workaround.** The evaluation is `docs/LLM-MODS.md` "First runs, 2026-10-02"; plates `docs/plates/tetris/`.
+- **INFORMATIONAL keeps clear of the bar and the racks:** `createInfoLayer({ avoid })` (viewport rects; `createApp` passes `rack.keepClear()`); a block rests only in the free stage, beside the subject, else above or below, else over the subject dimmed (`data-over`, new token `--info-over-fade`), never outside the stage or under the bar.
+- **`app.safeRect()`** (where the picture may draw: the stage minus the bar and the racks showing a window), **`app.play()` / `app.pause()`**; `createApp` calls the app's `present` when the theme or the look changes and when a window opens or closes.
+- **`keys.add(action | actions)`**: rows after the table was made, with their saved keys. `PLAY_ACTION` is exported from the transport.
+- **`LLM.md`**: one clock that always plays, `app.pause()`, `app.safeRect()`, `present` on a theme change, the key spelling, game keys over a focused knob, readouts (`.set`), the glyph names (generated; `tests/app.node.mjs` fails if they drift), checking by playing; §9 "Observed" says what each model hit and whether the kit now prevents it, reports it, or the page warns of it.
+- `tools/serve.mjs` prints the pages that exist where it serves (`app/`, `starter/`, `gallery/`).
+- **Apps can delete:** a first-run LFO route kept only so play works; a Space row of their own to play over a focused button; a hand-made theme subscription for the canvas; a board offset to dodge the bar (use `safeRect()`); their own play-check scripts.
+
+### Ten complete draft translations
+- All ten packs (Spanish, French, Brazilian Portuguese, Indonesian, Simplified Chinese, Japanese, Russian, Hindi, Bengali, Arabic) now translate the whole catalogue, 917 of 917 keys, with the plural forms each language needs and no review flag left. They stay `reviewed: false` (DRAFT in the menu) until a native reader checks them.
+- The glossary (`docs/LANGUAGES-GLOSSARY.md`) gains the terms the top-up met and its corrections (HOLD stays English in es / fr / pt-BR / id; WALL and LIVE differ in Chinese; RACK is الراك in Arabic, so it differs from SHELF). The known weak spots are named in `docs/LANGUAGES.md` §12: Arabic's and Bengali's glass vocabulary, Russian HUE and TINT (both ОТТЕНОК), long labels (ADD DEVICE in the Latin-script languages, Bengali overall).
+
+### The checker
+- **`tools/check-app.mjs` plays the app** (it was the skill's `check-app.mjs`, which only proved the page boots): `--keys`, `--click` (hit-tested, refused when something else is on top), `--wait`, `--expect playing | paused | <text>`, `--changed '<js>'`, `--light`, `--shot`. It prints the windows, the clock, every parameter and the keys in full, and each shared page as its title and line count (`--pages` prints the pages' text; the starter's page 0 is all of `LLM.md`). The skill ships it in `tools/`. `describe({ pages: false })` is that short form.
+- `tools/cdp.mjs` gains `key(spec, { hold })`, `click(selector)` and the pure `keyOf`; `window.__MIR.prefs` lets a checker set the theme.
+
 ## 1.5.0-alpha.5 — 2026-10-01 · the vanilla themes, one light, SPACING, createApp, plurals and context, BASINS' toast and transport sizes
 
 Not released: built on branch `worktree-mir-1.5`.
