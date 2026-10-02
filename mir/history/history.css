@@ -4,6 +4,10 @@
  * fill, not a rule.  (BASINS drew it with an accent border and --acc-soft; that is the one change from the source.)
  * The frame around it (title, close, placement) belongs to whatever window hosts the list. */
 @layer mir.kit.house {
+  /* FROST · values ─────────────────────────────────────────────────────────────────────────────────────────────────
+     1.5.0-alpha.4 · every look value of this sheet, in one place (docs/SKINS.md); the rules below read names only. */
+  :root { --hist-future-fade: .45; }                               /* the rows you have undone */
+  /* ── end of the values ── */
   .hist { display: flex; flex-direction: column; min-height: 0; gap: 6px; font-family: var(--font-ui); color: var(--fg); }
   .hist-tools { display: flex; gap: 6px; }
   .hist-tools .trig { flex: 1 1 0; }
@@ -14,10 +18,10 @@
   .hist-row:hover { background: var(--glass-raise); color: var(--fg); }
   .hist-row:active { background: var(--glass-press); }
   .hist-row.hist-current { background: var(--m2-mat-frost); color: var(--acc); }
-  .hist-row.hist-future { opacity: .45; }
-  .hist-i { font-size: var(--fs-small); font-weight: 600; color: var(--dim); text-align: right; font-variant-numeric: tabular-nums; }
+  .hist-row.hist-future { opacity: var(--hist-future-fade); }
+  .hist-i { font-size: var(--fs-small); font-weight: var(--w-semi); color: var(--dim); text-align: right; font-variant-numeric: tabular-nums; }
   .hist-current .hist-i { color: var(--acc); }
   .hist-lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: var(--tr-wide); }
-  .hist-dom { font-size: var(--fs-tiny); font-weight: 700; letter-spacing: var(--tr-wider); color: var(--dim); text-transform: var(--label-case, uppercase); }
+  .hist-dom { font-size: var(--fs-tiny); font-weight: var(--w-heavy); letter-spacing: var(--tr-wider); color: var(--dim); text-transform: var(--label-case, uppercase); }
   .hist-count { font-size: var(--fs-tiny); letter-spacing: var(--tr-wide); color: var(--dim); }
 }   /* end @layer mir.kit.house */

@@ -10,6 +10,8 @@
  * outside.  Every value is a token declared on `.mir-gui`; inside `@layer mir.kit.house`. */
 @layer mir.kit.house {
 
+/* FROST · values ───────────────────────────────────────────────────────────────────────────────────────────────────
+   1.5.0-alpha.4 · every look value of this sheet, in one place (docs/SKINS.md); the rules below read names only. */
 .mir-gui {
   --gui-col: 208px;                                         /* one grid column: every group is one or two of them */
   --gui-col-narrow: 300px;                                  /* the one column of a phone sheet */
@@ -21,6 +23,7 @@
   --gui-logo-h: 92px;
   --gui-step-b: var(--touch);
 }
+/* ── end of the values ── */
 
 /* ── the page turner: above both pages ── */
 .mir-gui .gui-head { display: flex; justify-content: center; padding-bottom: var(--sp-2); }

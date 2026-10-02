@@ -14,6 +14,8 @@
  * The gates are :where(), so an app's own `:lang()` rule wins with any selector at all. */
 @layer mir.kit.locale {
 
+/* FROST · values — this sheet's values are the type per script: the label case, tracking, line height and face each
+   script asks for (docs/SKINS.md: a skin sets these names for the Latin default; the script gates win over it). */
 /* ── TYPE, PER SCRIPT ─────────────────────────────────────────────────────────────────────────────────────── */
 :where(:root:lang(ar)) {
   --label-case: none; --label-tracking: 0; --lh: 1.7;

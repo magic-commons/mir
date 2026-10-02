@@ -13,6 +13,10 @@
  * future `mix-blend-mode: difference` must go ON the root, not on a label inside it (draft 1 §1.6, measured).
  */
 @layer mir.kit.house {
+  /* FROST · values ─────────────────────────────────────────────────────────────────────────────────────────────────
+     1.5.0-alpha.4 · every look value of this sheet, in one place (docs/SKINS.md), on the layer's root and its light
+     theme; the rules below read names only.  The faces themselves are read through --font-info-body, -display and
+     -link, with the real faces as their fallbacks. */
   .mir-info {
     --info-ink: hsl(40 33% 96%);
     --info-paper: hsl(228 40% 4% / .27);
@@ -33,17 +37,22 @@
     --info-dim: .5;
     --info-travel: .55;
     --info-pin-time: 1.9s;
-
-    position: absolute; left: 0; top: 0; width: 100%; height: 100%;
-    container-type: size; pointer-events: none; overflow: visible;
-    color: var(--info-ink); font-family: var(--font-info-body, "Spectral", Georgia, "Times New Roman", serif);
-    font-size: var(--info-size-body); line-height: var(--info-lh); font-variant-ligatures: none;
-    user-select: none; -webkit-user-select: none;
+    --info-weight-display: 700;                                  /* Playfair Display's one weight (mir/info/faces.css) */
+    --info-weight-heading: 600; --info-weight-strong: 600;       /* Spectral's semibold */
   }
   [data-theme="light"] .mir-info {
     --info-ink: hsl(232 22% 10%);
     --info-paper: hsl(42 45% 97% / .38);
     --info-paper-soft: hsl(42 45% 97% / .2);
+  }
+  /* ── end of the values ── */
+
+  .mir-info {
+    position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+    container-type: size; pointer-events: none; overflow: visible;
+    color: var(--info-ink); font-family: var(--font-info-body, "Spectral", Georgia, "Times New Roman", serif);
+    font-size: var(--info-size-body); line-height: var(--info-lh); font-variant-ligatures: none;
+    user-select: none; -webkit-user-select: none;
   }
 
   /* ── the lines: one svg, a halo stroke under the ink, a dot on the thing's edge ── */
@@ -80,12 +89,12 @@
   .mir-info-text > * + * { margin-top: .3em; }
 
   /* the type: # and a label's title in the display face, bold; # centred; ## semibold, left */
-  .mir-info-title, .mir-info-text h1 { font-family: var(--font-info-display, "Playfair Display", Georgia, serif); font-weight: 700; line-height: 1.2; }
+  .mir-info-title, .mir-info-text h1 { font-family: var(--font-info-display, "Playfair Display", Georgia, serif); font-weight: var(--info-weight-display); line-height: 1.2; }
   .mir-info-title { font-size: var(--info-size-title); padding-bottom: .12em; }
   .mir-info-text h1 { font-size: var(--info-size-h1); text-align: center; margin-bottom: .2em; }
-  .mir-info-text h2, .mir-info-text h3 { font-family: var(--font-info-body, "Spectral", Georgia, "Times New Roman", serif); font-weight: 600; text-align: left; line-height: 1.2; }
+  .mir-info-text h2, .mir-info-text h3 { font-family: var(--font-info-body, "Spectral", Georgia, "Times New Roman", serif); font-weight: var(--info-weight-heading); text-align: left; line-height: 1.2; }
   .mir-info-text h2 { font-size: var(--info-size-h2); }
-  .mir-info-text strong { font-weight: 600; }
+  .mir-info-text strong { font-weight: var(--info-weight-strong); }
   .mir-info-text a { font-family: var(--font-info-link, "Alegreya SC", Georgia, serif); color: inherit; text-decoration-thickness: 1px; text-underline-offset: .18em; }
   .mir-info-text .katex-display { margin: .45em 0 .1em; }
   .mir-info-text .katex { white-space: nowrap; }                     /* a formula never breaks across lines in a label */

@@ -4,21 +4,24 @@
  * RECENT chips are the notebook's own small buttons; the note open in YOURS is CHOSEN (the ON face, its name in
  * accent A); a row's hover is a lighter face; focus is an accent ring outside. */
 @layer mir.kit.house {
+  /* FROST · values ─────────────────────────────────────────────────────────────────────────────────────────────────
+     1.5.0-alpha.4 · every look value of this sheet, in one place (docs/SKINS.md); the rules below read names only. */
   .nb-shelfface {
     --nt-line: hsl(0 0% 50% / .3);
     --nt-row-hover: var(--state-hover, hsl(0 0% 50% / .12));
     --nt-on: var(--state-on, var(--nb-btn));
     --nt-on-rim: var(--state-on-rim, inset 0 0 0 1px var(--nb-btn-line));
     --nt-h: 26px;
-    gap: 8px;
   }
   @media (pointer: coarse) { .nb-shelfface { --nt-h: 32px; } }
+  /* ── end of the values ── */
+  .nb-shelfface { gap: 8px; }
   .nt-new { display: flex; gap: 6px; }
   .nt-path, .nt-rename { flex: 1 1 auto; min-width: 0; height: var(--nt-h); box-sizing: border-box; padding: 0 8px; border: 1px solid var(--nt-line); border-radius: var(--r-md);
     background: var(--glass-well); box-shadow: var(--relief-well, var(--neu-inset)); color: var(--fg); font: var(--fs-lead) var(--font-ui); outline: none; }
   .nt-path:focus, .nt-rename:focus { border-color: var(--acc); }
   .nb-shelfface button { height: var(--nt-h); box-sizing: border-box; padding: 0 12px; border: 1px solid var(--nb-btn-line); border-radius: var(--r-md);
-    background: var(--nb-btn); color: var(--fg-soft); font: 700 var(--fs-small) var(--font-ui); letter-spacing: var(--label-tracking, var(--tr-wider)); cursor: pointer; }
+    background: var(--nb-btn); color: var(--fg-soft); font: var(--w-heavy) var(--fs-small) var(--font-ui); letter-spacing: var(--label-tracking, var(--tr-wider)); cursor: pointer; }
   .nb-shelfface button:hover { color: var(--acc); }
   .nb-shelfface button:active { background: var(--state-press, var(--glass-press)); }
   .nb-shelfface button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
@@ -43,7 +46,7 @@
   .nb-shelfface .nt-act { width: 24px; height: 24px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--dim); font: var(--fs-lead)/1 var(--font-ui); }
   @media (pointer: coarse) { .nb-shelfface .nt-act { width: 32px; height: 32px; } }
   .nt-item[data-renaming] > :not(.nt-rename), .nt-item[data-asking] > :is(.nt-act, .nt-when) { display: none; }
-  .nt-ask { display: inline-flex; align-items: center; gap: 4px; font: 600 var(--fs-small) var(--font-ui); color: var(--fg); white-space: nowrap; }
+  .nt-ask { display: inline-flex; align-items: center; gap: 4px; font: var(--w-semi) var(--fs-small) var(--font-ui); color: var(--fg); white-space: nowrap; }
   .nb-shelfface .nt-ask button { height: 22px; padding: 0 8px; border-radius: var(--r-pill); font-size: var(--fs-tiny); }
   @media (pointer: coarse) { .nb-shelfface .nt-ask button { height: 32px; } }
   .nt-none { font-size: var(--fs-lead); color: var(--dim); padding: 6px; }
