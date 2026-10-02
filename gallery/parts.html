@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>MIR · shell parts</title>
+<!-- THE SMALL SHELL PARTS, LIVE, over a 2D picture: the dialog and the confirm (no scrim), three kinds of notice, the busy
+     mark in its three seats, a boot card that walks its steps and one that fails, a strobe caught by the flash guard
+     with its route named, a share link made and read back, and a settings panel built from eight rows of data.
+     Docs: docs/SHELL-PARTS.md.   ?theme=light · ?lang=qps -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/shell/shell.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<link rel="stylesheet" href="../mir/shell/parts.css">
+<link rel="stylesheet" href="../mir/locales/locales.css">
+<style>
+  /* the page's own layout only; nothing here restyles a part */
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body { background: #070a0f; } body[data-theme="light"] { background: #eef1f6; }
+  #pic { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+  #title { position: absolute; left: 16px; top: 12px; z-index: 31; display: flex; align-items: center; gap: 6px; font: 700 15px/1 var(--font-ui); letter-spacing: .14em; color: var(--fg); }
+  #title .mark { width: 18px; height: 18px; }
+  .g-col { position: absolute; top: 48px; bottom: 16px; width: 300px; display: flex; flex-direction: column; gap: 12px; overflow: auto; padding-bottom: 8px; }
+  .g-left { left: 16px; } .g-right { right: 16px; }
+  .g-col .dev { position: relative; }
+  .g-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+  .g-out { font: 10px/1.45 var(--font-mono); color: var(--fg-soft); overflow-wrap: anywhere; user-select: text; min-height: 1.45em; }
+  .g-card { position: relative; height: 92px; border-radius: 10px; }
+  .g-switch { position: absolute; right: 336px; top: 12px; display: flex; gap: 6px; z-index: 40; }
+  .g-switch button { font: 9px var(--font-ui); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--glass-hairline); background: var(--glass-raise); color: var(--fg-soft); cursor: pointer; }
+  .g-switch button[aria-pressed="true"] { color: var(--acc); }
+  @media (max-width: 720px) { .g-col { position: static; width: auto; margin: 8px 16px; } body { overflow: auto; } .g-switch { position: static; margin: 48px 16px 0; } }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted">
+<canvas id="pic"></canvas>
+<script type="module">
+import { el, device, group, trig, readout } from '../mir/kit.js';
+import { setLanguage, language, t } from '../mir/core/i18n.js';
+import { installControlHelp } from '../mir/control-help.js';
+import { wordmark } from '../mir/shell/wordmark.js';
+import { createAccent } from '../mir/shell/accent.js';
+import { openDialog, confirmDialog } from '../mir/shell/dialog.js';
+import { notice } from '../mir/shell/notice.js';
+import { busyMark, busyCursor, busyLogo } from '../mir/shell/busy.js';
+import { bootCard } from '../mir/shell/boot.js';
+import { createFlashGuard, photosensitivityNotice } from '../mir/shell/flash-guard.js';
+import { encodeState, inspectLink, measureState } from '../mir/shell/share-link.js';
+import { settingsRows } from '../mir/shell/settings-rows.js';
+
+const q = new URLSearchParams(location.search);
+if (q.get('theme') === 'light') document.body.dataset.theme = 'light';
+const title = wordmark(document.body, { word: 'MIR', sub: 'PARTS' });
+const accent = createAccent(); accent.apply();
+
+/* ── the picture: a 2D field the parts float over; its brightness is the flash guard's subject ── */
+const pic = document.getElementById('pic'), g = pic.getContext('2d');
+let bright = 0.5;
+function draw() {
+  const w = pic.width = innerWidth * devicePixelRatio, h = pic.height = innerHeight * devicePixelRatio;
+  const light = document.body.dataset.theme === 'light';
+  const grd = g.createLinearGradient(0, 0, w, h);
+  grd.addColorStop(0, light ? '#cfe0f2' : '#0b1a2e'); grd.addColorStop(1, light ? '#f3dcef' : '#2a0f2e'); g.fillStyle = grd; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 14; i++) { g.beginPath(); g.arc(w * (0.15 + 0.7 * ((i * 0.618) % 1)), h * (0.2 + 0.6 * ((i * 0.382) % 1)), (40 + 30 * (i % 4)) * devicePixelRatio, 0, 7);
+    g.fillStyle = `hsl(${(i * 40) % 360} 70% ${light ? 62 : 48}% / .55)`; g.fill(); }
+  g.fillStyle = `hsl(0 0% ${light ? 100 : 100}% / ${(bright * 0.6).toFixed(3)})`; g.fillRect(w * 0.35, h * 0.3, w * 0.3, h * 0.4);
+}
+addEventListener('resize', draw); draw();
+
+const left = el('div', 'g-col g-left', document.body), right = el('div', 'g-col g-right', document.body);
+const btn = (parent, label, fn) => { const b = trig({ label, onFire: fn }); parent.appendChild(b.root); return b; };
+
+/* ── DIALOG · CONFIRM · NOTICE ── */
+const d1 = device({ id: 'dialogs', eyebrow: 'DIALOG · NOTICE', loadingMark: false }); left.appendChild(d1.root);
+const out1 = el('div', 'g-out', d1.body);
+const b1 = el('div', 'g-btns', d1.body);
+btn(b1, 'DIALOG', async () => {
+  const r = await openDialog({ title: 'RENDER SETTINGS', body: 'A floating pane at menu height. No scrim: the picture stays bright behind it. Escape or a press outside dismisses it.',
+    actions: [{ label: 'CANCEL', value: 'cancel' }, { label: 'APPLY', kind: 'primary', value: 'apply' }] }).result;
+  out1.textContent = 'dialog → ' + JSON.stringify(r);
+});
+btn(b1, 'CONFIRM', async () => { const r = await confirmDialog('Delete this project? It cannot be undone.', { yes: 'DELETE', no: 'KEEP', danger: true }); out1.textContent = 'confirm → ' + r; });
+btn(b1, 'INFO', () => notice('The project was saved in this browser.'));
+btn(b1, 'OK', () => notice('Copied 3 windows to the clipboard.', { kind: 'ok', action: { label: 'UNDO', run: () => notice('Undone.') } }));
+btn(b1, 'ERROR', () => notice('The file could not be read: it is not a MIR file.', { kind: 'error' }));
+
+/* ── BUSY: the card overlay, the pointer, the logo ── */
+const d2 = device({ id: 'busy', eyebrow: 'BUSY MARK', loadingMark: false }); left.appendChild(d2.root);
+const card = el('div', 'g-card glass', d2.body);
+const cardMark = busyMark(card, { seat: 'card', label: 'CALCULATING' });
+const inline = el('div', 'g-btns', d2.body); busyMark(inline, { size: 22 }).start(); busyMark(inline, { size: 34 }).start();
+const b2 = el('div', 'g-btns', d2.body);
+const tCard = btn(b2, 'CARD', () => { cardMark.running ? cardMark.stop() : cardMark.start(); tCard.on = cardMark.running; });
+let cur = false, logo = false;
+const tCur = btn(b2, 'POINTER', () => { cur = !cur; busyCursor(cur); tCur.on = cur; });
+const tLogo = btn(b2, 'LOGO', () => { logo = !logo; busyLogo(logo); tLogo.on = logo; });
+
+/* ── BOOT ── */
+const d3 = device({ id: 'boot', eyebrow: 'BOOT CARD', loadingMark: false }); left.appendChild(d3.root);
+const b3 = el('div', 'g-btns', d3.body);
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+btn(b3, 'BOOT', async () => {
+  const b = bootCard({ name: 'NEBULA', steps: ['Asking for a graphics adapter', 'Compiling the shaders', 'Building the orbit bank', 'Starting the clock'] });
+  for (let i = 0; i < 4; i++) { b.step(); await wait(700); }
+  b.done();
+});
+btn(b3, 'BOOT FAILS', async () => {
+  const b = bootCard({ name: 'NEBULA', steps: ['Asking for a graphics adapter', 'Compiling the shaders'] });
+  b.step(); await wait(900);
+  b.fail(new Error('requestAdapter() returned null'), { retry: () => notice('RETRY pressed: the app would boot again.') });
+});
+
+/* ── FLASH GUARD ── */
+const d4 = device({ id: 'flash', eyebrow: 'FLASH GUARD', loadingMark: false }); right.appendChild(d4.root);
+const out4 = el('div', 'g-out', d4.body);
+const guard = createFlashGuard({ onTrip: (x) => { out4.textContent = t('LAST TRIP') + ': ' + guard.describe(x); } });
+const b4 = el('div', 'g-btns', d4.body);
+let strobe = 0;
+const tFlash = btn(b4, 'STROBE 10 Hz', async () => {
+  if (strobe) { cancelAnimationFrame(strobe); strobe = 0; tFlash.on = false; bright = 0.5; draw(); return; }
+  await photosensitivityNotice({ force: q.has('warn') });
+  tFlash.on = true; const t0 = performance.now();
+  const tick = (now) => { const v = Math.floor((now - t0) / 50) % 2; bright = guard(v, 'LFO SQUARE → brightness', now / 1000); draw(); strobe = requestAnimationFrame(tick); };
+  strobe = requestAnimationFrame(tick);
+});
+btn(b4, 'NOTICE', () => photosensitivityNotice({ force: true }));
+
+/* ── SHARE LINK ── */
+const d5 = device({ id: 'link', eyebrow: 'SHARE LINK', loadingMark: false }); right.appendChild(d5.root);
+const out5 = el('div', 'g-out', d5.body);
+const b5 = el('div', 'g-btns', d5.body);
+let lastLink = '';
+btn(b5, 'MAKE', () => { const s = { ...S, view: { zoom: S.zoom, x: 0.31 } }; delete s.zoom; lastLink = encodeState(s, { defaults: LINK_DEFAULTS }); const m = measureState(s, { defaults: LINK_DEFAULTS }); out5.textContent = lastLink + '  (' + m.length + ' / ' + m.ceiling + ')'; });
+btn(b5, 'READ BACK', () => { const r = inspectLink(lastLink, { defaults: LINK_DEFAULTS }); out5.textContent = (r.ok ? 'ok ' : 'refused: ' + r.why + ' ') + JSON.stringify(r.state); });
+btn(b5, 'DAMAGE', () => { const r = inspectLink(lastLink.slice(0, -3), { defaults: LINK_DEFAULTS }); out5.textContent = 'cut short → ' + (r.ok ? 'ok' : 'null: ' + r.why); });
+
+/* ── SETTINGS from eight rows of data ── */
+const S = { theme: 'dark', card: 'tinted', hints: true, quality: 'balanced', blur: 14, hue: 172, zoom: 1, fps: 60, guard: true };
+const LINK_DEFAULTS = { theme: 'dark', card: 'tinted', hints: true, quality: 'balanced', blur: 14, hue: 172, fps: 60, guard: true, view: { zoom: 1, x: 0 } };
+const d6 = device({ id: 'settings', eyebrow: 'SETTINGS', loadingMark: false }); right.appendChild(d6.root);
+const panel = settingsRows(d6.body, [
+  { id: 'theme', label: 'THEME', control: 'seg', options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], get: () => S.theme, set: (v) => { S.theme = v; document.body.dataset.theme = v; accent.apply(); draw(); } },
+  { id: 'card', label: 'CARD STYLE', control: 'seg', options: [{ id: 'tinted', label: 'TINTED' }, { id: 'refractive', label: 'REFRACTIVE' }], get: () => S.card, set: (v) => { S.card = v; document.body.dataset.card = v; } },
+  { id: 'hints', label: 'HINTS', hint: 'show a hint when the pointer rests on a control', control: 'sw', get: () => S.hints, set: (v) => { S.hints = v; } },
+  { id: 'quality', label: 'QUALITY', control: 'select', options: [{ id: 'full', label: 'FULL' }, { id: 'balanced', label: 'BALANCED' }, { id: 'light', label: 'LIGHT' }, { id: 'auto', label: 'AUTO' }], get: () => S.quality, set: (v) => { S.quality = v; } },
+  { id: 'blur', label: 'GLASS BLUR', control: 'fader', min: 0, max: 40, fmt: (x) => x.toFixed(0) + ' px', get: () => S.blur, set: (v) => { S.blur = v; document.body.style.setProperty('--glass-blur', v.toFixed(1) + 'px'); }, when: () => S.card === 'refractive' },
+  { id: 'hue', label: 'ACCENT HUE', control: 'knob', min: 0, max: 360, wrap: true, fmt: (x) => x.toFixed(0) + '°', get: () => S.hue, set: (v) => { S.hue = v; accent.set({ a: v }); } },
+  { id: 'fps', label: 'FRAME CAP', hint: 'frames a second, at most', control: 'number', min: 15, max: 240, step: 1, get: () => S.fps, set: (v) => { S.fps = v; } },
+  { id: 'guard', label: 'FLASH GUARD', control: 'sw', get: () => S.guard, set: (v) => { S.guard = v; guard.enabled = v; } }
+]);
+
+/* ── the switches: theme and language ── */
+const strip = el('div', 'g-switch', document.body); strip.translate = false;
+const theme = (v) => { S.theme = v; document.body.dataset.theme = v; accent.apply(); draw(); panel.sync(); };
+for (const [k, fn] of [['dark', () => theme('dark')], ['light', () => theme('light')], ['en', () => setLanguage('en')], ['qps', () => setLanguage('qps')]]) {
+  const b = el('button', null, strip, k); b.type = 'button'; b.addEventListener('click', fn);
+}
+installControlHelp(document);
+if (q.get('lang')) await setLanguage(q.get('lang'));
+window.__P = { openDialog, confirmDialog, notice, busyMark, busyCursor, busyLogo, bootCard, guard, panel, S, cardMark, setLanguage, language, draw, accent };
+window.__ready = true;
+</script>
+</body>
+</html>

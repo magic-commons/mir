@@ -1,0 +1,243 @@
+# MIR · SHELL PARTS — the small things every app wrote again
+
+Every MIR app re-wrote the same handful of shell parts: a dialog, a toast, a boot message, a loading mark, a flash guard, a share link, a settings panel. The kit had none of them. These seven modules are those parts, each taken from the app that had the best one, so each app can delete its copy.
+
+Try them all: `gallery/parts.html` (`?theme=light`, `?lang=qps`). Plates, dark and light: `docs/plates/parts/`.
+
+```html
+<link rel="stylesheet" href="mir/shell/parts.css">   <!-- after the kit's sheets -->
+```
+
+| Module | What it is | Taken from |
+|---|---|---|
+| `mir/shell/dialog.js` | a dialog and a confirm, with no scrim | NEBULA, SOLEIL, AUTOMATA, EARTH (hand-rolled `<dialog>`s), λWAVES' photosensitivity trap |
+| `mir/shell/notice.js` | the toast: stacked, polite, leaves by itself | NEBULA's `#notice` and `safe()` |
+| `mir/shell/busy.js` | the loading mark: the 3×3 diamond in three seats | λWAVES (`#busyMark`, the card overlay, the logo turn) |
+| `mir/shell/boot.js` | the boot card and the boot failure in plain words | NEBULA's `#bootStatus`, EARTH's link-failure voice |
+| `mir/shell/flash-guard.js` | the flash limiter, the field judge, the photosensitivity notice | POLAR and EARTH (the route-naming guard), λWAVES (the notice) |
+| `mir/shell/share-link.js` | the share-link codec | SOLEIL, AUTOMATA, EARTH, POLAR (the shape), λWAVES (the header law) |
+| `mir/shell/settings-rows.js` | a settings panel built from rows of data; the `select` and `number` fields | NEBULA (`control()` and the edit-ownership law) |
+
+All of them write their words through the language seam (`label()` / `t()`, docs/LANGUAGES.md): pass English, and a language change rewrites it in place.
+
+---
+
+## 1. Dialog — `mir/shell/dialog.js`
+
+A floating pane at menu height, in CARD STYLE's material, **with nothing behind it**: no scrim, no dimming (INTENT rule 7). The page is held by a focus trap and a press guard instead.
+
+```js
+import { openDialog, confirmDialog } from './mir/shell/dialog.js';
+
+const d = openDialog({
+  title: 'RENDER SETTINGS',
+  body: 'Pick a size.',                 // English (translated), or a Node
+  actions: [{ label: 'CANCEL', value: 'cancel' }, { label: 'APPLY', kind: 'primary', run: () => apply() }],
+  dismiss: true                         // Escape and a press outside close it with null
+});
+const choice = await d.result;          // run()'s return, else the action's value, else null when dismissed
+
+if (await confirmDialog('Delete this project? It cannot be undone.', { yes: 'DELETE', no: 'KEEP', danger: true })) remove();
+```
+
+| Law | How |
+|---|---|
+| No scrim | no backdrop element at all; the pane's own shadow is the menu height (`--surface-shadow-menu`) |
+| Focus goes in, is trapped, and comes back | the primary action takes the focus; Tab and Shift+Tab cycle inside; on close the focus returns to what had it |
+| Dismiss when allowed | `dismiss: true`: Escape or a press outside → `null` (a confirm reads it as `false`). `dismiss: false` is a trap: only an action closes it |
+| A press outside never reaches the page | it is swallowed (pointerdown and the click after it), whether or not it dismisses |
+| Keys stay inside | a key pressed in the dialog does not reach the app's shortcuts |
+| One at a time | a second dialog waits and opens when the first closes |
+
+`kind: 'primary'` draws the action's label in accent A and gives it the focus; `kind: 'danger'` draws it in `--bad`. `kind: 'notice'` and `mark: 'caution'` are what the photosensitivity notice uses.
+
+**An app deletes:** its `<dialog>` element and `dialog { … }` / `dialog::backdrop` rules (NEBULA nebula.css:95-101, SOLEIL sol.css:97-105, AUTOMATA automata.css:44-50, EARTH earth.css:36-44), every `showModal()`, and every `window.confirm` (λWAVES rack.js:3913).
+
+## 2. Notice — `mir/shell/notice.js`
+
+A short message in the bottom corner (the end side) that leaves by itself.
+
+```js
+import { notice, guarded } from './mir/shell/notice.js';
+notice('The project was saved in this browser.');
+notice('Copied 3 windows.', { kind: 'ok', action: { label: 'UNDO', run: undo } });
+notice('The file could not be read.', { kind: 'error' });      // 9 s; others 5 s; ms: 0 stays until closed
+guarded(() => engine.set(id, v));                               // a throw becomes an error notice (NEBULA's safe())
+```
+
+| Law | How |
+|---|---|
+| Nothing blocks the stage | the stack is `pointer-events: none`; only a notice takes a press |
+| Polite | the stack is `role=status`, `aria-live=polite` |
+| Leaves by itself; hover or focus holds it | the time left pauses while the pointer is on it or the focus is in it |
+| Stacked | newest nearest the corner, at most four (the oldest goes first) |
+| Reduced motion fades | through `core/motion.js presence` |
+
+The kind is a short bar at the start edge in `--ok`, `--warn` or `--bad`; the words stay ink. `notice()` returns `{ close(), root }`.
+
+**An app deletes:** `#notice`, `#noticeText`, `#noticeClose` and their CSS (NEBULA, SOLEIL, AUTOMATA, EARTH: the same lines in each), `showMessage()`, `safe()`, BASINS' `#toast`.
+
+## 3. Busy mark — `mir/shell/busy.js`
+
+The loading mark is the 3×3 diamond (INTENT rule 6): the nine squares of the wordmark, rotated 45°, carrying the app's palette. **The squares travel round the ring**, so the palette turns through the mark; the centre and the whole mark breathe (.42 → 1 over 1.1 s, λWAVES'). It animates by `translate` and `opacity` only: the compositor runs it, no script runs per frame, nothing animates a colour.
+
+```js
+import { busyMark, busyCursor, busyLogo, whileBusy } from './mir/shell/busy.js';
+
+const m = busyMark(card, { seat: 'card', label: 'CALCULATING' });   // a waiting card's overlay (card must be positioned)
+m.start(); … m.stop();
+busyCursor(true); … busyCursor(false);                               // beside the pointer (+15 px); counted, so calls nest
+busyLogo(true); … busyLogo(false);                                   // in place of the wordmark's mark, same size
+await whileBusy(loadThings());                                       // pointer + logo until the promise settles
+busyMark(host, { size: 34 }).start();                                // inline, anywhere
+```
+
+| Law | How |
+|---|---|
+| Transform and opacity only | eight `@keyframes mir-busy-ring-*` (translate) + a breath (opacity); proved with `getAnimations()` |
+| Stopped costs nothing | `stop()` removes the one attribute the animations hang on: no animation, no writes (proved over 0.5 s) |
+| Reduced motion | the breath stays, the travel stops; `data-motion="off"` stills it |
+| The colours are the app's | read once at `start()` from `#title .mark rect` (as `shell/accent.js paintMarks` painted them), or `colors: [...]` |
+| The pointer seat | follows the pointer through `core/frame.js` (one write per frame), listens only while on |
+
+The card overlay is transparent: no dark layer. BASINS' busy loop animated `fill`, which repaints on the main thread every frame, and cloned a 185 KB logo into seven hidden seats; neither is taken.
+
+**An app deletes:** λWAVES `busy-mark.js` and `#busyMark`, its `lw-busy-breathe` / `.mark.busy` CSS; BASINS' hidden `#busyMark` and its seven logo clones. The kit's `device()` loading seat still clones `#title .mark`; moving it onto `busyMark` is noted for the join.
+
+## 4. Boot card — `mir/shell/boot.js`
+
+What a WebGPU app shows while it starts, and, when it cannot, what happened and what to do.
+
+```js
+import { bootCard } from './mir/shell/boot.js';
+const boot = bootCard({ name: 'NEBULA', steps: ['Asking for a graphics adapter', 'Compiling the shaders', 'Building the orbit bank'] });
+try {
+  boot.step(); const adapter = await navigator.gpu.requestAdapter(); if (!adapter) throw new Error('requestAdapter() returned null');
+  boot.step(); await compile();
+  boot.step(); await build();
+  boot.done();
+} catch (e) { boot.fail(e, { retry: () => location.reload() }); }
+```
+
+A pane in the middle of the stage (pane height, no scrim) with the app's name, the turning mark, the current step and "2 of 3". `fail()` turns it into a message with two plain sentences and COPY DETAILS (the error, its stack, the steps done, whether WebGPU is present, the browser) and RETRY when the app gives one.
+
+| `explainBoot(error).code` | When | What it says to do |
+|---|---|---|
+| `nogpu` | no `navigator.gpu`, "WebGPU is not supported" | open it in a current Chrome, Edge or Safari, or turn WebGPU on |
+| `noadapter` | "adapter" in the message | reload (a cold start is sometimes late); then hardware acceleration or the driver |
+| `lost` | device lost, context lost | reload; saved work is kept |
+| `link` | a module or file did not load | check the connection; check every file was copied |
+| `exception` | anything else | reload; COPY DETAILS and send them |
+
+**An app deletes:** NEBULA's `#bootStatus`, `#bootTitle`, `#bootDetail` and the sentence-building in `sync()`; SOLEIL's black `#fail`; AUTOMATA's and EARTH's `#fail` CSS.
+
+## 5. Flash guard — `mir/shell/flash-guard.js`
+
+The flash rule is WCAG 2.2 success criterion 2.3.1, **Three Flashes or Below Threshold**: nothing may flash more than three times in any one second. A flash is a pair of opposing changes in relative luminance of 10 % or more of the maximum, where the darker state is below 0.80, over an area larger than about a quarter of the central field of view. The numbers are the ones POLAR and EARTH ship (POLAR `lab/engine/flash.js`, EARTH law 110), which are that criterion's:
+
+| Threshold | Value | Where |
+|---|---|---|
+| a swing that counts | 10 % of the range (`delta: 0.1`) | the limiter, per route; the field judge, of luminance |
+| the most flashes | 3 a second (`maxHz: 3`): at most 6 changes of direction in any one second | both |
+| the darker state | below 0.80 | the field judge |
+| the area | 25 % of the field | the field judge |
+| the judging window | 1 s (limiter), 1.25 s (field judge, as POLAR) | |
+| letting go | after 1 s with no held swing | both |
+
+**The limiter** is the part an app with a modulation system puts on the road from a source to the picture:
+
+```js
+import { createFlashGuard, photosensitivityNotice } from './mir/shell/flash-guard.js';
+const guard = createFlashGuard({ ranges: { 'LFO SQUARE → exposure': [0, 4] }, onTrip: (x) => showTrip(guard.describe(x)) });
+await photosensitivityNotice();                                  // once per browser, before the first route that can flash
+exposure = guard(lfoValue, 'LFO SQUARE → exposure');             // every frame; the route is a name the app chooses
+```
+
+Each route counts its own swings. A swing that would make that route change direction a seventh time inside a second is **held** (the value stays where it was) and the trip is reported once, naming the route and the rate it tried: `LFO SQUARE → exposure · 10.0 Hz` (POLAR's LAST TRIP). A route that flashes is held to the safe rate, not frozen: three flashes a second still pass. A slow change is never touched. `guard.enabled = false` is SETTINGS › SAFETY's off switch. `guard.state(route)` → `{ hz, held, trips, lastTrip }`.
+
+**The field judge** (`areaEvent`, `flashRate`, `createFlashModel`) is POLAR's and EARTH's arithmetic for an app that measures the presented picture (a 64² luminance readback): samples in frame order → `'trip'` / `'release'`. The GPU readback stays the app's.
+
+**The photosensitivity notice** is shown once per browser (`localStorage` `mir.flashNotice`) and resolves when read. It is λWAVES' trap — no Escape, no press outside; the way past is CONTINUE — drawn as a floating pane with a caution sign in accent A, where λWAVES drew a black full-screen page. Under a test driver (`navigator.webdriver`) it is not shown unless `force: true`. `flashNoticeSeen()`, `forgetFlashNotice()`.
+
+**An app deletes:** POLAR's and EARTH's `engine/flash.js` and the page half of the guard (`flashSuspects`, `suspectText`, LAST TRIP's sentence), AUTOMATA's `notice.js` (the copy of λWAVES' warning) and the `#warnPane` markup and CSS. The veil the apps draw over a tripped stage stays theirs (`#flashveil`); the limiter makes it unnecessary for a modulated route.
+
+## 6. Share link — `mir/shell/share-link.js`
+
+An app's state as a URL fragment and back: readable, versioned, only what differs from the defaults.
+
+```js
+import { encodeState, decodeState, inspectLink, measureState, createShareLink } from './mir/shell/share-link.js';
+const DEFAULTS = { zoom: 1, mode: 'WAVE', play: true, view: { x: 0, y: 0 } };
+encodeState({ zoom: 2.5, mode: 'BAND', play: true, view: { x: 0.31, y: 0 } }, { defaults: DEFAULTS });
+// → '#v=1&c=1bd38ck&zoom=2.5&mode=BAND&view.x=0.31'
+decodeState(location.hash, { defaults: DEFAULTS });   // → { zoom: 2.5, mode: 'BAND', view: { x: 0.31 } }, or null
+
+const link = createShareLink({ defaults: DEFAULTS });
+link.read();            // the state the page opened with, or null
+link.write(state);      // the address bar follows, replaceState at most every 400 ms
+await link.copy(state); // FILE › COPY A LINK → the url
+```
+
+| Law | How |
+|---|---|
+| The fragment, never the query | a fragment is never sent to a server |
+| Only what differs | with `defaults`, a value equal to its default is not written; nested objects become dotted keys; numbers keep `digits` (4) decimals |
+| Typed by the defaults | a value takes its default's type (a number must parse finite, a boolean is 1/0, an array or object is JSON); an unknown key is dropped. Without defaults, numbers and JSON are read by their look |
+| Damage is null, never a throw | `v` (the app's version) and `c` (a CRC32 of the rest) come first, so a link cut short anywhere, or edited, fails: `decodeState` → `null`. `inspectLink` says why and gives what survived, for an app that would rather open half a link |
+| Versioned | a link of another version is `null` unless `migrate(state, version)` lifts it |
+| A length report | `measureState(state)` → `{ length, ceiling: 2000, fits, keys }` |
+
+`v` and `c` are reserved top-level keys. `strict: false` drops the check (a hand-edited link then reads).
+
+**Why not `core/envelope.js`:** the envelope is the *file* format (a skin, settings, a page, a project, a spec). Its text form (`pack`) is deflated base64 behind an async `CompressionStream` and carries the frame (kind, kit, date). A share link is an app's live view, written on every change through `replaceState`, so it has to be synchronous, readable, and a diff against the defaults. To put a skin or a spec in a link, `pack` it and carry the text as one value here.
+
+**An app deletes:** `statelink.js` (SOLEIL, AUTOMATA, EARTH, POLAR: four files for one job) once its keys are written as a defaults object; the debounced `replaceState` and the COPY LINK verb.
+
+## 7. Settings rows — `mir/shell/settings-rows.js`
+
+A settings panel built from rows of data, with the kit's own controls, and NEBULA's edit-ownership law.
+
+```js
+import { settingsRows } from './mir/shell/settings-rows.js';
+const panel = settingsRows(win.body, [
+  { id: 'theme', label: 'THEME', control: 'seg', options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], get: () => S.theme, set: setTheme },
+  { id: 'hints', label: 'HINTS', hint: 'show a hint when the pointer rests on a control', control: 'sw', get: () => S.hints, set: (v) => (S.hints = v) },
+  { id: 'quality', label: 'QUALITY', control: 'select', options: [{ id: 'full', label: 'FULL' }, { id: 'auto', label: 'AUTO' }], get, set },
+  { id: 'blur', label: 'GLASS BLUR', control: 'fader', min: 0, max: 40, fmt: (x) => x.toFixed(0) + ' px', get, set, when: () => S.card === 'refractive' },
+  { id: 'hue', label: 'ACCENT HUE', control: 'knob', min: 0, max: 360, wrap: true, get, set, begin: () => history.begin(), end: () => history.end() },
+  { id: 'fps', label: 'FRAME CAP', control: 'number', min: 15, max: 240, step: 1, get, set }
+], { onBegin, onEnd, onChange });
+panel.sync();   // after the engine changed something: repaints only what moved, never what is held
+```
+
+| Row field | Meaning |
+|---|---|
+| `control` | `sw` · `seg` · `fader` · `knob` (the kit's) · `select` · `number` (built here, the kit's field look) |
+| `get` / `set` | read the value; write it (the row calls `set` as the hand moves) |
+| `label`, `hint`, `options`, `min`, `max`, `step`, `log`, `wrap`, `fmt` | as the kit control takes them; `hint` becomes the control's title |
+| `when()` | the row shows only while it is true; asked again on every `sync()` |
+| `begin()` / `end()` | the edit's two ends (an undo group, an engine's `begin/end`) |
+
+| Law | How |
+|---|---|
+| Begin and end around a drag | a press or an edit key on a fader or knob begins; release, key up or focus leaving ends. A switch, segment or select change is one whole edit. A number field is held from focus to blur |
+| `sync()` skips what is held | a control under the hand is never repainted; proved with a real drag |
+| A field you type in is a well | `select.sel` (the kit's) and `.mir-num` |
+
+`selectField(o)` and `numberField(o)` are exported on their own (`{ root, input, get, set, setDisabled }`); they belong in `kit.js` and will move there.
+
+**An app deletes:** NEBULA's `control()` and `bindWidget()` (main.js:113-161) and its `.choice select` / `.number-control` CSS; SOLEIL's and EARTH's raw `<select>`s and their `--option-ink` fixes; AUTOMATA's `seg` standing in for a port list; each app's hand-built SETTINGS groups (APPEARANCE, SAFETY, WORKSPACE).
+
+---
+
+## Tokens
+
+Every look value is a token declared on the part's own root in `parts.css` (group `shell-parts` in `mir/tokens.json`): `--dialog-w/-pad/-gap/-gutter/-max-h/-z`, `--caution-size`, `--notice-w/-inset/-gap/-z/-pad/-bar/-x`, `--busy-size/-turn/-breathe/-ease/-low/-ring/-off`, `--boot-w/-pad/-gutter`, `--settings-gap`, `--field-h/-pad`. Written by script: `--busy-c` (a square's colour), `--busy-x/-y` (the pointer seat). The materials are the kit's: `.glass`, `--surface-shadow-menu`, `--relief-well`, `--glass-well`, `--state-focus`.
+
+## Proofs
+
+| Test | What it proves |
+|---|---|
+| `tests/share-link.node.mjs` | the round trip; only what differs; typed by the defaults; cut short at every length, edited, or garbage → `null`, never a throw; versions; the length report |
+| `tests/flash-guard.node.mjs` | a 10 Hz square wave comes out at ≤ 3 flashes in every second and the trip names its route and its 10 Hz; a slow sine passes untouched; routes are judged apart; the field judge trips and lets go |
+| `tests/parts.browser.mjs` | real pointer and keys, hit-tested with `elementFromPoint`: the dialog traps and returns focus, resolves, is dismissed by Escape and by a press outside that never reaches the stage, and paints no scrim; a notice holds under the pointer and leaves; the busy mark animates only translate and opacity and writes nothing when stopped; the boot card fails into a readable message; a switch row changes its value; `sync()` during a fader drag leaves the fader alone; everything reads in the pseudo-language |
