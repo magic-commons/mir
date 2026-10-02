@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MIR · keyboard fixture</title>
+<!-- the one key table, the keyboard window and the help view, for tests/keyboard.browser.mjs.  The table saves to
+     localStorage 'mir.test.keys' (the test clears it first), so a reload proves persistence. -->
+<link rel="stylesheet" href="../../mir/css/base.css">
+<link rel="stylesheet" href="../../mir/css/skin.css">
+<link rel="stylesheet" href="../../mir/shell/shell.css">
+<link rel="stylesheet" href="../../mir/shell/stage.css">
+<link rel="stylesheet" href="../../mir/core/core.css">
+<link rel="stylesheet" href="../../mir/window/window.css">
+<link rel="stylesheet" href="../../mir/keyboard/keyboard.css">
+<link rel="stylesheet" href="../../mir/locales/locales.css">
+<style>
+  #floats { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  #note { position: fixed; left: 16px; bottom: 16px; z-index: 31; width: 220px; }
+  #last { position: fixed; right: 16px; bottom: 16px; z-index: 31; padding: 8px 12px; border-radius: 12px; font: 11px var(--font-ui); color: var(--fg-soft); }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted">
+<div id="lab"><div id="stage"></div></div>
+<div id="floats"></div>
+<input id="note" type="text" placeholder="type here">
+<div id="last" class="glass">—</div>
+<script type="module">
+import { createKeys, localKeyStorage } from '../../mir/shell/keys.js';
+import { createKeyboardWindow, createKeysHelp } from '../../mir/keyboard/keyboard.js';
+import { wordmark } from '../../mir/shell/wordmark.js';
+import { createMenubar } from '../../mir/shell/menubar.js';
+import { setLanguage } from '../../mir/core/i18n.js';
+import { frame } from '../../mir/core/frame.js';
+import * as motion from '../../mir/core/motion.js';
+
+const q = new URLSearchParams(location.search);
+const ran = [];
+const say = (id) => () => { ran.push(id); document.getElementById('last').textContent = id; };
+const A = (id, label, group, keys, more = {}) => ({ id, label, group, keys, run: say(id), ...more });
+const keys = createKeys({ storage: localKeyStorage('mir.test.keys'), platform: q.get('platform') || undefined, actions: [
+  A('play', 'PLAY', 'TRANSPORT', ['Space'], { hint: 'start and stop time' }),
+  A('back', 'STEP BACK', 'TRANSPORT', [','], { hint: 'one frame back' }),
+  A('fwd', 'STEP FORWARD', 'TRANSPORT', ['.'], { hint: 'one frame on' }),
+  A('home', 'ZERO', 'TRANSPORT', ['0'], { hint: 'back to the start' }),
+  A('zoomIn', 'ZOOM IN', 'VIEW', ['='], { repeat: true }),
+  A('zoomOut', 'ZOOM OUT', 'VIEW', ['-'], { repeat: true }),
+  A('full', 'FULL SCREEN', 'VIEW', ['F']),
+  A('hide', 'HIDE THE INTERFACE', 'VIEW', ['H'], { short: 'HIDE UI' }),
+  A('save', 'SAVE', 'FILE', ['Mod+S'], { inFields: true, hint: 'save the project' }),
+  A('open', 'OPEN', 'FILE', ['Mod+O']),
+  A('undo', 'UNDO', 'FILE', ['Mod+Z']),
+  A('redo', 'REDO', 'FILE', ['Mod+Shift+Z', 'Mod+Y']),
+  A('keyboard', 'KEYBOARD', 'FILE', ['K'], { run: () => { ran.push('keyboard'); kb.toggle(); } }),
+  A('help', 'KEYS', 'FILE', ['?'], { run: () => { ran.push('help'); help.toggle(); } }),
+] });
+const host = document.getElementById('floats');
+const kb = createKeyboardWindow({ keys, host });
+const help = createKeysHelp({ keys, host });
+const title = wordmark(document.getElementById('stage'), { word: 'MIR', sub: 'KEYS' });
+const menubar = createMenubar({ opener: title, host: document.getElementById('lab'), menus: {
+  FILE: () => [keys.menuItem('save'), keys.menuItem('open'), null, keys.menuItem('undo'), keys.menuItem('redo')],
+  WINDOW: () => [keys.menuItem('keyboard'), keys.menuItem('help')],
+} });
+window.__T = { keys, kb, help, menubar, ran, setLanguage, frame, motion };
+window.__ready = true;
+</script>
+</body>
+</html>

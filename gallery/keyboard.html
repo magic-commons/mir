@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>MIR · keyboard</title>
+<!-- THE ONE KEY TABLE, PLAYABLE.  Fourteen sample actions in three groups, declared once (mir/shell/keys.js).  Everything
+     else on this page is generated from that table: the menubar's key column (hover the wordmark), the KEYBOARD window
+     (press K, or WINDOW › KEYBOARD) where any key can be re-recorded, the KEYS help view (press ?), and the readout of the
+     last action that ran.  Type in the note field: plain keys stay there, Ctrl/⌘+S still saves.  Rebindings are kept in
+     this browser (localStorage 'mir.gallery.keys'); RESET TO DEFAULT clears them.  LANGUAGE › the pseudo-language shows
+     the labels translating while the key caps stay as they are. -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/shell/shell.css">
+<link rel="stylesheet" href="../mir/shell/stage.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<link rel="stylesheet" href="../mir/window/window.css">
+<link rel="stylesheet" href="../mir/keyboard/keyboard.css">
+<link rel="stylesheet" href="../mir/locales/locales.css">
+<style>
+  /* the page's own layout only; every look on the windows is the kit's */
+  #ground { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #floats { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  .g-dock { position: fixed; z-index: 31; left: 16px; right: 16px; bottom: 16px; display: flex; gap: 10px; align-items: stretch; flex-wrap: wrap; pointer-events: none; }
+  .g-dock > * { pointer-events: auto; }
+  .g-pill { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 8px 14px; border-radius: 14px; min-width: 200px; }
+  .g-pill .k-lbl { color: var(--ink-faint); }
+  #last { font: var(--w-bold) var(--fs-lead) / 1.2 var(--font-ui); color: var(--fg); }
+  #lastKey { font: var(--fs-small) var(--font-mono); color: var(--dim); }
+  #note { width: min(320px, calc(100vw - 32px)); box-sizing: border-box; padding: 10px 12px; border: 0; border-radius: 10px; font: var(--fs-base) var(--font-ui);
+    background: var(--glass-well); box-shadow: var(--relief-well, var(--neu-inset)); color: var(--fg); user-select: text; }
+  #note:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
+  .g-buttons { display: flex; gap: 6px; align-items: center; padding: 6px; border-radius: 14px; }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted">
+<div id="lab"><div id="stage"><canvas id="ground" aria-hidden="true"></canvas></div></div>
+<div id="floats"></div>
+<div class="g-dock">
+  <div class="g-pill glass"><span class="k-lbl" data-t="LAST ACTION">LAST ACTION</span><span id="last">—</span><span id="lastKey"></span></div>
+  <input id="note" type="text" placeholder="a note: type here">
+  <div class="g-buttons glass" id="buttons"></div>
+</div>
+<script type="module">
+import { el, trig, label } from '../mir/kit.js';
+import { t } from '../mir/core/i18n.js';
+import { installControlHelp } from '../mir/control-help.js';
+import { wordmark } from '../mir/shell/wordmark.js';
+import { createMenubar } from '../mir/shell/menubar.js';
+import { createAccent } from '../mir/shell/accent.js';
+import { languageMenu } from '../mir/shell/language.js';
+import { createKeys, localKeyStorage, displayChord } from '../mir/shell/keys.js';
+import { createKeyboardWindow, createKeysHelp } from '../mir/keyboard/keyboard.js';
+
+/* ── the ground: drawn once per size, so the page is idle when nothing moves ── */
+const ground = document.getElementById('ground');
+function paint() {
+  const dpr = devicePixelRatio || 1, w = innerWidth, h = innerHeight;
+  ground.width = w * dpr; ground.height = h * dpr;
+  const g = ground.getContext('2d'); g.scale(dpr, dpr);
+  const light = document.body.dataset.theme === 'light';
+  g.fillStyle = light ? '#eef1f6' : '#070a0f'; g.fillRect(0, 0, w, h);
+  let s = 11; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  for (let i = 0; i < 70; i++) {
+    const x = rnd() * w, y = rnd() * h, r = 40 + rnd() * 200, hue = Math.round(rnd() * 360);
+    const grad = g.createRadialGradient(x, y, 0, x, y, r);
+    grad.addColorStop(0, `hsla(${hue} 75% ${light ? 62 : 52}% / .5)`); grad.addColorStop(1, `hsla(${hue} 75% 50% / 0)`);
+    g.fillStyle = grad; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+  }
+}
+paint(); addEventListener('resize', paint);
+
+/* ── THE TABLE: the only place a key is written ── */
+const lastEl = document.getElementById('last'), lastKey = document.getElementById('lastKey');
+const did = (id) => (e) => { const a = keys.get(id); label(lastEl, a.label); lastKey.textContent = e && e.code ? displayChord(keys.chords(id)[0] || '', keys.platform) : t('from a menu or a button'); };
+const A = (id, label, group, k, more = {}) => ({ id, label, group, keys: k, run: did(id), ...more });
+let zoom = 1;
+const keys = createKeys({ storage: localKeyStorage('mir.gallery.keys'), actions: [
+  A('play', 'PLAY', 'TRANSPORT', ['Space'], { hint: 'start and stop time' }),
+  A('back', 'STEP BACK', 'TRANSPORT', [','], { hint: 'one frame back' }),
+  A('fwd', 'STEP FORWARD', 'TRANSPORT', ['.'], { hint: 'one frame on' }),
+  A('home', 'ZERO', 'TRANSPORT', ['0'], { hint: 'back to the start' }),
+  A('zoomIn', 'ZOOM IN', 'VIEW', ['='], { repeat: true, run: (e) => { zoom *= 1.1; did('zoomIn')(e); } }),
+  A('zoomOut', 'ZOOM OUT', 'VIEW', ['-'], { repeat: true, run: (e) => { zoom /= 1.1; did('zoomOut')(e); } }),
+  A('theme', 'LIGHT OR DARK', 'VIEW', ['T'], { short: 'THEME', hint: 'swap the theme', run: (e) => { document.body.dataset.theme = document.body.dataset.theme === 'light' ? 'dark' : 'light'; accent.apply(); paint(); did('theme')(e); } }),
+  A('hide', 'HIDE THE INTERFACE', 'VIEW', ['H'], { short: 'HIDE UI', run: (e) => { document.querySelector('.g-dock').hidden = !document.querySelector('.g-dock').hidden; did('hide')(e); } }),
+  A('save', 'SAVE', 'FILE', ['Mod+S'], { inFields: true, hint: 'reaches through a text field' }),
+  A('open', 'OPEN', 'FILE', ['Mod+O']),
+  A('undo', 'UNDO', 'FILE', ['Mod+Z']),
+  A('redo', 'REDO', 'FILE', ['Mod+Shift+Z', 'Mod+Y']),
+  A('keyboard', 'KEYBOARD', 'FILE', ['K'], { hint: 'this table, drawn and rebindable', run: (e) => { kb.toggle(); did('keyboard')(e); } }),
+  A('help', 'KEYS', 'FILE', ['?'], { hint: 'the help view, generated', run: (e) => { if (help.win.state().x === null) help.win.place({ x: Math.max(16, innerWidth - 440), y: 24 }); help.toggle(); did('help')(e); } }),
+] });
+
+/* ── what the table generates ── */
+const accent = createAccent();
+const host = document.getElementById('floats');
+const kb = createKeyboardWindow({ keys, host, persist: { read: () => { try { return JSON.parse(localStorage.getItem('mir.gallery.keyboard.win')); } catch { return null; } },
+  write: (s) => { try { localStorage.setItem('mir.gallery.keyboard.win', JSON.stringify(s)); } catch { /* private */ } } } });
+const help = createKeysHelp({ keys, host });
+const title = wordmark(document.getElementById('stage'), { word: 'MIR', sub: 'KEYS' });
+const item = (id) => keys.menuItem(id);
+createMenubar({ opener: title, host: document.getElementById('lab'), menus: {
+  FILE: () => [item('save'), item('open')],
+  EDIT: () => [item('undo'), item('redo')],
+  VIEW: () => [item('zoomIn'), item('zoomOut'), null, item('theme'), item('hide')],
+  WINDOW: () => [item('keyboard'), item('help')],
+  LANGUAGE: languageMenu({ dev: true }),
+} });
+/* controls whose hint carries the key: data-key-action, filled by keys.hints() (aria-keyshortcuts + data-key-hint) */
+const buttons = document.getElementById('buttons');
+for (const [id, text] of [['keyboard', 'KEYBOARD'], ['help', 'KEYS'], ['play', 'PLAY']]) {
+  const b = trig({ label: text, title: keys.get(id).hint || keys.get(id).label, onFire: () => keys.run(id) });
+  b.root.dataset.keyAction = id; buttons.appendChild(b.root);
+}
+keys.hints(document); keys.onChange(() => keys.hints(document));
+installControlHelp();
+</script>
+</body>
+</html>
