@@ -40,7 +40,7 @@ engine.onMoving((moving) => gui.moving(moving));               // FROST · STILL
 
 `createGui` applies the stored look at once (before the first paint), so call it early, before the app draws its windows.
 
-**What an app can delete.** Every row of its own Settings that is a look option: in BASINS, all of **Settings › LOOK** (THEME, CARD STYLE, FROST, DISCONNECTED, UI FLAT/DEFAULT, SATURATION, BLUR, VEIL, CORNERS, SHADOW, ACCENT A/B, VIVID, ABOUT GLASS/RESET) and from **Settings › DISPLAY** CONTROL HINTS, HELP, UI DROP SHADOW and DOCK GUIDE, with the code in `skin.js` that applies them and their keys in `basins.settings`. The rows listed below as *waiting for the token* stay in the app until their hook lands. Settings keeps QUALITY for the renderer and the app's own rows. The pointer helpers also replace the three parallax implementations and the opener's glow pipeline (below).
+**What an app can delete.** Every row of its own Settings that is a look option: in BASINS, all of **Settings › LOOK** (THEME, CARD STYLE, FROST, DISCONNECTED, UI FLAT/DEFAULT, SATURATION, BLUR, VEIL, CORNERS, SHADOW, ACCENT A/B, VIVID, BRIGHT, HUE, TINT, ABOUT GLASS/RESET) and from **Settings › DISPLAY** CONTROL HINTS, HELP, UI DROP SHADOW and DOCK GUIDE, with the code in `skin.js` that applies them and their keys in `basins.settings`. The rows listed below as *waiting for the token* stay in the app until their hook lands. Settings keeps QUALITY for the renderer and the app's own rows. The pointer helpers also replace the three parallax implementations and the opener's glow pipeline (below).
 
 ## The API
 
@@ -48,7 +48,7 @@ engine.onMoving((moving) => gui.moving(moving));               // FROST · STILL
 - `createGui({ host, prefs, app, about, accent, defaults, storageKey })` → `{ root, window, prefs, open(page), close(), toggle(page), page, turn(dir), moving(bool), dropGuides(), census(), light, parallax, destroy() }`.
   - `open('options' | 'about')`; `turn(±1)` steps the page turner; `page` is the page showing.
   - `prefs` is the store (below): `gui.prefs.set('theme', 'light')`, `gui.prefs.subscribe(fn)`.
-- `lookSchema()` — the options as schema rows. `LOOK_PRESETS` — CLASSIC, GLASS, LIGHT. `SKINS`. `MIR_VERSION`. `MIR_WORDS`.
+- `lookSchema()` — the options as schema rows. `LOOK_PRESETS` — FROST, CLASSIC, LIGHT. `glassTint(bright, hue, tint, theme)` — the `--glass-tint` triple. `SKINS`. `MIR_VERSION`. `MIR_WORDS`.
 - `stepper({ label, items, value, onChange, wrap })` — the `‹ NAME ›` control (BASINS' blend-mode picker): two 44 px buttons around a live label; arrow keys step it; an item marked `coming` is listed but never chosen.
 - `census(doc)` → `{ blur, shadow }` — how many visible surfaces carry a backdrop filter and a drawn shadow.
 
@@ -68,7 +68,7 @@ Every control on MIR OPTIONS changes what is drawn through a hook a kit sheet or
 
 | Group | Option | Control | Hook it drives | Home (writes nothing) |
 |---|---|---|---|---|
-| PRESET | CLASSIC · GLASS · LIGHT · CUSTOM | seg | sets the MATERIAL, RELIEF and QUALITY options at once (below); CUSTOM shows only when the options match no preset | CLASSIC |
+| PRESET | FROST · CLASSIC · LIGHT · CUSTOM | seg | sets the MATERIAL, RELIEF and QUALITY options at once (below); CUSTOM shows only when the options match no preset | **FROST** (new users) |
 | | RESET LOOK | trig | every option home; the stored key is removed | |
 | SKIN | `‹ FROST ›` | stepper | `<html data-skin="frost">` — the seam for 1.5.5; METRO and SPRITES are listed as coming | FROST |
 | | THEME light · dark · system | seg | `<body data-theme>`; SYSTEM follows `prefers-color-scheme` live | dark |
@@ -76,10 +76,11 @@ Every control on MIR OPTIONS changes what is drawn through a hook a kit sheet or
 | | VIVID | dial | `accent.set({ vivid })` → `--acc-glow` and the chroma | 10 % |
 | MATERIAL | PANE tinted · refractive | seg | `<body data-card>` | tinted |
 | | FROST off · still · always | seg | `body.frost`; under STILL, `body.frost-hold` while `gui.moving(true)` | off |
-| | BLUR 0–40 px | dial | `--glass-blur` on `<html>` (it feeds `--frost-filter` there); 0 writes `--surface-filter: none`, never `blur(0)` | 22 px |
-| | VEIL 0–40 % | dial | `--surface-veil` on `<body>` (white on light, black on dark). Disabled unless REFRACTIVE at FULL | the house veils |
-| | SATURATION 50–200 % | dial | `--surface-filter: blur(Npx) saturate(s)` on `<body>`. Disabled below FULL | 100 % |
+| | BLUR 0–20 px (BASINS' range; 20 is the WebKit ceiling) | dial | `--glass-blur` on `<html>` (it feeds `--frost-filter` there), always written, since the kit's own 22 px is outside the range; 0 writes `--surface-filter: none`, never `blur(0)` | none (FROST: 11) |
+| | VEIL 0–60 % | dial | `--surface-veil` on `<body>` (white on light, black on dark). Disabled unless REFRACTIVE at FULL | the house veils |
+| | SATURATION 0–200 % | dial | `--surface-filter: blur(Npx) saturate(s)` on `<body>`. Disabled below FULL | 100 % |
 | | CORNERS 0–24 px | dial | `--surface-radius` on `<body>` | 14 px |
+| | BRIGHT −100…+100 · HUE 0–360° (an arc, drawn in its hue) · TINT 0–100 % | dials | `--glass-tint` on `<body>` (the tinted pane and every solid face: dials, triggers, chosen segments), as BASINS' `applyGlass`: lightness + 40·BRIGHT, hue → HUE and saturation → 70 % by TINT, from the theme's own tint. HUE is disabled while TINT is 0. BASINS also nudges its veil by ½·BRIGHT; here the veil is VEIL's alone | BRIGHT 0, TINT 0 |
 | RELIEF | CONTROLS default · flat | seg | `--relief-raise`, `--relief-well` = `0 0 0 0 transparent` on `<html>` | default |
 | | SHADOW | switch | `--surface-shadow`, `-float`, `-menu` = `0 0 0 0 transparent` on `<body>` | on |
 | | DISCONNECTED | switch | `body.disconnected` | off |
@@ -94,11 +95,18 @@ Every control on MIR OPTIONS changes what is drawn through a hook a kit sheet or
 
 **The presets** set only MATERIAL, RELIEF and QUALITY. Theme, accents, motion and text are the user's own, and no preset touches them.
 
-| | PANE | FROST | BLUR | VEIL | SATURATION | CORNERS | CONTROLS | SHADOW | DISCONNECTED | QUALITY |
-|---|---|---|---|---|---|---|---|---|---|---|
-| **CLASSIC** (the 1.4 spirit) | tinted | off | 22 | home | 100 % | 14 | default | on | off | FULL |
-| **GLASS** (BASINS today) | refractive | always | 8 | 0 | 130 % | 16 | default | on | on | FULL |
-| **LIGHT** (fast) | tinted | off | 22 | home | 100 % | 14 | flat | off | off | LIGHT |
+| | PANE | FROST | BLUR | VEIL | SATURATION | CORNERS | BRIGHT · TINT | CONTROLS | SHADOW | DISCONNECTED | QUALITY |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| **FROST** (Josh's recipe, the default) | refractive | always | 11 | 0 | 130 % | 24 | 0 · 0 | default | on | off | FULL |
+| **CLASSIC** (the 1.4 spirit) | tinted | off | 20 | home | 100 % | 14 | 0 · 0 | default | on | off | FULL |
+| **LIGHT** (fast) | tinted | off | 20 | home | 100 % | 14 | 0 · 0 | flat | off | off | LIGHT |
+
+**FROST** is Josh's own default (2026-10-01): *"'About Glass', Shadow maxed, Veil 0, Brightness 0, Dark mode, White Text, Glass control surface, Blur at 11px. Saturation bumped to 130. Tint 0, and disconnected off. Corners knob maxed. This will be known as 'Frost'. … Refractive on and frost always."* BASINS' ABOUT GLASS (`skin.js setMaterialPreset('about')`) is `ABOUT_MATERIAL` = veil 0 · radius 16 · shadow 1, `ABOUT_SATURATION` = 1.3, `GLASS_DEF` = bright 0 · hue 0 · tint 0, refractive, frost always; his changes on top: BLUR 11, CORNERS 24 (the knob's maximum), SHADOW maxed, DISCONNECTED off. New users start on FROST with THEME dark.
+
+**FROST wants these; they arrive with the FROST skin package.** Part of Josh's recipe has no kit hook yet, so it is not faked:
+- **WHITE TEXT** — the ink law (BASINS' TEXT LIGHT);
+- **GLASS CONTROL FACES** — clear control faces (BASINS' CONTROL FACES · GLASS);
+- **SHADOW maxed (200 %)** — SHADOW is a switch until the pane shadow is an amount (BASINS' SHADOW 0–200 %).
 
 **QUALITY is the tier.** FULL is no attribute, BALANCED is `lite` (no blur anywhere, one shadow layer, a legible tinted pane) and LIGHT is `flat` (lite, plus no relief, no shadows, no sheen, no motion). Below FULL the tier owns the pane, so BLUR, VEIL and SATURATION stand down: they write nothing and their dials are disabled. AUTO and the governor are not built: there is no tier logic without a measurement on a real app.
 
@@ -107,7 +115,7 @@ Every control on MIR OPTIONS changes what is drawn through a hook a kit sheet or
 - **SHADOW** — how many draw a shadow.
 - **FRAME** — the mean frame time over the next 30 frames.
 
-It is taken once per change and never on a timer, so the reading costs nothing at rest. In the gallery, CLASSIC reads BLUR 0, GLASS reads BLUR 16.
+It is taken once per change and never on a timer, so the reading costs nothing at rest. In the gallery, CLASSIC reads BLUR 0 and FROST reads BLUR 14.
 
 ### Options left out, and what each waits for
 
@@ -115,11 +123,11 @@ These are in the plan's table but have no hook a kit sheet reads yet. A control 
 
 | Option | Waits for |
 |---|---|
-| RELIEF › FACES glass ↔ solid | the face tokens (`--face-fill`, `--face-fill-hover`, `--face-fill-press` are rows in `mir/tokens.json`, but no kit sheet reads them yet). BASINS draws its faces in its own `material.css` |
+| RELIEF › FACES glass ↔ solid (FROST wants GLASS) | the face tokens (`--face-fill`, `--face-fill-hover`, `--face-fill-press` are rows in `mir/tokens.json`, but no kit sheet reads them yet). BASINS draws its faces in its own `material.css` |
 | RELIEF › ACCENT BARS | a kit hook for the selected window's accent head. λWAVES draws it app-side (`.dev.native-selected > .dev-head`) |
-| TEXT › AUTO · LIGHT · DARK | the ink law in the kit. `data-text` and the adaptive sampler are BASINS' (`ink.css`, `adaptive-ink.js`); no kit sheet reads `data-text` |
+| TEXT › AUTO · LIGHT · DARK (FROST wants LIGHT: white text) | the ink law in the kit. `data-text` and the adaptive sampler are BASINS' (`ink.css`, `adaptive-ink.js`); no kit sheet reads `data-text` |
 | TEXT › STATUS TAGS | a kit class that hides the badges. `body.no-badges` is BASINS' `lab.css` |
-| SHADOW as an amount | a shadow-strength token. The pane shadows are literals in the theme, so SHADOW is a switch |
+| SHADOW as an amount, 0–200 % (FROST wants it maxed) | a shadow-strength token. The pane shadows are literals in the theme, so SHADOW is a switch |
 | SKIN › METRO, SPRITES | their skin packages (plan §8.3, 1.5.5) |
 | QUALITY › AUTO | the governor, after a measured reason |
 
@@ -204,6 +212,6 @@ Those are the defaults (`--light-blend`, `--light-strength`). It is a softer thi
   - no panel overflows at 1280×720 or at 390×844 (every sheet);
   - the glow follows the pointer and a still pointer writes nothing;
   - glow and parallax are off under reduced motion, in the flat tier and on a coarse pointer.
-- Plates in `docs/plates/gui/`: both pages, dark and light, CLASSIC and GLASS; the glow on the glass; the five phone pages.
+- Plates in `docs/plates/gui/`: both pages, dark and light, FROST and CLASSIC; the glow on the glass; the five phone pages.
 - **FROST · STILL on a joined pane is held by the kit:** while `body.frost-hold` is set, a REFRACTIVE pane (joined or disconnected, and its rail chip) stops blurring and wears the tinted fill (`mir/css/skin.css`; proved in `tests/intent.browser.mjs`), so STILL differs from ALWAYS on every window.
 - **Not proven:** WebKit and a real iPad; the frame time on a busy app (the reading is honest about the gallery, which is idle).

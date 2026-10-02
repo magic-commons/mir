@@ -47,7 +47,17 @@ export const SKINS = Object.freeze([{ id: 'frost', label: 'FROST' }, { id: 'metr
 /** the words MIR says about itself — quoted from magic-commons.com/joshs-library/lambdawaves/about (2026-10-01) */
 export const MIR_WORDS = 'MIR is the shared Magic Commons interface kit behind its controls, window system, gestures, and modulation. MIR is an open source platform and will continuously be updated, allowing for ‘LLM Mods’ support and customizable skins.';
 const ZERO_SHADOW = '0 0 0 0 transparent';                       // the off shadow: never `none` (a list with none drops)
-const HOME = Object.freeze({ blur: 22, veil: 10, saturation: 1, corners: 14 });   // base.css --glass-blur · the dark frost veil · no saturate · skin.css --card-r
+const HOME = Object.freeze({ veil: 10, saturation: 1, corners: 14 });   // where nothing is written: the dark frost veil · no saturate · skin.css --card-r
+/* the theme's own glass tint (skin.css: dark hsl(214 16% 13%), light hsl(214 22% 93%)), which BRIGHT, HUE and TINT move */
+const THEME_TINT = Object.freeze({ dark: { h: 214, s: 16, l: 13 }, light: { h: 214, s: 22, l: 93 } });
+/** glassTint(bright, hue, tint, theme) — BASINS skin.js applyGlass: lightness + 40·BRIGHT, hue → HUE and saturation → 70 %
+ *  by TINT.  → the `H S% L%` triple the kit reads as --glass-tint, or null at home (BRIGHT 0, TINT 0) */
+export function glassTint(bright, hue, tint, theme) {
+  if (!bright && !tint) return null;
+  const T = THEME_TINT[theme] || THEME_TINT.dark;
+  const h = tint > 0 ? Math.round(hue) : T.h, sat = +(T.s + tint * (70 - T.s)).toFixed(1), l = +Math.max(2, Math.min(98, T.l + 40 * bright)).toFixed(1);
+  return `${h} ${sat}% ${l}%`;
+}
 
 /* ── THE LOOK, as one schema: what each option is, and the hook it drives ───────────────────────────────────────────
    Rows are applied in this order inside one frame job, so THEME is on <body> before the accent reads it, and the tier
@@ -65,16 +75,21 @@ export function lookSchema() {
       if (c.lastAccent === k) return;
       c.lastAccent = k; c.accent.set({ a: s.accentA, b: s.accentB, vivid: v });
     } }] },
-    { key: 'card', type: 'enum', values: ['tinted', 'refractive'], default: 'tinted', apply: [{ on: 'body', attr: 'data-card' }] },
-    { key: 'frost', type: 'enum', values: ['off', 'still', 'always'], default: 'off', apply: [
+    { key: 'card', type: 'enum', values: ['tinted', 'refractive'], default: 'refractive', apply: [{ on: 'body', attr: 'data-card' }] },
+    { key: 'frost', type: 'enum', values: ['off', 'still', 'always'], default: 'always', apply: [
       { on: 'body', cls: 'frost', when: (v) => v !== 'off' },
       { run(v, s, e, c) { const b = c && c.doc && c.doc.body; if (b) b.classList.toggle('frost-hold', v === 'still' && !!c.moving); } }] },
-    { key: 'blur', type: 'number', step: 1, min: 0, max: 40, default: HOME.blur, apply: [{ on: 'html', prop: '--glass-blur', map: (v) => (v === HOME.blur ? null : v + 'px') }] },
-    { key: 'veil', type: 'number', step: 1, min: 0, max: 40, default: HOME.veil, apply: [{ on: 'body', prop: '--surface-veil',
+    /* BLUR is BASINS' 0–20 px (20 is the WebKit ceiling), so it is always written: the kit's own 22 is outside it */
+    { key: 'blur', type: 'number', step: 1, min: 0, max: 20, default: 11, apply: [{ on: 'html', prop: '--glass-blur', map: (v) => v + 'px' }] },
+    { key: 'veil', type: 'number', step: 1, min: 0, max: 60, default: 0, apply: [{ on: 'body', prop: '--surface-veil',
       map: (v, s, e) => (v === HOME.veil || !full(s) ? null : `hsl(${e.theme === 'light' ? '0 0% 100%' : '0 0% 0%'} / ${(v / 100).toFixed(2)})`) }] },
-    { key: 'saturation', type: 'number', step: 0.01, min: 0.5, max: 2, default: HOME.saturation, apply: [{ on: 'body', prop: '--surface-filter',
+    { key: 'saturation', type: 'number', step: 0.01, min: 0, max: 2, default: 1.3, apply: [{ on: 'body', prop: '--surface-filter',
       map: (v, s) => (!full(s) ? null : s.blur === 0 ? 'none' : v === HOME.saturation ? null : `blur(${s.blur}px) saturate(${v.toFixed(2)})`) }] },
-    { key: 'corners', type: 'number', step: 1, min: 0, max: 24, default: HOME.corners, apply: [{ on: 'body', prop: '--surface-radius', map: (v) => (v === HOME.corners ? null : Math.round(v) + 'px') }] },
+    { key: 'corners', type: 'number', step: 1, min: 0, max: 24, default: 24, apply: [{ on: 'body', prop: '--surface-radius', map: (v) => (v === HOME.corners ? null : Math.round(v) + 'px') }] },
+    /* BRIGHT, HUE, TINT — BASINS' glass knobs, onto the kit's --glass-tint on <body> (the tinted pane and every solid face) */
+    { key: 'bright', type: 'number', step: 0.01, min: -1, max: 1, default: 0 },
+    { key: 'hue', type: 'number', step: 1, min: 0, max: 360, wrap: true, default: 0 },
+    { key: 'tint', type: 'number', step: 0.01, min: 0, max: 1, default: 0, apply: [{ on: 'body', prop: '--glass-tint', map: (v, s, e) => glassTint(s.bright, s.hue, v, e.theme) }] },
     { key: 'relief', type: 'enum', values: ['default', 'flat'], default: 'default', apply: [
       { on: 'html', prop: '--relief-raise', map: (v) => (v === 'flat' ? ZERO_SHADOW : null) },
       { on: 'html', prop: '--relief-well', map: (v) => (v === 'flat' ? ZERO_SHADOW : null) }] },
@@ -93,11 +108,14 @@ export function lookSchema() {
   ];
 }
 /** the presets: named sets of the MATERIAL, RELIEF and QUALITY options.  Accents, theme, motion and text are the user's
- *  own and no preset touches them. */
+ *  own and no preset touches them.
+ *  FROST is Josh's recipe (2026-10-01) and the new user's look: BASINS' ABOUT GLASS (skin.js setMaterialPreset('about'):
+ *  ABOUT_MATERIAL veil 0 · radius 16 · shadow 1, ABOUT_SATURATION 1.3, GLASS_DEF bright 0 · hue 0 · tint 0, refractive,
+ *  frost always) with his changes: BLUR 11 px, CORNERS maxed (24), SHADOW maxed (on, until it is an amount), DISCONNECTED off. */
 export const LOOK_PRESETS = Object.freeze({
-  classic: { card: 'tinted', frost: 'off', blur: HOME.blur, veil: HOME.veil, saturation: HOME.saturation, corners: HOME.corners, relief: 'default', shadow: true, disconnected: false, quality: 'full' },
-  glass: { card: 'refractive', frost: 'always', blur: 8, veil: 0, saturation: 1.3, corners: 16, relief: 'default', shadow: true, disconnected: true, quality: 'full' },
-  light: { card: 'tinted', frost: 'off', blur: HOME.blur, veil: HOME.veil, saturation: HOME.saturation, corners: HOME.corners, relief: 'flat', shadow: false, disconnected: false, quality: 'light' },
+  frost: { card: 'refractive', frost: 'always', blur: 11, veil: 0, saturation: 1.3, corners: 24, bright: 0, tint: 0, relief: 'default', shadow: true, disconnected: false, quality: 'full' },
+  classic: { card: 'tinted', frost: 'off', blur: 20, veil: HOME.veil, saturation: HOME.saturation, corners: HOME.corners, bright: 0, tint: 0, relief: 'default', shadow: true, disconnected: false, quality: 'full' },
+  light: { card: 'tinted', frost: 'off', blur: 20, veil: HOME.veil, saturation: HOME.saturation, corners: HOME.corners, bright: 0, tint: 0, relief: 'flat', shadow: false, disconnected: false, quality: 'light' },
 });
 
 /* ── THE STEPPER: `‹ NAME ›`, two 44 px buttons around a live label (BASINS colour-window.js blend-mode picker) ───── */
@@ -189,8 +207,8 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   /* PRESET */
   let g = groupEl('preset', 'PRESET');
   const presetSeg = seg({ label: 'LOOK', options: [
+    { id: 'frost', label: 'FROST', title: 'Josh\u2019s glass: refractive frost, 11 px, 130 % saturation, round corners' },
     { id: 'classic', label: 'CLASSIC', title: 'The 1.4 look: tinted panes, no blur, the relief' },
-    { id: 'glass', label: 'GLASS', title: 'BASINS today: refractive frost, separate headers' },
     { id: 'light', label: 'LIGHT', title: 'The fast look: no blur, flat, no shadows, no motion' },
     { id: 'custom', label: 'CUSTOM', title: 'Your own mix: the options match no preset' }], value: P.preset(),
     onChange: (id) => { if (id !== 'custom') P.applyPreset(id); } });
@@ -220,11 +238,20 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   g = groupEl('material', 'MATERIAL');
   line(g, 'gui-pair').append(segOf('card', 'PANE', [['tinted', 'TINTED', 'A tinted pane: no blur, no compositor cost'], ['refractive', 'REFRACTIVE', 'The blur alone, with a veil']]).root,
     segOf('frost', 'FROST', [['off', 'OFF'], ['still', 'STILL', 'Frost while the picture is still'], ['always', 'ALWAYS', 'Frost always: the costliest']]).root);
-  const kBlur = knobOf('blur', 'BLUR', { min: 0, max: 40, fmt: (v) => Math.round(v) + 'px' });
-  const kVeil = knobOf('veil', 'VEIL', { min: 0, max: 40, fmt: (v) => Math.round(v) + '%' });
-  const kSat = knobOf('saturation', 'SATURATION', { min: 0.5, max: 2, fmt: (v) => Math.round(v * 100) + '%' });
+  const kBlur = knobOf('blur', 'BLUR', { min: 0, max: 20, fmt: (v) => Math.round(v) + 'px' });
+  const kVeil = knobOf('veil', 'VEIL', { min: 0, max: 60, fmt: (v) => Math.round(v) + '%' });
+  const kSat = knobOf('saturation', 'SATURATION', { min: 0, max: 2, fmt: (v) => Math.round(v * 100) + '%' });
   const kCorner = knobOf('corners', 'CORNERS', { min: 0, max: 24, fmt: (v) => Math.round(v) + 'px' });
   line(g, 'gui-knobs').append(kBlur.root, kVeil.root, kSat.root, kCorner.root);
+  const signed = (v) => (v > 0.005 ? '+' : v < -0.005 ? '\u2212' : '') + Math.abs(v * 100).toFixed(0);
+  const kBright = knobOf('bright', 'BRIGHT', { min: -1, max: 1, fmt: signed });
+  /* HUE is cyclic, so an arc (INTENT rule 2), drawn in the hue it names */
+  const kHue = knobOf('hue', 'HUE', { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial' });
+  const kTint = knobOf('tint', 'TINT', { min: 0, max: 100, fmt: (v) => Math.round(v) + '%', toUi: (v) => v * 100, fromUi: (v) => v / 100 });
+  const hueArc = (v) => { setVar(kHue.root, '--accent-sweep', Math.round(v) + 'deg'); setVar(kHue.root, '--acc', `hsl(${Math.round(v)} 70% 55%)`); };
+  hueArc(P.get('hue'));
+  const holder = el('div', 'k'); holder.setAttribute('aria-hidden', 'true');      // the fourth seat, so the two dial rows share columns
+  line(g, 'gui-knobs').append(kBright.root, kHue.root, kTint.root, holder);
 
   /* RELIEF */
   g = groupEl('relief', 'RELIEF');
@@ -235,8 +262,11 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   g = groupEl('motion', 'MOTION');
   line(g).append(segOf('motion', 'MOTION', [['auto', 'AUTO', 'Follow the system'], ['full', 'FULL'], ['reduced', 'REDUCED', 'Fades only: nothing travels'], ['off', 'OFF', 'Nothing animates']]).root);
   line(g, 'gui-sws').append(swOf('glow', 'POINTER GLOW', 'A soft light follows the pointer over lit surfaces (never on touch)').root,
-    swOf('parallax', 'PARALLAX', 'Marked layers drift against the pointer (never on touch)').root,
-    swOf('dropGuides', 'DROP GUIDES', 'The dotted guide where a dragged window will land').root);
+    swOf('parallax', 'PARALLAX', 'Marked layers drift against the pointer (never on touch)').root);
+  line(g, 'gui-sws').append(swOf('dropGuides', 'DROP GUIDES', 'The dotted guide where a dragged window will land').root,
+    Object.assign(el('div', 'sw'), { ariaHidden: 'true' }));         // an empty, invisible seat, so DROP GUIDES is as wide as the two above
+  g.lastElementChild.lastElementChild.style.visibility = 'hidden';
+
 
   /* TEXT */
   g = groupEl('text', 'TEXT');
@@ -367,10 +397,12 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
     for (const k of changed) { const c = controls.get(k); if (c) c.set(state[k]); }
     if (changed.includes('accentA')) swA(state.accentA);
     if (changed.includes('accentB')) swB(state.accentB);
+    if (changed.includes('hue')) hueArc(state.hue);
     const preset = P.preset();
     presetSeg.set(preset); presetSeg.button('custom').hidden = preset !== 'custom';
     const full = state.quality === 'full';
     kBlur.setDisabled(!full); kSat.setDisabled(!full); kVeil.setDisabled(!full || state.card !== 'refractive');
+    kHue.setDisabled(!state.tint);                                    // HUE shows only through TINT
     if (changed.includes('theme') && page === 'about') showLogo();
     if (changed.length) { fit(); measureCost(); }
   }

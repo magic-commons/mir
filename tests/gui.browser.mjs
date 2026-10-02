@@ -65,6 +65,12 @@ try {
   let r = await J(`return { open: G.window.isOpen(), page: G.page, shown: !G.root.hidden };`);
   check('GUI opens from the menubar: the last group, its first item, the window on MIR OPTIONS', gHit && item && r.open && r.shown && r.page === 'options', JSON.stringify(r));
 
+  /* ── a new user is on FROST, Josh's recipe ── */
+  r = await J(`return { preset: P.preset(), theme: document.body.dataset.theme, card: document.body.dataset.card, frost: document.body.classList.contains('frost'), blur: hv('--glass-blur'), radius: bv('--surface-radius'), filter: bv('--surface-filter') };`);
+  check("a new user starts on FROST (Josh's recipe) on the dark theme", r.preset === 'frost' && r.theme === 'dark' && r.card === 'refractive' && r.frost && r.blur === '11px' && r.radius === '24px' && r.filter === 'blur(11px) saturate(1.30)', JSON.stringify(r));
+  /* the walk below starts from CLASSIC, chosen with the mouse, so each option moves something */
+  await option('PRESET classic', () => click(segB('preset', 0, 1), 'CLASSIC'), `[P.preset(), document.body.dataset.card]`, ['classic', 'tinted'], `cs('#pane', 'background-color')`);
+
   /* ── every control on page one: hook + computed style ───────────────────────────────────────────────────── */
   r = await J(`const st = ${grp('skin')}; return { skin: document.documentElement.dataset.skin, name: st.querySelector('.gui-step-name').textContent, arrows: [...st.querySelectorAll('.gui-step-b')].map((b) => b.disabled) };`);
   check('SKIN: the stepper names FROST, writes <html data-skin="frost">, and its arrows stand down (nothing else is selectable yet)', r.skin === 'frost' && r.name === 'FROST' && r.arrows.every(Boolean) && (await spot(`${grp('skin')}.querySelector('.gui-step-name')`)).hit, JSON.stringify(r));
@@ -77,10 +83,15 @@ try {
   await option('FROST always', () => click(segB('material', 1, 2), 'FROST ALWAYS'), `document.body.classList.contains('frost')`, true, `cs('#pane', 'backdrop-filter')`);
   const bHit = await dragUp(dial('material', 0), 'BLUR', -60);
   r = await J(`return { blur: P.get('blur'), hook: hv('--glass-blur'), filter: cs('#pane', 'backdrop-filter') };`);
-  check('option BLUR: dragging the dial writes --glass-blur on <html> and the pane\'s blur follows', bHit && r.blur !== 22 && r.hook === r.blur + 'px' && r.filter.includes('blur(' + r.blur + 'px)'), JSON.stringify(r));
+  check('option BLUR: dragging the dial writes --glass-blur on <html> and the pane\'s blur follows', bHit && r.blur !== 20 && r.hook === r.blur + 'px' && r.filter.includes('blur(' + r.blur + 'px)'), JSON.stringify(r));
   await option('VEIL', () => dragUp(dial('material', 1), 'VEIL'), `!!bv('--surface-veil')`, true, `cs('#pane', 'background-color')`);
   await option('SATURATION', () => dragUp(dial('material', 2), 'SATURATION'), `bv('--surface-filter').includes('saturate')`, true, `cs('#pane', 'backdrop-filter')`);
   await option('CORNERS', () => dragUp(dial('material', 3), 'CORNERS', 30), `!!bv('--surface-radius')`, true, `cs('.dev', 'border-top-left-radius')`);
+  await option('BRIGHT', () => dragUp(dial('material', 4), 'BRIGHT', 40), `!!bv('--glass-tint') && P.get('bright') > 0`, true, `cs('#knob .k-dial', 'background-color')`);
+  r = await J(`return ${dial('material', 5)}.closest('.k').classList.contains('disabled');`);
+  check('HUE stands down while TINT is 0 (it shows only through TINT)', r === true);
+  await option('TINT', () => dragUp(dial('material', 6), 'TINT', 40), `P.get('tint') > 0`, true, `cs('#knob .k-dial', 'background-color')`);
+  await option('HUE', () => dragUp(dial('material', 5), 'HUE', 40), `bv('--glass-tint').split(' ')[0] === String(P.get('hue'))`, true, `cs('#knob .k-dial', 'background-color')`);
   await option('RELIEF flat', () => click(segB('relief', 0, 1), 'FLAT'), `hv('--relief-raise')`, '0 0 0 0 transparent', `cs('#knob .k-dial', 'box-shadow')`);
   await option('SHADOW off', () => click(swB('relief', 0), 'SHADOW'), `bv('--surface-shadow')`, '0 0 0 0 transparent', `cs('#pane', 'box-shadow')`);
   await option('DISCONNECTED on', () => click(swB('relief', 1), 'DISCONNECTED'), `document.body.classList.contains('disconnected')`, true, `cs('.dev', 'visibility')`);
@@ -127,7 +138,7 @@ try {
   /* ── PRESET: the sets, and CUSTOM ── */
   r = await J(`return { preset: P.preset(), customShown: !${segB('preset', 0, 3)}.hidden };`);
   check('PRESET: after all that the options match no preset, and CUSTOM shows', r.preset === 'custom' && r.customShown, JSON.stringify(r));
-  await option('PRESET glass', () => click(segB('preset', 0, 1), 'GLASS'), `[P.preset(), document.body.dataset.card, document.body.classList.contains('frost'), document.body.classList.contains('disconnected')]`, ['glass', 'refractive', true, true], `[cs('.dev > .dev-body', 'border-top-left-radius'), cs('#pane', 'backdrop-filter')]`);
+  await option('PRESET frost', () => click(segB('preset', 0, 0), 'FROST'), `[P.preset(), document.body.dataset.card, document.body.classList.contains('frost'), document.body.classList.contains('disconnected'), document.body.style.getPropertyValue('--glass-tint')]`, ['frost', 'refractive', true, false, ''], `[cs('.dev > .dev-body', 'border-top-left-radius'), cs('#pane', 'backdrop-filter')]`);
   r = await J(`return !${segB('preset', 0, 3)}.hidden;`);
   check('PRESET: a preset that matches hides CUSTOM again', r === false);
 
@@ -135,7 +146,7 @@ try {
   await click(segB('skin', 0, 0), 'THEME LIGHT');
   await p.goto(URL_, 900); await ready();
   r = await J(`return { preset: P.preset(), theme: document.body.dataset.theme, card: document.body.dataset.card, frost: document.body.classList.contains('frost'), guides: P.get('dropGuides'), hints: document.body.classList.contains('control-hints-off') };`);
-  check('a reload keeps the choices (one localStorage key, applied before the first paint)', r.preset === 'glass' && r.theme === 'light' && r.card === 'refractive' && r.frost && r.guides === false && r.hints, JSON.stringify(r));
+  check('a reload keeps the choices (one localStorage key, applied before the first paint)', r.preset === 'frost' && r.theme === 'light' && r.card === 'refractive' && r.frost && r.guides === false && r.hints, JSON.stringify(r));
 
   /* ── the page turner, and nothing scrolls ── */
   await p.eval(`__T.gui.open('options')`); await sleep(500);
