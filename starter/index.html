@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>STARTER · an MIR app</title>
+<title>an MIR app</title>   <!-- createApp({ name }) writes the app's name here -->
 <!-- THE STARTER: the smallest whole MIR app.  Copy this folder, keep the kit beside it (../mir, ../fonts, ../LLM.md),
      and change the picture in app.js.  mir.css is every kit sheet in the kit's order; the app's own rules only lay
      the page out, and never restyle a kit part. -->
@@ -21,7 +21,7 @@
 <script type="module">
   /* the boot card shows while the app starts, and says in plain words what went wrong if it cannot */
   import { bootCard } from '../mir/shell/boot.js';
-  const boot = bootCard({ name: 'STARTER', steps: ['Loading the app'] });
+  const boot = bootCard({ steps: ['Loading the app'] });          // the app's name comes from createApp
   boot.step();
   import('./app.js').then(() => boot.done(), (error) => { console.error(error); boot.fail(error, { retry: () => location.reload() }); });
 </script>

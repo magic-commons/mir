@@ -41,8 +41,8 @@ myapp/
 |---|---|---|
 | **THE NAME** | `KEY` names every store in the browser (`KEY + '.rack'` …) | both names, first |
 | **THE NUMBERS** | `S`: every number the picture is drawn from | your game's numbers |
-| **THE PICTURE** | a 2D canvas drawn from `S`; the loop runs through `frame.coalesce`, only while the app's one clock plays | `draw()`: this is where Tetris goes |
-| **THE APP** | `createApp({ name, key, stage, state: S, present, pages, menus, … })` (`../mir/app.js`): the look, the language, the key table, the transport bar, the rack, modulation, the pages, the notebook, FOLDERS, the words on the picture, the menus and describe, wired in the kit's order | the words, `pages`, `menus` |
+| **THE PICTURE** | a 2D canvas drawn from `S` inside `app.safeRect()`; the loop runs through `frame.coalesce`, only while the app's one clock plays | `draw()`: this is where Tetris goes |
+| **THE APP** | `createApp({ name, key, stage, state: S, present, subject, pages, keys, menus, … })` (`../mir/app.js`): the look, the language, the key table, the transport bar, the rack, modulation, the pages, the notebook, FOLDERS, the words on the picture, the menus and describe, wired in the kit's order. `name` is also the page title and the wordmark. `present` is your redraw: it is called when a number changes, **when the theme or the look changes**, and when a window opens or closes. `subject()` is where your picture's subject is (the board, the ring), in stage px: the words on the picture rest beside it | the words, `subject`, `pages`, `keys`, `menus` |
 | **THE PARAMETERS** | `app.param(key, label, min, max, more?)`: one call makes `S[key]` a kit control, a modulation target **and** a saved value | one call per number a player may turn |
 | **THE RACK** | `app.rack.register({ id, title, side, open: !app.first, build })`; each window gets a latch on the bar; `build` runs on first open | your windows |
 | **MODULATION** | `app.mod.route('lfo', 'app.size', 0.35)` on a first run: an LFO drives SIZE | which number the first route drives |
@@ -55,7 +55,9 @@ const gravity = app.param('gravity', 'GRAVITY', 0, 4);    // a knob, a target an
 
 A route writes its target as a base plus a swing, $x(t) = b + d\,\sin(2\pi f t)$; the hand moves $b$, never the swing, and a project saves $b$ (`param.value()`), never the swinging reading.
 
-**One clock.** The app has one play: the bar's ▶ and **Space**. Modulation has a power button (the ring on the bar): off, every route lets go and every number is back on its base; it never plays or pauses. The starter's picture turns while the clock plays (`app.playing()`); a reload never plays by itself.
+**One clock.** The app has one play: the bar's ▶ and **Space** (the key table's `transport.play`; it works over a focused button too). It always plays, with or without modulation: no route, no source and the power off never stop it. Modulation has a power button (the ring on the bar): off, every route lets go and every number is back on its base; it never plays or pauses. Your loop runs while `app.playing()`; a game stops the clock itself with `app.pause()` (game over) and `app.play()` starts it; a reload never plays by itself.
+
+**Where the picture may draw: `app.safeRect()`** → `{ left, top, width, height }` in stage px, the stage minus the transport bar and the racks showing a window. Fit your board in it, not in the whole canvas (paint the background over the whole canvas). It changes when a window opens or closes, and `present` is called then.
 
 **The bar is the opener.** On a first run (nothing saved) `app.first` is true and every window stays closed: only the bar is on screen, and each window opens from its latch.
 
@@ -67,8 +69,8 @@ One line each. Paths are from `app/`.
 
 | Builder | Import | What it makes |
 |---|---|---|
-| `createApp`, `makeParam` | `../mir/app.js` | the standard wiring in one call; one number as a control, a target and a saved value |
-| `knob`, `fader`, `sw`, `seg`, `trig`, `readout`, `group`, `device`, `el`, `label` | `../mir/kit.js` | the controls; `el(tag, cls, parent, text)` for plain DOM |
+| `createApp`, `makeParam` | `../mir/app.js` | the standard wiring in one call (`app.play()`, `app.pause()`, `app.playing()`, `app.safeRect()`); one number as a control, a target and a saved value |
+| `knob`, `fader`, `sw`, `seg`, `trig`, `readout`, `group`, `device`, `el`, `label`, `onThemeChange` | `../mir/kit.js` | the controls; `el(tag, cls, parent, text)` for plain DOM (`el('div', 'row', body)` is the kit's row: controls side by side, spread across the window); `onThemeChange(fn)` outside `createApp` |
 | `frame.coalesce(key, fn)`, `frame.read`, `frame.write` | `../mir/core/frame.js` | the one frame: every animation and DOM write |
 | `drag(el, { onMove, onEnd, onCancel })`, `installPress` | `../mir/core/pointer.js` | a gesture; the pressed look on buttons |
 | `presence`, `tweenRect`, `flip` | `../mir/core/motion.js` | motion, by transform, honouring reduced motion |
@@ -121,8 +123,10 @@ The full table is `docs/INTENT.md`.
   > What this knob does.
   ```
 
-- **A key:** a row in `createApp({ keys: [...] })`: `{ id: 'rotate', label: 'ROTATE', group: 'GAME', keys: ['ArrowUp', 'X'], run: rotate }`. Menus show it with `app.keys.menuItem('rotate')`. Space is already the one play; I holds the words on the picture still.
+- **A key:** a row in `createApp({ keys: [...] })`: `{ id: 'rotate', label: 'ROTATE', group: 'GAME', keys: ['ArrowUp', 'X'], run: rotate }`, or later `app.keys.add(row)`. A key is one key with any modifiers: `'Space'`, `'Enter'`, `'ArrowLeft'`, `'X'` (or `'KeyX'`), `'Shift+ArrowDown'`, `'Mod+S'` (Ctrl, or ⌘ on a Mac); a modifier alone (`'Shift'`) is refused with an error. Menus show a row with `app.keys.menuItem('rotate')`. Space is already the one play (`transport.play`); I holds the words on the picture still. **Game keys over a focused control:** a knob owns its arrows and a button its Enter; a game's arrows say `overControls: true, when: () => app.playing()`, so they steer the game while it plays and leave a paused game's knobs their arrows. `repeat: true` lets a held key repeat.
+- **A number shown, not turned:** `const lines = readout({ label: 'LINES', value: '0' })`, then `lines.set(String(n))` every time it changes (there is no `.value`). Keep the readout in a variable your game updates; a window's `build` runs once.
 - **A menu row:** `createApp({ menus: { EDIT: () => [['UNDO', undo]] } })`; FILE, WINDOW, ABOUT, LANGUAGE and GUI are the kit's unless you pass your own.
+- **A glyph** (`glyph:` on a rack window or a latch, `glyphEl(name)`): one of <!-- glyphs -->`barsBottom` `barsTop` `bulletList` `camera` `check` `chevronDown` `clear` `close` `compact` `dirNext` `dirPrev` `dot` `download` `duplicate` `expand` `folder` `gallery` `grip` `info` `invertColors` `juliaRestore` `leave` `lock` `mandelbrot` `mandelbrotSmall` `morph` `north` `pause` `pending` `play` `plus` `projectFile` `rename` `render` `reopen` `save` `saveFolder` `sliders` `swap` `tune` `warn`<!-- /glyphs -->. Any other name draws no glyph (the gallery's GLYPHS card shows them all).
 - **A setting:** an engine option goes in a window built with `settingsRows(body, rows)`. A look option is the GUI window's, never yours: a **vanilla theme** (FROST · MORPH · CLASSIC · SWIFT · AURORA · NEON, each with tones) is a named set of the built-in settings; anything needing rules or art outside them is a **'name'-spec**, a separate MIR build. Preferences never go in a project.
 - **A saved thing:** every `app.param()` is saved already. Anything else: `registerProjectPart('board', { capture: () => board.slice(), restore: (v) => load(v || EMPTY) })`. `restore(null)` is NEW.
 
@@ -139,15 +143,33 @@ Every key must be a token whose row in `mir/tokens.json` says `skin: true`. Chec
 
 ## 8. Check your work
 
-1. Serve the folder and load the page in a browser (headless is fine): **no console error**.
-2. A first load shows only the bar. Open a window from its latch, drag a control: the picture changes. Space plays. Press a key: its action runs.
-3. `window.__MIR.describe()` in the console reads like this app; `window.__MIR.dump()` is the block to paste when something is wrong.
-4. A skin passes `node tools/check-envelope.mjs`.
+1. Serve the folder (`node tools/serve.mjs 8800`; it prints the app's address) and load the page: **no console error**.
+2. **Play it, headless, with real keys**, from the app's folder: `node tools/check-app.mjs http://127.0.0.1:8800/app/ --keys Space --expect playing --keys ArrowLeft,ArrowUp --changed 'JSON.stringify(window.__GAME.piece)' --shot /tmp/app.png` (`--changed` reads whatever your app puts on `window`). Press your app's main keys and click a latch (`--click '#transport [data-opener="score"]'`); it exits 0 only when every step landed and every check held, and prints the whole `describe()`. Booting is not working: Space must play.
+3. Look at the picture it saved, in both themes (`--light`): the board inside the safe rect, the words beside it, nothing under the bar.
+4. `window.__MIR.dump()` is the block to paste when something is wrong. A skin passes `node tools/check-envelope.mjs`.
 
 ## 9. Mistakes models make
 
-> [!warning] Predicted, not yet observed
-> These are predicted from the kit's laws. The observed list comes from running "build me Tetris with MIR" through real models.
+### Observed (2026-10-02: "build me Tetris with MIR", one run each of Haiku, Sonnet and Opus, from the skill alone)
+
+| Mistake | Who | Now |
+|---|---|---|
+| A play that did nothing: with no route, Space was refused, so each app routed an LFO it did not need just to make the clock run | all three (Sonnet found why) | **the kit prevents it**: the app's play never depends on modulation |
+| Space over a just-clicked latch pressed the latch instead of playing | Haiku, Sonnet (Opus wrote its own Space row) | **the kit prevents it**: Space plays over a focused control |
+| The greeting under the transport bar; a subject of the whole stage | Sonnet, Opus | **the kit prevents it**: the words keep clear of the bar and the racks; a subject is the thing, not the stage |
+| The board drawn under the bar | Haiku | `app.safeRect()`; **the page says** (§3) |
+| The canvas not redrawn when the theme flips while paused | Haiku, Sonnet | **the kit prevents it**: `present` is called on a theme change |
+| `STARTER` left in the page title and the boot card | Haiku | **the kit prevents it**: `name` writes them |
+| A parameter key in camelCase (`fallSpeed`) | Haiku | **an error says so**, naming the key and the rule |
+| A hard drop bound to `Shift` alone: a row with no key, silently | Haiku | **an error says so** |
+| `app.keys.add()`, which did not exist | Haiku | **added** |
+| A glyph name guessed (`target`): no glyph drawn | Haiku | **the page lists them** (§6) |
+| A readout written once in `build` and never again (the score froze); `.value` for `.set()` | Haiku | **the page says** (§6) |
+| A page label naming a control by a key that does not exist (`ui:fallSpeed` for the key `speed`) | Haiku | **the page says**: `ui:<key>` is the parameter's key |
+| One number on two controls (a GHOST knob and a GHOST switch writing it directly) | Haiku | **the page says** (mistake 9 below) |
+| "It works" from "it loads" | Haiku, Sonnet | **the checker plays it** (§8) |
+
+### Predicted, still plausible
 
 1. **Restyling a kit control**: CSS on `.k`, `.trig`, `.sw`, `.dev`, or colours on them. Pass options; leave the look.
 2. **Raw elements instead of builders**: `<button>`, `<input type="range">`, `<select>` where `trig`, `fader`, `seg` exist.
@@ -156,13 +178,10 @@ Every key must be a token whose row in `mir/tokens.json` says `skin: true`. Chec
 5. **A private `keydown` listener.** Every key goes in the key table, or the menus, hints and help view do not know it.
 6. **Opening `index.html` as a file**: nothing loads. Serve it.
 7. **Editing `mir/`** to change a look. The kit is copied, never edited; ask for the change in the kit.
-8. **Wrong paths** after moving the starter: the app is one folder below the kit (`../mir/`, `../LLM.md`).
-9. **A knob made by hand for a number modulation drives**, with an `onInput` that writes the number: the hand and the LFO fight, and a save stores the LFO's reading. Make it with `app.param()`.
-10. **Finding things by their words**: `querySelector` by label text, or `.toUpperCase()` on a label. Labels translate; use `data-` hooks.
-11. **One name for two apps**: leaving `KEY = 'starter'`, so two apps share their saved layout, keys and projects.
-12. **A second play**: a PLAY switch in a window, or modulation's power used as a play. There is one clock; Space and the bar's ▶ run it.
-13. **Opening windows on a first run** (`open: true`): the bar is the opener; use `open: !app.first`.
+8. **One name for two apps**: leaving `KEY = 'starter'`, so two apps share their saved layout, keys and projects.
+9. **A number on a control made by hand** (or on two controls), with an `onInput` that writes it: the hand and the LFO fight, and a save stores the LFO's reading. One `app.param()` per number.
+10. **A second play**: a PLAY switch in a window, or modulation's power used as a play.
+11. **Wrong paths** after moving the app: it sits one folder below the kit (`../mir/`, `../LLM.md`).
+12. **Finding things by their words** (`querySelector` by label text): labels translate; use `data-` hooks.
 
-### Observed
-
-*(filled in after the model runs)*
+None of the three restyled a kit part, wrote a private `keydown`, a `setInterval` loop or a second play button, or filled ON with the accent.

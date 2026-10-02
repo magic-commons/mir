@@ -5,7 +5,7 @@ description: Build an app, game, instrument or tool on MIR, Magic Commons' inter
 
 # Building on MIR
 
-MIR is a kit of plain ES modules and CSS with no build step and no dependencies. This folder carries all of it: the kit (`mir/`, `fonts/`), a **working starter app** (`starter/`), the one-page manual (`LLM.md`), the kit's laws (`docs/`) and three small tools (`tools/`). Call this folder `SKILL_DIR` (the folder this file is in).
+MIR is a kit of plain ES modules and CSS with no build step and no dependencies. This folder carries all of it: the kit (`mir/`, `fonts/`), a **working starter app** (`starter/`), the one-page manual (`LLM.md`), the kit's laws (`docs/`) and four small tools (`tools/`: a server, a headless browser, the app checker and the skin checker). Call this folder `SKILL_DIR` (the folder this file is in).
 
 ## Do this, in this order
 
@@ -29,9 +29,9 @@ MIR is a kit of plain ES modules and CSS with no build step and no dependencies.
 
 ## Run it and check it
 
-1. **Serve it** (modules do not load from `file://`): `node myapp/tools/serve.mjs 8800 myapp`, then the app is at `http://127.0.0.1:8800/app/`.
-2. **Load it headless** and read what it says: `node "$SKILL_DIR/check-app.mjs" http://127.0.0.1:8800/app/ --shot /tmp/myapp.png`. It exits 0 only when the page started with **no console error** and no failed boot card, and prints the app's `describe()` (its windows, parameters and keys). Look at the picture it saved.
-3. Fix every error before you report. Do not report "done" from reading the code alone.
+1. **Serve it** (modules do not load from `file://`): `cd myapp && node tools/serve.mjs 8800` (it prints the app's address: `http://127.0.0.1:8800/app/`).
+2. **Play it headless with real keys**, from `myapp/`: `node tools/check-app.mjs http://127.0.0.1:8800/app/ --keys Space --expect playing --keys <your main keys, e.g. ArrowLeft,ArrowUp,Enter> --changed '<an expression that must change, e.g. JSON.stringify(window.__GAME.piece)>' --click '#transport [data-opener="<a window id>"]' --shot /tmp/myapp.png`, and once more with `--light`. It exits 0 only when the page started with **no console error**, every key and click landed, the clock is playing and what you named changed; it prints the whole `describe()`. **Loading with no error is not "it works"**: the app's main keys must do their job.
+3. Look at both pictures (the board inside `app.safeRect()`, nothing under the bar, the words beside the subject). Fix every failure before you report. Do not report "done" from reading the code alone.
 4. **A skin** (token values only, `docs/FORMAT.md`): `node myapp/tools/check-envelope.mjs my-skin.json` must pass before anyone loads it.
 5. When something is wrong in the browser, `window.__MIR.dump()` is one block that says what the app was doing (versions, look, layout, cost, recent errors and input events, never what was typed).
 

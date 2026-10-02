@@ -13,16 +13,19 @@ const stage = document.getElementById('stage'), canvas = document.getElementById
 // ── THE NUMBERS: everything the picture is drawn from. Replace them with your game's. ──
 const S = { speed: 0.5, size: 0.6, hue: 200, count: 7, spread: 0.25, shape: 'dot' };
 
-// ── THE PICTURE: a 2D canvas drawn from S. Replace draw() with your game; keep the loop. ──
+// ── THE PICTURE: a 2D canvas drawn from S, inside app.safeRect() (clear of the bar and the racks). Replace draw()
+//    with your game; keep the loop.  createApp calls kick() again when the theme changes or a window opens. ──
 let turn = 0, last = 0, app = null;
+const ring = () => { const F = app ? app.safeRect() : { left: 0, top: 0, width: stage.clientWidth, height: stage.clientHeight }, R = Math.min(F.width, F.height) * 0.2;
+  return { left: F.left + F.width / 2 - R, top: F.top + F.height / 2 - R, width: 2 * R, height: 2 * R }; };
 function draw() {
-  const dpr = devicePixelRatio || 1, w = stage.clientWidth, h = stage.clientHeight;
+  const dpr = devicePixelRatio || 1, w = stage.clientWidth, h = stage.clientHeight, O = ring();
   if (canvas.width !== Math.round(w * dpr)) { canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); }
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   g.fillStyle = document.body.dataset.theme === 'light' ? '#eef1f6' : '#070a0f'; g.fillRect(0, 0, w, h);
-  const n = Math.round(S.count), R = Math.min(w, h) * 0.17 * S.size, r = Math.max(4, R * 0.18);
+  const n = Math.round(S.count), R = O.width * 0.42 * S.size, r = Math.max(4, R * 0.18), cx = O.left + O.width / 2, cy = O.top + O.height / 2;
   for (let i = 0; i < n; i++) {
-    const a = turn * Math.PI * 2 + (i / n) * Math.PI * 2, x = w / 2 + Math.cos(a) * R, y = h / 2 + Math.sin(a) * R;
+    const a = turn * Math.PI * 2 + (i / n) * Math.PI * 2, x = cx + Math.cos(a) * R, y = cy + Math.sin(a) * R;
     g.fillStyle = `hsl(${(S.hue + i * (360 / n) * S.spread) % 360} 80% 60%)`;
     if (S.shape === 'square') g.fillRect(x - r, y - r, 2 * r, 2 * r); else { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); }
   }
@@ -36,8 +39,8 @@ const kick = () => frame.coalesce(KEY + ':loop', loop);
 addEventListener('resize', kick);
 
 // ── THE APP: one call wires the look, the language, the keys, the transport bar, the rack, modulation, the pages,
-//    the notebook, FOLDERS, the words on the picture, the menus and describe (../mir/app.js). Change the words. ──
-const ring = () => { const R = Math.min(stage.clientWidth, stage.clientHeight) * 0.2; return { left: stage.clientWidth / 2 - R, top: stage.clientHeight / 2 - R, width: 2 * R, height: 2 * R }; };
+//    the notebook, FOLDERS, the words on the picture, the menus and describe (../mir/app.js). Change the words.
+//    subject: where the picture's subject is (the words on the picture rest beside it). ──
 app = await createApp({ name: NAME, key: KEY, version: '0.1.0', what: 'A ring of dots driven by five numbers.',
   about: { tagline: 'A ring of dots on MIR: the smallest whole app, to copy.', copyright: '© 2026' },
   stage, state: S, present: kick, thumbnail: () => canvas, subject: ring,

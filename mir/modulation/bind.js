@@ -24,7 +24,8 @@
  *      paused change (a seek, a preset, a hand on a routed knob) asks for ONE paint of the open window, so the play
  *      dot and the rings follow the model without a loop.
  *   0. ONE CLOCK (1.5.0-alpha.4).  Time is the app's: play(on) starts and stops the clock, and only the app's play
- *      button calls it.  Modulation's POWER is a bypass, as BASINS has it: off, every route lets go and every target is
+ *      button calls it, and it always plays: it holds its own demand on the clock, so no route, no source and the power
+ *      off never refuse it (alpha.6; three models' Tetris found it refused with nothing routed).  Modulation's POWER is a bypass, as BASINS has it: off, every route lets go and every target is
  *      back on its base, while the clock, the sources, the tempo and the HOLDs carry on; on, the routes drive again in
  *      time.  Power never plays; play never powers.
  *   4. A HIDDEN PAGE STOPS THE CLOCK (host.js setHidden) and the microphone; visible, it re-anchors and goes on.
@@ -40,7 +41,7 @@ import * as M from './mod.js';
 import { createModulation, ROUTABLE } from './window.js';
 import { frame } from '../core/frame.js';
 
-const TICK = 'mir:modulation:tick', PAINT = 'mir:modulation:paint';
+const TICK = 'mir:modulation:tick', PAINT = 'mir:modulation:paint', APP_PLAY = 'app.play';
 const IDLE = { state: 'idle', reason: '', live: false, deviceId: '', sampleRate: 0, frames: 0, inputLatencyMs: null,
   analysisLatencyMs: 0, visualLatencyMs: 0, latencyMs: 0, latencyEstimated: true };
 
@@ -199,7 +200,11 @@ export function installModulation(o) {
   /** THE APP'S ONE PLAY.  The window never calls it; the app's play button (the transport bar's, the timeline's) does. */
   function play(on) {
     const w = performance.now() / 1000;
+    /* the app's play is a DEMAND of its own on the clock (host.js `demand`), so it is never refused for want of a route
+       or a source ("nothing-to-run" stays the law of a bare host, e.g. a modulation window's own transport) */
+    if (on) host.clock.demand(APP_PLAY, true);
     const r = on ? host.clock.play(w) : host.clock.pause(w);
+    if (!on) host.clock.demand(APP_PLAY, false);
     if (view) view.sync();
     if (present) present();
     requestLoop(); paintSoon();

@@ -20,7 +20,7 @@
  *
  * makeParam(o) is the one function that makes a number a kit control, a modulation target and a saved value; app.param()
  * is it with the app's state and modulation filled in. */
-import { el, knob } from './kit.js';
+import { el, knob, onThemeChange } from './kit.js';
 import { installPress } from './core/pointer.js';
 import { registerProjectPart } from './core/project.js';
 import { createDescribe } from './core/describe.js';
@@ -62,7 +62,9 @@ const opt = (v) => (v && typeof v === 'object' ? v : {});
  *     remove() the control stops being a target, and its routes go
  */
 export function makeParam({ state, key, label = String(key).toUpperCase(), min = 0, max = 1, map = 'linear', mod = null, onChange = null,
-  id = 'app.' + key, make = knob, unit = '', hint = '', ...more }) {
+  id = null, make = knob, unit = '', hint = '', ...more }) {
+  if (!id && !/^[a-z][a-z0-9]*$/.test(String(key))) throw new TypeError(`app.param: the key "${key}" must be lowercase letters and digits, starting with a letter (it becomes the id app.${String(key).toLowerCase().replace(/[^a-z0-9]/g, '')}): write '${String(key).toLowerCase().replace(/[^a-z0-9]/g, '')}'`);
+  id = id || 'app.' + key;
   const get = () => state[key];
   const put = (v) => { state[key] = v; if (onChange) onChange(key, v); };
   const shaped = { ...(map === 'log' ? { log: true } : {}), ...(map === 'wrap' ? { wrap: true } : {}), ...(map === 'integer' ? { fmt: (v) => String(Math.round(v)) } : {}) };
@@ -91,13 +93,15 @@ export function makeParam({ state, key, label = String(key).toUpperCase(), min =
  *   keys           the app's own key rows (createKeys actions), ahead of the kit's
  *   menus          { FILE, EDIT, VIEW, WINDOW, … } rows that replace or add to the kit's menus (functions or arrays)
  *   pages          rows to add to the pages ({ title, md, shared }); page 0 is the greeting
- *   subject        INFORMATIONAL's subject: () → { left, top, width, height } in stage pixels
  *   thumbnail      () → the canvas FOLDERS takes a project's picture from
  *   about          extra ABOUT options (tagline, copyright …); sub: the line under the wordmark
  *   and one entry per piece — gui, transport, rack, mod, notebook, folders, info, greet, help, menubar, describe —
  *   each `false` to leave it out, or an object of extra options for its constructor.
- *   → { first, param, params, playing, rack, keys, gui, accent, transport, mod, pages, notebook, folders, info,
- *       greeting, help, menubar, describe, floats }
+ *   subject        () → { left, top, width, height } in stage px: the thing the words on the picture talk about (the
+ *                  board, the ring); the greeting rests beside it, never under the bar or a rack (default: none)
+ *   → { first, param, params, playing(), play(), pause(), safeRect(), rack, keys, gui, accent, transport, mod, pages,
+ *       notebook, folders, info, greeting, help, menubar, describe, floats }
+ *   The app's `present()` is also called when the theme or the look changes and when a window opens or closes.
  */
 export async function createApp(o = {}) {
   const name = o.name || 'APP', key = o.key || String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-');
@@ -183,8 +187,9 @@ export async function createApp(o = {}) {
     adapter: o.thumbnail ? { thumbnail: o.thumbnail } : {}, onMoved: moved,
     say: (text, warn) => notice(text, { kind: warn ? 'warn' : 'ok' }), ...opt(o.folders) });
 
-  /* 11. INFORMATIONAL: words on the picture; the greeting is page 0's first part */
-  if (want('info')) info = createInfoLayer({ stage, subject: o.subject || null, keys, ...opt(o.info) });
+  /* 11. INFORMATIONAL: words on the picture, never under the bar or a rack; the greeting is page 0's first part */
+  const keepClear = () => (rack ? rack.keepClear() : bar && bar.isConnected && bar.offsetWidth ? [bar.getBoundingClientRect()] : []);
+  if (want('info')) info = createInfoLayer({ stage, subject: o.subject || null, keys, avoid: keepClear, ...opt(o.info) });
   const greeting = info && want('greet') ? greet(info, pages, { first: true, ...opt(o.greet) }) : null;
 
   /* 12. THE KEYS' HELP VIEW (?) and THE MENUS: data; WINDOW from the rack, LANGUAGE from the kit, keys from the table */
@@ -203,9 +208,15 @@ export async function createApp(o = {}) {
   const menubar = want('menubar') ? createMenubar({ opener: wordmark(stage, { word: name, sub: (o.about && o.about.sub) || 'AN MIR APP' }), host, menus, ...opt(o.menubar) }) : null;
 
   /* 13. THE HINTS (every [data-key-action] shows its key, a lazily built window's too), the control help, the pressed
-         look, the accent on the marks */
+         look, the accent on the marks; the picture is drawn again when the look changes or a window opens or closes
+         (the theme, and the free stage, safeRect()) */
   const hints = () => frame.coalesce(key + ':hints', () => keys.hints(document));
   hints(); keys.onChange(hints); document.addEventListener('devopen', hints);
+  const relaid = () => { present(); if (info) info.viewChanged(); };
+  for (const e of ['devopen', 'devclose']) document.addEventListener(e, relaid);
+  if (gui) gui.prefs.subscribe(present);
+  onThemeChange(present);
+  document.title = name + ' · an MIR app';
   installControlHelp(document);
   installPress({ selector: PRESSABLE });
   accent.apply();
@@ -214,6 +225,25 @@ export async function createApp(o = {}) {
   if (want('describe')) describe = createDescribe({ app: { name, version: o.version || '', what: o.what || '' }, rack, params: () => params, pages, keys,
     prefs: gui ? gui.prefs : null, mod, transport: tr, ...opt(o.describe) });
 
-  return { name, key, first, param, params, playing: () => !!clock.isPlaying(), clock,
+  /** safeRect() — where the picture may draw: the stage minus the racks showing a window and the transport bar, in the
+   *  stage's own px { left, top, width, height } (the same free stage the words on the picture keep to) */
+  function safeRect() {
+    const sb = stage.getBoundingClientRect(), vw = innerWidth, W = sb.width, H = sb.height;
+    let L = 0, T = 0, R = W, B = H;
+    for (const r of keepClear()) {
+      const x0 = r.left - sb.left, x1 = r.right - sb.left, y0 = r.top - sb.top, y1 = r.bottom - sb.top;
+      if (x1 <= 0 || x0 >= W || y1 <= 0 || y0 >= H) continue;
+      if (r.left <= 24) L = Math.max(L, x1); else if (r.right >= vw - 24) R = Math.min(R, x0);
+      else if ((y0 + y1) / 2 > H / 2) B = Math.min(B, y0); else T = Math.max(T, y1);
+    }
+    if (R - L < 120) { L = 0; R = W; }
+    return { left: L, top: T, width: R - L, height: B - T };
+  }
+
+  return { name, key, first, param, params, clock, safeRect,
+    /** the one clock: playing(), and play() / pause() as the bar's ▶ would (a game over pauses it itself) */
+    playing: () => !!(clock && clock.isPlaying()),
+    play: () => (tr ? tr.play() : clock && !clock.isPlaying() ? clock.play() : null),
+    pause: () => (tr ? tr.pause() : clock && clock.isPlaying() ? clock.pause() : null),
     accent, gui, keys, transport: tr, rack, mod, pages, notebook, folders, info, greeting, help, menubar, describe, floats };
 }

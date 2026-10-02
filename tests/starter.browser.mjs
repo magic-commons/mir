@@ -75,13 +75,32 @@ try {
     return { first: A.first, boot: !document.querySelector('.mir-boot:not([data-state="gone"])'), open: open.map((n) => n.className), bar: !!h && bar.contains(h),
       chrome: !!document.getElementById('rackAdd'), h1: (document.querySelector('.mir-info-block h1') || {}).textContent, second: words.includes(${JSON.stringify(SECOND)}), page0: A.pages.list()[0].shared };`);
   check('a first run shows only the transport bar: no window open, no rack chrome, the bar takes the pointer', r.first && r.boot && r.open.length === 0 && r.bar && !r.chrome, JSON.stringify(r));
-  check('the greeting is LLM.md\'s first part only (its heading, not the next section), and page 0 is shared', r.h1 === HEADING && !r.second && r.page0 === true, JSON.stringify({ h1: r.h1, second: r.second }));
+  const greet0 = r;
+  r = await ev(`const b = document.querySelector('.mir-info-block').getBoundingClientRect(), t = R(document.getElementById('transport')), st = R(document.getElementById('stage'));
+    return { inside: b.left >= st.left && b.top >= st.top && b.right <= st.right && b.bottom <= st.bottom, clear: !meets(R(document.querySelector('.mir-info-block')), t) };`);
+  check('the greeting rests inside the stage and clear of the transport bar (1280×800)', r.inside && r.clear, JSON.stringify(r));
+  r = await ev(`const { createInfoLayer } = await import(new URL('../mir/info/layer.js', location.href).href), { showPage, firstPart } = await import(new URL('../mir/info/page.js', location.href).href);
+    const st = document.getElementById('stage'), W = st.clientWidth, H = st.clientHeight;
+    const L = createInfoLayer({ stage: st, subject: () => ({ left: W / 2 - 200, top: 10, width: 400, height: H - 20 }), avoid: () => [document.getElementById('transport').getBoundingClientRect()], parallax: false });
+    showPage(L, firstPart(A.pages.list()[0].md)); await wait(1500);
+    const el = L.root.querySelector('.mir-info-block'), b = R(el), s2 = R(st), t = R(document.getElementById('transport'));
+    const out = { inside: b.left >= s2.left - 1 && b.top >= s2.top - 1 && b.right <= s2.right + 1 && b.bottom <= s2.bottom + 1, clear: !meets(b, t), over: el.hasAttribute('data-over'), b };
+    L.destroy(); return out;`);
+  check('with a tall centred subject the block still rests inside the stage and clear of the bar', r.inside && r.clear, JSON.stringify(r));
+  check('the greeting is LLM.md\'s first part only (its heading, not the next section), and page 0 is shared', greet0.h1 === HEADING && !greet0.second && greet0.page0 === true, JSON.stringify({ h1: greet0.h1, second: greet0.second }));
   await ground();
 
   /* ── a latch on the bar opens its rack window; a knob drag changes the picture's number ── */
   await click(latch('picture'), 'PICTURE latch');
   r = await ev(`return { open: A.rack.isOpen('picture'), lit: document.querySelector('#transport [data-opener="picture"]').classList.contains('on') || document.querySelector('#transport [data-opener="picture"]').getAttribute('aria-pressed') === 'true' };`);
   check('the PICTURE latch opens the rack window', r.open, JSON.stringify(r));
+  /* ── Space over the latch that has the focus: it plays, and the latch is not pressed (alpha.6: Opus) ── */
+  const focused = await ev(`return document.activeElement && document.activeElement.dataset.opener;`);
+  await space();
+  const over = await ev(`return { playing: A.playing(), open: A.rack.isOpen('picture') };`);
+  await space();
+  const over2 = await ev(`return { playing: A.playing(), open: A.rack.isOpen('picture') };`);
+  check('Space over a focused latch plays and pauses the one clock and leaves the latch alone', focused === 'picture' && over.playing && over.open && !over2.playing && over2.open, JSON.stringify({ focused, over, over2 }));
   const s0 = await ev(`return S.speed;`);
   await dragUp(knob('speed'), 'SPEED knob');
   const s1 = await ev(`return S.speed;`);
@@ -152,6 +171,15 @@ try {
   check('GUI › MIR OPTIONS opens the GUI window, and it takes the pointer', r.open && r.page === 'options' && r.hit, JSON.stringify(r));
   await ev(`A.gui.close(); return 0;`);
 
+  /* ── a theme flip redraws the picture, paused too (createApp calls the app's present) ── */
+  await ev(`if (A.playing()) A.pause(); await wait(200); return 0;`);
+  const px = `const c = document.getElementById('picture'), d = c.getContext('2d').getImageData(4, 4, 1, 1).data; return d[0];`;
+  const dark0 = await ev(px);
+  await ev(`A.gui.prefs.set('theme', 'light'); await wait(300); return 0;`);
+  const light0 = await ev(px);
+  await ev(`A.gui.prefs.set('theme', 'dark'); await wait(300); A.play(); return 0;`);
+  check('a theme flip redraws the canvas while the clock is paused', dark0 < 60 && light0 > 200, JSON.stringify({ dark0, light0 }));
+
   /* ── ? opens the help view, which lists Space (play) and I (hold the words still) ── */
   await key('?', 'Slash', 191, 8);
   r = await ev(`return { open: A.help.isOpen(), play: A.keys.chords('transport.play'), hold: A.keys.chords('info-hold') };`);
@@ -170,6 +198,19 @@ try {
   const unshared = 'An LFO is driving this knob';
   check('describe() carries the windows, the clock and the shared page (LLM.md), not the unshared one', r.hidden === true && r.text.includes('### LLM') && r.text.includes(HEADING) && !r.live.includes(unshared)
     && /\| app\.size \| SIZE \|/.test(r.live) && /\| ring \| RING \| open/.test(r.live) && /\*\*Clock:\*\* playing · 30(\.0)? BPM · modulation on/.test(r.live), r.live.split('\n').filter((l) => /Clock|ring/.test(l)).join(' / '));
+
+  /* ── play needs no modulation: every route and source gone, a reload, then Space plays (alpha.6: Sonnet) ── */
+  await ev(`const M = A.mod.M; for (const x of M.routeList()) M.removeRoute(x.id); for (const x of M.sourceList()) M.removeSource(x.id); A.mod.persist(); return 0;`);
+  await p.goto(BASE + PATH, 1200);
+  for (let i = 0; i < 60 && !(await p.eval('!!window.__STARTER').catch(() => false)); i++) await sleep(150);
+  await sleep(600); await ground();
+  r = await ev(`return { routes: A.mod.M.routeList().length, sources: A.mod.M.sourceList().length, playing: A.playing() };`);
+  await space();
+  const played = await ev(`const t0 = performance.now(); await wait(300); return { playing: A.playing(), power: A.mod.power() };`);
+  await ev(`A.mod.setPower(false); return 0;`); await space(); await space();
+  const unpowered = await ev(`return A.playing();`);
+  check('with no route and no source, after a reload, Space plays (and with modulation powered off too)', r.routes === 0 && !r.playing && played.playing && unpowered, JSON.stringify({ r, played, unpowered }));
+  await ev(`A.mod.setPower(true); return 0;`);
 
   if (PLATES) {
     await ev(`A.mod.open(); return 0;`); await sleep(900);

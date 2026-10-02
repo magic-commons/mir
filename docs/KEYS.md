@@ -39,6 +39,10 @@ With `createApp()` (`mir/app.js`) the table is made for you (`app.keys`): the ap
 
 **A held key.** An action with `up(event, action)` is held: `run` on the press, `up` on that key's release, or when the page loses the focus. INFORMATIONAL's hold-still is one (`infoActions(() => layer)` in `mir/info/layer.js`): in the table, it is listed in the menus and the help view, and Space stays free for play.
 
+**A declared key that is not a key throws** at `createKeys` (and `add`), naming the action: a modifier alone (`'Shift'`), a typo. λWAVES' binding law ("Choose a key, with any modifiers") already refused it when rebinding; a declared row was silently left with no key, which a model (Haiku, building Tetris) did not notice. **`keys.add(action | actions)`** puts rows in after the table was made (a saved binding for them is read from the store; an id already there is left alone).
+
+**Space is play over a focused control too**: `transportActions` sets `overControls: true` (BASINS). A game's own keys do the same with a `when`: `{ id: 'left', keys: ['ArrowLeft'], overControls: true, when: () => app.playing(), repeat: true, run: left }` steers while the game plays and leaves a paused game's knobs their arrows.
+
 An action is `{ id, label, group, keys, run, when?, hint?, inFields?, overControls?, repeat?, short?, up? }`. `label`, `group`, `hint` and `short` are English; they are translated where they are shown. `short` is the name a drawn key carries (default: the label). `run(event, action)` gets the keydown, or `null` when a menu or button ran it.
 
 ## 2. The chord spelling

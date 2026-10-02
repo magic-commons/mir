@@ -25,6 +25,28 @@ function findChromium() {
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/** keyOf(spec) → { key, code, vk, mods, text } — what page.key() sends for 'Space', 'ArrowLeft', 'KeyZ', 'Z', '7',
+ *  'Enter', 'Mod+S', 'Shift+Slash' or '?' (pure; exported for tests) */
+const NAMED_KEYS = { Space: [' ', 32, ' '], Enter: ['Enter', 13, '\r'], Escape: ['Escape', 27], Tab: ['Tab', 9], Backspace: ['Backspace', 8], Delete: ['Delete', 46],
+  ArrowLeft: ['ArrowLeft', 37], ArrowUp: ['ArrowUp', 38], ArrowRight: ['ArrowRight', 39], ArrowDown: ['ArrowDown', 40], Home: ['Home', 36], End: ['End', 35],
+  PageUp: ['PageUp', 33], PageDown: ['PageDown', 34], Slash: ['/', 191, '/'], Comma: [',', 188, ','], Period: ['.', 190, '.'], Minus: ['-', 189, '-'], Equal: ['=', 187, '='],
+  ShiftLeft: ['Shift', 16], ControlLeft: ['Control', 17], AltLeft: ['Alt', 18], Shift: ['Shift', 16, '', 'ShiftLeft'] };
+export function keyOf(spec) {
+  const parts = String(spec).split('+').filter(Boolean); let name = parts.pop() || '';
+  let mods = 0;
+  for (const m of parts) mods |= { Alt: 1, Ctrl: 2, Mod: 2, Meta: 4, Shift: 8 }[m] || 0;
+  if (name === '?') { name = 'Slash'; mods |= 8; }
+  if (name === ' ') name = 'Space';
+  if (/^[a-z]$/i.test(name)) name = 'Key' + name.toUpperCase();
+  if (/^[0-9]$/.test(name)) name = 'Digit' + name;
+  const shift = (mods & 8) !== 0, plain = (mods & 7) === 0;
+  if (/^Key[A-Z]$/.test(name)) { const c = name[3]; const t = shift ? c : c.toLowerCase(); return { key: t, code: name, vk: c.charCodeAt(0), mods, text: plain ? t : '' }; }
+  if (/^Digit[0-9]$/.test(name)) { const d = name[5]; return { key: d, code: name, vk: d.charCodeAt(0), mods, text: plain && !shift ? d : '' }; }
+  const n = NAMED_KEYS[name]; if (!n) throw new Error('cdp key: unknown key ' + spec);
+  const key = name === 'Slash' && shift ? '?' : n[0];
+  return { key, code: n[3] || name, vk: n[1], mods, text: plain && n[2] ? (name === 'Slash' && shift ? '?' : n[2]) : '' };
+}
+
 export async function launch({ width = 1280, height = 900, scale = 1, gpu = false, port = 9300 + Math.floor(Math.random() * 600) } = {}) {
   const bin = findChromium();
   let snap = false; try { snap = fs.realpathSync(bin).startsWith('/snap/') || bin.startsWith('/snap/'); } catch { snap = bin.startsWith('/snap/'); }
@@ -77,6 +99,28 @@ export async function launch({ width = 1280, height = 900, scale = 1, gpu = fals
     async shot(file, clip) {
       const r = await send('Page.captureScreenshot', { format: 'png', ...(clip ? { clip: { ...clip, scale: 1 } } : {}) });
       fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, Buffer.from(r.result.data, 'base64'));
+    },
+    /** key('Space' | 'ArrowLeft' | 'KeyZ' | 'Z' | 'Enter' | 'Mod+S' | 'Shift+Slash' | '?', { hold }) — a REAL key, through
+     *  the browser's input pipeline (keydown, keypress for a printable one, keyup), so the page's key table, a focused
+     *  button and a text field each see what a person's key would do.  Names are KeyboardEvent.code values, or a
+     *  letter, digit or one of ' ? / '; Mod is Ctrl here (Linux).  hold: ms between down and up (a held key). */
+    async key(spec, { hold = 0 } = {}) {
+      const k = keyOf(spec);
+      await send('Input.dispatchKeyEvent', { type: k.text ? 'keyDown' : 'rawKeyDown', key: k.key, code: k.code, windowsVirtualKeyCode: k.vk, modifiers: k.mods, ...(k.text ? { text: k.text, unmodifiedText: k.text } : {}) });
+      if (hold) await sleep(hold);
+      await send('Input.dispatchKeyEvent', { type: 'keyUp', key: k.key, code: k.code, windowsVirtualKeyCode: k.vk, modifiers: k.mods });
+      await sleep(60);
+    },
+    /** click(selector) — a real mouse click at the element's centre, once elementFromPoint says it would land there.
+     *  → { hit, got } (hit false: something else is on top, `got` names it, and nothing is clicked) */
+    async click(selector) {
+      const at = await this.eval(`(() => { const el = document.querySelector(${JSON.stringify(selector)}); if (!el) return null; const b = el.getBoundingClientRect(), x = Math.round(b.left + b.width / 2), y = Math.round(b.top + b.height / 2), h = document.elementFromPoint(x, y);
+        return { x, y, hit: !!h && (h === el || el.contains(h)), got: h ? h.tagName.toLowerCase() + (h.id ? '#' + h.id : '') + '.' + String(h.className.baseVal ?? h.className).split(' ').join('.') : 'nothing' }; })()`);
+      if (!at) return { hit: false, got: 'absent' };
+      if (!at.hit) return at;
+      for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x: at.x, y: at.y, button: 'left', buttons: type === 'mousePressed' ? 1 : 0, clickCount: 1 });
+      await sleep(120);
+      return at;
     },
     async resize(w, h) { await send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: scale, mobile: false }); },
     /** a phone: mobile metrics, touch, and a pointer that reports (hover: none) — set it BEFORE goto */

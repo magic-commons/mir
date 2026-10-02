@@ -160,4 +160,20 @@ const node = (tag, attrs = {}) => ({ nodeType: 1, tagName: tag.toUpperCase(), ty
   K.destroy();
   pass('overControls: an action can run over a focused control (BASINS\' Space plays), never inside a text field');
 }
+{
+  /* alpha.6 (three models' Tetris): a declared key that is not a key throws, naming the action; rows can be added later */
+  assert.throws(() => createKeys({ actions: [{ id: 'hardDrop', label: 'HARD DROP', keys: ['Shift'], run: () => {} }], target: new EventTarget(), platform: 'other' }),
+    /"hardDrop" names "Shift", which is not a key/);
+  const store = memory({ late: ['KeyQ'] }), ran = [];
+  const K = createKeys({ actions: [{ id: 'a', label: 'A', keys: ['KeyA'], run: () => {} }], storage: store, target: new EventTarget(), platform: 'other' });
+  let told = 0; K.onChange(() => told++);
+  assert.deepEqual(K.add({ id: 'late', label: 'LATE', keys: ['KeyL'], run: () => ran.push('late') }), ['late']);
+  assert.deepEqual(K.chords('late'), ['KeyQ'], 'a saved binding for a row added later is read');
+  assert.equal(told, 1, 'the listeners (hints, the help view) hear it');
+  assert.deepEqual(K.add({ id: 'a', label: 'AGAIN', keys: ['KeyB'] }), [], 'an id already there is left alone');
+  assert.ok(K.run('late') && ran[0] === 'late');
+  assert.throws(() => K.add({ id: 'bad', keys: ['Ctrl'] }), /not a key/);
+  K.destroy();
+  pass('a modifier alone is refused at createKeys and add, naming the action; add() puts rows in later, with their saved keys');
+}
 console.log(`\n${n} passed`);

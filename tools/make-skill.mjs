@@ -9,7 +9,8 @@
  * What goes in, laid out as the kit's own repository is, so the starter's `../mir/` paths hold unchanged:
  *   SKILL.md (+ anything else in skill/mir-builder/) · LLM.md · LICENSE · starter/ · mir/ · fonts/ · docs/*.md
  *   tools/serve.mjs (a static server) · tools/check-envelope.mjs (the skin and file checker) · tools/cdp.mjs (the headless
- *   browser check-app.mjs drives) · BUILD.json
+ *   browser) · tools/check-app.mjs (loads an app, plays it with real keys, checks it) · BUILD.json
+ * The skill's tools/ is what a model copies into its app folder, so the checker runs from there.
  * It refuses to build from a dirty kit (an uncommitted or untracked file in any of those) unless told: a skill names the
  * bytes it carries.  `dist/` is a build product and is never committed.
  * Install the result: copy dist/mir-builder/ to ~/.claude/skills/mir-builder/ (or a project's .claude/skills/). */
@@ -26,7 +27,8 @@ const OUT = path.resolve(outArg >= 0 ? args[outArg + 1] : path.join(KIT, 'dist',
 
 /* what the skill carries: [source in the kit, where it goes in the skill] */
 const PARTS = [['skill/mir-builder', '.'], ['LLM.md', 'LLM.md'], ['LICENSE', 'LICENSE'], ['starter', 'starter'], ['mir', 'mir'], ['fonts', 'fonts'],
-  ['tools/serve.mjs', 'tools/serve.mjs'], ['tools/check-envelope.mjs', 'tools/check-envelope.mjs'], ['tools/cdp.mjs', 'tools/cdp.mjs']];
+  ['tools/serve.mjs', 'tools/serve.mjs'], ['tools/check-envelope.mjs', 'tools/check-envelope.mjs'], ['tools/cdp.mjs', 'tools/cdp.mjs'],
+  ['tools/check-app.mjs', 'tools/check-app.mjs']];
 const DOCS = fs.readdirSync(path.join(KIT, 'docs')).filter((f) => f.endsWith('.md')).map((f) => ['docs/' + f, 'docs/' + f]);
 
 const git = (...a) => { try { return execFileSync('git', ['-C', KIT, ...a], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { return null; } };

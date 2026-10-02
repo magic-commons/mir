@@ -10,6 +10,9 @@ import { makeParam } from '../mir/app.js';
 import { freeSeat } from '../mir/folders/folders.js';
 import { firstPart } from '../mir/info/page.js';
 import { describeText, createDescribe } from '../mir/core/describe.js';
+import { glyphNames } from '../mir/glyph.js';
+import { keyOf } from '../tools/cdp.mjs';
+import fs from 'node:fs';
 
 let n = 0; const ok = (name, fn) => { fn(); n++; console.log('ok   ' + name); };
 /* a widget as makeParam and the seam use one: root, set, and a recorded onInput (a hand) */
@@ -96,5 +99,30 @@ ok('describe: the windows from rack.windows(), and the clock line', () => {
   assert.match(s, /\| ring \| RING \| open, left rack \|/);
   assert.match(s, /\*\*Clock:\*\* playing · 30 BPM · modulation off \(bypassed\)/);
   assert.doesNotMatch(describeText({ app: { name: 'Y' } }), /Clock/, 'no clock given: no line');
+});
+ok('the app\'s play never depends on modulation: no source, no route, the power off — it plays (alpha.6)', () => {
+  const m = installModulation({ mount: null, params: [] });
+  for (const x of m.M.routeList()) m.M.removeRoute(x.id); for (const x of m.M.sourceList()) m.M.removeSource(x.id);
+  m.setPower(false);
+  const r = m.play(true);
+  assert.equal(m.playing(), true, JSON.stringify(r));
+  m.play(false); assert.equal(m.playing(), false);
+  assert.equal(m.host.clock.setPlaying(true).reason, 'nothing-to-run', 'a bare host still refuses: the law is kept for it');
+  m.host.clock.setPlaying(false); m.dispose();
+});
+ok('a parameter key that is not lowercase letters and digits is refused, naming the key and the fix', () => {
+  assert.throws(() => makeParam({ state: { fallSpeed: 1 }, key: 'fallSpeed', make: fake }), /the key "fallSpeed" must be lowercase letters and digits.*write 'fallspeed'/);
+  assert.equal(makeParam({ state: { x: 1 }, key: 'fallSpeed', id: 'app.fall', make: fake }).id, 'app.fall', 'an explicit id is the registry\'s to judge');
+});
+ok('LLM.md lists every glyph, and only those (between its glyphs markers)', () => {
+  const md = fs.readFileSync(new URL('../LLM.md', import.meta.url), 'utf8'), m = md.match(/<!-- glyphs -->([\s\S]*?)<!-- \/glyphs -->/);
+  assert.ok(m, 'the markers are there');
+  assert.deepEqual([...m[1].matchAll(/`([^`]+)`/g)].map((x) => x[1]), glyphNames().slice().sort(), 'regenerate: the sorted glyphNames() in backticks');
+});
+ok('tools/cdp.mjs keyOf: the names a checker types', () => {
+  assert.deepEqual(keyOf('Space'), { key: ' ', code: 'Space', vk: 32, mods: 0, text: ' ' });
+  assert.equal(keyOf('X').code, 'KeyX'); assert.equal(keyOf('x').key, 'x'); assert.equal(keyOf('ArrowLeft').vk, 37);
+  assert.deepEqual([keyOf('?').key, keyOf('?').mods], ['?', 8]); assert.equal(keyOf('Mod+S').mods, 2); assert.equal(keyOf('Mod+S').text, '');
+  assert.throws(() => keyOf('Banana'), /unknown key/);
 });
 console.log(`\napp.node: ${n} passed`);

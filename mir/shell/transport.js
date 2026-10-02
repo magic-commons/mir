@@ -52,7 +52,7 @@ export const TRANSPORT = Object.freeze({
 export const SEATS = Object.freeze(['bottom', 'top', 'compact']);
 const SEAT_WORD = { bottom: phrase('BOTTOM'), top: phrase('TOP'), compact: phrase('COMPACT') };
 const SEAT_HINT = { bottom: phrase('the bar at the bottom centre'), top: phrase('the bar at the top centre'), compact: phrase('a small bar at the bottom: glyphs only, no Hz reading') };
-const PLAY_ACTION = 'transport.play';
+export const PLAY_ACTION = 'transport.play';
 /** the rack window the bar docks into (BASINS / λWAVES `device({ id: 'transport', eyebrow: 'TRANSPORT' })`) */
 export const DOCK_ID = 'transport';
 /** the seats that wear a work bar's button face when the bar sits in one (BASINS transport-placement.js BAR_SEATS:
@@ -164,9 +164,11 @@ export function rackOpeners(rack, { only = null, glyphs = {} } = {}) {
     }).filter((o) => o.id !== DOCK_ID && (!only || only.includes(o.id)));
   };
 }
-/** transportActions(get) — the key table's row for the one true play: Space */
+/** transportActions(get) — the key table's row for the one true play: Space, over a focused control too.  Its id is
+ *  PLAY_ACTION ('transport.play'): `app.keys.menuItem('transport.play')` is the menu row */
 export function transportActions(get) {
-  return [{ id: PLAY_ACTION, label: 'PLAY / PAUSE', group: 'TRANSPORT', keys: ['Space'], hint: 'play or pause',
+  /* overControls: Space plays even with a button, a latch or a knob focused (BASINS); a text field still types it */
+  return [{ id: PLAY_ACTION, label: 'PLAY / PAUSE', group: 'TRANSPORT', keys: ['Space'], hint: 'play or pause', overControls: true,
     run: () => { const tr = get(); if (tr) tr.toggle(); } }];
 }
 

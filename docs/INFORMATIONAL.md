@@ -56,7 +56,7 @@ import { showPage, greet, parsePage, firstPart } from './mir/info/page.js';
 import { createPages, pageFromFile } from './mir/shell/pages.js';
 
 const layer = createInfoLayer({ stage, host?, subject?: () => rect, features?: () => [{ id, x, y, r }],
-  style?, follow?, lines?, parallax?, drift?, pane?, controls?, keys? });   // keys: the app's table (below)
+  style?, follow?, lines?, parallax?, drift?, pane?, controls?, keys?, avoid? });   // keys: the app's table (below); avoid: () → viewport rects
 
 const shown = showPage(layer, page, { place?, controls?, pane?, hold? });   // page: a pages row, a markdown string, or parsePage(md)
 shown.clear();                                   // → a promise, once its exit has landed
@@ -79,6 +79,7 @@ layer.replay(); layer.clear(kind?); layer.debug(); layer.destroy(); layer.root; 
 - **Controls.** `ui:name` is the element with `data-info~="name"` (a space-separated list, so one element can carry several names), else `id="name"`, anywhere in the document. `controls` (on the layer, on `showPage`, or `control` on one label) narrows that: a node to search inside, or a function `name → element`.
 - **With `createApp()`** (`mir/app.js`) the layer and the greeting are made for you (`app.info`, `app.greeting`): `subject` from `createApp({ subject })`, the app's key table as `keys`, and `greet(…, { first: true })`.
 - **Hold still is a key in the app's table.** Pass the app's key table as `keys` and put `...infoActions(() => layer)` in it: hold-still is then the row `info-hold` (I by default, held: an action with `up`), listed in the menus and the help view, and the layer listens to no key of its own. Without `keys` the layer listens to I itself. Space is the app's one play, never the layer's (neither BASINS nor λWAVES has a hold-still key, so I is the kit's choice).
+- **A block keeps clear of the bar and the racks** (`avoid`, alpha.6: three models' Tetris put the greeting under the transport bar). `avoid()` returns viewport rects; one at the window's left or right edge is a rack and narrows the free stage, any other (the bar) takes the top or the bottom off it. A block rests beside the subject when the free stage has room on a side, else above or below it, else **over the subject, dimmed** (`data-over`, `--info-over-fade`), and never outside the stage or under a kept-clear rect. `createApp` passes `rack.keepClear()` (the racks showing a window and the bar). The app's own picture uses the same free stage: `app.safeRect()`.
 - **The greeting, first part only.** `greet(…, { first: true })` shows page 0 only up to its first `---` (`firstPart(md)`), so a long page 0 (the starter's is `LLM.md`) greets with its opening and not the whole manual.
 - **The greeting** holds still for `hold` ms (2500 by default). It leaves on Escape, or on the first pointer press on the stage once the hold is over. The layer is click-through, so that press still reaches the app. If another page replaces it first, `dismiss()` only stops listening.
 - **Coordinates:** `subject()`, `features()` and `place()` answer in the stage's own CSS pixels. The layer sits over the stage inside `host` (default: the stage's parent, which must be positioned).
@@ -173,7 +174,7 @@ Plan §2.6 said: "if labels end up overlapping in practice, a simple chooser of 
 
 1. **A crowded page still compromises.** The chooser picks the least bad seat, so with five labels and two blocks round a small subject a line may run across the subject (the waist in `dark.png`). More seats per anchor (a second ring farther out) would help. A page with fewer labels is the honest fix.
 2. **Phone.** Labels take the shorter measure, but a page with two blocks and four labels does not fit a 390 px stage. A display formula wider than the block runs past the stage's edge.
-3. **UI rects to avoid.** The layer cannot see the app's bars and windows. A control's label avoids its own bar by sitting above or below it, but a label from elsewhere can still rest under a window.
+3. **UI rects to avoid** (blocks done in 1.5.0-alpha.6, labels not yet). A block keeps to the free stage (`avoid`), but a label still rests by its anchor and can sit under a window.
 4. **Label titles are side-aligned, not centred.** Centring them over a shelf reads badly beside a leader. `#` in a block is centred, per the law.
 
 ## Not built yet
@@ -184,7 +185,6 @@ Plan §2.6 said: "if labels end up overlapping in practice, a simple chooser of 
 - **Paste `$…$` onto the stage** as a kit feature. The gallery page does it in its own script.
 - **The `shared` eye** (a page a visiting model may read). The pages model carries it; the notebook draws it on its tabs.
 - **BASINS' nucleus candidates** as features. The anchors are ready for them.
-- **UI rects to avoid** (the rack, the transport).
 
 ## Proofs
 

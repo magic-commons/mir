@@ -8,6 +8,6 @@ A ring of dots drawn from five numbers, with everything an MIR app has around it
 - `app.js` is the app: every section starts with a `// ──` line saying what it is and what to change.
 - The kit is read from `../mir/` and `../fonts/`, so this folder sits one level below the kit, as it does in the kit's repository and in the `mir-builder` skill.
 
-Run it: `node tools/serve.mjs 8800` from the kit's folder, then open `http://127.0.0.1:8800/starter/`. Keys: Space play, M modulation, J notebook, F FOLDERS, Ctrl/⌘+S save, I (held) holds the words still, ? the keys.
+Run it: `node tools/serve.mjs 8800` from the folder that holds `mir/` (it prints the pages it finds). In the kit's repository the starter is `http://127.0.0.1:8800/starter/`; copied into an app folder as `app/` (the skill's way), it is `http://127.0.0.1:8800/app/`. Check it plays: `node tools/check-app.mjs http://127.0.0.1:8800/app/ --keys Space --expect playing`. Keys: Space play, M modulation, J notebook, F FOLDERS, Ctrl/⌘+S save, I (held) holds the words still, ? the keys.
 
 GPL-3.0-only, as the kit is.

@@ -223,7 +223,7 @@ export function createDescribe({ app = {}, rack = null, params = [], pages = nul
     }
   }
   const M = globalThis.window ? (globalThis.__MIR = globalThis.__MIR || {}) : null;
-  if (M) { M.describe = describe; M.dump = dump; }
+  if (M) { M.describe = describe; M.dump = dump; if (prefs) M.prefs = prefs; }   // prefs: a checker can set the theme
 
   return {
     describe, dump, refresh, observe,
@@ -231,7 +231,7 @@ export function createDescribe({ app = {}, rack = null, params = [], pages = nul
     destroy() {
       life.abort(); for (const off of offs) { try { off(); } catch (_) {} } frame.cancel(JOB);
       if (node) node.remove();
-      if (M && M.describe === describe) { delete M.describe; delete M.dump; }
+      if (M && M.describe === describe) { delete M.describe; delete M.dump; delete M.prefs; }
     },
   };
 }

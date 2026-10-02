@@ -64,6 +64,8 @@ It returns `{ root, layout, parts, el: { play, power, door, pill, field, panel, 
 
 **The parts** each return `{ root, sync(), destroy() }` and take a `signal` (an AbortSignal) that ends their listeners. **`createTempo({ model, setBpm, mod, persist })`** → `{ get, set(v), commit(), min, max, onChange(fn) }` is the one read and write every tempo part shares: it writes through the modulation clock's `setBpm` when there is one (it re-anchors, so the beat is continuous), else `model.setTransport`.
 
+**`transportActions(get)`** is the key table's row for the one play: id `PLAY_ACTION` (`'transport.play'`, exported), Space, `overControls: true` (Space plays with a button, a latch or a knob focused, as in BASINS; a text field still types it).
+
 **Pure helpers** (`tests/transport.node.mjs`): `formatBpm`, `clampBpm`, `digitStep`, `charAt`, `dragBpm`, `keyStep`, `parseBpm`, `seatOf`, `homeOf`, `seatRect`, `menuSide`, `firstRun`, `localSeatStore`, `menuRow`, `openerRows`, `isOpenOf`, `toggleOf`, `rackOpeners`, `transportActions`, `layoutNames`; `TRANSPORT`, `SEATS`, `DOCK_ID`, `SVG_REWIND`.
 
 ## Whose design each piece is

@@ -35,6 +35,7 @@
     --info-pane-pad: .85em 1.15em .95em;
     --info-block-measure: 23em;
     --info-dim: .5;
+    --info-over-fade: .62;      /* a block that found no room beside the subject sits over it, dimmed */
     --info-travel: .55;
     --info-pin-time: 1.9s;
     --info-weight-display: 700;                                  /* Playfair Display's one weight (mir/info/faces.css) */
@@ -128,6 +129,7 @@
 
   /* strength: the blocks recede while you look at the subject, and come back the moment you reach for them */
   .mir-info[data-pointer="subject"] .mir-info-block:not([data-reach]) { opacity: var(--info-dim); }
+  .mir-info-block[data-over]:not([data-reach]) { opacity: var(--info-over-fade); }
   .mir-info-block[data-travel] { opacity: var(--info-travel); }
   .mir-info[data-hold] .mir-info-block, .mir-info .mir-info-block[data-reach] { opacity: 1; }
 

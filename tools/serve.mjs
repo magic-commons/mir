@@ -29,6 +29,9 @@ export function serve(port = 8790, root = fileURLToPath(new URL('..', import.met
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   const port = Number(process.argv[2] || 8790), root = process.argv[3];
-  const s = await serve(port, root || undefined);
-  console.log(`serving ${root || 'the kit'} on ${s.url}/  (gallery: ${s.url}/gallery/ · shell: ${s.url}/gallery/shell.html)`);
+  const dir = path.resolve(root || fileURLToPath(new URL('..', import.meta.url)));
+  const s = await serve(port, dir);
+  /* say what is there: in the kit, the gallery and the starter; in an app made from the starter, the app */
+  const pages = ['app/', 'starter/', 'gallery/'].filter((p) => fs.existsSync(path.join(dir, p, 'index.html'))).map((p) => `${s.url}/${p}`);
+  console.log(`serving ${dir} on ${s.url}/` + (pages.length ? `\n  ${pages.join('\n  ')}` : ''));
 }

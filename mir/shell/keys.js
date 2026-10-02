@@ -52,7 +52,8 @@
  *   hints(root)             writes data-key-hint and aria-keyshortcuts on every [data-key-action] under root
  *   helpRows()              → [{ group, rows: [{ id, label, hint, chords: [text], keys: [chord] }] }]
  *   describe()              → plain data: { platform, actions: [{ id, label, group, hint, keys, defaults, display }] }
- *   list() · get(id) · chords(id) · saved() · restore(obj) · onChange(fn) → off · platform · destroy()
+ *   list() · get(id) · chords(id) · saved() · restore(obj) · onChange(fn) → off · add(action | actions) · platform · destroy()
+ *   A declared key that does not parse (a modifier alone, a typo) THROWS at createKeys / add, naming the action.
  *
  * Pure, exported and node-tested: parseChord, normalize, chordFromEvent, displayChord, ariaChord, pickAction,
  * isField, ownsKey, steal, diffSaved, repairSaved, bindError, detectPlatform. */
@@ -277,15 +278,21 @@ export function localKeyStorage(name = 'mir.keys') {
 export function createKeys({ actions = [], storage = null, platform = detectPlatform(), target } = {}) {
   const view = target || (typeof window !== 'undefined' ? window : null);
   const life = new AbortController();
-  const defs = [], byId = new Map(), defaults = {}, bound = {};
-  for (const a of actions) {
-    if (!a || !a.id || byId.has(a.id)) continue;
+  const defs = [], byId = new Map(), defaults = {}, bound = {}, ids = [];
+  /* a declared key that is not a key is the AUTHOR's mistake: say so at once (λWAVES' binding law: "Choose a key,
+     with any modifiers" — Shift alone, or 'Space bar', is refused, never kept as a row with no key) */
+  function define(a) {
+    if (!a || !a.id || byId.has(a.id)) return null;
     const d = { ...a, group: a.group || 'GENERAL', label: a.label || a.id };
-    defaults[a.id] = (a.keys || []).map((c) => normalize(c, platform)).filter((c, i, l) => c && l.indexOf(c) === i);
-    defs.push(d); byId.set(a.id, d);
+    defaults[a.id] = (a.keys || []).map((c) => {
+      const n = normalize(c, platform);
+      if (!n) throw new TypeError(`keys: the action "${a.id}" names "${c}", which is not a key. A chord is one key with any modifiers (a modifier alone is not one): e.g. 'Space', 'Enter', 'KeyX' or 'X', 'Shift+ArrowDown', 'Mod+S'.`);
+      return n;
+    }).filter((c, i, l) => l.indexOf(c) === i);
+    defs.push(d); byId.set(a.id, d); ids.push(a.id); bound[a.id] = defaults[a.id].slice();
+    return d;
   }
-  const ids = defs.map((d) => d.id);
-  for (const id of ids) bound[id] = defaults[id].slice();
+  for (const a of actions) define(a);
   const restore = (raw) => { const r = repairSaved(raw, ids, platform); for (const id of ids) bound[id] = r.keys[id] ? r.keys[id].slice() : defaults[id].slice(); return r.dropped; };
   if (storage && storage.get) { try { restore(storage.get()); } catch (_) { /* a broken store keeps the defaults */ } }
 
@@ -408,6 +415,15 @@ export function createKeys({ actions = [], storage = null, platform = detectPlat
     describe: () => ({ platform, actions: defs.map((d) => ({ id: d.id, label: d.label, group: d.group, hint: d.hint || '', inFields: !!d.inFields,
       keys: bound[d.id].slice(), defaults: defaults[d.id].slice(), display: bound[d.id].map((c) => displayChord(c, platform)) })) }),
     onChange(fn) { subs.add(fn); return () => subs.delete(fn); },
+    /** add(action | [actions]) — rows after the table was made (a module that arrives later); a saved binding for one
+     *  is read from the store.  An id already in the table is left as it is.  → the ids added */
+    add(list) {
+      const added = [];
+      for (const a of Array.isArray(list) ? list : [list]) if (define(a)) added.push(a.id);
+      if (added.length && storage && storage.get) { try { const r = repairSaved(storage.get(), added, platform); for (const id of added) if (r.keys[id]) bound[id] = r.keys[id].slice(); } catch (_) { /* the defaults stand */ } }
+      if (added.length) for (const fn of subs) { try { fn(api); } catch (err) { console.warn('keys: a listener threw', err); } }
+      return added;
+    },
     destroy() { if (rec) rec.done(null); life.abort(); subs.clear(); },
   };
   return api;

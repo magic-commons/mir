@@ -33,7 +33,8 @@
  * anchor a label rests on is chosen by info/seats.js, under the force.  CONTROLS: `ui:name` anchors follow an element
  * anywhere in the document; their lines are drawn on THE OVERLAY (below).
  *
- * createInfoLayer({ stage, host, subject, features, style, follow, lines, parallax, drift, pane, controls, keys })
+ * createInfoLayer({ stage, host, subject, features, style, follow, lines, parallax, drift, pane, controls, keys, avoid })
+ *   avoid: () → viewport rects a block must never rest under (the racks, the transport bar; createApp passes them)
  *   → { addLabel({ anchor, title, md, line, control }), addBlock({ md, hold, pane }), setStyle(s), setFollow(on),
  *       setLines(on), setEdit(on), setPane(on), setParallax(on), setDrift(on), freeze(on), hold(on), viewChanged(), replay(),
  *       clear(kind?), debug(), destroy(), root, stage }
@@ -94,7 +95,7 @@ export function infoActions(get, { keys = ['I'] } = {}) {
     run: () => { const l = get(); if (l) l.hold(true); }, up: () => { const l = get(); if (l) l.hold(false); } }];
 }
 
-export function createInfoLayer({ stage, host = stage.parentElement, subject = null, features = null, style = 'auto', follow = true, lines = true, parallax = true, drift = false, pane = false, controls = null, keys = null } = {}) {
+export function createInfoLayer({ stage, host = stage.parentElement, subject = null, features = null, style = 'auto', follow = true, lines = true, parallax = true, drift = false, pane = false, controls = null, keys = null, avoid = null } = {}) {
   const doc = stage.ownerDocument, win = doc.defaultView;
   const root = doc.createElement('div'); root.className = 'mir-info';
   root.dataset.style = style; root.dataset.lines = lines ? 'on' : 'off';
@@ -317,25 +318,48 @@ export function createInfoLayer({ stage, host = stage.parentElement, subject = n
     for (const [k, col] of cols) {
       if (col.length < 2 || col.some((i) => i.body.held)) continue;
       const total = col.reduce((t, i) => t + i.h, 0) + G * (col.length - 1);
-      let y = k[0] === 'x' ? S.cy - total / 2 : k === 'y-1' ? col[0].body.ry + col[0].h - total : col[0].body.ry;
+      const F = free();
+      let y = k[0] === 'x' || k === 'o' ? S.cy - total / 2 : k === 'y-1' ? col[0].body.ry + col[0].h - total : col[0].body.ry;
+      y = Math.max(F.T, Math.min(y, F.B - total));
       for (const it of col) { it.body.ry = y; y += it.h + G; }
     }
   }
+  /* THE FREE STAGE (alpha.6): the stage minus what `avoid()` names (viewport rects: the racks, the transport bar), in
+     stage px.  A rect at the window's left or right edge is a rack and narrows it; any other rect (a bar) takes the
+     top or the bottom off it, whichever half it is in.  Blocks rest only in here. */
+  function free() {
+    const sb = stageBox || rect(stage), vw = win.innerWidth, m = INFO.margin;
+    let L = m, T = m, R = W - m, B = H - m;
+    for (const r of (avoid && avoid()) || []) {
+      const x0 = r.left - sb.left, x1 = r.right - sb.left, y0 = r.top - sb.top, y1 = r.bottom - sb.top;
+      if (x1 <= 0 || x0 >= W || y1 <= 0 || y0 >= H) continue;          // not over the stage
+      if (r.left <= 24) L = Math.max(L, x1 + m); else if (r.right >= vw - 24) R = Math.min(R, x0 - m);
+      else if ((y0 + y1) / 2 > H / 2) B = Math.min(B, y0 - m); else T = Math.max(T, y1 + m);
+    }
+    if (R - L < 120) { L = m; R = W - m; }                              // racks over everything: the whole width
+    return { L, T, R, B };
+  }
   function placeBlock(it) {
-    const b = it.body;
-    if (!S.has) { b.rx = (W - it.w) / 2; b.ry = H * 0.12; it.seat = 'y1'; return; }
-    /* beside the subject when a side has room for it, else above or below it (a phone, a tall picture) */
-    const room = (s) => (s > 0 ? W - S.right : S.left) - INFO.gap - INFO.margin >= it.w;
+    const b = it.body, F = free();
+    const inX = (x) => Math.max(F.L, Math.min(x, F.R - it.w)), inY = (y) => Math.max(F.T, Math.min(y, F.B - it.h));
+    setAttr(it.el, 'data-over', null);
+    if (!S.has) { b.rx = inX((F.L + F.R - it.w) / 2); b.ry = inY(F.T + (F.B - F.T) * 0.12); it.seat = 'y1'; return; }
+    /* beside the subject when a side of the free stage has room for it, else above or below it (a phone, a tall
+       picture), else OVER the subject, dimmed (data-over): never outside the stage, never under the bar */
+    const room = (s) => (s > 0 ? F.R - S.right : S.left - F.L) - INFO.gap >= it.w;
+    const fits = (s) => (s > 0 ? F.B - S.bottom : S.top - F.T) - INFO.gap >= it.h;
     it.axis = room(1) || room(-1) ? 'x' : 'y';
     if (it.axis === 'x') {
       const side = room(it.side) ? it.side : -it.side;
       b.rx = side > 0 ? S.right + INFO.gap : S.left - INFO.gap - it.w;
-      b.ry = S.cy - it.h / 2; it.seat = 'x' + side;
-    } else {
-      const fits = (s) => (s > 0 ? H - S.bottom : S.top) - INFO.gap - INFO.margin >= it.h;
-      const side = fits(it.side) || !fits(-it.side) ? it.side : -it.side;
-      b.rx = Math.max(INFO.margin, Math.min(S.cx - it.w / 2, W - INFO.margin - it.w));
+      b.ry = inY(S.cy - it.h / 2); it.seat = 'x' + side;
+    } else if (fits(1) || fits(-1)) {
+      const side = fits(it.side) ? it.side : -it.side;
+      b.rx = inX(S.cx - it.w / 2);
       b.ry = side > 0 ? S.bottom + INFO.gap : S.top - INFO.gap - it.h; it.seat = 'y' + side;
+    } else {
+      b.rx = inX(S.cx - it.w / 2); b.ry = inY(S.cy - it.h / 2); it.seat = 'o';
+      setAttr(it.el, 'data-over', '');
     }
   }
   /** a label's attach point and side from where its body is NOW (mid-flight too) */
