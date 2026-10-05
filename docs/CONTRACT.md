@@ -1,6 +1,6 @@
 # MIR · the contract between the kit and an app
 
-What an app must do, what it may change, and what belongs to the kit. MIR 1.4.3.
+What an app must do, what it may change, and what belongs to the kit. MIR 1.4.4.
 
 ## 1. Adoption
 

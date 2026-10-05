@@ -1,5 +1,9 @@
 # MIR — changelog
 
+## 1.4.4 — 2026-10-05 · Jet Black
+
+- Added the `jetblack` palette ("Jet Black"): three bands of pure `#000000`. It is deliberately not a phase map, so it carries a new catalogue flag, `flat: true`, which tells an app's palette gates that its stops are meant to be identical.
+
 ## 1.4.3 — 2026-09-23 · editable sine at birth, double-click tension reset
 
 - Fresh LFOs now start on the editable SINE preset. Explicit analytic waves and saved source modes are preserved.
