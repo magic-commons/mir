@@ -157,6 +157,13 @@
 .mir-transport.tempo-open { flex-wrap: wrap; height: auto; min-height: var(--xport-h); padding-bottom: 8px; }
 .mir-transport .native-tempo { order: 9; width: 100%; box-sizing: border-box; padding: 8px; border-top: 1px solid var(--glass-hairline);
   border-radius: 0 0 var(--xport-pill-r) var(--xport-pill-r); background: var(--xport-panel-fill); }
+/* THE HAND (1.5.0-alpha.19): the bar keeps the row's width while the panel is open (transport.js pins it), and on a bottom
+   seat the panel opens ABOVE the row, toward the free side, so the bar grows away from the row and the row stays put */
+.mir-transport.mini.tempo-open > .native-play-row { height: calc(var(--xport-h) - 5px - 2 * var(--surface-edge-width, var(--glass-border))); }   /* the row keeps the closed bar's line (its 2 + 3 px padding and the glass edge off), so its centre does not move */
+.mir-transport.mini.tempo-open:not([data-seat="top"]) { padding-bottom: 3px; padding-top: 8px; }
+.mir-transport.mini:not([data-layout="lambdawaves"]) .native-tempo.with-macros:not([hidden]) { grid-template-columns: minmax(0, 1fr); }   /* in the row's width the MACROS sit over the CLOCK, as docked (λWAVES' 640 px bar keeps them side by side) */
+.mir-transport[data-form="compact"] .tempo-rail { grid-template-columns: minmax(0, 1fr); }   /* COMPACT's row holds one tile across */
+.mir-transport.mini:not([data-seat="top"]) .native-tempo { order: -1; border-top: 0; border-bottom: 1px solid var(--glass-hairline); border-radius: var(--xport-pill-r) var(--xport-pill-r) 0 0; }
 .mir-transport .native-tempo[hidden] { display: none; }
 .mir-transport .tempo-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
 .mir-transport .native-tempo .trig { min-width: 0; height: 44px; min-height: 44px; padding: 0 3px; justify-content: center; font-size: var(--xport-tile-size); letter-spacing: var(--xport-tile-track); }

@@ -614,8 +614,8 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
   };
   const playPart = playButton({ clock, onRefused, signal });
   let pillP = null;
-  function panelPart() { if (!panel) { panel = tempoPanel({ tempo, mod, macros, signal }); parts.push(panel); panel.onToggle((v) => {   /* the bar keeps its width while the panel opens beneath its row (BASINS #transport.tempo-open) */
-      if (v && !docked && placement === 'stage') bar.style.width = bar.getBoundingClientRect().width + 'px'; else bar.style.removeProperty('width');
+  function panelPart() { if (!panel) { panel = tempoPanel({ tempo, mod, macros, signal }); parts.push(panel); panel.onToggle((v) => {   /* THE HAND: the bar keeps the row's width while the panel opens beside its row — read with the panel out of the flow (it is already shown when this runs), so the panel never widens the bar */
+      if (v && placement === 'stage') { panel.root.hidden = true; bar.style.width = bar.getBoundingClientRect().width + 'px'; panel.root.hidden = false; } else bar.style.removeProperty('width');
       bar.classList.toggle('tempo-open', v); aimPanel(); if (pillP) pillP.sync(); }); } return panel; }
   function pillPart() { if (!pillP) pillP = tempoPill({ tempo, panel: layoutNames(layout).includes('panel') ? panelPart() : null, work: () => placement === 'work', signal }); return pillP; }
   const place = (list, parent) => {

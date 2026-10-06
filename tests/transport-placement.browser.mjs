@@ -94,7 +94,11 @@ try {
     !r.inLane.shown && !r.inLane.play && r.inLane.closed && r.onStage.place === 'stage' && !r.onStage.shown && r.back.shown && r.back.play && !r.back.closed, JSON.stringify(r));
 
   /* ── the stage pill opens the tempo panel, with the macro rail ── */
+  const seats = `[...tr.root.querySelectorAll('.play, .tempo-expand, .tr-seat, .dock-btn, .mod-exp')].map((n) => { const b = n.getBoundingClientRect(); return [b.left, b.top, b.width].map(Math.round).join(','); }).concat(Math.round(tr.root.getBoundingClientRect().width))`;
+  const seats0 = await run(`return ${seats};`);
   c = await at(`__T.tr.el.pill`); await click(c.x, c.y);
+  const seats1 = await run(`await wait(60); return ${seats};`);
+  check('THE HAND: the tempo panel opens without moving a control of the row, and the bar keeps its width', seats0.length >= 4 && JSON.stringify(seats0) === JSON.stringify(seats1), JSON.stringify({ seats0, seats1 }));
   r = await run(`await wait(40); const tiles = [...tr.root.querySelectorAll('.tempo-rail .tempo-tile')]; const g = tiles[0] && tiles[0].querySelector('.m2grip');
     return { open: tr.root.classList.contains('tempo-open'), tiles: tiles.length, macros: T.M.macroList().length, grip: !!g && hit(g), depth: !!tiles[0] && hit(tiles[0].querySelector('.m2numseat')), clockTiles: tr.root.querySelectorAll('.tempo-clock .trig').length };`);
   check('on the stage a click on the pill opens the tempo panel: MACROS (one tile per macro, its routing grip and depth seat hit) | CLOCK',

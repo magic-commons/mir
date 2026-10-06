@@ -166,7 +166,7 @@ try {
   check('a latch opens its rack window and lights; the window\'s own × closes it and the latch goes dark', h.ok && r.open && r.on && hx.ok && !r2.open && !r2.on, JSON.stringify({ h, r, hx, r2 }));
   h = await click(`document.querySelector('.tr-open[data-opener="gui"]')`);
   r = await run(`await wait(400); return { open: T.gui.window.isOpen(), on: latch('gui').classList.contains('on') };`);
-  const hg = await click(`document.querySelector('[data-mir-rail="gui"] [data-mir-chip="close"]') || T.gui.window.root.querySelector('[data-mir-chip="close"]')`);
+  const hg = await click(`document.querySelector('[data-mir-rail="gui"] [data-mir-chip="close"]') || __T.gui.window.root.querySelector('[data-mir-chip="close"], .mir-win-x')`);
   r2 = await run(`await wait(400); return { open: T.gui.window.isOpen(), on: latch('gui').classList.contains('on') };`);
   check('GUI: its latch opens it; its own close chip closes it and the latch goes dark', h.ok && r.open && r.on && hg.ok && !r2.open && !r2.on, JSON.stringify({ h, r, hg, r2 }));
   h = await click(`__T.tr.el.door`);
