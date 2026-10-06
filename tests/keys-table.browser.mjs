@@ -40,6 +40,20 @@ try {
   await p.key('G'); await sleep(150);
   await ev(`A.keys.reset('hide'); return 1;`);
 
+  /* 2. no key text typed by hand: the ⋯ rows, the timeline's tools, the notebook's × show the table's chord */
+  const row = async (id) => { await p.click('.mir-timeline .tl-toolbar [data-mode="more"]'); const t = await p.eval(`(document.querySelector('.tl-pop [data-row="${id}"]') || {}).textContent || ''`); await p.key('Escape'); return t; };
+  const z0 = await row('zoom-selection');
+  check('⋯ ZOOM TO SELECTION shows the table\'s chord (Shift+5, its first), not a typed SHIFT+Z', /^ZOOM TO SELECTION · Shift\+5$/.test(z0), z0);
+  check('⋯ DUPLICATE shows Ctrl+B', /· Ctrl\+B$/.test(await row('duplicate')));
+  await ev(`A.keys.bind('timeline.zoom-selection', 'Shift+KeyX'); return 1;`);
+  const z1 = await row('zoom-selection');
+  check('rebound, the ⋯ row follows (Shift+X)', /· Shift\+X$/.test(z1), z1);
+  await ev(`A.keys.reset('timeline.zoom-selection'); return 1;`);
+  const tools = await ev(`return [...document.querySelectorAll('.mir-timeline .tl-tool')].map((b) => b.dataset.tool + '=' + (b.getAttribute('data-key-hint') || ''));`);
+  check('the timeline\'s tools carry their table chord as a hint', tools.join(' ') === 'edit=P select=E scrub=Y slice=C', tools.join(' '));
+  const nb = await ev(`const b = document.querySelector('#notebook .nb-close'); return { action: b.dataset.keyAction, hint: b.getAttribute('data-key-hint'), help: b.dataset.help || b.title };`);
+  check('the notebook\'s × runs the table\'s "notebook" and shows its key (J), with no J typed in its words', nb.action === 'notebook' && nb.hint === 'J' && !/J/.test(nb.help), JSON.stringify(nb));
+
   check('the page raised no exception', p.logs.filter((l) => l.startsWith('EXCEPTION')).length === 0, p.logs.join(' | '));
 } finally {
   await p.close();

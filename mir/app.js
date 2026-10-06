@@ -263,9 +263,12 @@ export async function createApp(o = {}) {
 
   /* 9. THE NOTEBOOK (J): the pages, ABOUT, the dump */
   let describe = null;
-  if (want('notebook')) notebook = createNotebook({ host: stage, name, storageKey: key + '.notebook', keyLabel: 'J', pages,
+  if (want('notebook')) notebook = createNotebook({ host: stage, name, storageKey: key + '.notebook', pages,
     about: { version: o.version || '', licence: gplLicence(name, { license: LICENSE, notice: null }), type: kitType([], FONTS), ...opt(o.about) },
     onLogo: () => accent.paintMarks(), dump: () => (describe ? describe.dump() : ''), ...opt(o.notebook) });
+  /* its × runs the table's 'notebook': the key it shows is the table's (keys.hints → data-key-hint), never a typed 'J' */
+  const nbClose = notebook && notebook.root && notebook.root.querySelector('.nb-close');
+  if (nbClose) nbClose.dataset.keyAction = 'notebook';
 
   /* 10. FOLDERS: every registered project part, for free; its toolbar is BASINS' (PROJECT · CAPTURE · DOWNLOAD · DUPLICATE · NEW),
         and FILE › SAVE / Ctrl+S (the key table's 'save' row) save over the open project */

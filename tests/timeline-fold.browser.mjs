@@ -100,7 +100,7 @@ const RUN = await (async () => {
     rows = await moreRows();
     const sliceRow = await page.evaluate(() => { const r = document.querySelector('.tl-pop [data-fold="slice"]'); return r && { pressed: r.getAttribute('aria-pressed'), on: r.classList.contains('on') }; });
     L.ck(rows.join() === ORDER.slice(crowded.shown.length).join() && sliceRow?.pressed === 'true' && sliceRow.on, 'the folded SLICE row shows the tool the key chose', { rows, sliceRow });
-    const selectRow = await page.evaluate(() => { const r = document.querySelector('.tl-pop [data-fold="select"]'); return r && { icon: !!r.querySelector('svg.gly-select'), word: r.textContent.trim(), pressed: r.getAttribute('aria-pressed') }; });
+    const selectRow = await page.evaluate(() => { const r = document.querySelector('.tl-pop [data-fold="select"]'); return r && { icon: !!r.querySelector('svg.gly-select'), word: (r.querySelector('.tl-row-word') || r).textContent.trim(), key: (r.querySelector('.tl-key') || {}).textContent || '', pressed: r.getAttribute('aria-pressed') }; });
     L.ck(selectRow?.icon && selectRow.word === 'SELECT' && selectRow.pressed === 'false', 'a folded tool\'s row is its icon and its word, unpressed while another tool is chosen', selectRow);
     await page.locator('.tl-pop [data-fold="select"]').click(); await page.waitForTimeout(60);
     L.ck(await page.evaluate(() => window.__TL.tl.editor.tool()) === 'select', 'pressing the folded SELECT row chooses SELECT', await page.evaluate(() => window.__TL.tl.editor.tool()));
