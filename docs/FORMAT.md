@@ -190,6 +190,18 @@ survive a re-encode: an OS screenshot of the picture, most chat apps, an image e
 draw new pixels and drop the chunk; the way in then says "this picture carries no MIR data". That case is what a
 visible QR code is for (not built).
 
+## The project ZIP
+
+A project that uses audio files cannot ride in one `.mir` (the files are megabytes, and the envelope carries JSON), so FOLDERS can also write the project as a **stored ZIP** (FL Studio's "Save project as zip"): `<name>.<app>.zip`, made by `mir/core/zip.js` and `mir/folders/zip.js`, described in `docs/AUDIO.md`.
+
+| Entry | What |
+|---|---|
+| `project.json` | the project's data exactly as FOLDERS captures it (`{ parts: { … } }`, an app's own shape is kept as it is), plus `name` |
+| `assets/audio/<id>.<ext>` | the file's own bytes; `<id>` is 32 hex digits of its content hash (the first 128 bits of SHA-256), `<ext>` is the original's extension (or its type's, or `bin`) |
+| `assets/audio/<id>.json` | its analysis, the asset's meta: `{ id, name, type, seconds, sampleRate, channels, peaks: [{ rate, data }], envelopes: { level, low, mid, high } }`, `data` as base64 of the Int8 min/max pairs |
+
+It is **not** an envelope (no `kit`, `kind` or `data`): it is a bundle around one. Entries are **stored, never deflated**; every entry carries its CRC-32 and a reader refuses one that fails it, a compressed entry (it names it), and a directory that points outside the file. A part is kept under 32-bit offsets (`ZIP part is full` past 4 GiB less a margin; 65,535 entries). Opening trusts nothing: an asset is restored only when its bytes hash to the id in its name; an id the store already holds is left alone; entry names are matched, never used as paths. The layout is BASINS' own, so a ZIP from either opens in the other.
+
 ## The compact text
 
 `pack(envelope)` → `'mir1.z.' + base64url(deflate-raw(JSON))` (or `'mir1.j.' + base64url(JSON)` where the platform has

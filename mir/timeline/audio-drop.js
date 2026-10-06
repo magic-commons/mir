@@ -27,6 +27,13 @@ import { audioBudget, readjustAudioTempo } from './audio-kind.js';
 import { audioClipFromFile, isAudioFile, audioBaseName } from './audio-analysis.js';
 import { createAudioPlayback } from './audio-playback.js';
 
+/* the popup's three answers (`label:` and `hint:` so tools/i18n-extract.mjs reaches them) */
+const CHOICES = [
+  { label: 'KEEP AUDIO', keep: true, hint: 'The envelope drives the target and the file plays with the transport' },
+  { label: 'SIGNAL ONLY', keep: false, hint: 'The envelope drives the target; the file stays silent' },
+  { label: 'CANCEL', keep: null, hint: '' },
+];
+
 export function installAudioDrop(editor, { mod, controller, say = () => {}, busy, store = assets } = {}) {
   const model = editor.model, events = new AbortController();
   const bpm = () => mod?.host?.model?.transport?.bpm || 120;
@@ -52,7 +59,7 @@ export function installAudioDrop(editor, { mod, controller, say = () => {}, busy
       pickTarget.value = registry?.has?.(last) ? last : registry?.has?.('palette.phase') ? 'palette.phase' : pickTarget.options[0]?.value || '';
       field.prepend(label(el('span', 'tl-field-word'), 'DRIVES'));
       const life = new AbortController(), done = (v) => { life.abort(); pop.remove(); resolve(v); };
-      for (const [text, keep, tip] of [['KEEP AUDIO', true, 'The envelope drives the target and the file plays with the transport'], ['SIGNAL ONLY', false, 'The envelope drives the target; the file stays silent'], ['CANCEL', null, '']]) {
+      for (const { label: text, keep, hint: tip } of CHOICES) {
         const b = el('button', 'trig tl-action', pop); b.type = 'button'; label(b, text); b.dataset.audio = keep === null ? 'cancel' : keep ? 'keep' : 'signal';
         if (tip) hint(b, tip);
         b.addEventListener('click', () => done(keep === null ? null : { keep, targetId: pickTarget.value }), { signal: life.signal });

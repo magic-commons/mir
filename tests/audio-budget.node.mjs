@@ -30,7 +30,8 @@ assert.equal(m.duplicate(first, true), null, 'a unique duplicate refuses too');
 assert.equal(m.duplicateClips([first]), null, 'DUPLICATE (the selection) refuses'); assert.equal(m.lastRefusal.why, WHY);
 const bundle = m.copyClips([first]);
 assert.equal(m.pasteClips(bundle, { start: 300 }), null, 'paste refuses'); assert.equal(m.lastRefusal.why, WHY);
-assert.equal(sliceClips(m, [first], m.state().clips[0].start + 2), null, 'slice refuses (it makes a second instance)');
+assert.equal(sliceClips(m, [first], m.state().clips[0].start + 2), null, 'slice refuses (it makes a second instance)'); assert.equal(m.lastRefusal.why, WHY, 'and says why');
+assert.equal(sliceClips(m, [first], 9999), null); assert.equal(m.lastRefusal, null, 'a slice that fails for another reason does not report a stale budget refusal');
 assert.equal(m.signature(), sig, 'every refusal is whole: the document is exactly as it was');
 // a curve clip is not counted and not refused
 assert.ok(m.create({ targetId: 'palette.phase', name: 'C', value: 0.5, start: 400, duration: 4, laneId: m.state().lanes[0].id }), 'a plain curve clip is not an audio clip');

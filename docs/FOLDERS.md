@@ -94,14 +94,15 @@ Read from BASINS (`save-window.js`, `mir-plugins/kwin/kwin.js`, `shell.js`; adop
 | `rack` | — | the rack (or `() => rack`): the first seat keeps clear of what `rack.keepClear()` names |
 | `firstSeat()` / `anchor`, `top` | BASINS' seat: `anchor: 'right'`, `top: 162` | `{ x, y, h? }` for the first open. `freeSeat({ vw, vh, w, h, minH, clear, anchor, top, gutter })` is exported and pure; `anchor: 'centre'` centres the window between the racks |
 | `say(text, warn)` | the kit's notice in its toast seat | the app's own voice |
-| `download(blob, name)` | an `<a download>` | how an export leaves |
+| `download(blob, name)` | `saveBlob` (`folders/save-blob.js`: a Blob and an `<a download>`; the share sheet on iPad) | how an export leaves |
+| `zip` | on | SAVE AS ZIP… and OPEN ZIP… in the gallery's foot (`docs/AUDIO.md`, `docs/FORMAT.md`): `false` removes them; `{ store, validate(project) }` names the asset store (default `core/assets.js`) and what a project must be to be taken |
 | `picture(entry)` | the saved thumbnail | a canvas or Blob to embed the project in on EXPORT › PICTURE |
 | `defaultName`, `capChars` | `'UNTITLED'`, 2.6 M | passed to the store |
 | `parts` | none | `[{ id, label, soon? }]`: component switches (BASINS: MODULATION, COLOUR & BRIGHTNESS, POSITION, CACHE soon) |
 | `sorts` | A–Z, Z–A, N↓, N↑ | sort ids; all six when `depthOf` is given |
 | `depthOf(entry)`, `factory()`, `freshLoses()`, `locked()`, `projection(presence)`, `capturePicture`, `savePicture`, `pictureStale`, `onInspect(entry, how)`, `onOpened`, `onSaved(entry)` (after every save, SAVE AS and SAVE over the open project: createApp writes the modulation preset to CAPS there), `galleryCopy`, `emptyDragExcept` | — | BASINS' gallery hooks, passed through as its gallery reads them |
 
-Returns `{ win, files, gallery, adapter, seeded, intake, views, panels (id → body), tab(id) / tab(), activeTab(), mountGallery(el, { pageSize = 8, prefsKey = 'rackGallery', actions, factory, onInspect }), open(), close(), toggle(), isOpen(), save(), saveAs({ name, folder }), fresh(), openEntry(id, { force }), current(), dirty(), seed(list), exportProject('mir' | 'png'), importEnvelope(env), ingest(input), say(text, warn), state(), destroy() }`.
+Returns `{ win, files, gallery, adapter, seeded, intake, views, panels (id → body), tab(id) / tab(), activeTab(), mountGallery(el, { pageSize = 8, prefsKey = 'rackGallery', actions, factory, zip, onInspect }), open(), close(), toggle(), isOpen(), save(), saveAs({ name, folder }), fresh(), openEntry(id, { force }), current(), dirty(), seed(list), exportProject('mir' | 'png'), exportZip(), openZip(file), importEnvelope(env), ingest(input), say(text, warn), state(), destroy() }`.
 
 **`mountGallery(el, …)`** is a second live view of the same library (BASINS' rack card: 8 a page, its own sort under `rackGallery`). Every view shares one store and one adapter; when one opens, saves or starts NEW, the others learn that the screen is clean.
 
@@ -142,6 +143,10 @@ seeds: [{ name: 'EMBER', folder: 'STARTERS', data: { parts: { … } }, thumbnail
 ```
 
 Each starter is added **once**, counted by its `id` (default `folder/name`) in a list under `seededKey`. One the user deleted stays deleted; a library that already holds it (`facts.seedId`) is not given a second; a name the user already used is suffixed. `readOnly` starters cannot be saved over or renamed.
+
+**A changed starter is refreshed in place** (1.5.0-alpha.13; BASINS `starter-gallery.js`). Give a starter a `revision` (any string or number; bump it when its art or data changes). The entry made from it records `facts.seedRevision`; at the next seed an entry that came from this starter (`facts.seedId`) and records another revision (or none: it was seeded before revisions) takes the new picture, payload, facts and date, **keeping its id, name, folder and place**, and every starter refreshes in **one write, all or none** (`files.refresh(updates)`): a full library, a quota or another tab's write leaves the gallery as it was and the next load tries again. Only a bundled entry is ever touched: a user's save of the same name has no `seedId`, and SAVE over a starter is refused. `replaces(entry) → bool` is the app's own test of which entry is the previous revision, for entries that predate `seedId` (BASINS matched its starter id, its source and its date). `seed()` returns `refreshed` (and `refreshFailed` with the store's own refusal).
+
+**The project ZIP.** FOLDERS' gallery foot has SAVE AS ZIP… and OPEN ZIP… (option `zip`, `docs/AUDIO.md`); a `.zip` dropped on the window or chosen with OPEN FILE opens too; `api.exportZip()` and `api.openZip(file)` are the same two for an app that seats its own buttons (BASINS' SETTINGS & FILES). A rack card made with `mountGallery(el, { zip: true })` gets the buttons too; by default it has none.
 
 ## The laws
 

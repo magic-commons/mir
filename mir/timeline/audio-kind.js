@@ -86,13 +86,20 @@ export function patchAudioClip(model, clipId, patch) {
 // was made.  `why` is an English key with its `vars`: the caller translates it where it says it (t(why, vars)).
 // audioBudgetAdding(doc, [{ assetId, seconds }]) — would these clips, added together, pass?  A clip of an asset already in the
 // arrangement costs no seconds; the clips are counted one by one, and the answer is whole (all or none).
+const WORDS = {   // tr: the audio budget's refusals and the clip menu's words
+  clips: { label: 'No room: {n} audio clips is the budget.' },
+  minutes: { label: 'No room: {max} minutes of audio is the budget (this would be {now}).' },
+  level: [{ label: 'ENVELOPE · LEVEL' }, { label: 'ENVELOPE · LEVEL ✓' }], low: [{ label: 'ENVELOPE · LOW' }, { label: 'ENVELOPE · LOW ✓' }],   // tr: a clip's menu: the envelope band to follow, the one in use ticked
+  mid: [{ label: 'ENVELOPE · MID' }, { label: 'ENVELOPE · MID ✓' }], high: [{ label: 'ENVELOPE · HIGH' }, { label: 'ENVELOPE · HIGH ✓' }],
+  keep: { label: 'KEEP AUDIO (PLAY THE FILE)' }, signal: { label: 'SIGNAL ONLY (MUTE THE FILE)' }, stretch: { label: 'STRETCH TO CLIP · SHIFT+T' },   // tr: a clip's menu: the file plays / the envelope alone / fit the audio into the clip's length (varispeed)
+};
 export function audioBudgetAdding(doc, adds) {
   const curves = new Map(doc.curves.map((c) => [c.id, c])), clips = doc.clips.filter((c) => curves.get(c.curveId)?.kind === 'audio').length;
-  if (clips + adds.length > AUDIO_CLIP_MAX) return { ok: false, clips, why: 'No room: {n} audio clips is the budget.', vars: { n: AUDIO_CLIP_MAX } };
+  if (clips + adds.length > AUDIO_CLIP_MAX) return { ok: false, clips, why: WORDS.clips.label, vars: { n: AUDIO_CLIP_MAX } };
   const known = new Map(doc.curves.filter((c) => c.kind === 'audio').map((c) => [c.assetId, c.seconds]));
   for (const a of adds) if (!known.has(a.assetId)) known.set(a.assetId, a.seconds || 0);
   const total = [...known.values()].reduce((a, b) => a + b, 0);
-  if (total > AUDIO_SECONDS_MAX + 1e-9) return { ok: false, clips, seconds: total, why: 'No room: {max} minutes of audio is the budget (this would be {now}).', vars: { max: AUDIO_SECONDS_MAX / 60, now: (total / 60).toFixed(1) } };
+  if (total > AUDIO_SECONDS_MAX + 1e-9) return { ok: false, clips, seconds: total, why: WORDS.minutes.label, vars: { max: AUDIO_SECONDS_MAX / 60, now: (total / 60).toFixed(1) } };
   return { ok: true, clips, seconds: total };
 }
 // audioBudget(doc, { seconds, assetId }) — room for one more clip (of this asset)?  The add's pre-check.
@@ -151,11 +158,10 @@ export async function setAudioBand(model, clipId, band) {
 // THE CLIP MENU rows (the editor adds them to the instance actions): the four envelopes with the chosen one ticked, KEEP AUDIO ↔
 // SIGNAL ONLY, and Shift+T.  Labels are English keys, translated where they are shown.
 function menu(curve, clip, { model }) {
-  const ROWS = { level: ['ENVELOPE · LEVEL', 'ENVELOPE · LEVEL ✓'], low: ['ENVELOPE · LOW', 'ENVELOPE · LOW ✓'], mid: ['ENVELOPE · MID', 'ENVELOPE · MID ✓'], high: ['ENVELOPE · HIGH', 'ENVELOPE · HIGH ✓'] };   // tr: a clip's menu: the envelope band to follow, the one in use ticked
   return [
-    ...AUDIO_BANDS.map((band) => [ROWS[band][curve.band === band ? 1 : 0], () => { if (curve.band !== band) setAudioBand(model, clip.id, band); }, 'band-' + band]),
-    [curve.keep ? 'SIGNAL ONLY (MUTE THE FILE)' : 'KEEP AUDIO (PLAY THE FILE)', () => patchAudioClip(model, clip.id, { keep: !curve.keep }), 'keep'],   // tr: a clip's menu: switch between the file playing and the envelope alone
-    ['STRETCH TO CLIP · SHIFT+T', () => stretchAudioClip(model, clip.id), 'stretch-to-clip'],   // tr: a clip's menu: fit the audio into the clip's length (varispeed)
+    ...AUDIO_BANDS.map((band) => [WORDS[band][curve.band === band ? 1 : 0].label, () => { if (curve.band !== band) setAudioBand(model, clip.id, band); }, 'band-' + band]),
+    [(curve.keep ? WORDS.signal : WORDS.keep).label, () => patchAudioClip(model, clip.id, { keep: !curve.keep }), 'keep'],   // tr: a clip's menu: switch between the file playing and the envelope alone
+    [WORDS.stretch.label, () => stretchAudioClip(model, clip.id), 'stretch-to-clip'],   // tr: a clip's menu: fit the audio into the clip's length (varispeed)
   ];
 }
 export const AUDIO_KIND = registerClipKind('audio', {

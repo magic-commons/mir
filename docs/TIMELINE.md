@@ -57,6 +57,7 @@ It returns the timeline: `{ win, root, rail, editor, model, controller, transpor
 | `source.js` | a curve source in beats: normalise, evaluate (MIR's `bend`), add / move / slide / draw / remove points, tension, Hold segments |
 | `kinds.js` | THE CLIP-KIND REGISTRY: `registerClipKind(name, { validate, value, paint, slice, duration, drives, menu })` |
 | `pattern-kind.js`, `audio-kind.js` | the kit's two kinds (below) |
+| `audio-analysis.js`, `audio-playback.js`, `audio-drop.js` | the audio clip's decode and analysis, KEEP AUDIO, and the drop (`docs/AUDIO.md`) |
 | `geometry.js`, `curve-view.js`, `draw.js`, `selection.js`, `slice.js` | the pure laws: musical geometry, the plot, Step strokes, the rectangle selection, THE SLICE LAW |
 | `time-format.js` | `formatSeconds`, `formatBar`, `formatPercent` |
 | `controller.js` `createTransportController({ mod, scrubLevel, busy })` | THE ONE PLAY and THE SCRUB GATE |
@@ -81,7 +82,7 @@ The fractal's camera, its colour palette and its deep-zoom readout were BASINS' 
 | `toast()` | `say(text)` |
 | its 10ⁿ depth readout in the transport | `transport: { nodes: { readout } }` (the layout's `app:readout`) |
 | its rack (send-to-rack) | `transport: { rack }` |
-| `installAudioDrop` (decode, analyse, store, play) | `audio: { pick }`, `setAudioPeaks(fn)`, and `registerClipKind('audio', { ...AUDIO_KIND, menu })` |
+| `installAudioDrop` (decode, analyse, store, play) | `installAudioDrop(tl.editor, { mod, controller, say, busy })` in `mir/timeline/audio-drop.js`, and `audio: { pick }` for ⋯ › ADD AUDIO… (`docs/AUDIO.md`); `setAudioPeaks(fn)` only for peaks of the app's own |
 | `mod.onTick(paintHead)` | `tl.paintHead()` from the app's present (or a modulation seam with `onTick`) |
 
 ## The clip kinds
@@ -90,7 +91,7 @@ The fractal's camera, its colour palette and its deep-zoom readout were BASINS' 
 |---|---|---|---|---|
 | curve (the default) | the curve at the source beat, scaled into its OUTPUT RANGE | the MIR plot: fill, line, points, tension handles | two instances of one source, two new points at the cut, each half's tension refitted | whole |
 | `pattern` | none: it fires, it never drives (`drives: false`) | FL's step grid repeated across the clip, groups of four, lit steps in the device colour, repeat boundaries | two instances of one row, the phase continuing | whole; **the sequencer that fires it stays BASINS'** (`pattern-sequencer.js`, `pattern-model.js`: they are its ENV devices' step rows) |
-| `audio` | the source's own envelope (100 Hz, Uint8), a lookup | the envelope line; the peaks too when the app hands them (`setAudioPeaks`) | two instances | the source, its check, the lookup, the TEMPO LAW, Shift+T, the in-place patch, the budget, the paint. **Stays BASINS':** decoding, analysis (it needs BASINS' band edges and WebAudio), the asset store (IndexedDB), playback (KEEP AUDIO), the drop popup, the asset manifest part and the ENVELOPE · band menu rows (they reload an asset) |
+| `audio` | the source's own envelope (100 Hz, Uint8), a lookup | the waveform (the peaks from the asset store, the envelope line over them) | two instances | whole (1.5.0-alpha.13): the source, its check, the lookup, the TEMPO LAW (the re-derive is no undo row), Shift+T, the in-place patch, the budget for every way a clip is made, the paint, the clip menu (ENVELOPE · LEVEL / LOW / MID / HIGH, KEEP AUDIO ↔ SIGNAL ONLY, STRETCH), decode and analysis, KEEP AUDIO playback, the drop popup, the asset manifest part (`docs/AUDIO.md`) |
 | an app's own | its `value` | its `paint` | its `slice` (or none: it vetoes) | `registerClipKind(name, impl)` |
 
 A kind never overrides the model's own fields: the model merges the kind's source first and writes `length` after it (BASINS, 2026-10-01).
@@ -233,14 +234,14 @@ Paths are BASINS' `app/` (branch `basins-ui-fixes-2026-10-01`), with their line 
 | `time-format.js` | 26 | `time-format.js` |
 | `transport-controller.js` | 71 | `controller.js` |
 | `history.js` `adoptTimeline`, `timelineLabel` | 47 (183–229) | `history.js` |
-| `audio-clip.js`, its app-independent half | ~120 of 278 | `audio-kind.js` (keep the analysis, the decode, the drop and the menu) |
+| `audio-clip.js` | 278 | `audio-kind.js` + `audio-analysis.js` + `audio-drop.js`; `audio-assets.js` (110) → `core/assets.js`; `audio-playback.js` (72) → `audio-playback.js`; `audio.js` (438) → `modulation/audio-capture.js` (`docs/AUDIO.md`) |
 | `audio.css` the clip rule | 2 of 5 | `timeline.css` |
 | `modulation.js` 105–127, the timeline wiring | ~12 | `installTimeline` (or keep it with `automation: false` for the recorder) |
 | `save-window.js` its timeline lines (123, 151, 188, 232, 255, 274) | 6 | the project part |
 | `transport-placement.js` the timeline seat | ~20 of 46 | the work-bar transport inside the window |
 | `kwin.js adoptMaterial` for TIMELINE, `snapWindow` for TIMELINE, the second `observeRackBounds` | — | `createWindow({ material, dock })` (`snap-window.js` stays while the PATTERN window uses it) |
 
-About **2,300 lines** of BASINS' timeline go; what stays BASINS' own: `timeline-project.js`'s `remapTimelineTarget` (its palette law, as the `remap` port), the pattern sequencer and the PATTERN window, the audio engine (decode, analysis, assets, playback, the drop), its AUTOMATION sampling grid and its recorder's frozen values, the 10ⁿ depth readout, and the lego stack with the modulation window (`reserveTop` / `stackAbove`: an app span with an inset does it).
+About **2,300 lines** of BASINS' timeline go; what stays BASINS' own: `timeline-project.js`'s `remapTimelineTarget` (its palette law, as the `remap` port), the pattern sequencer and the PATTERN window, its AUTOMATION sampling grid and its recorder's frozen values, the 10ⁿ depth readout, and the lego stack with the modulation window (`reserveTop` / `stackAbove`: an app span with an inset does it).
 
 ## Proofs
 
@@ -252,7 +253,7 @@ About **2,300 lines** of BASINS' timeline go; what stays BASINS' own: `timeline-
 
 ## Not built
 
-- The PATTERN window and its sequencer, the audio engine, BASINS' SAMPLING settings (they stay BASINS').
+- BASINS' SAMPLING settings (they stay BASINS'). The audio clip is whole (`docs/AUDIO.md`); KEEP AUDIO is proved in Chromium only.
 - A tempo map: one tempo, the clock's (`time-format.js` reads it); BASINS has none either.
 - Touch WebKit and a real iPad (BASINS ran its rigs in touch WebKit; these ran in Chromium).
 - `onTick` on `installModulation` (the playhead paints from the app's present until the join adds it).

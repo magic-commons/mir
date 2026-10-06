@@ -88,7 +88,7 @@ export function createTimelineModel() {
     state: () => clone(data), serialize: () => clone(data),
     subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); },
     beforeReplace(fn) { resetListeners.add(fn); return () => resetListeners.delete(fn); },
-    begin() { if (!before) before = JSON.stringify(data); },
+    begin() { refusal = null; if (!before) before = JSON.stringify(data); },   // a new gesture forgets the last refusal (a slice that never reaches duplicate must not report a stale one)
     commit() { if (before && before !== JSON.stringify(data)) remember(before); before = null; },
     cancel() { if (before) { data = JSON.parse(before); before = null; notify(); } },
     undo() { for(const fn of resetListeners)fn(); api.cancel(); if (!undo.length) return false; const previous=takeHistory(undo),latest=pushHistory(redo,JSON.stringify(data)); data=JSON.parse(previous.text); boundHistory(latest); notify(); return true; },
