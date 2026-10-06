@@ -26,9 +26,10 @@ group('the tempo field: 8 characters; the travel drag is the range over 220 px, 
   assert.equal(travelBpm(30, 176, { shift: true, min: 20, max: 300 }), 58);
   assert.equal(travelBpm(290, 220, { min: 20, max: 300 }), 300);
 });
-group('the macro rail keys: ← → one place, ↑ ↓ a row of two, Home, End, clamped', () => {
+group('the macro rail keys, one law with the modulation window\'s rows: every arrow one place, Home, End, clamped', () => {
   assert.equal(reorderTo('ArrowRight', 1, 4), 2); assert.equal(reorderTo('ArrowLeft', 0, 4), 0);
-  assert.equal(reorderTo('ArrowDown', 1, 4), 3); assert.equal(reorderTo('ArrowUp', 1, 4), 0);
+  assert.equal(reorderTo('ArrowDown', 1, 4), 2); assert.equal(reorderTo('ArrowUp', 1, 4), 0); assert.equal(reorderTo('ArrowUp', 2, 4), 1);
+  assert.equal(reorderTo('ArrowDown', 3, 4), 3);
   assert.equal(reorderTo('Home', 3, 4), 0); assert.equal(reorderTo('End', 0, 4), 3); assert.equal(reorderTo('KeyA', 0, 4), -1);
 });
 group('the lego stack: 8 px above, left edges together, inside the screen; the band reserved; a floating window floors below it', () => {

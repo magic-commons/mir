@@ -78,10 +78,12 @@ export function travelBpm(start, rise, { shift = false, touch = false, min = TRA
   const travel = shift ? TRANSPORT.travelFine : touch ? TRANSPORT.travelTouch : TRANSPORT.travel;
   return clampBpm(start + (rise / travel) * (max - min), min, max);
 }
-/** reorderTo(key, at, count) — BASINS wireTileReorder's keys on a tile's reorder grip: ← → one place, ↑ ↓ two (a row
- *  of the two-column rail), Home and End; → the new index, clamped, or −1 for a key it does not take */
+/** reorderTo(key, at, count) — the keys on a macro tile's reorder grip, ONE LAW with the modulation window's macro rows
+ *  (THE HAND, 1.5.0-alpha.19; window.js wireMacroReorder): every arrow moves it one place in the list (↑ ← back, ↓ →
+ *  on; BASINS' tiles took ↑ ↓ as a row of two, the window's rows one), Home and End; → the new index, clamped, or −1
+ *  for a key it does not take */
 export function reorderTo(key, at, count) {
-  const to = key === 'Home' ? 0 : key === 'End' ? count - 1 : key === 'ArrowLeft' ? at - 1 : key === 'ArrowRight' ? at + 1 : key === 'ArrowUp' ? at - 2 : key === 'ArrowDown' ? at + 2 : null;
+  const to = key === 'Home' ? 0 : key === 'End' ? count - 1 : key === 'ArrowLeft' || key === 'ArrowUp' ? at - 1 : key === 'ArrowRight' || key === 'ArrowDown' ? at + 1 : null;
   return to === null ? -1 : Math.max(0, Math.min(count - 1, to));
 }
 /** the seats a user may choose on the stage (Josh 2026-10-01); docking into the rack is BASINS' dock chip */
@@ -369,7 +371,7 @@ export function tempoPill({ tempo, panel = null, work = () => false, signal } = 
  *  THE MACRO RAIL (BASINS transport.js buildMacros / wireTileReorder): the modulation window's own macro rows
  *  (modwindow.js buildMacroSlot) as tiles with their faces hidden — the routing grip (drag to route, tap to arm,
  *  double-tap to reset), the numbered depth seat with its arc, and the reorder grip (drag among the tiles; ← → one
- *  place, ↑ ↓ a row, Home, End).  The gestures are the window's, never copies: `mod.view.api` (wireGrip, wireDepth,
+ *  place, ↑ ↓ one place too, as the window's rows, Home, End).  The gestures are the window's, never copies: `mod.view.api` (wireGrip, wireDepth,
  *  paintDepth, moveMacro).  No macros: one line says where to add one.  `macros: false` leaves the rail out.
  *  THE CLOCK TILES: TAP, WALL / FREE, the cadence (when the seam has one), ÷2 ×2 ×4 (hold to bend, tap to latch) and
  *  HOLD ¼ / HOLD 1 (the stutter).  Opened by a click on the pill. */
