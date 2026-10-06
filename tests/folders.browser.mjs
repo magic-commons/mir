@@ -182,6 +182,15 @@ try {
   r = await ev(`const d = __F.downloads; const text = d[0] ? JSON.parse(await d[0].blob.text()) : null; const png = d[1] ? new Uint8Array(await d[1].blob.arrayBuffer()) : null;
     return { names: d.map((x) => x.name), kind: text && text.kind, app: text && text.app, rings: text && text.data.parts.knobs.rings, png: png && png[1] === 80 && png.length };`);
   check('EXPORT gives MOSS.mir (a project envelope for this app) and MOSS.png', r.names.join() === 'MOSS.mir,MOSS.png' && r.kind === 'project' && r.app === 'mir-folders-demo' && r.rings === 12 && r.png > 100, JSON.stringify(r));
+  /* THE HAND: NEW's ask floats in its own place — ROOT and the tiles under it do not move when it opens or is cancelled */
+  const seatsF = `return [...F.win.root.querySelectorAll('.sv-crumb, .sv-shot')].slice(0, 4).map((n) => { const b = n.getBoundingClientRect(); return Math.round(b.left) + ',' + Math.round(b.top); }).join(' ');`;
+  await ev(`S.rings += 1; return 0;`);                                // something NEW would throw away
+  const f0 = await ev(seatsF);
+  await click(T('[data-action="fresh"]'), 'NEW (the hand)'); await sleep(200);
+  const f1 = await ev(seatsF), asked = await ev(`return !!F.win.root.querySelector('.sv-ask:not([hidden])');`);
+  if (asked) await click(T('.sv-ask-close'), 'Cancel the ask'); await sleep(200);
+  const f2 = await ev(seatsF); await ev(`S.rings -= 1; return 0;`);
+  check('THE HAND: NEW\'s ask opens over the explorer and Cancel closes it; ROOT and the tiles under it never move', asked && f0 === f1 && f1 === f2 && f0.length > 0, JSON.stringify({ asked, f0, f1, f2 }));
   const dropBack = async (i, label) => {
     await click(T('[data-action="fresh"]'), 'NEW before ' + label);
     await sleep(200);

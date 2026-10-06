@@ -385,11 +385,12 @@ export function buildGallery(panel, opts) {
   }
 
   /* ── the one box: menus, questions, refusals ──────────────────────────── */
-  function closeContext() { context.hidden = true; context.textContent = ''; }
+  function closeContext() { context.hidden = true; context.textContent = ''; context.className = 'sv-context'; context.style.removeProperty('top'); }
   function box(title, cls) { closeContext(); context.className = 'sv-context' + (cls ? ' ' + cls : ''); context.hidden = false; if (title) mk('div', 'sv-context-title', context, title); return context; }
   function action(parent, label, fn, cls) { const tr = kit.trig({ label, cls: 'sv-act' + (cls ? ' ' + cls : ''), onFire: fn }); parent.appendChild(tr.root); return tr; }
   function askBox() {
     const b = box(t('Save this first?'), 'sv-ask');
+    b.style.top = explorer.offsetTop + 'px';   // THE HAND: the ask floats in its own place over the explorer (folders.css), so ROOT and the tiles under it do not move
     ink(btn('sv-ask-close', b, null, t('Cancel')), 'close', 16).addEventListener('click', closeContext);
     return b;
   }

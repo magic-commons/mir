@@ -193,7 +193,9 @@ body[data-theme="light"] .mir-folders { --folders-ask-fill: color-mix(in srgb, h
 .mir-folders .sv-context-text { font: var(--w-regular) var(--fs-small)/1.5 var(--font-ui); color: var(--fg-soft); }
 .mir-folders .sv-context-row { display: flex; flex-wrap: wrap; gap: var(--folders-gap); }
 /* the ask ("save this first?") is not a well: BASINS' solid tinted pane at pane height, a .55 accent rim, its own ink */
-.mir-folders .sv-context.sv-ask { position: relative; border-color: var(--folders-ask-rim); padding-inline-end: 40px;
+/* THE HAND (1.5.0-alpha.19): it floats over the explorer at the place it used to push down (gallery.js sets its top), so
+   opening or cancelling it moves nothing under it — before, ROOT and the tiles jumped 108 px */
+.mir-folders .sv-context.sv-ask { position: absolute; left: 0; right: 0; z-index: 3; border-color: var(--folders-ask-rim); padding-inline-end: 40px;
   background: var(--folders-ask-fill); box-shadow: var(--folders-ask-shadow); --fg: var(--folders-ask-ink); --fg-soft: var(--folders-ask-ink-soft); }
 .mir-folders .sv-ask-close { position: absolute; top: var(--folders-gap); right: var(--folders-gap); width: 30px; height: 30px; padding: 0; border: 0; border-radius: var(--r-sm);
   display: flex; align-items: center; justify-content: center; background: transparent; color: var(--fg-soft); cursor: pointer; }

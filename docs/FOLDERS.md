@@ -122,6 +122,8 @@ Returns `{ win, files, gallery, adapter, seeded, intake, views, panels (id → b
 
 **The three-scope law** (λWAVES 0.3.1): NEW is the empty project; a failed open rolls back to what was on screen, and says which part refused; a rollback that fails is said too.
 
+**The ask moves nothing** (THE HAND, 1.5.0-alpha.19): "Save this first?" (before NEW, or before an open over an unknown screen) floats over the top of the explorer, in the place it used to push down, so ROOT and the tiles under it keep their seats when it opens and when it is cancelled (before, they jumped 108 px). It is BASINS' solid pane, so nothing under it shows through. The other uses of the one box (a tile's or a folder's menu, the full-library refusal) are wells and still open in the flow.
+
 ## Moving a panel out into its own window (ruling 5, the app's step)
 
 Josh ruled that FOLDERS holds the gallery and the folders and RENDER becomes its own window and rack card. That is the app's change, made when it is ready; until then RENDER is a panel. Later:

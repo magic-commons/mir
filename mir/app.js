@@ -187,6 +187,12 @@ export async function createApp(o = {}) {
     { id: 'help', label: 'KEYS', group: 'WINDOW', keys: K('help'), run: () => help && help.toggle() },
     ...(want('rack') ? [{ id: 'rack', label: 'HIDE / SHOW the rack', group: 'WINDOW', keys: K('rack'), run: () => rack && rack.toggleHidden() }] : []),
     ...(want('rack') && bar ? [{ id: 'dock', label: 'DOCK / UNDOCK the transport', group: 'WINDOW', keys: K('dock'), run: () => tr && tr.dock(!tr.docked) }] : []),
+    /* EVERY KIT WINDOW IS A ROW, keys or none (wave 19), so the KEYBOARD window can bind it and a menu shows what it holds;
+       their keys are Josh's to give, so none is invented here */
+    ...(o.history && want('history') && want('mod') ? [{ id: 'history', label: 'HISTORY', group: 'WINDOW', keys: [], run: () => hist && hist.toggle() }] : []),
+    ...(o.render && want('mod') && want('rack') && opt(o.render).card !== false ? [{ id: 'render', label: 'RENDER', group: 'WINDOW', keys: [], run: () => rack && rack.toggle('render') }] : []),
+    ...(gui ? [{ id: 'gui', label: 'MIR OPTIONS', group: 'WINDOW', keys: [], run: () => gui.toggle() },
+      { id: 'gui-about', label: 'MIR ABOUT', group: 'WINDOW', keys: [], run: () => gui.toggle('about') }] : []),
     { id: 'hide', label: 'HIDE the interface', group: 'VIEW', keys: K('hide'), run: hideInterface },
     { id: 'fullscreen', label: 'FULL SCREEN', group: 'VIEW', keys: K('fullscreen'), run: () => toggleFullscreen(document) },
     ...(want('info') ? infoActions(() => info) : []),
@@ -283,7 +289,7 @@ export async function createApp(o = {}) {
   /* RENDER as a rack window too (BASINS' rackRender): the same rows, built when it first opens */
   if (recorder && rack && rCard !== false) {
     let view = null;
-    rack.register({ id: 'render', title: 'RENDER', side: 'right', build: (body) => { view = renderUi.createRenderView(body, { ...renderOpts(), seat: 'card', files: folders ? folders.zip : null }); }, onOpen: () => view && view.paint() });
+    rack.register({ id: 'render', title: 'RENDER', side: 'right', action: 'render', build: (body) => { view = renderUi.createRenderView(body, { ...renderOpts(), seat: 'card', files: folders ? folders.zip : null }); }, onOpen: () => view && view.paint() });
   }
   /* a notebook with no pages keeps its text in the project (the landing law, notebook.project) */
   if (notebook && notebook.project) registerProjectPart('notebook', notebook.project.part());
@@ -308,13 +314,13 @@ export async function createApp(o = {}) {
     EDIT: M.EDIT || (() => rows(k('undo'), k('redo'), keys.get('undo') ? null : undefined, bar ? k('transport.play') : undefined, bar ? null : undefined, purgeRow({ name }))),
     VIEW: M.VIEW || (() => rows(k('hide'), k('fullscreen'))),
     WINDOW: M.WINDOW || (() => rows(mod ? k('modulation') : undefined, timeline ? k('timeline') : undefined, pattern ? k('pattern') : undefined, folders ? k('folders') : undefined, notebook ? k('notebook') : undefined,
-      hist ? ['HISTORY', () => hist.toggle()] : undefined, help ? k('help') : undefined, k('rack'), k('dock'), ...(rack ? [null, ...rack.windowMenu()] : []),
+      hist ? k('history') : undefined, help ? k('help') : undefined, k('rack'), k('dock'), ...(rack ? [null, ...rack.windowMenu()] : []),
       ...((o.coming || []).length ? [null, ...o.coming.map(([n, h]) => comingRow(n, h))] : []))),
     ...Object.fromEntries(Object.entries(M).filter(([g]) => !['FILE', 'EDIT', 'VIEW', 'WINDOW', 'ABOUT', 'LANGUAGE', 'GUI'].includes(g))),
     ABOUT: M.ABOUT || (() => rows(['ABOUT ' + name, () => notebook && notebook.open('about')],
       gui ? ['SETTINGS…', () => gui.open('options')] : undefined, null, copyDumpRow(dump))),
     LANGUAGE: M.LANGUAGE || languageMenu(),
-    GUI: M.GUI || (() => [['MIR OPTIONS', () => gui && gui.open('options')], ['MIR ABOUT', () => gui && gui.open('about')]]),
+    GUI: M.GUI || (() => rows(k('gui'), k('gui-about'))),
   };
   const menubar = want('menubar') ? createMenubar({ opener: wordmark(stage, { word: name, sub: (o.about && o.about.sub) || 'AN MIR APP' }), host, menus, ...opt(o.menubar) }) : null;
 

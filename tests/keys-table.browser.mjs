@@ -54,6 +54,20 @@ try {
   const nb = await ev(`const b = document.querySelector('#notebook .nb-close'); return { action: b.dataset.keyAction, hint: b.getAttribute('data-key-hint'), help: b.dataset.help || b.title };`);
   check('the notebook\'s × runs the table\'s "notebook" and shows its key (J), with no J typed in its words', nb.action === 'notebook' && nb.hint === 'J' && !/J/.test(nb.help), JSON.stringify(nb));
 
+  /* 4. every kit window is a row (no key invented), so it can be bound: bound, its key opens it */
+  const rowsNow = await ev(`return ['history', 'gui', 'gui-about'].map((id) => { const a = A.keys.get(id); return id + ':' + (a ? a.group + ':' + A.keys.chords(id).length : 'none'); });`);
+  check('HISTORY, MIR OPTIONS and MIR ABOUT are rows of the table, with no key', rowsNow.join(' ') === 'history:WINDOW:0 gui:WINDOW:0 gui-about:WINDOW:0', rowsNow.join(' '));
+  await ev(`A.keys.bind('history', 'Shift+KeyH'); A.keys.bind('gui', 'Shift+KeyO'); A.keys.bind('gui-about', 'Shift+KeyA'); document.activeElement && document.activeElement.blur && document.activeElement.blur(); return 1;`);
+  await p.key('Shift+H'); await sleep(250);
+  check('bound, HISTORY opens from its key', await p.eval(`__U.app.history.isOpen`) === true);
+  await p.key('Shift+O'); await sleep(250);
+  check('bound, MIR OPTIONS opens from its key', await p.eval(`__U.app.gui.window.isOpen()`) === true);
+  await p.key('Shift+A'); await sleep(250);
+  check('bound, MIR ABOUT opens from its key', await p.eval(`__U.app.gui.about.isOpen()`) === true);
+  const menu = await ev(`return { win: A.keys.menuItem('history')[0], gui: A.keys.menuItem('gui')[0] };`);
+  check('the menus show the bound key from the table', menu.win === 'HISTORY\tShift+H' && menu.gui === 'MIR OPTIONS\tShift+O', JSON.stringify(menu));
+  await ev(`for (const id of ['history', 'gui', 'gui-about']) A.keys.reset(id); A.history.close(); A.gui.window.close(); A.gui.about.close(); return 1;`);
+
   check('the page raised no exception', p.logs.filter((l) => l.startsWith('EXCEPTION')).length === 0, p.logs.join(' | '));
 } finally {
   await p.close();
