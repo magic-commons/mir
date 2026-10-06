@@ -343,7 +343,9 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
     home:()=>{finish(null,true);controller.beginning();},
     bar:dir=>{finish(null,true);const beat=transportBeat(),m=doc.meter;controller.seek(dir>0?(Math.floor(beat/m)+1)*m:Math.max(0,(Math.ceil(beat/m)-1)*m));},
     centerPlayhead:()=>{viewport.scrollLeft=Math.max(0,transportBeat()*px-viewport.clientWidth/2);paint();},
-    zoomLevel:n=>zoom({1:12,2:20,3:40}[n]/px),
+    // A ZOOM LEVEL (Shift+1/2/3) starts the view at the ruler range's start, else at the start of the bar the view's left edge
+    // is in: a level never leaves the left edge mid-bar with the first clip's title cut off (BASINS' view was at the bar).
+    zoomLevel:n=>{const start=range?range.start:Math.floor(viewport.scrollLeft/px/doc.meter)*doc.meter;finish(null,true);px=bounded({1:12,2:20,3:40}[n],8,100);paint();viewport.scrollLeft=Math.max(0,start*px);paint();},
     zoomAll:()=>{const saved=selection,savedRange=range;selection=new Set();range=null;zoomSelection();selection=saved;range=savedRange;paintSelection();},
     zoomSelection, zoomStep:dir=>zoom(dir>0?1.25:1/1.25),
     invert:()=>{selection=new Set(doc.clips.filter(c=>!selection.has(c.id)).map(c=>c.id));selected=selection.values().next().value||null;paintSelection();},

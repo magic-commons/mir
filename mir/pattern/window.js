@@ -85,19 +85,25 @@ export function installPattern(o) {
     const d = dev.getBoundingClientRect(); if (!(d.width > 0)) return null;
     const railH = (win && win.rail.sizes ? win.rail.sizes().horizontal.h : 0) || RAIL_H;
     const above = g.content.top - EDGE - h, flip = above - railH < EDGE;
-    return { left: Math.round(d.left), width: Math.round(d.width), top: Math.round(flip ? g.content.bottom + EDGE : above), height: h };
+    /* outer: the edge facing away from the modulation window; avoid: its glass — the rail seats in a clear lane only
+       (window/rail.js seatClear, BASINS snap-window.js seat) */
+    return { left: Math.round(d.left), width: Math.round(d.width), top: Math.round(flip ? g.content.bottom + EDGE : above), height: h,
+      outer: flip ? 'bottom' : 'top', avoid: g.content };
   }
   /* docked, the window is cut where the device run cuts the device (the window set clips the pane; the rail is cut here) */
   const runClip = () => { if (!runEl) return null; const r = runEl.getBoundingClientRect(); return { left: r.left, right: r.right, top: -1e5, bottom: 1e5 }; };
 
   /* ── THE WINDOW ── */
   const saved = (() => { let r = null; try { r = store.read(); } catch (_) { /* storage refused */ } return r && typeof r === 'object' ? r : {}; })();
-  const shape = saved.win && typeof saved.win === 'object' ? { ...saved.win } : { dock: 'anchor', chipSide: 'top', open: false };
+  /* BASINS' shape: docked on the anchor, the rail's side 'auto' (its seat law picks a clear lane; a Shift-drag choice wins).
+     A shape written before 1.5.0-alpha.15 (no v) carried the kit's old default side 'top' as if chosen: it reads 'auto'
+     (BASINS pattern-window.js did the same for prefs without v: 2) */
+  const shape = saved.win && typeof saved.win === 'object' ? { ...saved.win, ...(saved.v === 2 ? {} : { chipSide: 'auto' }) } : { dock: 'anchor', chipSide: 'auto', open: false };
   withMod = !!saved.withMod;
   const modOpen = () => !!(view && view.isOpen);
   if (shape.dock === 'anchor' && !modOpen() && shape.open) { withMod = true; shape.open = false; }     // its window is shut: it waits for it
   else if (shape.dock === 'anchor' && modOpen() && withMod) { withMod = false; shape.open = true; }
-  const writeShape = (s) => { try { store.write({ win: s, withMod }); } catch (_) { /* storage refused */ } };
+  const writeShape = (s) => { try { store.write({ v: 2, win: s, withMod }); } catch (_) { /* storage refused */ } };
   const span = o.dock && o.dock.span ? o.dock.span : { read: () => ({ left: EDGE, right: win0.innerWidth - EDGE, top: EDGE, bottom: win0.innerHeight - EDGE }) };
 
   let win = null;

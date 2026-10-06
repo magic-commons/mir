@@ -19,6 +19,7 @@
  *   5. WINDOW AND RAIL RISE TOGETHER, by one stack shared by every window: a press anywhere on either puts the pair on
  *      top; z is the pair's place in the stack, so it stays small and nothing reads a sibling's style.
  *   6. IT SAYS WHERE IT IS: onMoved(rect) after every layout (null when it closes), so a host can dodge it.
+ *      A window the app built itself joins that one stack by registerWindow({ root, rail }) (1.5.0-alpha.15).
  *   7. THE LEGO STACK (1.5.0-alpha.12, BASINS shell.js syncWorkspaceStack / modwindow.js stackAbove / timeline-window.js
  *      reserveTop): reserveTop(px) keeps a band above the window free (its dock span's top and its floating floor), and
  *      stackAbove(anchor) seats the window 8 px above another one's rect; a hand dragging it away ends the stack.  The
@@ -70,14 +71,20 @@ export const withReserve = (span, reserve, edge = 8) => (reserve > 0 && span ? {
 
 /** windowLayout(P, env) — the state to the pane's rect and the rail's seat.  env = { view: { width, height },
  *  sizes: the rail's { vertical, horizontal }, span: the dock span or null, gap?: the floating rail's gap (a number or
- *  per side; default 0 — createWindow passes kwin's RAIL.gap), anchor?: the seat rect when docked on an anchor }.  Docked when it can be; a dock with no
+ *  per side; default 0 — createWindow passes kwin's RAIL.gap), anchor?: the seat rect when docked on an anchor, which may carry
+ *  `avoid` (the glass of the window it is seated on) and `outer` (the edge facing away from it) for the rail's seat }.  Docked when it can be; a dock with no
  *  room floats for now and keeps the wish (P.dock is not touched).  → { box, seat, docked } */
 export function windowLayout(P, env) {
   const { view, sizes } = env;
   /* seated on an anchor (BASINS: the PATTERN window on its ENV): where the seat is, clamp-free (kwin.js place()) — the
      seat scrolls with its owner and the host's clip cuts what the owner cuts; no seat (it left): `away` */
   if (P.dock === 'anchor') {
-    if (env.anchor && env.anchor.width > 0) { const box = anchorBox(env.anchor, Math.min(P.h, view.height - CLAMP.inset)); return { box, seat: seatRail({ prefer: P.chipSide, box, sizes, view, gap: env.gap ?? 0 }), docked: 'anchor' }; }
+    /* the rail under another window (BASINS snap-window.js seat): the anchor may say whose glass to keep off (`avoid`) and
+       which edge faces away from it (`outer`); the racks' span is the lane a side seat must stay inside */
+    if (env.anchor && env.anchor.width > 0) {
+      const box = anchorBox(env.anchor, Math.min(P.h, view.height - CLAMP.inset)), a = env.anchor;
+      return { box, seat: seatRail({ prefer: P.chipSide, box, sizes, view, gap: env.gap ?? 0, avoid: a.avoid || null, outer: a.outer || null, lane: a.avoid ? env.span || null : null }), docked: 'anchor' };
+    }
     if (env.anchor !== undefined) return { box: null, seat: null, docked: 'anchor', away: true };
   }
   if (P.dock && P.dock !== 'anchor' && env.span) {
@@ -96,15 +103,36 @@ const STACK = [];
 function raisePair(w) {
   const i = STACK.indexOf(w); if (i >= 0) STACK.splice(i, 1);
   STACK.push(w);
-  STACK.forEach((x, k) => { setVar(x.root, 'z-index', String(1 + 2 * k)); setVar(x.rail, 'z-index', String(2 + 2 * k)); });
+  STACK.forEach((x, k) => { setVar(x.root, 'z-index', String(1 + 2 * k)); if (x.rail) setVar(x.rail, 'z-index', String(2 + 2 * k)); });
 }
 /* a window's pair, found from either of its two elements (an app's own window law holds elements, not the api) */
 const OWNER = new WeakMap();
-/** windowOf(el) → the api of the kit window whose root or rail is el (or contains it), or null.  An app's window law that
- *  raises by element calls windowOf(el).raise(), and the rail comes with the pane. */
+/** windowOf(el) → the api of the kit window (or the registered window) whose root or rail is el (or contains it), or
+ *  null.  An app's window law that raises by element calls windowOf(el).raise(), and the rail comes with the pane. */
 export function windowOf(el) {
   for (let n = el; n; n = n.parentElement) { const w = OWNER.get(n); if (w) return w; }
   return null;
+}
+/** registerWindow({ root, rail? }) — ONE STACK (1.5.0-alpha.15, BASINS kwin.js's window law: "one counter for everything
+ *  in it").  A window the app built itself (the modulation window's #modwin, a window of its own) joins the kit's stack:
+ *  a press on its pane or its rail raises the pair over every kit window, a press on a kit window raises that one over
+ *  it, and windowOf(el) finds it.  It joins on top.  → { root, rail, pair, raise(), leave() }; leave() takes it out
+ *  (its z-index is left where it was).  Registering the same root twice returns the first registration. */
+export function registerWindow({ root, rail = null } = {}) {
+  if (!root) return null;
+  const had = OWNER.get(root); if (had && had.adopted) return had;
+  const pair = { root, rail: rail || null }, raise = () => raisePair(pair);
+  root.addEventListener('pointerdown', raise, true);
+  if (pair.rail) pair.rail.addEventListener('pointerdown', raise, true);
+  const api = { root, rail: pair.rail, pair, raise, adopted: true,
+    leave() {
+      root.removeEventListener('pointerdown', raise, true); if (pair.rail) pair.rail.removeEventListener('pointerdown', raise, true);
+      const i = STACK.indexOf(pair); if (i >= 0) STACK.splice(i, 1);
+      if (OWNER.get(root) === api) OWNER.delete(root); if (pair.rail && OWNER.get(pair.rail) === api) OWNER.delete(pair.rail);
+    } };
+  OWNER.set(root, api); if (pair.rail) OWNER.set(pair.rail, api);
+  raise();
+  return api;
 }
 const pressed = new WeakSet();
 function installOnce(doc) { if (pressed.has(doc)) return; pressed.add(doc); installPress({ selector: '.mir-chip', root: doc.defaultView }); }
@@ -126,13 +154,15 @@ const along = (p, lo, size, next) => (p < lo ? lo : p > lo + size ? lo + size - 
  *    dock       { span: { read(), subscribe(fn) } (dock.js observeSpan), guide: () => bool (the Display switch),
  *                 anchor?: { rect() → DOMRect | null, clip?() → DOMRect | null, subscribe?(fn) → off } — a seat on another
  *                 element the window can dock to (BASINS' anchorTarget): it follows it, is clipped to clip(), and hides
- *                 while the seat is gone or clipped away;  guideClass?: classes for the guide's overlays (an app's rig
+ *                 while the seat is gone or clipped away; seated, the window takes the seat's width and keeps it when a
+ *                 hand frees it.  rect() may add { avoid, outer }: the glass the rail must keep off and the edge facing
+ *                 away from it (rail.js seatClear, BASINS' seat law under the modulation window);  guideClass?: classes for the guide's overlays (an app's rig
  *                 selector, BASINS 'mod-snap-guide'); the overlays always carry data-mir-guide="dock" data-window="<id>" }
  *    material   'modulation' (or true): the window wears the modulation window's material (rail, chips, controls, resize corner;
  *               no CSS cloning), written as data-mir-material="modulation" on the window and its rail; window.css and skin.css key on that name
  *    railGap    the floating rail's gap from the pane, a number or { left, right, top, bottom } (default RAIL.gap: kwin's)
  *    persist    { read() → shape | null, write(shape) }
- *  → { root, body, rail, pair, open(), close(), toggle(), isOpen(), rect(), place(rect | pos, { animate }), resize({ w, h }), setChip, tab,
+ *  → { root, body, rail, pair, open(), close(), toggle(), isOpen(), rect(), place(rect | pos, { animate }), resize({ w, h }), restore(shape), setChip, tab,
  *      raise(), stackAt(z), state(), destroy() }
  *    raise()    brings the pane AND its rail to the top of the kit's stack, together (a press on either does it)
  *    pair       { root, rail } — the window's two elements, for an app's own window law that stacks by element
@@ -224,6 +254,9 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
     if (L.away) { if (onMoved) onMoved(null); return box; }
     setVar(root, 'clip-path', clipTo && !out ? `inset(${Math.max(0, clipTo.top - L.box.top)}px ${Math.max(0, L.box.left + L.box.width - clipTo.right)}px ${Math.max(0, L.box.top + L.box.height - clipTo.bottom)}px ${Math.max(0, clipTo.left - L.box.left)}px)` : null);
     box = L.box;
+    /* seated on an anchor, the window IS the seat's size (BASINS snap-window.js: `w = P.w = s.width; P.x = s.left;
+       P.y = s.top`): a hand that frees it takes it at that width, and a drop back where it left lands on the seat */
+    if (L.docked === 'anchor') { P.w = box.width; P.x = box.left; P.y = box.top; }
     setAttr(root, 'data-dock', L.docked);
     if (animate) {
       const t = tweenRect(root, box); moving = t;
@@ -369,6 +402,13 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
       }
       layout({ animate }); save();
     },
+    /** restore(shape) — put the window in a persisted shape { x, y, w, h, open, dock, chipSide } (fields left out keep
+     *  theirs), e.g. dock: 'anchor' seats it on its anchor again (BASINS kwin.js restore); opens or closes as it says */
+    restore(raw = {}) {
+      const Q = readShape({ ...shape(), ...(raw && typeof raw === 'object' ? raw : {}) }, { w: P.w, h: P.h, chipSide: P.chipSide }, min);
+      const wantOpen = Q.open; Q.open = P.open; Object.assign(P, Q);
+      if (wantOpen && !P.open) api.open(); else if (!wantOpen && P.open) api.close(); else { layout({ animate: true }); save(); }
+    },
     /** resize({ w, h }) — the window's own size (docked: the height the dock or the anchor lands at), keeping the dock;
      *  one layout, saved.  A host whose content decides the height (the PATTERN window's rows) calls it. */
     resize({ w, h } = {}) {
@@ -387,7 +427,8 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
     get isStacked() { return !!stack; },
     /** stackHeight() — the height the stack must leave free for this window */
     stackHeight: () => (box ? box.height : Math.min(P.h, view.innerHeight - CLAMP.inset)),
-    /** stackAt(z) — the pane at z-index z and its rail just above it (an app's own stacking law) */
+    /** stackAt(z) — the pane at z-index z and its rail just above it (an app's own stacking law; an app whose own windows
+     *  are registered (registerWindow) needs none: raise() is one press order for all of them) */
     stackAt(z, { railOffset = railTier } = {}) { const n = Math.round(+z) || 0; setVar(root, 'z-index', String(n)); setVar(rail.el, 'z-index', String(n + (Math.round(+railOffset) || 0))); },
     state: shape,
     destroy() {

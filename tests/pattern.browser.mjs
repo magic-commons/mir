@@ -94,6 +94,42 @@ const RUN = await (async () => {
       return { closed, reopened };
     });
     L.ck(!withMod.closed && withMod.reopened, 'closing the modulation window closes the docked pattern window, and opening it brings it back', withMod);
+
+    /* 6 · (1.5.0-alpha.15, BASINS pattern-check 10) A 40 px GRIP DRAG FREES IT AT THE SEAT'S WIDTH, and dragged back the drop
+       re-docks it: the window seated on its device takes the device's width (BASINS snap-window.js `w = P.w = s.width`) */
+    const geo = () => page.evaluate(() => { const P = window.__P, r = P.pattern.root.getBoundingClientRect(), s = P.pattern.seat();
+      const g = document.querySelector('[data-mir-guide="dock"][data-window="pattern"][data-edge="anchor"]');
+      return { left: r.left, top: r.top, width: r.width, height: r.height, dock: P.pattern.win.state().dock, seat: s && { left: s.left, top: s.top, width: s.width }, guide: !!g }; });
+    const gripAt = async () => { const b = await page.locator('[data-mir-rail="pattern"] [data-mir-chip="grip"]').boundingBox(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; };
+    const g0 = await geo();
+    let gp = await gripAt();
+    const hitGrip = await page.evaluate(([x, y]) => { const n = document.elementFromPoint(x, y); return !!n && !!n.closest('[data-mir-rail="pattern"] [data-mir-chip="grip"]'); }, [gp.x, gp.y]);
+    await page.mouse.move(gp.x, gp.y); await page.mouse.down(); await page.mouse.move(gp.x, gp.y - 40, { steps: 8 }); await page.mouse.up();
+    await page.waitForTimeout(450);
+    const freed = await geo();
+    L.ck(hitGrip && g0.dock === 'anchor' && freed.dock === null && Math.abs(freed.width - g0.width) < 1 && Math.abs(freed.left - g0.left) < 1.5 && Math.abs(freed.top - (g0.top - 40)) < 1.5,
+      'a 40 px drag on the grip (elementFromPoint: the grip) frees the window at the seat\'s width, where it was dropped', { hitGrip, g0, freed });
+    gp = await gripAt();
+    await page.mouse.move(gp.x, gp.y); await page.mouse.down(); await page.mouse.move(gp.x, gp.y + 36, { steps: 6 });
+    const near = await geo(); await page.mouse.up(); await page.waitForTimeout(450);
+    const redocked = await geo();
+    L.ck(near.guide && redocked.dock === 'anchor' && Math.abs(redocked.left - redocked.seat.left) < 1 && Math.abs(redocked.width - redocked.seat.width) < 1 && Math.abs(redocked.top - redocked.seat.top) < 1,
+      'dragged back near its seat the anchor guide lights, and the drop docks it on the seat again', { near, redocked });
+
+    /* 7 · (1.5.0-alpha.15, BASINS pattern-check 9) THE RAIL KNOWS THE WINDOW IT IS SEATED UNDER: with the modulation window at the
+       top (no room above its run) the pattern window seats below it and its rail takes the OUTER edge, off the modulation glass */
+    const under = await page.evaluate(async () => {
+      const P = window.__P, v = P.mod.view, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      v.restore({ ...v.presentation(), dock: null, y: 8, open: true }); await wait(700);
+      const c = v.seatBox().content, r = P.pattern.root.getBoundingClientRect(), rail = P.pattern.rail, q = rail.getBoundingClientRect();
+      const meets = q.left < c.right && q.right > c.left && q.top < c.bottom && q.bottom > c.top;
+      const chip = rail.querySelector('[data-mir-chip="addEnv"]').getBoundingClientRect(), x = chip.left + chip.width / 2, y = chip.top + chip.height / 2, n = document.elementFromPoint(x, y);
+      return { side: rail.dataset.side, below: Math.abs(r.top - c.bottom - 8) < 1.5, meets, hit: !!n && !!n.closest('[data-mir-chip="addEnv"]'), at: { x, y }, envs: P.mod.M.sourceList().filter((s) => s.kind === 'env').length };
+    });
+    await page.mouse.click(under.at.x, under.at.y); await page.waitForTimeout(150);
+    const envs2 = await page.evaluate(() => window.__P.mod.M.sourceList().filter((s) => s.kind === 'env').length);
+    L.ck(under.below && under.side === 'bottom' && !under.meets && under.hit && envs2 === under.envs + 1,
+      'seated below the modulation window, the rail sits on the outer (bottom) edge off the modulation glass, and a real click on its + adds an ENV (elementFromPoint: the chip)', { ...under, envs2 });
     L.ck(errors().length === 0, 'no page errors', errors());
   } finally { await close(); }
   return L.finish();

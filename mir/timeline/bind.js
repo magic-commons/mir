@@ -5,7 +5,7 @@
  * window (window.js createTimeline) with the transport's ONE PLAY in its work bar.
  *
  *   installTimeline({ mount, mod, model?, present?, say?, dock?, storageKey?, store?, initial?, keys?, history?,
- *                     project?, automation?, remap?, transport?, audio?, scrubLevel?, busy?, moved?, onWindow? }) → tl
+ *                     project?, automation?, remap?, transport?, audio?, controller?, scrubLevel?, busy?, moved?, onWindow? }) → tl
  *   tl = createTimeline's { win, root, rail, editor, model, controller, transport, actions, open, close, toggle, isOpen,
  *        paintHead, presentation, restore, shortcuts, destroy } + { keys, automation(id, beat), dispose }
  *
@@ -52,7 +52,9 @@ export function installTimeline(o) {
   if (o.project !== false) offs.push(registerTimelinePart(model, { remap: o.remap }));
   if (o.history) adoptTimeline(o.history, model);
 
-  const tl = createTimeline(o.mount, { model, mod, present: o.present, say: o.say, dock: o.dock, store, initial: o.initial, keys: o.keys || null,
+  /* controller: the app's own one-play controller (timeline/controller.js shape) and its refusal sentences, as createTimeline
+     takes it; absent, the timeline makes one from scrubLevel and busy */
+  const tl = createTimeline(o.mount, { model, mod, controller: o.controller, present: o.present, say: o.say, dock: o.dock, store, initial: o.initial, keys: o.keys || null,
     transport: o.transport, audio: o.audio === false ? null : { pick: (at) => au && au.pick(at) }, scrubLevel: o.scrubLevel, busy: o.busy, moved: o.moved, onWindow: o.onWindow, storageKey });
   /* THE AUDIO CLIP (docs/AUDIO.md): a file dropped on a lane, ADD AUDIO… in the ⋯ menu, the playback and the asset part, with no app line;
      `audio: false` leaves it out, an object is installAudioDrop's own options */

@@ -41,7 +41,8 @@ const pass = (name) => { n++; console.log(`PASS ${name}`); };
   pass('a drag, a key and a typed value each give the tempo BASINS\' law says');
 }
 {
-  assert.deepEqual(layoutNames(BASINS_LAYOUT), ['play', 'power', 'rewind', 'tempo', 'panel', 'openers', 'seat', 'dock', 'door']);
+  assert.deepEqual(layoutNames(BASINS_LAYOUT), ['play', 'power', 'tempo', 'rewind', 'panel', 'openers', 'seat', 'dock', 'door']);   // BASINS' row: the pill after the power button
+  assert.equal(BASINS_LAYOUT.name, 'basins'); assert.equal(LAMBDAWAVES_LAYOUT.name, 'lambdawaves');   // each layout keeps its own drawing (data-layout)
   const lw = layoutNames(LAMBDAWAVES_LAYOUT);
   assert.ok(lw.indexOf('play') < lw.indexOf('power') && lw.indexOf('power') < lw.indexOf('app:scrub') && lw.indexOf('app:rate') < lw.indexOf('tempo'), 'λWAVES order');
   assert.equal(lw.filter((n) => n === 'play').length, 1, 'one play');

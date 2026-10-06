@@ -49,10 +49,12 @@ createFolders({ …, onMoved: (r) => tr.moved(r) });               // every floa
 | — | the way back under H (always the bar's last child) | `wayBack({ run })` |
 
 ```js
-BASINS_LAYOUT      = [{ group: 'native-play-row', items: ['play', 'power', 'rewind', 'tempo'] }, 'panel', 'openers', 'seat', 'dock', 'door'];
+BASINS_LAYOUT      = [{ group: 'native-play-row', items: ['play', 'power', 'tempo', 'rewind'] }, 'panel', 'openers', 'seat', 'dock', 'door'];   // name 'basins'
 LAMBDAWAVES_LAYOUT = [{ group: 'native-play-row', items: ['play', 'power', 'rewind', 'app:back', 'app:forward', 'app:scrub', 'app:jump',
-                       'app:time', 'app:period', 'app:rate', 'tempo'] }, 'panel', 'openers', 'seat', 'dock', 'door'];
+                       'app:time', 'app:period', 'app:rate', 'tempo'] }, 'panel', 'openers', 'seat', 'dock', 'door'];   // name 'lambdawaves'
 ```
+
+**Each layout keeps its own drawing.** A layout's `name` is written on the bar as `data-layout`. BASINS' drawing is the default, so an app's own list (BASINS passes one with its depth readout after the pill) is drawn as BASINS' is: the bar is as wide as its row (BASINS measured 359 px), the pill sits where the list puts it (after the power button), and the docked card is BASINS' five-column grid (play, power, to-start; an app node on the second row by the app's own rule; the pill across the third; the round seats 34 px with the `--r-md` corner; to-start's ring the hairline). `data-layout="lambdawaves"` keeps λWAVES' drawing: the 640 px bar (`--xport-w`), the pill last in its row (`order: 8`), the docked row wrapping, 13 px dock and door glyphs and its pill ink.
 
 λWAVES passes its own step buttons, scrub fader, ⟳ jump, readouts and RATE knob as `nodes` (they are the app's instruments). The gallery builds them from kit widgets on its own clock.
 
@@ -100,19 +102,20 @@ The door to the modulation window is BASINS' MIR palette diamond (`wordmark.js c
 
 | Piece | Design |
 |---|---|
-| The bar on the stage: `#transport.mini`, 46 px tall, 60 px up from the bottom, centred, 640 px wide (wider when its parts need it), 2 px gaps | BASINS' |
+| The bar on the stage: `#transport.mini`, 46 px tall, 60 px up from the bottom, centred, as wide as its row (λWAVES' layout: at least 640 px), 2 px gaps | BASINS' (1.5.0-alpha.15: BASINS basins.css; the 640 px is λWAVES') |
+| **Docked** in the rack's TRANSPORT window: clear (no fill in any CARD STYLE: the card is the pane), BASINS' five-column grid, play 34 px high, to-start's ring the hairline | BASINS' (skin.css 477–500, basins.css) |
 | The round seats: 34 px, flat, `--ink-key`; hover is a lighter face and `--fg` | BASINS' |
 | **Play**: no face and no ring; its glyph is 32 px (`--xport-play-size`, was 20) in a 40 × 40 seat (the glyph + 8); its ink lights in accent A while playing; the glyph swaps ▶ / ❚❚ and scales 1.08 on hover, .94 when pressed; `aria-label` "Play or pause" | BASINS' (ui-fixes 10, Josh 2026-10-01: "way bigger and still have no background") |
 | **Play is the only thing that starts or stops time** | ruled by Josh 2026-10-01 |
 | **Modulation's power**: the ring-and-stem glyph in a 44 px seat; off, the ring opens and dims; on, it closes and lights in accent B with its halo; a press is `mod.arm(!mod.armed())`, BASINS' `toggleModulation` | BASINS' (and ruled by Josh 2026-10-01: a power button, not a play) |
 | **The door** to the modulation window: the MIR mark in a 34 px round seat with a hairline (`.mod-exp.mod-logo`) | BASINS' / λWAVES' |
-| **The BPM pill**: sized to its number, at least 72 px (about 92 px at 30.0); the number in accent B at 18 px (`--xport-num-size`, was 12), BPM and the Hz reading 8 px (was 7), the chevron, a hairline that warms to accent B on hover and when the panel is open. The digit under the pointer is read from the number's own glyph boxes, so the drag and the wheel follow the size | BASINS' (ui-fixes 9, Josh 2026-10-01: "increase the size of the BPM thingy") |
+| **The BPM pill**: sized to its number, at least 72 px (about 92 px at 30.0), after the power button, in `--ink-key` (.86 under white text), no row gap between BPM and Hz; the number in accent B at 18 px (`--xport-num-size`, was 12), BPM and the Hz reading 8 px (was 7), the chevron, a hairline that warms to accent B on hover and when the panel is open. The digit under the pointer is read from the number's own glyph boxes, so the drag and the wheel follow the size | BASINS' (ui-fixes 9, Josh 2026-10-01: "increase the size of the BPM thingy") |
 | The pill's drag (the digit under the pointer is the step; 9 px a step, a finger 14 px in ones), its wheel (by the digit under the pointer), its keys (↑ → up, ↓ ← down, Shift a tenth, PageUp/PageDown ten) | BASINS' |
 | A click on the pill opens the **tempo panel**: TAP, WALL / FREE, the cadence, ÷2 ×2 ×4 (hold to bend, tap to latch), HOLD ¼, HOLD 1 | BASINS' (λWAVES has the same panel) |
 | **TAP's place**: in the tempo panel | BASINS' |
 | **The resting pill stands proud** (its own face and the raised relief), not a well | ruled by Josh 2026-10-01 (INTENT: BASINS' rested in a well and read as already pressed) |
 | A double click on the pill types the tempo, in a well in the pill's seat (Enter or leaving takes it, Escape does not) | the kit's (BASINS types the tempo only in its timeline form) |
-| **The dock chip** (`.dock-btn`, the dock glyph): the bar goes into a rack window named TRANSPORT and back | BASINS' / λWAVES' |
+| **The dock chip** (`.dock-btn`, the dock glyph, 12 px as is the door's: `--xport-glyph`; λWAVES' 13): the bar goes into a rack window named TRANSPORT and back | BASINS' / λWAVES' |
 | **To-start** (`.transport-home`) is one of the round seats: 34 px with the dock chip's and the door's hairline ring | BASINS' (ui-fixes 11, Josh 2026-10-01) |
 | The dock chip, the door and to-start wear no pane shadow | ruled (INTENT: a button never wears a pane's float; BASINS gave them `--glass-shadow`) |
 | **In a work bar** (`bar: 'work'`): to-start, send-to-rack and the logo take the bar's button face (`.trig`) in a 34 × 34, radius-8 box; the pill is 34 px tall; the transport is 52 px tall with 3 px padding | BASINS' (ui-fixes 8 and 11, Josh 2026-10-01: "match the button style and size of the right work bar") |

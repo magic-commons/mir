@@ -520,12 +520,18 @@ export function wayBack({ run, signal } = {}) {
 }
 
 /* ── the layouts ───────────────────────────────────────────────────────────────────────────────────────────── */
-/** BASINS' basic bar (app/transport.js): the play row — play, modulation's power, the BPM pill — then the tempo
- *  panel the pill opens, the window latches, the seat button, the dock chip and the modulation door. */
-export const BASINS_LAYOUT = Object.freeze([{ group: 'native-play-row', items: ['play', 'power', 'rewind', 'tempo'] }, 'panel', 'openers', 'seat', 'dock', 'door']);
+/** named(name, list) — a layout that carries its own drawing: the bar writes `data-layout="<name>"` and transport.css
+ *  keys that layout's values on it.  A layout with no name (an app's own list) is drawn as BASINS' is. */
+const named = (name, list) => Object.freeze(Object.assign(list, { name }));
+/** BASINS' basic bar (app/transport.js): the play row — play, modulation's power, the BPM pill, to-start (BASINS adds its
+ *  depth readout after the pill) — then the tempo panel the pill opens, the window latches, the seat button, the dock chip
+ *  and the modulation door.  Its drawing is the default (transport.css): the bar as wide as its row, the pill in the row's
+ *  order, the docked card a five-column grid. */
+export const BASINS_LAYOUT = named('basins', [{ group: 'native-play-row', items: ['play', 'power', 'tempo', 'rewind'] }, 'panel', 'openers', 'seat', 'dock', 'door']);
 /** λWAVES' bar (lab/rack.js §25 + native-ui.js), from the same parts: play, modulation's power, rewind, ‹ ›, then the
- *  app's own scrub, ⟳, readouts and RATE knob (`app:<name>`, from `nodes`), the pill; the panel; then dock and door. */
-export const LAMBDAWAVES_LAYOUT = Object.freeze([{ group: 'native-play-row', items: ['play', 'power', 'rewind', 'app:back', 'app:forward', 'app:scrub', 'app:jump', 'app:time', 'app:period', 'app:rate', 'tempo'] },
+ *  app's own scrub, ⟳, readouts and RATE knob (`app:<name>`, from `nodes`), the pill; the panel; then dock and door.
+ *  Its own drawing (`data-layout="lambdawaves"`): the 640 px bar, the pill last, the docked row wrapping. */
+export const LAMBDAWAVES_LAYOUT = named('lambdawaves', [{ group: 'native-play-row', items: ['play', 'power', 'rewind', 'app:back', 'app:forward', 'app:scrub', 'app:jump', 'app:time', 'app:period', 'app:rate', 'tempo'] },
   'panel', 'openers', 'seat', 'dock', 'door']);
 
 /** layoutNames(layout) — every part name a layout uses, groups opened */
@@ -552,7 +558,9 @@ function dockOf(R) {
 /** createTransport(options) → api
  *    layout      the bar's arrangement: an array of part names ('play', 'power', 'door', 'tempo', 'panel', 'tap',
  *                'rewind', 'openers', 'seat', 'dock', 'back'), `app:<name>` (a node from `nodes`), DOM nodes, and
- *                `{ group: 'class names', items: [...] }`.  Default BASINS_LAYOUT.
+ *                `{ group: 'class names', items: [...] }`.  Default BASINS_LAYOUT.  A layout's
+ *                `name` (BASINS_LAYOUT 'basins', LAMBDAWAVES_LAYOUT 'lambdawaves') is written as data-layout; λWAVES'
+ *                has its own drawing, every other layout is drawn as BASINS' is.
  *    nodes       { name: Element } — the app's own nodes a layout names
  *    clock       the ONE TRUE PLAY's clock: { play(), pause(), isPlaying(), toggle?(), onChange?(fn), seek?(beat) }
  *    mod         the modulation seam (installModulation's result): the power button, the door, the panel's clock tiles
@@ -579,6 +587,7 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
   const stageHost = bar.parentElement || host;
   for (const c of ['mir-transport', 'glass', 'mini']) bar.classList.add(c);
   if (opener) bar.dataset.opener = ''; else delete bar.dataset.opener;
+  setAttr(bar, 'data-layout', layout && typeof layout.name === 'string' && layout.name ? layout.name : null);   // the layout's own drawing (transport.css)
   bar.setAttribute('role', 'toolbar'); ariaLabel(bar, 'Transport');
 
   /* ── the parts the layout names, built once each ── */
@@ -823,7 +832,7 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
       const R = rackOf(); const d = R && docks.get(R); if (d) { d.open = null; d.close = null; }
       if (bar.parentElement !== stageHost) stageHost.appendChild(bar);
       for (const n of made) n.remove();
-      if (!made.includes(bar)) { bar.removeAttribute('data-bar'); bar.textContent = ''; bar.classList.remove('mir-transport', 'mini', 'docked', 'tempo-open'); for (const a of ['data-home', 'data-form', 'data-tempo-direction']) bar.removeAttribute(a); delete bar.dataset.opener; }
+      if (!made.includes(bar)) { bar.removeAttribute('data-bar'); bar.textContent = ''; bar.classList.remove('mir-transport', 'mini', 'docked', 'tempo-open'); for (const a of ['data-home', 'data-form', 'data-tempo-direction', 'data-layout']) bar.removeAttribute(a); delete bar.dataset.opener; }
     },
   };
 }

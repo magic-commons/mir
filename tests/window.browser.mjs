@@ -187,6 +187,35 @@ try {
   check("an app's window law: windowOf(el) finds the window from its rail or body, raise() lifts the pane and the rail together, stackAt(z) seats the rail at z + 1", law.viaRail && law.viaBody && law.pair && law.r1.b > law.r1.ar && law.r1.br === law.r1.b + 1 && law.r2.a === 40 && law.r2.ar === 41, JSON.stringify(law));
   check("an app's rail tier: stackAt(z, { railOffset }) seats the rail at z + offset, and createWindow({ railTier }) sets the default", law.r3.a === 50 && law.r3.ar === 1000050 && law.r4.t === 7 && law.r4.tr === 507, JSON.stringify({ r3: law.r3, r4: law.r4 }));
 
+  /* ── ONE STACK (1.5.0-alpha.15): a window the app built itself joins the kit's stack (registerWindow), so one press order
+     holds — BASINS' #modwin on its own counter came back over PATTERN after PATTERN had been seated above it ──────────── */
+  {
+    const set = await run(`const { registerWindow, windowOf } = await import('/mir/window/window.js'); A.raise();
+      const a = A.body.getBoundingClientRect(), d = document.createElement('div'); d.id = 'adopted';
+      Object.assign(d.style, { position: 'fixed', left: Math.round(a.left + a.width / 2) + 'px', top: Math.round(a.top + 8) + 'px', width: Math.round(a.width / 2 + 160) + 'px', height: '70px', background: '#345', pointerEvents: 'auto' });
+      A.root.parentElement.appendChild(d); const reg = registerWindow({ root: d });
+      /* the overlap (A's body under the adopted pane) and a place on each that only it covers once A is on top */
+      const ov = { x: Math.round(a.left + a.width / 2 + 20), y: Math.round(a.top + 30) };
+      const top = (x, y) => { const n = document.elementFromPoint(x, y); return n === d ? 'adopted' : n && n.closest('.mir-win') === A.root ? 'A' : n ? n.className || n.tagName : 'nothing'; };
+      const firstOnTop = top(ov.x, ov.y); A.raise();
+      let onlyD = null; for (let x = Math.round(a.right + 150); x > a.right && !onlyD; x -= 10) for (let y = Math.round(a.top + 12); y < a.top + 74 && !onlyD; y += 8) if (document.elementFromPoint(x, y) === d) onlyD = { x, y };
+      let onlyA = null; for (let x = Math.round(a.left + 10); x < a.left + a.width / 2 - 4 && !onlyA; x += 10) { const n = document.elementFromPoint(x, ov.y); if (n && n.closest('.mir-win') === A.root) onlyA = { x, y: ov.y }; }
+      return { ov, onlyD, onlyA, firstOnTop, found: windowOf(d) === reg && !!reg.raise };`);
+    const topAt = async () => JSON.parse(await p.eval(`(() => { const n = document.elementFromPoint(${set.ov.x}, ${set.ov.y}); return JSON.stringify(n && n.id === 'adopted' ? 'adopted' : n && n.closest('.mir-win') === __T.A.root ? 'A' : n ? String(n.className) : 'nothing'); })()`));
+    let order = [];
+    if (set.onlyD && set.onlyA) {
+      await mouse('mouseMoved', set.onlyD.x, set.onlyD.y); await mouse('mousePressed', set.onlyD.x, set.onlyD.y); await mouse('mouseReleased', set.onlyD.x, set.onlyD.y); await sleep(30);
+      order.push(await topAt());                                              // a press on the adopted pane: it is on top
+      await mouse('mouseMoved', set.onlyA.x, set.onlyA.y); await mouse('mousePressed', set.onlyA.x, set.onlyA.y); await mouse('mouseReleased', set.onlyA.x, set.onlyA.y); await sleep(30);
+      order.push(await topAt());                                              // a press on A: A is on top
+      await mouse('mouseMoved', set.onlyD.x, set.onlyD.y); await mouse('mousePressed', set.onlyD.x, set.onlyD.y); await mouse('mouseReleased', set.onlyD.x, set.onlyD.y); await sleep(30);
+      order.push(await topAt());                                              // and the adopted pane again
+    }
+    await run(`const d = document.getElementById('adopted'); const { windowOf } = await import('/mir/window/window.js'); windowOf(d).leave(); d.remove(); A.raise(); return 0;`);
+    check('one stack: a registered app window (registerWindow) and a kit window take one press order — the pane pressed last is what elementFromPoint finds where they overlap, and windowOf finds it',
+      set.found && set.firstOnTop === 'adopted' && order.join() === 'adopted,A,adopted', JSON.stringify({ ...set, order }));
+  }
+
   /* ── the chip material: follows its pane, and against the modulation window's rail ─────────────────────── */
   const PROPS = ['width', 'height', 'border-top-width', 'border-radius', 'border-top-color', 'box-shadow', 'background-color', 'backdrop-filter'];
   const GEOM = ['width', 'height', 'border-top-width', 'border-radius'];

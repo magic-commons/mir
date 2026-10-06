@@ -47,11 +47,13 @@ export function chipPosition(side, box, w, h, view, pad = RAIL.pad, gap = 0) {
     fits: x >= pad && x + w <= view.width - pad && y >= pad && y + h <= view.height - pad };
 }
 
-/** seatRail({ prefer, box, sizes, view }) — THE SOLVER.  `prefer` is left|right|top|bottom|auto ('auto' = no
- *  preference: the order of SIDES).  The preferred side if it fits; else the first other side that fits; else the
- *  first side the rail can fit on at all, clamped; else the preference, clamped.  Pure: the preference is an input,
- *  never written.  → { side, left, top, width, height, fits } — the exact landing rect of the rail */
-export function seatRail({ prefer = 'left', box, sizes, view, pad = RAIL.pad, gap = 0 }) {
+/** seatRail({ prefer, box, sizes, view, avoid?, outer?, lane? }) — THE SOLVER.  `prefer` is left|right|top|bottom|auto
+ *  ('auto' = no preference: the order of SIDES).  The preferred side if it fits; else the first other side that fits;
+ *  else the first side the rail can fit on at all, clamped; else the preference, clamped.  With `avoid` (a window seated
+ *  on another: the other's glass) it is seatClear's law below.  Pure: the preference is an input, never written.
+ *  → { side, left, top, width, height, fits } — the exact landing rect of the rail */
+export function seatRail({ prefer = 'left', box, sizes, view, pad = RAIL.pad, gap = 0, avoid = null, outer = null, lane = null }) {
+  if (avoid) return seatClear({ prefer, box, sizes, view, pad, gap, avoid, outer, lane });
   const order = SIDES.includes(prefer) ? [prefer, ...SIDES.filter((s) => s !== prefer)] : SIDES;
   let reachable = null;
   for (const side of order) {
@@ -60,6 +62,29 @@ export function seatRail({ prefer = 'left', box, sizes, view, pad = RAIL.pad, ga
     if (!reachable && s.width <= view.width - 2 * pad && s.height <= view.height - 2 * pad) reachable = side;
   }
   return seatOn(reachable || order[0], box, sizes, view, pad, gapOf(gap, reachable || order[0]));
+}
+/** coverOf(seat, r) — the area of the seat's rect that lies on r (0 when they do not meet) */
+export const coverOf = (s, r) => Math.max(0, Math.min(s.left + s.width, r.right ?? r.left + r.width) - Math.max(s.left, r.left)) *
+  Math.max(0, Math.min(s.top + s.height, r.bottom ?? r.top + r.height) - Math.max(s.top, r.top));
+/** seatClear — THE SEAT UNDER ANOTHER WINDOW (BASINS snap-window.js seat(), a window docked on an anchor): `avoid` is the
+ *  glass of the window it is seated on (the modulation window's content), `outer` the edge facing away from it, `lane`
+ *  the racks' span.  A side the hand chose (prefer a real side: a Shift-drag, a long press, the keys) wins; with no choice
+ *  ('auto') the sides go left, right, the outer edge, then the rest, and one seats the rail only in a CLEAR lane — inside
+ *  the racks and off that glass.  With no clear lane the fitting seat that covers least of it wins, else the first side
+ *  the rail can fit on at all. */
+function seatClear({ prefer, box, sizes, view, pad, gap, avoid, outer, lane }) {
+  const own = SIDES.includes(prefer) ? prefer : null;
+  const order = [...new Set([own, 'left', 'right', outer, ...SIDES].filter((s) => SIDES.includes(s)))];
+  const clear = (s) => s.side === own || ((!lane || (s.left >= lane.left && s.left + s.width <= lane.right)) && !coverOf(s, avoid));
+  let reachable = null, least = null;
+  for (const side of order) {
+    const s = seatOn(side, box, sizes, view, pad, gapOf(gap, side));
+    if (!reachable && s.width <= view.width - 2 * pad && s.height <= view.height - 2 * pad) reachable = side;
+    if (s.fits && (!least || coverOf(s, avoid) < least.area)) least = { side, area: coverOf(s, avoid) };
+    if (s.fits && clear(s)) return s;
+  }
+  const side = least ? least.side : reachable || own || order[0];
+  return seatOn(side, box, sizes, view, pad, gapOf(gap, side));
 }
 /** seatOn(side, box, sizes, view) — the rail on that side and no other, clamped: a docked window's lane, which the
  *  dock geometry has already made room for */

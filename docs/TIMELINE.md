@@ -45,6 +45,7 @@ Load `mir/timeline/timeline.css` after the kit's sheets (`mir/mir.css`). A lane 
 | `scrubLevel()` | `'live' \| 'light' \| 'release'`: how often a scrub really seeks | `'live'` |
 | | `createApp` builds no timeline, so SAMPLING · SCRUB (the GUI's saved `scrub`) reaches the arrangement through the app's own one line: `scrubLevel: () => gui.prefs.get('scrub')` (`app.gui.prefs.get('scrub')` with `createApp`) | |
 | `busy()` | true while a recorder owns the clock: a scrub is refused | never |
+| `controller` | the app's own one-play controller (`timeline/controller.js`'s shape), so its play, its scrub gate and its refusal sentences are the ones used (1.5.0-alpha.15: installTimeline forwards it to createTimeline) | made from `scrubLevel` and `busy` |
 | `moved(rect)`, `onWindow(open)` | where the window is (hand it to `rack.dodge`); open or closed | none |
 
 It returns the timeline: `{ win, root, rail, editor, model, controller, transport, actions, keys, open(), close(), toggle(), isOpen(), paintHead(), presentation(), restore(shape), shortcuts(x, y), automation(id, beat), dispose() }`.
