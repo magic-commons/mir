@@ -196,6 +196,7 @@ export function createModulation(host, port) {
   const M = port.M, registry = port.registry, clock = port.clock;
   const apply = port.apply || (() => {});
   const ROUTE_SEL = port.targets || ROUTABLE;
+  const owned = typeof port.owned === 'function' ? port.owned : () => false;   // a macro a panel drives (bind.js own): never a source's
   if (port.presetKey && M.setPresetKey) M.setPresetKey(port.presetKey);
   const audBands = new Map();
   const audRoutes = new Map();
@@ -2345,7 +2346,7 @@ export function createModulation(host, port) {
   function cycleMacro(rec) {
     const s = rec.s;
     const all = M.macroList().filter((m) => m.kind !== 'trigger');
-    const ring = [null, ...all.filter((m) => !m.sourceId || m.sourceId === s.id)];
+    const ring = [null, ...all.filter((m) => (!m.sourceId && !owned(m.id)) || m.sourceId === s.id)];
     if (ring.length === 1) { say(rec, t('every macro is already driven by another source — free one, or add a macro')); return; }
     const at = ring.findIndex((m) => m && m.sourceId === s.id);
     const next = ring[((at < 0 ? 0 : at) + 1) % ring.length];
@@ -2363,7 +2364,7 @@ export function createModulation(host, port) {
     const sock = M.scalarOutputId ? M.scalarOutputId(rec.s.id, key) : null;
     if (!sock) { say(rec, t('that output cannot be bound')); return; }
     const all = M.macroList().filter((m) => m.kind !== 'trigger');
-    const ring = [null, ...all.filter((m) => !m.sourceId || m.sourceId === sock)];
+    const ring = [null, ...all.filter((m) => (!m.sourceId && !owned(m.id)) || m.sourceId === sock)];
     if (ring.length === 1) { say(rec, t('every macro is already driven by another source — free one, or add a macro')); return; }
     const at = ring.findIndex((m) => m && m.sourceId === sock);
     const next = ring[((at < 0 ? 0 : at) + 1) % ring.length];

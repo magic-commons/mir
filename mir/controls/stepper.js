@@ -6,13 +6,14 @@
  * when nothing else can be reached); the keys are ← and → on the row.  A TAP ON THE NAME OPENS THE FULL LIST in the kit's menu pane
  * (controls/select.js `listPane`), so a long ordered list (twelve blend modes) is one tap from any entry, not eleven.  By the rules of
  * docs/INTENT.md: no relief at rest, hover a lighter face, press a sink and a small scale, focus an accent ring outside.
- *   stepper({ label, aria, items, value, onChange, wrap, list, pager, cls })
+ *   stepper({ label, aria, items, value, onChange, wrap, list, pager, count, compact, cls })
  *     items   [{ id, label, vars?, coming? }]
  *     onChange(id, dir)   dir is −1 / +1 for an arrow, 0 for a pick from the list
  *     wrap    false stops at the ends (default true)
  *     list    false: the name is a label, not an opener (default true)
  *     pager   true: the PAGE TURNER form (BASINS' rack-card pager): the list is off, the name is a label
  *     count   true: the name is followed by `n / N` (a pager that says where it is)
+ *     compact true: no arrows in the DOM (a strip a finger wide): the name opens the list, ← → still step it from the keys
  *   → { root, prev, next, name, get, set(id), setItems(items, id), step(d), open(), close(), destroy() }
  * Styled by controls.css; the buttons are `.mir-step-b[data-step="-1|1"]`, the name `.mir-step-name`. */
 import { el, label, ariaLabel } from '../kit.js';
@@ -31,12 +32,14 @@ export function stepper(o = {}) {
   const root = el('div', 'mir-step' + (pager ? ' mir-step-pager' : '') + (o.cls ? ' ' + o.cls : ''));
   if (o.label) label(el('div', 'k-lbl', root), o.label);
   const row = el('div', 'mir-step-row', root);
-  const prev = el('button', 'mir-step-b', row, '‹'); prev.type = 'button'; prev.dataset.step = '-1';
+  const compact = !!o.compact;                       // the arrows are made (the API keeps them) but never seated
+  if (compact) root.dataset.compact = '';
+  const prev = el('button', 'mir-step-b', compact ? null : row, '‹'); prev.type = 'button'; prev.dataset.step = '-1';
   const name = el(canList ? 'button' : 'div', 'mir-step-name', row);
   if (canList) { name.type = 'button'; name.setAttribute('aria-haspopup', 'listbox'); name.setAttribute('aria-expanded', 'false'); }
   const text = el('span', 'mir-step-text', name); text.setAttribute('aria-live', 'polite');
   const count = o.count ? el('span', 'mir-step-count', name) : null;
-  const next = el('button', 'mir-step-b', row, '›'); next.type = 'button'; next.dataset.step = '1';
+  const next = el('button', 'mir-step-b', compact ? null : row, '›'); next.type = 'button'; next.dataset.step = '1';
   ariaLabel(prev, 'previous'); ariaLabel(next, 'next');
   if (o.aria || o.label) ariaLabel(row, o.aria || o.label);
   row.setAttribute('role', 'group');

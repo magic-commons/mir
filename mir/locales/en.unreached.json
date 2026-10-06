@@ -1,7 +1,7 @@
 [
  {
   "file": "mir/app.js",
-  "line": 322,
+  "line": 326,
   "why": "fragment",
   "text": " · an MIR app"
  },
@@ -139,15 +139,69 @@
  },
  {
   "file": "mir/modulation/window.js",
-  "line": 1156,
+  "line": 1157,
   "why": "fragment",
   "text": "px,"
  },
  {
   "file": "mir/modulation/window.js",
-  "line": 2003,
+  "line": 2004,
   "why": "fragment",
   "text": " failed to build"
+ },
+ {
+  "file": "mir/panels/camera-rig.js",
+  "line": 161,
+  "why": "fragment",
+  "text": "px, "
+ },
+ {
+  "file": "mir/panels/camera.js",
+  "line": 364,
+  "why": "fragment",
+  "text": "NORTH · back to "
+ },
+ {
+  "file": "mir/panels/curves.js",
+  "line": 122,
+  "why": "fragment",
+  "text": ": in "
+ },
+ {
+  "file": "mir/panels/curves.js",
+  "line": 122,
+  "why": "fragment",
+  "text": ", out "
+ },
+ {
+  "file": "mir/panels/xy.js",
+  "line": 321,
+  "why": "fragment",
+  "text": " — XY pad"
+ },
+ {
+  "file": "mir/panels/xy.js",
+  "line": 330,
+  "why": "fragment",
+  "text": " — XY controller"
+ },
+ {
+  "file": "mir/panels/xy.js",
+  "line": 352,
+  "why": "fragment",
+  "text": "the XY controller's "
+ },
+ {
+  "file": "mir/panels/xy.js",
+  "line": 404,
+  "why": "fragment",
+  "text": "the morph pad's "
+ },
+ {
+  "file": "mir/panels/xy.js",
+  "line": 404,
+  "why": "fragment",
+  "text": ": A and "
  },
  {
   "file": "mir/render/encoder.js",
@@ -373,7 +427,7 @@
  },
  {
   "file": "mir/shell/gui.js",
-  "line": 284,
+  "line": 286,
   "why": "fragment",
   "text": "the bench threw: "
  }

@@ -27,9 +27,8 @@
  * PROJECT AND HISTORY  the values ride in the project as a part named `part` (default 'grade'; a routed one as its base) unless
  *   `project: false`; with `history` they are one snapshot domain, so a gesture is one row, CONTROL · WINDOW.
  * IDLE  nothing is polled: a change the app makes is a notice (subscribe), and one coalesced frame repaints the controls after it. */
-import { el, label, ariaLabel, sw } from '../kit.js';
+import { el, label, sw } from '../kit.js';
 import { control } from '../controls/factory.js';
-import { glyphEl } from '../glyph.js';
 import { frame } from '../core/frame.js';
 import { registerProjectPart } from '../core/project.js';
 import { pictureFilter, GRADE_HOME, BLEND_MODES } from './picture-filter.js';
@@ -159,7 +158,6 @@ export function createGradeView(parent, o = {}) {
     value: read(id), get: () => read(id), set: (v) => write(id, v), ...more });
   const single = (id, parentEl, d, more) => {
     const c = control(desc(id, d, more));
-    if (c.widget && c.widget.setDefault && Number.isFinite(d.home) && (c.kind === 'knob' || c.kind === 'arc')) c.widget.setDefault(d.home);   // a double-tap goes HOME
     return add(parentEl, [id], c, () => read(id));
   };
 
@@ -173,9 +171,8 @@ export function createGradeView(parent, o = {}) {
     const db = D('black'), dw = D('white');
     const c = control({ id: modId('levels'), ids: [modId('black'), modId('white')], type: 'range', label: 'BLACK · WHITE',
       hint: 'BLACK · WHITE — the input levels: below BLACK is black, above WHITE is white; double-tap a thumb to send it home',
-      min: Math.min(db.min, dw.min), max: Math.max(db.max, dw.max), value: [read('black'), read('white')], minGap: o.levelsGap ?? 0.02, fmt: db.fmt,
+      min: Math.min(db.min, dw.min), max: Math.max(db.max, dw.max), value: [read('black'), read('white')], home: [db.home, dw.home], minGap: o.levelsGap ?? 0.02, fmt: db.fmt,
       set: ([lo, hi]) => { if (lo !== base('black')) write('black', lo); if (hi !== base('white')) write('white', hi); } });
-    c.widget.lo.setDefault(db.home); c.widget.hi.setDefault(dw.home);
     add(row('grade-levels'), ['black', 'white'], c, () => [read('black'), read('white')]);
   }
 
@@ -192,9 +189,7 @@ export function createGradeView(parent, o = {}) {
   let inv = null;
   if (shown('invert')) {
     const d = D('invert');
-    inv = sw({ label: d.label, title: d.hint, lamp: false, value: !!read('invert'), cls: 'grade-invert', onChange: (v) => write('invert', v) });
-    inv.root.replaceChildren(glyphEl('invertColors', 'gly gly-invertColors', 24));           // BASINS: the half-filled disk, turned over when ON
-    ariaLabel(inv.root, d.label);
+    inv = sw({ label: d.label, title: d.hint, glyph: 'invertColors', value: !!read('invert'), cls: 'grade-invert', onChange: (v) => write('invert', v) });   // BASINS: the half-filled disk, turned over when ON
     inv.root.dataset.control = 'switch';
     add(turns, ['invert'], { kind: 'switch', root: inv.root, widget: inv, get: () => inv.get(), set: (v) => inv.set(!!v) }, () => !!read('invert'));
   }
@@ -237,7 +232,7 @@ export function createGradeView(parent, o = {}) {
 
   /* ── modulation: the targets, added now (a route saved against one wakes up) ── */
   const offMod = [];
-  if (mod && typeof mod.add === 'function') for (const t of targets) offMod.push(mod.add(t));
+  if (mod && typeof mod.add === 'function' && targets.length) offMod.push(mod.add(targets));   // one rebuild of the modulation window (mod.add takes a list)
 
   sync();
   return {

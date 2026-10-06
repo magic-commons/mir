@@ -5,8 +5,11 @@
  * `.glass[data-mir-surface="menu"]` on the body: the menu height of INTENT's four, the card style's material, and it closes on
  * an outside press, Escape, a resize or the page losing focus.  Rows are real 44 px touch seats; an item marked `coming`
  * is shown and never chosen; the keys are the listbox's (arrows, Home, End, Enter, a typed letter, Escape).
- *   listPane({ anchor, items, value, onPick, onClose, label, cls, signal }) → { root, close(), items }   one pane for the stepper and the select
- *   select({ label, aria, items, value, onChange, placeholder, cls, disabled }) → { root, button, get, set(id), setItems(list, id), open(), close(), isOpen, setDisabled(on), destroy() }
+ *   listPane({ anchor, items, value, onPick, onClose, label, cls, signal, host }) → { root, close(), items }   one pane for the stepper and the select
+ *     host   where the pane is put (default the body): a popup's own node, so a press in the list is inside the popup.  A host that
+ *            clips (overflow) clips the list; a host that is a containing block (a filter, a transform) is allowed for: the pane is
+ *            measured once more after it is placed and moved by what the host added.
+ *   select({ label, aria, items, value, onChange, placeholder, cls, disabled, host }) → { root, button, get, set(id), setItems(list, id), open(), close(), isOpen, setDisabled(on), destroy() }
  * items: [{ id, label, vars?, coming? }] — the same record the stepper takes.  Words go through label() and so translate.
  * No pollers, no timers: the pane is placed once from one rect read, and idle costs nothing. */
 import { el, label, ariaLabel } from '../kit.js';
@@ -39,10 +42,10 @@ export function placePane(a, pane, view, gap = 4, margin = 8) {
 let open = null;                                         // one list pane per page: opening another closes this one
 
 /** listPane — see the header */
-export function listPane({ anchor, items, value, onPick, onClose, label: name, cls, signal } = {}) {
+export function listPane({ anchor, items, value, onPick, onClose, label: name, cls, signal, host } = {}) {
   if (open) open.close();
   const doc = anchor.ownerDocument, win = doc.defaultView;
-  const root = el('div', 'mir-pick glass' + (cls ? ' ' + cls : ''), doc.body);
+  const root = el('div', 'mir-pick glass' + (cls ? ' ' + cls : ''), host || doc.body);
   root.dataset.mirSurface = 'menu'; root.setAttribute('role', 'listbox'); root.tabIndex = -1;
   if (name) ariaLabel(root, name);
   const rows = new Map();
@@ -91,6 +94,10 @@ export function listPane({ anchor, items, value, onPick, onClose, label: name, c
   const a = anchor.getBoundingClientRect(), p = root.getBoundingClientRect();
   const at = placePane(a, { w: p.width, h: p.height }, { w: win.innerWidth, h: win.innerHeight });
   Object.assign(root.style, { top: at.top + 'px', left: at.left + 'px', maxHeight: at.maxHeight + 'px', minWidth: at.minWidth + 'px' });
+  if (host && host !== doc.body) {                       // a host that is a containing block offsets `fixed`: one more read, one correction
+    const got = root.getBoundingClientRect(), dx = got.left - at.left, dy = got.top - at.top;
+    if (dx || dy) Object.assign(root.style, { top: (at.top - dy) + 'px', left: (at.left - dx) + 'px' });
+  }
   root.dataset.dir = at.down ? 'down' : 'up';
   focusAt(rows.get(value) && !rows.get(value).classList.contains('coming') ? rows.get(value) : live()[0]);
   const api = { root, close: (r = false) => close(r), items };
@@ -116,7 +123,7 @@ export function select(o = {}) {
   const close = (refocus) => { if (pane) pane.close(refocus); };
   const openIt = () => {
     if (pane || btn.disabled) return;
-    pane = listPane({ anchor: btn, items, value: v, label: o.aria || o.label, onPick: (id) => choose(id), onClose: () => { pane = null; btn.setAttribute('aria-expanded', 'false'); } });
+    pane = listPane({ anchor: btn, items, value: v, label: o.aria || o.label, host: o.host, onPick: (id) => choose(id), onClose: () => { pane = null; btn.setAttribute('aria-expanded', 'false'); } });
     btn.setAttribute('aria-expanded', 'true');
   };
   btn.addEventListener('click', () => (pane ? close(false) : openIt()));

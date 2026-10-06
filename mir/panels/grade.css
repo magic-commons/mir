@@ -1,8 +1,7 @@
 /* panels/grade.css — THE GRADE PANEL'S SHEET (panels/grade.js): the master picture controls, laid out.
  *
- * The controls are the kit's (.k, the arc, .mir-range, the lane slider, the stepper): this sheet only lays them out and draws INVERT as
- * BASINS draws it (colour.css:96–102): a 44 px round target with no face, the half-filled disk turned over when ON — the glyph is the
- * state, so it has no lamp and no ON face.  Order, top down: the four tone knobs; BLACK · WHITE; OPACITY across the width; HUE and
+ * The controls are the kit's (.k, the arc, .mir-range, the lane slider, the stepper, the glyph switch): this sheet only lays them out and
+ * turns INVERT's glyph over when ON, as BASINS does (colour.css:96–102): the 44 px face-less round target is `sw({ glyph })`'s.  Order, top down: the four tone knobs; BLACK · WHITE; OPACITY across the width; HUE and
  * INVERT; BLEND; the app's own rows under their group words.
  *
  * INTENT (docs/INTENT.md): no fill is an accent; the glyph is ink, a lighter ink on hover; focus is the accent ring.  Tokens only, declared
@@ -13,10 +12,7 @@
 .mir-grade {
   --grade-gap: var(--sp-3);                          /* between the rows */
   --grade-cell: 56px;                                /* the narrowest knob column: four across a rack card (the CAMERA panel's) */
-  --grade-invert: 44px;                              /* INVERT's round target (BASINS' colour-invert) */
-  --grade-invert-glyph: 24px;                        /* its glyph */
-  --grade-invert-turn: var(--motion-ui);             /* the glyph turning over (BASINS: 170 ms) */
-  --grade-invert-shadow: 0 0 0 0 transparent;        /* INVERT has no face, so no relief (BASINS: box-shadow none) */
+  --grade-invert-turn: var(--motion-ui);             /* INVERT's glyph turning over (BASINS: 170 ms) */
 }
 /* ── end of the values ── */
 
@@ -30,13 +26,8 @@
 .mir-grade .grade-group { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
 .mir-grade .grade-title { font-size: var(--fs-tiny); letter-spacing: var(--tr-wider); color: var(--ink-key); }
 
-/* ── INVERT: the glyph is the state (BASINS) ── */
-.mir-grade .sw.grade-invert,
-.mir-grade .sw.grade-invert.on { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 var(--grade-invert); width: var(--grade-invert); height: var(--grade-invert); min-height: var(--grade-invert);
-  padding: 0; border: 0; border-radius: 50%; background: transparent; box-shadow: var(--grade-invert-shadow); color: var(--ink-key); }
-.mir-grade .grade-invert svg { display: block; width: var(--grade-invert-glyph); height: var(--grade-invert-glyph); transition: transform var(--grade-invert-turn) var(--ease-out); }
+/* ── INVERT: the glyph is the state (BASINS); the face-less round target is the kit's .sw-glyph (controls.css), this turns it over ── */
+.mir-grade .grade-invert svg { transition: transform var(--grade-invert-turn) var(--ease-out); }
 .mir-grade .grade-invert.on svg { transform: rotate(180deg); }
-.mir-grade .grade-invert:hover { color: var(--fg); }
-.mir-grade .grade-invert:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: -3px; }
 
 }   /* end @layer mir.kit.plugin.host */

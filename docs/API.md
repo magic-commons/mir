@@ -23,6 +23,8 @@ Import paths below are from an adopted app's `lab/` folder: `./mir/…`.
 
 **`createApp` (1.5.0-alpha.13).** More options: `history` (the app's one stack, `createHistory()`: a HISTORY window behind WINDOW › HISTORY, with the keys, the gesture naming and the modulation rack as a domain; `historyWindow` adds that window's options), `render` (`{ frame, motions?, subject?, picture?, motionUi?, sections?, prefix?, card?, …createRecorder options }`: the recorder, `busy` to the timeline, RENDER in FOLDERS and as a rack window; [RENDER.md](RENDER.md)). `timeline` now installs the audio clip too (`timeline: { audio: false }` leaves it out). A notebook without pages registers its project part. Returns `history` and `recorder` as well.
 
+**`createApp` (1.5.0-alpha.14).** `modRoots: ['grade', 'curves', …]`: more modulation id roots beside `app`, so a kit panel's targets (`camera.*`, `grade.*`, `curves.*`, `lanes.*`, `xy.*` by default) route with no other line; `mod: { roots }` still wins.
+
 **`mir/mir.css`**: every kit sheet, by `@import`, in the kit's order: `<link rel="stylesheet" href="mir/mir.css">`. Its header says which order still matters under the cascade layers. `tests/mir-css.node.mjs` fails if a sheet under `mir/` is missing from it or imported twice.
 
 ---
@@ -144,7 +146,7 @@ A window does no presentation work while it is off, closed, folded, compact, hid
 ## `mir/plane-model.js`
 
 `planeModel(host, { getNormal, getPosition, onTurn })` returns `{ root, paint(force), destroy() }`. It is the sphere-and-plane orientation control:
-- dragging or the arrow keys tilt the plane about world X and Y, Shift for fine, and Home resets;
+- dragging or the arrow keys tilt the plane about world X and Y, the one knob law's ⅛ fine gear (any modifier or a second finger), and a double-tap or Home resets;
 - it is sharp at every device-pixel ratio and repaints itself on a theme flip; an accent change shows on the app's next `paint()`.
 
 ## `mir/core/i18n.js`: one translation seam ([LANGUAGES.md](LANGUAGES.md))
@@ -251,7 +253,7 @@ A pack: `{ tag, name, dir, reviewed, fonts, type, strings: { English: "…" | { 
 | `gplLicence(name, { license, notice })`, `kitType(extra, fontsPath)` | The default licence and type lines |
 | `richText(node, line)` | Text and `[text, href]` parts. No `innerHTML`; unsafe schemes are dropped |
 | `safeHref(u)` | Whether a link's scheme is safe |
-| `createAccent({ accentStops, wheelStops, paletteOn, a, b, vivid, hueShift, stageGround, gamut, onAccent })` | Accents A and B as angles on a palette, plus the mark. Returns `{ apply, set(patch), wheelColor, accentColor, markInk, paintMarks, turn, busy(on), hueSat, a, b, vivid, hueShift, paletteOn }` |
+| `createAccent({ accentStops, wheelStops, paletteOn, a, b, vivid, hueShift, stageGround, gamut, model, onAccent })` | Accents A and B as angles on a palette (`model: 'hsl'`, alpha.14: BASINS' HSL engine), plus the mark. Returns `{ apply, set(patch), wheelColor, accentColor, markInk, paintMarks, turn, busy(on), hueSat, a, b, vivid, hueShift, paletteOn, model }` |
 | `STAGE_GROUND`, `CARD_GROUND`, `MARK_SELECTOR` | The two stage grounds, the two card grounds, and the marks that `paintMarks()` paints |
 | `renderNotebook(markdown, { marked, katex })` | Sanitised markdown with maths (λWAVES' renderer) |
 | `renderNotebookMath(tex, display, katex)` | One formula, with an escaped fallback |
@@ -306,6 +308,7 @@ Storage: `{ items: { [path]: { path, folder, name, saved, opened, title, md } },
 - **The rack's motion (1.5.0-alpha.11, BASINS' `rack-motion.js`):** `createRackMotion(hosts, view)` → `{ refresh(), hold(card), follow(card, x, y), release(card, settle), holding, destroy() }`; any card change animates the card's height and every moved card's travel at `--rack-motion` / `--rack-ease`; a card enters 6 px up over `--rack-enter` / `--rack-enter-ease` (BASINS' 220 ms). `reorderIndex(boxes, at, bar)` and `insertionIndex(boxes, bar)` take the title bar's middle (the title bar decides above or below); `RACK.hyst` is removed. Racks carry `data-mir-rack`. The rack's height motion joins the core's one-writer registry through `core/motion.js` `own(el, anim)` → Promise<boolean> (`docs/CORE.md`).
 - **createRack options (1.5.0-alpha.12)**: `scrollbar` (false; true seats BASINS' scrollbar at the card column), `tabletClamp` (true), `retired` (`{ oldId: heirId }`), `notebook` (the notebook or `() => it`; layouts keep `nb: [w, h]`), `name` (COPY's head line), `persist` (`'all'` | `'closed'`: `'closed'` keeps only which windows are closed and the phone rack shown across a reload; `closedLayout(windows, { phoneShown, at })` is that record).
 - **Rack verbs (1.5.0-alpha.12)**: `rack.resetLayout()` → true (RESET LAYOUT: every float docked home, every window opened, powered on, unfolded and in its home rack; the rack shown; app cards keep their place and state) · `rack.digest(id)` → string (`name · TITLE · ISO time`, `status\t…`, then one `label\tvalue\tsub` line per readout) · `rack.copyDigest(id)` → Promise&lt;string&gt; (the digest to the clipboard and a 900-ms `· COPIED` flash on the status) · `rack.scrollbar` → `{ paint(), tracks, destroy() }` | null.
+- **createRack (1.5.0-alpha.14)**: `layoutExtra: { capture() → object, apply(object, layout) }` (the app's own layout state rides every layout as `extra`, BASINS' `docked`); `rack.touch()` (the layout changed outside the rack: save it); `readLayout` keeps `extra`.
 - **Pure helpers (1.5.0-alpha.12)**: `readLayout(raw, known, retired)` (resolves retired ids, keeps `nb`), `clampFloatTablet(x, y, w, h, vv, edge)`, `digestText({ name, title, status, rows, at })`. **`mir/shell/rack-scrollbar.js`**: `createRackScrollbars({ host, racks, span, view })` → `{ paint(), tracks, destroy() }`; pure `scrollbarSeat({ side, rect, gutter, view, overflow, uiHidden, hidden })`, `thumbOf({ height, client, scrollHeight, scrollTop })`, `SCROLLBAR`.
 - **Pure helpers.** `reorderIndex`, `insertionIndex`, `slotRect`, `moveId`, `clampFloat`, `detached`, `peekSide`, `dodgeSeat`, `queueToggle`, `openOrder`, `favSlot`, `readLayout`, `layoutLabel`, `localStore`, `RACK`, `SIDES`.
 - **`mir/shell/rack.css`** loads after the kit's sheets and core.css, in `mir.kit.house`.
@@ -314,6 +317,8 @@ Storage: `{ items: { [path]: { path, folder, name, saved, opened, title, md } },
 
 - `createGui({ host, prefs, app, about, accent, defaults, storageKey, inkSampler, tierBench, sampling, projectAccent, rack })` → `{ root, window, prefs, open(page), close(), toggle(page), page, turn(dir), moving(bool), dropGuides(), census(), applyTheme(id), applyTone(id), themeCost(id?), tier(), measureTier(force?), sampling(), light, parallax, destroy() }` (1.5.0-alpha.12). `inkSampler`: a `createInkSampler` sampler (TEXT · AUTO samples; LIGHT · DARK stop it) or `true` (the app's own sampler; TEXT offers TEXT · SAMPLED, the `text` option `'sampled'`, no `data-text` written). `tierBench: async ({ win, doc, budgetMs }) → { periodMs, passMs }`. `sampling: { automation(grid), frameMs() }`. `projectAccent` (default true) registers the project part `accent`. `rack` shows RESET LAYOUT. `tier()` → `{ tier, hz, periodMs, passMs, headroom, ms, at, version, why }` or null; `sampling()` → `{ scrub, grid }`.
 - `shell/gui.js` also exports (alpha.12): `measureTier({ bench, storage, key, force, win })`, `storedTier(storage, key)`, `uiBench({ win, doc, budgetMs })`, `TIER_KEY`, `AUTOMATION_GRID`, `effectiveQuality(quality, tier)`, `touchTablet(doc, signal)`; `lookSchema({ tier })` takes the tier reader. New rows: STATUS TAGS, TRANSPORT BAR, SAMPLING (SCRUB · AUTOMATION), ACCENT BRIGHTNESS, FORGET, RESET LAYOUT. A new user's defaults: HELP off, CONTROL HINTS on, STATUS TAGS off, QUALITY AUTO.
+- `createGui({ …, forget: [storage keys] })` (alpha.14): FORGET wipes the look's own key and each listed key; `forgetLook(prefs, keys = [], storage?)` is that wipe, exported. A fresh look store's TEXT is `light` (FROST is the recipe's White Text).
+- `shell/accent.js` (alpha.14): `createAccent({ …, model: 'palette' | 'hsl' })` (`'hsl'` is BASINS' accent engine: A = 180°, VIVID 1 is hsl(180 100% 64%)); the result has `model`; `hslVivid(v)` → `{ sat, lum }`, `hslToRgb(deg, sat, lum)`.
 - `shell/accent.js` (alpha.12): `createAccent({ …, bright })` and `set({ bright })`, `.bright`; `towardWhite(rgb, k)`; `accentPart({ get, set, subscribe })` → a project part. `core/look.js` (alpha.12): `isMobile(nav, matchMedia)`, `isIPad(nav)`, `TOUCH_TABLET_MQ`, `BLUR_DESKTOP` (11), `BLUR_TOUCH` (20), `firstRunBlur(mobile)`, `DEVICE_BLUR`, `TIER_LAW`, `classifyTier(hz, headroom)`, `qualityOfTier(tier)`.
 - **`mir/core/ink.js`** ([INK.md](INK.md), alpha.12): `createInkSampler({ sample, doc, stage, skip, hz, law, frame })` → `{ update(), poke(), mode(m?), tick(), explain(el), state(), stat, destroy() }`; `sample()` → `{ luma, w, h, rect? }` (or a Promise); `canvasSample(source, { w, h })`; pure: `INK`, `INK_SKIP`, `parseFill`, `over`, `paintOf`, `summedArea`, `meanUnder`, `groundOf`, `decide`, `walkCells`, `domIO`.
 - `lookSchema()` → the schema rows (35 options) · `LOOK_PRESETS` → `{ [themeId]: theme options }` · `THEMES`.
@@ -549,6 +554,10 @@ Load `mir/shell/parts.css` after the kit's sheets.
   write(patch) }` (default `localStore(storageKey || 'mir.modulation')`); `audio`: the app's `createAudioCapture`.
 - `localStore(key)` → `{ read(), write(patch) }` (guarded localStorage, one JSON record).
 - `rootsOf(params)` → the registry roots the ids imply.
+
+### `bind.js`: a list of targets at once, and macros a panel owns (1.5.0-alpha.14)
+
+`add([param, …])` adds a list and rebuilds the window once (→ one `remove()` for them all); `add(param)` is as before. `own(macroId, owner)` → off: a panel drives this macro by hand (the XY panel's ROUTE), so `route()`'s free-macro finder and the window's source cycle (`cycleMacro`, `cycleAudioOut`) pass it by; `owned(macroId)` → the owner or null; `apply()` re-applies every route now and paints once. The window reads `port.owned`. An audio HIT's envelope (`mod.js hitMacroFor`) can still take an owned macro when every other macro is busy.
 
 ### `bind.js`: `onTick` (1.5.0-alpha.11)
 
@@ -832,13 +841,13 @@ The kit prescribes one control per kind of value. Every control below is re-expo
 
 | Export | What it does |
 |---|---|
-| `stepper({ label, aria, items, value, onChange(id, dir), wrap, list, pager, count, cls })` → `{ root, prev, next, name, get, set(id), setItems(items, id), step(d), open(), close(), destroy() }` | `‹ NAME ›`: two round 44 px buttons around a live name; a tap on the name opens the full list in the menu pane (`list: false` makes it a label); `pager: true` is the page turner (`count: true` adds `n / N`); an item with `coming` is listed and never chosen; the arrows mirror under `dir="rtl"`. Buttons are `.mir-step-b[data-step]`, the name `.mir-step-name` |
-| `select({ label, aria, items, value, onChange, placeholder, cls, disabled })` → `{ root, button, get, set(id), setItems(list, id), open(), close(), isOpen, setDisabled(on), destroy() }` · `listPane({ anchor, items, value, onPick, onClose, label, cls, signal })` → `{ root, close(), items }` | the kit's own choose-one, for a long list of data: the list opens in the menu pane (`.mir-pick`, a `.glass[data-mir-surface="menu"]` on the body), never the platform's popup; keys: arrows, Home, End, Enter, typeahead (700 ms), Escape; items are `{ id, label, vars?, coming? }` |
-| `number({ label, aria, min, max, value, step, digits, fmt, parse, unit, chars, range, drag, onInput, onChange, cls })` → `{ root, face, input, get, set(x), setDisabled(on), open(), close(take), editing, destroy() }` · `bindNumber({ button, input, model, parse, enabled, drag, click, paint, chars, step, range, signal })` → `{ open(), close(take), editing, destroy() }` | the tempo field's law for every typed number: drag (the whole range in 220 px, 320 under a finger, ⅛ on any modifier or a second finger, on a virtual point), click or Enter opens the field, Enter or leaving takes it, Escape does not; ↑ → ↓ ← one step, Shift an eighth, Page ten, Home / End the ends, Delete home |
+| `stepper({ label, aria, items, value, onChange(id, dir), wrap, list, pager, count, compact, cls })` → `{ root, prev, next, name, get, set(id), setItems(items, id), step(d), open(), close(), destroy() }` | `‹ NAME ›`: two round 44 px buttons around a live name; a tap on the name opens the full list in the menu pane (`list: false` makes it a label); `pager: true` is the page turner (`count: true` adds `n / N`); `compact: true` (alpha.14) leaves the arrows out of the DOM (the name opens the list, ← → still step); an item with `coming` is listed and never chosen; the arrows mirror under `dir="rtl"`. Buttons are `.mir-step-b[data-step]`, the name `.mir-step-name` |
+| `select({ label, aria, items, value, onChange, placeholder, cls, disabled, host })` → `{ root, button, get, set(id), setItems(list, id), open(), close(), isOpen, setDisabled(on), destroy() }` · `listPane({ anchor, items, value, onPick, onClose, label, cls, signal, host })` → `{ root, close(), items }` | the kit's own choose-one, for a long list of data: the list opens in the menu pane (`.mir-pick`, a `.glass[data-mir-surface="menu"]` on the body, or in `host`: alpha.14, a popup's own node, its containing-block offset corrected), never the platform's popup; keys: arrows, Home, End, Enter, typeahead (700 ms), Escape; items are `{ id, label, vars?, coming? }` |
+| `number({ label, aria, min, max, value, step, digits, fmt, editFmt, parse, unit, chars, range, drag, onInput, onChange, cls })` → `{ root, face, input, get, set(x), setDisabled(on), open(), close(take), editing, destroy() }` · `bindNumber({ button, input, model, parse, editFmt, enabled, drag, click, paint, chars, step, range, signal })` → `{ open(), close(take), editing, destroy() }` | the tempo field's law for every typed number (alpha.14: the field opens on `editFmt(v)`, default `String(v)`; with `parse` its inverse a value is typed in the unit shown): drag (the whole range in 220 px, 320 under a finger, ⅛ on any modifier or a second finger, on a virtual point), click or Enter opens the field, Enter or leaving takes it, Escape does not; ↑ → ↓ ← one step, Shift an eighth, Page ten, Home / End the ends, Delete home |
 | `numberTravel(start, p, opts)`, `parseNumber(text)`, `digitsOf(step)`, `NUMBER` | the pure parts |
 | `rangeSlider({ label, aria, min, max, lo, hi, step, log, fmt, minGap, onInput(lo, hi), onChange(lo, hi), cls, loLabel, hiLabel })` → `{ root, lo, hi, get() → [lo, hi], set(lo, hi), setDisabled(on), destroy() }` | one track, two thumbs that never cross; each thumb (`.rng-t`) is a modulation target; a press goes to the nearest thumb |
 | `xyPad({ label, aria, x, y, home, tags, onInput(x, y), onChange(x, y), cls })` → `{ root, pad, x, y, get() → [x, y], set(x, y), setDisabled(on), paint(), destroy() }` | one square for the hand and the two knobs that stay the modulation targets (`x`, `y` are the knobs' options and then the widgets); a press brings the dot to the pointer; Home or a double-tap goes to `home` |
-| `control(descriptor)` → `{ kind, root, widget, targets, get(), set(v), desc, params() }` · `controlKind(descriptor)` · `KINDS` | the kind of value chooses the control: switch · swatch · xy · range · segment (1 to 4 options, every label under 26 characters) · stepper (5 or more, in order) · select (a long list, over 16) · arc · lane · knob · number; `params()` is the record `installModulation({ params })` takes |
+| `control(descriptor)` → `{ kind, root, widget, targets, get(), set(v), desc, params() }` · `controlKind(descriptor)` · `KINDS` | (alpha.14: `home` reaches a knob's and a range's thumbs' double-tap too, `home: [lo, hi]` for a range) the kind of value chooses the control: switch · swatch · xy · range · segment (1 to 4 options, every label under 26 characters) · stepper (5 or more, in order) · select (a long list, over 16) · arc · lane · knob · number; `params()` is the record `installModulation({ params })` takes |
 
 ### The colour family: `arc.js`, `swatch.js`, `lane.js`, `list.js`, `gesture.js`
 
@@ -851,7 +860,7 @@ The kit prescribes one control per kind of value. Every control below is re-expo
 | `rgbToHsv(rgb)`, `hsvToRgb(h, s, v)`, `rgbCss(rgb)`, `SWATCH` | pure helpers (`rgb` is `[r, g, b]` in 0..1, `h` in turns); `SWATCH = { ARM: 8, TRAVEL: 220 }` |
 | `laneSlider({ home, value, orient: 'h' \| 'v', ink, …fader() options })` → the kit fader plus `{ home, orient }` · `laneInk(node, css)` | a pill in the lane's ink with a glowing thumb; one hand law for both orientations; a modulation target natively; `laneInk` writes `--lane-ink` (`null` clears it) |
 | `chipStrip({ id, title, chips, onChip, onGrip, onKey, glyphSize, flow, material })` → `{ el, grip, chip(name), setChip(name, state), state(name), setDisabled(name, on), destroy() }` | a static strip of the rail's `.mir-chip` discs; the rail's chip specs plus `confirm: { text, ms, label }` (an armed-to-fire chip) |
-| `sortableList({ items, build, onMove, onRemove, onAdd, cap, min, noun, addLabel, side, armMs, material })` → `{ root, rows, add(), items(), setItems(items), rebuild(), move(id, to), remove(id), nodeOf(id), stripOf(id), count(), destroy() }` · `ARM_MS` (2600) | a stack of island panes with a grip over an armed × beside each, and a + ADD pill that dims at `cap`; reordered by drag or arrows |
+| `sortableList({ items, build, onMove, onRemove, onAdd, cap, min, noun, addLabel, side, armMs, material, axis })` → `{ root, rows, add(), items(), setItems(items), rebuild(), move(id, to), remove(id), nodeOf(id), stripOf(id), count(), destroy() }` · `ARM_MS` (2600) | a stack of island panes with a grip over an armed × beside each, and a + ADD pill that dims at `cap`; reordered by drag or arrows. `axis: 'x'` (alpha.14): strips side by side in one island pane, the chips under each, the drag along x, ← → (mirrored under rtl) |
 | `fineHeld`, `fineGain`, `wireTouches` (re-exports of `kit.js`), `tapHome(onHome)`, `forward(root, ev)`, `lawNow()`, `TAP`, `clamp01`, `frac` | the pieces the colour hands share |
 
 ### `mir/kit.js` additions
@@ -860,6 +869,7 @@ The kit prescribes one control per kind of value. Every control below is re-expo
 |---|---|
 | `knob.setState('warn' \| 'clamped', reason)`, `knob.dragging()` | `warn` draws a 1 px `--warn` ring and the value in `--warn`; `clamped` adds the needle in `--warn`; the reason is the hover hint and `aria-description` |
 | `sw({ lamp: false })` | ON is the frost face with the label in accent A, as a trigger's (no lamp) |
+| `sw({ glyph, glyphSize = 24 })` (alpha.14) | the glyph is the state (power, an eye, invert): `.sw.sw-glyph`, a 44 px round target with no face, no lamp and no word (the label is the accessible name); the owner shows ON in the glyph |
 | `verticalDrag(down, { travel, fine, touchTravel, axis })` → `{ id, touch, move(e), gear, p }` | the knob law as an accumulator (up is +, `axis: 'sum'` also adds Δx) |
 | `fineHeld(event, pointerId)`, `gearOf(event, pointerId, fine?)`, `watchTouches()`, `otherTouch(id)` | the fine gear's one decision (Shift, Alt, Ctrl, Meta or a second finger) and its gain (1, or 1 / the law's ⅛) |
 | `knob({ dragAxis: 'sum' })` | keeps 1.4's up-and-right drag (the default is vertical) |
@@ -897,6 +907,90 @@ The kit prescribes one control per kind of value. Every control below is re-expo
 - `createOpener({ covers, mainCount, session | resume, logo, label, notice, warn = 'once' | 'every' | false, search, webdriver, direct, columns, onPick, host, light, doc })` → `{ start() → Promise<id>, root, destroy() }` · `arrowTarget(count, at, key, columns)` · `nearestSlot(slots, x, y)` · `pointerPose(box, x, y)` · `footParts(foot)` · `applyChoice(session, id)` (`mir/shell/opener.js`). A cover is `{ id, name, art, video?, accent?, foot?, label? }`.
 - `photosensitivityNotice({ …, every, art, alt })` (`mir/shell/flash-guard.js`): `every: true` is BASINS' every cold start (it never reads or writes the seen flag); `art` and `alt` put the app's picture above the words.
 - `createNotebook({ …, aboutSize: { w, h }, aboutRise, landing })` and `notebook.project` → `{ capture(name), restore(saved, name) → bool, signature(), part() }`, or `null` when the notebook has `pages`.
+
+## `mir/panels/`: the kit's rack windows ([PANELS.md](PANELS.md), 1.5.0-alpha.14)
+
+Every panel is a rack card built only from the control language, named by a small port; its continuous controls are modulation targets under its own root (`createApp({ modRoots })`), its values a project part and one history domain. `mir/panels/index.js` re-exports the builders (`kit.js` cannot: the panels import it): `createCameraPanel`, `createCameraView`, `createCssPort`, `directionSphere`, `createGradePanel`, `createGradeView`, `createGradeModel`, `createCurvesPanel`, `createCurvesView`, `createCurvesModel`, `curveEditor`, `pictureFilter`, `createXYPanel`, `morph` (the module), `createLanesPanel`, `createLanesView`, `createRampPanel`, `createRampView`, `rampLUT`.
+
+### `panels/camera.js`: the CAMERA panel ([PANEL-CAMERA.md](PANEL-CAMERA.md))
+```
+createCameraPanel({ rack, id = 'camera', title = 'CAMERA', side = 'right', open, glyph = 'cameraOrbit', hint, mode, port | canvas, mod, history,
+                    project, part = 'camera', modPrefix = 'camera', modIds, hand, spec }) → { id, port, view(), params(), sync(), destroy() }
+    a rack card (rack.register); the view is built on first open. `port` or `canvas` is required; `canvas` alone is the zero-engine camera.
+createCameraView(parent, options) → { root, port, mode, ids, controls, params(), targets(), sync(), northPress(), home(), schedule(), sphere, pad, north, homeBtn, verbs, memo(), destroy() }
+    the rows anywhere. options as above, plus `status(text)` (the rack's setStatus), `cls`.
+createCssPort(canvas, { mode = '2d' | '3d', values }) → a port that drives a CSS transform on `canvas` (coalesced, one write per frame); `.destroy()` clears it.
+directionSphere({ label, aria, yaw, pitch, unit, roll, turn(dyawRad, dpitchRad), home(), onChange() }) → { root, svg, yaw, pitch, paint(), setDisabled(on), destroy() }
+port = { get(id), set(id, v), subscribe(fn) → off, has?, angle?: 'deg' | 'rad', ranges?, modIds?, verbs?: [{ label, title?, run }], home?, north?, northMemo?, turn? }
+```
+**`panels/camera-rig.js`** (the maths, no DOM): `CAMERA` · `CAMERA_DEFAULTS` · `turn` · `wrapDegrees` · `createCameraRig` · `setCameraValue` · `cameraPose` (BASINS' rig, unchanged) · `NORTH_EPS` · `NORTH_EPS_DEG` · `signed` · `atNorth` · `northStep(angle, memo)` → `{ to, memo }` · `fmtDeg` · `fmtScale` · `fmtPan` · `VOCAB` · `IDS` · `HAND_IDS` · `ANGLE_UNIT` · `has(port, id)` · `present(port)` · `describe(id, port)` · `SPHERE` · `lookDir(yaw, pitch)` · `anglesOf(dir)` · `project(p)` · `sphereDrag(yaw, pitch, dsx, dsy)` → `[dyaw, dpitch]` · `transform2d(rig, { w, zoom, flip })` · `transform3d({ yaw, pitch, roll, zoom, fov, h, free })`.
+
+### `panels/grade.js`: the GRADE panel ([PANEL-GRADE.md](PANEL-GRADE.md))
+```
+createGradePanel({ rack | parent, id = 'grade', title = 'GRADE', side = 'right', open, glyph = 'grade', hint, key, eager, port | canvas, mod, history,
+                   project, part = id, modPrefix = part, modIds, ranges, rows, hide, levelsGap = 0.02, spec }) → { id, model, view(), params(), values(), sync(), destroy() }
+    a rack card; the model (values, filter, project part, history domain) is made at once, the view on first open. `port` or `canvas` is required.
+createGradeView(parent, options) → { root, model, filter, port, controls, invert, values(), get(id), set(id, v), home(), params(), sync(), schedule(), onChange(fn), destroy() }
+createGradeModel(options) → { port, filter, read(id), put(id, v), write(id, v), base(id), routed(id), modId(id), values(), restore(values), home(), onChange(fn), destroy() }
+port = { set(id, v), get?(id), subscribe?(fn) → off, ranges?, rows?: [descriptor], hide?: [id], modIds? }
+GRADE_VOCAB · GRADE_IDS · CONTINUOUS · blendItems(modes) · gradeTargetId(prefix, id) · describeGrade(id, ranges)
+```
+
+### `panels/curves.js`: the CURVES panel ([PANEL-CURVES.md](PANEL-CURVES.md))
+```
+createCurvesPanel({ rack | parent, id = 'curves', title = 'CURVES', side, open, glyph = 'curves', hint, key, eager, channels = ['MASTER', 'R', 'G', 'B'], port | canvas,
+                    mod, history, project, part = id, modPrefix, histogram, channelLabel, label, spec }) → { id, model, view(), params(), sync(), setHistogram(data), destroy() }
+createCurvesView(parent, options) → { root, model, editor, channel, preset, amount, reset, sync(), schedule(), params(), setHistogram(data), destroy() }
+createCurvesModel(options) → { channels, points(ch), set(ch, points, live), amount(), setAmount(v), channel(), setChannel(ch), preset(ch, name), reset(ch), table(ch),
+                               serialize(), restore(s), onChange(fn), destroy() }
+curveEditor({ get, set(points, live), label, hint, histogram }) → { root, svg, paint(), schedule(), select(i), selected(), dragging(), setHistogram(bins), setDisabled(on), destroy() }
+port = { setTable(channel, Float32Array(256)) }      histogram = bins | { MASTER, R, G, B } | (channel) → bins
+IDENTITY · PRESETS · PRESET_NAMES · PRESET_HINT · isIdentity · presetOf · curveTable(points, amount = 1, n = 256) · pathOf(points, w, h, n) · histPath(bins, w, h)
+```
+
+### `panels/picture-filter.js`: the zero-engine grade
+```
+pictureFilter(element) → { el, id, setGrade(partial), setTable(channel, table | null), grade(), tables(), describe(), flush(), release() }   one per element, shared, counted
+GRADE_HOME · BLEND_MODES · TABLE_N · toneAt(x, grade) · toneTable(grade, n) · colourMatrix(saturation, hueDeg) · isNeutralTone · isNeutralMatrix · lookup(table, x) · composeTables(grade, tables, n)
+```
+
+### `panels/xy.js`: the XY panel ([PANEL-XY.md](PANEL-XY.md))
+```
+createXYPanel({ rack | parent, mod, pairs, morph, subscribe, history, project, part, id = 'xy', title = 'XY', side = 'right', open, glyph = 'xy', hint, key,
+                modPrefix = id, spec }) → { id, part, spec, root, macros: { x, y }, targets: { route: [x, y], morph: [x, y] },
+    mode(), setMode(m), modes(), pair(), setPair(i), sets(), set(), setSet(id), route() → { x, y, hand }, morph() → { set, engaged, x, y, bank },
+    store(slot?), recall(slot), storeOnCorner(c), assign(c, slot), engage(on), capture(), restore(s), sync(), params(), view(), destroy() }
+    pairs   [{ label, x, y }]: x, y a modulation id or a record { id, label, min, max, map, step, def, get, set, widget }
+    morph   [{ id, label, params: [id | record] | () => […] }]; absent: every root of mod.params() but the panel's own
+    the install's roots must name modPrefix (installModulation({ roots: ['xy', …] }), or createApp({ modRoots: ['xy'] }))
+MODES · TRAIL · HOLD_MS · resolveRef(ref, list) · morphSets(params, ownPrefix) → [{ id, label, params }] · readXY(raw)
+```
+**`panels/morph.js`** (SNAPSHOTS and the MORPH, AUTOMATA's `lab/morph.js`): `BANK_MAX` · `NAME_MAX` · `LINEAR` · `LOG` · `STEP` · `CORNERS` · `FADE0` · `kindOf(p)` · `dialsOf(law | params)` · `fillCorners(has)` · `blend(kind, a, b, c, d, x, y)` · `createMorph(dials)` → `{ dials, out, mask, setCorners(snaps), step(xy) → moved, sync(xy), touch(), at(i, x, y) }` · `snapshot(dials, base, name, regime)` · `recallValues(dials, snap)` · `loadBank(raw)` · `saveBank(bank)` · `morphPart({ bank, xy, fade, after })`.
+
+### `panels/lanes.js` and `panels/ramp.js`: the LANES panel and the RAMP editor ([PANEL-LANES.md](PANEL-LANES.md), [PANEL-RAMP.md](PANEL-RAMP.md))
+```
+createLanesPanel(options) → api                      the lanes as a rack card (`rack`) or in `parent`
+  lanes           the port: list() → [lane], get(id, key), set(id, key, v), add() → id | record | nothing, remove(id), move(id, to) (false refuses),
+                  subscribe(fn) → off; optional cap, min, commit(id, key), snapshot(), restore(s)
+  a lane          { id, label?, ink?, colour?: 'swatch' | 'hue' | 'chip', hue?, fill?, principal: { key, label, min, max, home, log, fmt, unit, hint },
+                    extras?: [{ key, label, min, max, home, wrap, log, fmt, unit, hint }], blend?: [{ id, label }] | [id], mute?, solo?, active? }
+  layout          'rows' (BASINS) | 'strips' (NEBULA, SOLEIL: sortableList({ axis: 'x' }))     noun, cap, min, fixed, fold ('auto' | true | false), side, addLabel, armMs
+  mod             installModulation's result: every principal, extra and hue is a target <idRoot>.<lane>.<key>, one mod.add([…]) per lane   idRoot ('lanes')   targetId(id, key)
+  project         false: no part; else the card's id is the part's name                    history   a createHistory() handle: one domain, named for the card
+  rack card       id ('lanes'), title, side, open, glyph, hint, key, eager     or parent: a node
+  → { id, view, root, refresh(), ids(), solo(id), peek(id, on), soloOf(), params(), snapshot(), restore(s), part(), destroy() }
+createLanesView(parent, options) → { root, view (the sortableList), layout, refresh(), request(), ids(), lane(id), laneRoot(id), params(), targetId,
+                    solo(id), peek(id, on), soloOf(), peeking(), present(on), destroy() }
+laneTargetId(root, laneId, key) · hueCss(v, min, max) · createSolo({ ids, get, set }) → { toggle(id), peek(id, on), latched(), peeking(), forget(), clear() }
+laneKeys(lane) · snapshotLanes(port) · restoreLanes(port, snap) · HOLD_MS (250)
+
+createRampPanel(options) → api                       the ramp editor as a rack card or in `parent`
+  ramp            the port: get() → { stops: [{ at, rgb }], preset? }, set(stops, { preset, live }), lut?(Float32Array, n), subscribe?(fn) → off
+  cyclic (true), labels { ticks, seam, seamOk, seamWarn, at, fmt, note }, n (256), cap (16), min (2), presets (PRESETS), ring, seamTol (.06), project, history, id ('ramp') …
+  → { id, view, root, stops(), toLUT(n), snapshot(), restore(s), part(), destroy() }
+createRampView(parent, options) → { root, strip, stops(), selected(), toLUT(n), load(stops, id), preset(id), presetId(), seam(), handle(i), refresh(), part(), destroy() }
+rampLUT(stops, n = 256, cyclic = true, out) · rampGradient(lut, n, dir) · rampConic(lut, n) · normalizeStops · addStop · removeStop · rotateStops · reverseStops · seamOf · OFF_STRIP
+```
 
 ## Developer tools added (1.5.0-alpha.13)
 

@@ -9,7 +9,7 @@
  * those seams with their differences as options.
  *   installModulation({ mount, params, … }) → { host, view, registry, M, open, close, toggle, isOpen,
  *     power, setPower, togglePower, onPower (arm, armed, onArm: the same, 1.4 names), play, togglePlay, playing, onPlay,
- *     add, remove, route, params, isModulated, baseOf, currentOf, hand, running, bpm, syncBases, paintWidgets, persist,
+ *     add, remove, route, own, owned, apply, params, isModulated, baseOf, currentOf, hand, running, bpm, syncBases, paintWidgets, persist,
  *     setTimeline, timeline, setAutomationGrid, automationGrid, dispose }
  *   And three doors on the module (1.5.0-alpha.12), reaching the install made last: setAutomationGrid(value),
  *   automationGrid(), upsertProjectPreset(name, rack?).
@@ -253,6 +253,9 @@ export function installModulation(o) {
     return r;
   }
   const playWatchers = new Set(), tickWatchers = new Set();
+  /* MACROS OWNED BY A PANEL (1.5.0-alpha.14, the XY panel's ROUTE): a macro a panel drives by hand; no free-macro finder takes it */
+  const owners = new Map();
+  const owned = (id) => owners.has(String(id));
 
   const applyNow = () => { host.clock.applyAll(false); persistSoon(); if (present) present(); requestLoop(); paintSoon(); };
   const port = {
@@ -278,6 +281,7 @@ export function installModulation(o) {
     opened: () => { host.clock.setPresentationActive(true); if (onWindow) onWindow(true); requestLoop(); },
     closed: () => { host.clock.setPresentationActive(false); if (onWindow) onWindow(false); },
     persist: persistNow,
+    owned,
     presetKey: o.presetKey, copy: o.copy, dock: o.dock, targets: o.targets || ROUTABLE, routeGlow: o.routeGlow, toast: o.toast,
     audio: audioFactory ? {
       state: audioState, support: () => capture().support(),
@@ -295,17 +299,21 @@ export function installModulation(o) {
 
   /* ── targets that come and go, and the first route in one call (1.5.0-alpha.5) ── */
   /** add(param) — one more target after the install: { id, label, min, max, map, get(), set(v), widget }, as in
-   *  `params`.  An id already added is replaced (the registry keeps its base and its routes).  → remove() */
+   *  `params`.  An id already added is replaced (the registry keeps its base and its routes).  → remove()
+   *  add([param, …]) (1.5.0-alpha.14) adds a list and rebuilds the window once (a panel's first build adds a dozen).  → remove() of them all */
   function add(p) {
-    if (!p || typeof p.get !== 'function' || typeof p.set !== 'function') throw new TypeError('mod.add: a parameter needs an id, get() and set()');
-    const old = byId.get(p.id);
-    if (old) params[params.indexOf(old)] = p; else params.push(p);
-    byId.set(p.id, p);
-    host.targets.installOne(p.id, spec(p));                          // a dormant route onto it wakes now
-    wire(p);
-    if (p.widget && p.widget.root) p.widget.root.classList.toggle('mod-held', host.registry.isModulated(p.id));
+    const list = Array.isArray(p) ? p : [p];
+    for (const q of list) if (!q || typeof q.get !== 'function' || typeof q.set !== 'function') throw new TypeError('mod.add: a parameter needs an id, get() and set()');
+    for (const q of list) {
+      const old = byId.get(q.id);
+      if (old) params[params.indexOf(old)] = q; else params.push(q);
+      byId.set(q.id, q);
+      host.targets.installOne(q.id, spec(q));                        // a dormant route onto it wakes now
+      wire(q);
+      if (q.widget && q.widget.root) q.widget.root.classList.toggle('mod-held', host.registry.isModulated(q.id));
+    }
     host.clock.recomputeRunning(); if (view) view.rebuild(); paintSoon(); requestLoop();
-    return () => remove(p.id);
+    return Array.isArray(p) ? () => { for (const q of list) remove(q.id); } : () => remove(p.id);
   }
   /** remove(id) — the target and every route onto it go; its number is left on its base */
   function remove(id) {
@@ -330,7 +338,7 @@ export function installModulation(o) {
     if (!src) return null;
     let macro = M.macroList().find((m) => m.sourceId === src.id), bound = false;
     if (!macro) {
-      macro = M.macroList().find((m) => !m.sourceId && m.kind !== 'trigger' && !M.routeCountOfMacro(m.id)) || M.addMacro(null);
+      macro = M.macroList().find((m) => !m.sourceId && m.kind !== 'trigger' && !owned(m.id) && !M.routeCountOfMacro(m.id)) || M.addMacro(null);
       if (!macro || !M.setMacro(macro.id, { sourceId: src.id })) return null;
       bound = true;
     }
@@ -374,6 +382,11 @@ export function installModulation(o) {
     isModulated: (id) => host.registry.isModulated(id),
     baseOf: (id) => host.registry.baseOf(id),
     currentOf: (id) => host.registry.state(id).current,
+    /** own(macroId, owner) — a panel drives this macro by hand (XY ROUTE): route() and the window's source cycle pass it by.  → off
+     *  owned(macroId) → the owner or null.  apply() — re-apply every route now and paint once (after a panel moved a macro) */
+    own(macroId, owner) { owners.set(String(macroId), String(owner || 'panel')); return () => owners.delete(String(macroId)); },
+    owned: (macroId) => owners.get(String(macroId)) || null,
+    apply: applyNow,
     /** the hand law: a hand on a routed control writes the base and reports true; an unrouted one is the caller's */
     hand(id, value) {
       if (!host.registry.has(id) || !host.registry.isModulated(id)) return false;

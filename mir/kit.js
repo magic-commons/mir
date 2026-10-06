@@ -402,16 +402,23 @@ export function knob(o) {
     setBase, paint };
 }
 
-/** sw({ label, value, onChange, lamp, title, cls }) — a boolean that stays on.  It wears the LAMP (Josh: "I like the little light switches
- *  when things are on"); `lamp: false` is for the listed cases where the lamp is wrong (docs/CONTROLS.md): the label is then ON's light, as a
- *  trigger's is (accent, no glow).  A momentary action is `trig`, never a lamp; a window opener is `latch()`; a glyph that is itself the state
- *  (power, an eye, play/pause, invert) is a chrome button, not a switch. */
+/** sw({ label, value, onChange, lamp, glyph, glyphSize, title, cls }) — a boolean that stays on.  It wears the LAMP (Josh: "I like the
+ *  little light switches when things are on"); `lamp: false` is for the listed cases where the lamp is wrong (docs/CONTROLS.md): the label is
+ *  then ON's light, as a trigger's is (accent, no glow).  `glyph: name` is the case where the glyph is the state (power, an eye, invert): a
+ *  44 px round target with no face and no word (the label is its accessible name), `.sw-glyph` in controls.css; the owner says how the
+ *  glyph shows ON (GRADE's INVERT turns it over).  A momentary action is `trig`, never a lamp; a window opener is `latch()`. */
 export function sw(o) {
-  const b = el('button', 'sw' + (o.lamp === false ? ' sw-nolamp' : '') + (o.cls ? ' ' + o.cls : ''));
+  const b = el('button', 'sw' + (o.glyph ? ' sw-glyph' : o.lamp === false ? ' sw-nolamp' : '') + (o.cls ? ' ' + o.cls : ''));
   b.type = 'button';
   if (o.title) hint(b, o.title);
-  if (o.lamp !== false) el('i', 'sw-led', b);
-  label(el('span', 'sw-lbl', b), o.label);
+  if (o.glyph) {                                     // the glyph is the state (power, an eye, invert): no lamp, no word, no ON face (docs/CONTROLS.md)
+    const g = glyphEl(o.glyph, 'gly gly-' + o.glyph, o.glyphSize || 24);
+    if (g) b.append(g);
+    ariaLabel(b, o.label);
+  } else {
+    if (o.lamp !== false) el('i', 'sw-led', b);
+    label(el('span', 'sw-lbl', b), o.label);
+  }
   let v = !!o.value;
   const paint = () => { b.classList.toggle('on', v); b.setAttribute('aria-pressed', String(v)); };
   b.addEventListener('click', () => { v = !v; paint(); if (o.onChange) o.onChange(v); });

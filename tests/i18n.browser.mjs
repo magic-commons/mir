@@ -119,10 +119,13 @@ try {
   check('qps-rtl: a readout keeps its Latin digits in an LTR island', await ev(`getComputedStyle(document.querySelector('.ro-val')).direction === 'ltr' && document.querySelector('.ro-val').textContent === '0.50 s'`));
   if (PLATES) { await openMenu('LANGUAGE'); await p.shot(PLATES + 'qps-rtl.png'); await ev('__LANG.menubar.close()'); }
 
-  /* ── a real pack with nothing translated yet: everything falls back, and the page counts it ── */
+  /* ── a real draft pack: the strings it lacks fall back to English, and the page counts them.  (1.5.0-alpha.14: the packs are
+     complete for the catalogue, so what es lacks here is the page's own words; the count is checked against the pack itself,
+     not a fixed number: it was `n > 20`, which a new catalogue key that the page also shows, WINDOW, took to 20.) ── */
   await press('es');
   const n = await ev('__LANG.missing().length');
-  check('es (a draft pack): the strings it lacks fall back to English and are counted', n > 20 && (await ev(`document.querySelector('.g-count').textContent.startsWith('${n} ')`)), String(n));
+  const lacks = await ev(`(async () => { const s = (await (await fetch('../mir/locales/es.json')).json()).strings; return __LANG.missing().every((k) => !(k in s)); })()`);
+  check('es (a draft pack): the strings it lacks fall back to English and are counted', n > 0 && lacks && (await ev(`document.querySelector('.g-count').textContent.startsWith('${n} ')`)), String(n));
   check('es: the page is <html lang="es" dir="ltr">', await ev(`document.documentElement.lang === 'es' && document.documentElement.dir === 'ltr'`));
   await press('en');
 

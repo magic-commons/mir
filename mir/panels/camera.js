@@ -233,7 +233,6 @@ export function createCameraView(parent, o = {}) {
       : d.kind === 'options' ? control({ id: modId(id), label: d.label, options: d.options.map((x) => ({ id: x.id, label: x.label, hint: x.hint })), value: String(port.get(id)), get: () => String(port.get(id)), set: (v) => write(id, v) })
       : d.kind === 'angle' && !d.wrap ? boundedArc(id, d)
       : control(desc(id, extra));
-    if (c.widget && c.widget.setDefault && d.kind === 'knob') c.widget.setDefault(d.home);       // a double-tap goes HOME, not to the value the knob was built with
     return add(parentEl, [id], c, () => (d.kind === 'switch' ? !!port.get(id) : d.kind === 'options' ? String(port.get(id)) : port.get(id)));
   };
 
@@ -369,7 +368,7 @@ export function createCameraView(parent, o = {}) {
 
   /* ── modulation: the targets, added now ── */
   const offMod = [];
-  if (mod && typeof mod.add === 'function') for (const t of targets) offMod.push(mod.add(t));
+  if (mod && typeof mod.add === 'function' && targets.length) offMod.push(mod.add(targets));   // one rebuild of the modulation window (mod.add takes a list)
   const params = () => targets.slice();
 
   /* ── the project and the history ── */

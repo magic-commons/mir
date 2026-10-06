@@ -33,6 +33,8 @@
 @import url("shell/gui.css");
 @import url("controls/controls.css");
 @import url("controls/colour-controls.css");
+@import url("panels/lanes.css");
+@import url("panels/ramp.css");
 @import url("fx/fx.css");
 @import url("shell/opener.css");
 @import url("keyboard/keyboard.css");
@@ -45,3 +47,7 @@
 @import url("timeline/timeline.css");
 @import url("pattern/pattern.css");
 @import url("render/render.css");
+@import url("panels/camera.css");
+@import url("panels/xy.css");
+@import url("panels/grade.css");
+@import url("panels/curves.css");

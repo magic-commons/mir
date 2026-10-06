@@ -108,6 +108,9 @@ export function makeParam({ state, key, label = String(key).toUpperCase(), min =
  *   banner, sceneGuard, wakeLock — each `false` to leave it out, or an object of extra options for its constructor.
  *   pattern        the PATTERN window (mir/pattern/window.js) with the modulation: PATT on every ENV face, WINDOW › PATTERN
  *   factory        the app's bundled starter presets, handed to installModulation (`{ presets, folder, apply }` or a list)
+ *   modRoots       more modulation id roots beside 'app' (1.5.0-alpha.14): a kit panel's targets sit under its own root
+ *                  (`camera`, `grade`, `curves`, `lanes`, `xy` by default), so `modRoots: ['grade', 'curves']` lets
+ *                  `createGradePanel({ mod: app.mod })` route with no other line; `mod: { roots }` still wins
  *   timeline       off by default; true or installTimeline's options: the TIMELINE (mir/timeline/bind.js) on the
  *                  modulation's clock, and with it the lego stack (window/workspaces.js): MODULATION seats over TIMELINE
  *                  when both are open, and the MIR switch in the modulation preset bar swaps the two
@@ -195,6 +198,7 @@ export async function createApp(o = {}) {
   if (want('mod')) mod = modBind.installModulation({ mount: floats, params: [], present, storageKey: key + '.modulation', presetKey: key + '.modpresets', moved: modMoved,
     ...(gui && typeof gui.sampling === 'function' ? { automationGrid: gui.sampling().grid } : {}),   // GUI › SAMPLING · AUTOMATION, saved
     ...(o.factory ? { factory: o.factory } : {}),
+    ...(Array.isArray(o.modRoots) && o.modRoots.length ? { roots: [...new Set(['app', ...o.modRoots.map(String)])] } : {}),
     ...(o.timeline ? { switchWorkspace: () => ws && ws.show('lower'), onWindow: () => { if (ws) ws.sync(); present(); } } : {}),
     ...opt(o.mod) });
   /* 5b. THE PATTERN (the ENVs' step sequencer) with the modulation; 5c. THE TIMELINE when the app asks for one */

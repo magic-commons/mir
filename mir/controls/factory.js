@@ -82,7 +82,7 @@ export function control(d, hooks = {}) {
     case 'select': widget = select({ ...common, items: itemsOf(d), value: read(), onChange: change }); getter = () => widget.get(); setter = (v) => widget.set(v); break;
     case 'arc': widget = arcKnob({ ...knobOpts(), ink: d.ink, home: d.home }); targets = [widget]; getter = () => widget.get(); setter = (v) => widget.set(v); break;
     case 'lane': widget = laneSlider({ ...common, min: d.min, max: d.max, value: read(), log: d.log, fmt: d.fmt, ink: d.ink, orient: d.orient, home: d.home, onInput: input, onChange: change }); targets = [widget]; getter = () => widget.get(); setter = (v) => widget.set(v); break;
-    case 'knob': widget = knob(knobOpts()); targets = [widget]; getter = () => widget.get(); setter = (v) => widget.set(v); break;
+    case 'knob': widget = knob(knobOpts()); if (Number.isFinite(d.home)) widget.setDefault(d.home); targets = [widget]; getter = () => widget.get(); setter = (v) => widget.set(v); break;   // a double-tap goes HOME
     case 'xy': {
       const [ax, ay] = d.pair;
       const axis = (a, f) => ({ label: a.label, min: a.min, max: a.max, value: typeof a.get === 'function' ? a.get() : a.value, step: a.step, log: a.log, unit: a.unit, fmt: a.fmt, title: a.hint });
@@ -98,6 +98,7 @@ export function control(d, hooks = {}) {
       widget = rangeSlider({ label: d.label, aria: d.aria, title: d.hint, min: d.min, max: d.max, lo: v0[0], hi: v0[1], step: d.step, log: d.log, fmt: d.fmt, minGap: d.minGap,
         onInput: (lo, hi) => { both(lo, hi); if (d.onInput) d.onInput([lo, hi]); if (hooks.onInput) hooks.onInput([lo, hi]); },
         onChange: (lo, hi) => { both(lo, hi); if (d.onChange) d.onChange([lo, hi]); if (hooks.onChange) hooks.onChange([lo, hi]); } });
+      if (Array.isArray(d.home)) { widget.lo.setDefault(d.home[0]); widget.hi.setDefault(d.home[1]); }
       targets = [widget.lo, widget.hi]; getter = () => widget.get(); setter = (v) => widget.set(v[0], v[1]); break;
     }
     default: widget = number({ ...common, min: d.min, max: d.max, value: read(), step: d.step, digits: d.digits, fmt: d.fmt, unit: d.unit, onInput: input, onChange: change }); getter = () => widget.get(); setter = (v) => widget.set(v);

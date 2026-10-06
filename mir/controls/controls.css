@@ -28,6 +28,19 @@
 /* ── a switch without a lamp: its label is ON's light, as a trigger's is ── */
 .sw.sw-nolamp.on { color: var(--acc); }
 
+/* ── a switch whose glyph is the state (sw({ glyph }): power, an eye, invert; BASINS colour.css:96–102): a 44 px round target with no
+   face, no lamp and no ON face (the owner shows ON in the glyph); the glyph is ink, a lighter ink on hover; focus is the accent ring ── */
+.sw.sw-glyph {
+  --sw-glyph: 44px;                                  /* the round target */
+  --sw-glyph-size: 24px;                             /* its glyph */
+  --sw-glyph-shadow: 0 0 0 0 transparent;            /* no face, so no relief (BASINS: box-shadow none) */
+}
+.sw.sw-glyph, .sw.sw-glyph.on { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 var(--sw-glyph); width: var(--sw-glyph); height: var(--sw-glyph); min-height: var(--sw-glyph);
+  padding: 0; border: 0; border-radius: 50%; background: transparent; box-shadow: var(--sw-glyph-shadow); color: var(--ink-key); }
+.sw.sw-glyph svg { display: block; width: var(--sw-glyph-size); height: var(--sw-glyph-size); }
+.sw.sw-glyph:hover { color: var(--fg); }
+.sw.sw-glyph:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: -3px; }
+
 /* ── the stepper: ‹ NAME › (and the page turner) ── */
 .mir-step { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
 .mir-step-row { display: inline-flex; align-items: center; gap: var(--sp-1); }

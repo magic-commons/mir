@@ -16,12 +16,14 @@
  *       it (its ink becomes `text` in the warning colour for `ms`), the second within `ms` calls onChip.  onChip(name,
  *       next, spec) as the rail's; onGrip(pointerdown) when the grip is pressed (the owner decides what a drag means: the
  *       strip never moves anything: wire core/pointer.js drag() to `strip.grip`); onKey(name, keydown) on a chip.
- *   sortableList({ items, build, onMove, onRemove, onAdd, cap, min, noun, addLabel, side, armMs, material })
+ *   sortableList({ items, build, onMove, onRemove, onAdd, cap, min, noun, addLabel, side, armMs, material, axis })
  *       → { root, rows, add, items(), setItems(items), rebuild(), move(id, to), remove(id), nodeOf(id), count(), destroy() }
  *       items: [{ id, …the app's }].  build(item, index) → the pane's content: a node, or { el, destroy() }.
  *       onMove(id, to) → false refuses (the list goes back); onRemove(id) → false refuses; onAdd() → a new item (appended),
  *       or nothing when the app calls setItems itself.  cap: the most items (+ ADD dims there); min: the fewest (the × of the
  *       last is disabled; default 1); noun: the word in the hints ('colour').  side: 'auto' (the rack's) | 'left' | 'right'.
+ *       axis: 'y' (a stack of panes, the default) | 'x' (side by side, as strips: the items sit in one island pane, each with its
+ *       chips under it; the drag runs along x and ← → move an item, flipped under `direction: rtl`).
  *
  * THE KIT'S LAWS HERE.  The drag is core/pointer.js drag() (the pointer that began it owns it; pointercancel, lost capture,
  * Escape and a hidden page cancel it and the list goes back to the app's order); the row moves live under the hand, the drop
@@ -122,10 +124,13 @@ export function chipStrip({ id = 'strip', title, chips = [], onChip, onGrip, onK
 }
 
 /** sortableList(o) — see the header */
-export function sortableList({ items = [], build, onMove, onRemove, onAdd, cap = 8, min = 1, noun = 'item', addLabel = phrase('+ ADD'), side = 'auto', armMs = ARM_MS, material } = {}) {
+export function sortableList({ items = [], build, onMove, onRemove, onAdd, cap = 8, min = 1, noun = 'item', addLabel = phrase('+ ADD'), side = 'auto', armMs = ARM_MS, material, axis = 'y' } = {}) {
   const root = el('div', 'mir-list');
   root.dataset.side = side;
+  const X = axis === 'x';
+  if (X) root.dataset.axis = 'x';
   const rows = el('div', 'mir-list-rows', root);
+  if (X) rows.dataset.mirSurface = 'island';                    // strips share one pane; a stack's items are a pane each
   const addRow = el('div', 'mir-list-addrow', root);            // not an item: nothing that walks .mir-list-item sees it
   const add = trig({ label: addLabel, cls: 'mir-list-add', onFire: () => doAdd() });
   addRow.appendChild(add.root);
@@ -172,28 +177,29 @@ export function sortableList({ items = [], build, onMove, onRemove, onAdd, cap =
   /* THE DRAG.  The row under the hand follows it by transform and the rows it passes glide out of its way; nothing is moved in the
      DOM until the drop (an element that is re-parented mid-drag loses its pointer capture, and the drag with it: core/pointer.js
      would cancel it).  One read of the rows at the start, one transform write per row per frame; the drop commits once. */
+  const A = X ? { pos: 'left', size: 'width', t: 'translateX', d: 'dx', gap: 'columnGap' } : { pos: 'top', size: 'height', t: 'translateY', d: 'dy', gap: 'rowGap' };
   function wireGrip(strip, id, row) {
     let rs = null;                                               // { from, mids, step, to }
     const shift = (to) => {
       for (let k = 0; k < rs.rows.length; k++) {
         if (k === rs.from) continue;
         const down = rs.from < to && k > rs.from && k <= to, up = to < rs.from && k >= to && k < rs.from;
-        setVar(rs.rows[k], 'transform', down ? `translateY(${-rs.step}px)` : up ? `translateY(${rs.step}px)` : null);
+        setVar(rs.rows[k], 'transform', down ? `${A.t}(${-rs.step}px)` : up ? `${A.t}(${rs.step}px)` : null);
       }
     };
     const clear = () => { if (!rs) return; for (const r of rs.rows) setVar(r, 'transform', null); rows.classList.remove('sorting'); rs = null; };
     drag(strip.grip, {
       slop: 4,
       onStart() {
-        const all = [...rows.children], gap = parseFloat(getComputedStyle(rows).rowGap) || 0, boxes = all.map((r) => rect(r));
+        const all = [...rows.children], gap = parseFloat(getComputedStyle(rows)[A.gap]) || 0, boxes = all.map((r) => rect(r));
         const from = all.indexOf(row);
-        rs = { rows: all, from, to: from, mids: boxes.map((b) => b.top + b.height / 2), step: boxes[from].height + gap, mid0: boxes[from].top + boxes[from].height / 2 };
+        rs = { rows: all, from, to: from, mids: boxes.map((b) => b[A.pos] + b[A.size] / 2), step: boxes[from][A.size] + gap, mid0: boxes[from][A.pos] + boxes[from][A.size] / 2 };
         row.classList.add('dragging'); rows.classList.add('sorting');
       },
       onMove(s) {
         if (!rs) return;
-        setVar(row, 'transform', `translateY(${s.dy}px)`);
-        const centre = rs.mid0 + s.dy; let to = rs.from;
+        setVar(row, 'transform', `${A.t}(${s[A.d]}px)`);
+        const centre = rs.mid0 + s[A.d]; let to = rs.from;
         for (let k = 0; k < rs.from; k++) if (centre < rs.mids[k]) { to = k; break; }
         if (to === rs.from) for (let k = rs.rows.length - 1; k > rs.from; k--) if (centre > rs.mids[k]) { to = k; break; }
         if (to !== rs.to) { rs.to = to; shift(to); }
@@ -211,8 +217,9 @@ export function sortableList({ items = [], build, onMove, onRemove, onAdd, cap =
   function keyMove(id) {
     return (name, e) => {
       if (name !== 'grip') return;
-      const i = index(id);
-      const to = e.key === 'ArrowUp' ? i - 1 : e.key === 'ArrowDown' ? i + 1 : e.key === 'Home' ? 0 : e.key === 'End' ? list.length - 1 : null;
+      const i = index(id), rtl = X && getComputedStyle(root).direction === 'rtl';
+      const back = e.key === 'ArrowUp' || (X && e.key === (rtl ? 'ArrowRight' : 'ArrowLeft')), fwd = e.key === 'ArrowDown' || (X && e.key === (rtl ? 'ArrowLeft' : 'ArrowRight'));
+      const to = back ? i - 1 : fwd ? i + 1 : e.key === 'Home' ? 0 : e.key === 'End' ? list.length - 1 : null;
       if (to === null) return;
       e.preventDefault(); e.stopPropagation();
       if (move(id, to)) { const r = recs.get(id); if (r) r.strip.grip.focus(); }
@@ -227,7 +234,7 @@ export function sortableList({ items = [], build, onMove, onRemove, onAdd, cap =
         confirm: { text: phrase('sure?'), ms: armMs, label: [phrase('Remove {noun} {n} — tap again to confirm'), vars(n)] } }],
       onChip: (name) => { if (name === 'remove') remove(it.id); }, onKey: keyMove(it.id) });
     row.appendChild(strip.el);                                  // the DOM keeps the rail first (the grip is the first tab stop); only the grid moves it
-    const pane = el('div', 'mir-list-pane mir-lane', row); pane.dataset.mirSurface = 'island';
+    const pane = el('div', 'mir-list-pane mir-lane', row); if (!X) pane.dataset.mirSurface = 'island';
     const made = build ? build(it, i, pane) : null;
     const node = made && made.el ? made.el : made;
     if (node && node.nodeType === 1 && node.parentNode !== pane) pane.appendChild(node);

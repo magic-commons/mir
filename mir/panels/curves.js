@@ -334,7 +334,7 @@ export function createCurvesView(parent, o = {}) {
   const offModel = M.onChange((w) => { if (w && w.live) editor.schedule(); else schedule(); });
   const targets = amount.params().map((rec) => ({ ...rec, id: M.modId, label: 'CURVES AMOUNT', get: () => M.amount(), set: (v) => M.setAmount(v) }));
   const offMod = [];
-  if (mod && typeof mod.add === 'function') for (const t of targets) offMod.push(mod.add(t));
+  if (mod && typeof mod.add === 'function' && targets.length) offMod.push(mod.add(targets));   // one rebuild of the modulation window (mod.add takes a list)
   sync();
   return {
     root, model: M, editor, channel: chan, preset, amount, reset: resetBtn, sync, schedule, params: () => targets.slice(),

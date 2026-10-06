@@ -34,7 +34,6 @@
   --strip-chip-target: 28px;                                     /* the chip strip under a strip: smaller than a rack window's 44 */
   --strip-chip-disc: 22px;
   --strip-blend-size: var(--fs-micro);
-  --strip-drag-fade: .55;                                        /* the strip under the hand while it is dragged (the list's .55) */
   --strip-blend-track: 0;                                        /* a strip's blend name has 44 px: no tracking, an ellipsis, the list on a tap */
 }
 @media (pointer: coarse) { .mir-lanes { --lanes-state-w: 44px; --strip-chip-target: 36px; --strip-chip-disc: 28px; } }
@@ -103,13 +102,14 @@
 /* BASINS' arcs: a 22 px dial in a 30 px seat, room for the modulation window's RANGE dial when routed */
 .mir-lanes .k.k-arcknob.k-arc-sm { color: var(--lane-ink, var(--acc)); }
 
-/* ── STRIPS: NEBULA's AGE lane and SOLEIL's, side by side ────────────────────────────────────────────────── */
-.mir-lanes-strips { display: flex; flex-direction: column; gap: var(--lanes-gap); min-width: 0; }
-.mir-lanes-cols { display: flex; align-items: stretch; justify-content: space-between; gap: var(--strip-gap); padding: var(--strip-pad); border-radius: var(--r-md); min-width: 0; }
-.mir-lane-col { flex: 1 1 var(--strip-w); max-width: calc(var(--strip-w) * 1.6); min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: transform var(--motion-micro) var(--ease-out); }
-.mir-lane-col.dragging { position: relative; z-index: 2; transition: none; }
-.mir-lane-col.dragging > .mir-lane-body { opacity: var(--strip-drag-fade); }
-.mir-lanes-cols.settling > .mir-lane-col { transition: none; }
+/* ── STRIPS: NEBULA's AGE lane and SOLEIL's, side by side (the kit's sortableList with axis 'x': one island pane, a chip strip under each) ── */
+.mir-lanes[data-layout="strips"] > .mir-list { gap: var(--lanes-gap); }
+.mir-lanes[data-layout="strips"] .mir-list-rows { align-items: stretch; justify-content: space-between; gap: var(--strip-gap); padding: var(--strip-pad); border-radius: var(--r-md); min-width: 0; }
+.mir-lanes[data-layout="strips"] .mir-list-item { flex: 1 1 var(--strip-w); max-width: calc(var(--strip-w) * 1.6); min-width: 0; row-gap: 4px; }
+.mir-lanes[data-layout="strips"] .mir-list-pane { display: flex; flex-direction: column; align-items: center; min-width: 0; }
+/* fixed: the count is the app's; no grips, no ×, no + ADD */
+.mir-lanes[data-fixed] :is(.mir-list-item > .mir-chipstrip, .mir-list-addrow) { display: none; }
+.mir-lanes[data-fixed][data-layout="rows"] .mir-list-item { grid-template-columns: minmax(0, 1fr); }
 .mir-lanes[data-layout="strips"] .mir-lane-body { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; flex: 1 1 auto; }
 .mir-lanes[data-layout="strips"] :is(.mir-lane-head, .mir-lane-grid, .mir-lane-state) { display: contents; }
 .mir-lanes[data-layout="strips"] .mir-lane-colour { order: 1; }
@@ -120,13 +120,12 @@
 .mir-lanes[data-layout="strips"] .mir-lane-mute { order: 6; }
 .mir-lanes[data-layout="strips"] .mir-lane-solo { order: 7; }
 .mir-lanes[data-layout="strips"] .mir-lane-name { order: 8; flex: 0 0 auto; text-align: center; max-width: 100%; }
-/* a strip's blend is its name: the arrows are the list's work (a tap on the name opens it; ← → still step it from the keys) */
+/* a strip's blend is its name (stepper({ compact: true }): a tap on the name opens the list; ← → still step it from the keys) */
 .mir-lanes[data-layout="strips"] .mir-lane-blend { --step-b: 20px; }
-.mir-lanes[data-layout="strips"] .mir-lane-blend .mir-step-b { display: none; }
 .mir-lanes[data-layout="strips"] .mir-lane-blend .mir-step-name { min-height: var(--step-b); text-align: center; letter-spacing: var(--strip-blend-track); }
 .mir-lanes[data-layout="strips"] .mir-lane-body[data-muted] .mir-lane-principal { opacity: var(--lanes-dim); }
 .mir-lanes[data-layout="strips"] .mir-chipstrip { --chipstrip-target: var(--strip-chip-target); --chipstrip-disc: var(--strip-chip-disc); --chipstrip-gap: 0; }
 
-@media (prefers-reduced-motion: reduce) { .mir-lane-fold, .mir-lane-fold .gly, .mir-lane-col { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .mir-lane-fold, .mir-lane-fold .gly { transition: none; } }
 
 }   /* end @layer mir.kit.plugin.host */

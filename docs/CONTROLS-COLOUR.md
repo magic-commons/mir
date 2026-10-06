@@ -59,9 +59,9 @@ The rail's round discs (`.mir-chip`: the same faces, the same ladder of card sty
 
 ## The sortable list
 
-`sortableList({ items, build, onMove, onRemove, onAdd, cap = 8, min = 1, noun = 'item', addLabel = '+ ADD', side = 'auto', armMs, material })` → `{ root, rows, add(), items(), setItems(items), rebuild(), move(id, to), remove(id), nodeOf(id), stripOf(id), count(), destroy() }`.
+`sortableList({ items, build, onMove, onRemove, onAdd, cap = 8, min = 1, noun = 'item', addLabel = '+ ADD', side = 'auto', armMs, material, axis = 'y' })` → `{ root, rows, add(), items(), setItems(items), rebuild(), move(id, to), remove(id), nodeOf(id), stripOf(id), count(), destroy() }`.
 
-One pane per item (`data-mir-surface="island"`, so CARD STYLE and FROST paint it as a window's body card), a grip over an armed × on a chip strip beside it, and a centred `+ ADD` pill at the foot.
+One pane per item (`data-mir-surface="island"`, so CARD STYLE and FROST paint it as a window's body card), a grip over an armed × on a chip strip beside it, and a centred `+ ADD` pill at the foot. `axis: 'x'` (1.5.0-alpha.14) lays the items side by side as strips: one island pane holds them all, each item's chip strip sits under it whatever the rack's side, the drag runs along x and ← → move an item (flipped under `direction: rtl`; ↑ ↓ still work). The LANES panel's strips are this.
 
 | | |
 |---|---|

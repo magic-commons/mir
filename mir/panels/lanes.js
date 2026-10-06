@@ -26,7 +26,7 @@
  *   snapshot?() / restore?(s)   the project part and history rows; absent, the panel's own (the lanes by position, every key above)
  *
  * WHAT THE KIT KEEPS (and the app does not write again)
- *   · the list is controls/list.js `sortableList` (rows) or its horizontal twin below (strips): a dot grip, arrows, armed ×, + ADD that dims at the cap;
+ *   · the list is controls/list.js `sortableList` (rows down, strips across with `axis: 'x'`): a dot grip, arrows, armed ×, + ADD that dims at the cap;
  *   · every continuous control — the principal, every extra, the hue arc — is a MODULATION TARGET `lanes.<lane>.<key>` (`mod`, installModulation's result):
  *     added with the lane, removed with it, kept across a rebuild (a hot re-registration keeps the routes);
  *   · SOLO is SOLEIL's law: a click latches (everything else is muted; again, or another lane's, moves or lifts it and what it silenced comes back as it
@@ -39,11 +39,10 @@
  *   · no poller: the port notifies, the panel repaints on the frame while the card is present and once when it becomes so.
  *
  * Pure parts exported for tests: laneTargetId, hueCss, createSolo, laneKeys, snapshotLanes, restoreLanes. */
-import { el, label, ariaLabel, hint, trig, sw, stepper, arcKnob, hueSwatch, laneSlider, laneInk, rgbCss, chipStrip, sortableList } from '../kit.js';
+import { el, label, ariaLabel, hint, trig, sw, stepper, arcKnob, hueSwatch, laneSlider, laneInk, rgbCss, sortableList } from '../kit.js';
 import { glyphEl } from '../glyph.js';
-import { drag } from '../core/pointer.js';
 import { frame } from '../core/frame.js';
-import { setVar, setAttr, rect } from '../core/perf.js';
+import { setVar, setAttr } from '../core/perf.js';
 import { registerProjectPart } from '../core/project.js';
 import { ARM_MS } from '../controls/list.js';
 
@@ -209,7 +208,7 @@ export function createLanesView(parent, o = {}) {
     /* the blend: a stepper (five or more modes in order); a tap on the name opens the list */
     if (rec.blend) {
       const items = rec.blend.map((m) => (typeof m === 'string' ? { id: m, label: m } : m));
-      const b = stepper({ aria: aria('BLEND'), items, value: port.get(id, 'blend'), cls: 'mir-lane-blend', onChange: (v) => { port.set(id, 'blend', v); commit(id, 'blend'); } });
+      const b = stepper({ aria: aria('BLEND'), items, value: port.get(id, 'blend'), cls: 'mir-lane-blend', compact: layout === 'strips', onChange: (v) => { port.set(id, 'blend', v); commit(id, 'blend'); } });
       grid.appendChild(b.root); lc.ctl.blend = b;
     }
 
@@ -278,12 +277,14 @@ export function createLanesView(parent, o = {}) {
     lc.retarget = function retarget() {
       if (!mod || typeof mod.add !== 'function') return;
       const i = ids().indexOf(id), nm = nameOf(recs()[i] || rec, i < 0 ? index : i);
-      for (const t of lc.targets) {
+      const list = lc.targets.map((t) => {
         const d = t.d, k = t.key, map = d.wrap ? 'wrap' : d.log ? 'log' : 'linear';
-        try { mod.add({ id: tid(id, k), label: (nm + ' · ' + (d.label || k)).toUpperCase(), min: d.min, max: d.max, step: 0, map, unit: d.unit, hint: d.hint, def: Number.isFinite(d.home) ? d.home : undefined,
-          get: () => num(port.get(id, k)), set: (v) => port.set(id, k, v), widget: t.w }); lc.added = true; }
-        catch (err) { if (!lc.warned) { lc.warned = true; console.warn('panels/lanes: modulation refused ' + tid(id, k) + ' — add "' + rootId + '" to installModulation({ roots })', err); } }
-      }
+        return { id: tid(id, k), label: (nm + ' · ' + (d.label || k)).toUpperCase(), min: d.min, max: d.max, step: 0, map, unit: d.unit, hint: d.hint, def: Number.isFinite(d.home) ? d.home : undefined,
+          get: () => num(port.get(id, k)), set: (v) => port.set(id, k, v), widget: t.w };
+      });
+      if (!list.length) return;
+      try { mod.add(list); lc.added = true; }                                    // one rebuild of the modulation window per lane (mod.add takes a list)
+      catch (err) { if (!lc.warned) { lc.warned = true; console.warn('panels/lanes: modulation refused ' + list[0].id + ' — add "' + rootId + '" to installModulation({ roots })', err); } }
     };
     lc.destroy = function destroy() {
       if (lc.soloTimer) lc.soloTimer();
@@ -322,109 +323,13 @@ export function createLanesView(parent, o = {}) {
   const moveLane = (id, to) => { const ok = guard(() => port.move(id, to)) !== false; if (ok) after(); return ok; };
   const removeLane = (id) => { const ok = guard(() => port.remove(id)) !== false; if (ok) after(); return ok; };
 
-  let view;
-  if (layout === 'rows') {
-    view = sortableList({ items: recs(), cap: capOf(), min: minOf(), noun, side: o.side || 'auto', addLabel: o.addLabel, armMs: o.armMs || ARM_MS,
-      build: (it, i) => ({ el: nodeOf(it, i), destroy() { /* the lane lives in the panel's cache: a rebuild only moves it */ } }),
-      onAdd: addLane, onMove: moveLane, onRemove: removeLane });
-    root.appendChild(view.root);
-  } else view = createStrips();
-
-  /** the horizontal twin of sortableList, for strips: a chip strip (grip over ×) under each strip, a drag along x, the arrows, + ADD at the foot */
-  function createStrips() {
-    const wrap = el('div', 'mir-lanes-strips', root), cols = el('div', 'mir-lanes-cols', wrap);
-    cols.dataset.mirSurface = 'island';                                        // the strips' one pane: CARD STYLE and FROST paint it as they paint a list's
-    const addRow = fixed ? null : el('div', 'mir-list-addrow', wrap);
-    const add = fixed ? null : trig({ label: o.addLabel || '+ ADD', cls: 'mir-list-add', onFire: () => doAdd() });
-    if (add) addRow.appendChild(add.root);
-    let list = recs().slice();
-    const colOf = new Map();
-    const index = (id) => list.findIndex((x) => x.id === id);
-    function sync() {
-      const full = list.length >= capOf(), one = list.length <= minOf();
-      for (const c of colOf.values()) if (c.strip) c.strip.setDisabled('remove', one);
-      if (add) { add.root.disabled = full; add.root.classList.toggle('disabled', full); hint(add.root, full ? 'The {noun} list is full — {count} of {cap}' : 'Add a {noun} — {count} of {cap}', { noun, count: list.length, cap: capOf() });
-        ariaLabel(add.root, full ? 'Add a {noun} — {count} of {cap}, full' : 'Add a {noun} — {count} of {cap}', { noun, count: list.length, cap: capOf() }); }
-      root.dataset.full = String(full);
-    }
-    const reorderDom = () => { for (const it of list) { const c = colOf.get(it.id); if (c) cols.appendChild(c.col); } };
-    function move(id, to) {
-      const from = index(id); if (from < 0) return false;
-      to = Math.max(0, Math.min(list.length - 1, to));
-      if (to === from) return true;
-      if (onMove(id, to) === false) { reorderDom(); return false; }
-      const [it] = list.splice(from, 1); list.splice(to, 0, it); reorderDom();
-      return true;
-    }
-    function remove(id) {
-      if (list.length <= minOf() || index(id) < 0) return false;
-      if (onRemove(id) === false) return false;
-      list.splice(index(id), 1); rebuild(); return true;
-    }
-    function doAdd() {
-      if (list.length >= capOf()) return null;
-      const it = onAdd();
-      if (it && it.id !== undefined) { list.push(it); rebuild(); }
-      return it || null;
-    }
-    const onMove = moveLane, onRemove = removeLane, onAdd = addLane;
-    function wireGrip(strip, id, col) {
-      let rs = null;
-      const shift = (to) => { for (let k = 0; k < rs.cols.length; k++) { if (k === rs.from) continue;
-        const right = rs.from < to && k > rs.from && k <= to, left = to < rs.from && k >= to && k < rs.from;
-        setVar(rs.cols[k], 'transform', right ? `translateX(${-rs.step}px)` : left ? `translateX(${rs.step}px)` : null); } };
-      const clear = () => { if (!rs) return; for (const c of rs.cols) setVar(c, 'transform', null); cols.classList.remove('sorting'); rs = null; };
-      drag(strip.grip, { slop: 4,
-        onStart() { const all = [...cols.children], gap = parseFloat(getComputedStyle(cols).columnGap) || 0, boxes = all.map((c) => rect(c)), from = all.indexOf(col);
-          rs = { cols: all, from, to: from, mids: boxes.map((b) => b.left + b.width / 2), step: boxes[from].width + gap, mid0: boxes[from].left + boxes[from].width / 2 };
-          col.classList.add('dragging'); cols.classList.add('sorting'); },
-        onMove(s) { if (!rs) return;
-          setVar(col, 'transform', `translateX(${s.dx}px)`);
-          const centre = rs.mid0 + s.dx; let to = rs.from;
-          for (let k = 0; k < rs.from; k++) if (centre < rs.mids[k]) { to = k; break; }
-          if (to === rs.from) for (let k = rs.cols.length - 1; k > rs.from; k--) if (centre > rs.mids[k]) { to = k; break; }
-          if (to !== rs.to) { rs.to = to; shift(to); } },
-        onEnd() { const to = rs ? rs.to : -1; col.classList.remove('dragging'); cols.classList.add('settling'); clear(); if (to >= 0) move(id, to); frame.write(() => cols.classList.remove('settling')); },
-        onCancel() { col.classList.remove('dragging'); clear(); } });
-    }
-    function keyMove(id) {
-      return (name, e) => {
-        if (name !== 'grip') return;
-        const i = index(id), rtl = getComputedStyle(root).direction === 'rtl';
-        const back = e.key === 'ArrowLeft' ? !rtl : e.key === 'ArrowRight' ? rtl : e.key === 'ArrowUp';
-        const fwd = e.key === 'ArrowRight' ? !rtl : e.key === 'ArrowLeft' ? rtl : e.key === 'ArrowDown';
-        const to = back ? i - 1 : fwd ? i + 1 : e.key === 'Home' ? 0 : e.key === 'End' ? list.length - 1 : null;
-        if (to === null) return;
-        e.preventDefault(); e.stopPropagation();
-        if (move(id, to)) { const c = colOf.get(id); if (c && c.strip) c.strip.grip.focus(); }
-      };
-    }
-    function buildCol(it, i) {
-      const col = el('div', 'mir-lane-col', cols); col.dataset.id = String(it.id);
-      const lc = laneOf(it, i);
-      col.appendChild(lc.root);
-      let strip = null;
-      if (!fixed) {
-        strip = chipStrip({ id: 'lane', title: noun, flow: 'column', material: o.material, chips: [
-          { name: 'grip', kind: 'grip', label: ['Reorder {noun} {n} — drag, or the arrow keys', { noun, n: i + 1 }], hint: ['Drag to reorder this {noun}; arrow keys move it', { noun }] },
-          { name: 'remove', kind: 'close', glyph: 'close', label: ['Remove {noun} {n}', { noun, n: i + 1 }], hint: ['Remove this {noun} (tap twice)', { noun }],
-            confirm: { text: 'sure?', ms: o.armMs || ARM_MS, label: ['Remove {noun} {n} — tap again to confirm', { noun, n: i + 1 }] } }],
-          onChip: (name) => { if (name === 'remove') remove(it.id); }, onKey: keyMove(it.id) });
-        col.appendChild(strip.el); wireGrip(strip, it.id, col);
-      }
-      colOf.set(it.id, { col, strip });
-    }
-    function rebuild() {
-      for (const c of colOf.values()) { if (c.strip) c.strip.destroy(); c.col.remove(); }
-      colOf.clear(); cols.textContent = '';
-      list.forEach((it, i) => buildCol(it, i));
-      sync();
-    }
-    rebuild();
-    return { root: wrap, rows: cols, add: doAdd, move, remove, rebuild, items: () => list.slice(), setItems(next) { list = next.slice(); rebuild(); },
-      nodeOf: (id) => (cache.get(id) ? cache.get(id).root : null), stripOf: (id) => (colOf.get(id) ? colOf.get(id).strip : null), count: () => list.length,
-      destroy() { for (const c of colOf.values()) if (c.strip) c.strip.destroy(); colOf.clear(); wrap.remove(); } };
-  }
+  /* rows stack down, strips sit across (sortableList's axis 'x': one island pane, a chip strip under each strip); `fixed` hides the chips and + ADD */
+  if (fixed) root.dataset.fixed = '';
+  const view = sortableList({ items: recs(), cap: capOf(), min: minOf(), noun, side: o.side || 'auto', addLabel: o.addLabel, armMs: o.armMs || ARM_MS, material: o.material,
+    axis: layout === 'rows' ? 'y' : 'x',
+    build: (it, i) => ({ el: nodeOf(it, i), destroy() { /* the lane lives in the panel's cache: a rebuild only moves it */ } }),
+    onAdd: addLane, onMove: moveLane, onRemove: removeLane });
+  root.appendChild(view.root);
 
   /* ── keeping the view and the port as one ── */
   let lastOrder = ids().join('|');

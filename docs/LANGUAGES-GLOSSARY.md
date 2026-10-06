@@ -55,7 +55,7 @@ Palette names (lowercase in English): translated when ordinary words (aurora →
 
 ## 3. Terms
 
-One table, ten language columns. The alpha.13 join added the controls', audio and render terms (Group: Controls, audio and render (alpha.13): the terms the three translators chose for the 125 new keys). The alpha.12 join added the timeline's and the pattern's terms (Group: Timeline and pattern (alpha.12): the words the packs already use, plus the new ones). The alpha.5 top-up added the terms the translators met on the new strings (Group: alpha.5 additions) and corrected some earlier cells. Where the field keeps the English word, the cell says so by repeating it; **bold** = a real choice, explained in the last column. A dash means that language's lane did not list the term (its pack still translates every catalogue string). The Latin-script columns came first; the CJK and Cyrillic columns and the Devanagari, Bengali and Arabic columns were matched to them by the English cell.
+One table, ten language columns. The alpha.14 join added the panels' terms (Group: Panels (alpha.14): the words the three translators chose for the 132 new keys of the rack windows CAMERA, GRADE, CURVES, XY, LANES and RAMP). The alpha.13 join added the controls', audio and render terms (Group: Controls, audio and render (alpha.13): the terms the three translators chose for the 125 new keys). The alpha.12 join added the timeline's and the pattern's terms (Group: Timeline and pattern (alpha.12): the words the packs already use, plus the new ones). The alpha.5 top-up added the terms the translators met on the new strings (Group: alpha.5 additions) and corrected some earlier cells. Where the field keeps the English word, the cell says so by repeating it; **bold** = a real choice, explained in the last column. A dash means that language's lane did not list the term (its pack still translates every catalogue string). The Latin-script columns came first; the CJK and Cyrillic columns and the Devanagari, Bengali and Arabic columns were matched to them by the English cell.
 
 | English | es | fr | pt-BR | id | 简体中文 zh-Hans | 日本語 ja | Русский ru | हिन्दी hi | বাংলা bn | العربية ar | Group | Why |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -399,6 +399,75 @@ One table, ten language columns. The alpha.13 join added the controls', audio an
 | discard (a stored thing) | — | — | — | — | — | — | — | हटाएँ | মুছুন | حذف | Controls, audio and render (alpha.13) | follows the glossary's delete row: hi has one verb, bn মুছুন, ar حذف |
 | audio clip / audio file / asset | — | — | — | — | — | — | — | ऑडियो क्लिप / ऑडियो फ़ाइल / ऑडियो एसेट | অডিও ক্লিপ / অডিও ফাইল / অডিও অ্যাসেট | مقطع صوتي / ملف صوتي / أصل صوتي | Controls, audio and render (alpha.13) | clip follows the glossary's clip row; file is the Windows word; asset is the transliterated loanword (ar أصل as in game engines) |
 | {noun} slot grammar | — | — | — | — | — | — | — | {noun} + verb, 'इस' for this | {noun} + verb, 'এই' for this | no 'this' or pronoun; noun stands alone | Controls, audio and render (alpha.13) | ar demonstratives and pronouns are gendered, so ar sentences avoid them and stay grammatical for any noun |
+| snapshot | instantánea | instantané | instantâneo | snapshot | — | — | — | — | — | — | Panels (alpha.14) | XY bank entry; the Photoshop word in es/fr/pt-BR, id keeps English |
+| corner (of the morph pad) | esquina | coin | canto | pojok | — | — | — | — | — | — | Panels (alpha.14) | reuses the pack's CORNERS word |
+| STORE | ALMACENAR | STOCKER | ARMAZENAR | SIMPAN | — | — | — | — | — | — | Panels (alpha.14) | keeps a snapshot over a slot; matches stored render (almacenar / stocker / armazenar); id SIMPAN = SAVE |
+| RECALL | APLICAR | RAPPELER | APLICAR | TERAPKAN | — | — | — | — | — | — | Panels (alpha.14) | sets the dials to a snapshot; RECUPERAR is already recover, so es/pt apply, fr uses the music verb rappeler |
+| ENGAGE | ACTIVAR | ACTIVER | ATIVAR | AKTIFKAN | — | — | — | — | — | — | Panels (alpha.14) | the XY pad's on switch |
+| PAIR | PAR | PAIRE | PAR | PASANGAN | — | — | — | — | — | — | Panels (alpha.14) | a window pair the XY panel drives |
+| PAD | PAD | PAD | PAD | PAD | — | — | — | — | — | — | Panels (alpha.14) | the XY pad; kept in all four, as the glossary keeps it in hi/bn/ar |
+| CHANNEL (curves) | CANAL | CANAL | CANAL | KANAL | — | — | — | — | — | — | Panels (alpha.14) | Photoshop's word for a colour channel in all four |
+| colour stop | parada | point d’arrêt | parada | titik | — | — | — | — | — | — | Panels (alpha.14) | a stop on the RAMP strip; es/pt-BR follow Photoshop's parada de color, fr point d’arrêt, id titik |
+| strip (ramp) | barra | barre | barra | bilah | — | — | — | — | — | — | Panels (alpha.14) | the gradient bar of the ramp editor |
+| ramp | rampa | rampe | rampa | ramp | — | — | — | — | — | — | Panels (alpha.14) | id keeps the English audio/colour word |
+| lane (LANES strip) | carril | couloir | pista | lajur | — | — | — | — | — | — | Panels (alpha.14) | unchanged from the timeline lane term |
+| SOLO | SOLO | SOLO | SOLO | SOLO | — | — | — | — | — | — | Panels (alpha.14) | the mixer-strip button; the DAW word everywhere |
+| peek (hold SOLO) | echar un vistazo | jeter un œil | espiar | mengintip | — | — | — | — | — | — | Panels (alpha.14) | a verb in a hint, plain words |
+| fold (a strip) | plegar | replier | recolher | ciutkan | — | — | — | — | — | — | Panels (alpha.14) | unchanged from the fold term |
+| EXPOSURE / GAMMA / levels | EXPOSICIÓN / GAMMA / niveles | EXPOSITION / GAMMA / niveaux | EXPOSIÇÃO / GAMMA / níveis | EKSPOSUR / GAMMA / level | — | — | — | — | — | — | Panels (alpha.14) | GRADE and CURVES; EXPOSURE reuses the pack term, GAMMA is invariant, levels = Photoshop Niveles / Niveaux / Níveis |
+| BLACK · WHITE | NEGRO · BLANCO | NOIR · BLANC | PRETO · BRANCO | HITAM · PUTIH | — | — | — | — | — | — | Panels (alpha.14) | the input-level thumbs; a slider thumb is marcador / curseur / marcador / gagang penggeser |
+| INVERT / FLIP / REVERSE | INVERTIR / VOLTEAR / AL REVÉS | INVERSER / RETOURNER / À REBOURS | INVERTER / VIRAR / REVERSO | INVERSI / BALIK / MUNDUR | — | — | — | — | — | — | Panels (alpha.14) | three words kept apart: negative of the picture, mirror of the view, run backwards |
+| DIRECTION (look direction) | DIRECCIÓN (de la mirada) | DIRECTION (du regard) | DIREÇÃO (do olhar) | ARAH (pandang) | — | — | — | — | — | — | Panels (alpha.14) | CAMERA's direction sphere |
+| ORBIT / ORBIT ANGLE | ÓRBITA / ÁNG. ÓRBITA | ORBITE / ANG. ORBITE | ÓRBITA / ÂNG. ÓRBITA | ORBIT / SUDUT ORBIT | — | — | — | — | — | — | Panels (alpha.14) | the angle label is abbreviated to fit a knob |
+| PAN (camera) | DESPLAZ. | DÉPL. | DESLOC. | GESER | — | — | — | — | — | — | Panels (alpha.14) | follows the pack's pan-the-timeline verbs (desplazar, déplacer, deslocar, geser) |
+| ROLL / PITCH / YAW | ALABEO / CABECEO / GUIÑADA | ROULIS / TANGAGE / LACET | ROLAMENTO / ARFAGEM / GUINADA | ROLL / PITCH / YAW | — | — | — | — | — | — | Panels (alpha.14) | aircraft axes, the glossary's existing YAW / PITCH pair; id keeps English |
+| FOV | FOV | FOV | FOV | FOV | — | — | — | — | — | — | Panels (alpha.14) | kept |
+| FLING / INERTIA / FRICTION | IMPULSO / INERCIA / FRICCIÓN | ÉLAN / INERTIE / FRICTION | IMPULSO / INÉRCIA / ATRITO | LEMPAR / INERSIA / GESEKAN | — | — | — | — | — | — | Panels (alpha.14) | the release-coast knobs; FLING is the speed kept on release, UNSURE |
+| SPRING | RESORTE | RESSORT | MOLA | PEGAS | — | — | — | — | — | — | Panels (alpha.14) | the pad springs back to centre |
+| TURNTABLE | GIRATORIO | PLATINE | GIRATÓRIO | TURNTABLE | — | — | — | — | — | — | Panels (alpha.14) | an orbit mode with a level horizon; UNSURE |
+| WHEEL | RUEDA | MOLETTE | RODA | RODA | — | — | — | — | — | — | Panels (alpha.14) | the mouse wheel's zoom mode |
+| snapshot bank | banco | banque | banco | bank | — | — | — | — | — | — | Panels (alpha.14) | the list of stored snapshots |
+| snapshot (a stored set of dials) | — | — | — | — | 快照 | スナップショット | снимок | — | — | — | Panels (alpha.14) | the XY panel's bank slot; ru "снимок" over the loan "снапшот" |
+| corner (A · B · C · D of the pad) | — | — | — | — | 角 | 角 | угол | — | — | — | Panels (alpha.14) | the same word the packs use for CORNERS (window corners); a pad corner is a corner |
+| engage (ENGAGE) | — | — | — | — | 启动 | 有効 | ВКЛЮЧИТЬ | — | — | — | Panels (alpha.14) | the switch that lets the pad drive the dials; kept apart from ON (开 · ON · ВКЛ) |
+| route (noun) / route (verb) | — | — | — | — | 路由 | ルート / ルーティング | маршрут / назначить маршрут | — | — | — | Panels (alpha.14) | unchanged from the modulation rack |
+| dial(s) (the knobs a morph drives) | — | — | — | — | 旋钮 | ダイヤル | ручки | — | — | — | Panels (alpha.14) | follows each pack's own word for the knob (ja ダイヤル as in "the large dial"; ru ручка) |
+| STORE / RECALL | — | — | — | — | 存入 / 调用 | 記憶 / 呼び出し | ЗАПОМНИТЬ / ВЫЗВАТЬ | — | — | — | Panels (alpha.14) | synth-bank words; ja avoids 保存 (that is SAVE) |
+| stop (a colour stop of the ramp) | — | — | — | — | 色标 | ストップ | точка | — | — | — | Panels (alpha.14) | zh follows Photoshop's 色标; ja the CSS word; ru "точка" (short, a point on the ramp) |
+| ramp (the colour ramp) | — | — | — | — | 色带 | ランプ | градиент | — | — | — | Panels (alpha.14) | the colour ramp; the modulation "full-turn ramp" is 斜坡 / ランプ / линейное нарастание; UNSURE ru |
+| strip | — | — | — | — | 色带 (the ramp strip) | ストリップ | полоса | — | — | — | Panels (alpha.14) | ja and ru as the timeline pack; zh names the ramp strip 色带 |
+| lane | — | — | — | — | 轨道 | レーン | дорожка | — | — | — | Panels (alpha.14) | the LANES panel keeps the alpha.12 word |
+| solo / peek | — | — | — | — | 独奏 / 暂时查看 | ソロ / 一時的に確認 | СОЛО / заглянуть | — | — | — | Panels (alpha.14) | a peek is a held, momentary look at one lane |
+| orbit (ORBIT, ORBIT ANGLE) | — | — | — | — | 环绕 / 环绕角 | オービット / オービット角 | ОРБИТА / УГОЛ ОРБИТЫ | — | — | — | Panels (alpha.14) | zh avoids 轨道 (that is a lane / track) |
+| pan (PAN, PAN HOME, PAN SCALE) | — | — | — | — | 平移 | パン | СДВИГ | — | — | — | Panels (alpha.14) | moving the view; ru "сдвиг" (not "панорама") |
+| roll / yaw / pitch (view) | — | — | — | — | 滚转 / 偏航 / 俯仰 (hint) | ロール / ヨー / ピッチ | КРЕН / РЫСК / ВЫСОТА | — | — | — | Panels (alpha.14) | zh and ru keep the pack's labels where they exist; UNSURE zh PITCH label is 音高 in the pack, the hint says 俯仰 |
+| turntable (TURNTABLE) | — | — | — | — | 转盘 | ターンテーブル | ТУРНТЕЙБЛ | — | — | — | Panels (alpha.14) | an orbit with a level horizon; ru loan word |
+| spring (SPRING) | — | — | — | — | 回弹 | スプリング | ПРУЖИНА | — | — | — | Panels (alpha.14) | the pad springs back to centre on release |
+| pad (PAD) | — | — | — | — | PAD | PAD | PAD | — | — | — | Panels (alpha.14) | kept Latin as the packs already do in the modulation hint |
+| exposure / gamma / contrast / saturation | — | — | — | — | 曝光 / 伽马 / 对比度 / 饱和度 | 露出 / ガンマ / コントラスト / 彩度 | ЭКСПОЗИЦИЯ / ГАММА / КОНТРАСТ / НАСЫЩЕННОСТЬ | — | — | — | Panels (alpha.14) | Photoshop's words in each language |
+| BLACK / WHITE (the input levels) | — | — | — | — | 黑场 / 白场 | 黒 / 白 | ЧЁРНЫЙ / БЕЛЫЙ | — | — | — | Panels (alpha.14) | Photoshop Levels' black and white points |
+| invert / flip | — | — | — | — | 反相 / 翻转 | 反転 / 反転 | ИНВЕРСИЯ / ПЕРЕВЕРНУТЬ | — | — | — | Panels (alpha.14) | ja uses the pack's 反転 for both (the hints say negative / mirror) |
+| HOME (view) / PAN HOME | — | — | — | — | 归位 / 平移归位 | ホーム / パンホーム | ИСХОДНЫЙ / СБРОС СДВИГА | — | — | — | Panels (alpha.14) | restore the default view |
+| snapshot | — | — | — | — | — | — | — | स्नैपशॉट | স্ন্যাপশট | لقطة | Panels (alpha.14) | XY MORPH bank entry; the field's word |
+| corner (A · B · C · D of the morph pad) | — | — | — | — | — | — | — | कोना | কোনা | ركن | Panels (alpha.14) | not the angle word (कोण / কোণ / زاوية) that LIGHT ANGLE uses; ar ركن so "angle" and "corner" differ |
+| STORE / RECALL | — | — | — | — | — | — | — | स्टोर करें / रिकॉल | স্টোর করুন / রিকল | تخزين / استدعاء | Panels (alpha.14) | not SAVE (सहेजें / সংরক্ষণ করুন / حفظ), which is the file action; matches stored render |
+| ENGAGE | — | — | — | — | — | — | — | सक्रिय करें | সক্রিয় করুন | تفعيل | Panels (alpha.14) | the pad drives the dials, on or off |
+| route (verb, a hint) | — | — | — | — | — | — | — | रूट करें | রুট করুন | توجيه | Panels (alpha.14) | follows ROUTE / ROUTING; arm stays आर्म / আর্ম / تجهيز |
+| channel (curves) | — | — | — | — | — | — | — | चैनल | চ্যানেল | القناة | Panels (alpha.14) | the CHANNEL label itself is not a key and stays English; the word in prose follows Photoshop |
+| stop (a colour stop of a ramp) | — | — | — | — | — | — | — | स्टॉप | স্টপ | نقطة لونية | Panels (alpha.14) | ar: نقطة alone in short strings; the verb "stops" (a view stops) is not this word |
+| ramp (the colour ramp) | — | — | — | — | — | — | — | रैंप | র‍্যাম্প | تدرّج | Panels (alpha.14) | ar: the modulation ramp in ORBIT ANGLE is "موجة تصاعدية"; UNSURE |
+| strip (the ramp strip) | — | — | — | — | — | — | — | पट्टी | স্ট্রিপ | الشريط | Panels (alpha.14) | ar differs from rail only by context (شريط) |
+| lane (a mixer strip's lane) | — | — | — | — | — | — | — | लेन | লেন | مسار | Panels (alpha.14) | unchanged from the timeline lane; ar shares مسار with route, as the pack already did |
+| SOLO | — | — | — | — | — | — | — | SOLO | SOLO | SOLO | Panels (alpha.14) | the S button's name, kept Latin in sentences and labels |
+| peek (hold to peek) | — | — | — | — | — | — | — | झाँकना | উঁকি দেওয়া | المعاينة | Panels (alpha.14) | |
+| dial(s) (the dials of a window) | — | — | — | — | — | — | — | डायल | ডায়াল | الأقراص | Panels (alpha.14) | ar plural of القرص, already used for the large dial |
+| view (the camera's view) | — | — | — | — | — | — | — | व्यू | ভিউ | العرض | Panels (alpha.14) | follows the pack's existing "THIS VIEW" |
+| DIRECTION / NORTH | — | — | — | — | — | — | — | दिशा / उत्तर | দিক / উত্তর | الاتجاه / الشمال | Panels (alpha.14) | ordinary words, translated; the tooltip echoes the same word |
+| CONTRAST · OPACITY | — | — | — | — | — | — | — | कंट्रास्ट · अपारदर्शिता | কনট্রাস্ট · অস্বচ্ছতা | التباين · العتامة | Panels (alpha.14) | picture words translated as SATURATION and BLEND already were; OPACITY may clip on a knob (UNSURE) |
+| EXPOSURE · GAMMA · BLACK · WHITE · HUE | — | — | — | — | — | — | — | EXPOSURE · GAMMA · BLACK · WHITE · HUE | EXPOSURE · GAMMA · BLACK · WHITE · HUE | EXPOSURE · GAMMA · BLACK · WHITE · HUE | Panels (alpha.14) | knob names kept Latin (§2.2); prose words around them are translated |
+| DRAG · FLING · FRICTION · INERTIA · SPIN · ORBIT · PAN · ZOOM · ROLL · ROTATION | — | — | — | — | — | — | — | (kept Latin) | (kept Latin) | (kept Latin) | Panels (alpha.14) | camera knob names (§2.2) |
+| TURNTABLE · SPRING · WHEEL · AUTO-ROTATE · ROTATE · HOME · PAD | — | — | — | — | — | — | — | (kept Latin) | (kept Latin) | (kept Latin) | Panels (alpha.14) | mode and switch names, kept like FREE and STUTTER; STEP is the exception (स्टेप / স্টেপ / خطوة) because its sibling SMOOTH is translated |
+| PAIR | — | — | — | — | — | — | — | जोड़ी | জোড়া | زوج | Panels (alpha.14) | XY pairs of controls |
 
 ## 4. Abbreviations used for length
 

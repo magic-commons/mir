@@ -151,10 +151,15 @@ body[data-theme="light"] :is(.k-arcknob, .mir-swatch-seat) { --arc-groove: hsl(0
    right rack and in a floating window, on the left of it on the left rack and on a phone (whose one rack is on the left) */
 .mir-list-item > .mir-chipstrip { grid-column: 2; grid-row: 1; }
 .mir-list-item > .mir-list-pane { grid-column: 1; grid-row: 1; min-width: 0; }
-.mir-rack[data-side="left"] .mir-list:not([data-side="right"]) > .mir-list-rows > .mir-list-item, body.phone .mir-list:not([data-side="right"]) > .mir-list-rows > .mir-list-item, .mir-list[data-side="left"] > .mir-list-rows > .mir-list-item {
+.mir-rack[data-side="left"] .mir-list:not([data-side="right"], [data-axis="x"]) > .mir-list-rows > .mir-list-item, body.phone .mir-list:not([data-side="right"], [data-axis="x"]) > .mir-list-rows > .mir-list-item, .mir-list[data-side="left"]:not([data-axis="x"]) > .mir-list-rows > .mir-list-item {
   grid-template-columns: var(--list-rail) minmax(0, 1fr); }
-.mir-rack[data-side="left"] .mir-list:not([data-side="right"]) > .mir-list-rows > .mir-list-item > .mir-chipstrip, body.phone .mir-list:not([data-side="right"]) > .mir-list-rows > .mir-list-item > .mir-chipstrip, .mir-list[data-side="left"] > .mir-list-rows > .mir-list-item > .mir-chipstrip { grid-column: 1; }
-.mir-rack[data-side="left"] .mir-list:not([data-side="right"]) > .mir-list-rows > .mir-list-item > .mir-list-pane, body.phone .mir-list:not([data-side="right"]) > .mir-list-rows > .mir-list-item > .mir-list-pane, .mir-list[data-side="left"] > .mir-list-rows > .mir-list-item > .mir-list-pane { grid-column: 2; }
+.mir-rack[data-side="left"] .mir-list:not([data-side="right"], [data-axis="x"]) > .mir-list-rows > .mir-list-item > .mir-chipstrip, body.phone .mir-list:not([data-side="right"], [data-axis="x"]) > .mir-list-rows > .mir-list-item > .mir-chipstrip, .mir-list[data-side="left"]:not([data-axis="x"]) > .mir-list-rows > .mir-list-item > .mir-chipstrip { grid-column: 1; }
+.mir-rack[data-side="left"] .mir-list:not([data-side="right"], [data-axis="x"]) > .mir-list-rows > .mir-list-item > .mir-list-pane, body.phone .mir-list:not([data-side="right"], [data-axis="x"]) > .mir-list-rows > .mir-list-item > .mir-list-pane, .mir-list[data-side="left"]:not([data-axis="x"]) > .mir-list-rows > .mir-list-item > .mir-list-pane { grid-column: 2; }
+/* axis 'x' (strips): the items side by side in one island pane, each one's chips under it, whatever the rack's side */
+.mir-list[data-axis="x"] > .mir-list-rows { flex-direction: row; }
+.mir-list[data-axis="x"] > .mir-list-rows > .mir-list-item { grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr auto; justify-items: center; align-items: stretch; }
+.mir-list[data-axis="x"] > .mir-list-rows > .mir-list-item > .mir-list-pane { grid-column: 1; grid-row: 1; width: 100%; }
+.mir-list[data-axis="x"] > .mir-list-rows > .mir-list-item > .mir-chipstrip { grid-column: 1; grid-row: 2; }
 /* + ADD: a centred pill under the last item, the kit's trigger with the pill's corner; it dims at the cap */
 .mir-list-addrow { display: flex; justify-content: center; }
 .mir-list-addrow > .trig.mir-list-add { border-radius: var(--r-pill); padding: 0 var(--list-add-pad); min-width: var(--list-add-min); }

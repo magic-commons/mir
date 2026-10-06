@@ -108,5 +108,5 @@ Josh, 09-12: *"I keep accidentally touching the colors while zooming on touchscr
 
 - A lane's accessible name is built when the lane is: `OPACITY · colour 2`. After a reorder the number in the name is the old one until the lane is rebuilt (an add, a remove, or `setItems`).
 - A routed arc grows to make room for the modulation window's range dial (54 px); on a strip eight across it overlaps its neighbour's margin.
-- The strips' own sorter is a horizontal twin of `sortableList` (which only moves along y); it goes the day that list takes an axis (`ASKS.md`).
-- The modulation window is rebuilt once per target on a lane's first appearance (`mod.add` rebuilds it each time).
+- The strips are `sortableList({ axis: 'x' })` and their blend is `stepper({ compact: true })` (1.5.0-alpha.14: the panel's horizontal twin of the list is gone).
+- A lane's targets are added in one `mod.add([…])`: the modulation window is rebuilt once per lane on its first appearance, not once per target.
