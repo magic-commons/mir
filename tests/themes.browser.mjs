@@ -79,7 +79,7 @@ try {
 
   /* ── SPACING: a real drag; the gap between two rack windows and the rack's inset follow; 0 is flush ── */
   const rackGeo = `(() => { const d = [...document.querySelectorAll('.mir-rack[data-side="right"] > .dev')].map((x) => x.getBoundingClientRect()); return { gap: Math.round(d[1].top - d[0].bottom), inset: Math.round(innerWidth - d[0].right), top: Math.round(d[0].top), radius: cs(document.querySelector('.mir-rack .dev'), 'border-top-left-radius') }; })()`;
-  await J(`G.applyTheme('frost'); G.open('options:2'); await settle(); return 0;`);
+  await J(`G.applyTheme('frost'); G.open('windows'); await settle(); return 0;`);
   const g0 = await J(`return ${rackGeo};`);
   const s = await J(`const k = document.querySelector('.mir-gui .gui-grp[data-group="windows"] .seg .seg-b'), b = k.getBoundingClientRect(), x = b.left + b.width / 2, y = b.top + b.height / 2, h = document.elementFromPoint(x, y); return { x, y, hit: !!h && (h === k || k.contains(h)) };`);
   await mouse('mouseMoved', s.x, s.y); await mouse('mousePressed', s.x, s.y, true); await mouse('mouseReleased', s.x, s.y); await settle();

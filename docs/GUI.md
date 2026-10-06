@@ -1,10 +1,15 @@
 # MIR · GUI — MIR OPTIONS and MIR ABOUT
 
-The **GUI window** is where a user chooses how an app on MIR looks. The menubar's **GUI** group opens it. It is a floating kit window with three pages behind one page turner:
+The **GUI window** is where a user chooses how an app on MIR looks. The menubar's **GUI** group opens it. Since wave 19 (Josh, 2026-10-06: the options window must "not change positions of the top bar when cycling through the different pages … a scroll/tab system"; "Let the about MIR not be a page but instead a circled 'i' symbol"; "a simple x in the corner instead of chips and make sure the window is easily draggable") it is two small floating kit windows, each with a title bar and a plain × (`createWindow({ chrome: 'close' })`, `docs/WINDOWS.md` law 14) and no chip rail:
 
-- **MIR OPTIONS 1** — the theme and its tone, the accents, the text, the quality, the material, the controls, the motion.
-- **MIR OPTIONS 2** — the one light (angle, shadow, shine) and the windows (drop shadow, edge, disconnected, spacing).
-- **MIR ABOUT** — the MIR logo, the kit's version and theme, what MIR is, its licence, the fonts' licences, and credits.
+- **MIR OPTIONS** — three tabs in one fixed row under the title (three, so a SEGMENT, `docs/CONTROLS.md`):
+  - **LOOK** — the theme and its tone, the accents, the text, the quality, the material, the controls, the motion;
+  - **LIGHT** — the one light (angle, shadow, distance, softness, shine, the relief's angle and LINK);
+  - **WINDOWS** — the windows (drop shadow, edge, disconnected, transport bar, spacing) and SAMPLING.
+  A circled (i) (the `info` glyph) beside the × opens MIR ABOUT.
+- **MIR ABOUT** — its own window: the MIR logo, the kit's version and theme, what MIR is, its licence, the fonts' licences, and credits.
+
+**The hand law.** The title bar, the × and (i) and the tab row never move: a tab changes only the body, which scrolls on its own. The tabs share one grid cell (the one not shown is invisible), so the window is sized once for the biggest tab; after its first placement a re-fit keeps its top-left where the hand left it. A value never inserts a row above another (HELP's prose keeps its seat, invisible, while HELP is off). The tab is remembered on this device (`mir.gui.tab`). The whole title bar drags the window; Escape closes it (focus in it, or on nothing with it on top).
 
 Every control is a real kit control. A **vanilla theme** (FROST, MORPH, CLASSIC, SWIFT, AURORA, NEON) is a named set of these options and nothing else: `docs/THEMES.md`.
 
@@ -48,7 +53,7 @@ engine.onMoving((moving) => gui.moving(moving));               // FROST · STILL
 ## The API
 
 **`shell/gui.js`**
-- `createGui({ host, prefs, app, about, accent, defaults, storageKey, inkSampler, tierBench, sampling, projectAccent, rack, forget })` → `{ root, window, prefs, open(page), close(), toggle(page), page, turn(dir), moving(bool), dropGuides(), census(), applyTheme(id), applyTone(id), themeCost(id?), tier(), measureTier(force?), sampling(), light, parallax, destroy() }`.
+- `createGui({ host, prefs, app, about, accent, defaults, storageKey, inkSampler, tierBench, sampling, projectAccent, rack, forget })` → `{ root, window, about, prefs, open(page), close(), toggle(page), page, tab, turn(dir), moving(bool), dropGuides(), census(), applyTheme(id), applyTone(id), themeCost(id?), tier(), measureTier(force?), sampling(), light, parallax, destroy() }`.
   - `inkSampler`: a sampler from `core/ink.js` (`createInkSampler`) makes TEXT · AUTO sample the picture under each label (`docs/INK.md`); `true` is the 1.5.0-alpha.7 contract (the app runs its own sampler; TEXT offers SAMPLED).
   - `tierBench`: QUALITY · AUTO's benchmark, `async ({ win, doc, budgetMs }) → { periodMs, passMs }` (default `uiBench`, below).
   - `sampling`: `{ automation(grid), frameMs() }`, the SAMPLING rows' two reaches (defaults: `modulation/bind.js setAutomationGrid`, loaded only when the row moves; the window's own FRAME reading).
@@ -58,7 +63,7 @@ engine.onMoving((moving) => gui.moving(moving));               // FROST · STILL
   - `accent`: an engine from `shell/accent.js`. `createAccent({ model: 'hsl', a: 180, b: 20, vivid: 1 })` (alpha.14) is BASINS' accent: an angle is an HSL hue and VIVID sets saturation and lightness, `hsl(A, 20 + 80·v %, 28 + 36·v %)`, so A = 180° is `hsl(180 100% 64%)` where the default palette model gives `#e000ff`. It writes BASINS' six tokens (`--hue-acc`, `--sat-acc`, `--lum-acc`, and the three for B) and BRIGHTNESS mixes toward white in OKLCH.
   - `tier()` → this device's reading `{ tier, hz, periodMs, passMs, headroom, ms, why, … }` or null; `measureTier(force)` → a Promise of it; `sampling()` → `{ scrub, grid }` (the SCRUB level for `createTransportController({ scrubLevel })`, the automation grid in beats for the modulation host).
 - `measureTier({ bench, storage, key, force, win })`, `storedTier(storage, key)`, `uiBench({ win, doc, budgetMs })`, `TIER_KEY` (`'mir.tier'`), `AUTOMATION_GRID`, `effectiveQuality(quality, tier)`, `touchTablet(doc, signal)` (alpha.12).
-  - `open('options' | 'options:2' | 'about')`; `turn(±1)` steps the page turner; `page` is `'options'` or `'about'`.
+  - `open('options' | 'look' | 'light' | 'windows' | 'about')`: `'options'` opens MIR OPTIONS on the tab it last showed, a tab id on that tab (the old `'options:1'` is LOOK and `'options:2'` LIGHT), `'about'` the MIR ABOUT window. `close()` closes both. `turn(±1)` steps the tabs (wrapping); `tab` is the tab shown; `page` is `'about'` while only MIR ABOUT is open, else `'options'`. `window` and `about` are the two kit windows. `GUI_TABS` lists the tabs.
   - `applyTheme(id)` sets a vanilla theme and its own tone; `applyTone(id)` one of the current theme's tones; `themeCost(id)` → `{ blur, shadow, shine, ms }` measured when that theme was applied (or every theme's, without an id).
   - `prefs` is the store (below): `gui.prefs.set('theme', 'light')`, `gui.prefs.subscribe(fn)`; `gui.prefs.preset()` names the theme the options match, or `'custom'`.
 - `lookSchema()` — the options as schema rows. `LOOK_PRESETS` — every theme's options, by id (breaking in alpha.5: `light` is gone, SWIFT replaces it). `THEMES` (from `shell/themes.js`). `glassTint(bright, hue, tint, theme, saturation)` — the `--glass-tint` triple. `SKINS` (the 'name'-specs, announced). `MIR_VERSION`. `MIR_WORDS`.
@@ -166,19 +171,19 @@ These are in the plan's table but have no hook a kit sheet reads yet. A control 
 ## The window
 
 It is built on the kit's window (`mir/window/window.js`), not the notebook's free glass:
-- it gets the house drag, the empty-glass handle, the raise, presence motion and the rail for free;
-- its two pages are the window's two panels;
+- it gets the house drag (on its whole title bar), the empty-glass handle, the raise, presence motion and the × for free (`chrome: 'close'`: no rail);
+- its tabs are one grid each in the window's body, under a tab row seated between the title bar and the body; MIR ABOUT is a second kit window;
 - every look option paints it, because the pane is a `.glass`.
 
 The notebook form would have meant a second drag and resize machinery for one more window.
 
-**The layout.** OPTIONS 1 is one even grid of five equal 208 px columns and two rows, so every group shares its column edges, gutters and title inset, and each row's first control labels share a baseline: THEME (two columns: SKIN and TONE side by side) · ACCENT · TEXT · QUALITY, then MATERIAL (two columns) · CONTROLS · MOTION (two columns). OPTIONS 2 is the same columns, one row: LIGHT (two columns) · WINDOWS.
+**The layout.** LOOK is one even grid of five equal 208 px columns and two rows, so every group shares its column edges, gutters and title inset, and each row's first control labels share a baseline: THEME (two columns: SKIN and TONE side by side) · ACCENT · TEXT · QUALITY, then MATERIAL (two columns) · CONTROLS · MOTION (two columns). LIGHT is the same columns, one row, LIGHT two columns wide; WINDOWS is WINDOWS · SAMPLING.
 
-**Nothing scrolls.** Each page is laid out at its natural size (ABOUT is one 440 px column). The window is placed to fit the page (one layout read per page turn or change), centred where it was.
+**The size.** MIR OPTIONS is placed once, centred, at the size of its biggest tab (one layout read), capped by the screen, and the body scrolls down when the screen is shorter; a re-fit after a change keeps the top-left. MIR ABOUT is one 440 px column, sized and placed the same way.
 
-**At 720 px wide and under**, the grid is one 300 px column. OPTIONS splits into five sheets — THEME · ACCENT, then MATERIAL, then CONTROLS · TEXT · QUALITY, then MOTION, then LIGHT · WINDOWS — and the page turner steps through them, then ABOUT.
+**At 720 px wide and under** each tab is one 300 px column, the window is the screen's height under the menubar (whatever the tab, so a tab never resizes it), and the body scrolls; the tab row scrolls sideways rather than wrapping.
 
-The **page turner** is the same stepper as SKIN. It sits above both pages, with the arrows and the keyboard (← →).
+The **tab row** is a kit segment (`seg`): a click, or the arrows on it.
 
 **ABOUT**:
 - The logo is `mir/shell/assets/mir-dark.svg` or `mir-light.svg`, by theme (`assets/LOGO-SOURCE.txt` says where they come from). It is inlined so its nine tiles can turn, and its ids are stripped so they never collide with the wordmark's `#title`.
@@ -268,15 +273,15 @@ Those are the defaults (`--light-blend`, `--light-strength`). It is a softer thi
 - `tests/prefs.node.mjs` — defaults, set/get (clamped, stepped, wrapped, read back), repair of bad stored values, a throwing storage, subscribe, reset, the writes each option resolves to, and presets with CUSTOM.
 - `tests/gui.browser.mjs` on `tests/fixtures/gui.html`, with real CDP input, every control hit-tested with `elementFromPoint`:
   - GUI opens from the menubar;
-  - one assertion per option (SKIN and TONE, every MATERIAL, CONTROLS, TEXT, QUALITY and MOTION control, and on page 2 every LIGHT and WINDOWS control): the hook is written and a specimen's computed style moves;
+  - one assertion per option (SKIN and TONE, every MATERIAL, CONTROLS, TEXT, QUALITY and MOTION control, and on the LIGHT and WINDOWS tabs every control): the hook is written and a specimen's computed style moves;
   - DROP GUIDES with a real grip drag, HINTS with a real hover;
   - a reload keeps the choices;
-  - the page turner;
-  - no panel overflows at 1280×720 or at 390×844 (every sheet);
+  - the hand law (wave 19): the head, the ×, the (i), the tab row and the window keep one rect across every tab (real clicks); HELP on and off moves no group; the title bar drags the window and a tab then leaves it there; the (i) opens MIR ABOUT as its own window with a title bar and no rail; the × closes it; Escape closes each; the tab is remembered;
+  - at 1280×720 and 390×844 the window stays on the screen and nothing runs sideways (the body scrolls down); at 390×844 the head keeps its rect across the tabs and is a finger tall;
   - the glow follows the pointer and a still pointer writes nothing;
   - glow and parallax are off under reduced motion, in the flat tier and on a coarse pointer.
 - `tests/ink.browser.mjs` on `tests/fixtures/ink.html` (alpha.12): adaptive ink under a pane over a two-tone canvas, TEXT · LIGHT and AUTO, BRIGHTNESS by a real drag, the accent part's round trip, STATUS TAGS, TRANSPORT BAR and SCRUB by real clicks, QUALITY · AUTO's reading kept.
 - `tests/themes.browser.mjs` — a theme writes only look-store options; a reload keeps theme and tone; SOLID is opaque; the shadow falls away from LIGHT ANGLE and the shine sits opposite; SHINE 0 and the lite and flat tiers draw no shine; SPACING by a real drag, to 0 px; each theme's cost.
-- Plates in `docs/plates/gui/`: OPTIONS 1 and 2 and ABOUT under FROST (dark and light), MORPH and CLASSIC; the glow on the glass; the six phone pages. The themes: `docs/plates/themes/`.
+- Plates in `docs/plates/gui/` (taken before wave 19's tabs; to be retaken): OPTIONS 1 and 2 and ABOUT under FROST (dark and light), MORPH and CLASSIC; the glow on the glass; the six phone pages. The themes: `docs/plates/themes/`.
 - **FROST · STILL on a joined pane is held by the kit:** while `body.frost-hold` is set, a REFRACTIVE or TINTED pane (joined or disconnected, and its rail chip) stops blurring and wears the full tinted fill (TINTED's .58 thinning lifts with it) (`mir/css/skin.css`; proved in `tests/intent.browser.mjs`), so STILL differs from ALWAYS on every window.
 - **Not proven:** WebKit and a real iPad; the frame time on a busy app (the reading is honest about the gallery, which is idle).

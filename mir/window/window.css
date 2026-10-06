@@ -19,6 +19,14 @@
    the rail and re-pointed seat by seat (theme × card × frost) on the selectors it always had, in the order it always
    had; the rules below read names only. */
 :root { --chip-hover-scale: 1.06; --chip-press-scale: .92; }     /* HOVER grows the disc 6 %, PRESS sinks it to 92 % */
+/* the title bar of a rail-less window (chrome: 'close'): its height, its two buttons' seat and glyph; a finger's 44 on a
+   touch tablet (below) */
+.mir-win { --win-head-h: 38px; --win-head-btn: 32px; --win-head-glyph: 18px; --win-head-press: .92; }
+/* the resize corner's two hairlines, drawn toward the corner the window grows from: bottom right (135°), or top right
+   (45°) docked at the bottom.  The angle is the only thing that turns: no transform on the handle, so a sheet that
+   draws its own glyph on the handle (the timeline's ::after) is not turned twice */
+.mir-win-resize { --win-corner-angle: 135deg; }
+.mir-win[data-dock="bottom"] .mir-win-resize { --win-corner-angle: 45deg; }
 /* 1.5.0-alpha.8 · THE WINDOW MATERIAL ([data-mir-material="modulation"] on a window's root and its rail): the modulation window's
    rail, controls and corner, as BASINS' SAVE, TIMELINE and COLOUR windows wear them — by sharing the plugin's values
    (one block in mir/css/skin.css: --m2-mat-frost, --glass-hairline .09, --m2-rail-track), not by cloning its rules. */
@@ -69,7 +77,7 @@ body.frost.frost-hold[data-card="refractive"] .mir-rail { --chip-fill: var(--sur
 .mir-win[data-mir-material="modulation"] .mir-win-resize {
   width: var(--win-corner); height: var(--win-corner); right: var(--win-corner-inset); bottom: var(--win-corner-inset); z-index: var(--win-corner-z);
   opacity: var(--win-corner-rest); transition: opacity var(--motion-micro) var(--ease-out);
-  background-image: linear-gradient(135deg, transparent 52%, var(--ink-key) 52% 58%, transparent 58% 70%, var(--ink-key) 70% 76%, transparent 76%); }
+  background-image: linear-gradient(var(--win-corner-angle), transparent 52%, var(--ink-key) 52% 58%, transparent 58% 70%, var(--ink-key) 70% 76%, transparent 76%); }
 .mir-win[data-mir-material="modulation"] .mir-win-resize:hover, .mir-win[data-mir-material="modulation"].resizing .mir-win-resize { opacity: 1; }
 .mir-win[data-mir-material="modulation"][data-dock="bottom"] .mir-win-resize { top: var(--win-corner-inset); bottom: auto; }
 
@@ -83,12 +91,42 @@ body.frost.frost-hold[data-card="refractive"] .mir-rail { --chip-fill: var(--sur
   padding: var(--sp-3) var(--sp-4) var(--sp-4); touch-action: pan-y;
   scrollbar-width: thin; scrollbar-color: var(--glass-groove-hot) transparent;
 }
-/* the resize corner: two hairlines in the corner; docked at the bottom it moves to the top edge, where the height grows */
+/* the resize corner: two hairlines in the corner; docked at the bottom it moves to the top edge, where the height grows,
+   and its hairlines point there (--win-corner-angle, above).  1.5.0 wave 19: this used to turn the handle itself
+   (transform: scaleY(-1)); the timeline draws its own L on the handle's ::after and turns that, so the two turns cancelled
+   and its top-right corner pointed bottom right (Josh, iPad 2026-10-06) */
 .mir-win-resize {
   position: absolute; right: 0; bottom: 0; width: 22px; height: 22px; cursor: nwse-resize; touch-action: none;
-  background-image: linear-gradient(135deg, transparent 58%, var(--glass-groove-hot) 58% 63%, transparent 63% 73%, var(--glass-groove-hot) 73% 78%, transparent 78%);
+  background-image: linear-gradient(var(--win-corner-angle), transparent 58%, var(--glass-groove-hot) 58% 63%, transparent 63% 73%, var(--glass-groove-hot) 73% 78%, transparent 78%);
 }
-.mir-win[data-dock="bottom"] .mir-win-resize { top: 0; bottom: auto; cursor: nesw-resize; transform: scaleY(-1); }
+.mir-win[data-dock="bottom"] .mir-win-resize { top: 0; bottom: auto; cursor: nesw-resize; }
+
+/* ── THE TITLE BAR (chrome: 'close'): the title, the head buttons, a plain × in the corner; the whole bar drags ──── */
+.mir-win-head {
+  flex: 0 0 auto; display: flex; align-items: center; gap: var(--sp-2); min-height: var(--win-head-h); box-sizing: border-box;
+  padding: 0 var(--sp-2) 0 var(--sp-4); cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.mir-win-head.drag { cursor: grabbing; }
+.mir-win-title {
+  flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font: var(--w-bold) var(--fs-micro)/1 var(--font-ui); letter-spacing: var(--label-tracking, var(--tr-wider)); color: var(--ink-faint);
+}
+.mir-win-tools { flex: 0 0 auto; display: flex; align-items: center; gap: var(--sp-1); }
+.mir-win-btn {
+  width: var(--win-head-btn); height: var(--win-head-btn); flex: 0 0 auto; padding: 0; border: 0; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center; background: transparent; color: var(--ink-key); cursor: pointer;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--motion-micro) var(--ease-out), transform var(--motion-micro) var(--ease-out);
+}
+.mir-win-btn > svg { width: var(--win-head-glyph); height: var(--win-head-glyph); pointer-events: none; }
+@media (hover: hover) { .mir-win-btn:hover { background: var(--state-hover, var(--glass-raise)); color: var(--fg); } }
+.mir-win-btn:is(:active, .press) { background: var(--state-press, var(--glass-press)); color: var(--fg); transform: scale(var(--win-head-press)); }
+.mir-win-btn:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
+/* a finger: the bar and its buttons a touch target tall */
+body.touch-tablet .mir-win { --win-head-h: var(--touch); --win-head-btn: var(--touch); }
+@media (pointer: coarse) { .mir-win { --win-head-h: var(--touch); --win-head-btn: var(--touch); } }
+/* a title-bar window's body starts under the bar: the bar carries the top inset */
+.mir-win[data-chrome="close"] > .mir-win-body { padding-top: 0; }
 
 /* ── THE RAIL ─────────────────────────────────────────────────────────────────────────────────────────────── */
 .mir-rail {

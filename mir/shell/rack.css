@@ -35,6 +35,13 @@ body.disconnected:not(.phone) [data-mir-rack] > .dev.rack-sizing { overflow: vis
   transition: transform var(--motion-structural) var(--ease-out), visibility var(--motion-structural) var(--rack-step-show);
 }
 .mir-rack > * { pointer-events: auto; }
+/* A FINGER SCROLLS THE RACK (1.5.0 wave 19; .tmp/W19/IPAD-FINDINGS.md §1): Safari does not touch-scroll a scroller whose
+   own pointer-events is none, even from a child that takes the pointer (Chromium and Firefox do).  On a touch tablet, and
+   on any coarse pointer, the column takes the pointer itself.  THE COST: a touch on the rack's blank areas (the gaps, the
+   gutter, the column below the last window) scrolls the rack instead of reaching the picture; the scene guard already
+   counts those gaps as interface, so nothing else changes. */
+body.touch-tablet .mir-rack { pointer-events: auto; }
+@media (pointer: coarse) { .mir-rack { pointer-events: auto; } }
 .mir-rack[data-side="left"] { right: auto; left: 0; padding-right: calc(var(--rack-inset, var(--card-gap, var(--sp-2))) + var(--rack-shadow-gutter)); }
 .mir-rack[data-side="right"] { padding-left: calc(var(--rack-inset, var(--card-gap, var(--sp-2))) + var(--rack-shadow-gutter)); direction: rtl; }   /* the scrollbar on the inner edge */
 /* SPACING (1.5.0-alpha.5): --rack-gap between the windows, --rack-inset from the screen's edge, --pane-pad inside a window
@@ -68,13 +75,19 @@ body.ui-hidden :is(.mir-rack, .mir-rack-floats, .mir-rack-btn, .mir-rack-list) {
 
 /* ── THE SCROLLBAR AT THE CARD COLUMN (BASINS rack-scrollbars.js + skin.css:657-667; shell/rack-scrollbar.js) ──────
    createRack({ scrollbar: true }): the native bar is off on a wide screen and a transparent 12-px track stands beside
-   the cards, at the gutter's inner edge, with a 3-px accent thumb.  The class names are BASINS'. */
+   the cards, at the gutter's inner edge, with a 2-px accent thumb.  The class names are BASINS'.
+   ONE BAR, 2 PX (1.5.0 wave 19; Josh, iPad 2026-10-06: "a simple 2PX scroll bar is visible only").  The native bar is
+   hidden by `scrollbar-width: none` on the scroller, the standard property (Safari ships it since 18.2; that the iOS
+   overlay indicator obeys it is checked on the iPad, not here); `::-webkit-scrollbar` is the older engines' door and
+   does not reach an iOS overlay bar.  The track stays 12 px wide as the touch target and paints nothing; only the
+   2-px thumb is drawn.  An app sheet that sets `scrollbar-width` or `::-webkit-scrollbar` on its rack itself (unlayered,
+   it wins) brings the native bar back beside the kit's: it must leave the rack's bar to the kit. */
 @media (min-width: 861px) {
   body.rack-scrollbars:not(.phone) [data-mir-rack] { scrollbar-width: none; }
-  body.rack-scrollbars:not(.phone) [data-mir-rack]::-webkit-scrollbar { width: 0; }
+  body.rack-scrollbars:not(.phone) [data-mir-rack]::-webkit-scrollbar { width: 0; display: none; }
 }
 .rack-scrollbar {
-  --rack-scrollbar-w: 12px; --rack-scrollbar-thumb-w: 3px; --rack-scrollbar-thumb-x: 4px;
+  --rack-scrollbar-w: 12px; --rack-scrollbar-thumb-w: 2px; --rack-scrollbar-thumb-x: 5px;
   --rack-scrollbar-rest: .65; --rack-scrollbar-fade: 150ms; --rack-scrollbar-ease: ease;
   --rack-scrollbar-focus-r: 6px;
   position: absolute; z-index: calc(var(--z-chrome) + 1); width: var(--rack-scrollbar-w); background: transparent; border: 0; touch-action: none; cursor: default;

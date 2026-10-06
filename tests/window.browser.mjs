@@ -320,6 +320,21 @@ try {
     check('material: createWindow({ material }) writes data-mir-material on the window and on its rail', mat === 'modulation/modulation', mat);
   }
 
+  /* ── the resize corner points where it resizes (wave 19; Josh, iPad: "pointing to the bottom right when it should be top
+     right"): floating, its hairlines point bottom right from the bottom-right corner; docked at the bottom, top right
+     from the top-right corner — by the gradient's angle alone, the handle itself never turned ── */
+  r = await run(`const dir = (w) => { const c = w.root.querySelector('.mir-win-resize'), cs = getComputedStyle(c), a = parseFloat(cs.getPropertyValue('--win-corner-angle')) * Math.PI / 180;
+      const m = cs.transform === 'none' ? new DOMMatrixReadOnly() : new DOMMatrixReadOnly(cs.transform), p = m.transformPoint({ x: Math.sin(a), y: -Math.cos(a) }), o = m.transformPoint({ x: 0, y: 0 });
+      const b = c.getBoundingClientRect(), wr = w.root.getBoundingClientRect();
+      return { dx: Math.sign(Math.round((p.x - o.x) * 100)), dy: Math.sign(Math.round((p.y - o.y) * 100)), top: Math.abs(b.top - wr.top) < 4, bottom: Math.abs(b.bottom - wr.bottom) < 4, right: Math.abs(b.right - wr.right) < 4, transform: cs.transform, img: /gradient/.test(cs.backgroundImage) }; };
+    const was = A.state(); A.restore({ open: true, dock: null }); await rest(A); const floating = dir(A);
+    A.restore({ dock: 'bottom' }); await rest(A); const docked = { ...dir(A), dock: A.root.dataset.dock };
+    A.restore(was); await rest(A);
+    return { floating, docked };`);
+  check('the resize corner points where it resizes: floating, bottom right at the bottom-right corner; docked at the bottom, top right at the top-right corner; the handle is never turned',
+    r.floating.dx === 1 && r.floating.dy === 1 && r.floating.bottom && r.floating.right && r.docked.dock === 'bottom' && r.docked.dx === 1 && r.docked.dy === -1 && r.docked.top && r.docked.right
+    && r.floating.transform === 'none' && r.docked.transform === 'none' && r.floating.img && r.docked.img, JSON.stringify(r));
+
   /* ── the idle law ──────────────────────────────────────────────────────────────────────────────────────── */
   await p.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 640, y: 795 });
   await sleep(500);

@@ -31,7 +31,8 @@
 import { drag, installPress } from '../core/pointer.js';
 import { presence, tweenRect, owns, settled } from '../core/motion.js';
 import { rect, setVar, setAttr } from '../core/perf.js';
-import { ariaLabel } from '../kit.js';
+import { ariaLabel, label, hint } from '../kit.js';
+import { glyphEl } from '../glyph.js';
 import { createRail, seatRail, seatOn, nearestSide, roomFor, markForwarded, RAIL } from './rail.js';
 import { dockGeometry, createDockGuide, anchorBox } from './dock.js';
 
@@ -140,6 +141,27 @@ export function registerWindow({ root, rail = null } = {}) {
   raise();
   return api;
 }
+/* ── THE TITLE BAR (chrome: 'close', 1.5.0 wave 19; Josh 2026-10-06: "Let MIR about and GUI feature a simple x in the
+   corner instead of chips and make sure the window is easily draggable") ─────────────────────────────────────────────
+   A small window with nothing to dock carries no chip rail: a title bar inside the pane, its title on the left, a
+   slot for the window's own head buttons (`tools`) and a plain × in the corner.  THE WHOLE BAR IS THE GRIP: the house
+   gripGesture runs on it as it runs on a rail's grip, so the drag, its cancels, the raise and the clamp are the same
+   machinery.  The rail's side of that gesture is this stand-in: no element, no size, no seat. */
+const NO_RAIL = Object.freeze({ vertical: Object.freeze({ w: 0, h: 0 }), horizontal: Object.freeze({ w: 0, h: 0 }) });
+function titleBar(doc, root, title, onClose) {
+  const bar = doc.createElement('div'); bar.className = 'mir-win-head'; root.appendChild(bar);
+  const name = label(doc.createElement('div'), String(title)); name.className = 'mir-win-title'; bar.appendChild(name);
+  const tools = doc.createElement('div'); tools.className = 'mir-win-tools'; bar.appendChild(tools);
+  /* a press on a head button is that button's, never the grip's (the grip's drag would take its pointer) */
+  tools.addEventListener('pointerdown', (e) => { if (e.target !== tools) e.stopPropagation(); });
+  const x = doc.createElement('button'); x.type = 'button'; x.className = 'mir-win-btn mir-win-x'; x.dataset.glyph = 'close';
+  ariaLabel(x, 'Close window'); hint(x, 'Close window'); const g = glyphEl('close', 'gly gly-close'); if (g) x.appendChild(g);
+  x.addEventListener('click', onClose); tools.appendChild(x);
+  const rail = { el: null, grip: bar, chip: () => null, setChip() {}, state() {}, measure: () => null, sizes: () => NO_RAIL,
+    seat: () => Promise.resolve(true), setDock() {}, holding: () => false, destroy() {} };
+  return { bar, tools, close: x, rail };
+}
+
 const pressed = new WeakSet();
 function installOnce(doc) { if (pressed.has(doc)) return; pressed.add(doc); installPress({ selector: '.mir-chip', root: doc.defaultView }); }
 
@@ -232,9 +254,13 @@ export function gripGesture(rail, w) {
  *    stackAt(z, { railOffset }) for an app law with its own counter: the pane at z, its rail at z + railOffset (default
  *               railTier), so they never part — or the rail sits in the app's own tier above every window
  *    railTier   createWindow's default rail offset for stackAt (1: just above its pane; BASINS keeps its rails in a tier
- *               above every window, e.g. 1000000) */
+ *               above every window, e.g. 1000000)
+ *    chrome     'rail' (default): the chip rail beside the pane.  'close': no rail — a title bar inside the pane (the title,
+ *               the window's head buttons in `tools`, a plain × in the corner), the whole bar its grip, Escape closes it
+ *               while focus is in it (or on nothing, with it on top).  For a small window with nothing to dock (GUI, ABOUT);
+ *               `chips`, `dock`, `railGap` and the seat gestures do not apply.  → the api also carries `head` and `tools` */
 export function createWindow({ id, title = id, host, chips = [], body, panels, size = { w: 520, h: 360 }, min = { w: 240, h: 160 },
-  resizable = false, emptyDrag = false, dock = null, persist = null, material = null, railGap = RAIL.gap, railTier = 1, onMoved, onOpen, onClose } = {}) {
+  resizable = false, emptyDrag = false, dock = null, persist = null, material = null, railGap = RAIL.gap, railTier = 1, chrome = 'rail', onMoved, onOpen, onClose } = {}) {
   const doc = host.ownerDocument, view = doc.defaultView;
   installOnce(doc);
   const mk = (tag, cls, parent) => { const n = doc.createElement(tag); if (cls) n.className = cls; if (parent) parent.appendChild(n); return n; };
@@ -247,6 +273,8 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
   root.setAttribute('role', 'group');
   ariaLabel(root, String(title));   // no toUpperCase: it would upper-case a translation
   root.hidden = true;
+  const head = chrome === 'close' ? titleBar(doc, root, title, () => api.close()) : null;
+  if (head) { root.dataset.chrome = 'close'; dock = null; }
   const bodyEl = mk('div', 'mir-win-body', root);
   const fill = (target, b) => { const n = typeof b === 'function' ? b(target) : b; if (n && n.nodeType) target.appendChild(n); };
   const panelEls = new Map();
@@ -268,7 +296,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
   const shape = () => ({ x: P.x, y: P.y, w: P.w, h: P.h, open: P.open, dock: P.dock, chipSide: P.chipSide });
   const save = () => { if (persist && persist.write) persist.write(shape()); };
 
-  const rail = createRail({ id, title, chips, layer: host,
+  const rail = head ? head.rail : createRail({ id, title, chips, layer: host,
     seats: () => ['left', 'right', 'top', 'bottom'].map((side) => ({ id: side, rect: relocated(side).seat })),
     onChip(name, state, spec) {
       if (spec.kind === 'close') { api.close(); return; }
@@ -284,9 +312,10 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
     },
     onNudge(dx, dy) { if (P.dock || !box) return; P.x = box.left + dx; P.y = box.top + dy; layout({ animate: true }); save(); },
   });
-  host.appendChild(rail.el);
-  if (mat) rail.el.dataset.mirMaterial = String(mat);
+  if (rail.el) host.appendChild(rail.el);
+  if (mat && rail.el) rail.el.dataset.mirMaterial = String(mat);
   const pair = { root, rail: rail.el };
+  const shown = (on) => { root.hidden = !on; if (rail.el) rail.el.hidden = !on; };   // a title-bar window has no rail element
   const guide = dock ? createDockGuide({ layer: host, enabled: dock.guide || (() => true), window: id, cls: dock.guideClass || '' }) : null;
 
   /* ── THE ONE PLACE THAT PLACES IT ── */
@@ -312,7 +341,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
     /* an anchored window whose seat has gone, or is clipped away entirely, is not painted; otherwise it is cut to the clip */
     const clipTo = L.docked === 'anchor' && L.box && dock.anchor.clip ? dock.anchor.clip() : null;
     const out = L.away || (clipTo && (L.box.left >= clipTo.right || L.box.left + L.box.width <= clipTo.left || L.box.top >= clipTo.bottom || L.box.top + L.box.height <= clipTo.top));
-    setVar(root, 'visibility', out ? 'hidden' : null); setVar(rail.el, 'visibility', out ? 'hidden' : null);
+    setVar(root, 'visibility', out ? 'hidden' : null); if (rail.el) setVar(rail.el, 'visibility', out ? 'hidden' : null);
     setAttr(root, 'data-anchor', L.docked === 'anchor' ? (out ? 'away' : 'seated') : null);
     if (L.away) { if (onMoved) onMoved(null); return box; }
     setVar(root, 'clip-path', clipTo && !out ? `inset(${Math.max(0, clipTo.top - L.box.top)}px ${Math.max(0, L.box.left + L.box.width - clipTo.right)}px ${Math.max(0, L.box.top + L.box.height - clipTo.bottom)}px ${Math.max(0, clipTo.left - L.box.left)}px)` : null);
@@ -342,7 +371,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
     if (!Q.dock || !e.span) { const r = roomFor(windowLayout(Q, e).box, side, e.sizes, e.view, RAIL.pad, railGap); Q.x = r.left; Q.y = r.top; }
     return { Q, seat: windowLayout(Q, e).seat };
   }
-  function relocate(side) { Object.assign(P, relocated(side).Q); layout({ animate: true }); }
+  function relocate(side) { if (!rail.el) return; Object.assign(P, relocated(side).Q); layout({ animate: true }); }
 
   /* ── THE DRAG: the grip (and empty glass, handed to it) ── */
   const grip = gripGesture(rail, { P: () => P, box: () => box, moving: () => !!moving, still, layout, relocate, guide, save,
@@ -383,9 +412,16 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
   /* ── the raise, the viewport, the racks ── */
   const raise = () => raisePair(pair);
   root.addEventListener('pointerdown', raise, true);
-  rail.el.addEventListener('pointerdown', raise, true);
+  if (rail.el) rail.el.addEventListener('pointerdown', raise, true);
   const resized = () => layout();
   view.addEventListener('resize', resized, { passive: true });
+  /* a title-bar window closes on Escape: when focus is in it, or on nothing while it is the top open window */
+  const onEscape = (e) => {
+    if (e.key !== 'Escape' || e.defaultPrevented || !P.open) return;
+    const a = doc.activeElement, top = [...STACK].reverse().find((x) => !x.root.hidden);
+    if (root.contains(a) || ((!a || a === doc.body) && top === pair)) { e.preventDefault(); api.close(); }
+  };
+  if (head) view.addEventListener('keydown', onEscape);
   const unSpan = dock && dock.span.subscribe ? dock.span.subscribe(() => { if (P.dock && P.dock !== 'anchor') layout(); }) : null;
   /* an anchored window follows its seat: the host says when the seat moved (a scroll, a relayout of its owner) */
   const unSeat = dock && dock.anchor && typeof dock.anchor.subscribe === 'function' ? dock.anchor.subscribe(() => { if (P.dock === 'anchor' && !gripping()) layout(); }) : null;
@@ -402,13 +438,15 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
 
   const api = {
     root, body: bodyEl, rail, panels: panelEls,
+    /** head — the title bar (chrome: 'close'), or null; tools — its slot for the window's own head buttons, before the × */
+    head: head ? head.bar : null, tools: head ? head.tools : null,
     /** open() — measure and lay out once with nothing painted, then the entrance: window and rail together */
     open() {
       if (P.open) return;
       P.open = true;
-      root.hidden = rail.el.hidden = false; rail.measure(); layout(); root.hidden = rail.el.hidden = true;
+      shown(true); rail.measure(); layout(); shown(false);
       raise();
-      presence(root, true); presence(rail.el, true);
+      presence(root, true); if (rail.el) presence(rail.el, true);
       if (onOpen) onOpen(api);
       save();
     },
@@ -416,7 +454,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
       if (!P.open) return;
       gripDrag.cancel(); if (cornerDrag) cornerDrag.cancel(); if (guide) guide.cancel();
       P.open = false; moving = null;
-      presence(root, false); presence(rail.el, false);
+      presence(root, false); if (rail.el) presence(rail.el, false);
       if (onMoved) onMoved(null);
       if (onClose) onClose(api);
       save();
@@ -460,11 +498,11 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
     stackHeight: () => (box ? box.height : Math.min(P.h, view.innerHeight - CLAMP.inset)),
     /** stackAt(z) — the pane at z-index z and its rail just above it (an app's own stacking law; an app whose own windows
      *  are registered (registerWindow) needs none: raise() is one press order for all of them) */
-    stackAt(z, { railOffset = railTier } = {}) { const n = Math.round(+z) || 0; setVar(root, 'z-index', String(n)); setVar(rail.el, 'z-index', String(n + (Math.round(+railOffset) || 0))); },
+    stackAt(z, { railOffset = railTier } = {}) { const n = Math.round(+z) || 0; setVar(root, 'z-index', String(n)); if (rail.el) setVar(rail.el, 'z-index', String(n + (Math.round(+railOffset) || 0))); },
     state: shape,
     destroy() {
       dead = true; api.close(); gripDrag.destroy(); if (cornerDrag) cornerDrag.destroy(); if (guide) guide.destroy();
-      if (unSpan) unSpan(); if (typeof unSeat === 'function') unSeat(); view.removeEventListener('resize', resized);
+      if (unSpan) unSpan(); if (typeof unSeat === 'function') unSeat(); view.removeEventListener('resize', resized); view.removeEventListener('keydown', onEscape);
       const i = STACK.indexOf(pair); if (i >= 0) STACK.splice(i, 1);
       rail.destroy(); root.remove();
     },
@@ -473,6 +511,6 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
      and whatever the host builds right after the call (docs/WINDOWS.md) */
   let dead = false;
   if (wantOpen) queueMicrotask(() => { if (!dead && !P.open) api.open(); });
-  OWNER.set(root, api); OWNER.set(rail.el, api);
+  OWNER.set(root, api); if (rail.el) OWNER.set(rail.el, api);
   return api;
 }

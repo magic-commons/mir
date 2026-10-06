@@ -1,7 +1,8 @@
-/* MIR · shell/gui.js — the GUI window: MIR OPTIONS 1 · 2 and MIR ABOUT, behind one page turner.
+/* MIR · shell/gui.js — the GUI windows: MIR OPTIONS (three tabs: LOOK · LIGHT · WINDOWS) and MIR ABOUT (its own window,
+ * opened by the circled (i) in MIR OPTIONS' head).
  *
  * WHAT IT IS.  The menubar's GUI entry opens a floating kit window (mir/window/window.js).  MIR OPTIONS holds every LOOK
- * option an app on the kit has, on two pages; MIR ABOUT says what MIR is.  The look is a browser preference
+ * option an app on the kit has, in three tabs; MIR ABOUT says what MIR is.  The look is a browser preference
  * (core/prefs.js, one key, never in a project), so an app's own Settings keeps only its engine's options (ruling 7 of
  * the 1.5 plan).  A VANILLA THEME (shell/themes.js) is a named set of these options and nothing else: the SKIN stepper
  * steps through them and TONE, under it, through the theme's colours.
@@ -9,14 +10,16 @@
  * THE LAWS IT KEEPS
  *   · EVERY CONTROL IS A KIT CONTROL wearing the current look (knob, seg, sw, trig, readout from mir/kit.js), so the
  *     window is its own demonstration, the `‹ NAME ›` stepper (mir/controls/stepper.js, once built here) included;
- *     the page turner is the same stepper.
+ *     the tabs are a segment.
  *   · NO DEAD CONTROLS.  Each option drives a hook a kit sheet or kit module already reads (the table is LOOK_SCHEMA
  *     below and docs/GUI.md).  A control that is inert in the current combination says so (it is disabled).
  *   · HARVESTED FROM BASINS.  Where BASINS' Settings has the control (CONTROL FACES and BLEND, TEXT, SHADOW as an
  *     amount, BRIGHT · HUE · TINT, the ABOUT material) the kind, range, help text and formula are BASINS'
  *     (app/settings-window.js, app/skin.js; the formulas in core/look.js).
- *   · NOTHING SCROLLS.  Each page is laid out at its natural size and the window is placed to fit it; at phone width the
- *     OPTIONS groups split into sheets that the same page turner steps through sideways.
+ *   · THE HEAD NEVER MOVES (1.5.0 wave 19, the hand law).  Both windows have a title bar and a plain × (chrome: 'close');
+ *     the tab row sits fixed under MIR OPTIONS' title.  A tab changes only the body, which scrolls on its own; the
+ *     window is sized for its tallest tab, and a re-fit keeps its top-left.  A value never inserts a row above another
+ *     (HELP's prose keeps its seat, invisible, when HELP is off).
  *   · THE COST IS SHOWN.  QUALITY carries a reading of what the look costs (the panes that blur, the shadows and shine
  *     layers drawn, the frame time over 30 frames), taken only while the window is open on OPTIONS and only after a
  *     change; and each theme shows the reading taken when it was applied, beside its name.
@@ -24,7 +27,7 @@
  *
  * createGui({ host, prefs, app: { name, version }, about, accent, defaults, storageKey, inkSampler, tierBench, sampling,
  *             projectAccent, rack, forget }) →
- *   { root, prefs, open(page?), close(), toggle(page?), get page, turn(dir), moving(bool), dropGuides(), census(),
+ *   { root, window, about, prefs, open(page?), close(), toggle(page?), get page, get tab, turn(dir), moving(bool), dropGuides(), census(),
  *     applyTheme(id), applyTone(id), themeCost(id?), tier(), measureTier(force?), sampling(), destroy() }
  *   host       where the window goes (a fixed layer above the stage)
  *   prefs      a store from core/prefs.js made with LOOK_SCHEMA (default: one is made, key `storageKey` = 'mir.gui')
@@ -48,7 +51,8 @@
  *
  * 1.5.0-alpha.12 (BASINS' missing rows): STATUS TAGS, FORGET, TRANSPORT BAR, ACCENT BRIGHTNESS, SAMPLING (SCRUB ·
  * AUTOMATION), QUALITY · AUTO with the device tier, the first-run blur by device, body.touch-tablet. */
-import { el, knob, seg, sw, trig, readout, label, ariaLabel } from '../kit.js';
+import { el, knob, seg, sw, trig, readout, label, ariaLabel, hint } from '../kit.js';
+import { glyphEl } from '../glyph.js';
 import { phrase, t } from '../core/i18n.js';
 import { stepper } from '../controls/stepper.js';
 import { arcKnob } from '../controls/arc.js';
@@ -56,7 +60,7 @@ import { createWindow } from '../window/window.js';
 import { createPrefs, forgetPrefs } from '../core/prefs.js';
 import { setMotionPolicy } from '../core/motion.js';
 import { frame } from '../core/frame.js';
-import { setText } from '../core/perf.js';
+import { setText, setAttr } from '../core/perf.js';
 import { registerProjectPart } from '../core/project.js';
 import { glassTint as lookTint, glassVeil, autoInk, solidRelief, spacingPx, DEVICE_BLUR, TIER_LAW, classifyTier, qualityOfTier, isIPad, TOUCH_TABLET_MQ } from '../core/look.js';
 import { createAccent, accentPart } from './accent.js';
@@ -305,11 +309,14 @@ export function touchTablet(doc = globalThis.document, signal) {
   return sync;
 }
 
-/* the narrow layout: the OPTIONS groups as sheets, stepped sideways by the page turner; page 2's groups are sheet 5 */
+/* THE TABS (1.5.0 wave 19; Josh 2026-10-06: the options window must "not change positions of the top bar when cycling
+   through the different pages … a scroll/tab system").  Three tabs, so a SEGMENT (docs/CONTROLS.md: ≤ 4 a segment, 5 or
+   more a row of chips), in one fixed row under the title.  Every group lives in one tab at every width; the narrow
+   layout is the same tabs, one column, the body scrolling. */
+export const GUI_TABS = Object.freeze([{ id: 'look', label: phrase('LOOK') }, { id: 'light', label: phrase('LIGHT', 'light source') }, { id: 'windows', label: phrase('WINDOWS') }]);   // tr[LOOK]: the tab of the look options (theme, accent, text, quality, material, controls, motion)
+const TAB_OF = { theme: 'look', accent: 'look', material: 'look', controls: 'look', text: 'look', quality: 'look', motion: 'look', light: 'light', windows: 'windows', sampling: 'windows' };
 const NARROW = '(max-width: 720px)';
-const SHEETS = { theme: 1, accent: 1, material: 2, controls: 3, text: 3, quality: 3, motion: 4, light: 5, windows: 5, sampling: 5 };
-const PAGE_OF = { theme: 1, accent: 1, material: 1, controls: 1, text: 1, quality: 1, motion: 1, light: 2, windows: 2, sampling: 2 };
-const SHEET_COUNT = 5;
+const TAB_KEY = 'mir.gui.tab';                                       // the tab this device last showed (a device setting, never in a project)
 const ACCENT_KEYS = ['accentA', 'accentB', 'vivid', 'accentBright'];
 
 /** forgetLook(prefs, keys, storage?) — FORGET: the look store's own key is wiped (every option home), then each key the app listed */
@@ -358,13 +365,12 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   const applyTone = (id) => { const t = P.preset(), v = t !== 'custom' && toneValues(t, id); return v ? P.set(v) : []; };
   const costs = {};                                                  // theme id → { blur, shadow, shine, ms }
 
-  /* ── OPTIONS: two pages of groups ── */
+  /* ── OPTIONS: one grid of groups per tab ── */
   const controls = new Map();                                        // option key → { set(v) } so the window follows the store
   const bind = (key, c, toUi = (v) => v) => { controls.set(key, { c, set: (v) => c.set(toUi(v)) }); return c; };
   const opts = el('div', 'gui-page gui-options');
-  const grids = { 1: el('div', 'gui-grid', opts), 2: el('div', 'gui-grid', opts) };
-  grids[1].dataset.page = '1'; grids[2].dataset.page = '2';
-  const groupEl = (id, title) => { const g = el('section', 'gui-grp', grids[PAGE_OF[id]]); g.dataset.group = id; g.dataset.light = ''; g.dataset.sheet = String(SHEETS[id]); label(el('h3', 'gui-grp-lbl', g), title); return g; };
+  const grids = Object.fromEntries(GUI_TABS.map((t) => { const g = el('div', 'gui-grid', opts); g.dataset.tab = t.id; g.setAttribute('role', 'tabpanel'); return [t.id, g]; }));
+  const groupEl = (id, title) => { const g = el('section', 'gui-grp', grids[TAB_OF[id]]); g.dataset.group = id; g.dataset.light = ''; label(el('h3', 'gui-grp-lbl', g), title); return g; };
   const line = (g, cls = '') => el('div', 'gui-line' + (cls ? ' ' + cls : ''), g);
   const segOf = (key, label, options) => bind(key, seg({ label, options: options.map(([id, l, title]) => ({ id, label: l, title })), value: P.get(key), onChange: (v) => P.set(key, v) }));
   const swOf = (key, label, title) => bind(key, sw({ label, title, value: P.get(key), onChange: (v) => P.set(key, v) }));
@@ -464,7 +470,7 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
     Object.assign(el('div', 'sw'), { ariaHidden: 'true' }));         // an empty, invisible seat, so DROP GUIDES is as wide as the two above
   g.lastElementChild.lastElementChild.style.visibility = 'hidden';
 
-  /* ── page 2 ── */
+  /* ── the LIGHT and WINDOWS tabs ── */
   /* LIGHT — one light: where it is, the shadow it casts, the shine across from it */
   g = groupEl('light', phrase('LIGHT', 'light source'));
   const kAngle = knobOf('lightAngle', phrase('ANGLE'), { min: 0, max: 360, wrap: true, fmt: deg, arc: true, aria: 'LIGHT ANGLE', title: '{:LIGHT ANGLE} — where the light is, clockwise from above: shadows fall away from it, the shine sits toward it, the controls’ relief turns with it' });
@@ -549,49 +555,64 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   }, on);
   logo.addEventListener('pointerleave', () => { for (const a of turning) a.cancel(); turning = []; }, on);
 
-  /* ── the window, the page turner ── */
-  const head = el('div', 'gui-head');
-  let narrow = !!(win.matchMedia && win.matchMedia(NARROW).matches), page = 'options', optPage = 1, sheet = 1;
-  const pages = () => (narrow ? [...Array.from({ length: SHEET_COUNT }, (_, i) => ({ id: 'options:' + (i + 1), label: phrase('MIR OPTIONS {page}/{of}'), vars: { page: i + 1, of: SHEET_COUNT } })), { id: 'about', label: 'MIR ABOUT' }]
-    : [{ id: 'options:1', label: 'MIR OPTIONS 1' }, { id: 'options:2', label: 'MIR OPTIONS 2' }, { id: 'about', label: 'MIR ABOUT' }]);
-  const pageId = () => (page === 'about' ? 'about' : 'options:' + (narrow ? sheet : optPage));
-  const turner = stepper({ cls: 'gui-turner', aria: 'page', pager: true, items: pages(), value: pageId(), onChange: (id) => show(id) });
-  head.append(turner.root);
+  /* ── THE TWO WINDOWS (1.5.0 wave 19): MIR OPTIONS, its tabs in a fixed row under the title and a circled (i) in its head;
+     MIR ABOUT, a window of its own.  Both carry a title bar and a plain × (createWindow chrome: 'close'), no chip rail:
+     the whole bar drags, Escape closes.  THE HAND LAW: the head and the tab row never move — a tab changes only the body,
+     which scrolls on its own; the window is sized once for its tallest tab (the tabs share one grid cell, the hidden ones
+     invisible), and after its first placement a re-fit keeps its top-left where the hand left it. ── */
+  let narrow = !!(win.matchMedia && win.matchMedia(NARROW).matches);
+  const keptTab = (() => { try { return win.localStorage.getItem(TAB_KEY); } catch (_) { return null; } })();
+  let tab = GUI_TABS.some((x) => x.id === keptTab) ? keptTab : GUI_TABS[0].id;
+  const tabs = seg({ aria: 'page', options: GUI_TABS, value: tab, onChange: (id) => show(id) });
+  tabs.root.classList.add('gui-tabs');
+  const tabRow = el('div', 'gui-tabbar'); tabRow.append(tabs.root);
 
-  const W = createWindow({ id: 'gui', title: 'GUI', host, size: { w: 920, h: 520 }, min: { w: 280, h: 200 }, emptyDrag: true,
-    panels: [{ name: 'options', body: (p) => p.append(opts) }, { name: 'about', body: (p) => p.append(ab) }] });
+  const W = createWindow({ id: 'gui', title: 'MIR OPTIONS', host, chrome: 'close', size: { w: 920, h: 520 }, min: { w: 280, h: 200 }, emptyDrag: true, body: opts });
   W.root.classList.add('mir-gui');
-  ariaLabel(W.root, 'GUI — MIR OPTIONS and MIR ABOUT');
-  W.body.prepend(head);                                             // the turner sits above both pages
-  for (const c of W.rail.el.querySelectorAll('.mir-chip')) c.dataset.light = '';   // the window's own chips catch the light too
+  W.head.after(tabRow);                                             // under the title, above the scrolling body
+  const aboutBtn = el('button', 'mir-win-btn gui-about-btn'); aboutBtn.type = 'button'; aboutBtn.dataset.glyph = 'info';
+  const ig = glyphEl('info', 'gly gly-info'); if (ig) aboutBtn.append(ig);
+  ariaLabel(aboutBtn, 'MIR ABOUT'); hint(aboutBtn, 'MIR ABOUT');
+  W.tools.prepend(aboutBtn);                                        // the circled (i), beside the ×
 
-  /** fit — place the window to its page's natural size, so nothing scrolls (one layout read) */
-  function fit() {
-    if (!W.isOpen()) return;
-    const cs = getComputedStyle(W.body);
+  const A = createWindow({ id: 'gui-about', title: 'MIR ABOUT', host, chrome: 'close', size: { w: 480, h: 560 }, min: { w: 280, h: 200 }, emptyDrag: true, body: ab });
+  A.root.classList.add('mir-gui', 'mir-gui-about');
+  const openAbout = () => { if (!A.isOpen()) A.open(); A.raise(); showLogo(); fitTo(A, ab); };
+  aboutBtn.addEventListener('click', openAbout, on);
+
+  /** fitTo(w, content) — the window to its content's natural size (one layout read), capped by the screen; centred the
+   *  first time, and after that its top-left stays where it is (kept on the screen).  On a phone the options window is
+   *  the screen's height whatever the tab, so a tab never changes its size there either. */
+  const placed = new WeakSet();
+  function fitTo(w, content) {
+    if (!w.isOpen()) return;
+    const cs = getComputedStyle(w.body), edge = 2;
     const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight), padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-    const pg = page === 'about' ? ab : opts, wide = page === 'about' ? ab : grids[optPage], edge = 2;
-    const w = Math.ceil(Math.max(wide.offsetWidth, turner.root.scrollWidth) + padX + edge), h = Math.ceil(head.offsetHeight + pg.scrollHeight + padY + edge);
-    const vw = win.innerWidth, vh = win.innerHeight, r = W.rect();
-    const cw = Math.min(w, vw - 16), ch = Math.min(h, vh - 16);
-    const cx = r ? r.left + r.width / 2 : vw / 2, cy = r ? r.top + r.height / 2 : vh / 2;
-    W.place({ left: Math.round(Math.max(8, Math.min(vw - cw - 8, cx - cw / 2))), top: Math.round(Math.max(8, Math.min(vh - ch - 8, cy - ch / 2))), width: cw, height: ch });
+    const over = (w.head ? w.head.offsetHeight : 0) + (w === W ? tabRow.offsetHeight : 0);
+    const vw = win.innerWidth, vh = win.innerHeight, r = w.rect();
+    /* on a phone the menubar is always shown (menubar.js publishes its foot as --menubar-bottom): the windows start under it */
+    const floor = 8 + (parseFloat(getComputedStyle(doc.documentElement).getPropertyValue('--menubar-bottom')) || 0);
+    const cw = Math.min(Math.ceil(Math.max(content.offsetWidth, w === W ? tabs.root.scrollWidth : 0) + padX + edge), vw - 16);
+    const ch = w === W && narrow ? vh - floor - 8 : Math.min(Math.ceil(over + content.scrollHeight + padY + edge), vh - floor - 8);
+    const keep = r && placed.has(w);
+    const left = keep ? r.left : (vw - cw) / 2, top = keep ? r.top : (vh - ch) / 2;
+    w.place({ left: Math.round(Math.max(8, Math.min(vw - cw - 8, left))), top: Math.round(Math.max(floor, Math.min(vh - ch - 8, top))), width: cw, height: ch });
+    placed.add(w);
   }
+  const fit = () => { fitTo(W, opts); fitTo(A, ab); };
+  /** show(id) — a tab: only the body changes (no fit, no place: the head and the tab row stay where they are) */
   function show(id) {
-    page = id === 'about' ? 'about' : 'options';
-    if (id.startsWith('options')) { const n = +id.split(':')[1] || 1; if (narrow) sheet = Math.min(SHEET_COUNT, n); else optPage = Math.min(2, n); }
-    if (narrow) optPage = sheet === SHEET_COUNT ? 2 : 1;
-    opts.dataset.sheet = narrow ? String(sheet) : ''; opts.dataset.page = String(optPage);
-    W.tab(page);
-    turner.setItems(pages(), pageId());
-    if (page === 'about') showLogo();
-    fit();
-    if (page === 'options') { const t = P.preset(); if (t !== 'custom' && !costs[t] && costFor === null) costFor = t; measureCost(); }   // the theme in use is costed the first time OPTIONS shows
+    if (!grids[id]) return;
+    if (id !== opts.dataset.tab) W.body.scrollTop = 0;                // a new tab starts at its top
+    tab = id; opts.dataset.tab = id; tabs.set(id);
+    for (const t of GUI_TABS) setAttr(grids[t.id], 'aria-hidden', t.id === id ? null : 'true');
+    try { win.localStorage.setItem(TAB_KEY, id); } catch (_) {}
+    const t = P.preset(); if (t !== 'custom' && !costs[t] && costFor === null) costFor = t; measureCost();   // the theme in use is costed the first time OPTIONS shows
   }
-  const onNarrow = (e) => { narrow = e.matches; if (narrow) sheet = optPage === 2 ? SHEET_COUNT : 1; show(page === 'about' ? 'about' : 'options:' + (narrow ? sheet : optPage)); };
+  const onNarrow = (e) => { narrow = e.matches; fit(); };
   const mqNarrow = win.matchMedia ? win.matchMedia(NARROW) : null;
   if (mqNarrow && mqNarrow.addEventListener) mqNarrow.addEventListener('change', onNarrow, on);
-  opts.dataset.sheet = narrow ? '1' : ''; opts.dataset.page = '1';
+  show(tab);
 
   /* ── the cost: once after a change, while OPTIONS is showing (and once after a theme is applied, window open or not) ── */
   let costRun = 0;
@@ -604,7 +625,7 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
     else label(costNote, '{blur} {:BLUR} · {shadow} {:SHADOW} · {shine} {:SHINE}', { blur: c.blur, shadow: c.shadow, shine: c.shine });
   };
   function measureCost(force) {
-    if (!force && !(W.isOpen() && page === 'options')) return;
+    if (!force && !W.isOpen()) return;
     const run = ++costRun, theme = costFor; costFor = null;
     frame.coalesce('gui:cost', () => {
       requestAnimationFrame(() => {                                 // after the change has been styled and painted
@@ -638,7 +659,7 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
     kBlend.setDisabled(state.faces !== 'solid');                      // BLEND moves SOLID faces toward glass (BASINS)
     kShine.setDisabled(state.quality === 'light'); kShineSoft.setDisabled(!state.shine || state.quality === 'light');
     kDist.setDisabled(!lit && !state.shine); kSoft.setDisabled(!lit);
-    if (changed.includes('theme') && page === 'about') showLogo();
+    if (changed.includes('theme') && A.isOpen()) showLogo();
     if (changed.length) { fit(); measureCost(costFor !== null); }
   }
   const unsub = P.subscribe(sync);
@@ -646,13 +667,24 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   wantTier();
 
   return {
-    root: W.root, window: W, prefs: P,
-    /** open(page) — 'options' (default), 'options:2' or 'about' */
-    open(p) { const first = !W.isOpen(); if (first) W.open(); show(p === 'about' ? 'about' : p === 'options:2' ? (narrow ? 'options:' + SHEET_COUNT : 'options:2') : 'options:' + (narrow ? sheet : optPage)); },
-    close() { W.close(); },
-    toggle(p) { if (W.isOpen() && (!p || p === page)) W.close(); else this.open(p); },
-    get page() { return page; },
-    turn(d) { turner.step(d); },
+    root: W.root, window: W, about: A, prefs: P,
+    /** open(p) — 'options' (default: the tab last shown), a tab ('look' · 'light' · 'windows'; 'options:1' is LOOK and
+     *  'options:2' LIGHT, the old page names), or 'about' (the MIR ABOUT window) */
+    open(p) {
+      if (p === 'about') { openAbout(); return; }
+      const id = p === 'options:1' ? 'look' : p === 'options:2' ? 'light' : grids[p] ? p : null;
+      if (!W.isOpen()) { W.open(); fitTo(W, opts); }
+      W.raise();
+      show(id || tab);
+    },
+    /** close() — both windows */
+    close() { W.close(); A.close(); },
+    toggle(p) { const w = p === 'about' ? A : W; if (w.isOpen() && (!p || p === 'about' || p === 'options' || p === tab)) w.close(); else this.open(p); },
+    /** page — 'about' while only MIR ABOUT is open, else 'options'; tab — the tab MIR OPTIONS shows */
+    get page() { return A.isOpen() && !W.isOpen() ? 'about' : 'options'; },
+    get tab() { return tab; },
+    /** turn(±1) — the next or previous tab, wrapping */
+    turn(d) { const i = GUI_TABS.findIndex((x) => x.id === tab), n = GUI_TABS.length; show(GUI_TABS[(((i + Math.sign(d || 1)) % n) + n) % n].id); },
     /** moving(b) — the app's picture is moving (FROST · STILL holds the frost while it does) */
     moving(b) { ctx.moving = !!b; P.apply(); },
     dropGuides: () => P.get('dropGuides'),
@@ -669,6 +701,6 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
     /** sampling() → { scrub, grid }: the SCRUB level (for createTransportController({ scrubLevel })) and the automation
      *  grid in beats (0 = every frame) for the modulation host at install */
     sampling: () => ({ scrub: P.get('scrub'), grid: AUTOMATION_GRID[P.get('automation')] || 0 }),
-    destroy() { unsub(); life.abort(); costRun++; frame.cancel('gui:cost'); if (tierTimer) win.clearTimeout(tierTimer); if (unpart) unpart(); light.destroy(); plx.destroy(); W.destroy(); if (!prefs) P.destroy(); },
+    destroy() { unsub(); life.abort(); costRun++; frame.cancel('gui:cost'); if (tierTimer) win.clearTimeout(tierTimer); if (unpart) unpart(); light.destroy(); plx.destroy(); W.destroy(); A.destroy(); if (!prefs) P.destroy(); },
   };
 }

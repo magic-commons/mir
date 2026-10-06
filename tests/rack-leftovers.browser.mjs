@@ -43,6 +43,13 @@ try {
   check('scrollbar: the right rack overflows and its bar stands at the gutter\'s inner edge, beside the cards; the native bar is off',
     r.shown && r.overflow > 0 && Math.abs(r.left - r.want) < 0.5 && r.cardLeft - (r.left + 12) >= 0 && r.cardLeft - (r.left + 12) < 12 && r.native === 'none', JSON.stringify(r));
   check('scrollbar: a rack with nothing to scroll has none', !r.leftShown && r.leftOverflow <= 0, JSON.stringify(r));
+  /* ONE BAR, 2 PX (wave 19, Josh on the iPad): the native bar is off (above), the kit's thumb is 2 px and its 12-px track
+     paints nothing; and with a fine pointer the column still lets a press through to the picture */
+  r = await run(`const b = ${bar('right')}, t = b.querySelector('.rack-scrollbar-thumb'), cs = getComputedStyle(b), tb = t.getBoundingClientRect(), bb = b.getBoundingClientRect();
+    return { thumbW: tb.width, trackW: bb.width, trackBg: cs.backgroundColor, trackImg: cs.backgroundImage, border: cs.borderLeftWidth, centred: Math.abs((tb.left + tb.width / 2) - (bb.left + bb.width / 2)) < 0.6,
+      pe: getComputedStyle(document.getElementById('rack')).pointerEvents, coarse: matchMedia('(pointer: coarse)').matches };`);
+  check('scrollbar: one bar, 2 px — the thumb is 2 px wide in the middle of a 12-px track that paints nothing; a fine pointer\'s rack column is pointer-transparent',
+    r.thumbW === 2 && r.trackW === 12 && r.centred && r.trackBg === 'rgba(0, 0, 0, 0)' && r.trackImg === 'none' && r.border === '0px' && r.pe === 'none' && !r.coarse, JSON.stringify(r));
 
   const th = await hit(`${bar('right')}.querySelector('.rack-scrollbar-thumb')`);
   const before = await run(`return { top: document.getElementById('rack').scrollTop, max: document.getElementById('rack').scrollHeight - document.getElementById('rack').clientHeight };`);
@@ -98,7 +105,15 @@ try {
     return { coarse, right: b.right, bottom: b.bottom, left: b.left, top: b.top, vw: innerWidth, vh: innerHeight };`);
   check('tablet clamp: on a coarse pointer wider than 700 px a float is kept wholly inside the viewport, 8 px in',
     r.coarse ? (r.right <= r.vw - 8 + 0.5 && r.bottom <= r.vh - 8 + 0.5 && r.left >= 8 && r.top >= 8) : false, JSON.stringify(r));
+  /* A FINGER SCROLLS THE RACK (wave 19; Safari will not touch-scroll a scroller whose own pointer-events is none): on a
+     touch tablet (body.touch-tablet, the GUI's class) and on a coarse pointer the column takes the pointer itself */
+  r = await run(`const pe = () => getComputedStyle(document.getElementById('rack')).pointerEvents, coarse = matchMedia('(pointer: coarse)').matches, onCoarse = pe();
+    document.body.classList.add('touch-tablet'); const onTablet = pe(); document.body.classList.remove('touch-tablet'); return { coarse, onCoarse, onTablet };`);
+  check('touch: the rack column takes the pointer under a coarse pointer and on body.touch-tablet (so Safari scrolls it by touch)', r.coarse && r.onCoarse === 'auto' && r.onTablet === 'auto', JSON.stringify(r));
   await p.send('Emulation.setTouchEmulationEnabled', { enabled: false });
+  await sleep(150);
+  r = await run(`document.body.classList.add('touch-tablet'); const pe = getComputedStyle(document.getElementById('rack')).pointerEvents; document.body.classList.remove('touch-tablet'); return { pe, coarse: matchMedia('(pointer: coarse)').matches };`);
+  check('touch: body.touch-tablet alone (a fine pointer) also makes the column take the pointer', !r.coarse && r.pe === 'auto', JSON.stringify(r));
 } finally {
   await p.close();
 }

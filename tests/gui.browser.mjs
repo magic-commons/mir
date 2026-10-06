@@ -1,8 +1,10 @@
 /* gui.browser.mjs — the GUI window under a real browser (tests/fixtures/gui.html), with real input through CDP.
  * GUI opens from the menubar; every control on MIR OPTIONS is hit-tested with elementFromPoint, pressed or dragged
  * with the real mouse, and then (one assertion per option — the "no dead controls" proof) the hook it claims is
- * written AND the computed style of a specimen changes with it; a reload keeps the choices; the page turner shows
- * ABOUT and back; no panel scrolls at 1280×720 or at 390×844 (every page, every sheet); the pointer glow follows the
+ * written AND the computed style of a specimen changes with it; a reload keeps the choices; THE HAND LAW (wave 19): the
+ * head, the ×, the (i) and the tab row keep one rect on every tab, HELP inserts no row, the title bar drags, the (i)
+ * opens MIR ABOUT as its own window, the × and Escape close; at 390×844 the tabs keep the head and nothing runs
+ * sideways; the pointer glow follows the
  * pointer on a `data-light` surface and writes nothing while the pointer is still; glow and parallax are off under
  * reduced motion, in the flat tier and on a coarse pointer.
  * Standalone: MIR_BASE=http://127.0.0.1:8797 node tests/gui.browser.mjs */
@@ -152,11 +154,12 @@ try {
   r = await J(`await wait(900); return { blur: ${grp('quality')}.querySelectorAll('.ro-val')[0].textContent, frame: ${grp('quality')}.querySelectorAll('.ro-val')[2].textContent };`);
   check('QUALITY shows what the look costs: blurred surfaces and a measured frame time', /^\d+$/.test(r.blur) && /ms$/.test(r.frame), JSON.stringify(r));
 
-  /* ── MIR OPTIONS 2: the light, the windows ── */
-  const pageNext = `document.querySelector('.mir-gui .gui-turner .mir-step-b[data-step="1"]')`;
-  const p2 = await click(pageNext, 'turner › (OPTIONS 2)'); await sleep(400);
-  r = await J(`return [G.page, G.root.querySelector('.gui-turner .mir-step-name').textContent, !!${grp('light')}.getClientRects().length];`);
-  check('the page turner shows MIR OPTIONS 2 (the light and the windows)', p2 && r[0] === 'options' && r[1] === 'MIR OPTIONS 2' && r[2], JSON.stringify(r));
+  /* ── the LIGHT tab, then the WINDOWS tab ── */
+  const tabB = (i) => `document.querySelectorAll('.mir-gui .gui-tabs .seg-b')[${i}]`;
+  const shownGrp = (g) => `getComputedStyle(${grp(g)}).visibility === 'visible'`;
+  const p2 = await click(tabB(1), 'tab LIGHT'); await sleep(200);
+  r = await J(`return [G.tab, ${tabB(1)}.classList.contains('on'), ${shownGrp('light')}, ${shownGrp('theme')}];`);
+  check('the LIGHT tab shows the light (a real click, hit-tested) and the LOOK groups stand down', p2 && r[0] === 'light' && r[1] && r[2] && !r[3], JSON.stringify(r));
   await option('LIGHT ANGLE (an arc)', () => dragUp(dial('light', 0), 'LIGHT ANGLE', 50), `[hv('--light-angle') !== '', document.documentElement.hasAttribute('data-cast')]`, [true, true], `cs('#pane', 'box-shadow')`);
   await option('SHADOW (0–200 %)', () => dragUp(dial('light', 1), 'SHADOW', 40), `[P.get('shadow') > 1, hv('--shadow-amount') === String(P.get('shadow'))]`, [true, true], `cs('#pane', 'box-shadow')`);
   await option('DISTANCE', () => dragUp(dial('light', 2), 'DISTANCE', 40), `hv('--shadow-dist') === P.get('shadowDist') + 'px'`, true, `cs('#pane', 'box-shadow')`);
@@ -166,11 +169,12 @@ try {
   await J(`P.set('relief', 'default'); return 0;`); await sleep(150);   /* the relief back on (FLAT was proved on page 1), so RELIEF ANGLE has a raise to turn */
   await option('RELIEF ANGLE (an arc)', () => dragUp(dial('light', 6), 'RELIEF ANGLE', 50), `[P.get('reliefAngle') !== 315, hv('--relief-angle') === P.get('reliefAngle') + 'deg']`, [true, true], `cs('#knob .k-dial', 'box-shadow')`);
   await option('LINK (the relief takes LIGHT ANGLE)', () => click(swB('light', 0), 'LINK'), `[P.get('reliefLink'), hv('--relief-angle') === (P.get('lightAngle') === 315 ? '' : P.get('lightAngle') + 'deg')]`, [true, true], `cs('#knob .k-dial', 'box-shadow')`);
+  await click(tabB(2), 'tab WINDOWS'); await sleep(200);
   await option('EDGE off', () => click(swB('windows', 1), 'EDGE'), `bv('--pane-edge')`, 'transparent', `cs('#pane', 'border-top-color')`);
   await option('SPACING tight', () => click(segB('windows', 0, 1), 'SPACING TIGHT'), `[P.get('spacing'), hv('--rack-gap'), hv('--pane-pad'), hv('--rail-gap')]`, ['tight', '3px', '6px', '2px'], `cs('#strip .dev > .dev-body', 'padding-top')`);
   await option('DROP SHADOW off', () => click(swB('windows', 0), 'DROP SHADOW'), `bv('--surface-shadow')`, '0 0 0 0 transparent', `cs('#pane', 'box-shadow')`);
   await option('DISCONNECTED on', () => click(swB('windows', 2), 'DISCONNECTED'), `document.body.classList.contains('disconnected')`, true, `cs('.dev', 'visibility')`);
-  await click(pageNext, 'turner › (ABOUT)'); await sleep(300); await click(pageNext, 'turner › (OPTIONS 1)'); await sleep(300);
+  await click(tabB(0), 'tab LOOK'); await sleep(200);
 
   /* ── SKIN: the sets, and CUSTOM ── */
   r = await J(`return { preset: P.preset(), name: ${grp('theme')}.querySelector('.gui-skin .mir-step-name').textContent };`);
@@ -185,22 +189,55 @@ try {
   r = await J(`return { preset: P.preset(), tone: ${grp('theme')}.querySelector('.gui-tone .mir-step-name').textContent, theme: document.body.dataset.theme, card: document.body.dataset.card, frost: document.body.classList.contains('frost'), guides: P.get('dropGuides'), hints: document.body.classList.contains('control-hints-off') };`);
   check('a reload keeps the choices, the theme and its tone (one localStorage key, applied before the first paint)', r.preset === 'frost' && r.tone === 'CLEAR' && r.theme === 'light' && r.card === 'refractive' && r.frost && r.guides === false && r.hints, JSON.stringify(r));
 
-  /* ── the page turner, and nothing scrolls ── */
+  /* ── THE HAND LAW (wave 19): the head, the × and the tab row never move; only the body changes ── */
   await p.eval(`__T.gui.open('options')`); await sleep(500);
-  const overflow = async () => J(`const over = []; const all = [G.window.body, ...G.window.body.querySelectorAll('.mir-win-panel:not([hidden]), .gui-grp, .gui-page')];
-    for (const n of all) { if (!n.getClientRects().length) continue; if (n.scrollHeight > n.clientHeight + 0.5 || n.scrollWidth > n.clientWidth + 0.5) over.push((n.className || n.tagName) + ' ' + n.scrollWidth + '×' + n.scrollHeight + ' in ' + n.clientWidth + '×' + n.clientHeight); }
-    const r = G.root.getBoundingClientRect(); if (r.right > innerWidth || r.bottom > innerHeight || r.left < 0 || r.top < 0) over.push('the window leaves the screen');
-    return { page: G.page, name: G.root.querySelector('.gui-turner .mir-step-name').textContent, over };`);
-  const pages1280 = [await overflow()];
-  const next = `document.querySelector('.mir-gui .gui-turner .mir-step-b[data-step="1"]')`, prev = `document.querySelector('.mir-gui .gui-turner .mir-step-b[data-step="-1"]')`;
-  const tHit = await click(next, 'turner ›'); await sleep(400);
-  pages1280.push(await overflow());
-  await click(next, 'turner ›'); await sleep(400);
-  pages1280.push(await overflow());
-  const back = await click(prev, 'turner ‹'); await sleep(400); await click(prev, 'turner ‹'); await sleep(400);
-  r = await J(`return G.root.querySelector('.gui-turner .mir-step-name').textContent;`);
-  check('the page turner: › MIR OPTIONS 2, › MIR ABOUT, ‹ ‹ back to MIR OPTIONS 1 (real clicks, hit-tested)', tHit && back && pages1280.map((x) => x.name).join() === 'MIR OPTIONS 1,MIR OPTIONS 2,MIR ABOUT' && r === 'MIR OPTIONS 1', pages1280.map((x) => x.name).join(' → ') + ' → ' + r);
-  check('nothing scrolls at 1280×720: every panel, group and page fits (scrollHeight ≤ clientHeight)', pages1280.every((x) => !x.over.length), JSON.stringify(pages1280.flatMap((x) => x.over)));
+  const headAt = () => J(`const q = (n) => { const b = n.getBoundingClientRect(); return [b.left, b.top, b.width, b.height].map((v) => Math.round(v * 10) / 10).join(); };
+    const r = G.root.getBoundingClientRect(), b = G.window.body, over = [];
+    if (r.right > innerWidth || r.bottom > innerHeight || r.left < 0 || r.top < 0) over.push('the window leaves the screen');
+    if (b.scrollWidth > b.clientWidth + 0.5) over.push('the body runs sideways ' + b.scrollWidth + ' in ' + b.clientWidth);
+    return { tab: G.tab, head: q(G.window.head), tabs: q(G.root.querySelector('.gui-tabbar')), x: q(G.window.head.querySelector('.mir-win-x')), i: q(G.window.head.querySelector('.gui-about-btn')), win: q(G.root), rail: !!document.querySelector('[data-mir-rail="gui"]'), over };`);
+  const seenTabs = [await headAt()];
+  for (const i of [1, 2, 0, 2, 0]) { await click(tabB(i), 'tab ' + i); await sleep(250); seenTabs.push(await headAt()); }
+  const same = (k) => seenTabs.every((s) => s[k] === seenTabs[0][k]);
+  check('the hand law: the head, the ×, the (i), the tab row and the window keep one rect on every tab (real clicks: LOOK → LIGHT → WINDOWS → LOOK → WINDOWS → LOOK)',
+    seenTabs.map((s) => s.tab).join() === 'look,light,windows,look,windows,look' && ['head', 'tabs', 'x', 'i', 'win'].every(same), JSON.stringify(seenTabs.map((s) => [s.tab, s.head, s.tabs, s.win])));
+  check('MIR OPTIONS has no chip rail, stays on the screen at 1280×720 and never runs sideways (the body scrolls down when it must)', seenTabs.every((s) => !s.rail && !s.over.length), JSON.stringify(seenTabs.flatMap((s) => s.over)));
+  /* a switch inserts no row: HELP shows and hides its prose in the seat it always has */
+  const rowsAt = () => J(`return [...G.root.querySelectorAll('.gui-grid[data-tab="look"] .gui-grp')].map((g) => { const b = g.getBoundingClientRect(); return g.dataset.group + ':' + Math.round(b.left) + ',' + Math.round(b.top) + ',' + Math.round(b.height); }).join(' ') + ' | ' + JSON.stringify(G.window.rect());`);
+  const rows0 = await rowsAt(); const hOn = await click(swB('text', 1), 'HELP on'); await sleep(300); const rows1 = await rowsAt(); await click(swB('text', 1), 'HELP off'); await sleep(300); const rows2 = await rowsAt();
+  check('a switch inserts no row: HELP on, then off, leaves every LOOK group and the window where they were', hOn && rows0 === rows1 && rows1 === rows2, rows0 === rows1 ? '' : rows0 + ' → ' + rows1);
+  /* the whole title bar drags the window (the house grip gesture), and a tab after the drag leaves it where the hand put it */
+  const w0 = await J(`return G.window.rect();`);
+  const hs = await J(`const b = G.window.head.querySelector('.mir-win-title').getBoundingClientRect(), x = Math.round(b.left + 24), y = Math.round(b.top + b.height / 2), h = document.elementFromPoint(x, y); return { x, y, hit: !!h && G.window.head.contains(h) };`);
+  await mouse('mouseMoved', hs.x, hs.y); await mouse('mousePressed', hs.x, hs.y);
+  for (let i = 1; i <= 10; i++) { await mouse('mouseMoved', hs.x - i * 12, hs.y + i * 6); await sleep(16); }
+  await mouse('mouseReleased', hs.x - 120, hs.y + 60); await sleep(200);
+  const w1 = await J(`return G.window.rect();`);
+  await click(tabB(1), 'tab LIGHT after the drag'); await sleep(250);
+  const w2 = await J(`return G.window.rect();`); await click(tabB(0), 'tab LOOK'); await sleep(200);
+  check('the whole title bar drags MIR OPTIONS: a press on its title moves it by the hand\'s (−120, +60), and a tab then leaves it there', hs.hit && Math.abs(w1.left - w0.left + 120) <= 1 && Math.abs(w1.top - w0.top - 60) <= 1 && JSON.stringify(w1) === JSON.stringify(w2), JSON.stringify({ w0, w1, w2 }));
+  /* ABOUT is a circled (i) in the head: it opens the MIR ABOUT window, which has its own title bar and ×, and no rail */
+  const iHit = await click(`G.window.tools.querySelector('.gui-about-btn')`, 'the (i)'); await sleep(600);
+  r = await J(`const A = G.about, b = A.root.getBoundingClientRect(); return { open: A.isOpen(), page: G.page, glyph: G.window.tools.querySelector('.gui-about-btn').dataset.glyph, svg: !!G.window.tools.querySelector('.gui-about-btn svg.gly-info'),
+    chrome: A.root.dataset.chrome, x: !!A.head.querySelector('.mir-win-x svg.gly-close'), rail: !!document.querySelector('[data-mir-rail="gui-about"]'), logo: !!A.root.querySelector('.gui-logo-art svg'),
+    words: A.root.querySelector('.gui-ab-words').textContent.length, ver: A.root.querySelector('.gui-ab-ver').textContent, inside: b.left >= 0 && b.top >= 0 && b.right <= innerWidth && b.bottom <= innerHeight, tabs: [...G.root.querySelectorAll('.gui-tabs .seg-b')].map((x) => x.textContent).join() };`);
+  check('the circled (i) (glyph "info") opens MIR ABOUT as its own window: a title bar with the × glyph, no chip rail, the logo, the version and the words, on the screen; ABOUT is no tab',
+    iHit && r.open && r.glyph === 'info' && r.svg && r.chrome === 'close' && r.x && !r.rail && r.logo && r.words > 40 && /^MIR /.test(r.ver) && r.inside && r.tabs === 'LOOK,LIGHT,WINDOWS', JSON.stringify(r));
+  const xHit = await click(`G.about.head.querySelector('.mir-win-x')`, 'ABOUT ×'); await sleep(450);
+  r = await J(`return { about: G.about.isOpen(), gui: G.window.isOpen(), hidden: G.about.root.hidden };`);
+  check('the plain × closes the MIR ABOUT window, and only it', xHit && !r.about && r.gui && r.hidden, JSON.stringify(r));
+  /* Escape closes: MIR OPTIONS with the focus in it; MIR ABOUT, on top, with the focus on nothing */
+  await click(tabB(1), 'tab LIGHT (the focus in the window)'); await sleep(150);
+  const esc = async () => { await p.send('Input.dispatchKeyEvent', { type: 'rawKeyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 }); await p.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 }); await sleep(450); };
+  const focusIn = await J(`return G.root.contains(document.activeElement);`);
+  await esc();
+  const gEsc = await J(`return G.window.isOpen();`);
+  await J(`G.open('about'); await wait(400); document.activeElement && document.activeElement.blur && document.activeElement.blur(); return 0;`);
+  await esc();
+  const aEsc = await J(`return G.about.isOpen();`);
+  check('Escape closes MIR OPTIONS when the focus is in it, and MIR ABOUT when it is the top window and the focus is on nothing', focusIn && !gEsc && !aEsc, JSON.stringify({ focusIn, gEsc, aEsc }));
+  r = await J(`G.open('options'); await wait(400); const t = G.tab; G.close(); return t;`);
+  check('the tab is remembered: MIR OPTIONS opens again on the tab it last showed', r === 'light', r);
   /* ── the pointer glow follows the pointer, and writes nothing when the pointer is still ── */
   await p.eval(`__T.gui.close(); __T.gui.prefs.set({ glow: true, parallax: true, motion: 'auto', quality: 'full' }); 0`); await sleep(500);
   const L = await spot(`document.getElementById('lit')`);
@@ -235,15 +272,24 @@ try {
   await p.goto(URL_ + '?phone', 900); await ready();
   const coarse = await J(`return { coarse: matchMedia('(pointer: coarse)').matches, fx: [document.documentElement.hasAttribute('data-pointer-light'), document.documentElement.hasAttribute('data-parallax-live')], glow: P.get('glow') };`);
   check('glow and parallax are off on a coarse pointer, with their switches on', coarse.coarse && coarse.glow && coarse.fx.every((v) => !v), JSON.stringify(coarse));
-  await p.eval(`__T.gui.open('options')`); await sleep(500);
+  await p.eval(`__T.gui.open('look')`); await sleep(500);
   const seen = [];
-  for (let i = 0; i < 7; i++) {
-    seen.push(await J(`const over = []; for (const n of [G.window.body, ...G.window.body.querySelectorAll('.mir-win-panel:not([hidden]), .gui-grp, .gui-page')]) { if (!n.getClientRects().length) continue; if (n.scrollHeight > n.clientHeight + 0.5 || n.scrollWidth > n.clientWidth + 0.5) over.push(n.className + ' ' + n.scrollWidth + '×' + n.scrollHeight + ' in ' + n.clientWidth + '×' + n.clientHeight); }
-      const r = G.root.getBoundingClientRect(); if (r.right > innerWidth || r.bottom > innerHeight) over.push('off screen'); return { name: G.root.querySelector('.gui-turner .mir-step-name').textContent, over };`));
+  for (let i = 0; i < 3; i++) {
+    seen.push(await J(`const q = (n) => { const b = n.getBoundingClientRect(); return [b.left, b.top, b.width, b.height].map(Math.round).join(); };
+      const r = G.root.getBoundingClientRect(), b = G.window.body, over = [];
+      if (r.right > innerWidth || r.bottom > innerHeight || r.left < 0 || r.top < 0) over.push('off screen');
+      if (b.scrollWidth > b.clientWidth + 0.5) over.push('the body runs sideways ' + b.scrollWidth + ' in ' + b.clientWidth);
+      for (const g of b.querySelectorAll('.gui-grid[data-tab="' + G.tab + '"] .gui-grp')) if (g.scrollWidth > g.clientWidth + 0.5) over.push(g.dataset.group + ' runs sideways');
+      const tb = G.root.querySelector('.gui-tabbar'); if (tb.scrollWidth > tb.clientWidth + 0.5) over.push('the tab row overflows');
+      return { tab: G.tab, head: q(G.window.head), tabs: q(tb), win: q(G.root), headH: G.window.head.getBoundingClientRect().height, over };`));
     await p.eval(`__T.gui.turn(1)`); await sleep(400);
   }
-  check('at 390×844 the OPTIONS groups page sideways (5 sheets, then ABOUT) and nothing scrolls on any of them', seen.slice(0, 6).map((s) => s.name).join() === 'MIR OPTIONS 1/5,MIR OPTIONS 2/5,MIR OPTIONS 3/5,MIR OPTIONS 4/5,MIR OPTIONS 5/5,MIR ABOUT' && seen.every((s) => !s.over.length),
-    seen.map((s) => s.name + (s.over.length ? ' ✗ ' + s.over.join(',') : '')).join(' · '));
+  check('at 390×844 the three tabs keep the head, the tab row and the window in place, on the screen, nothing wider than it (the body scrolls down), the title bar a finger tall',
+    seen.map((s) => s.tab).join() === 'look,light,windows' && seen.every((s) => !s.over.length && s.head === seen[0].head && s.tabs === seen[0].tabs && s.win === seen[0].win && s.headH >= 44),
+    seen.map((s) => s.tab + ' ' + s.win + (s.over.length ? ' ✗ ' + s.over.join(',') : '')).join(' · '));
+  await p.eval(`__T.gui.open('about')`); await sleep(500);
+  const ra = await J(`const b = G.about.root.getBoundingClientRect(); return { open: G.about.isOpen(), inside: b.left >= 0 && b.right <= innerWidth && b.top >= 0 && b.bottom <= innerHeight, w: Math.round(b.width) };`);
+  check('at 390×844 MIR ABOUT opens on the screen', ra.open && ra.inside, JSON.stringify(ra));
 } finally { await p.close(); }
 
 for (const l of results) console.log(l);

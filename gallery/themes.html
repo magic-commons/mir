@@ -128,7 +128,7 @@ if (q.has('scene')) {
   modes.append(modeSeg.root,
     trig({ label: 'MIR OPTIONS', onFire: () => gui.open('options') }).root);
   const title = wordmark($('lab'), { word: 'MIR', sub: 'THEMES' });
-  createMenubar({ opener: title, host: $('lab'), menus: { GUI: () => [['MIR OPTIONS', () => gui.open('options')], ['MIR OPTIONS 2', () => gui.open('options:2')], ['MIR ABOUT', () => gui.open('about')]] } });
+  createMenubar({ opener: title, host: $('lab'), menus: { GUI: () => [['MIR OPTIONS', () => gui.open('options')], ['MIR ABOUT', () => gui.open('about')]] } });
   window.__T = { gui, tiles };
   window.__ready = true;
 }

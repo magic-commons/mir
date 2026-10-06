@@ -3,8 +3,10 @@
  * Josh (BASINS, ≤ 10-01): "scrollers seems to be way too far out from the rack."  A rack keeps its native scrolling and
  * its 48-px shadow gutter (paint room for the cards' shadows, never a hit-test column), so the native scrollbar sits at
  * the far edge of that gutter, away from the cards.  This puts a transparent bar BESIDE THE CARDS instead: a 12-px
- * track at the gutter's inner edge with a 3-px accent thumb, which a hand drags, a wheel turns and the keys step.
- * The native bar is switched off while it runs (`body.rack-scrollbars`, rack.css).  createRack({ scrollbar: true }).
+ * track at the gutter's inner edge with a 2-px accent thumb (1.5.0 wave 19, Josh: "a simple 2PX scroll bar is visible
+ * only"; the track paints nothing and is the touch target), which a hand drags, a wheel turns and the keys step.
+ * The native bar is switched off while it runs (`body.rack-scrollbars`, rack.css), so there is one bar.
+ * createRack({ scrollbar: true }).
  *
  * THE LAWS IT KEEPS
  *   1. BASINS' SEAT, BASINS' NUMBERS.  Left rack: the track's left edge is the rack's right − gutter − 8; right rack: the
