@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MIR · opener fixture</title>
+<!-- tests/opener.browser.mjs: four starter covers (three shown), an optional saved session (?seed), the notice (?notice, ?every),
+     and the switches (?warn=0, ?starter=piezo).  Video previews point at nothing: the page counts play() and pause() calls. -->
+<link rel="stylesheet" href="../../mir/mir.css">
+<link rel="stylesheet" href="../../mir/shell/opener.css">
+<style>
+  html, body { margin: 0; height: 100%; background: #101520; color: #fff; }
+</style>
+<script>
+  /* the previews are lazy and policy-bound: count what the opener asks of them */
+  window.__plays = 0; window.__pauses = 0;
+  HTMLMediaElement.prototype.play = function () { window.__plays++; return Promise.resolve(); };
+  HTMLMediaElement.prototype.pause = function () { window.__pauses++; };
+</script>
+</head>
+<body data-theme="dark">
+<script type="module">
+import { createOpener } from '../../mir/shell/opener.js';
+import { createSession } from '../../mir/core/session.js';
+import { setMotionPolicy } from '../../mir/core/motion.js';
+const q = new URLSearchParams(location.search);
+const KEY = 'mir.test.opener';
+if (q.has('fresh')) { try { localStorage.removeItem(KEY); localStorage.removeItem('mir.flashNotice'); } catch (_) {} }
+if (q.has('seed')) { try { localStorage.setItem(KEY, JSON.stringify({ v: 1, parts: { n: { v: 1 } } })); } catch (_) {} }
+if (q.has('seen')) { try { localStorage.setItem('mir.flashNotice', '1'); } catch (_) {} }
+if (q.has('reduced')) setMotionPolicy('reduced');
+const art = (hue, n) => 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="180" height="320"><rect width="180" height="320" fill="hsl(${hue} 60% 40%)"/><circle cx="90" cy="160" r="70" fill="hsl(${hue + 60} 70% 60%)"/><text x="90" y="170" text-anchor="middle" font-size="26" fill="#fff">${n}</text></svg>`);
+const covers = [
+  { id: 'alpha', name: 'ALPHA', art: art(200, 'A'), video: 'about:blank#a', accent: '#a7b6f0', foot: { text: '10', sup: '243.3' } },
+  { id: 'piezo', name: 'PIEZO', art: art(320, 'P'), video: 'about:blank#b', accent: '#ff9ed7', foot: { text: '10', sup: '265.3' } },
+  { id: 'gamma', name: 'GAMMA', art: art(160, 'G'), video: 'about:blank#c', accent: '#8edbe5', foot: 'plain foot' },
+  { id: 'hidden', name: 'HIDDEN', art: art(40, 'H') },
+];
+const session = createSession({ key: KEY });
+const opener = createOpener({ covers, mainCount: 3, session, logo: 'TESTAPP', webdriver: false, search: location.search,
+  warn: q.has('every') ? 'every' : 'once', notice: { title: 'TEST NOTICE', body: 'Flashing may happen in this fixture.', accept: 'CONTINUE' },
+  onPick: (id) => { window.__PICK = id; } });
+window.__O = opener; window.__session = session;
+window.__done = opener.start().then((id) => { window.__id = id; return id; });
+</script>
+</body>
+</html>

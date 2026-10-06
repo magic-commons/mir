@@ -13,14 +13,27 @@
  *     ASKS, and only what the page has not already loaded — an app that never previews never downloads them.
  *   · Typing never reaches the app's keys, except Ctrl/⌘+S and Ctrl/⌘+, which stay the app's.
  *   · Title: Enter opens the subtitle; Backspace on an empty subtitle removes it; ↑/↓ move between them.
- *   · Storage writes are debounced 300 ms and flushed on pagehide; move and resize write style once per frame.
+ *   · Storage writes are debounced 300 ms and flushed on pagehide; move and resize write style once per frame, through
+ *     the frame core's coalescer (core/frame.js), which keeps a 32 ms timer behind the rAF so a busy or throttled tab
+ *     still paints (BASINS frame-coalescer.js is that timer, now the kit's own); the last frame is committed before the
+ *     size is saved.
  *   · A drag belongs to the pointer that started it, primary button only; a capture that cannot be taken must not
  *     throw; pointercancel and lostpointercapture end it like pointerup.
- *   · NOTES opens 640 × 460 at 12 % from the top, ABOUT 470 × 670 centred; each face remembers its own size;
- *     neither is ever smaller than 320 × 240 or larger than the viewport less 16 px.
+ *   · NOTES opens 640 × 460 at 12 % from the top, ABOUT 520 × 812 (BASINS': sized to fit without a scroll; `aboutSize`
+ *     says another) centred above the transport; each face remembers its own size (nbW/nbH, abW/abH); neither is ever
+ *     smaller than 320 × 240 or larger than the viewport less 16 px.  THE SIZE SAVED IS THE ONE IT WAS GIVEN (the inline
+ *     style: λWAVES W129), never its layout box, so a phone's full-screen layout never becomes the desktop size.
+ *   · A PROJECT LANDS ON ITS NOTEBOOK ONLY WHEN IT HAS TEXT (λWAVES 0.3.1 · S2, BASINS): `project.restore()` opens the
+ *     notes in the preview when the project's notebook has text, and does nothing when it has none.
  *
  * createNotebook(options) → { root, open(face), close(), toggle(), isOpen, face, moveTo, resize, size, dump,
- *                              text, title, subtitle, mode, setMode, render, html, destroy() }
+ *                              text, title, subtitle, mode, setMode, render, html, project, destroy() }
+ *   project       { capture(name), restore(saved, name) → bool, signature(), part() } — the notebook's text as part of a
+ *                 project (λWAVES projects.save / open, BASINS notebookProject), for a notebook without `pages`:
+ *                 capture → { title, subtitle, text } (a notebook still titled the default takes the project's name),
+ *                 restore puts it back, drops the last project's pending keystrokes, and lands (above);
+ *                 part() → { capture, restore, signature, subscribe } for core/project.js registerProjectPart.
+ *                 null when the notebook has `pages` (the pages are the project's notes then).
  *   One notebook per page: it owns the id `notebook`.  destroy() flushes storage, removes it and its listeners.
  *   host          where the <section id="notebook"> goes (λWAVES: #stage)
  *   name          the app's name, for labels ('about λWAVES')
@@ -34,6 +47,10 @@
  *   onLogo        () => void, after the logo is cloned (shell/accent.js paintMarks)
  *   dump          () => string, what COPY DUMP adds after the ABOUT face's own text
  *   keyLabel      the notebook's key, for the close button's title (λWAVES: 'J')
+ *   aboutSize     { w, h } the ABOUT face opens at (default 520 × 812, BASINS'; λWAVES' own is 470 × 670)
+ *   aboutRise     px the ABOUT face sits above the stage's middle so it clears the transport (default 32, BASINS')
+ *   landing       with `pages`: a project lands on its notebook when a page has text ('text'); false (default) leaves
+ *                 the greeting to the stage (INFORMATIONAL).  Without `pages` the law is always on (project.restore).
  *   pages         a shell/pages.js model: the notebook gets TABS (below).  Absent, nothing below exists and the
  *                 notebook is λWAVES' node for node (tests/shell.browser.mjs, tools/shell-parity.mjs).
  *   A face that carries `store` (notes/face.js notesFace) is THE SHELF: the notebook's COPY TO SHELF writes there.
@@ -65,6 +82,7 @@ import { renderNotebook } from './notebook-render.js';
 import { pageFile, pageFromFile } from './pages.js';
 import { drag } from '../core/pointer.js';
 import { flip } from '../core/motion.js';
+import { frame } from '../core/frame.js';
 import { createProximity } from '../core/proximity.js';
 import { setText, setAttr, setVar } from '../core/perf.js';
 
@@ -82,12 +100,14 @@ export function loadRenderer() {
   return vendorLoad;
 }
 
-const NOTES_DEF_W = 640, NOTES_DEF_H = 460, ABOUT_DEF_W = 470, ABOUT_DEF_H = 670, NB_MIN_W = 320, NB_MIN_H = 240;
+const NOTES_DEF_W = 640, NOTES_DEF_H = 460, ABOUT_DEF_W = 520, ABOUT_DEF_H = 812, ABOUT_RISE = 32, NB_MIN_W = 320, NB_MIN_H = 240;
 const APP_KEY = (e) => (e.ctrlKey || e.metaKey) && !e.altKey && (e.code === 'KeyS' || e.code === 'Comma');
 
 export function createNotebook(options = {}) {
   const o = { name: 'this app', title: 'NOTEBOOK', storageKey: 'mir.notebook', render: renderNotebook, ...options };
   const life = new AbortController(), on = { signal: life.signal };
+  const aboutW = o.aboutSize && o.aboutSize.w > 0 ? o.aboutSize.w : ABOUT_DEF_W, aboutH = o.aboutSize && o.aboutSize.h > 0 ? o.aboutSize.h : ABOUT_DEF_H;
+  const aboutRise = Number.isFinite(o.aboutRise) ? o.aboutRise : ABOUT_RISE;
   const K = { text: o.storageKey, title: o.storageKey + '.title', subtitle: o.storageKey + '.subtitle', size: o.storageKey + '.size' };
   const read = (k) => { try { return localStorage.getItem(k); } catch (_) { return null; } };
   const readSize = () => { try { return JSON.parse(read(K.size) || '{}') || {}; } catch (_) { return {}; } };
@@ -129,10 +149,11 @@ export function createNotebook(options = {}) {
   ta.value = read(K.text) || '';
   { const t = read(K.title); if (t) titleIn.value = t; const s = read(K.subtitle); if (s) { subIn.value = s; subIn.hidden = false; } }
 
-  /* ── one paint per frame for move and resize ── */
-  let raf = 0, next = null;
-  const post = (fn) => { next = fn; if (!raf) raf = requestAnimationFrame(() => { raf = 0; const f = next; next = null; if (f) f(); }); };
-  const flushPaint = () => { if (raf) { cancelAnimationFrame(raf); raf = 0; } const f = next; next = null; if (f) f(); };
+  /* ── one paint per frame for move and resize: the frame core's coalescer (the latest wins; its 32 ms timer behind the
+        rAF keeps a throttled tab painting), and the last one is flushed before a size is saved ── */
+  const PAINT = 'notebook:paint';
+  const post = (fn) => frame.coalesce(PAINT, fn);
+  const flushPaint = () => { frame.flush(PAINT); };
 
   /* ── title and subtitle ── */
   let tabs = null;                                                  // the tabs, when the app hands over `pages`
@@ -175,7 +196,9 @@ export function createNotebook(options = {}) {
   const clamp = (w, h) => [Math.max(NB_MIN_W, Math.min(w, window.innerWidth - 16)), Math.max(NB_MIN_H, Math.min(h, window.innerHeight - 16))];
   function resize(w, h) { const [cw, ch] = clamp(w, h); nb.style.width = cw + 'px'; nb.style.height = ch + 'px'; return [cw, ch]; }
   function saveSize() {
-    const w = Math.round(nb.offsetWidth), h = Math.round(nb.offsetHeight), S = readSize();
+    /* W129: the size it was GIVEN (the inline style), never its layout box */
+    const w = Math.round(parseFloat(nb.style.width)), h = Math.round(parseFloat(nb.style.height)), S = readSize();
+    if (!(w > 0 && h > 0)) return;
     const [kw, kh] = nb.dataset.face === 'about' ? ['abW', 'abH'] : ['nbW', 'nbH'];
     if (S[kw] === w && S[kh] === h) return;
     try { localStorage.setItem(K.size, JSON.stringify({ ...S, [kw]: w, [kh]: h })); } catch (_) {}
@@ -186,9 +209,10 @@ export function createNotebook(options = {}) {
     nb.hidden = false; for (const [k, f] of Object.entries(faces)) f.hidden = k !== face; nb.dataset.face = face;
     const S = readSize();
     if (face === 'about') {
-      const w = typeof S.abW === 'number' ? S.abW : ABOUT_DEF_W, h = typeof S.abH === 'number' ? S.abH : ABOUT_DEF_H;
+      const w = typeof S.abW === 'number' ? S.abW : aboutW, h = typeof S.abH === 'number' ? S.abH : aboutH;
       resize(w, h);
-      if (!moved) { nb.style.left = 'calc(50% - ' + Math.round(w / 2) + 'px)'; nb.style.top = 'max(20px, calc(50% - ' + Math.round(h / 2) + 'px))'; }
+      /* centred in the stage ABOVE the transport (BASINS: ≈ 64 px at the foot), so the taller face clears it */
+      if (!moved) { nb.style.left = 'calc(50% - ' + Math.round(w / 2) + 'px)'; nb.style.top = 'max(20px, calc(50% - ' + Math.round(h / 2 + aboutRise) + 'px))'; }
       const logo = faces.about.querySelector('.nb-logo'), src = o.logo ? o.logo() : document.getElementById('title');
       if (logo && src && !logo.children.length) { for (const c of src.children) if (!c.classList.contains('ms')) logo.appendChild(c.cloneNode(true)); if (o.onLogo) o.onLogo(); }
     } else {
@@ -225,6 +249,35 @@ export function createNotebook(options = {}) {
   const nend = (e) => { if (!nd || e.pointerId !== nd.id) return; flushPaint(); nd = null; };
   for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) head.addEventListener(type, nend);
   count();
+
+  /* ── THE PROJECT SEAM (λWAVES rack.js projects.save / open, BASINS notebookProject), for a notebook without `pages`:
+        the notebook's own { title, subtitle, text } is the project's notes.  A notebook with `pages` has none: its pages
+        are the project's notes (pages.part()). ── */
+  const projectSeam = o.pages ? null : {
+    capture(name) {
+      if (name && titleIn.value === tx(o.title)) { titleIn.value = name; store(K.title, name); }   // λWAVES: a saved NOTEBOOK takes the project's name
+      return { title: titleIn.value, subtitle: subIn.value, text: ta.value };
+    },
+    restore(n, name) {
+      if (!n || typeof n !== 'object') return false;
+      if (timer) { clearTimeout(timer); timer = 0; } pending.clear();   // the last project's keystrokes must not land over this one's
+      ta.value = typeof n.text === 'string' ? n.text : ''; titleIn.value = (typeof n.title === 'string' && n.title) || name || tx(o.title);
+      subIn.value = typeof n.subtitle === 'string' ? n.subtitle : ''; subIn.hidden = !subIn.value;
+      try { localStorage.setItem(K.text, ta.value); localStorage.setItem(K.title, titleIn.value); localStorage.setItem(K.subtitle, subIn.value); } catch (_) {}
+      count();
+      if (ta.value.trim()) { show('notes'); nb.dataset.mode = 'view'; }   // λWAVES 0.3.1 · S2: only a notebook with text opens, the complete notes, in the preview
+      render();                                                           // the preview never keeps the last project's notes
+      return true;
+    },
+    signature: () => JSON.stringify([titleIn.value, subIn.value, ta.value]),
+    /** part() — the seam as a core/project.js part: registerProjectPart('notebook', notebook.project.part()) */
+    part() {
+      return {
+        capture: () => projectSeam.capture(), restore: (saved) => { projectSeam.restore(saved); }, signature: projectSeam.signature,
+        subscribe(fn) { const ac = new AbortController(), f = () => fn(); for (const x of [ta, titleIn, subIn]) x.addEventListener('input', f, { signal: ac.signal }); return () => ac.abort(); },
+      };
+    },
+  };
 
   /* ── THE TABS: yours, then the open project's pages (only when the app hands over `pages`) ── */
   function mountTabs(P) {
@@ -471,6 +524,10 @@ export function createNotebook(options = {}) {
     const off = P.subscribe((what, id) => {
       if (what === 'restore') {                                     // another project: its tabs, never yours
         if (ptimer) clearTimeout(ptimer); ptimer = 0; pend = null;
+        if (o.landing === 'text') {                                 // the landing law: it lands on its notebook only when it has text
+          const lands = P.list().find((r) => String(r.md || '').trim());
+          if (lands) { T.sel = 'yours'; fill(); show('notes'); select(lands.id); setMode('view'); return; }
+        }
         if (T.sel !== 'yours') { T.sel = 'yours'; fill(); const g = P.greeting(); if (g) { select(g.id); return; } }   // a page was open: the new greeting, else yours
       } else if (what === 'update' && id === T.sel && !(pend && pend.id === id)) {
         const p = P.get(id); if (titleIn.value !== p.title) titleIn.value = p.title;
@@ -496,7 +553,8 @@ export function createNotebook(options = {}) {
     resize(w, h) { const r = resize(w, h); saveSize(); return r; },
     size() { const w = Math.round(parseFloat(nb.style.width) || NOTES_DEF_W), h = Math.round(parseFloat(nb.style.height) || NOTES_DEF_H); return { w, h, custom: w !== NOTES_DEF_W || h !== NOTES_DEF_H }; },
     dump: dumpText,
-    destroy() { if (offCapture) offCapture(); offLang(); if (tabs) tabs.destroy(); flush(); life.abort(); if (raf) cancelAnimationFrame(raf); nb.remove(); },
+    project: projectSeam,
+    destroy() { if (offCapture) offCapture(); offLang(); if (tabs) tabs.destroy(); flush(); life.abort(); frame.cancel(PAINT); nb.remove(); },
     get text() { return ta.value; }, set text(v) { ta.value = v; ta.dispatchEvent(new Event('input')); },
     get title() { return titleIn.value; }, set title(v) { titleIn.value = v; titleIn.dispatchEvent(new Event('input')); },
     get subtitle() { return subIn.value; }, set subtitle(v) { subIn.value = v; subIn.hidden = !v; subIn.dispatchEvent(new Event('input')); },

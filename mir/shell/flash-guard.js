@@ -22,11 +22,14 @@
  * ONCE per browser before the first use of a route that can flash.  The trap is λWAVES': no Escape and no outside
  * press — the way past is to read it and press CONTINUE.  It is a floating pane with no scrim (INTENT rule 7), where
  * λWAVES drew a black full-screen page.  Under a test driver (navigator.webdriver) it is not shown unless forced.
+ * `every: true` is BASINS' EVERY COLD START (its startup.js shows it on each load, `?warn=0` skips it): the stored
+ * record is neither read nor written, so the notice comes back with every page load.  The default stays once per
+ * browser.  `art` (an image URL) puts the app's own picture above the words, BASINS' caution triangle.
  *
  * createFlashGuard({ maxHz = 3, delta = 0.1, window = 1, release = 1, ranges, now, onTrip, onRelease })
  *   → guard(value, route, t?) → the value to use        guard.state(route) → { hz, held, trips, lastTrip }
  *     guard.lastTrip → { route, hz, at } | null           guard.reset(route?)    guard.enabled (get/set)
- * photosensitivityNotice({ key, title, body, accept, driver, force, storage }) → Promise<true> once read
+ * photosensitivityNotice({ key, title, body, accept, driver, force, every, art, alt, storage }) → Promise<true> once read
  * flashNoticeSeen({ key, storage }) → boolean · forgetFlashNotice({ key, storage }) */
 
 export const WCAG = Object.freeze({ maxHz: 3, delta: 0.1, dark: 0.8, area: 0.25, windowS: 1.25, releaseS: 1 });
@@ -133,14 +136,21 @@ let showing = null;
  *  Call it before the first use of a route that can flash; a second call while it shows joins the first. */
 export function photosensitivityNotice({ key = KEY, storage, title = 'PHOTOSENSITIVITY WARNING',
   body = 'This app can show rapid flashing and changing colours. If you have a history of photosensitive epilepsy or seizures, do not continue. The flash guard holds anything that would flash more than three times a second; leave it on if flashing light affects you.',
-  accept = 'CONTINUE', driver, force = false } = {}) {
-  if (flashNoticeSeen({ key, storage }) && !force) return Promise.resolve(true);
+  accept = 'CONTINUE', driver, force = false, every = false, art, alt = '' } = {}) {
+  if (!every && flashNoticeSeen({ key, storage }) && !force) return Promise.resolve(true);
   const webdriver = driver !== undefined ? driver : !!(globalThis.navigator && navigator.webdriver === true);
   if (webdriver && !force) return Promise.resolve(true);             // λWAVES wave 59: a test driver is never trapped by it
   if (showing) return showing;
-  showing = import('./dialog.js').then(({ openDialog }) => {
-    const d = openDialog({ title, body, kind: 'notice', dismiss: false, mark: 'caution', actions: [{ label: accept, kind: 'primary', run: () => true }] });
+  showing = Promise.all([import('./dialog.js'), import('../kit.js')]).then(([{ openDialog }, { label }]) => {
+    let words = body;                                                   // the app's picture above its words
+    if (art) {
+      words = document.createElement('div'); words.className = 'mir-dialog-art';
+      const img = document.createElement('img'); img.src = art; img.alt = alt; img.draggable = false;
+      const p = label(document.createElement('p'), body);          // through the language seam, like a plain body
+      words.append(img, p);
+    }
+    const d = openDialog({ title, body: words, kind: 'notice', dismiss: false, mark: art ? undefined : 'caution', actions: [{ label: accept, kind: 'primary', run: () => true }] });
     return d.result;
-  }).then(() => { try { store(storage)?.setItem(key, '1'); } catch (_) {} showing = null; return true; });
+  }).then(() => { if (!every) { try { store(storage)?.setItem(key, '1'); } catch (_) {} } showing = null; return true; });
   return showing;
 }

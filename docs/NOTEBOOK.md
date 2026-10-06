@@ -81,12 +81,26 @@ const first = pageFromNotebook(saved.notebook);       // null if it had no text
 if (first && !saved.pages) pages.restore({ v: 1, showOnOpen: true, pages: [first] });
 ```
 
+## The size law and the project seam (1.5.0-alpha.13)
+
+Four things BASINS measured against the kit's notebook on 2026-10-02, closed to BASINS' behaviour (`app/notebook.js`, λWAVES W129):
+
+| | The law |
+|---|---|
+| **The size saved is the one given** | `resize(w, h)`, a drag and the desktop's own resize corner all end in `saveSize()`, which saves the inline `width` and `height` (`parseFloat(style.width)`), never the layout box. A phone's full-screen layout, or a sheet that caps the box, never becomes the saved size. Each face keeps its own (`nbW`/`nbH`, `abW`/`abH`) under `<storageKey>.size`; neither is under 320 × 240 or over the viewport less 16 px. |
+| **A drag paints through the frame core** | `core/frame.js` `coalesce`: the latest move wins, once a frame, and the core's 32 ms timer sits behind the rAF so a throttled or busy tab still paints (BASINS' `frame-coalescer.js` is that timer, now the kit's). The last frame is flushed before the size is saved. There is no second coalescer. |
+| **A project lands on its notebook only when it has text** | `notebook.project.restore(saved, name)` opens the notes in the preview when the project's notebook has text, and leaves the notebook alone when it has none. |
+| **ABOUT is 520 × 812** | BASINS' size, sized to fit with no scroll (λWAVES' own is 470 × 670). `aboutSize: { w, h }` says another; `aboutRise` (default 32 px) is how far the face sits above the stage's middle so it clears the transport. |
+
+**The project seam** (a notebook without `pages`; λWAVES `projects.save / open`, BASINS `notebookProject`): `notebook.project` is `{ capture(name), restore(saved, name) → bool, signature(), part() }`. `capture` gives `{ title, subtitle, text }` (a notebook still titled the default takes the project's name); `restore` puts it back, drops the last project's pending keystrokes so they cannot land over this one's, and lands; `part()` is the same as a `core/project.js` part: `registerProjectPart('notebook', notebook.project.part())`. It is `null` when the notebook has `pages`: the pages are the project's notes then. With `pages`, `landing: 'text'` makes a project that has a page with text land on its notebook the same way; the default leaves the greeting to the stage (INFORMATIONAL, ruling 16).
+
 ## API as built
 
-**`createNotebook(options)`**, new options: `pages` (a `createPages()` model), and any face carrying `store` is the shelf. New on the returned object:
+**`createNotebook(options)`**, new options: `pages` (a `createPages()` model), `aboutSize`, `aboutRise`, `landing`, and any face carrying `store` is the shelf. New on the returned object:
 
 | | |
 |---|---|
+| `project` | the project seam above, or null with `pages` |
 | `pages` | the model handed in, or null |
 | `shelf` | the shelf store, or null |
 | `selected` | `'yours'` or the selected page's id |

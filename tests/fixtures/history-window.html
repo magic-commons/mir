@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MIR · history window fixture</title>
+<!-- tests/history-window.browser.mjs: one knob (a snapshot domain 'scene'), the modulation rack (the 'modulation' domain
+     createHistoryWindow registers from `mod`), and the HISTORY window.  A 2D page, no GPU. -->
+<link rel="stylesheet" href="../../mir/mir.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0e14; }
+  #card { position: fixed; left: 8px; top: 8px; width: 120px; padding: 10px; }
+  #floats { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  #floats > * { pointer-events: auto; }
+</style>
+</head>
+<body data-theme="dark">
+<div id="card" class="glass" data-mir-window="scene" aria-label="SCENE"></div>
+<div id="floats"></div>
+<script type="module">
+import { knob } from '../../mir/kit.js';
+import { installModulation } from '../../mir/modulation/bind.js';
+import { createHistory } from '../../mir/history/history.js';
+import { createHistoryWindow } from '../../mir/history/window.js';
+try { for (const k of Object.keys(localStorage)) if (k.startsWith('mir.test.historywin')) localStorage.removeItem(k); } catch (_) {}
+const S = { size: 0.5 };
+const w = knob({ label: 'SIZE', min: 0, max: 1, value: S.size, onInput: (v) => { S.size = v; } });
+document.getElementById('card').appendChild(w.root);
+const params = [{ id: 'scene.size', label: 'SIZE', min: 0, max: 1, map: 'linear', get: () => S.size, set: (v) => { S.size = v; w.set(v); }, widget: w }];
+const mod = installModulation({ mount: document.getElementById('floats'), params, storageKey: 'mir.test.historywin.mod', presetKey: 'mir.test.historywin.presets' });
+const history = createHistory();
+history.register('scene', { read: () => ({ size: S.size }), write: (s) => { S.size = s.size; w.set(s.size); } });
+const hw = createHistoryWindow({ history, host: document.getElementById('floats'), mod, storageKey: 'mir.test.historywin.win' });
+history.clear('SESSION');
+window.__H = { history, hw, mod, S, knob: w };
+</script>
+</body>
+</html>

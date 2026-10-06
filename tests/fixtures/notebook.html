@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MIR · notebook fixture</title>
+<!-- tests/notebook.browser.mjs: a pageless notebook (λWAVES' node for node) on a stage.  The sheet caps the notebook at
+     500 px wide, so its LAYOUT box and the size it was GIVEN differ: the size saved must be the given one (W129). -->
+<link rel="stylesheet" href="../../mir/mir.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0e14; }
+  #stage { position: fixed; inset: 0; }
+  #notebook { max-width: 500px; }
+</style>
+</head>
+<body data-theme="dark">
+<div id="stage"></div>
+<script type="module">
+import { createNotebook } from '../../mir/shell/notebook.js';
+const q = new URLSearchParams(location.search);
+if (q.has('reset')) { try { for (const k of Object.keys(localStorage)) if (k.startsWith('mir.test.nb')) localStorage.removeItem(k); } catch (_) {} }
+const nb = createNotebook({ host: document.getElementById('stage'), name: 'TEST', storageKey: 'mir.test.nb', keyLabel: 'J',
+  ...(q.has('about') ? { aboutSize: { w: 400, h: 500 } } : {}) });
+window.__NB = nb;
+</script>
+</body>
+</html>
