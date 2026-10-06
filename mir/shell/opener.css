@@ -51,11 +51,10 @@
   position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; z-index: 2147483647; box-sizing: border-box; padding: 1.5rem;
   display: flex; align-items: flex-start; justify-content: center; overflow: hidden auto; overflow-x: hidden;
   background-color: var(--opener-ground); color: var(--opener-ink); font-family: var(--font-ui, system-ui, sans-serif);
-  opacity: 1; animation: mir-opener-in var(--opener-t-in) forwards; transition: opacity var(--opener-t-in);
+  opacity: 1; animation: lw-warn-in var(--opener-t-in) forwards; transition: opacity var(--opener-t-in);
 }
 .mir-opener:focus { outline: none; }
 .mir-opener[data-fading] { opacity: 0; pointer-events: none; }
-@keyframes mir-opener-in { from { opacity: 0; } to { opacity: 1; } }
 .mir-opener-card {
   display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 22px; padding: 8px 0;
   width: 100%; max-width: 1280px; min-height: calc(100dvh - 3rem); margin: auto; box-sizing: border-box;
@@ -70,9 +69,8 @@
   position: relative; z-index: 1; overflow: visible; display: block; min-width: 0; margin: 0; padding: 0; background: none; border: 0;
   color: inherit; text-align: center; font: inherit; cursor: pointer; touch-action: manipulation;
   opacity: 1; filter: saturate(1); transition: opacity var(--opener-t-dim), filter var(--opener-t-dim);
-  animation: mir-opener-card-in var(--opener-t-card) backwards; animation-delay: calc(var(--index, 0) * var(--opener-t-stagger));
+  animation: lw-warn-in var(--opener-t-card) backwards; animation-delay: calc(var(--index, 0) * var(--opener-t-stagger));
 }
-@keyframes mir-opener-card-in { from { opacity: 0; } to { opacity: 1; } }
 .mir-opener-cover {
   position: relative; display: block; width: 100%; aspect-ratio: 9 / 16; overflow: hidden; isolation: isolate;
   border-radius: var(--opener-cover-r); background: var(--opener-cover-ground); border: 1px solid var(--opener-cover-rim);
@@ -131,8 +129,7 @@ html .mir-opener .mir-opener-option[data-active] .mir-opener-cover[data-light]::
 .mir-opener-btn:focus-visible { outline: 2px solid var(--opener-ink); outline-offset: 4px; }
 .mir-opener-card[data-launching] .mir-opener-option:not([data-chosen]) { opacity: 0; }
 .mir-opener-card[data-launching] .mir-opener-option[data-chosen] .mir-opener-cover { transform: scale(calc(var(--opener-zoom) + .08)); }
-.mir-opener-card[data-launching] .mir-opener-meta { opacity: 0; transition: opacity var(--opener-t-launch); }
-.mir-opener-card[data-launching] :is(.mir-opener-logo, .mir-opener-actions) { opacity: 0; transition: opacity var(--opener-t-launch); }
+.mir-opener-card[data-launching] :is(.mir-opener-meta, .mir-opener-logo, .mir-opener-actions) { opacity: 0; transition: opacity var(--opener-t-launch); }
 @media (max-width: 620px) {
   .mir-opener-card { padding: 10px 0 20px; gap: 22px; }
   .mir-opener-logo { width: min(66vw, 280px); }

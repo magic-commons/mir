@@ -107,21 +107,15 @@
    HOST's controls (the rings, spans and range bars live outside its roots), and @own the few such values that read a var(),
    declared on the very elements that paint them. */
 /* @default */ .mir-modwindow, .kwin-chiprail, .m2ghost {
-  --m2-aud-level-mix-value-font: 600 7px/1 var(--font-num);
-  --m2-aud-range-handle-a-alpha: .82;
   --m2-aud-range-name-font: 700 8px/1 var(--font-ui);
   --m2-aud-range-value-font: 600 7.5px/1 var(--font-num);
-  --m2-audsreadout-font: 650 var(--fs-tiny) var(--font-num);
   --m2-chip-ink-drop: drop-shadow(0 1px 0 var(--glass-raise));
   --m2-chk-on-shadow: var(--m2-on-rim), inset 0 -2px 0 color-mix(in oklch, hsl(var(--hue-acc) var(--sat-acc) 66% / .64), white var(--acc-white, 0%));
   --m2-dialink-b-wash: repeating-conic-gradient(var(--glass-groove) 0deg 1.6deg, transparent 1.6deg 30deg), radial-gradient(circle at 35% 30%, hsl(0 0% 100% / .07), transparent 62%), hsl(var(--glass-tint) / 1);
-  --m2-ease: ease;
   --m2-face-tint-18: hsl(var(--glass-tint) / .18);
   --m2-face-tint-94: hsl(var(--glass-tint) / .94);
-  --m2-face-tint-96: hsl(var(--glass-tint) / .96);
   --m2-face-tint-97: hsl(var(--glass-tint) / 0.97);
   --m2-face-tint-100: hsl(var(--glass-tint) / 1);
-  --m2-face-w06: hsl(0 0% 100% / 0.06);
   --m2-face-w10: hsl(0 0% 100% / .10);
   --m2-face-w18: hsl(0 0% 100% / 0.18);
   --m2-fill-tint-100: hsl(var(--glass-tint) / 1);
@@ -138,37 +132,19 @@
   --m2-k-val-font: 600 8.5px var(--font-num, monospace);
   --m2-kind-halo: 0 1px 0 var(--glass-raise);
   --m2-kn-shadow: 0 0 0 0.5px hsl(0 0% 0% / 0.38);
-  --m2-lfowave-edge: 1px solid transparent;
-  --m2-lfowave-font: 700 7px var(--font-sans);
-  --m2-lower-alpha: .72;
   --m2-mac-font-2: 700 var(--fs-lead) var(--font-num);
   --m2-mac-hover-drop: drop-shadow(0 1px 0 var(--glass-raise)) drop-shadow(0 2px 6px hsl(214 40% 20% / .22));
   --m2-macadd-font: 700 8px/1 var(--font-sans);
   --m2-matrix-edge: 1px solid var(--glass-border-color);
   --m2-matrix-face: #171b22;
-  --m2-mintdot-alpha: 0.32;
   --m2-mintdot-shadow: 0 0 0 1px hsl(0 0% 0% / 0.38);
-  --m2-mintfill-alpha: 0.10;
-  --m2-r-1: 1px;
-  --m2-r-2: 2px;
-  --m2-r-3: 3px;
-  --m2-r-7: 7px;
   --m2-r-14: 14px;
   --m2-rail-shadow: var(--surface-shadow, var(--glass-shadow));   /* the pane shadow alone, as BASINS' material (1.5.0-alpha.9) */
   --m2-say-font: 500 10.5px/1.35 var(--font-sans);
   --m2-slotx-alpha: .75;
-  --m2-sw-1: 1;
-  --m2-sw-2: 2;
-  --m2-sw-2p2: 2.2;
   --m2-tempo-bpm-font: 700 calc(22px * var(--ui-scale)) var(--font-num);
   --m2-tempo-hz-font: 500 calc(9px * var(--ui-scale)) var(--font-num);
   --m2-tempo-unit-font: 700 calc(9px * var(--ui-scale)) var(--font-sans);
-  --m2-tr-04: 0.04em;
-  --m2-tr-06: 0.06em;
-  --m2-tr-08: .08em;
-  --m2-tr-035: .035em;
-  --m2-w-800: 800;
-  --m2-win-font: 700 11px var(--font-sans);
   /* 1.5.0-alpha.4 · modulation's POWER (BASINS transport-controls.css, its numbers): the drawing's weight and size, the
      halo at rest and lit, the ring's gap while off, and the press motion */
   --m2-power-sw: 1.9;
@@ -1096,13 +1072,13 @@ body[data-card="tinted"] .mir-modwindow,
 body[data-card="tinted"] #modwin.mir-modwindow {
   --m2-mat-chassis: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }   /* the cards, rail and work bar: .58 under FROST with every tinted pane, as BASINS' (1.5.0-alpha.12); the window's root reads --m2-mat-pane */
 body.frost[data-card="refractive"] .mir-modwindow,
-body.frost[data-card="refractive"] #modwin.mir-modwindow { --m2-mat-chassis: var(--surface-veil, hsl(0 0% 100% / .10)); }
+body.frost[data-card="refractive"] #modwin.mir-modwindow { --m2-mat-chassis: var(--surface-veil, var(--frost-veil-light)); }
 /* AND FROST'S WHISPER INVERTS ON DARK — skin.css:326, which the first cut of this wave missed and the
    acceptance run caught: 6/8 settings matched the ABOUT card and the two that did not were both
    dark+frost, the sheet computing rgba(0,0,0,.1) against our rgba(255,255,255,.1).  The house's own
    line, quoted: `body.frost[data-theme="dark"] .dev, … .glass { background: hsl(0 0% 0% / .10) }`. */
 body.frost[data-card="refractive"][data-theme="dark"] .mir-modwindow,
-body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --m2-mat-chassis: var(--surface-veil, hsl(0 0% 0% / .10)); }
+body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --m2-mat-chassis: var(--surface-veil, var(--frost-veil-dark)); }
 /* THE TWO-STOP WASH IS OFF (T6: --gl-fill-a/-b transparent), so the artifact's image layer on every glass box is
    `none`, not a transparent gradient: the same paint, and the layer BASINS draws (1.5.0-alpha.12) */
 .glass.mir-modwindow, .mir-modwindow .glass { --m2-glass-wash: none; }
@@ -1538,10 +1514,8 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 
 #modwin.mir-modwindow .m2presave,
 #modwin.mir-modwindow .m2predel,
-#modwin.mir-modwindow .m2prenav { border: 0; background: transparent; }                 /* 79 */
-
-
-#modwin.mir-modwindow .m2predead { border: 0; background: transparent; }
+#modwin.mir-modwindow .m2prenav,
+#modwin.mir-modwindow .m2predead { border: 0; background: transparent; }                 /* 79 */
 
 
 #modwin.mir-modwindow .m2workbar .m2predead.off { display: none; }                     /* 101 */
@@ -1606,8 +1580,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
    give its meter, its name or its shape, and why the folded mode looked like it was missing rather
    than small.  A folded device has no picture to give height TO, so this rule never had business
    reaching it. */
-#modwin.mir-modwindow .m2dev:not(.m2min) .m2head { height: 40px; min-height: 40px; }
-#modwin.mir-modwindow .m2railhead { height: 40px; min-height: 40px; }
+#modwin.mir-modwindow .m2dev:not(.m2min) .m2head, #modwin.mir-modwindow .m2railhead { height: 40px; min-height: 40px; }
 #modwin.mir-modwindow .m2grab,
 #modwin.mir-modwindow .m2fold,
 #modwin.mir-modwindow .m2ab,
@@ -1994,8 +1967,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin .m2-matrix-open { flex:0 0 auto; padding:2px; }
 .ro.wide .ro-val { height:2.6em; overflow:auto; }
 
-.k-route-depth.k { position:absolute; bottom:0; right:0; width:24px; min-width:24px; height:24px; padding:0; z-index:3; }
-.k-route-depth .k-dial { width:22px; height:22px; }
+.k-route-depth.k { position:absolute; padding:0; }
 .k-route-depth .k-lbl, .k-route-depth .k-val { display:none; }
 .mod-matrix { background:var(--pane, var(--m2-matrix-face)); }
 
@@ -2264,13 +2236,8 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 .k.mod-selected .k-ring-tick,
 .k.mod-selected .k-ring-spur { stroke:var(--acc2); }
 
-/* The range dial gets its own seat beside the parameter dial. Its fixed top
-   dot marks bipolar zero, while its needle edits range only. */
-.k.has-ring > .k-dial { transform:translateX(-10px); }
-.k-route-depth.k {
-  top:50%;right:0;bottom:auto;width:24px;min-width:24px;height:24px;
-  transform:translateY(-50%);z-index:3; }
-.k-route-depth .k-dial { width:22px;height:22px; }
+/* The range dial's fixed top dot marks bipolar zero, while its needle edits range only (its seat: THE ROUTED
+   CONTROL'S TWO BADGES, below). */
 .k-route-depth .k-dial::before { inset:-3px; }
 .k-route-depth .k-dial::after {
   content:"";position:absolute;left:50%;top:-4px;width:4px;height:4px;
@@ -2300,8 +2267,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin.mir-modwindow .m2rowgrip { color:var(--acc2); }
 #modwin.mir-modwindow .m2slotx { color:var(--m2-ink-faint); opacity:var(--m2-slotx-alpha); }
 #modwin.mir-modwindow .m2slottools { grid-template-rows:21px 21px; row-gap:2px; }
-#modwin.mir-modwindow .m2rowgrip svg { width:13px;height:13px;pointer-events:none; }
-#modwin.mir-modwindow .m2slotx svg { width:13px;height:13px;pointer-events:none; }
+#modwin.mir-modwindow .m2rowgrip svg, #modwin.mir-modwindow .m2slotx svg { width:13px;height:13px;pointer-events:none; }
 #modwin.mir-modwindow .m2rowgrip:active,
 #modwin.mir-modwindow .m2slotx:active {
   background:var(--state-press, var(--glass-press));color:var(--m2-ink); }
@@ -2344,8 +2310,7 @@ body[data-theme="light"] #modwin.mir-modwindow .m2devadd {
 #modwin.mir-modwindow .m2rail.m2railmin .m2macadd,
 #modwin.mir-modwindow .m2rail.m2railmin .m2devadd {
   font-size:0;letter-spacing:0; }
-#modwin.mir-modwindow .m2rail.m2railmin .m2macadd::after {
-  content:attr(data-cap);font:var(--m2-macadd-font);letter-spacing:var(--label-tracking, var(--m2-tr-04)); }
+#modwin.mir-modwindow .m2rail.m2railmin .m2macadd::after,
 #modwin.mir-modwindow .m2rail.m2railmin .m2devadd::after {
   content:attr(data-cap);font:var(--m2-macadd-font);letter-spacing:var(--label-tracking, var(--m2-tr-04)); }
 #modwin.mir-modwindow .m2rail.m2railmin .m2namerow:not([hidden]) {
@@ -2373,9 +2338,8 @@ body[data-theme="light"] #modwin.mir-modwindow .m2devadd {
   background-color: var(--state-on, var(--m2-mat-frost));
   box-shadow: var(--m2-chk-on-shadow); }
 /* L30 · the compact LFO's command: the same, and its accent border becomes the rim */
-#modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcmd.on {
-  background: var(--state-on, var(--m2-mat-frost)); border-color: var(--m2-mat-edge); }
-/* L28 · a CHOSEN preset: the ON face, its glyph in the accent (entry 46 strokes it) — never an accent fill */
+/* the compact LFO's ON command, and L28 · a CHOSEN preset: the ON face, its glyph in the accent (entry 46 strokes it) — never an accent fill */
+#modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmpcmd.on,
 #modwin.mir-modwindow .m2dev.lfo .m2preset.on {
   background: var(--state-on, var(--m2-mat-frost)); border-color: var(--m2-mat-edge); }
 /* L41 · HOVER is a lighter face on every plugin button, not ink alone and not a ring */

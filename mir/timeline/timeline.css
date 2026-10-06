@@ -78,7 +78,6 @@
   --tl-flag-top: 22px;
   --tl-flag-left: -6.25px;
   --tl-flag-hover: 1.3;
-  --tl-tail-max: 48px;
   --tl-marquee-r: 3px;
   --tl-status-size: 9px;
   --tl-status-fade: .6;
@@ -336,12 +335,11 @@
 
 /* ── THE POPUPS: the house's menu pane (`.glass[data-mir-surface="menu"]`), BASINS' box ── */
 .tl-pop { position: fixed; z-index: calc(var(--z-veil) + 20); padding: var(--tl-pop-pad); min-width: var(--tl-pop-min); display: flex; flex-direction: column; gap: var(--tl-pop-gap);
-  max-height: calc(100dvh - 16px); overflow: auto; color: var(--fg); animation: tl-popup-in var(--tl-pop-t) var(--tl-ease-spring); }
+  max-height: calc(100dvh - 16px); overflow: auto; color: var(--fg); animation: lw-warn-in var(--tl-pop-t) var(--tl-ease-spring); }
 .tl-pop-title { font-size: var(--tl-pop-title-size); padding: 4px; letter-spacing: var(--tl-pop-title-track); }
 .tl-pop .trig { min-height: var(--tl-pop-trig-h); font-size: var(--tl-pop-trig-size); }
-.tl-confirm { position: fixed; z-index: calc(var(--z-veil) + 21); max-width: var(--tl-confirm-max); padding: var(--tl-confirm-pad); font-size: var(--tl-confirm-size); animation: tl-popup-in var(--tl-pop-t) var(--tl-ease-spring); }
+.tl-confirm { position: fixed; z-index: calc(var(--z-veil) + 21); max-width: var(--tl-confirm-max); padding: var(--tl-confirm-pad); font-size: var(--tl-confirm-size); animation: lw-warn-in var(--tl-pop-t) var(--tl-ease-spring); }
 .tl-confirm .trig { margin: 8px 4px 0 0; }
-@keyframes tl-popup-in { from { opacity: 0; } to { opacity: 1; } }
 .tl-pop .tl-value-input { width: 100%; box-sizing: border-box; color: inherit; background: var(--glass-well); border: 1px solid var(--glass-border-color); border-radius: var(--tl-input-r); padding: var(--tl-input-pad); font: inherit; }
 .tl-pop .tl-field { display: flex; flex-direction: column; gap: var(--tl-field-gap); font-size: var(--tl-field-size); padding: 4px; }
 .tl-pop .tl-audio-target { flex-direction: row; align-items: center; gap: var(--tl-field-gap); padding: 2px 4px; font-size: var(--tl-pop-title-size); letter-spacing: var(--tl-pop-title-track); }

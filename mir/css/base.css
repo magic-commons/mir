@@ -62,7 +62,7 @@
   --acc2: hsl(var(--hue-acc2) var(--sat-acc2) var(--lum-acc2)); --acc2-soft: color-mix(in srgb, var(--acc2) 18%, transparent);
   --ok: hsl(142 42% 70%); --warn: hsl(38 70% 70%); --bad: hsl(4 62% 74%);
   --n1: hsl(40 90% 80%); --n2: hsl(188 80% 68%); --n3: hsl(300 70% 76%); --n4: hsl(24 92% 66%); --n5: hsl(120 55% 68%); --n6: hsl(258 78% 78%);
-  --rack-w: 372px; --rail-w: 46px; --z-chrome: 30; --z-veil: 40; --z-banner: 60;   /* --rail-w: a COMPACT floating window's strip (wave 55) */
+  --rack-w: 372px; --rail-w: 46px; --z-chrome: 30; --z-veil: 40; --z-prox: 44; --z-banner: 60;   /* --rail-w: a COMPACT floating window's strip (wave 55) */
   --phone: 0;   /* the sentinel skin.css's phone query raises to 1 — the breakpoint is written there, ONCE, and rack.js reads it back */
   /* MOTION (moved here from skin.css in 1.4.0: base.css reads --t-fast, so base.css defines it) */
   --t-fast: .12s; --t-soft: .35s; --t-linger: .7s;                /* the value tooltip: in fast, out soft after a linger */
@@ -108,8 +108,7 @@ h1, h2 { margin: 0; font-weight: var(--w-bold); }
 .dev-head { cursor: grab; user-select: none; touch-action: none; }
 .dev { touch-action: pan-y; }
 .dev.closed { display: none !important; }
-.dev.off .dev-body { opacity: var(--dev-off-fade); pointer-events: none; }
-.dev.loading > .dev-head, .dev.loading > .dev-body { opacity: var(--dev-off-fade); pointer-events: none; }
+.dev.off .dev-body, .dev.loading > .dev-head, .dev.loading > .dev-body { opacity: var(--dev-off-fade); pointer-events: none; }
 .dev-loading { display: none; position: absolute; inset: 0; z-index: 8; align-items: center; justify-content: center;
   flex-direction: column; gap: 7px; color: var(--fg-soft); font: var(--w-heavy) var(--fs-tiny)/1 var(--font-ui); letter-spacing: var(--tr-wider);
   pointer-events: none; }
@@ -330,7 +329,7 @@ select.sel { min-height: var(--touch); padding: 0 8px; border-radius: var(--r-md
   background: var(--surface-fill, var(--tip-fill)); color: var(--fg); box-shadow: var(--surface-shadow-menu, var(--glass-shadow));   /* height 4; TINTED, so no blur (L09, L69) */
   font: var(--fs-tiny)/1.4 var(--font-ui); letter-spacing: var(--tr-tight); white-space: pre-line; }
 @keyframes lw-busy-breathe { from { opacity: .42; } to { opacity: 1; } }
-@keyframes lw-warn-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes lw-warn-in { from { opacity: 0; } to { opacity: 1; } }   /* the kit's one fade-in: the opener, its cards and the timeline's popups play it too */
 @keyframes lw-tr-out-down { from { transform: translate(-50%, 0);     opacity: 1; }
                             to   { transform: translate(-50%, 96px);  opacity: 0; } }
 @keyframes lw-tr-out-up   { from { transform: translate(-50%, 0);     opacity: 1; }
@@ -467,8 +466,7 @@ select.sel { min-height: var(--touch); padding: 0 8px; border-radius: var(--r-md
   body.touch-tablet .dev-head { min-height: 44px; }
   body.touch-tablet .dev-util > :is(.dev-swap, .dev-copy) { display: none; }
   body.touch-tablet .dev-head > .dev-util { gap: 2px; }
-  body.touch-tablet .dev-head .dev-util > button:not(.dev-rail) { width: 38px; min-width: 38px; height: 38px; margin: 0; }
-  body.touch-tablet .dev.floating .dev-head .dev-util > .dev-rail { width: 38px; min-width: 38px; height: 38px; margin: 0; }
+  body.touch-tablet .dev-head .dev-util > button:not(.dev-rail), body.touch-tablet .dev.floating .dev-head .dev-util > .dev-rail { width: 38px; min-width: 38px; height: 38px; margin: 0; }
   body.touch-tablet .dev-head .dev-power::before { inset: 14px; }
   body.touch-tablet .dev-head .dev-power::after { top: 12px; }
 }

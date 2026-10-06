@@ -193,8 +193,6 @@
   --m2-prenav-font: 600 11px var(--font-sans);
   --m2-prowtag-font: 600 7.5px var(--font-sans);
   --m2-r-1: 1px;
-  --m2-r-2: 2px;
-  --m2-r-3: 3px;
   --m2-r-4: 4px;
   --m2-r-6: 6px;
   --m2-r-7: 7px;
@@ -1465,7 +1463,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 .modwin.mir-modwindow .modcad:active { background: var(--state-press, var(--glass-press)); color: var(--acc); }
 .modwin.mir-modwindow .modcad[hidden] { display: none; }
 /* The frost radii for this window. */
-#modwin.mir-modwindow.kwin-frost { --fr-r-card: calc(16px * var(--ui-scale)); --fr-r-chip: calc(16px * var(--ui-scale)); }
+#modwin.mir-modwindow.kwin-frost { --fr-r-chip: calc(16px * var(--ui-scale)); }
 /* Centre the folded strip's head so its power button is not clipped. */
 #modwin.mir-modwindow .m2dev.m2min .m2headr { justify-content: center; }
 /* The rail and the device share one top and one height. */

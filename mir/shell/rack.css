@@ -18,7 +18,7 @@
    duration and ease-out).  On every rack the kit runs, its own or an app's adopted one ([data-mir-rack]); read by
    shell/rack.js where the motion starts.  The flat tier's 0 ms structural reaches it, so flat jumps. */
 [data-mir-rack] { --rack-motion: var(--motion-structural); --rack-ease: var(--ease-out);
-  --rack-enter: 220ms; --rack-enter-ease: cubic-bezier(.23, 1, .32, 1); }   /* a card's entrance: BASINS' .dev-enter, 6 px up over .22 s on its own curve */
+  --rack-enter: var(--dev-enter-time); --rack-enter-ease: var(--dev-enter-ease); }   /* a card's entrance: BASINS' .dev-enter, 6 px up over .22 s on its own curve (base.css says it once) */
 /* a card whose height is travelling clips what it is growing into (BASINS lab.css:977); a disconnected card's parts
    carry their own shadows, so it does not clip them (BASINS material.css:216) */
 [data-mir-rack] > .dev.rack-sizing { overflow: clip; }
