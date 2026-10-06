@@ -8,8 +8,8 @@
  *
  * THE LAWS IT KEEPS
  *   · EVERY CONTROL IS A KIT CONTROL wearing the current look (knob, seg, sw, trig, readout from mir/kit.js), so the
- *     window is its own demonstration.  The one control the kit lacks — the `‹ NAME ›` stepper, built like BASINS'
- *     blend-mode picker — is built here, and the page turner is the same stepper.
+ *     window is its own demonstration, the `‹ NAME ›` stepper (mir/controls/stepper.js, once built here) included;
+ *     the page turner is the same stepper.
  *   · NO DEAD CONTROLS.  Each option drives a hook a kit sheet or kit module already reads (the table is LOOK_SCHEMA
  *     below and docs/GUI.md).  A control that is inert in the current combination says so (it is disabled).
  *   · HARVESTED FROM BASINS.  Where BASINS' Settings has the control (CONTROL FACES and BLEND, TEXT, SHADOW as an
@@ -48,6 +48,7 @@
  * AUTOMATION), QUALITY · AUTO with the device tier, the first-run blur by device, body.touch-tablet. */
 import { el, knob, seg, sw, trig, readout, label, ariaLabel } from '../kit.js';
 import { phrase, t } from '../core/i18n.js';
+import { stepper } from '../controls/stepper.js';
 import { createWindow } from '../window/window.js';
 import { createPrefs } from '../core/prefs.js';
 import { setMotionPolicy } from '../core/motion.js';
@@ -217,42 +218,8 @@ export function migrateShadow(key = 'mir.gui', win = globalThis) {
   } catch (_) { return null; }
 }
 
-/* ── THE STEPPER: `‹ NAME ›`, two 44 px buttons around a live label (BASINS colour-window.js blend-mode picker) ───── */
-/** stepper({ label, aria, items: [{ id, label, coming? }], value, onChange, wrap }) → { root, get, set(id), setItems(items, id) }
- *  An item marked `coming` is shown in the list but never chosen; the arrows skip it and stand down when nothing else
- *  can be reached. */
-export function stepper(o) {
-  const root = el('div', 'gui-step' + (o.cls ? ' ' + o.cls : ''));
-  if (o.label) label(el('div', 'k-lbl', root), o.label);
-  const row = el('div', 'gui-step-row', root);
-  const prev = el('button', 'gui-step-b', row, '‹'); prev.type = 'button'; prev.dataset.step = '-1';
-  const name = el('div', 'gui-step-name', row); name.setAttribute('aria-live', 'polite');
-  const next = el('button', 'gui-step-b', row, '›'); next.type = 'button'; next.dataset.step = '1';
-  ariaLabel(prev, 'previous'); ariaLabel(next, 'next');
-  if (o.aria || o.label) ariaLabel(row, o.aria || o.label);
-  let items = o.items || [], v = o.value;
-  const live = () => items.filter((i) => !i.coming);
-  const paint = () => {
-    const it = items.find((i) => i.id === v) || live()[0];
-    label(name, it ? it.label : '—', it && it.vars);
-    const L = live(), i = L.findIndex((x) => x.id === v), wrap = o.wrap !== false;
-    prev.disabled = L.length < 2 || (!wrap && i <= 0); next.disabled = L.length < 2 || (!wrap && i >= L.length - 1);
-  };
-  const step = (d) => {
-    const L = live(); if (L.length < 2) return;
-    const at = L.findIndex((x) => x.id === v);
-    const j = at < 0 ? (d > 0 ? 0 : L.length - 1) : o.wrap === false ? Math.max(0, Math.min(L.length - 1, at + d)) : (at + d + L.length) % L.length;
-    if (L[j].id === v) return;
-    v = L[j].id; paint(); if (o.onChange) o.onChange(v, d);
-  };
-  prev.addEventListener('click', () => step(-1)); next.addEventListener('click', () => step(1));
-  row.addEventListener('keydown', (e) => {
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
-    if (e.code === 'ArrowLeft') { e.preventDefault(); step(-1); } else if (e.code === 'ArrowRight') { e.preventDefault(); step(1); }
-  });
-  paint();
-  return { root, prev, next, get: () => v, set(id) { v = id; paint(); }, setItems(list, id) { items = list; if (id !== undefined) v = id; paint(); }, step };
-}
+/* ── THE STEPPER: `‹ NAME ›`, and the page turner — the kit's one stepper (mir/controls/stepper.js; this file used to carry its own) ───── */
+export { stepper };
 
 /* ── THE COST READING ────────────────────────────────────────────────────────────────────────────────────────────── */
 const OFF_SHADOW = /^(none|rgba\(0, 0, 0, 0\) 0px 0px 0px 0px)$/;
@@ -585,7 +552,7 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   const pages = () => (narrow ? [...Array.from({ length: SHEET_COUNT }, (_, i) => ({ id: 'options:' + (i + 1), label: phrase('MIR OPTIONS {page}/{of}'), vars: { page: i + 1, of: SHEET_COUNT } })), { id: 'about', label: 'MIR ABOUT' }]
     : [{ id: 'options:1', label: 'MIR OPTIONS 1' }, { id: 'options:2', label: 'MIR OPTIONS 2' }, { id: 'about', label: 'MIR ABOUT' }]);
   const pageId = () => (page === 'about' ? 'about' : 'options:' + (narrow ? sheet : optPage));
-  const turner = stepper({ cls: 'gui-turner', aria: 'page', items: pages(), value: pageId(), onChange: (id) => show(id) });
+  const turner = stepper({ cls: 'gui-turner', aria: 'page', pager: true, items: pages(), value: pageId(), onChange: (id) => show(id) });
   head.append(turner.root);
 
   const W = createWindow({ id: 'gui', title: 'GUI', host, size: { w: 920, h: 520 }, min: { w: 280, h: 200 }, emptyDrag: true,

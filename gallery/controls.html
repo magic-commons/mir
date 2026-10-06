@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>MIR · controls</title>
+<!-- THE CONTROL LANGUAGE, LIVE (docs/CONTROLS.md).  One kind of value, one control: each card draws the controls of one family, with the rule that
+     chose them beside them.  The source tag on a rule says who ruled it: J = Josh's own words, B = BASINS draws it so, R = the orchestrator's
+     reading, shown here for Josh to overrule.  The colour family (arc, swatch, lane slider, the lists) is lane C1's (docs/CONTROLS-COLOUR.md); the
+     rest is mir/controls/.  Every control answers the one knob law: drag vertically; Shift, Alt, Ctrl or Meta, or a second finger, is the ⅛ gear;
+     a double-tap is home.  ?theme=light · ?card=refractive · ?frost · ?pair shows dark and light side by side. -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/css/tokens.css">
+<link rel="stylesheet" href="../mir/shell/shell.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<link rel="stylesheet" href="../mir/window/window.css">
+<link rel="stylesheet" href="../mir/shell/rack.css">
+<link rel="stylesheet" href="../mir/modulation/modwindow/modwindow.css">
+<link rel="stylesheet" href="../mir/modulation/modhost.css">
+<link rel="stylesheet" href="../mir/controls/controls.css">
+<link rel="stylesheet" href="../mir/controls/colour-controls.css">
+<link rel="stylesheet" href="../mir/locales/locales.css">
+<style>
+  html, body { margin: 0; min-height: 100%; background: #070a0f; }
+  body[data-theme="light"] { background: #eef1f6; }
+  body { padding: 18px 18px 80px; box-sizing: border-box; }
+  h1 { font-size: var(--fs-lead); letter-spacing: var(--tr-wide); margin: 0 0 4px; }
+  .g-note { font-size: var(--fs-small); color: var(--fg-soft); line-height: 1.5; margin: 0 0 14px; max-width: 78ch; }
+  .g-note a { color: var(--acc); }
+  .g-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; align-items: center; }
+  .g-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; align-items: start; }
+  .g-card { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 10px; border-radius: var(--card-r); min-width: 0; }
+  .g-card.wide { grid-column: 1 / -1; }
+  .g-card > h2 { margin: 0; font-size: var(--fs-small); letter-spacing: var(--tr-wider); color: var(--ink-key); }
+  .g-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px; }
+  .g-seat { padding: 8px 10px; border: 1px dashed var(--glass-hairline); border-radius: var(--r-md); font-size: var(--fs-tiny); letter-spacing: var(--tr-wide); color: var(--ink-faint); }
+  /* the rule beside a control: what kind of value, which control, whose rule */
+  .g-rules { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; border-top: 1px solid var(--glass-hairline); }
+  .g-rules li { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 5px 0; border-bottom: 1px solid var(--glass-hairline); font-size: var(--fs-tiny); color: var(--fg-soft); line-height: 1.4; }
+  .g-rules b { color: var(--fg); font-weight: var(--w-bold); letter-spacing: var(--tr-wide); }
+  .g-src { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--ink-faint); align-self: start; }
+  .g-src.r { color: var(--acc2); }
+  .g-kinds { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .g-kind { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .g-kind > code { font-size: var(--fs-micro); color: var(--ink-faint); letter-spacing: var(--tr-wide); }
+  .g-kind > code b { color: var(--acc); }
+  .g-pair-frame { width: 100%; height: 2200px; border: 0; border-radius: var(--r-md); }
+  #floats { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  #floats > * { pointer-events: auto; }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted" class="disconnected">
+<h1>CONTROLS</h1>
+<p class="g-note">One kind of value, one control. The rule that chose each control is beside it, with whose rule it is: <b>J</b> Josh's own words, <b>B</b> BASINS draws it so, <b>R</b> a reading for Josh to overrule. The law is <a href="../docs/CONTROLS.md">docs/CONTROLS.md</a>; the colour family's is <a href="../docs/CONTROLS-COLOUR.md">docs/CONTROLS-COLOUR.md</a>.</p>
+<div class="g-bar" id="bar"></div>
+<div class="g-grid" id="grid"></div>
+<div id="floats"></div>
+<script type="module">
+import { el, knob, sw, seg, trig, fader } from '../mir/kit.js';
+import { stepper } from '../mir/controls/stepper.js';
+import { select } from '../mir/controls/select.js';
+import { number } from '../mir/controls/number.js';
+import { rangeSlider } from '../mir/controls/range.js';
+import { xyPad } from '../mir/controls/xy.js';
+import { control, controlKind } from '../mir/controls/factory.js';
+import { arcKnob } from '../mir/controls/arc.js';
+import { hueSwatch, rgbCss } from '../mir/controls/swatch.js';
+import { laneSlider, laneInk } from '../mir/controls/lane.js';
+import { chipStrip, sortableList } from '../mir/controls/list.js';
+import { installModulation } from '../mir/modulation/bind.js';
+
+const q = new URLSearchParams(location.search);
+if (q.has('pair')) {                                                      // dark and light, side by side: the page twice (the theme lives on <body>)
+  document.body.dataset.theme = 'dark';
+  document.body.replaceChildren();
+  const row = el('div', null, document.body); row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:12px';
+  for (const th of ['dark', 'light']) { const f = el('iframe', 'g-pair-frame', row); f.src = location.pathname + '?theme=' + th + (q.get('card') ? '&card=' + q.get('card') : '') + (q.has('frost') ? '&frost' : ''); f.title = th; }
+} else {
+if (q.get('theme')) document.body.dataset.theme = q.get('theme');
+if (q.get('card')) document.body.dataset.card = q.get('card');
+if (q.has('frost')) document.body.classList.add('frost');
+try { for (const k of Object.keys(localStorage)) if (k.startsWith('mir.gallery.controls')) localStorage.removeItem(k); } catch (_) { /* no storage */ }
+
+const W = {};                                                              // every specimen, for the test
+const grid = document.getElementById('grid');
+const card = (id, title, wide) => { const c = el('section', 'g-card glass' + (wide ? ' wide' : ''), grid); c.id = id; el('h2', null, c, title); return c; };
+const row = (c) => el('div', 'g-row', c);
+/** the rules of a card: [kind of value, the control, source] */
+const rules = (c, list) => { const ul = el('ul', 'g-rules', c); for (const [kind, ctl, src, note] of list) { const li = el('li', null, ul); const d = el('div', null, li); el('b', null, d, ctl ? kind + ' → ' + ctl : kind); if (note) el('span', null, d, ' — ' + note); el('span', 'g-src' + (src === 'R' ? ' r' : ''), li, src); } };
+const pct = (v) => (v * 100).toFixed(0) + '%';
+const deg = (v) => (((v % 360) + 360) % 360).toFixed(0) + '°';
+const hueInk = (v) => 'hsl(' + (((v % 360) + 360) % 360).toFixed(1) + ' 85% 62%)';
+
+/* ── THE BAR: theme, card style, frost ── */
+const bar = document.getElementById('bar');
+bar.append(seg({ value: document.body.dataset.theme, options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], onChange: (v) => { document.body.dataset.theme = v; } }).root,
+  seg({ value: document.body.dataset.card, options: [{ id: 'tinted', label: 'TINTED' }, { id: 'refractive', label: 'REFRACTIVE' }], onChange: (v) => { document.body.dataset.card = v; } }).root,
+  sw({ label: 'FROST', value: document.body.classList.contains('frost'), onChange: (v) => document.body.classList.toggle('frost', v) }).root);
+
+/* ── 1 · THE KNOB: any ordinary continuous parameter ── */
+{
+  const c = card('s-knob', 'KNOB · the one drag law');
+  const r = row(c);
+  W.knob = knob({ label: 'RATE', min: 0, max: 1, value: 0.4, fmt: (v) => v.toFixed(3), title: 'Drag up or down. Shift (or any modifier, or a second finger) is the eighth gear. Double-tap is home.' });
+  W.exposure = knob({ label: 'EXPOSURE', min: -4, max: 4, value: 0, fmt: (v) => v.toFixed(2) + ' EV' });
+  W.jog = knob({ label: 'JOG', min: 0, max: 1, value: 0, onDelta: () => {}, title: 'An unbounded turn: a wheel that holds no value' });
+  W.warn = knob({ label: 'WARN', min: 0, max: 1, value: 0.9, fmt: (v) => v.toFixed(2) }); W.warn.setState('warn', 'Near the stability limit');
+  W.clamped = knob({ label: 'CLAMPED', min: 0, max: 1, value: 1, fmt: (v) => v.toFixed(2) }); W.clamped.setState('clamped', 'Held at the engine\'s limit');
+  r.append(W.knob.root, W.exposure.root, W.jog.root, W.warn.root, W.clamped.root);
+  rules(c, [['an ordinary continuous parameter', 'KNOB', 'J', 'one drag law: vertical; any modifier or a second finger = ⅛ fine; double-tap = home'],
+    ['a colour amount in a global grade', 'solid KNOB', 'J', '"the ol\' regular knobs" (EXPOSURE)'],
+    ['an unbounded turn', 'JOG WHEEL', 'kit', 'knob({ onDelta })'],
+    ['a knob that is clamped or warns', 'setState(\'warn\' | \'clamped\', reason)', 'J', 'in --warn, never an accent (INTENT rule 5)']]);
+}
+
+/* ── 2 · COLOUR: arc, swatch, lane slider ── */
+{
+  const c = card('s-colour', 'ARC · SWATCH · LANE SLIDER (colour)');
+  const r = row(c);
+  W.hue = arcKnob({ label: 'HUE', min: 0, max: 360, value: 210, home: 210, wrap: true, fmt: deg, ink: hueInk });
+  W.angle = arcKnob({ label: 'ANGLE', min: 0, max: 360, value: 40, home: 0, wrap: true, fmt: deg });
+  const lane = el('div', 'mir-lane', c); laneInk(lane, 'hsl(30 90% 60%)'); lane.style.cssText = 'display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end';
+  W.opacity = arcKnob({ label: 'OPACITY', min: 0, max: 1, value: 0.6, home: 1, fmt: pct, ink: 'hsl(30 90% 60%)' });
+  W.freq = laneSlider({ label: 'FREQ', min: 0.25, max: 8, log: true, value: 1, home: 1, fmt: (v) => v.toFixed(2) + '×' }); W.freq.root.style.flex = '1 1 140px';
+  W.swatch = hueSwatch({ rgb: [0.9, 0.35, 0.2], label: 'colour', onInput: (rgb) => laneInk(lane, rgbCss(rgb)) });
+  r.append(W.hue.root, W.angle.root, W.swatch.root);
+  lane.append(W.opacity.root, W.freq.root);
+  rules(c, [['a hue, or any cyclic value in its own colour', 'ARC KNOB', 'J·B', 'no body, an SVG ring with round caps in the colour it names'],
+    ['a colour amount inside a coloured lane', 'arc in the lane\'s ink', 'B', 'OPACITY, in the lane below'],
+    ['an angle, bounded or wrapped', 'arc in the accent', 'J·B', 'INTENT rule 2'],
+    ['a colour the user picks', 'HUE SWATCH', 'B', 'tap = the platform\'s chooser; drag 8 px = turn the hue'],
+    ['a thing\'s one principal parameter', 'LANE SLIDER', 'J·B', 'a long pill in the thing\'s ink; double-tap = home; a modulation target natively']]);
+}
+
+/* ── 3 · PAIRS: the XY pad and the range slider ── */
+{
+  const c = card('s-pairs', 'XY PAD · RANGE SLIDER (pairs)');
+  W.xy = xyPad({ label: 'PAN', x: { label: 'X', min: -1, max: 1, value: 0.2, fmt: (v) => v.toFixed(3) }, y: { label: 'Y', min: -1, max: 1, value: -0.3, fmt: (v) => v.toFixed(3) }, home: [0, 0], tags: { bl: 'A', br: 'B', tl: 'C', tr: 'D' } });
+  W.range = rangeSlider({ label: 'RANGE', min: 0, max: 1, lo: 0.25, hi: 0.75, step: 0.01, fmt: (v) => v.toFixed(2) });
+  c.append(W.xy.root, W.range.root);
+  rules(c, [['a coupled pair (pan x/y, a point in a plane, az/el)', 'XY PAD + its two knobs', 'J', 'the pad is for the hand; the two knobs stay the modulation targets (AUTOMATA\'s contract); Home or a double-tap centres'],
+    ['a lo/hi range', 'RANGE SLIDER', 'R', 'one track, two thumbs that never cross; each thumb a target']]);
+}
+
+/* ── 4 · STATE: the switch and its lamp, the trigger, the segment ── */
+{
+  const c = card('s-state', 'SWITCH · TRIGGER · SEGMENT');
+  const r = row(c);
+  W.swLamp = sw({ label: 'LIVE', value: true });
+  W.swOff = sw({ label: 'SYNC', value: false });
+  W.swNoLamp = sw({ label: 'ALL', value: true, lamp: false, title: 'a switch without a lamp: its label is the light' });
+  W.trig = trig({ label: 'FIRE', onFire: () => {} });
+  W.seg = seg({ label: 'MODE', value: 'b', options: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }, { id: 'c', label: 'C' }] });
+  r.append(W.swLamp.root, W.swOff.root, W.swNoLamp.root, W.trig.root, W.seg.root);
+  rules(c, [['a state that stays on', 'SWITCH with a lamp', 'J', '"I like the little light switches when things are on"'],
+    ['no lamp: the glyph itself is the state', 'a chrome button (power, an eye, play/pause, invert)', 'R'],
+    ['no lamp: a lane\'s dot is itself the lamp', 'the dot, in the lane\'s ink', 'R'],
+    ['no lamp: an opener whose open window is the evidence', 'latch()', 'R', 'shell/transport.js'],
+    ['no lamp: a chosen segment', 'its frost face says it', 'R', 'and a switch with `lamp: false`, whose label is the light'],
+    ['a momentary action', 'TRIGGER', 'J', 'never a lamp (INTENT O5)'],
+    ['one of 2–4 modes, all visible', 'SEGMENT', 'R']]);
+}
+
+/* ── 5 · MODES: the stepper, the page turner, the select, the number field ── */
+{
+  const c = card('s-modes', 'STEPPER · SELECT · NUMBER');
+  const blends = ['NORMAL', 'MULTIPLY', 'SCREEN', 'OVERLAY', 'SOFT LIGHT', 'HARD LIGHT', 'DIFFERENCE', 'EXCLUSION', 'COLOUR DODGE', 'COLOUR BURN', 'LIGHTEN', 'DARKEN'].map((l) => ({ id: l.toLowerCase(), label: l }));
+  W.stepper = stepper({ label: 'BLEND', items: blends, value: 'overlay' });
+  W.pager = stepper({ pager: true, count: true, aria: 'page', items: [{ id: 'one', label: 'PAGE ONE' }, { id: 'two', label: 'PAGE TWO' }, { id: 'three', label: 'PAGE THREE' }], value: 'one' });
+  const ports = Array.from({ length: 24 }, (_, i) => ({ id: 'p' + i, label: 'MIDI PORT ' + (i + 1) }));
+  W.select = select({ label: 'MIDI IN', items: ports, value: 'p3' });
+  W.number = number({ label: 'AMOUNT', min: 0, max: 100, step: 0.5, value: 12.5, unit: '' });
+  c.append(W.stepper.root, W.pager.root, W.select.root, W.number.root);
+  rules(c, [['one of 5 or more modes, in order', 'STEPPER ‹ NAME ›', 'J·R', 'a tap on the name opens the full list; it is the page turner too'],
+    ['a long list of data (bands, ports, files)', 'SELECT (the kit\'s own)', 'R', 'on the menu pane, never a native <select>'],
+    ['a typed number', 'NUMBER FIELD', 'B', 'drag + type + keys: the tempo field\'s law']]);
+}
+
+/* ── 6 · LISTS (colour family) and the seat for CURVES ── */
+{
+  const c = card('s-lists', 'LISTS · CHIPS · CURVES');
+  const r = row(c);
+  const strip = chipStrip({ id: 'g', title: 'demo', flow: 'row', chips: [{ name: 'eye', kind: 'toggle', glyph: 'dot', label: 'Show', state: true }, { name: 'dup', kind: 'action', glyph: 'duplicate', label: 'Duplicate' }] });
+  r.append(strip.el);
+  const items = [{ id: 1, rgb: [0.95, 0.4, 0.3] }, { id: 2, rgb: [0.3, 0.8, 0.5] }];
+  let next = 3;
+  W.list = sortableList({ items, cap: 4, noun: 'colour', side: 'right',
+    build(it, i, pane) { pane.style.cssText += ';display:flex;align-items:center;gap:10px;padding:8px 10px'; laneInk(pane, rgbCss(it.rgb)); pane.append(hueSwatch({ rgb: it.rgb, label: 'colour ' + (i + 1), onInput: (cc) => { it.rgb = cc; laneInk(pane, rgbCss(cc)); } }).root); },
+    onAdd() { const h = (next * 137.5) % 360; return { id: next++, rgb: [0.5 + 0.5 * Math.cos(h * Math.PI / 180), 0.5 + 0.5 * Math.cos((h - 120) * Math.PI / 180), 0.5 + 0.5 * Math.cos((h - 240) * Math.PI / 180)] }; } });
+  const rack = el('div', null, c); rack.style.cssText = 'width:300px;max-width:100%;margin:0 0 0 56px;position:relative'; rack.append(W.list.root);
+  el('div', 'g-seat', c, 'SEAT · CURVES (a transfer curve): a window, wave 14');
+  rules(c, [['a list the user builds', 'SORTABLE LIST', 'B', 'dot grip (drag and arrows), armed × (tap twice), + ADD at the foot that dims at the cap'],
+    ['a window\'s verbs', 'CHIPS on the rail', 'J'],
+    ['a transfer curve', 'CURVES', 'J', 'the kit\'s curve editor, a window (wave 14)']]);
+}
+
+/* ── 7 · control(descriptor): the table as code ── */
+{
+  const c = card('s-factory', 'control(descriptor) · the table as code', true);
+  const grid2 = el('div', 'g-kinds', c);
+  const state = {};
+  const D = [
+    { id: 'enable', label: 'ENABLE', value: true },
+    { id: 'mode', label: 'MODE', options: [{ id: 'a', label: 'ADD' }, { id: 'm', label: 'MUL' }, { id: 's', label: 'SUB' }], value: 'a' },
+    { id: 'blend', label: 'BLEND', options: blendOptions(), value: 'overlay' },
+    { id: 'band', label: 'BAND', list: true, options: blendOptions(), value: 'overlay' },
+    { id: 'gain', label: 'GAIN', min: 0, max: 1, value: 0.5 },
+    { id: 'hue', label: 'HUE', min: 0, max: 360, wrap: true, hue: true, value: 120, fmt: deg },
+    { id: 'freq', label: 'FREQ', min: 0.25, max: 8, log: true, principal: true, value: 1 },
+    { id: 'pan', label: 'PAN', pair: [{ id: 'pan.x', label: 'X', min: -1, max: 1, value: 0 }, { id: 'pan.y', label: 'Y', min: -1, max: 1, value: 0 }] },
+    { id: 'win', label: 'WINDOW', type: 'range', min: 0, max: 1, step: 0.01, value: [0.2, 0.8] },
+    { id: 'count', label: 'COUNT', value: 12, step: 1 }
+  ];
+  function blendOptions() { return ['NORMAL', 'MULTIPLY', 'SCREEN', 'OVERLAY', 'SOFT LIGHT', 'HARD LIGHT'].map((l) => ({ id: l.toLowerCase(), label: l })); }
+  W.factory = {};
+  for (const d of D) {
+    const k = el('div', 'g-kind', grid2);
+    const ctl = control({ ...d, get: () => state[d.id] ?? d.value, set: (v) => { state[d.id] = v; } });
+    k.append(ctl.root);
+    const tag = el('code', null, k); tag.append('kind: '); el('b', null, tag, ctl.kind);
+    W.factory[d.id] = ctl;
+  }
+  rules(c, [['boolean → switch · 2–4 options → segment · 5+ ordered → stepper · a long list → select', '', 'R'],
+    ['a finite range → knob · hue or cyclic → arc · a principal amount → lane slider · a pair → XY pad · a lo/hi → range · otherwise a number field', '', 'R', 'NEBULA\'s rule (census finding 10), as the kit\'s']]);
+}
+
+/* ── 8 · ROUTED: the pad's knobs and the range's thumbs are modulation targets ── */
+let mod = null;
+{
+  const c = card('s-routed', 'ROUTED · modulation targets');
+  const st = { x: 0.3, y: 0.6, lo: 0.2, hi: 0.8 };
+  const hand = (id, key) => (v) => { if (!mod || !mod.hand(id, v)) st[key] = v; };
+  W.rxy = xyPad({ label: 'MORPH', x: { label: 'X', min: 0, max: 1, value: st.x, fmt: (v) => v.toFixed(3), onInput: hand('demo.x', 'x') }, y: { label: 'Y', min: 0, max: 1, value: st.y, fmt: (v) => v.toFixed(3), onInput: hand('demo.y', 'y') }, home: [0.5, 0.5] });
+  W.rrange = rangeSlider({ label: 'LEVELS', min: 0, max: 1, lo: st.lo, hi: st.hi, step: 0.01, fmt: (v) => v.toFixed(2), onInput: (lo, hi) => { st.lo = lo; st.hi = hi; } });
+  c.append(W.rxy.root, W.rrange.root);
+  const P = (key, id, label, widget) => ({ id, label, min: 0, max: 1, map: 'linear', get: () => st[key], set: (v) => { st[key] = v; }, widget });
+  mod = installModulation({ mount: document.getElementById('floats'), params: [P('x', 'demo.x', 'X', W.rxy.x), P('y', 'demo.y', 'Y', W.rxy.y), P('lo', 'demo.lo', 'LO', W.rrange.lo), P('hi', 'demo.hi', 'HI', W.rrange.hi)],
+    storageKey: 'mir.gallery.controls.mod', presetKey: 'mir.gallery.controls.presets' });
+  mod.view.restore({ ...mod.view.presentation(), chipSide: 'bottom' });
+  let route = null;
+  const modBtn = trig({ label: 'MOD', onFire: () => mod.toggle() });
+  const routeBtn = trig({ label: 'ROUTE', onFire: () => {
+    if (route) { route.forEach((r) => r.remove()); route = null; routeBtn.on = false; return; }
+    route = ['demo.x', 'demo.y', 'demo.lo', 'demo.hi'].map((id) => mod.route('lfo', id, 0.3)); routeBtn.on = true; if (mod.setPower) mod.setPower(true); if (mod.play) mod.play(true);
+  } });
+  bar.append(modBtn.root, routeBtn.root);
+  W.st = st;
+  rules(c, [['a routed pair', 'the pad paints from its knobs', 'J', 'a macro routes onto a knob; the dot rides the modulated value and the ring keeps the hand\'s base'],
+    ['a routed range', 'each thumb a target', 'R']]);
+}
+
+window.__C = { W, mod, kit: { knob, sw, seg, trig, fader }, control, controlKind };
+window.__ready = true;
+}
+</script>
+</body>
+</html>

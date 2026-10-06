@@ -143,20 +143,21 @@ export function tapWatcher(fn) {
   return () => { const now = performance.now(); if (now - last < 320) { last = 0; fn(); } else last = now; };
 }
 
-/**
- * knob({ label, aria, title, min, max, value, log, wrap, step, fmt, unit, onInput, onChange, onDelta, onReset, size, cls, travel, fine, dragAxis })
- *   wrap: free-spinning (phase); onDelta(dRad) reports drag deltas instead of absolute values (a JOG WHEEL);
- *   onReset: what a wheel's reset does; size: 'lg'; travel / fine: this knob's own drag law (see setKnobLaw).
- *   dragAxis: 'vertical' ignores horizontal pointer motion (used by the COLOUR window's knobs).
- *   → { root, get, set(x, silent = true), show(x), shown, setDefault(x), setDisabled(on), setBase(fn), paint }
- */
-/* THE DRAG LAW, as defaults an app may retune (BASINS asked for Shift = 1/8): travel = px for a full scale,
-   fine = the Shift divisor on a drag, keyFine = the Shift factor on an arrow step. A knob or fader may
-   carry its own `travel` / `fine`; the shipped defaults are the numbers the lab has always used. */
-const KNOB_LAW = { travel: 220, fine: 900 / 220, keyFine: 0.25, faderFine: 5, touchTravel: 320 };   // the fader's Shift has always been a fifth
+/* ── 1.5.0-alpha.13 · THE ONE KNOB LAW (docs/CONTROLS.md) ─────────────────────────────────────────────────────────────
+ * Josh: "currently holding shift gives a 1/4 fine tuning, can we make this 1/8?" — and BASINS' own law, taken whole
+ * (colour-controls.js wireTouches / fineHeld):
+ *   · THE DRAG IS VERTICAL.  A full scale is `travel` px of rise (220; a finger 320); sideways motion is ignored.
+ *   · THE FINE GEAR IS ⅛, and ANY modifier engages it (Shift, Alt, Ctrl, Meta), and so does a SECOND FINGER put down while
+ *     one drags.  It runs on a VIRTUAL POINT (p += gear · Δy / travel), so engaging or leaving the gear moves nothing.
+ *   · DOUBLE-TAP (320 ms) or double-click = home.
+ * `verticalDrag(e)` is that law as one small object, so the arc knob, the lane slider, the swatch, the number field and the
+ * XY pad stand on the same arithmetic instead of copying it.  `setKnobLaw()` retunes it (`fine` alone moves every gear). */
+/** setKnobLaw's defaults: travel = px for a full scale, fine = the gear's divisor on a drag, keyFine = the Shift factor on an
+ *  arrow step, faderFine = the fader's divisor, touchTravel = px for a full scale under a finger */
+const KNOB_LAW = { travel: 220, fine: 8, keyFine: 1 / 8, faderFine: 8, touchTravel: 320 };
 /** setKnobLaw({ travel, fine, keyFine, faderFine, touchTravel }) → the law now in force.
- *  `fine` alone retunes every Shift at once (knob drag, fader drag, arrow step = 1/fine) — BASINS' Shift = ⅛ is
- *  setKnobLaw({ fine: 8 }).  A part named explicitly wins over the one `fine` implies, so the returned object
+ *  `fine` alone retunes every gear at once (knob drag, fader drag, arrow step = 1/fine); the default is ⅛ (alpha.13; it was
+ *  900/220, a quarter-ish, and a fifth on a fader).  A part named explicitly wins over the one `fine` implies, so the object
  *  handed back is the identity: setKnobLaw(setKnobLaw()) changes nothing. */
 export function setKnobLaw(o) {
   if (o && o.travel > 0) KNOB_LAW.travel = o.travel;
@@ -166,12 +167,56 @@ export function setKnobLaw(o) {
   if (o && o.touchTravel > 0) KNOB_LAW.touchTravel = o.touchTravel;
   return { ...KNOB_LAW };
 }
+/* THE SECOND FINGER.  A touch that is down while another pointer drags is the fine gear on a glass; a primary touch means
+   no other touch is down, which clears a lost pointerup.  One document-level watcher, wired on first use. */
+const touches = new Set();
+let touchWired = false;
+/** watchTouches() — start tracking the fingers that are down (idempotent; every builder that takes the law calls it) */
+export function watchTouches() {
+  if (touchWired || typeof document === 'undefined') return;
+  touchWired = true;
+  const opt = { capture: true, passive: true };
+  document.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'touch') return; if (e.isPrimary) touches.clear(); touches.add(e.pointerId); }, opt);
+  const up = (e) => touches.delete(e.pointerId);
+  document.addEventListener('pointerup', up, opt);
+  document.addEventListener('pointercancel', up, opt);
+}
+/** is a finger other than `id` down? */
+export const otherTouch = (id) => { for (const t of touches) if (t !== id) return true; return false; };
+/** fineHeld(event, pointerId) — the fine gear's one decision: Shift, Alt, Ctrl or Meta held, or a second finger down */
+export const fineHeld = (e, id) => !!(e && (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey)) || (id !== undefined && otherTouch(id));
+/** gearOf(event, pointerId, fine?) → 1, or 1/fine (⅛) while the gear is engaged */
+export const gearOf = (e, id, fine) => (fineHeld(e, id) ? 1 / (fine || KNOB_LAW.fine) : 1);
+/** verticalDrag(downEvent, { travel, fine, touchTravel, axis }) → { id, touch, move(e) → the travel so far (up is +), gear, p }
+ *  The law as an accumulator: each move adds gear · Δy / travel to the running travel `p`, so the gear is a virtual point
+ *  and engaging it moves nothing.  `axis: 'sum'` also adds Δx (the 1.4 law).  Feed it the moves of the pointer that went down. */
+export function verticalDrag(e, { travel, fine, touchTravel, axis = 'y' } = {}) {
+  watchTouches();
+  const id = e.pointerId, touch = e.pointerType === 'touch';
+  const d = { id, touch, p: 0, gear: 1, lx: e.clientX, ly: e.clientY,
+    move(ev) {
+      d.gear = gearOf(ev, id, fine);
+      const span = touch ? (touchTravel || KNOB_LAW.touchTravel) : (travel || KNOB_LAW.travel);
+      d.p += d.gear * ((d.ly - ev.clientY) + (axis === 'sum' ? ev.clientX - d.lx : 0)) / span;
+      d.lx = ev.clientX; d.ly = ev.clientY;
+      return d.p;
+    } };
+  return d;
+}
 /** the pixels of pointer travel for a full scale under the law, for a drag surface the kit did not build
- *  (the modulation window's dials still carry their own copy: 220, 900 with Shift, 320 under a finger) */
+ *  (the modulation window's dials still carry their own copy: 220, 1760 with a modifier, 320 under a finger) */
 export function dragTravel(e, { touch = false, travel, fine } = {}) {
-  if (e && e.shiftKey) return (travel || KNOB_LAW.travel) * (fine || KNOB_LAW.fine);
+  if (fineHeld(e)) return (travel || KNOB_LAW.travel) * (fine || KNOB_LAW.fine);
   return touch ? KNOB_LAW.touchTravel : (travel || KNOB_LAW.travel);
 }
+/**
+ * knob({ label, aria, title, min, max, value, log, wrap, step, fmt, unit, onInput, onChange, onDelta, onReset, size, cls, travel, fine, dragAxis })
+ *   wrap: free-spinning (phase); onDelta(dRad) reports drag deltas instead of absolute values (a JOG WHEEL);
+ *   onReset: what a wheel's reset does; size: 'lg'; travel / fine: this knob's own drag law (see setKnobLaw).
+ *   dragAxis: 'vertical' (the default: one law for every knob) or 'sum' (the 1.4 law, rise + sideways, for an app that has not moved).
+ *   → { root, get, set(x, silent = true), show(x), shown, setDefault(x), setDisabled(on), setBase(fn), setState(state, reason), state, paint }
+ *   setState('warn' | 'clamped', reason): the knob says it is held off its value or near a limit, in --warn (never an accent); setState(null) clears it.
+ */
 export function knob(o) {
   const root = ltr(el('div', 'k' + (o.size === 'lg' ? ' k-lg' : '') + (o.cls ? ' ' + o.cls : '')));
   if (o.label) label(el('div', 'k-lbl', root), o.label);
@@ -252,33 +297,30 @@ export function knob(o) {
     if (o.wrap) return lo + ((((nv - lo) % (hi - lo)) + (hi - lo)) % (hi - lo));
     return Math.min(hi, Math.max(lo, nv));
   };
-  let p0 = 0, x0 = 0, y0 = 0, lastY = 0, dragP = 0, touchDrag = false, acc = 0;
+  let p0 = 0, vd = null, acc = 0;
+  /* THE GESTURE belongs to the pointer that started it: a second finger (the fine gear) is neither a new drag nor a move of this one. */
   dial.addEventListener('pointerdown', (e) => {
-    if (disabled) return;
+    if (disabled || dragging) return;
     e.preventDefault(); try { dial.setPointerCapture(e.pointerId); } catch (_) {}   // a pointer already gone (or a synthetic one) must not abort the drag
-    dragging = true; root.classList.add('drag'); root.classList.add('active'); p0 = norm(v); x0 = e.clientX; y0 = lastY = e.clientY; dragP = acc = 0; touchDrag = e.pointerType === 'touch';   // p0 is the BASE: a routed knob's drag moves the range, never teleports it to where the modulator was
+    dragging = true; root.classList.add('drag'); root.classList.add('active'); p0 = norm(v); acc = 0;   // p0 is the BASE: a routed knob's drag moves the range, never teleports it to where the modulator was
+    vd = verticalDrag(e, { travel: o.travel, fine: o.fine, axis: o.dragAxis === 'sum' ? 'sum' : 'y' });
     tap();
   });
   dial.addEventListener('pointermove', (e) => {
-    if (!dragging) return;
-    let dp;
-    if (o.dragAxis === 'vertical') {
-      const travel = touchDrag ? KNOB_LAW.touchTravel : (o.travel || KNOB_LAW.travel);
-      const fine = e.shiftKey || e.altKey || e.ctrlKey || e.metaKey;
-      dragP += (lastY - e.clientY) / (travel * (fine ? (o.fine || KNOB_LAW.fine) : 1));
-      lastY = e.clientY; dp = dragP; // changing fine gear in place never moves the value
-    } else dp = ((y0 - e.clientY) + (e.clientX - x0)) / ((o.travel || KNOB_LAW.travel) * (e.shiftKey ? (o.fine || KNOB_LAW.fine) : 1));
+    if (!dragging || e.pointerId !== vd.id) return;
+    const dp = vd.move(e);                              // the virtual point: changing the gear in place never moves the value
     if (o.onDelta) { const d = dp - acc; acc = dp; turn = ((turn + d * 360) % 360 + 360) % 360; o.onDelta(d * 2 * Math.PI); announce(true); return; }
     const nv = settle(denorm(o.wrap ? p0 + dp : clamp01(p0 + dp)));
     if (nv !== v) { v = nv; paint(); if (o.onInput) o.onInput(v); }
   });
-  const end = () => { if (!dragging) return; dragging = false; root.classList.remove('drag'); setTimeout(() => root.classList.remove('active'), 700); if (o.onChange && !o.onDelta) o.onChange(v); };
-  dial.addEventListener('pointerup', end); dial.addEventListener('pointercancel', end);
+  const end = (e) => { if (!dragging || (e && e.isTrusted && vd && e.pointerId !== vd.id)) return;   // a synthetic cancel (the timeline's hold, a test) ends it whoever it names
+    dragging = false; vd = null; root.classList.remove('drag'); setTimeout(() => root.classList.remove('active'), 700); if (o.onChange && !o.onDelta) o.onChange(v); };
+  dial.addEventListener('pointerup', end); dial.addEventListener('pointercancel', end); dial.addEventListener('lostpointercapture', end);
   const reset = () => { if (o.onDelta) { if (o.onReset) o.onReset(); return; } v = def; paint(); if (o.onInput) o.onInput(v); if (o.onChange) o.onChange(v); };
   const tap = tapWatcher(reset);                       // two taps within 320 ms reset the control to its default …
   dial.addEventListener('dblclick', (e) => { e.preventDefault(); reset(); });   // … and so does a double-click
   dial.addEventListener('wheel', (e) => e.stopPropagation(), { passive: true });
-  /* THE KEY MAP.  Δp = 1/100 of TRAVEL · Shift ×0.25 · Page ×10 · Home/End the ends · Delete resets.
+  /* THE KEY MAP.  Δp = 1/100 of TRAVEL · Shift ×⅛ (the one gear) · Page ×10 · Home/End the ends · Delete resets.
      Three rulings a builder gets wrong, so they are written here rather than inferred:
        · SHIFT ON A STEPPED KNOB IS IGNORED.  `o.step` quantizes with Math.round(nv/step)*step, so a
          quarter-step lands off the lattice, rounds straight back to where it started, and Shift+Arrow
@@ -327,10 +369,25 @@ export function knob(o) {
     if (nv !== v) { v = nv; paint(true); if (o.onInput) o.onInput(v); if (o.onChange) o.onChange(v); }
   });
   root.addEventListener('blur', () => announce(false));     // the tree catches up the moment nobody is listening
+  /* 1.5.0-alpha.13 · A KNOB THAT WARNS OR IS CLAMPED SAYS SO IN --warn, NEVER AN ACCENT (INTENT rule 5: accent A is live signal;
+     a warning is not a signal the user asked for).  `warn`: the value is where it is, but something about it needs a look (AUTOMATA's
+     CLAMPED, POLAR's warning); `clamped`: the engine holds it off what the hand asked.  The reason is the hover hint and the
+     accessible description; `root.dataset.state` and `.k-warn` / `.k-clamped` are the hooks (controls.css draws them, and the arc
+     knob reads `--k-state-ink`).  setState(null) clears it and gives the hint back. */
+  let stateNow = null;
+  function setState(s, reason) {
+    s = s === 'warn' || s === 'clamped' ? s : null;
+    stateNow = s;
+    root.classList.toggle('k-warn', s === 'warn'); root.classList.toggle('k-clamped', s === 'clamped');
+    if (s) root.dataset.state = s; else delete root.dataset.state;
+    if (s && reason) { hint(root, reason); root.setAttribute('aria-description', mathPlain(String(reason))); }
+    else { root.removeAttribute('aria-description'); if (o.title) hint(root, o.title); else { root.removeAttribute('title'); delete root.dataset.tTitle; delete root.dataset.tHvars; } }
+    return s;
+  }
   paint();
   return { root, get: () => v, set(x, silent = true) { v = x; shown = null; paint(); if (!silent && o.onChange) o.onChange(v); },
     /** paint a modulated value over the base — the needle dances, the base (and a drag's start) stays the hand's */
-    show(x) { shown = x; paint(); }, get shown() { return shown; }, setDefault(x) { def = x; },
+    show(x) { shown = x; paint(); }, get shown() { return shown; }, setDefault(x) { def = x; }, setState, get state() { return stateNow; }, dragging: () => dragging,
     /* WAVE 68 · A DEAD CONTROL SAYS SO, AND DOES NOT KEEP THE SEAT.  This wrote a class and a
        tabIndex and nothing else, so λ SCALE, HALF-WIDTH and STRENGTH mounted as sliders holding a
        live `aria-valuenow` that no key could move — and rack.js's single-key guard, keyed on the
@@ -345,14 +402,16 @@ export function knob(o) {
     setBase, paint };
 }
 
-/** sw({ label, value, onChange }) — a boolean */
+/** sw({ label, value, onChange, lamp, title, cls }) — a boolean that stays on.  It wears the LAMP (Josh: "I like the little light switches
+ *  when things are on"); `lamp: false` is for the listed cases where the lamp is wrong (docs/CONTROLS.md): the label is then ON's light, as a
+ *  trigger's is (accent, no glow).  A momentary action is `trig`, never a lamp; a window opener is `latch()`; a glyph that is itself the state
+ *  (power, an eye, play/pause, invert) is a chrome button, not a switch. */
 export function sw(o) {
-  const b = el('button', 'sw' + (o.cls ? ' ' + o.cls : ''));
+  const b = el('button', 'sw' + (o.lamp === false ? ' sw-nolamp' : '') + (o.cls ? ' ' + o.cls : ''));
   b.type = 'button';
-
-
   if (o.title) hint(b, o.title);
-  el('i', 'sw-led', b); label(el('span', 'sw-lbl', b), o.label);
+  if (o.lamp !== false) el('i', 'sw-led', b);
+  label(el('span', 'sw-lbl', b), o.label);
   let v = !!o.value;
   const paint = () => { b.classList.toggle('on', v); b.setAttribute('aria-pressed', String(v)); };
   b.addEventListener('click', () => { v = !v; paint(); if (o.onChange) o.onChange(v); });
@@ -498,11 +557,13 @@ export function fader(o) {
   }
   const paint = (fromUser) => { const sv = (shown !== null && !dragging) ? shown : v; setVar(root, '--fill', norm(sv)); setText(val, fmt(sv)); root.classList.toggle('mod', shown !== null && !dragging); announce(fromUser); };
   const fromEvent = (e) => { const r = root.getBoundingClientRect(); return denorm((e.clientX - r.left) / Math.max(1, r.width)); };
-  root.addEventListener('pointerdown', (e) => { if (disabled) return; e.preventDefault(); try { root.setPointerCapture(e.pointerId); } catch (_) {} dragging = true; root.classList.add('drag'); tap(); lastX = e.clientX; if (!e.shiftKey) v = fromEvent(e); paint(); if (o.onInput) o.onInput(v); });
+  watchTouches();
+  let gid = null;   // the pointer that owns the gesture: a second finger is the fine gear, not a second drag
+  root.addEventListener('pointerdown', (e) => { if (disabled || dragging) return; e.preventDefault(); try { root.setPointerCapture(e.pointerId); } catch (_) {} dragging = true; gid = e.pointerId; root.classList.add('drag'); tap(); lastX = e.clientX; if (!fineHeld(e, gid)) v = fromEvent(e); paint(); if (o.onInput) o.onInput(v); });
   let dragRect = null;   // 2026-09-11: the rect is read once per drag, not once per move
-  root.addEventListener('pointermove', (e) => { if (!dragging) return; if (e.shiftKey) { const r = dragRect || (dragRect = root.getBoundingClientRect()); v = denorm(norm(v) + (e.clientX - lastX) / Math.max(1, r.width * fine)); } else v = fromEvent(e); lastX = e.clientX; paint(); if (o.onInput) o.onInput(v); });
-  const end = () => { if (!dragging) return; dragging = false; dragRect = null; root.classList.remove('drag'); if (o.onChange) o.onChange(v); };
-  root.addEventListener('pointerup', end); root.addEventListener('pointercancel', end);
+  root.addEventListener('pointermove', (e) => { if (!dragging || e.pointerId !== gid) return; if (fineHeld(e, gid)) { const r = dragRect || (dragRect = root.getBoundingClientRect()); v = denorm(norm(v) + (e.clientX - lastX) / Math.max(1, r.width * fine)); } else v = fromEvent(e); lastX = e.clientX; paint(); if (o.onInput) o.onInput(v); });
+  const end = (e) => { if (!dragging || (e && e.isTrusted && e.pointerId !== gid)) return; dragging = false; gid = null; dragRect = null; root.classList.remove('drag'); if (o.onChange) o.onChange(v); };
+  root.addEventListener('pointerup', end); root.addEventListener('pointercancel', end); root.addEventListener('lostpointercapture', end);
   const reset = () => { if (disabled) return; v = def; paint(); if (o.onInput) o.onInput(v); if (o.onChange) o.onChange(v); };   // a disabled fader does not reset either (1.4.0)
   const tap = tapWatcher(reset);
   root.addEventListener('dblclick', (e) => { e.preventDefault(); reset(); });
@@ -1003,3 +1064,18 @@ export function accentRGB(g, n) {
   if (held) return held.slice();
   return cssRGB(g, n === 2 ? '--acc2' : '--acc', lightTheme() ? '#1b2027' : '#f2f5f7');
 }
+
+/* ── 1.5.0-alpha.13 · THE CONTROL LANGUAGE, from the one door (docs/CONTROLS.md) ──────────────────────────────────────────
+ * The general set (stepper, select and its list pane, number field, range slider, XY pad, control(descriptor)) and the colour family
+ * (arc knob, hue swatch, lane slider, chip strip, sortable list) live in mir/controls/; an app may import them from here.  They import
+ * this file for el / label / knob and use them only when called, so the cycle is harmless. */
+export { stepper } from './controls/stepper.js';
+export { select, listPane } from './controls/select.js';
+export { number, bindNumber } from './controls/number.js';
+export { rangeSlider } from './controls/range.js';
+export { xyPad } from './controls/xy.js';
+export { control, controlKind } from './controls/factory.js';
+export { arcKnob, arcRing } from './controls/arc.js';
+export { hueSwatch, rgbCss, rgbToHsv, hsvToRgb } from './controls/swatch.js';
+export { laneSlider, laneInk } from './controls/lane.js';
+export { chipStrip, sortableList } from './controls/list.js';
