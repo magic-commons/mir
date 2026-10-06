@@ -47,7 +47,8 @@
  *   vendor        false: never load the kit's marked/KaTeX (the page brings its own, or wants none)
  *   logo          () => the wordmark element the ABOUT logo is cloned from (default #title)
  *   onLogo        () => void, after the logo is cloned (shell/accent.js paintMarks)
- *   dump          () => string, what COPY DUMP adds after the ABOUT face's own text
+ *   dump          () => string, what COPY DUMP adds after the ABOUT face's own text; the press says COPIED or FAILED
+ *                 (a notice, 1.4 s: BASINS' flash)
  *   keyLabel      the notebook's key, for the close button's title (λWAVES: 'J')
  *   aboutSize     { w, h } the ABOUT face opens at (default 520 × 812, BASINS'; λWAVES' own is 470 × 670)
  *   aboutRise     px the ABOUT face sits above the stage's middle so it clears the transport (default 32, BASINS')
@@ -88,6 +89,8 @@ import { flip } from '../core/motion.js';
 import { frame } from '../core/frame.js';
 import { createProximity } from '../core/proximity.js';
 import { setText, setAttr, setVar } from '../core/perf.js';
+import { copyText } from './clipboard.js';
+import { notice } from './notice.js';
 
 const VENDOR = new URL('./vendor/', import.meta.url).href;
 let vendorLoad = null;
@@ -236,7 +239,13 @@ export function createNotebook(options = {}) {
     return info.replace(/\n{3,}/g, '\n\n') + (o.dump ? '\n\n' + o.dump() : '') + '\n' + navigator.userAgent;
   };
   const dumpBtn = nb.querySelector('.nb-dump');
-  if (dumpBtn) dumpBtn.addEventListener('click', async () => { try { await navigator.clipboard.writeText(dumpText()); } catch (_) {} });
+  /* it says whether it worked (BASINS flashed COPIED / FAILED for 1.4 s): the kit's notice, through the kit's clipboard
+     and its fallback (shell/clipboard.js); a refused clipboard leaves the dump in the console */
+  if (dumpBtn) dumpBtn.addEventListener('click', async () => {
+    const text = dumpText();
+    if (await copyText(text)) notice(tx('COPIED'), { kind: 'ok', ms: 1400 });
+    else { notice(tx('FAILED'), { kind: 'warn', ms: 1400 }); try { console.log(text); } catch (_) { /* no console */ } }
+  });
 
   /* ── resize by the grip, move by the head: the pointer that started it owns it ── */
   let gd = null;

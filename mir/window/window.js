@@ -17,7 +17,8 @@
  *   4. EMPTY GLASS IS A HANDLE (emptyDrag): a press that lands on nothing pressable is handed to the grip, so one
  *      gesture machinery moves the window from either.
  *   5. WINDOW AND RAIL RISE TOGETHER, by one stack shared by every window: a press anywhere on either puts the pair on
- *      top; z is the pair's place in the stack, so it stays small and nothing reads a sibling's style.
+ *      top; z is the pair's place in the stack, so it stays small and nothing reads a sibling's style.  EVERY RAIL IS
+ *      ABOVE EVERY WINDOW (1.5.0-alpha.17): the panes take 1 … n, the rails n + 1 … 2n, so no window covers chips.
  *   6. IT SAYS WHERE IT IS: onMoved(rect) after every layout (null when it closes), so a host can dodge it.
  *      A window the app built itself joins that one stack by registerWindow({ root, rail }) (1.5.0-alpha.15).
  *   7. THE LEGO STACK (1.5.0-alpha.12, BASINS shell.js syncWorkspaceStack / modwindow.js stackAbove / timeline-window.js
@@ -98,12 +99,17 @@ export function windowLayout(P, env) {
   return { box, seat: seatRail({ prefer: P.chipSide, box, sizes, view, gap: env.gap ?? 0 }), docked: null };
 }
 
-/* ── the raise: one stack for every window, the pair rises together ────────────────────────────────────────── */
+/* ── the raise: one stack for every window, the pair rises together, every rail above every window ─────────── */
+/* panes at 1 … n in press order, rails at n + 1 … 2n in the same order (1.5.0-alpha.17, BASINS' window law: "the chips
+   keep dissapearing underneath other windows" — Josh 2026-09-26): a window opened over another never covers its chips,
+   the pressed window's rail is the top rail, and a registered window's rail is in the same tier as the kit's.  2n stays
+   below the guide's --z-prox, as before. */
 const STACK = [];
 function raisePair(w) {
   const i = STACK.indexOf(w); if (i >= 0) STACK.splice(i, 1);
   STACK.push(w);
-  STACK.forEach((x, k) => { setVar(x.root, 'z-index', String(1 + 2 * k)); if (x.rail) setVar(x.rail, 'z-index', String(2 + 2 * k)); });
+  const n = STACK.length;
+  STACK.forEach((x, k) => { setVar(x.root, 'z-index', String(1 + k)); if (x.rail) setVar(x.rail, 'z-index', String(n + 1 + k)); });
 }
 /* a window's pair, found from either of its two elements (an app's own window law holds elements, not the api) */
 const OWNER = new WeakMap();
@@ -116,8 +122,8 @@ export function windowOf(el) {
 /** registerWindow({ root, rail? }) — ONE STACK (1.5.0-alpha.15, BASINS kwin.js's window law: "one counter for everything
  *  in it").  A window the app built itself (the modulation window's #modwin, a window of its own) joins the kit's stack:
  *  a press on its pane or its rail raises the pair over every kit window, a press on a kit window raises that one over
- *  it, and windowOf(el) finds it.  It joins on top.  → { root, rail, pair, raise(), leave() }; leave() takes it out
- *  (its z-index is left where it was).  Registering the same root twice returns the first registration. */
+ *  it, and windowOf(el) finds it; its rail is in the rails' tier, above every window (1.5.0-alpha.17).  It joins on
+ *  top.  → { root, rail, pair, raise(), leave() }; leave() takes it out (its z-index is left where it was).  Registering the same root twice returns the first registration. */
 export function registerWindow({ root, rail = null } = {}) {
   if (!root) return null;
   const had = OWNER.get(root); if (had && had.adopted) return had;

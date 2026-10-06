@@ -1,5 +1,24 @@
 # MIR — changelog
 
+## 1.5.0-alpha.17 — 2026-10-07 · BASINS parity, round eight
+
+Not released: built on branch `worktree-mir-1.5`. Two kit gaps measured by the BASINS adoption (stage 6, log rows 66–67), closed with BASINS' law.
+
+**Behaviour changes (read these first):**
+- **Every rail is above every window, the kit's and the app's registered ones alike.** The one stack puts the panes at z 1 … n in press order and the rails at n + 1 … 2n in the same order (it put each rail just above its own pane: 1 + 2k and 2 + 2k), so a window opened or pressed over another never covers its chips, and the pressed window's rail is the top rail. This is BASINS' window law and Josh's (2026-09-26: "The 'chips' keep dissapearing underneath other windows despite being the window interacted with"). A rail joined by `registerWindow({ root, rail })` is in the same tier. Measured in `tests/window.browser.mjs`: a kit window opened over a registered window hit the new pane at the registered rail's chip (panes 1, 5, 3; rails 2, 6, 4); now elementFromPoint finds the chip (panes 1, 3, 2; rails 4, 6, 5), and after a press on the registered pane its rail is the top rail (rails 4, 5, 6). The top z is still 2n, below the guide's `--z-prox`. `stackAt(z, { railOffset })` and `railTier` are unchanged for an app with its own counter.
+- **The notebook's COPY DUMP says whether it worked.** A press on the ABOUT face's COPY DUMP copies through the kit's clipboard (`shell/clipboard.js`, its textarea fallback included) and shows the kit's `notice()`: COPIED (`kind: 'ok'`) when the clipboard took the dump, FAILED (`kind: 'warn'`) when both ways were refused, for 1.4 s, BASINS' flash time; on FAILED the dump goes to the console. It used to write `navigator.clipboard` with no word either way. (The menubar's ABOUT › COPY DUMP row, `copyDumpRow`, already said so with BASINS' menu words and is unchanged.)
+
+### What BASINS can delete
+`lab.css`' modulation rail rule (`.crail.crail-float.kwin-chiprail[data-mir-rail="modulation"] { z-index: 1000000 !important; }`): the kit's one stack keeps the registered modulation rail above every window. The notebook-gate's note that the kit's COPY DUMP gives no acknowledgement can become a check of the COPIED toast.
+
+### Tokens, tests
+- No new tokens: 1,427 rows. No new strings: COPIED and FAILED were in the catalogue (1,510 keys).
+- `tests/window.browser.mjs` 40/40 (+2: a kit window opened over a registered window leaves the registered rail's chip on top, hit-tested; the pressed window's rail is the top rail and every rail is above every pane); its two raise checks and the window-law check now assert the tier (B over A, B's rail over A's rail, every rail over every pane) instead of a rail at its pane's z + 1. `tests/scene-guard.browser.mjs` 22/22 (+1: COPY DUMP pressed and hit-tested, COPIED with the clipboard, FAILED with it refused).
+
+### Choices to overrule
+- The notebook's acknowledgement is the kit's toast, not BASINS' flash on the button's own label (the brief's ruling: one notice for every acknowledgement); the words and the 1.4 s are BASINS'.
+- The rail tier is the whole stack's (n + 1 … 2n), not a fixed band such as BASINS' 1,000,000: it keeps every z below `--z-prox`.
+
 ## 1.5.0-alpha.16 — 2026-10-06 · BASINS parity, round seven
 
 Not released: built on branch `worktree-mir-1.5`. Twelve kit gaps measured by the BASINS adoption (stage 5, log rows 56–61), closed with BASINS' values, and two more from BASINS' stage-5 report (the VIEW DETAILS caret, the ZIP rows' seat); one (the arcs' value chip) was measured as BASINS' own and left there.

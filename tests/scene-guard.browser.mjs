@@ -125,6 +125,24 @@ try {
   const gone = await ev(`const p = document.getElementById('mir-banner'); return p.hidden || p.textContent;`);
   check('banner: its × (hit-tested) puts it down', bn.xHit && gone === true, JSON.stringify({ xHit: bn.xHit, gone }));
 
+  /* ── 6b. the notebook's COPY DUMP says whether it worked (1.5.0-alpha.17; BASINS flashed COPIED / FAILED for 1.4 s) ── */
+  const dumpPress = async (refuse) => {
+    const at = await ev(`const nb = A.notebook; nb.open('about'); await new Promise((r) => setTimeout(r, 120));
+      const t0 = document.getElementById('mir-toast'); if (t0) t0.hidden = true;
+      G.copied = null;
+      navigator.clipboard.writeText = ${refuse} ? (() => Promise.reject(new Error('refused'))) : ((s) => { G.copied = s; return Promise.resolve(); });
+      G.realExec = document.execCommand.bind(document); if (${refuse}) document.execCommand = () => false;
+      const b = nb.root.querySelector('.nb-dump').getBoundingClientRect(), x = b.left + b.width / 2, y = b.top + b.height / 2;
+      return { x, y, hit: document.elementFromPoint(x, y) === nb.root.querySelector('.nb-dump') };`);
+    await mouse('mouseMoved', at.x, at.y); await mouse('mousePressed', at.x, at.y); await mouse('mouseReleased', at.x, at.y); await sleep(200);
+    return { hit: at.hit, ...(await ev(`const t = document.getElementById('mir-toast'); document.execCommand = G.realExec;
+      return { shown: !!t && !t.hidden, text: t ? t.textContent : null, kind: t ? t.dataset.kind : null, copied: typeof G.copied === 'string' && /GUARD/.test(G.copied) };`)) };
+  };
+  const ok = await dumpPress(false), bad = await dumpPress(true);
+  await ev(`A.notebook.close(); return 0;`);
+  check('notebook: COPY DUMP (hit-tested) acknowledges through the kit\'s notice — COPIED when the clipboard took the dump, FAILED when it was refused',
+    ok.hit && ok.copied && ok.shown && ok.text === 'COPIED' && ok.kind === 'ok' && bad.hit && bad.shown && bad.text === 'FAILED' && bad.kind === 'warn', JSON.stringify({ ok, bad }));
+
   /* ── 7. createApp({ session: true }): one live project, armed one task after createApp (no opener yet) ── */
   const s0x = await ev(`return { session: A.session };`);
   await p.goto(BASE + '/tests/fixtures/scene-guard.html?session=1', 800);

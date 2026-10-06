@@ -174,8 +174,10 @@ try {
   c = await at(`__T.A.rail.chip('sort')`);
   await mouse('mouseMoved', c.x, c.y); await mouse('mousePressed', c.x, c.y); await mouse('mouseReleased', c.x, c.y); await sleep(30);
   const zA = await run(`const z = (el) => +getComputedStyle(el).zIndex; return { a: z(A.root), ar: z(A.rail.el), b: z(B.root), br: z(B.rail.el), sort: A.rail.chip('sort').textContent };`);
-  check('raise: a press on B lifts B and its rail above A and A\'s rail', zB.b > zB.ar && zB.br === zB.b + 1, JSON.stringify(zB));
-  check('raise: a press on one of A\'s chips lifts A and its rail together (and the text chip cycled)', zA.a > zA.br && zA.ar === zA.a + 1 && zA.ar <= 4 && zA.sort === 'NEW', JSON.stringify(zA));
+  /* 1.5.0-alpha.17: panes 1 … n, rails n + 1 … 2n — the pair rises together and every rail is above every pane */
+  const railsOver = (s) => Math.min(s.ar, s.br) > Math.max(s.a, s.b);
+  check('raise: a press on B lifts B above A and B\'s rail above A\'s rail, every rail above every pane', zB.b > zB.a && zB.br > zB.ar && railsOver(zB), JSON.stringify(zB));
+  check('raise: a press on one of A\'s chips lifts A and its rail together (and the text chip cycled)', zA.a > zA.b && zA.ar > zA.br && railsOver(zA) && zA.ar <= 4 && zA.sort === 'NEW', JSON.stringify(zA));
   /* an app's own window law: windowOf(el) finds the pair from either element; raise() and stackAt(z) keep them together */
   const law = await run(`const { windowOf } = await import('/mir/window/window.js'); const z = (el) => +getComputedStyle(el).zIndex;
     const viaRail = windowOf(B.rail.el.querySelector('.mir-chip')) === B, viaBody = windowOf(B.body) === B; windowOf(B.rail.el).raise();
@@ -184,7 +186,7 @@ try {
     const { createWindow } = await import('/mir/window/window.js'); const host = A.root.parentElement;
     const T2 = createWindow({ id: 'tier-probe', host, railTier: 500, body: (b) => { b.textContent = 'tier'; } }); T2.open(); T2.stackAt(7); const r4 = { t: z(T2.root), tr: z(T2.rail.el) }; T2.destroy();
     A.raise(); return { viaRail, viaBody, r1, r2, r3, r4, pair: A.pair.root === A.root && A.pair.rail === A.rail.el };`);
-  check("an app's window law: windowOf(el) finds the window from its rail or body, raise() lifts the pane and the rail together, stackAt(z) seats the rail at z + 1", law.viaRail && law.viaBody && law.pair && law.r1.b > law.r1.ar && law.r1.br === law.r1.b + 1 && law.r2.a === 40 && law.r2.ar === 41, JSON.stringify(law));
+  check("an app's window law: windowOf(el) finds the window from its rail or body, raise() lifts the pane and the rail together, stackAt(z) seats the rail at z + 1", law.viaRail && law.viaBody && law.pair && law.r1.b > law.r1.a && law.r1.br > law.r1.ar && Math.min(law.r1.ar, law.r1.br) > law.r1.b && law.r2.a === 40 && law.r2.ar === 41, JSON.stringify(law));
   check("an app's rail tier: stackAt(z, { railOffset }) seats the rail at z + offset, and createWindow({ railTier }) sets the default", law.r3.a === 50 && law.r3.ar === 1000050 && law.r4.t === 7 && law.r4.tr === 507, JSON.stringify({ r3: law.r3, r4: law.r4 }));
 
   /* ── ONE STACK (1.5.0-alpha.15): a window the app built itself joins the kit's stack (registerWindow), so one press order
@@ -214,6 +216,31 @@ try {
     await run(`const d = document.getElementById('adopted'); const { windowOf } = await import('/mir/window/window.js'); windowOf(d).leave(); d.remove(); A.raise(); return 0;`);
     check('one stack: a registered app window (registerWindow) and a kit window take one press order — the pane pressed last is what elementFromPoint finds where they overlap, and windowOf finds it',
       set.found && set.firstOnTop === 'adopted' && order.join() === 'adopted,A,adopted', JSON.stringify({ ...set, order }));
+  }
+
+  /* ── EVERY RAIL ABOVE EVERY WINDOW (1.5.0-alpha.17, Josh 2026-09-26: "the chips keep dissapearing underneath other
+     windows"): a kit window opened over a registered window does not cover that window's rail, and the pressed
+     window's own rail is the top rail ─────────────────────────────────────────────────────────────────────────── */
+  {
+    const set = await run(`const { registerWindow } = await import('/mir/window/window.js'); await rest(B);
+      const host = A.root.parentElement, b = B.body.getBoundingClientRect();
+      const d = document.createElement('div'); d.id = 'reg2'; Object.assign(d.style, { position: 'fixed', left: '24px', top: '120px', width: '140px', height: '70px', background: '#435', pointerEvents: 'auto' });
+      const rl = document.createElement('div'); rl.id = 'reg2rail'; Object.assign(rl.style, { position: 'fixed', left: Math.round(b.left + b.width / 2 - 20) + 'px', top: Math.round(b.top + b.height / 2 - 20) + 'px', width: '40px', height: '40px', pointerEvents: 'auto' });
+      const chip = document.createElement('button'); chip.id = 'reg2chip'; chip.type = 'button'; Object.assign(chip.style, { width: '40px', height: '40px', display: 'block', margin: 0 }); rl.appendChild(chip);
+      host.append(d, rl); registerWindow({ root: d, rail: rl });
+      B.close(); await rest(B); B.open(); await rest(B);                       // B opens over it: on top of the stack
+      const z = (el) => +getComputedStyle(el).zIndex, c = center(chip), n = document.elementFromPoint(c.x, c.y);
+      const panes = [A.root, B.root, d].map(z), rails = [A.rail.el, B.rail.el, rl].map(z);
+      return { hit: n === chip ? 'chip' : n && n.closest('.mir-win') === B.root ? 'B' : n ? String(n.id || n.className) : 'nothing', panes, rails, dc: center(d) };`);
+    await mouse('mouseMoved', set.dc.x, set.dc.y); await mouse('mousePressed', set.dc.x, set.dc.y); await mouse('mouseReleased', set.dc.x, set.dc.y); await sleep(30);
+    const after = await run(`const d = document.getElementById('reg2'), rl = document.getElementById('reg2rail'), chip = document.getElementById('reg2chip'); const z = (el) => +getComputedStyle(el).zIndex, c = center(chip), n = document.elementFromPoint(c.x, c.y);
+      const panes = [A.root, B.root, d].map(z), rails = [A.rail.el, B.rail.el, rl].map(z); return { hit: n === chip ? 'chip' : 'other', panes, rails };`);
+    await run(`const d = document.getElementById('reg2'); const { windowOf } = await import('/mir/window/window.js'); windowOf(d).leave(); d.remove(); document.getElementById('reg2rail').remove(); A.raise(); return 0;`);
+    const tier = (s) => Math.min(...s.rails) > Math.max(...s.panes);
+    check('every rail above every window: a kit window opened over a registered window leaves its rail chip on top (elementFromPoint finds the chip, not the new pane)',
+      set.hit === 'chip' && tier(set) && set.panes[1] === Math.max(...set.panes), JSON.stringify(set));
+    check("the pressed window's own rail is the top rail: B's when it opened, the registered window's after a press on its pane, every rail still above every pane",
+      set.rails[1] === Math.max(...set.rails) && after.rails[2] === Math.max(...after.rails) && after.panes[2] === Math.max(...after.panes) && tier(after) && after.hit === 'chip', JSON.stringify(after));
   }
 
   /* ── the chip material: follows its pane, and against the modulation window's rail ─────────────────────── */
