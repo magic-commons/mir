@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>MIR · camera panel</title>
+<!-- THE CAMERA PANEL, LIVE (docs/PANEL-CAMERA.md).  Three rack cards on the right, all built by createCameraPanel:
+       CAMERA 2-D   no engine at all: `canvas` is given, the panel drives a CSS transform on the left picture (rotation, pan, zoom, flip,
+                    the two scales and the orbit through BASINS' rig).  NORTH goes north and, pressed again, back.  The pad's two knobs and every
+                    dial are modulation targets (cam2d.rotation, cam2d.panx …): press ROUTE and an LFO turns the picture.
+       CAMERA 3-D   no engine either: a perspective transform on the middle picture; the direction sphere (drag it, or turn YAW and PITCH),
+                    ROLL (FREE only), ZOOM, FOV, TURNTABLE · FREE, HOME.
+       ENGINE       a port written by hand over a small object in RADIANS, with HAND (DRAG · FRICTION · FLING · AUTO-ROTATE · SPIN · WHEEL), one
+                    verb of its own, and port.turn for a relative turn: the box at the foot is the engine's own state, written when it is told.
+     ?theme=light · ?reset (forget the saved layout and modulation) -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/css/tokens.css">
+<link rel="stylesheet" href="../mir/shell/shell.css">
+<link rel="stylesheet" href="../mir/shell/stage.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<link rel="stylesheet" href="../mir/window/window.css">
+<link rel="stylesheet" href="../mir/shell/rack.css">
+<link rel="stylesheet" href="../mir/controls/controls.css">
+<link rel="stylesheet" href="../mir/controls/colour-controls.css">
+<link rel="stylesheet" href="../mir/modulation/modwindow/modwindow.css">
+<link rel="stylesheet" href="../mir/modulation/modhost.css">
+<link rel="stylesheet" href="../mir/panels/camera.css">
+<style>
+  html, body { margin: 0; min-height: 100%; background: #070a0f; }
+  body[data-theme="light"] { background: #eef1f6; }
+  #stage { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; padding: 70px 340px 110px 24px; box-sizing: border-box; }
+  .g-frame { position: relative; overflow: hidden; border-radius: var(--r-md); background: var(--glass-well); box-shadow: var(--relief-well, var(--neu-inset)); min-height: 0; display: grid; place-items: center; }
+  .g-frame > canvas { width: 70%; max-width: 360px; aspect-ratio: 3 / 2; display: block; border-radius: var(--r-sm, 6px); }
+  .g-cap { position: absolute; left: 10px; top: 8px; font-size: var(--fs-tiny); letter-spacing: var(--tr-wider); color: var(--ink-key); z-index: 1; }
+  #eng { position: absolute; left: 24px; bottom: 24px; margin: 0; padding: 8px 12px; border-radius: var(--r-md); font: var(--fs-tiny) var(--font-mono); color: var(--fg-soft); white-space: pre; z-index: 3; }
+  #bar { position: absolute; left: 24px; top: 16px; display: flex; gap: 8px; z-index: 4; }
+  #floats { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  #floats > * { pointer-events: auto; }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted" class="disconnected">
+<div id="lab">
+  <div id="stage">
+    <div class="g-frame"><span class="g-cap">2-D · NO ENGINE</span><canvas id="pic2" width="720" height="480" aria-hidden="true"></canvas></div>
+    <div class="g-frame"><span class="g-cap">3-D · NO ENGINE</span><canvas id="pic3" width="720" height="480" aria-hidden="true"></canvas></div>
+  </div>
+  <div id="bar"></div>
+  <pre id="eng" class="glass" aria-label="the engine's own numbers"></pre>
+</div>
+<script type="module">
+import { el, trig } from '../mir/kit.js';
+import { createRack } from '../mir/shell/rack.js';
+import { installModulation } from '../mir/modulation/bind.js';
+import { createCameraPanel } from '../mir/panels/camera.js';
+
+const q = new URLSearchParams(location.search);
+if (q.get('theme') === 'light') document.body.dataset.theme = 'light';
+if (q.has('reset')) try { for (const k of ['mir.gallery.camera.rack', 'mir.gallery.camera.mod', 'mir.gallery.camera.presets']) localStorage.removeItem(k); } catch (_) { /* storage refused */ }
+const $ = (id) => document.getElementById(id);
+
+/* ── the two pictures: anything will do; a compass rose so a turn is legible ── */
+for (const id of ['pic2', 'pic3']) {
+  const c = $(id), g = c.getContext('2d'), w = c.width, h = c.height;
+  const grad = g.createLinearGradient(0, 0, w, h); grad.addColorStop(0, '#16324f'); grad.addColorStop(1, '#4b1f4f');
+  g.fillStyle = grad; g.fillRect(0, 0, w, h);
+  g.strokeStyle = 'rgba(255,255,255,.18)'; g.lineWidth = 2;
+  for (let x = 0; x <= w; x += 60) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); }
+  for (let y = 0; y <= h; y += 60) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
+  g.translate(w / 2, h / 2);
+  g.fillStyle = '#f2b24a'; g.beginPath(); g.moveTo(0, -170); g.lineTo(46, 0); g.lineTo(0, 30); g.lineTo(-46, 0); g.closePath(); g.fill();
+  g.fillStyle = 'rgba(255,255,255,.85)'; g.beginPath(); g.moveTo(0, 170); g.lineTo(34, 0); g.lineTo(-34, 0); g.closePath(); g.fill();
+  g.fillStyle = '#fff'; g.font = 'bold 54px sans-serif'; g.textAlign = 'center'; g.fillText('N', 0, -186);
+  g.lineWidth = 6; g.strokeStyle = 'rgba(255,255,255,.5)'; g.beginPath(); g.arc(0, 0, 210, 0, Math.PI * 2); g.stroke();
+}
+
+/* ── the rack, and the modulation the cards' dials become targets of (roots: the three prefixes) ── */
+const rack = createRack({ host: $('lab'), key: 'mir.gallery.camera.rack', handle: 'always' });
+const mod = installModulation({ mount: rack.el.floats, roots: ['cam2d', 'cam3d', 'eng'], params: [], storageKey: 'mir.gallery.camera.mod', presetKey: 'mir.gallery.camera.presets' });
+
+/* ── CAMERA 2-D and 3-D: no engine, a CSS transform on the picture ── */
+const p2 = createCameraPanel({ rack, id: 'camera2d', title: 'CAMERA 2-D', side: 'right', open: true, mode: '2d', canvas: $('pic2'), mod, modPrefix: 'cam2d', part: 'camera2d' });
+const p3 = createCameraPanel({ rack, id: 'camera3d', title: 'CAMERA 3-D', side: 'right', open: true, mode: '3d', canvas: $('pic3'), mod, modPrefix: 'cam3d', part: 'camera3d' });
+
+/* ── ENGINE: a port by hand, over an engine that thinks in radians ── */
+const E = { mode: 'free', yaw: 0.65, pitch: 0.38, roll: 0, zoom: 3.3, fov: 0.6, drag: 1, friction: 1, fling: 1, autoRotate: false, spin: 0.25, wheel: 'smooth' };
+const HOME = { yaw: 0.65, pitch: 0.38, roll: 0, zoom: 3.3, fov: 0.6 };
+const subs = new Set(), notify = () => { for (const f of subs) f(); };
+const show = () => { $('eng').textContent = Object.entries(E).map(([k, v]) => k.padEnd(11) + (typeof v === 'number' ? v.toFixed(3) : v)).join('\n'); };
+const engine = {
+  angle: 'rad',
+  ranges: { zoom: { min: 1.2, max: 8, home: 3.3, log: true }, fov: { min: 0.25, max: 1.2, home: 0.6 }, spin: { min: 0.02, max: 2, home: 0.25, log: true } },
+  get: (id) => E[id],
+  set(id, v) { if (E[id] === v) return; E[id] = v; show(); notify(); },
+  turn(dy, dp) { E.yaw += dy; E.pitch = Math.max(-1.52, Math.min(1.52, E.pitch + dp)); show(); notify(); },     // λWAVES' orbitBy: the one road for a relative turn
+  home() { Object.assign(E, HOME); show(); notify(); },
+  subscribe: (fn) => { subs.add(fn); return () => subs.delete(fn); },
+  verbs: [{ label: 'RESET ZOOM', title: 'RESET ZOOM — back to the default distance', run: () => engine.set('zoom', HOME.zoom) }],
+};
+const pe = createCameraPanel({ rack, id: 'cameraeng', title: 'ENGINE PORT', side: 'right', open: true, port: engine, mod, modPrefix: 'eng', part: 'cameraeng' });
+show();
+
+/* ── a route, for the eye: an LFO onto the two pictures' rotation and yaw ── */
+let routes = null;
+const routeBtn = trig({ label: 'ROUTE', onFire: () => {
+  if (routes) { routes.forEach((r) => r.remove()); routes = null; routeBtn.on = false; return; }
+  routes = ['cam2d.rotation', 'cam3d.yaw'].map((id) => mod.route('lfo', id, 0.5)).filter(Boolean);
+  routeBtn.on = true; if (mod.setPower) mod.setPower(true); if (mod.play) mod.play(true);
+} });
+$('bar').append(routeBtn.root, trig({ label: 'MOD', onFire: () => mod.toggle() }).root);
+rack.start();
+window.__K = { rack, mod, p2, p3, pe, engine, E, pic2: $('pic2'), pic3: $('pic3') };
+window.__ready = true;
+</script>
+</body>
+</html>
