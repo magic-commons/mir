@@ -45,7 +45,7 @@ export function createTimeline(host, port) {
   const saved = (() => { let r = null; try { r = store.read(); } catch (_) { /* storage refused */ } return r && Object.keys(r).length ? r : { ...(port.initial || {}) }; })();
   const controller = port.controller || createTransportController({ mod, scrubLevel: port.scrubLevel, busy: port.busy,
     onRefusedPlay: () => say(t('Nothing to run.')) });
-  let editor = null, workLane = ['top', 'bottom', 'hidden'].includes(saved.workLane) ? saved.workLane : 'top', transport = null, readout = null;
+  let editor = null, workLane = ['top', 'bottom', 'hidden'].includes(saved.workLane) ? saved.workLane : 'top', transport = null, readout = null, cursor = null;
   const writeShape = (shape) => { try { store.write({ ...shape, workLane }); } catch (_) { /* storage refused */ } };
   /* the shared transport's seat: the work lane while the window is open and the lane shows, else the stage */
   let seatShared = null;
@@ -64,8 +64,8 @@ export function createTimeline(host, port) {
       { name: 'removeLane', kind: 'action', label: 'Remove bottom automation lane', text: '−', press: () => editor && editor.removeLane() },
       { name: 'resetSize', kind: 'action', label: 'Reset window size', glyph: 'compact', press: (s, w) => w.place({ width: size.w, height: size.h }) },
     ],
-    onOpen: () => { if (editor) editor.paint(); seatBar(); if (transport) transport.sync(); if (port.onWindow) port.onWindow(true); present(); },
-    onClose: () => { if (editor) editor.close(); seatBar(); if (port.onWindow) port.onWindow(false); present(); },
+    onOpen: () => { if (editor) editor.paint(); seatBar(); showReadout(true); if (transport) transport.sync(); if (port.onWindow) port.onWindow(true); present(); },
+    onClose: () => { if (editor) editor.close(); seatBar(); showReadout(false); if (port.onWindow) port.onWindow(false); present(); },
   });
   win.root.classList.add('mir-timeline');
   const minus = win.rail.chip('removeLane'); if (minus) { const ink = minus.querySelector('.mir-chip-text'); if (ink) ink.outerHTML = glyphSvg('minus', 'mir-chip-ink gly gly-minus', 26); }   // an action is inked once
@@ -95,12 +95,18 @@ export function createTimeline(host, port) {
   }
 
   /* THE CURSOR + THE READOUT LAYER: one tuple, resolved from the pointer or the edit in flight */
-  const cursor = createTimelineCursor({ editor, mod });
-  readout = createReadoutLayer({ mount: editor.view.shell, resolve: (ev) => {
-    if (document.body.classList.contains('ui-hidden') || document.querySelector('.tl-pop, .tl-confirm')) return null;
-    return cursor.gesture() || cursor.resolve(ev);
-  } });
-  const offReadout = model.subscribe(() => readout.refresh());
+  /* it follows the pointer only while the window is open (wave 18: closed, it handled every move of a pan, 20 ms/s, for
+     a layer nobody could see): mounted on open, disposed on close, as the modulation window's editors' readouts are */
+  cursor = createTimelineCursor({ editor, mod });
+  function showReadout(on) {
+    if (on && !readout && cursor) readout = createReadoutLayer({ mount: editor.view.shell, resolve: (ev) => {
+      if (document.body.classList.contains('ui-hidden') || document.querySelector('.tl-pop, .tl-confirm')) return null;
+      return cursor.gesture() || cursor.resolve(ev);
+    } });
+    else if (!on && readout) { readout.dispose(); readout = null; }
+  }
+  showReadout(win.isOpen());
+  const offReadout = model.subscribe(() => { if (readout) readout.refresh(); });
   const offKnobs = installTimelineKnobs({ registry: mod.registry, editor });
   const actions = timelineActions(() => tl);
   const shortcuts = (x, y) => openTimelineShortcuts({ actions, keys: port.keys || null, x, y });
@@ -116,7 +122,7 @@ export function createTimeline(host, port) {
     restore(p) { if (!p) return; if (p.workLane) { workLane = p.workLane; editor.setWorkLane(workLane); win.setChip('workbars', workLane); }
       if (Number.isFinite(p.x) && Number.isFinite(p.y)) win.place({ x: p.x, y: p.y, w: p.w ?? size.w, h: p.h ?? size.h }); if (p.open) win.open(); },
     shortcuts,
-    destroy() { offReadout(); offKnobs(); readout.dispose(); if (seatShared) { win.root.removeEventListener('timeline-work-lane', seatBar); seatShared.mountIn(null); } else if (transport) transport.destroy(); editor.dispose(); win.destroy(); if (!port.controller) controller.dispose(); },
+    destroy() { offReadout(); offKnobs(); showReadout(false); if (seatShared) { win.root.removeEventListener('timeline-work-lane', seatBar); seatShared.mountIn(null); } else if (transport) transport.destroy(); editor.dispose(); win.destroy(); if (!port.controller) controller.dispose(); },
   };
   return tl;
 }
