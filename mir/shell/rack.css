@@ -89,8 +89,6 @@ body.ui-hidden :is(.mir-rack, .mir-rack-floats, .mir-rack-btn, .mir-rack-list) {
 :root:is([data-motion="reduced"], [data-motion="off"]) .rack-scrollbar-thumb { transition: none; }
 body.ui-hidden .rack-scrollbar { display: none; }
 
-/* ── COPY (rack.copyDigest): BASINS lab.css:29, the word from t() (data-copied) so it is translated ── */
-.dev.copied .dev-stat::after { content: ' · ' attr(data-copied); color: var(--acc); }
 
 /* ── THE FLOAT LAYER ─────────────────────────────────────────────────────────────────────────────────────── */
 .mir-rack-floats { position: absolute; inset: 0; z-index: calc(var(--z-chrome) + 2); pointer-events: none; }

@@ -19,12 +19,6 @@
 .mir-xy { --xy-size: 240px; --xy-dot: 14px; --xy-glow-b: 0 0 8px color-mix(in srgb, var(--acc2) 55%, transparent); }   /* AUTOMATA's pad: square, 240 px at most, a 14 px dot, accent B's glow */
 /* ── end of the values ── */
 
-/* ── a knob that warns or is clamped: --warn, never an accent (INTENT rule 5) ── */
-.k.k-warn, .k.k-clamped { --k-state-ink: var(--warn); --k-state-ring: 0 0 0 1px var(--warn); }   /* the arc knob reads --k-state-ink for its ring */
-.k.k-warn .k-dial, .k.k-clamped .k-dial { box-shadow: var(--relief-raise, var(--neu-raise)), var(--k-state-ring); }
-.k.k-clamped .k-needle { background: var(--warn); box-shadow: none; }
-.k.k-warn .k-val, .k.k-clamped .k-val { color: var(--warn); }
-
 /* ── a switch without a lamp: its label is ON's light, as a trigger's is ── */
 .sw.sw-nolamp.on { color: var(--acc); }
 

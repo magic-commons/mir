@@ -121,24 +121,19 @@
   --m2-fill-tint-100: hsl(var(--glass-tint) / 1);
   --m2-focus-shadow: 0 0 0 3px color-mix(in oklch, hsl(var(--hue-acc) var(--sat-acc) 66% / 0.30), white var(--acc-white, 0%));   /* the focus ring's soft halo (the ring itself is --m2-focus-ring, an outline) */
   --m2-focus-ring: 1px solid color-mix(in oklch, hsl(var(--hue-acc) var(--sat-acc) 52%), white var(--acc-white, 0%));          /* the focus ring: an OUTLINE, like --state-focus, which a skin may set */
-  --m2-fs-12: 12px;
   --m2-grab-dots: radial-gradient(circle at 50% 50%, currentColor 1px, transparent 1.1px);
   --m2-grab-dots-frost: radial-gradient(circle at 50% 50%,currentColor 1.1px,transparent 1.3px);
   --m2-head-shadow: inset 0 -1px 0 hsl(0 0% 100% / 0.09);
   --m2-head-wash: linear-gradient(180deg, hsl(0 0% 100% / 0.06), transparent);
   --m2-hero-well: inset 0 1px 2px hsl(0 0% 0% / 0.045);
   --m2-i-alpha: .9;
-  --m2-input-edge: 1px solid var(--glass-hairline);
   --m2-k-val-font: 600 8.5px var(--font-num, monospace);
   --m2-kind-halo: 0 1px 0 var(--glass-raise);
   --m2-kn-shadow: 0 0 0 0.5px hsl(0 0% 0% / 0.38);
   --m2-mac-font-2: 700 var(--fs-lead) var(--font-num);
   --m2-mac-hover-drop: drop-shadow(0 1px 0 var(--glass-raise)) drop-shadow(0 2px 6px hsl(214 40% 20% / .22));
   --m2-macadd-font: 700 8px/1 var(--font-sans);
-  --m2-matrix-edge: 1px solid var(--glass-border-color);
-  --m2-matrix-face: #171b22;
   --m2-mintdot-shadow: 0 0 0 1px hsl(0 0% 0% / 0.38);
-  --m2-r-14: 14px;
   --m2-rail-shadow: var(--surface-shadow, var(--glass-shadow));   /* the pane shadow alone, as BASINS' material (1.5.0-alpha.9) */
   --m2-say-font: 500 10.5px/1.35 var(--font-sans);
   --m2-slotx-alpha: .75;
@@ -1920,34 +1915,13 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin .m2-native-rate .k-val { font:var(--m2-k-val-font); line-height:1; color:var(--acc); margin-top:2px; }
 #modwin .m2-native-rate.drag .k-val { color:var(--fg); font-weight:var(--m2-w-800); }
 
-.mod-matrix { width:min(1100px,calc(100vw - 24px)); height:calc(100dvh - 32px); box-sizing:border-box; border:var(--m2-matrix-edge); border-radius:var(--m2-r-14); color:var(--fg); padding:16px; }
-.mod-matrix::backdrop { background:transparent; }   /* INTENT L71: no dark layer (the UA's own .1 black included), no blur */
-.mod-matrix-head,.mod-matrix-add,.mod-matrix-bars { display:flex; align-items:center; gap:12px; }
-.mod-matrix-head { justify-content:space-between; height:44px; }
-.mod-matrix-bars { min-height:60px; position:relative; }
-.mod-matrix-bars > * { position:relative!important; inset:auto!important; transform:none!important; flex-shrink:0; }
-.mod-matrix-body { overflow:auto; max-height:calc(100% - 110px); }
-.mod-matrix table { width:100%; table-layout:fixed; border-collapse:collapse; }
-.mod-matrix th,.mod-matrix td { padding:8px 4px; height:44px; border-bottom:var(--m2-matrix-edge); overflow:hidden; text-overflow:ellipsis; }
-.mod-matrix input,.mod-matrix select { max-width:100%; box-sizing:border-box; }
-.mod-matrix th:first-child { width:36px; }
-.mod-matrix input[type=number] { width:80px; }
-.mod-matrix button,.mod-matrix select { min-height:32px; }
-.mod-matrix-add { margin-top:16px; }
 .k-route-depth { position:absolute; bottom:-6px; right:0; width:22px; height:22px; accent-color:var(--acc2); }
-#modwin .m2-matrix-open { flex:0 0 auto; padding:2px; }
 .ro.wide .ro-val { height:2.6em; overflow:auto; }
 
 .k-route-depth.k { position:absolute; padding:0; }
 .k-route-depth .k-lbl, .k-route-depth .k-val { display:none; }
-.mod-matrix { background:var(--pane, var(--m2-matrix-face)); }
 
 
-#modwin .mod-matrix { position:fixed; margin:auto; inset:0; background:var(--m2-face-tint-100); color:var(--fg); border-color:var(--glass-hairline); font-size:var(--m2-fs-12); }
-#modwin .mod-matrix-bars { position:relative; inset:auto; height:64px; display:flex; gap:12px; margin:8px 0; overflow:auto; }
-#modwin .mod-matrix-bars .m2pre { display:flex; flex:0 0 auto; position:relative; height:48px; }
-#modwin .mod-matrix-bars .m2prebar { position:relative; height:48px; flex:0 0 auto; }
-#modwin .mod-matrix input,#modwin .mod-matrix select,#modwin .mod-matrix button { color:var(--fg); background:var(--m2-face-tint-100); border:var(--m2-input-edge); border-radius:var(--r-sm); }
 
 /* Audio response mixer. Full mode uses four equal horizontal channels. Compact
    turns those same controls upright without changing their model or gestures. */
@@ -2008,8 +1982,8 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin .m2-native-rate.drag .k-val { transform:translate(-50%,0); }
 #modwin.mir-modwindow .m2pre { overflow:visible; }
 
-/* Park unfinished macro relocation/matrix UI; keep routes and restored layouts intact. */
-#modwin .m2-side-grip,#modwin .m2-matrix-open { display:none !important; }
+/* Park unfinished macro relocation UI; keep routes and restored layouts intact. */
+#modwin .m2-side-grip { display:none !important; }
 #modwin .m2dev.env .m2kind { color:var(--acc); }
 #modwin .modtempoin { box-sizing:border-box;min-width:0;max-width:none;margin:0; }
 
