@@ -214,7 +214,7 @@ export function createNotebook(options = {}) {
       : (p ? tx('empty · in the project') : tx('empty · kept in this browser'));
   };
   ta.addEventListener('input', () => { if (onPage()) tabs.edit('md', ta.value); else store(K.text, ta.value); count(); });
-  copyBtn.addEventListener('click', async () => { try { await navigator.clipboard.writeText(ta.value); } catch (_) {} });
+  copyBtn.addEventListener('click', () => copyText(ta.value));   // the clipboard, or the textarea fallback a tablet needs
 
   /* ── size and place ── */
   const clamp = (w, h) => [Math.max(NB_MIN_W, Math.min(w, window.innerWidth - 16)), Math.max(NB_MIN_H, Math.min(h, window.innerHeight - 16))];
