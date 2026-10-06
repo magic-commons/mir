@@ -58,8 +58,12 @@ try {
   const left = await p.eval(`document.getElementById('notebook').getBoundingClientRect().left`);
   check('the move is committed on release', Math.abs(left - (head.left + 50)) < 2, `${head.left} to ${left}`);
 
-  /* ABOUT: BASINS' size, its own memory */
+  /* ABOUT: BASINS' size, its own memory; THE HAND: the head's buttons keep their seats across the change of face */
+  const tools = `JSON.stringify([...document.querySelectorAll('#notebook .nb-tools button')].map((b) => { const r = b.getBoundingClientRect(); return Math.round(r.left) + ',' + Math.round(r.top); }))`;
+  const tools0 = await p.eval(tools);
   await p.eval(`__NB.open('about')`); await sleep(150);
+  const tools1 = await p.eval(tools);
+  check('THE HAND: NOTES → ABOUT keeps the head\'s buttons where they were', tools0 === tools1 && JSON.parse(tools0).length >= 3, tools0 + ' → ' + tools1);
   g = await inline();
   check('ABOUT opens 520 × 812 (BASINS\')', g.w === 520 && g.h === 812, JSON.stringify(g));
   await p.eval(`__NB.resize(560, 700)`); await sleep(100);

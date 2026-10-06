@@ -231,19 +231,22 @@ export function createNotebook(options = {}) {
   let moved = false;
   const show = (face) => {
     if (!faces[face]) face = 'notes';
-    nb.hidden = false; for (const [k, f] of Object.entries(faces)) f.hidden = k !== face; nb.dataset.face = face;
+    /* THE HAND (1.5.0-alpha.19): a face changed while the notebook shows keeps the head's top-right corner, so its
+       buttons (✎, ⓘ, ×) keep their seats; only a notebook that opens is placed afresh */
+    const was = nb.hidden ? null : { right: nb.offsetLeft + nb.offsetWidth, top: nb.offsetTop, screen: nb.getBoundingClientRect().top };
+    nb.hidden = false; for (const [k, f] of Object.entries(faces)) f.hidden = k !== face; nb.dataset.face = face; nb.style.removeProperty('max-height');
     const S = readSize();
+    const keep = (h) => { nb.style.left = Math.max(8, was.right - nb.offsetWidth) + 'px'; nb.style.top = was.top + 'px';   // the width as drawn (the sheet's max-width may cap the given one)
+      const room = window.innerHeight - was.screen - 8; if (h > room) nb.style.maxHeight = Math.max(NB_MIN_H, Math.floor(room)) + 'px'; };   // a taller face hangs from the same head and scrolls (.nb-face) rather than run off the screen; the size it was GIVEN stays the one saved
     if (face === 'about') {
-      const w = typeof S.abW === 'number' ? S.abW : aboutW, h = typeof S.abH === 'number' ? S.abH : aboutH;
-      resize(w, h);
+      const [w, h] = resize(typeof S.abW === 'number' ? S.abW : aboutW, typeof S.abH === 'number' ? S.abH : aboutH);
       /* centred in the stage ABOVE the transport (BASINS: ≈ 64 px at the foot), so the taller face clears it */
-      if (!moved) { nb.style.left = 'calc(50% - ' + Math.round(w / 2) + 'px)'; nb.style.top = 'max(20px, calc(50% - ' + Math.round(h / 2 + aboutRise) + 'px))'; }
+      if (was) keep(h); else if (!moved) { nb.style.left = 'calc(50% - ' + Math.round(w / 2) + 'px)'; nb.style.top = 'max(20px, calc(50% - ' + Math.round(h / 2 + aboutRise) + 'px))'; }
       const logo = faces.about.querySelector('.nb-logo'), src = o.logo ? o.logo() : document.getElementById('title');
       if (logo && src && !logo.children.length) { for (const c of src.children) if (!c.classList.contains('ms')) logo.appendChild(c.cloneNode(true)); if (o.onLogo) o.onLogo(); }
     } else {
-      const w = typeof S.nbW === 'number' ? S.nbW : NOTES_DEF_W, h = typeof S.nbH === 'number' ? S.nbH : NOTES_DEF_H;
-      resize(w, h);
-      if (!moved) { nb.style.left = 'calc(50% - ' + Math.round(w / 2) + 'px)'; nb.style.top = '12%'; }
+      const [w, h] = resize(typeof S.nbW === 'number' ? S.nbW : NOTES_DEF_W, typeof S.nbH === 'number' ? S.nbH : NOTES_DEF_H);
+      if (was) keep(h); else if (!moved) { nb.style.left = 'calc(50% - ' + Math.round(w / 2) + 'px)'; nb.style.top = '12%'; }
     }
     const f = extra.find((x) => x.id === face); if (f && f.show) f.show(faces[face], api);
     if (face === 'notes') { if (tabs) tabs.reveal(); ta.focus(); }
