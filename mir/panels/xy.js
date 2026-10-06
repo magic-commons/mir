@@ -537,7 +537,7 @@ export function createXYPanel(o = {}) {
     },
   };
   const spec = {
-    id, title, side: o.side || 'right', open: o.open, glyph: o.glyph || 'xy', key: o.key,
+    id, title, side: o.side || 'right', open: o.open, glyph: o.glyph || 'xy', action: o.action,
     hint: o.hint || 'the XY controller: a pair of the app\'s, two routable sources, or a morph of four snapshots',
     build(body, rackApi) { build(body, rackApi); },
     onOpen() { sync(); }, onWake() { sync(); },

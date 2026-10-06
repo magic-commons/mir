@@ -29,7 +29,7 @@ createRampPanel({ rack, ramp, cyclic: true, history: app.history,
 
 `api.toLUT(n)` returns the table for any size; `api.stops()`, `api.load(stops, presetId)`, `api.preset(id)`, `api.seam()` and `api.part()` are there for the app.
 
-Options: `cyclic` (true), `labels`, `n` (256, the table's size), `cap` (16 stops), `min` (2), `presets` (default `palette.js` `PRESETS`; EARTH's colormaps go here as `{ id, label, stops }`), `ring` (false: no ring), `seamTol` (0.06), `project` (false: no part), `history`, and the rack card's `id`, `title`, `side`, `open`, `glyph`, `key`, `eager`.
+Options: `cyclic` (true), `labels`, `n` (256, the table's size), `cap` (16 stops), `min` (2), `presets` (default `palette.js` `PRESETS`; EARTH's colormaps go here as `{ id, label, stops }`), `ring` (false: no ring), `seamTol` (0.06), `project` (false: no part), `history`, and the rack card's `id`, `title`, `side`, `open`, `glyph`, `action` (the key table's id for the card: the WINDOW menu and the latch show its chord), `eager`.
 
 ## The labels (the app's words)
 

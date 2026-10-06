@@ -317,7 +317,7 @@ export async function createApp(o = {}) {
     EDIT: M.EDIT || (() => rows(k('undo'), k('redo'), keys.get('undo') ? null : undefined, bar ? k('transport.play') : undefined, bar ? null : undefined, purgeRow({ name }))),
     VIEW: M.VIEW || (() => rows(k('hide'), k('fullscreen'))),
     WINDOW: M.WINDOW || (() => rows(mod ? k('modulation') : undefined, timeline ? k('timeline') : undefined, pattern ? k('pattern') : undefined, folders ? k('folders') : undefined, notebook ? k('notebook') : undefined,
-      hist ? k('history') : undefined, help ? k('help') : undefined, kb ? k('keyboard') : undefined, k('rack'), k('dock'), ...(rack ? [null, ...rack.windowMenu()] : []),
+      hist ? k('history') : undefined, help ? k('help') : undefined, kb ? k('keyboard') : undefined, k('rack'), k('dock'), ...(rack ? [null, ...rack.windowMenu({ keyOf: (action) => keys.menuKey(action) })] : []),   // a card's `action` shows the table's chord
       ...((o.coming || []).length ? [null, ...o.coming.map(([n, h]) => comingRow(n, h))] : []))),
     ...Object.fromEntries(Object.entries(M).filter(([g]) => !['FILE', 'EDIT', 'VIEW', 'WINDOW', 'ABOUT', 'LANGUAGE', 'GUI'].includes(g))),
     ABOUT: M.ABOUT || (() => rows(['ABOUT ' + name, () => notebook && notebook.open('about')],

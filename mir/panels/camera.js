@@ -403,7 +403,7 @@ export function createCameraPanel(o = {}) {
   let view = null;
   const handle = { id, port, view: () => view, params: () => (view ? view.params() : []), sync: () => view && view.sync(), destroy() { if (view) view.destroy(); view = null; if (!o.port && port.destroy) port.destroy(); } };
   const spec = {
-    id, title: o.title || 'CAMERA', side: o.side || 'right', open: o.open, glyph: o.glyph || 'cameraOrbit', hint: o.hint || 'where the view is',
+    id, title: o.title || 'CAMERA', side: o.side || 'right', open: o.open, glyph: o.glyph || 'cameraOrbit', action: o.action, hint: o.hint || 'where the view is',
     build(body, api) { view = createCameraView(body, { ...o, port, status: api && api.setStatus ? (s) => api.setStatus(s) : null }); handle.root = view.root; },
     onWake() { if (view) view.sync(); }, onOpen() { if (view) view.sync(); },
     ...(o.spec || {}),

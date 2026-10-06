@@ -76,6 +76,11 @@ try {
   check('it lists the table: undo, HISTORY, MIR OPTIONS, KEYBOARD, the timeline\'s COPY', kbw.rows.every(Boolean), JSON.stringify(kbw.rows));
   await ev(`A.keys.reset('keyboard'); A.keyboard.close(); return 1;`);
 
+  /* 6. a panel takes the table's action id, never a bare key string (CAMERA too) */
+  const cam = await ev(`const { createCameraPanel } = await import('/mir/panels/camera.js'); createCameraPanel({ rack: A.rack, canvas: document.getElementById('picture'), action: 'camera', key: 'C' });
+    const s = A.rack.spec('camera'); return { action: s.action, key: s.key === undefined ? null : s.key };`);
+  check('CAMERA hands its action id to the rack, and no bare key', cam.action === 'camera' && cam.key === null, JSON.stringify(cam));
+
   check('the page raised no exception', p.logs.filter((l) => l.startsWith('EXCEPTION')).length === 0, p.logs.join(' | '));
 } finally {
   await p.close();

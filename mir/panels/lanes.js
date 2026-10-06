@@ -378,7 +378,7 @@ export function createLanesView(parent, o = {}) {
 /* ── the card ────────────────────────────────────────────────────────────────────────────────────────────── */
 /** createLanesPanel(options) → api — the lanes as a rack card (`rack`), or in `parent`; the project part and the history domain are made here, so they
  *  exist before the card is ever opened.  options: lanes (the port), layout, noun, cap, min, fixed, fold ('auto' | true | false), mod, idRoot, project (false: none),
- *  history, id, title, side, open, key, glyph, hint, eager, parent, addLabel, side (the chips' side), material */
+ *  history, id, title, side, open, action (the key table's id for the card), glyph, hint, eager, parent, addLabel, side (the chips' side), material */
 export function createLanesPanel(o = {}) {
   const port = o.lanes;
   if (!port) throw new TypeError('panels/lanes: createLanesPanel needs a port (`lanes`)');
@@ -399,7 +399,7 @@ export function createLanesPanel(o = {}) {
   if (o.history) offHist = o.history.register(o.historyName || id, { read: () => snapshotLanes(port), write: (s) => { restoreLanes(port, s); if (view) { view.resetSolo(); view.request(); } } });
   const build = (body) => { view = createLanesView(body, o); };
   if (o.rack) {
-    o.rack.register({ id, title: o.title || 'LANES', side: o.side || 'right', open: o.open, glyph: o.glyph || 'lanes', hint: o.hint || 'the lanes: a colour, an amount, a blend and a mute each', key: o.key, eager: o.eager,
+    o.rack.register({ id, title: o.title || 'LANES', side: o.side || 'right', open: o.open, glyph: o.glyph || 'lanes', hint: o.hint || 'the lanes: a colour, an amount, a blend and a mute each', action: o.action, eager: o.eager,
       build, onPresent: (a) => { if (view) view.present(a); }, onPower: (live) => { if (view) view.present(live); } });
   } else if (o.parent) build(o.parent);
   return api;

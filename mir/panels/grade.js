@@ -258,7 +258,7 @@ export function createGradePanel(o = {}) {
     destroy() { if (view) view.destroy(); view = null; model.destroy(); },
   };
   const spec = {
-    id, title: o.title || 'GRADE', side: o.side || 'right', open: o.open, glyph: o.glyph || 'grade', key: o.key, eager: o.eager,
+    id, title: o.title || 'GRADE', side: o.side || 'right', open: o.open, glyph: o.glyph || 'grade', action: o.action, eager: o.eager,
     hint: o.hint || 'the master picture: exposure, contrast, gamma, saturation, levels, opacity, hue, invert, blend',
     build(body) { view = createGradeView(body, { ...o, id, model }); handle.root = view.root; },
     onWake() { if (view) view.sync(); }, onOpen() { if (view) view.sync(); },

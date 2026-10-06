@@ -18,7 +18,7 @@
  *   subscribe?(fn) → off   the app changed the ramp itself (a preset it loaded, a project)
  * options: cyclic (true: a seam, a ring, wrapping handles; false: a linear ramp that holds its end colours), labels, n (the table's size, 256), cap (the most
  *   stops, 16), min (the fewest, 2), presets (default palette.js PRESETS: { id, label, stops }), ring (false: no ring), seamTol (0.06), project (false: none),
- *   history, id, title, side, open, glyph, key, hint, eager, parent.
+ *   history, id, title, side, open, glyph, action (the key table's id for the card), hint, eager, parent.
  * labels: { ticks: [[at, text], …], seam, seamOk, seamWarn, at (the field's name), note, fmt(at) → text, ring }.
  *
  * THE KIT'S LAWS HERE.  A handle's drag is core/pointer.js drag (the pointer that began it owns it; Escape, a cancel and a hidden page put the stop back); writes
@@ -286,7 +286,7 @@ export function createRampPanel(o = {}) {
   if (o.project !== false) { const reg = o.project && typeof o.project.register === 'function' ? o.project.register : registerProjectPart; offPart = reg(o.projectName || id, api.part()); }
   if (o.history) offHist = o.history.register(o.historyName || id, { read: snap, write: apply });
   const build = (body) => { view = createRampView(body, o); };
-  if (o.rack) o.rack.register({ id, title: o.title || 'RAMP', side: o.side || 'right', open: o.open, glyph: o.glyph || 'grade', hint: o.hint || 'the colour ramp: stops on a strip', key: o.key, eager: o.eager, build });
+  if (o.rack) o.rack.register({ id, title: o.title || 'RAMP', side: o.side || 'right', open: o.open, glyph: o.glyph || 'grade', hint: o.hint || 'the colour ramp: stops on a strip', action: o.action, eager: o.eager, build });
   else if (o.parent) build(o.parent);
   return api;
 }

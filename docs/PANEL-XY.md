@@ -69,7 +69,7 @@ The morph writes the dials' **bases** (a routed dial's route rides on top), on t
 ## The API
 
 ```
-createXYPanel({ rack | parent, mod, pairs, morph, subscribe, history, project, part, id = 'xy', title = 'XY', side = 'right', open, glyph = 'xy', hint, key, modPrefix = id, spec })
+createXYPanel({ rack | parent, mod, pairs, morph, subscribe, history, project, part, id = 'xy', title = 'XY', side = 'right', open, glyph = 'xy', hint, action, modPrefix = id, spec })
   → { id, part, spec, root, macros: { x, y }, targets: { route: [x, y], morph: [x, y] },
       mode(), setMode('pair' | 'route' | 'morph'), modes(), pair(), setPair(i), sets(), set(), setSet(id),
       route() → { x, y, hand: [x, y] }, morph() → { set, engaged, x, y, bank },
