@@ -363,6 +363,7 @@ The kit gives the parts and the look; the layout is the app's (BASINS' design, �
   - `openers`: `[{ id, label, glyph?, key?, action?, hint?, open(), close?(), toggle?(), isOpen }]` or a function returning it. Seats BOTTOM / TOP / COMPACT; TOP uses the rack's `setHome(seat)`.
 - Parts (each `→ { root, sync(), destroy() }`, with a `signal`): `playButton({ clock, onRefused })`, `modPower({ mod })`, `modDoor({ mod })`, `tempoPill({ tempo, panel })`, `tempoPanel({ tempo, mod })`, `tapButton({ tempo })`, `barButton({ cls, glyph, svg, text, label, title, run })`, `latch(opener)`, `wayBack({ run })`; `createTempo({ model, setBpm, mod, persist })` → `{ get, set, commit, min, max, onChange }`.
 - `BASINS_LAYOUT`, `LAMBDAWAVES_LAYOUT`, `layoutNames(layout)`, `SVG_REWIND`, `DOCK_ID`. `bar: 'work'` is the transport inside a work bar (BASINS' timeline-mounted form: 52 px tall, its seats the bar's button face); `BARS`, `BAR_SEATS`.
+- **Each layout keeps its own drawing (1.5.0-alpha.15).** `BASINS_LAYOUT` = `[{ group: 'native-play-row', items: ['play', 'power', 'tempo', 'rewind'] }, 'panel', 'openers', 'seat', 'dock', 'door']`, `name: 'basins'`; `LAMBDAWAVES_LAYOUT`: unchanged items, `name: 'lambdawaves'`. `createTransport({ layout })` writes `data-layout="<layout.name>"` on the bar when the layout has a name. λWAVES' has its own drawing (the 640 px bar, the pill last, the wrapping docked row, 13 px glyphs); any other layout, an app's own list included, is drawn as BASINS' is (the bar as wide as its row, the five-column docked grid, 12 px glyphs: `--xport-glyph`).
 - `firstRun(...stores)`, `rackOpeners(rack, { only, glyphs })`, `transportActions(get)` (Space: the one play; the row has `overControls: true`, so Space plays over a focused button, latch or knob), `PLAY_ACTION` (`'transport.play'`).
 - Pure: `formatBpm`, `clampBpm`, `digitStep`, `charAt`, `dragBpm`, `keyStep`, `parseBpm`, `seatOf`, `homeOf`, `seatRect`, `menuSide`, `localSeatStore`, `menuRow`, `openerRows`, `isOpenOf`, `toggleOf`; `TRANSPORT`, `SEATS`.
 - Sheet: `mir/shell/transport.css` (after `rack.css`), `@layer mir.kit.house`; tokens `--xport-*` on `.mir-transport`.
@@ -554,6 +555,10 @@ Load `mir/shell/parts.css` after the kit's sheets.
   write(patch) }` (default `localStore(storageKey || 'mir.modulation')`); `audio`: the app's `createAudioCapture`.
 - `localStore(key)` → `{ read(), write(patch) }` (guarded localStorage, one JSON record).
 - `rootsOf(params)` → the registry roots the ids imply.
+
+### `bind.js`: one stack (1.5.0-alpha.15)
+
+The modulation window `installModulation` mounts joins the kit's one window stack (`registerWindow({ root: view.root, rail: view.rail })`, `mir/window/window.js`): a press on it raises it over every kit window and a press on a kit window (PATTERN, the timeline) raises that one over it. `dispose()` takes it out again. An app that registers the same root itself gets the first registration back.
 
 ### `bind.js`: a list of targets at once, and macros a panel owns (1.5.0-alpha.14)
 
@@ -748,6 +753,9 @@ mir/pattern/sequencer.js
   survive a reload; `automation: false`: the app wires `model.value` into its clock itself; `transport`:
   `{ layout, nodes, rack }` or `false`; `audio`: `{ pick({ laneId, start }) }`; `scrubLevel()`: `'live' | 'light' |
   'release'`; `busy()`: a recorder owns the clock.
+  `controller` (1.5.0-alpha.15): the app's own one-play controller (`timeline/controller.js`'s shape), forwarded to
+  `createTimeline`, so its play, its scrub gate and its refusal sentences are the ones used; absent, one is made from
+  `scrubLevel` and `busy`.
 
 ### `window.js`: the window
 - `createTimeline(host, port)` → as above, without `keys`, `automation` and `dispose` (`destroy()` instead). `port`:
@@ -813,6 +821,9 @@ mir/pattern/sequencer.js
 - `core/pointer.js` `drag()`: a non-primary press is refused only when it is trusted (a real second finger); a scripted `PointerEvent` (isPrimary unset) is a press (1.5.0-alpha.8).
 
 - `window/window.js` (1.5.0-alpha.12): `win.resize({ w, h })` → the window's own size, keeping its dock (an edge or an anchor), one layout, saved; `reserveTop(px)`, `reserved`, `stackAbove(anchor | null)`, `isStacked`, `stackHeight()` (the lego stack). Pure: `stackedAt(box, anchor, view, gap)`, `withReserve(span, px)`; `windowLayout`'s env takes `top` (a floating floor). Docked-resize rules: [WINDOWS.md](WINDOWS.md) law 12.
+- `window/window.js` (1.5.0-alpha.15): `registerWindow({ root, rail? })` → `{ root, rail, pair, raise(), leave() }`: a window the app built itself joins the kit's one stack (on top). A press on its pane or rail raises the pair over every kit window; a press on a kit window raises that one over it. `windowOf(el)` finds it. `leave()` takes it out (its z-index stays where it was). Registering the same root twice returns the first registration.
+- `window/window.js` (1.5.0-alpha.15): `win.restore(shape)` puts the window in a persisted shape `{ x, y, w, h, open, dock, chipSide }` (fields left out keep theirs); it opens or closes as the shape says; `dock: 'anchor'` seats it on its anchor again. `dock.anchor.rect()` may return `{ …, avoid, outer }`: the glass the rail must keep off and the edge facing away from it. Seated on an anchor, the window takes the seat's width as its own (kept when a hand frees it).
+- `window/rail.js` (1.5.0-alpha.15): `seatRail({ prefer, box, sizes, view, pad?, gap?, avoid?, outer?, lane? })`: with `avoid` it is BASINS' seat law under another window (a clear lane: inside `lane`, off `avoid`; a real `prefer` side wins; `auto` orders left, right, `outer`, then the rest; else the seat that covers least, else the first reachable side). Pure: `coverOf(seat, rect)` → the area of the seat that lies on `rect`.
 - `window/workspaces.js` (new, 1.5.0-alpha.12): `createWorkspaces({ upper, lower, gap })` → `{ sync(), moved(which, rect | null), show(which), stacked, destroy() }` (MODULATION 8 px above TIMELINE when both are open) · `workspaceSwitch({ run, title })` → `{ root, destroy() }` (the MIR switch chip) · `stackPlan(u, l)`, `stackedAt`, `WORKSPACE` (`{ gap: 8 }`), `WHICH`.
 
 - `window/dock.js` `observeSpan({ left, right, edge, view, occupied, narrow, active })` → `{ read() → { left, right, width, top, bottom }, subscribe(fn), setActive(on), active, destroy() }` (1.5.0-alpha.7, BASINS' rack-bounds): the rack's shadow gutter is subtracted; a rack with no open window (`occupied`, default `.dev:not(.closed):not([hidden])`; `false` counts any rack), a hidden one, `phone`, `ui-hidden` or a viewport of at most `narrow` (860) px counts as absent.

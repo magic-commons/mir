@@ -43,6 +43,7 @@ import * as M from './mod.js';
 import { createModulation, ROUTABLE } from './window.js';
 import { frame } from '../core/frame.js';
 import { createAudioCapture } from './audio-capture.js';
+import { registerWindow } from '../window/window.js';
 
 const TICK = 'mir:modulation:tick', PAINT = 'mir:modulation:paint', APP_PLAY = 'app.play';
 const IDLE = { state: 'idle', reason: '', live: false, deviceId: '', sampleRate: 0, frames: 0, inputLatencyMs: null,
@@ -292,6 +293,7 @@ export function installModulation(o) {
     } : null,
   };
   view = mount ? createModulation(mount, port) : null;              // no mount: the seam without its window (node tests)
+  const stacked = view ? registerWindow({ root: view.root, rail: view.rail }) : null;   // ONE STACK (1.5.0-alpha.15): one press order with the kit's windows
   try { if (view) view.restore(prefs.modwin); } catch (_) { /* a record this window cannot read */ }
   /* the stored AUTOMATION grid, once everything its present() reaches exists (BASINS' 10-01 boot ReferenceError) */
   host.clock.setAutomationGrid(o.automationGrid !== undefined ? o.automationGrid : prefs.automationGrid);
@@ -410,6 +412,7 @@ export function installModulation(o) {
       if (live === self) live = null;
       disposed = true; frame.cancel(TICK); frame.cancel(PAINT);
       if (doc) doc.removeEventListener('visibilitychange', onVisibility); if (win) win.removeEventListener('pagehide', persistNow);
+      if (stacked) stacked.leave();
       offHeld(); persistNow(); if (audioCap) audioCap.stop(); if (view) view.dispose(); host.dispose();
     },
   });

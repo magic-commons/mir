@@ -1,5 +1,36 @@
 # MIR — changelog
 
+## 1.5.0-alpha.15 — 2026-10-06 · BASINS parity, round six
+
+Not released: built on branch `worktree-mir-1.5`. Ten kit gaps measured by the BASINS adoption (stage 4 part B, log rows 51–55), closed with BASINS' values; the tenth is left for Josh's eye.
+
+**Behaviour changes (read these first):**
+- **A window freed from its anchor keeps the seat's width.** Seated on an anchor, the window takes the seat's left, top and width as its own (BASINS `snap-window.js`: `w = P.w = s.width`): a 40 px grip drag frees PATTERN at 360 px where it was, and a drop back lands on the seat (was: 470 px, 76 px off the seat, not captured).
+- **The rail's seat knows the window it is seated under.** An anchor's `rect()` may carry `avoid` (the other window's glass) and `outer` (the edge facing away); `seatRail({ avoid, outer, lane })` then follows BASINS' seat law (`seatClear`): a hand-chosen side wins; with `auto`, left, right, the outer edge, then the rest, a side only in a clear lane (inside the racks, off that glass); else the fitting seat that covers least. PATTERN passes the modulation window's content and `top` / `bottom`, and **its default rail side is BASINS' `auto`** (was the kit's `top`; a shape stored before alpha.15 reads `auto`, as BASINS' v:2 prefs did).
+- **One stack.** `registerWindow({ root, rail })` puts a window the app built itself (BASINS' `#modwin`) in the kit's stack: one press order across the kit's windows and the app's; `windowOf` finds it. **The kit's own modulation window registers itself** (`installModulation`; `dispose()` takes it out), so in every app a press on the modulation window raises it over PATTERN and the timeline, and a press on those raises them over it (it sat at the sheet's static `--z-win` before). `win.restore(shape)` (BASINS kwin `restore`) puts a window in a persisted shape, e.g. `dock: 'anchor'` re-seats it.
+- **An unnamed transport layout draws as BASINS'.** A layout's `name` is written as `data-layout`; BASINS' drawing is the default: the bar as wide as its row (no 640 px floor; BASINS measured 359 px), the pill in the row's order (`BASINS_LAYOUT` is now play, power, tempo, rewind), the pill ink `--ink-key` (.86), the dock and door glyphs 12 px (`--xport-glyph`), and docked: BASINS' five-column grid, play 34 px high, to-start's ring the hairline (.08).
+- **`LAMBDAWAVES_LAYOUT` is chosen by its name** (`data-layout="lambdawaves"`) and keeps λWAVES' 640 px bar (`--xport-w`), the pill last, the wrapping docked row, 13 px glyphs and its pill ink.
+- **The pill has `row-gap: 0`**: BPM and Hz no longer sit 3 px up and 2 px down against BASINS' (`.mir-transport .tbtn { gap: 5px }` had become the pill's row gap).
+- **The docked bar is clear in every CARD STYLE.** It sets `--surface-fill`, `--surface-veil` and `--surface-sheen` on itself, so skin.css's TINTED `.glass` fill can no longer sit inside the rack card.
+- **`installTimeline({ controller })` is forwarded** to `createTimeline`, so the app's controller and its refusal sentences are the ones used.
+- **A zoom level (Shift+1/2/3) starts the view at the ruler range's start**, else at the start of the bar the left edge was in (a level no longer leaves the first clip's title cut off at the window's edge).
+
+### What BASINS can delete
+`basins.css` lines 8–17 of the adopt branch (the mini bar's width, the pill's order and row gap, the docked bar's clear fill and the seven docked-grid rules); `shell.js:131`'s `pattern.win.stackAt(z + 1)` seat; kwin's `raiseWindow` for the modulation window (`windowOf(modRoot).raise()`); `timeline-ticks-check:76`'s `scrollLeft = 0`. The lines are in `docs/ADOPTING-1.5.md` §7.
+
+### Tokens, tests
+- One new token, `--xport-glyph` (12 px, the dock chip's and the door's glyph); `--xport-w`'s note now says it is λWAVES' least width (only `data-layout="lambdawaves"` reads it). 1,422 rows.
+- `tests/pattern.browser.mjs` 21/21 (+3: the freed width and the re-dock with real grip drags; the rail on the outer edge under the modulation window with a real click on its `+`); `tests/window.browser.mjs` 38/38 (+1: one stack, real presses, the overlap read by `elementFromPoint`); `tests/transport.node.mjs` reads BASINS_LAYOUT's order and the two names. Against alpha.14 the new rows fail with BASINS' measured numbers. With the modulation window in the stack, `modwindow`, `modulation-stack`, `pattern` and `window` pass unchanged.
+
+### Choices to overrule
+- A layout with no `name` (an app's own list) is drawn as BASINS' is, not as λWAVES'.
+- A zoom level with no ruler range starts at the start of the bar the view's left edge is in (BASINS' view sat at a bar; the rule is the lane's).
+- `registerWindow` raises the window on top when it registers; `leave()` leaves its last z-index where it was; registering the same root twice returns the first registration.
+- The kit's modulation window joins the one stack in every app, not only in BASINS.
+
+### For Josh's eye
+- **SELECT and SCRUB** (the timeline's tool icons) draw outlined and dashed: the glyph library's drawings, `fill: none`, ink .86. BASINS' build drew them filled through kwin's copied `svg` rule (`fill` .96). Left as designed until you say otherwise.
+
 ## 1.5.0-alpha.14 — 2026-10-06 · the rack windows: CAMERA, GRADE, CURVES, XY, LANES, RAMP; BASINS parity round five
 
 Not released: built on branch `worktree-mir-1.5`.
