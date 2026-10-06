@@ -304,8 +304,8 @@ export async function createApp(o = {}) {
   if (want('help')) help = createKeysHelp({ keys, host: floats });
   /* THE KEYBOARD WINDOW beside it: any row of the table re-recorded from the UI (mir/keyboard/keyboard.js), behind WINDOW › KEYBOARD */
   if (want('keyboard')) kb = createKeyboardWindow({ keys, host: floats, onMoved: moved, ...opt(o.keyboard) });
-  /* the menus are BASINS' (app/shell.js): FILE ends with the five recent projects (↺), EDIT has PLAY / PAUSE and Purge
-     Cache/RAM, VIEW hide and full screen, WINDOW the kit's windows with their keys then the rack's, and the windows to
+  /* the menus are BASINS' (app/shell.js): FILE ends with the five recent projects (↺), EDIT has UNDO / REDO (with a history
+     or a timeline), PLAY / PAUSE and Purge Cache/RAM, VIEW hide, full screen and hold-still, WINDOW the kit's windows with their keys then the rack's, and the windows to
      come; ABOUT · SETTINGS · COPY DUMP.  A row whose piece is left out is not shown. */
   const k = (id) => (keys.get(id) ? keys.menuItem(id) : undefined);
   const rows = (...list) => list.filter((x) => x !== undefined);
@@ -315,7 +315,7 @@ export async function createApp(o = {}) {
     FILE: M.FILE || (() => rows(folders ? k('save') : undefined, folders ? ['NEW', () => folders.fresh()] : undefined, folders ? k('folders') : undefined,
       ...(folders ? recentRows(folders.files, 5, (id) => { folders.open(); folders.openEntry(id); }) : []))),
     EDIT: M.EDIT || (() => rows(k('undo'), k('redo'), keys.get('undo') ? null : undefined, bar ? k('transport.play') : undefined, bar ? null : undefined, purgeRow({ name }))),
-    VIEW: M.VIEW || (() => rows(k('hide'), k('fullscreen'))),
+    VIEW: M.VIEW || (() => rows(k('hide'), k('fullscreen'), info ? k('info-hold') : undefined)),   // hold-still: a held key, so its row latches
     WINDOW: M.WINDOW || (() => rows(mod ? k('modulation') : undefined, timeline ? k('timeline') : undefined, pattern ? k('pattern') : undefined, folders ? k('folders') : undefined, notebook ? k('notebook') : undefined,
       hist ? k('history') : undefined, help ? k('help') : undefined, kb ? k('keyboard') : undefined, k('rack'), k('dock'), ...(rack ? [null, ...rack.windowMenu({ keyOf: (action) => keys.menuKey(action) })] : []),   // a card's `action` shows the table's chord
       ...((o.coming || []).length ? [null, ...o.coming.map(([n, h]) => comingRow(n, h))] : []))),

@@ -176,4 +176,26 @@ const node = (tag, attrs = {}) => ({ nodeType: 1, tagName: tag.toUpperCase(), ty
   K.destroy();
   pass('a modifier alone is refused at createKeys and add, naming the action; add() puts rows in later, with their saved keys');
 }
+{ /* a HELD action in a menu (INFORMATIONAL's hold-still in VIEW): a menu has no release, so its row latches (wave 19) */
+  const log = [], target = new EventTarget();
+  const K = createKeys({ actions: [{ id: 'info-hold', label: 'HOLD THE WORDS STILL', group: 'VIEW', keys: ['I'], run: () => log.push('hold'), up: () => log.push('let go') },
+    { id: 'plain', label: 'PLAIN', keys: ['P'], run: () => log.push('plain') }], target, platform: 'other' });
+  const [txt, fire] = K.menuItem('info-hold');
+  assert.equal(txt, 'HOLD THE WORDS STILL\tI');
+  fire(); assert.deepEqual(log, ['hold'], 'the first press holds'); fire(); assert.deepEqual(log, ['hold', 'let go'], 'the next lets it go');
+  fire(); target.dispatchEvent(new Event('blur')); assert.deepEqual(log.slice(2), ['hold', 'let go'], 'leaving the page lets a menu-held one go too');
+  K.menuItem('plain')[1](); K.menuItem('plain')[1](); assert.deepEqual(log.slice(4), ['plain', 'plain'], 'an action without up is a plain press each time');
+  K.destroy();
+  pass('a held action\'s menu row latches: press holds, press again lets go, leaving the page lets go');
+}
+{ /* undo / redo: one pair of ids and chords for every owner (history-list.js historyActions, the timeline's own rows) */
+  const { EDIT_KEYS } = await import('../mir/shell/keys.js');
+  const { historyActions } = await import('../mir/history/history-list.js');
+  const { timelineActions } = await import('../mir/timeline/shortcuts.js');
+  const h = historyActions({ undo: () => true, redo: () => true }, { doc: null }), t = timelineActions(() => null).filter((a) => a.id === 'undo' || a.id === 'redo');
+  assert.deepEqual(h.map((a) => [a.id, a.keys]), [['undo', [...EDIT_KEYS.undo]], ['redo', [...EDIT_KEYS.redo]]]);
+  assert.deepEqual(t.map((a) => [a.id, a.keys]), h.map((a) => [a.id, a.keys]), 'the timeline\'s pair is the same ids and chords');
+  assert.ok(h.every((a) => a.inFields && a.repeat), 'inFields (a focused <select> still undoes the app; when() hands a text field its own undo), repeat');
+  pass('undo and redo: one pair of ids and chords, the history\'s and the timeline\'s (shell/keys.js EDIT_KEYS)');
+}
 console.log(`\n${n} passed`);

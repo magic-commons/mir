@@ -2,6 +2,9 @@
  * the history and the TIMELINE (tests/fixtures/keys-undo.html), real keys and a real pointer through CDP.
  *   1. no hard-coded H: hiding the interface (on whatever key the table gives 'hide') closes the knob's TIMELINE CLIP menu
  *      and the timeline's ⋯ menu; with hide moved off H, H closes nothing
+ *   2. no key text typed by hand: ⋯'s rows, the timeline's tools and the notebook's × show the table's chord, and follow a rebind
+ *   4. HISTORY, MIR OPTIONS, MIR ABOUT are rows (no key); bound, each opens from its key    5. createApp installs KEYBOARD
+ *   6. a panel (CAMERA) hands the rack its action id, no bare key    9. VIEW / EDIT / WINDOW / GUI read the table; hold-still latches
  * Standalone: node tools/serve.mjs 8840 . --no-reset & MIR_BASE=http://127.0.0.1:8840 node tests/keys-table.browser.mjs */
 import { launch, sleep } from '../tools/cdp.mjs';
 
@@ -80,6 +83,16 @@ try {
   const cam = await ev(`const { createCameraPanel } = await import('/mir/panels/camera.js'); createCameraPanel({ rack: A.rack, canvas: document.getElementById('picture'), action: 'camera', key: 'C' });
     const s = A.rack.spec('camera'); return { action: s.action, key: s.key === undefined ? null : s.key };`);
   check('CAMERA hands its action id to the rack, and no bare key', cam.action === 'camera' && cam.key === null, JSON.stringify(cam));
+
+  /* 9. the menus read the table: VIEW carries hold-still (docs/KEYS.md said it did), and its row latches */
+  const group = async (g) => { await ev(`A.menubar.openGroup(${JSON.stringify(g)}); return 1;`); await sleep(80); const it = await ev(`return A.menubar.items;`); await ev(`A.menubar.close(); return 1;`); return it; };
+  const view = await group("VIEW"), edit = await group("EDIT"), win = await group("WINDOW"), gm = await group("GUI");
+  check('VIEW: HIDE, FULL SCREEN and HOLD THE WORDS STILL with their keys', view.length === 3 && /HOLD THE WORDS STILL\s*I$/.test(view[2]), JSON.stringify(view));
+  check('EDIT: UNDO and REDO first, with the table\'s chords', /^UNDO\s*Ctrl\+Z$/.test(edit[0]) && /^REDO\s*Ctrl\+Shift\+Z$/.test(edit[1]), JSON.stringify(edit));
+  check('WINDOW: HISTORY and KEYBOARD are table rows there', win.some((t) => /^HISTORY/.test(t)) && win.some((t) => /^KEYBOARD/.test(t)), JSON.stringify(win));
+  check('GUI: MIR OPTIONS and MIR ABOUT', gm.length === 2 && /^MIR OPTIONS/.test(gm[0]) && /^MIR ABOUT/.test(gm[1]), JSON.stringify(gm));
+  const held = await ev(`const r = A.keys.menuItem('info-hold'); const seen = []; const h = A.info.hold; A.info.hold = (on) => { seen.push(on); return h(on); }; r[1](); r[1](); A.info.hold = h; return seen;`);
+  check('the hold-still row latches: one press holds, the next lets go', JSON.stringify(held) === '[true,false]', JSON.stringify(held));
 
   check('the page raised no exception', p.logs.filter((l) => l.startsWith('EXCEPTION')).length === 0, p.logs.join(' | '));
 } finally {

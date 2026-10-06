@@ -47,7 +47,7 @@
  *   record()                → Promise<chord | null>: the next chord pressed; Escape → null.  answer(chord) settles it
  *                             from elsewhere (a tap on the drawn board), stopRecording() cancels it; recording() says
  *   menuKey(id, platform?)  → the menu row's key text in that platform's symbols ('⌘S', 'Ctrl+S'), '' if unbound
- *   menuItem(id, label?)    → a ready menubar entry [label\tkey, run, disabled()]
+ *   menuItem(id, label?)    → a ready menubar entry [label\tkey, run, disabled()]; a held action's row latches (press: run, press again: up)
  *   hint(id)                → the same key text, for a control's hint
  *   hints(root)             writes data-key-hint and aria-keyshortcuts on every [data-key-action] under root
  *   helpRows()              → [{ group, rows: [{ id, label, hint, chords: [text], keys: [chord] }] }]
@@ -339,12 +339,13 @@ export function createKeys({ actions = [], storage = null, platform = detectPlat
   };
   /* A HELD KEY (an action with `up`, e.g. INFORMATIONAL's hold-still): its key's release runs up(), and so does
      leaving the page, so a key let go elsewhere never sticks */
-  const held = new Map(), taken = new Set();
+  const held = new Map(), taken = new Set(), latched = new Set();     // latched: held actions a MENU row is holding (menuItem)
   const release = (code) => { const a = held.get(code); if (!a) return; held.delete(code); try { a.up(null, a); } catch (err) { console.warn('keys: ' + a.id, err); } };
+  const unlatch = () => { for (const id of [...latched]) { latched.delete(id); const a = byId.get(id); try { if (a && a.up) a.up(null, a); } catch (err) { console.warn('keys: ' + id, err); } } };
   if (view) {
     view.addEventListener('keydown', onKey, { signal: life.signal });
     view.addEventListener('keyup', (e) => { if (taken.delete(e.code)) e.preventDefault(); if (held.has(e.code)) { e.preventDefault(); release(e.code); } }, { capture: true, signal: life.signal });
-    view.addEventListener('blur', () => { for (const code of [...held.keys()]) release(code); }, { signal: life.signal });
+    view.addEventListener('blur', () => { for (const code of [...held.keys()]) release(code); unlatch(); }, { signal: life.signal });
   }
 
   function record() {
@@ -410,7 +411,12 @@ export function createKeys({ actions = [], storage = null, platform = detectPlat
     menuItem(id, text) {
       const a = byId.get(id); if (!a) return null;
       const k = api.menuKey(id);
-      return [(text || a.label) + (k ? '\t' + k : ''), () => api.run(id), () => { if (!a.when) return false; try { return !a.when(); } catch (_) { return true; } }];
+      /* a HELD action (one with `up`) has no release in a menu: its row LATCHES — the first press runs it, the next lets it go */
+      const fire = !a.up ? () => api.run(id) : () => {
+        if (latched.delete(id)) { try { a.up(null, a); } catch (err) { console.warn('keys: ' + id, err); } return true; }
+        const ok = api.run(id); if (ok) latched.add(id); return ok;
+      };
+      return [(text || a.label) + (k ? '\t' + k : ''), fire, () => { if (!a.when) return false; try { return !a.when(); } catch (_) { return true; } }];
     },
     hint: (id) => api.menuKey(id),
     hints(root) {

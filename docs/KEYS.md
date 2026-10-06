@@ -50,10 +50,17 @@ With `createApp()` (`mir/app.js`) the table is made for you (`app.keys`): the ap
 | Ctrl/⌘+S | `save` | save over the open project (works in a field too) |
 | ? | `help` | the keys' help view |
 | I (held) | `info-hold` | holds the words on the picture still (`infoActions`) |
+| Ctrl/⌘+Z | `undo` | undo: the history's row with a `history`, else the timeline's own (`EDIT_KEYS` in `mir/shell/keys.js`) |
+| Ctrl/⌘+Shift+Z, Ctrl/⌘+Y | `redo` | redo, the same two owners |
+| — | `history`, `render`, `gui`, `gui-about`, `keyboard`, `pattern`, `timeline` | the kit's windows (HISTORY, RENDER, MIR OPTIONS, MIR ABOUT, KEYBOARD, PATTERN, TIMELINE): rows with **no key** — their keys are Josh's to give — so the KEYBOARD window can bind them and a menu shows what they hold |
 
 Before 1.5.0-alpha.12 the kit had F on FOLDERS; a user who rebound nothing now finds FOLDERS on S. The table writes the hints again whenever a window is built, so a lazily built window's `[data-key-action]` shows its key too.
 
-**A held key.** An action with `up(event, action)` is held: `run` on the press, `up` on that key's release, or when the page loses the focus. INFORMATIONAL's hold-still is one (`infoActions(() => layer)` in `mir/info/layer.js`): in the table, it is listed in the menus and the help view, and Space stays free for play.
+**`createApp` installs the KEYBOARD window** beside the help view (`app.keyboard`, WINDOW › KEYBOARD; `keyboard: false` leaves it out), so every kit app rebinds its table from the UI.
+
+**Undo and redo have one owner (wave 19).** They are the rows `undo` and `redo` of the one table, never a listener of their own: `installHistoryKeys(history, { keys })` (`mir/history/history-list.js`, which `createHistoryWindow` and `createApp` call with `app.keys`) adds them, and the timeline's own pair, the same ids and chords, is left out when the timeline is a domain of that history (`timeline/bind.js`). Before, a capture-phase listener beat every table row, so rebinding undo did nothing. A text field keeps its own undo; a focused `<select>` (it has none) still undoes the app.
+
+**A held key.** An action with `up(event, action)` is held: `run` on the press, `up` on that key's release, or when the page loses the focus. INFORMATIONAL's hold-still is one (`infoActions(() => layer)` in `mir/info/layer.js`): in the table, it is in the help view and in VIEW › HOLD THE WORDS STILL, and Space stays free for play. A menu has no release, so **a held action's menu row latches**: one press holds, the next lets go (and leaving the page lets go). Before wave 19 this page said it was in the menus; it was not.
 
 **A declared key that is not a key throws** at `createKeys` (and `add`), naming the action: a modifier alone (`'Shift'`), a typo. λWAVES' binding law ("Choose a key, with any modifiers") already refused it when rebinding; a declared row was silently left with no key, which a model (Haiku, building Tetris) did not notice. **`keys.add(action | actions)`** puts rows in after the table was made (a saved binding for them is read from the store; an id already there is left alone).
 
@@ -86,6 +93,8 @@ A chord is written one way everywhere: `Mod+Ctrl+Alt+Shift+Meta+<code>`, modifie
 | **Only the difference is saved**, as `{ actionId: [chords] }` | a new default in the next release reaches everyone who did not change that key |
 | **A bad save is ignored, never thrown.** An action that no longer exists or a chord that no longer parses is dropped | an old file never breaks a new app |
 | **Nothing is found by its label.** Actions by id, hint targets by `data-key-action`, drawn keys by `data-code`, rows by `data-id` | labels translate |
+| **No key text is typed by hand.** A control that runs a table action carries `data-key-action="id"` (its tooltip shows the table's chord after its words); a menu row is `menuItem(id)`; a list row shows `menuKey(id)`; a rack panel names its action (`action: 'id'`), never a `key` string | the user's binding, in the user's platform's symbols: ⌘ on a Mac and an iPad (wave 19: `keyLabel: 'J'`, `'(Ctrl+Z)'`, `'· SHIFT+Z'` and the panels' `key` were each typed) |
+| **One owner per chord.** No module adds a keydown listener of its own for a key the table can hold (undo, hide) | a rebind must move the key, everywhere (wave 19: a hard-coded `KeyH` and a capture-phase undo outlived their rebinds) |
 
 ## 4. The API
 
@@ -100,13 +109,13 @@ A chord is written one way everywhere: `Mod+Ctrl+Alt+Shift+Meta+<code>`, modifie
 | `holders(chord)`, `conflicts()` → `[{ chord, ids }]` | who holds a chord; every chord held twice |
 | `record()` → `Promise<chord \| null>` | the next chord pressed (Escape → `null`); `answer(chord)` settles it from elsewhere (a tap on the drawn board), `stopRecording()` cancels, `recording()` says |
 | `menuKey(id, platform?)`, `hint(id)` | the key text for a menu row or a hint (`''` if unbound) |
-| `menuItem(id, label?)` | a ready menubar entry: `[label\tkey, run, disabled]` (disabled when `when()` is false) |
+| `menuItem(id, label?)` | a ready menubar entry: `[label\tkey, run, disabled]` (disabled when `when()` is false; a held action's row latches) |
 | `hints(root)` | writes `data-key-hint` and `aria-keyshortcuts` on every `[data-key-action]` under `root` |
 | `helpRows(platform?)` → `[{ group, rows: [{ id, label, hint, keys, chords }] }]` | the help view's data |
 | `describe()` | plain data for a model or a dump: platform, and every action's keys, defaults and display |
 | `list()`, `get(id)`, `chords(id)`, `saved()`, `restore(obj)`, `onChange(fn)` → off, `platform`, `destroy()` | |
 
-`localKeyStorage(name)` is a `{ get, set }` over localStorage that survives a private window. Pure exports, node-tested: `parseChord`, `normalize`, `chordFromEvent`, `displayChord`, `ariaChord`, `keyText`, `modText`, `pickAction`, `isField`, `ownsKey`, `steal`, `diffSaved`, `repairSaved`, `bindError`, `detectPlatform`.
+`localKeyStorage(name)` is a `{ get, set }` over localStorage that survives a private window. `KIT_KEYS` are the kit's default chords, `EDIT_KEYS` undo's and redo's. Pure exports, node-tested: `parseChord`, `normalize`, `chordFromEvent`, `displayChord`, `ariaChord`, `keyText`, `modText`, `pickAction`, `isField`, `ownsKey`, `steal`, `diffSaved`, `repairSaved`, `bindError`, `detectPlatform`.
 
 **`mir/keyboard/keyboard.js`**
 - `createKeyboardWindow({ keys, host, persist?, platform?, onMoved? })` → `{ win, root, open(), close(), toggle(), isOpen(), select(id), setPlatform('mac' | 'other'), record(), refresh(), destroy() }`. `win` is the `createWindow` window (id `keyboard`, 1080 × 416, 530 tall under 860 px); `persist` and `onMoved` are passed to it.
@@ -154,6 +163,7 @@ The geometry is λWAVES' (lab.css §KEYBOARD as of waves 113–115): the 2.1 : 1
 ## 7. Proofs
 
 - `tests/keys.node.mjs`: the spelling (permutations, aliases, `Mod` on both platforms, malformed chords), the display, the one listener on Node's own `EventTarget` (when, fields, owned keys, repeat, `defaultPrevented`, `destroy`), the steal (the loser reported and really unbound), reserved keys, reset, saving only the difference and reading it back, restoring a save with an unknown action and malformed chords, the saved shape passing the envelope checker as a spec's `keys`, and the generated menu key, menu entry, help rows and `describe()`.
+- `tests/keys-undo.browser.mjs` and `tests/keys-table.browser.mjs` on `tests/fixtures/keys-undo.html` (a whole `createApp()` with the history and the timeline, wave 19): one holder per undo / redo chord, one undo per Ctrl+Z after a knob drag and after a timeline edit, a rebind moves undo, a text field keeps its own; with hide rebound, H closes nothing; the ⋯ rows, the tools and the notebook's × show the table's chord and follow a rebind; the kit's windows are rows and open from a bound key; the KEYBOARD window is installed; VIEW, EDIT, WINDOW and GUI read the table; the hold-still row latches.
 - `tests/keyboard.browser.mjs` on `tests/fixtures/keyboard.html`, with real keys and a real pointer through CDP, each click hit-tested with `elementFromPoint`: a chord runs once; in a text field it does not (an `inFields` one does); a drawn key shows its action, a free one says it is free; record → the old chord stops and the new one runs; a taken chord shows the conflict and a second press steals it, naming the loser; the menubar's key column and the help view follow without a reload; a reload keeps the bindings; RESET restores them; nothing scrolls sideways; under `qps` the labels translate and the key caps, chips and menu keys do not.
 - Plates in `docs/plates/keyboard/`: `keyboard-dark.png`, `keyboard-light.png`, `keyboard-recording.png`, `keyboard-conflict.png`, `keys-help.png`. Retake them with `MIR_PLATES=1 node tests/keyboard.browser.mjs`; a plain test run never writes them.
 
