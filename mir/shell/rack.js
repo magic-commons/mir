@@ -46,6 +46,7 @@ import { frame } from '../core/frame.js';
 import { setVar, setAttr } from '../core/perf.js';
 import { createWindowActivity } from '../window-activity.js';
 import { observeSpan } from '../window/dock.js';
+import { registerWindow } from '../window/window.js';
 import { glyphEl, hasGlyph } from '../glyph.js';
 import { t } from '../core/i18n.js';
 import { createRackScrollbars } from './rack-scrollbar.js';
@@ -603,11 +604,17 @@ export function createRack({ host = globalThis.document && document.body, sides 
   }
 
   /* ── floating ── */
+  /* ONE RAISE STACK: a floating card's z is its place in the kit's one window stack (window/window.js registerWindow), so a
+     card and a kit window in the same float layer never tie, and a press puts either on top.  `stack` keeps the rack's own
+     order of its floating cards (the saved layout's z), as before. */
+  const stacked = new Map();                                          // floating card → its registerWindow entry
   function raiseFloat(root) {
     const i = stack.indexOf(root); if (i >= 0) stack.splice(i, 1);
-    stack.push(root); stack.forEach((r, k) => setVar(r, 'z-index', String(1 + k)));
+    stack.push(root);
+    const s = stacked.get(root); if (s) s.raise(); else stacked.set(root, registerWindow({ root }));
     return true;
   }
+  function unstack(root) { const s = stacked.get(root); if (s) { s.leave(); stacked.delete(root); } }
   /* the touch tablet (BASINS isTouchTablet): a coarse pointer wider than 700 px that is not the phone */
   const tabletMq = tabletClamp && view.matchMedia ? view.matchMedia(`(any-pointer: coarse) and (min-width: ${RACK.tabletMin}px)`) : null;
   const isTablet = () => !!tabletMq && tabletMq.matches && !phoneOn && !body.classList.contains('phone');
@@ -652,6 +659,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
     root.classList.remove('floating', 'compact');
     for (const p of ['left', 'top', 'z-index', '--float-w', 'translate']) setVar(root, p, null);
     const i = stack.indexOf(root); if (i >= 0) stack.splice(i, 1);
+    unstack(root);
     if (phoneOn && st.home.side === 'left') root.dataset.phoneFrom = 'left';
     rk.insertBefore(root, list[Math.max(0, Math.min(at, list.length))] || null);
     floatState.delete(id);
@@ -1215,6 +1223,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
       for (const n of made) n.remove();
       body.classList.remove('rack-peek', 'rack-peek-left', 'rack-peek-right', 'transport-peek');
       if (transport) { transport.classList.remove('mir-rack-transport'); transport.removeAttribute('data-seat'); }
+      for (const root of [...stacked.keys()]) unstack(root);
       reg.clear(); floatState.clear(); stack.length = 0;
     },
   };

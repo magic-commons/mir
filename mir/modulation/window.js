@@ -43,7 +43,7 @@ import { svgPoint, curveHit, curveAction, pointDrag, pointAddValue, tensionDelta
          editablePresetForWave } from './curve-gesture.js';
 import { createRail, seatRail, seatOn, nearestSide, roomFor, SIDES, RAIL } from '../window/rail.js';
 import { createDockGuide } from '../window/dock.js';
-import { windowLayout, dockInput, stackedAt } from '../window/window.js';
+import { windowLayout, dockInput, stackedAt, windowOf } from '../window/window.js';
 import { workspaceSwitch } from '../window/workspaces.js';
 import { bindTempoField } from '../shell/transport.js';
 import { drag as pointerDrag } from '../core/pointer.js';
@@ -3351,9 +3351,10 @@ export function createModulation(host, port) {
     P.open = true;
     root.hidden = false; rail.el.hidden = false;
     if (port.opened) port.opened();
-    /* THE RAIL RISES WITH ITS WINDOW, just above it (BASINS: rails in their own tier above the windows): a rail seated on
-       the content's edge may lie over the window's empty float room, and must take the hand there */
-    { const z = parseInt(getComputedStyle(root).zIndex, 10); if (Number.isFinite(z)) rail.el.style.zIndex = String(z + 1); }
+    /* THE RAIL RISES WITH ITS WINDOW, in the rails' tier above every window (window/window.js law 5): a window in the one
+       stack (bind.js registers it) is raised there, pane and rail; one outside it keeps its rail just above its pane */
+    { const w = windowOf(root);
+      if (w) w.raise(); else { const z = parseInt(getComputedStyle(root).zIndex, 10); if (Number.isFinite(z)) rail.el.style.zIndex = String(z + 1); } }
     rebuild(); rail.measure(); place(); paint(true);
     if (wasHidden) { root.hidden = true; rail.el.hidden = true; }
     if (wasHidden || exiting) { presence(root, true); presence(rail.el, true); }
