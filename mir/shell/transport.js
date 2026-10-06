@@ -194,6 +194,7 @@ export function rackOpeners(rack, { only = null, glyphs = {} } = {}) {
     return ids.map((id, i) => {
       const spec = typeof rack.spec === 'function' ? rack.spec(id) : null, m = menuRow(menu[i]) || {};
       return { id, label: (spec && spec.title) || m.label || id.toUpperCase(), key: (spec && spec.key) || m.key || '',
+        action: (spec && spec.action) || '',   // a card's key-table action (a panel's `action`): the latch shows the table's chord (W19 K6)
         glyph: glyphs[id] || (spec && spec.glyph) || '', hint: (spec && spec.hint) || '',
         open: () => rack.raise(id), close: () => rack.close(id), isOpen: () => rack.isOpen(id) };
     }).filter((o) => o.id !== DOCK_ID && (!only || only.includes(o.id)));
@@ -283,6 +284,7 @@ export function modDoor({ mod, mark = 'palette', onSwitch = null, work = () => f
   let diamond = null;
   if (typeof document !== 'undefined') { if (mark === 'mark') root.appendChild(markSvg()); else diamond = createMirDiamond(root); }
   ariaLabel(root, 'Open the modulation window'); root.title = 'Open the modulation window'; root.setAttribute('aria-expanded', 'false');
+  root.dataset.keyAction = 'modulation';   // its key is the table's (keys.hints), never typed (W19 K2)
   function sync() { setAttr(root, 'aria-expanded', String(isOpenOf(mod))); }
   root.addEventListener('click', () => { if (onSwitch && work()) onSwitch(); else if (mod) mod.toggle(); }, { signal: life.signal });
   if (!mod && !onSwitch) root.hidden = true;
@@ -514,7 +516,7 @@ export function latch(o, { signal } = {}) {
 /** wayBack({ run }) — under H on a touch screen, the one button left of the main opener (the kit's) */
 export function wayBack({ run, signal } = {}) {
   const life = lifeOf(signal), root = el('button', 'tr-back'); root.type = 'button';
-  setGlyph(root, 'expand', { label: 'Show the interface', size: 18 }); root.title = 'Show the interface';
+  setGlyph(root, 'expand', { label: 'Show the interface', size: 18 }); root.title = 'Show the interface'; root.dataset.keyAction = 'hide';
   root.addEventListener('click', () => run && run(), { signal: life.signal });
   return { root, sync() {}, destroy: () => life.abort() };
 }
@@ -610,7 +612,7 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
         seatB.title = 'Where the transport sits'; seatB.setAttribute('aria-haspopup', 'menu'); seatB.setAttribute('aria-expanded', 'false'); return seatB;
       case 'dock':
         dockB = el('button', 'dock-btn'); dockB.type = 'button'; setGlyph(dockB, 'dock', { label: 'Dock the transport into the rack' });
-        dockB.title = 'Move the transport between the stage and the rack'; dockB.setAttribute('aria-pressed', 'false'); return dockB;
+        dockB.title = 'Move the transport between the stage and the rack'; dockB.dataset.keyAction = 'dock'; dockB.setAttribute('aria-pressed', 'false'); return dockB;
       case 'back': return null;                                     // the way back is always the bar's last child
       default: return null;
     }

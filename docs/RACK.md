@@ -56,7 +56,7 @@ A registered window costs one Map entry. Its `device()` shell is made, and its `
 | `notebook` | — | the notebook (`createNotebook()`'s result: `size()`, `resize(w, h)`), or `() => it` when it is made later. A layout then keeps the notebook's size as `nb: [w, h]`, and loading a ☆ layout (or `apply`) resizes it. A reload leaves the notebook's own saved size alone |
 
 **`rack.register(spec)` → id.** `spec` is:
-- `id` (required, unique), `title` (default: the id in capitals), `side` (`'left'` / `'right'`, its home), `open` (open by default), `glyph` (a `glyph.js` name, shown in the `+` list), `hint`, `key` (a key hint for the WINDOW row), `status`, `loadingMark`;
+- `id` (required, unique), `title` (default: the id in capitals), `side` (`'left'` / `'right'`, its home), `open` (open by default), `glyph` (a `glyph.js` name, shown in the `+` list), `hint`, `action` (the key table's id that opens it: the WINDOW row shows its chord through `windowMenu({ keyOf })`, the bar's latch through `data-key-action`; never a typed key), `status`, `loadingMark`;
 - `build(body, api)`, run once, on first open;
 - or `el`: a window the app **already built** (`device()`'s result, best, or its `.dev`). It is taken over where it stands: never rebuilt, never moved. `closed: true` starts it closed (BASINS' `addWindow(dev, side, { closed: true })`). Its home side is the rack it stands in unless `side` says otherwise;
 - or `eager: true`: built at once, closed until the layout or `open` opens it;

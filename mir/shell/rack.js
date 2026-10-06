@@ -388,7 +388,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
   }
   const handles = handle === 'never' ? [] : Object.keys(racks).map((side) => {
     const h = el('button', 'mir-rack-handle', host); made.push(h);
-    h.type = 'button'; h.dataset.side = side; h.dataset.when = handle; h.setAttribute('aria-label', 'Show the interface'); h.title = 'Show the interface';
+    h.type = 'button'; h.dataset.side = side; h.dataset.when = handle; h.setAttribute('aria-label', 'Show the interface'); h.title = 'Show the interface'; h.dataset.keyAction = 'hide';   // the key shown is the table's (W19 K2)
     h.addEventListener('click', () => { setInterface(true); setHidden(false); }, on);
     return h;
   });
@@ -1081,8 +1081,10 @@ export function createRack({ host = globalThis.document && document.body, sides 
   /* ── the WINDOW menu, as data for createMenubar({ menus }) ── */
   /** windowMenu({ rack }) — one row per registered window: ↑ raises an open one, ⊕ opens a closed one; `rack: true`
    *  adds a separator and HIDE / SHOW the rack.  A row is [label, run, disabled, hint] (shell/menubar.js). */
-  function windowMenu({ rack: rackRow = false, rackKey = '' } = {}) {
-    const rows = [...reg.values()].filter((w) => !w.spec.card).map((w) => [(isOpen(w.spec.id) ? '↑  ' : '⊕  ') + w.spec.title + (w.spec.key ? '\t' + w.spec.key : ''),
+  function windowMenu({ rack: rackRow = false, rackKey = '', keyOf = null } = {}) {
+    /* a card's key is the key table's chord for its `action` (keyOf(action) → text: createApp passes keys.menuKey), never a typed string (W19 K6) */
+    const keyText = (spec) => (spec.action && keyOf ? keyOf(spec.action) || '' : '');
+    const rows = [...reg.values()].filter((w) => !w.spec.card).map((w) => [(isOpen(w.spec.id) ? '↑  ' : '⊕  ') + w.spec.title + (keyText(w.spec) ? '\t' + keyText(w.spec) : ''),
       () => raise(w.spec.id), false, w.spec.hint || (isOpen(w.spec.id) ? 'bring it to the top of its rack' : 'open it')]);
     if (rackRow) rows.push(null, ['HIDE / SHOW the rack' + (rackKey ? '\t' + rackKey : ''), () => setHidden(!isHidden())]);
     return rows;

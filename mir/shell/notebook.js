@@ -92,6 +92,7 @@ import { setText, setAttr, setVar } from '../core/perf.js';
 import { copyText } from './clipboard.js';
 import { saveBlob } from '../folders/save-blob.js';
 import { notice } from './notice.js';
+import { chordFromEvent } from './keys.js';
 
 const VENDOR = new URL('./vendor/', import.meta.url).href;
 let vendorLoad = null;
@@ -108,8 +109,14 @@ export function loadRenderer() {
 }
 
 const NOTES_DEF_W = 640, NOTES_DEF_H = 460, ABOUT_DEF_W = 520, ABOUT_DEF_H = 812, ABOUT_RISE = 32, NB_MIN_W = 320, NB_MIN_H = 240;
-/** the two keys a notebook field lets through to the app: Ctrl/⌘+S and Ctrl/⌘+, (the shelf's face keeps the same law) */
-export const APP_KEY = (e) => (e.ctrlKey || e.metaKey) && !e.altKey && (e.code === 'KeyS' || e.code === 'Comma');
+/** the keys a notebook field lets through to the app (the shelf's face keeps the same law): the chords the app's key table
+ *  marks `inFields` (createApp's 'save', Ctrl/⌘+S; any inFields row an app adds), read from the table createNotebook({ keys })
+ *  was handed, so a rebound save passes and nothing is typed here; with no table, Ctrl/⌘+S and Ctrl/⌘+, as before */
+let fieldKeys = null;
+export const APP_KEY = (e) => {
+  if (fieldKeys) { const c = chordFromEvent(e, fieldKeys.platform); return !!c && fieldKeys.holders(c).some((id) => { const a = fieldKeys.get(id); return !!(a && a.inFields); }); }
+  return (e.ctrlKey || e.metaKey) && !e.altKey && (e.code === 'KeyS' || e.code === 'Comma');
+};
 /** askInline(row, { cls, label, then, back }) → the NO button (for the caller to focus), or null if the row is already asking.
  *  An inline "label yes / no" on a row (a notebook tab, a shelf row): YES runs `then`; NO and Escape put the row back and
  *  call `back`; leaving it puts the row back.  `cls` is the class prefix: 'nb-tab' → .nb-tab-ask .nb-tab-q .nb-tab-yes .nb-tab-no */
@@ -130,6 +137,7 @@ export function askInline(row, { cls, label: words, then, back }) {
 
 export function createNotebook(options = {}) {
   const o = { name: 'this app', title: 'NOTEBOOK', storageKey: 'mir.notebook', render: renderNotebook, ...options };
+  if (o.keys && typeof o.keys.holders === 'function') fieldKeys = o.keys;   // createApp passes app.keys (wave 19)
   const life = new AbortController(), on = { signal: life.signal };
   const aboutW = o.aboutSize && o.aboutSize.w > 0 ? o.aboutSize.w : ABOUT_DEF_W, aboutH = o.aboutSize && o.aboutSize.h > 0 ? o.aboutSize.h : ABOUT_DEF_H;
   const aboutRise = Number.isFinite(o.aboutRise) ? o.aboutRise : ABOUT_RISE;
