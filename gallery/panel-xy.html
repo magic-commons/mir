@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>MIR · XY panel</title>
+<!-- THE XY CONTROLLER, LIVE (docs/PANEL-XY.md).  A blank-canvas app with no engine: a picture drawn from six numbers (a star's CENTRE X / Y,
+     SIZE, HUE, POINTS, SPIN) in a DEMO window of plain knobs, every one a modulation target (demo.*).  One XY card on the right:
+       PAIR    the pad drives CENTRE (demo.cx / demo.cy) or, by the stepper, SIZE · SPIN; the DEMO window's knobs follow it.
+       ROUTE   X and Y are two macros: drag a grip (✥ X, ✥ Y) onto any knob (try SIZE and HUE), then move the pad.
+       MORPH   STORE the DEMO window as it stands, change it, hold a corner (or Shift-click it) to store onto it; ENGAGE and drag the pad.
+     MOD opens the modulation window (the macros XY X / XY Y are there too).  UNDO walks the history (a gesture is one row).
+     ?theme=light · ?reset (forget the saved layout and modulation) -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/css/tokens.css">
+<link rel="stylesheet" href="../mir/shell/shell.css">
+<link rel="stylesheet" href="../mir/shell/stage.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<link rel="stylesheet" href="../mir/window/window.css">
+<link rel="stylesheet" href="../mir/shell/rack.css">
+<link rel="stylesheet" href="../mir/history/history.css">
+<link rel="stylesheet" href="../mir/controls/controls.css">
+<link rel="stylesheet" href="../mir/controls/colour-controls.css">
+<link rel="stylesheet" href="../mir/modulation/modwindow/modwindow.css">
+<link rel="stylesheet" href="../mir/modulation/modhost.css">
+<link rel="stylesheet" href="../mir/panels/xy.css">
+<style>
+  html, body { margin: 0; min-height: 100%; background: #070a0f; }
+  body[data-theme="light"] { background: #eef1f6; }
+  #stage { position: absolute; inset: 0; display: grid; place-items: center; padding: 70px 340px 110px 340px; box-sizing: border-box; }
+  #pic { width: min(100%, 560px); aspect-ratio: 1; border-radius: var(--r-md); background: var(--glass-well); box-shadow: var(--relief-well, var(--neu-inset)); display: block; }
+  #bar { position: absolute; left: 24px; bottom: 16px; display: flex; gap: 8px; align-items: center; z-index: 4; }
+  #hl { font-size: var(--fs-tiny); letter-spacing: var(--tr-wide); color: var(--fg-soft); }
+  #floats { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  #floats > * { pointer-events: auto; }
+  .demo-grid { display: grid; grid-template-columns: repeat(3, minmax(56px, 1fr)); gap: var(--sp-3); justify-items: center; }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted" class="disconnected">
+<div id="lab">
+  <div id="stage"><canvas id="pic" width="560" height="560" aria-hidden="true"></canvas></div>
+  <div id="bar"><span id="hl"></span></div>
+</div>
+<script type="module">
+import { trig } from '../mir/kit.js';
+import { control } from '../mir/controls/factory.js';
+import { createRack } from '../mir/shell/rack.js';
+import { installModulation } from '../mir/modulation/bind.js';
+import { createHistory } from '../mir/history/history.js';
+import { installHistoryGestures } from '../mir/history/gestures.js';
+import { frame } from '../mir/core/frame.js';
+import { createXYPanel } from '../mir/panels/xy.js';
+
+const q = new URLSearchParams(location.search);
+if (q.get('theme') === 'light') document.body.dataset.theme = 'light';
+if (q.has('reset')) try { for (const k of ['mir.gallery.xy.rack', 'mir.gallery.xy.mod', 'mir.gallery.xy.presets']) localStorage.removeItem(k); } catch (_) { /* storage refused */ }
+const $ = (id) => document.getElementById(id);
+
+/* ── the app: six numbers and a picture drawn from them (no engine) ── */
+const S = { cx: 0, cy: 0, size: 0.35, hue: 200, count: 5, spin: 0 };
+const subs = new Set(), notify = () => { for (const f of subs) f(); };
+function draw() {
+  frame.coalesce('demo:draw', () => {
+    const c = $('pic'), g = c.getContext('2d'), w = c.width, h = c.height;
+    g.clearRect(0, 0, w, h);
+    g.strokeStyle = 'rgba(128,140,160,.25)'; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(w / 2, 0); g.lineTo(w / 2, h); g.moveTo(0, h / 2); g.lineTo(w, h / 2); g.stroke();
+    const x = w / 2 + S.cx * w * 0.4, y = h / 2 - S.cy * h * 0.4, r = S.size * w * 0.45, n = Math.round(S.count);
+    g.fillStyle = `hsl(${S.hue} 75% 58%)`; g.beginPath();
+    for (let i = 0; i < 2 * n; i++) { const a = S.spin * Math.PI * 2 + i * Math.PI / n - Math.PI / 2, rr = i % 2 ? r * 0.45 : r; g.lineTo(x + rr * Math.cos(a), y + rr * Math.sin(a)); }
+    g.closePath(); g.fill();
+  });
+}
+
+/* ── the page: a rack, a modulation window (roots: the app's and the panel's) and a history ── */
+const rack = createRack({ host: $('lab'), key: 'mir.gallery.xy.rack', handle: 'always' });
+const mod = installModulation({ mount: rack.el.floats, roots: ['demo', 'xy'], params: [], present: draw, storageKey: 'mir.gallery.xy.mod', presetKey: 'mir.gallery.xy.presets' });
+const history = createHistory();
+installHistoryGestures(history, { stage: '#stage' });
+history.subscribe(() => { const e = history.entries(); $('hl').textContent = history.length + ' · ' + (e[e.length - 1].label || '—'); });
+
+/* ── the DEMO window: plain knobs, each a target (the registry writes S; the hand writes the base when routed) ── */
+const DIALS = [
+  { k: 'cx', label: 'CENTRE X', min: -1, max: 1, def: 0 },
+  { k: 'cy', label: 'CENTRE Y', min: -1, max: 1, def: 0 },
+  { k: 'size', label: 'SIZE', min: 0.05, max: 1, log: true, def: 0.35 },
+  { k: 'hue', label: 'HUE', min: 0, max: 360, hue: true, def: 200 },
+  { k: 'count', label: 'POINTS', min: 3, max: 12, step: 1, def: 5 },
+  { k: 'spin', label: 'SPIN', min: 0, max: 1, def: 0 },
+];
+const knobs = {};
+rack.register({ id: 'demo', title: 'DEMO', side: 'left', open: true, eager: true, hint: 'the app: six numbers that draw the picture',
+  build(body) {
+    const grid = document.createElement('div'); grid.className = 'demo-grid'; body.appendChild(grid);
+    for (const d of DIALS) {
+      const id = 'demo.' + d.k, raw = (v) => { S[d.k] = v; draw(); notify(); };
+      const c = control({ id, label: d.label, min: d.min, max: d.max, log: d.log, step: d.step, hue: d.hue, value: S[d.k], home: d.def,
+        get: () => S[d.k], set: (v) => { if (!mod.hand(id, v)) raw(v); } });
+      grid.appendChild(c.root); knobs[d.k] = c.widget;
+      for (const rec of c.params()) mod.add({ ...rec, def: d.def, set: raw });
+    }
+  } });
+
+/* the app's numbers are the app's history domain (the pad in PAIR writes them; the panel's own state is its domain 'xy') */
+history.register('demo', { read: () => ({ ...S }), write: (s) => { Object.assign(S, s); for (const [k, w] of Object.entries(knobs)) w.set(S[k]); draw(); notify(); } });
+
+/* ── the XY card ── */
+const xy = createXYPanel({ rack, mod, history, open: true, side: 'right',
+  pairs: [{ label: 'CENTRE', x: 'demo.cx', y: 'demo.cy' }, { label: 'SIZE · SPIN', x: 'demo.size', y: 'demo.spin' }],
+  subscribe: (fn) => { subs.add(fn); return () => subs.delete(fn); } });
+
+$('bar').prepend(trig({ label: 'MOD', onFire: () => mod.toggle() }).root, trig({ label: 'UNDO', onFire: () => history.undo() }).root,
+  trig({ label: 'PLAY', onFire: (e) => { mod.togglePlay(); } }).root);
+rack.start();
+draw();
+window.__K = { rack, mod, xy, S, knobs, history };
+window.__ready = true;
+</script>
+</body>
+</html>
