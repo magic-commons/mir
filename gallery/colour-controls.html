@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>MIR · colour controls</title>
+<!-- THE COLOUR CONTROLS (mir/controls/: arc.js, swatch.js, lane.js, list.js; docs/CONTROLS-COLOUR.md).  The arc knob (a hue, a
+     phase, an angle: a ring in its own ink), the hue swatch (tap = the chooser, drag = the hue), the lane slider (a thing's
+     one principal parameter: horizontal and vertical), the static chip strip and the sortable list.  Every control is a
+     modulation target: the four dials in "ROUTED" are on parameters of the page's modulation window (MOD opens it; ROUTE puts
+     an LFO on all four).  Press, drag, double-tap (home), Shift or a second finger (the fine gear), the arrow keys.
+     ?theme=light · ?card=refractive · ?frost -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/css/tokens.css">
+<link rel="stylesheet" href="../mir/shell/shell.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<link rel="stylesheet" href="../mir/window/window.css">
+<link rel="stylesheet" href="../mir/shell/rack.css">
+<link rel="stylesheet" href="../mir/modulation/modwindow/modwindow.css">
+<link rel="stylesheet" href="../mir/modulation/modhost.css">
+<link rel="stylesheet" href="../mir/controls/colour-controls.css">
+<link rel="stylesheet" href="../mir/locales/locales.css">
+<style>
+  html, body { margin: 0; min-height: 100%; }
+  html { background: #0b0e14; }
+  html:has(body[data-theme="light"]) { background: #cfd6df; }
+  body { padding: 18px 18px 80px; box-sizing: border-box; }
+  h1 { font-size: var(--fs-lead); letter-spacing: var(--tr-wide); margin: 0 0 4px; }
+  .g-note { font-size: var(--fs-small); color: var(--fg-soft); line-height: 1.5; margin: 0 0 14px; max-width: 70ch; }
+  .g-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; align-items: start; }
+  .g-card { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 10px; border-radius: var(--card-r); }
+  .g-card > h2 { margin: 0; font-size: var(--fs-small); letter-spacing: var(--tr-wider); color: var(--ink-key); }
+  .g-card > p { margin: 0; font-size: var(--fs-tiny); color: var(--fg-soft); line-height: 1.45; }
+  .g-row { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+  .g-lane { display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; align-items: center; padding: 8px 10px; border-radius: var(--r-md); }
+  .g-bar { display: flex; gap: 8px; margin-bottom: 14px; }
+  #floats { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  #floats > * { pointer-events: auto; }
+  .g-rackish { width: 300px; }
+  .g-big > .k-dial { width: 96px; height: 96px; --dial-size: 96px; }   /* a big free dial: the angular law is finer the farther from the hub (a 34 px dial is all within its 34 px) */
+</style>
+</head>
+<body data-theme="dark" data-card="tinted" class="disconnected">
+<h1>COLOUR CONTROLS</h1>
+<p class="g-note">An arc is a colour; a knob is a parameter; a slider is a thing's one principal parameter. The arc, the swatch and the lane slider answer the hand the kit's one law gives every control: a vertical drag, any modifier or a second finger for an eighth, a double-tap for home.</p>
+<div class="g-bar" id="bar"></div>
+<div class="g-grid">
+  <section class="g-card glass" id="s-arcs"><h2>ARC KNOB</h2><p>A hue, a phase, an angle: no body, a round-capped ring in its own ink. A bounded arc has the 60° gap at the bottom; a free one is the whole ring. The angular law (HUE below) is finer the farther from the hub the hand is.</p><div class="g-row" id="arcs"></div></section>
+  <section class="g-card glass" id="s-swatch"><h2>HUE SWATCH</h2><p>The colour itself. Tap: the platform's chooser. Press and drag 8 px up or down: its hue turns, saturation and value kept.</p><div class="g-row" id="swatches"></div></section>
+  <section class="g-card glass" id="s-lane"><h2>LANE SLIDER</h2><p>A long pill in the lane's ink with a glowing thumb: a colour's frequency, a layer's gain. Horizontal or vertical.</p><div class="g-lane mir-lane" id="lane"></div></section>
+  <section class="g-card glass" id="s-routed"><h2>ROUTED</h2><p>All four are parameters of the modulation window. The arcs keep the base the hand owns and ride the live value as a dot; the pill draws the window's RANGE bar and a live dot.</p><div class="g-row" id="routed"></div></section>
+  <section class="g-card glass" id="s-strip"><h2>CHIP STRIP</h2><p>The rail's round discs in the flow, beside a lane or a pane. The × is armed: it asks twice.</p><div class="g-row" id="strips"></div></section>
+  <section class="g-card glass g-rackish" id="s-list"><h2>SORTABLE LIST</h2><p>One pane per item, the chips on the rack's outer edge. Drag the grip or use the arrow keys; × asks twice; + ADD dims at the cap (5).</p><div id="list"></div></section>
+</div>
+<div id="floats"></div>
+<script type="module">
+import { arcKnob } from '../mir/controls/arc.js';
+import { hueSwatch, rgbCss } from '../mir/controls/swatch.js';
+import { laneSlider, laneInk } from '../mir/controls/lane.js';
+import { chipStrip, sortableList } from '../mir/controls/list.js';
+import { installModulation } from '../mir/modulation/bind.js';
+import { el, seg, trig } from '../mir/kit.js';
+
+const q = new URLSearchParams(location.search);
+if (q.get('theme')) document.body.dataset.theme = q.get('theme');
+if (q.get('card')) document.body.dataset.card = q.get('card');
+if (q.has('frost')) document.body.classList.add('frost');
+try { for (const k of Object.keys(localStorage)) if (k.startsWith('mir.gallery.colour')) localStorage.removeItem(k); } catch (_) { /* no storage */ }
+const $ = (id) => document.getElementById(id);
+const S = { hue: 210, phase: 0, freq: 1, gain: 0.5, angle: 40, shade: 0.6, hub: 0.2, rgb: [0.9, 0.35, 0.2], rgb2: [0.2, 0.6, 0.95], size: 0.5 };
+const hueInk = (v) => 'hsl(' + (((v % 360) + 360) % 360).toFixed(1) + ' 85% 62%)';
+const deg = (v) => (((v % 360) + 360) % 360).toFixed(0) + '°';
+const W = {};
+
+/* ARC KNOBS */
+W.hue = arcKnob({ label: 'HUE', min: 0, max: 360, value: S.hue, home: 210, wrap: true, fmt: deg, ink: hueInk, onInput: (v) => { S.hue = v; } });
+W.hubA = arcKnob({ label: 'HUE · ANGULAR', min: 0, max: 360, value: 120, home: 120, wrap: true, law: 'angular', fmt: deg, ink: hueInk, cls: 'g-big' });
+W.shade = arcKnob({ label: 'OPACITY', min: 0, max: 1, value: S.shade, home: 1, fmt: (v) => (v * 100).toFixed(0) + '%', ink: 'hsl(30 90% 60%)', onInput: (v) => { S.shade = v; } });
+W.angle = arcKnob({ label: 'ANGLE', min: 0, max: 360, value: S.angle, home: 0, wrap: true, fmt: deg, onInput: (v) => { S.angle = v; } });
+W.small = arcKnob({ label: 'PHASE', aria: 'PHASE', size: 'sm', min: 0, max: 1, wrap: true, value: 0.25, home: 0, fmt: (v) => (v * 360).toFixed(0) + '°', ink: 'hsl(170 80% 55%)' });
+for (const k of [W.hue, W.hubA, W.shade, W.angle, W.small]) $('arcs').appendChild(k.root);
+
+/* SWATCHES */
+for (const [key, label] of [['rgb', 'colour 1'], ['rgb2', 'colour 2']]) {
+  const sw = hueSwatch({ rgb: S[key], label, onInput: (c) => { S[key] = c; } });
+  W['sw_' + key] = sw; $('swatches').appendChild(sw.root);
+}
+
+/* A LANE: swatch, FREQ pill, PHASE and OPACITY arcs, all in the lane's ink */
+const lane = $('lane');
+laneInk(lane, rgbCss(S.rgb));
+W.laneFreq = laneSlider({ label: 'FREQ', aria: 'FREQ', min: 0.25, max: 8, log: true, value: 1, home: 1, fmt: (v) => v.toFixed(3) + '×' });
+W.laneVert = laneSlider({ label: 'GAIN', aria: 'GAIN', orient: 'v', min: 0, max: 1, value: 0.4, home: 0.4, fmt: (v) => (v * 100).toFixed(0) + '%' });
+const laneSwatch = hueSwatch({ rgb: S.rgb, label: 'lane colour', onInput: (c) => laneInk(lane, rgbCss(c)) });
+lane.append(laneSwatch.root, W.laneFreq.root);
+const laneRow2 = el('div', 'g-row', lane); laneRow2.style.gridColumn = '1 / -1';
+const lp = arcKnob({ label: 'PHASE', aria: 'PHASE', size: 'sm', min: 0, max: 1, wrap: true, value: 0, home: 0, fmt: (v) => (v * 360).toFixed(0) + '°' });
+const lo = arcKnob({ label: 'OPACITY', aria: 'OPACITY', size: 'sm', min: 0, max: 1, value: 1, home: 1, fmt: (v) => (v * 100).toFixed(0) + '%' });
+laneRow2.append(lp.root, lo.root, W.laneVert.root);
+
+/* ROUTED: four modulation targets.  A hand on a routed control writes the registry's base (mod.hand); on an unrouted one, the page's state */
+const state = { rHue: 30, rAmt: 0.5, rFreq: 1, rGain: 0.5 };
+let mod = null;
+const hand = (id, key) => (v) => { if (!mod || !mod.hand(id, v)) state[key] = v; };
+W.rHue = arcKnob({ label: 'HUE', min: 0, max: 360, value: 30, home: 30, wrap: true, fmt: deg, ink: hueInk, onInput: hand('demo.hue', 'rHue') });
+W.rAmt = arcKnob({ label: 'AMOUNT', min: 0, max: 1, value: 0.5, home: 0.5, fmt: (v) => (v * 100).toFixed(0) + '%', ink: 'hsl(280 80% 65%)', onInput: hand('demo.amount', 'rAmt') });
+W.rFreq = laneSlider({ label: 'FREQ', aria: 'FREQ · routed', min: 0.25, max: 8, log: true, value: 1, home: 1, fmt: (v) => v.toFixed(3) + '×', onInput: hand('demo.freq', 'rFreq') });
+W.rGain = laneSlider({ label: 'GAIN', aria: 'GAIN · routed', orient: 'v', min: 0, max: 1, value: 0.5, home: 0.5, fmt: (v) => (v * 100).toFixed(0) + '%', onInput: hand('demo.gain', 'rGain') });
+const routed = $('routed'); routed.classList.add('mir-lane'); laneInk(routed, 'hsl(190 85% 60%)');
+for (const k of [W.rHue, W.rAmt, W.rFreq, W.rGain]) routed.appendChild(k.root);
+W.rFreq.root.style.flex = '1 1 120px';
+const P = (key, id, label, min, max, map, widget) => ({ id, label, min, max, map, get: () => state[key], set: (v) => { state[key] = v; }, widget });
+const params = [P('rHue', 'demo.hue', 'HUE', 0, 360, 'wrap', W.rHue), P('rAmt', 'demo.amount', 'AMOUNT', 0, 1, 'linear', W.rAmt),
+  P('rFreq', 'demo.freq', 'FREQ', 0.25, 8, 'log', W.rFreq), P('rGain', 'demo.gain', 'GAIN', 0, 1, 'linear', W.rGain)];
+mod = installModulation({ mount: $('floats'), params, storageKey: 'mir.gallery.colour.mod', presetKey: 'mir.gallery.colour.presets' });
+mod.view.restore({ ...mod.view.presentation(), chipSide: 'bottom' });
+
+/* CHIP STRIPS */
+const log = [];
+const strip1 = chipStrip({ id: 'demo', title: 'demo', chips: [
+  { name: 'grip', kind: 'grip', label: 'Reorder', hint: 'Drag to reorder' },
+  { name: 'remove', kind: 'close', glyph: 'close', label: 'Remove', hint: 'Remove (tap twice)', confirm: { text: 'sure?' } }], onChip: (name) => log.push(name) });
+const strip2 = chipStrip({ id: 'demo2', title: 'demo', flow: 'row', chips: [
+  { name: 'eye', kind: 'toggle', glyph: 'dot', label: 'Show', states: { true: { label: 'Hide' } }, state: true },
+  { name: 'dup', kind: 'action', glyph: 'duplicate', label: 'Duplicate' }], onChip: (name, next) => log.push(name + ':' + next) });
+$('strips').append(strip1.el, strip2.el);
+
+/* THE LIST: five colours' worth of items, the lane's controls inside each pane */
+let nextId = 4;
+const items = [{ id: 1, rgb: [0.95, 0.4, 0.3] }, { id: 2, rgb: [0.3, 0.8, 0.5] }, { id: 3, rgb: [0.3, 0.5, 0.95] }];
+const list = sortableList({ items, cap: 5, noun: 'colour', side: 'right',
+  build(it, i, pane) {
+    pane.style.display = 'grid'; pane.style.gridTemplateColumns = 'auto 1fr auto'; pane.style.gap = '6px 10px'; pane.style.alignItems = 'center'; pane.style.padding = '8px 10px';
+    laneInk(pane, rgbCss(it.rgb));
+    const sw = hueSwatch({ rgb: it.rgb, label: 'colour ' + (i + 1), onInput: (c) => { it.rgb = c; laneInk(pane, rgbCss(c)); } });
+    const f = laneSlider({ label: 'FREQ', aria: 'FREQ · colour ' + (i + 1), min: 0.25, max: 8, log: true, value: 1, home: 1, fmt: (v) => v.toFixed(2) + '×' });
+    const ph = arcKnob({ label: 'PHASE', aria: 'PHASE · colour ' + (i + 1), size: 'sm', min: 0, max: 1, wrap: true, value: 0, home: 0, fmt: (v) => (v * 360).toFixed(0) + '°' });
+    pane.append(sw.root, f.root, ph.root);
+  },
+  onAdd() { const h = (nextId * 137.5) % 360; return { id: nextId++, rgb: [0.5 + 0.5 * Math.cos(h * Math.PI / 180), 0.5 + 0.5 * Math.cos((h - 120) * Math.PI / 180), 0.5 + 0.5 * Math.cos((h - 240) * Math.PI / 180)] }; },
+});
+$('list').appendChild(list.root);
+
+/* the page's bar */
+const bar = $('bar');
+const modBtn = trig({ label: 'MOD', onFire: () => mod.toggle() }); bar.appendChild(modBtn.root);
+let route = null;
+const routeBtn = trig({ label: 'ROUTE', onFire: () => {
+  if (route) { route.forEach((r) => r.remove()); route = null; routeBtn.on = false; return; }
+  route = ['demo.hue', 'demo.amount', 'demo.freq', 'demo.gain'].map((id) => mod.route('lfo', id, 0.4)); routeBtn.on = true; mod.setPower && mod.setPower(true); mod.play && mod.play(true);
+} }); bar.appendChild(routeBtn.root);
+const themeSeg = seg({ value: document.body.dataset.theme, options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], onChange: (v) => { document.body.dataset.theme = v; } });
+bar.appendChild(themeSeg.root);
+
+window.__C = { W, S, mod, list, strip1, strip2, log, state, items, lane, laneSwatch };
+window.__ready = true;
+</script>
+</body>
+</html>
