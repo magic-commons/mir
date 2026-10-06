@@ -204,11 +204,11 @@ export async function createApp(o = {}) {
     ...opt(o.mod) });
   /* 5b. THE PATTERN (the ENVs' step sequencer) with the modulation; 5c. THE TIMELINE when the app asks for one */
   if (mod && want('pattern')) pattern = installPattern({ mount: floats, mod, storageKey: key + '.pattern', dock: rack && rack.span ? { span: rack.span() } : undefined,
-    say: (text) => notice(text, { kind: 'warn' }), moved, ...opt(o.pattern) });
+    say: (text) => notice(text, { kind: 'warn' }), moved, ...(o.history ? { history: o.history } : {}), ...opt(o.pattern) });
   if (mod && o.timeline) {
     const { installTimeline } = await import('./timeline/bind.js');
     timeline = installTimeline({ mount: floats, mod, present, keys, storageKey: key + '.timeline', say: (text) => notice(text), busy: () => !!(recorder && recorder.running()),
-      moved: (r) => { moved(r); if (ws) ws.moved('lower', r); }, onWindow: () => { if (ws) ws.sync(); present(); }, ...opt(o.timeline) });
+      moved: (r) => { moved(r); if (ws) ws.moved('lower', r); }, onWindow: () => { if (ws) ws.sync(); present(); }, ...(o.history ? { history: o.history } : {}), ...opt(o.timeline) });
     ws = createWorkspaces({ upper: mod.view, lower: timeline.win });
     ws.sync();
   }
