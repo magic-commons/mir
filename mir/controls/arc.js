@@ -31,7 +31,7 @@
 import { knob, el, watchTouches, gearOf } from '../kit.js';
 import { frame } from '../core/frame.js';
 import { setVar, setAttr } from '../core/perf.js';
-import { clamp01, frac, tapHome, forward, lawNow } from './gesture.js';
+import { clamp01, frac, tapHome, forward, lawNow, valueDrag } from './gesture.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 const TAU = Math.PI * 2;
@@ -153,36 +153,11 @@ export function arcKnob(o) {
     }
     g.last = a;
   }
-  const doc = () => dial.ownerDocument;
-  function listen(on) {
-    const f = on ? 'addEventListener' : 'removeEventListener', d = doc();
-    d[f]('pointermove', onMove, true); d[f]('pointerup', end, true); d[f]('pointercancel', abort, true);
-    d[f]('lostpointercapture', lost, true); d[f]('keydown', esc, true); d[f]('visibilitychange', hidden);
-  }
-  function finish() {
-    const was = g; g = null; listen(false);
-    try { dial.releasePointerCapture(was.id); } catch (_) { /* already released */ }
-    root.classList.remove('drag');
-    setTimeout(() => root.classList.remove('active'), 700);                 // the kit's own 700 ms tooltip tail
-    return was;
-  }
-  function end(ev) {
-    if (!g || (ev && ev.pointerId !== g.id)) return;
-    frame.flush(key);                                                       // the last sample, before the commit
-    finish();
-    paintArc();
-    if (o.onChange) o.onChange(k.get());
-    reshow();
-  }
-  function abort(ev) {                                                      // cancelled: the value goes back to where the hand found it
-    if (!g || (ev && ev.pointerId !== undefined && ev.pointerId !== g.id)) return;
-    frame.cancel(key);
-    const was = finish();
-    write(was.v0); paintArc(); reshow();
-  }
-  const lost = (ev) => { if (g && ev.target === dial && ev.pointerId === g.id) abort(ev); };
-  const esc = (ev) => { if (g && ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); abort(); } };
-  const hidden = () => { if (g && doc().visibilityState === 'hidden') abort(); };
+  /* the lifecycle (gesture.js valueDrag): the lift commits, any cancel puts the value back where the hand found it */
+  const drag = valueDrag(dial, { key, move: onMove,
+    release: () => { g = null; root.classList.remove('drag'); setTimeout(() => root.classList.remove('active'), 700); },   // the kit's own 700 ms tooltip tail
+    end: () => { paintArc(); if (o.onChange) o.onChange(k.get()); reshow(); },
+    abort: (was) => { write(was.v0); paintArc(); reshow(); } });
 
   const tap = tapHome(goHome);
   root.addEventListener('pointerdown', (e) => {
@@ -209,7 +184,7 @@ export function arcKnob(o) {
     }
     try { dial.setPointerCapture(e.pointerId); } catch (_) { /* a pointer already gone (or a synthetic one) must not abort */ }
     root.classList.add('drag', 'active');
-    listen(true);
+    drag.start(g);
     paintArc();
     return true;
   }
@@ -225,7 +200,7 @@ export function arcKnob(o) {
     /** true while the hand is on it: the modulation host does not repaint a dial under the hand (the kit's fader has this; its knob has not) */
     dragging: () => !!g,
     /** take the knob out of the page: its listeners are on its own nodes and the gesture's are removed at its end */
-    destroy() { if (g) abort(); root.remove(); },
+    destroy() { drag.abort(); root.remove(); },
   });
   return k;
 }

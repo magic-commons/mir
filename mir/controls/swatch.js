@@ -20,7 +20,7 @@ import { setVar } from '../core/perf.js';
 import { phrase } from '../core/i18n.js';
 import { hexToRgb, rgbToHex } from '../palette.js';
 import { arcRing } from './arc.js';
-import { clamp01, frac } from './gesture.js';
+import { clamp01, frac, valueDrag } from './gesture.js';
 
 /** the swatch's numbers: px of travel before a press becomes a hue turn, and px for one full turn of hue (BASINS') */
 export const SWATCH = Object.freeze({ ARM: 8, TRAVEL: 220 });
@@ -75,36 +75,19 @@ export function hueSwatch(o) {
     const next = hsvToRgb(d.h0 + (-(d.vy - d.y0) / SWATCH.TRAVEL), d.s, d.v);
     frame.coalesce(key, () => apply(next));
   };
-  const doc = () => input.ownerDocument;
-  function listen(on) {
-    const f = on ? 'addEventListener' : 'removeEventListener', dc = doc();
-    dc[f]('pointermove', move, true); dc[f]('pointerup', stop, true); dc[f]('pointercancel', abort, true); dc[f]('keydown', esc, true);
-  }
-  function release(e) { d = null; root.classList.remove('drag'); listen(false); try { input.releasePointerCapture(e.pointerId); } catch (_) { /* already released */ } }
-  const stop = (e) => {
-    if (!d || e.pointerId !== d.id) return;
-    const armed = d.armed;
-    if (armed) frame.flush(key);
-    release(e);
-    if (!armed) return;                                                     // a TAP: its click goes on to the chooser
-    swallow = performance.now();                                            // a DRAG: the click it ends in opens nothing
-    if (o.onChange) o.onChange();                                           // one persist per drag
-  };
-  function abort(e) {                                                       // cancelled: the colour goes back to where it was
-    if (!d || (e.pointerId !== undefined && e.pointerId !== d.id)) return;
-    const was = d; frame.cancel(key); release(e || { pointerId: was.id });
-    if (was.armed) { apply(was.rgb0); swallow = performance.now(); }
-  }
-  const esc = (e) => { if (d && e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); abort(e); } };
-  input.addEventListener('lostpointercapture', (e) => { if (d && e.pointerId === d.id && d.armed) abort(e); });
+  /* the lifecycle (gesture.js valueDrag); the swatch's own rule: a press that never armed is a TAP, and its click goes on
+     to the chooser; a drag's lift persists once and swallows the click it ends in; a cancelled drag puts the colour back */
+  const drag = valueDrag(input, { key, move,
+    release: () => { d = null; root.classList.remove('drag'); },
+    end: (was) => { if (!was.armed) return; swallow = performance.now(); if (o.onChange) o.onChange(); },
+    abort: (was) => { if (was.armed) { apply(was.rgb0); swallow = performance.now(); } } });
   input.addEventListener('pointerdown', (e) => {
     if (e.button || d) return;
     const [h, s, v] = rgbToHsv(rgb);
     /* a grey has no hue to turn: it is given full saturation (and a black full value) so the turn shows */
-    d = { id: e.pointerId, y0: e.clientY, vy: e.clientY, ly: e.clientY, h0: h, s: s < 0.0005 ? 1 : s, v: v < 0.0005 ? 1 : v, armed: false, rgb0: rgb.slice() };
-    listen(true);
+    d = drag.start({ id: e.pointerId, y0: e.clientY, vy: e.clientY, ly: e.clientY, h0: h, s: s < 0.0005 ? 1 : s, v: v < 0.0005 ? 1 : v, armed: false, rgb0: rgb.slice() });
   });
   input.addEventListener('click', (e) => { if (swallow && performance.now() - swallow < 600) { swallow = 0; e.preventDefault(); e.stopPropagation(); } }, true);
   set(rgb);
-  return { root, button, input, arc, set, get: () => rgb.slice(), dragging: () => !!(d && d.armed), destroy() { if (d) abort({ pointerId: d.id }); root.remove(); } };
+  return { root, button, input, arc, set, get: () => rgb.slice(), dragging: () => !!(d && d.armed), destroy() { drag.abort(); root.remove(); } };
 }

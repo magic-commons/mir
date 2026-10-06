@@ -27,7 +27,7 @@
 import { fader, watchTouches, gearOf } from '../kit.js';
 import { frame } from '../core/frame.js';
 import { setVar } from '../core/perf.js';
-import { clamp01, tapHome, forward } from './gesture.js';
+import { clamp01, tapHome, forward, valueDrag } from './gesture.js';
 
 let uid = 0;
 
@@ -58,12 +58,6 @@ export function laneSlider(o) {
   const ours = (e) => !(e.target.closest && e.target.closest('.k-ring, .k-route-depth, .k-route-x'));   // the route's own badges are theirs
   /** where a pointer is along the track, in px from its minimum end */
   const along = (ev) => (vertical ? g.r.bottom - ev.clientY : ev.clientX - g.r.left);
-  const doc = () => root.ownerDocument;
-  function listen(on) {
-    const fn = on ? 'addEventListener' : 'removeEventListener', d = doc();
-    d[fn]('pointermove', move, true); d[fn]('pointerup', end, true); d[fn]('pointercancel', abort, true);
-    d[fn]('keydown', esc, true); d[fn]('visibilitychange', hidden);
-  }
   function move(ev) {
     if (!g || ev.pointerId !== g.id) return;
     const c = along(ev);
@@ -71,27 +65,11 @@ export function laneSlider(o) {
     const v = denorm(g.vp / g.len);
     frame.coalesce(key, () => write(v));
   }
-  function finish() {
-    const was = g; g = null; listen(false);
-    try { root.releasePointerCapture(was.id); } catch (_) { /* already released */ }
-    root.classList.remove('drag');
-    return was;
-  }
-  function end(ev) {
-    if (!g || ev.pointerId !== g.id) return;
-    frame.flush(key);
-    finish();
-    if (o.onChange) o.onChange(f.get());
-  }
-  function abort(ev) {                                                      // cancelled: the value goes back to where the hand found it
-    if (!g || (ev && ev.pointerId !== undefined && ev.pointerId !== g.id)) return;
-    frame.cancel(key);
-    const was = finish();
-    write(was.v0);
-  }
-  const esc = (ev) => { if (g && ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); abort(); } };
-  const hidden = () => { if (g && doc().visibilityState === 'hidden') abort(); };
-  root.addEventListener('lostpointercapture', (ev) => { if (g && ev.pointerId === g.id) abort(ev); });
+  /* the lifecycle (gesture.js valueDrag): the lift commits, any cancel puts the value back where the hand found it */
+  const drag = valueDrag(root, { key, move,
+    release: () => { g = null; root.classList.remove('drag'); },
+    end: () => { if (o.onChange) o.onChange(f.get()); },
+    abort: (was) => write(was.v0) });
 
   const tap = tapHome(goHome);
   function take(e) {
@@ -108,7 +86,7 @@ export function laneSlider(o) {
     g.last = c;
     try { root.setPointerCapture(e.pointerId); } catch (_) { /* a pointer already gone (or a synthetic one) must not abort */ }
     root.classList.add('drag');
-    listen(true);
+    drag.start(g);
     write(denorm(g.vp / len));
     return true;
   }

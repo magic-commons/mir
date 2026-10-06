@@ -12,6 +12,7 @@
  * (Harvested from BASINS app/colour-controls.js wireTouches, fineHeld, forward.)  `fineHeld` and `fineGain` are re-exports
  * of kit.js's one law (watchTouches, fineHeld, gearOf). */
 import { setKnobLaw } from '../kit.js';
+import { frame } from '../core/frame.js';
 
 /** the double-tap: two presses this close in time (ms) and place (px) are a home gesture (BASINS' numbers) */
 export const TAP = Object.freeze({ ms: 300, px: 14 });
@@ -40,6 +41,38 @@ export function tapHome(onHome) {
 export function forward(root, e) {
   const up = root.parentElement; if (!up) return;
   try { up.dispatchEvent(new PointerEvent(e.type, e)); } catch (_) { /* a press that cannot be copied is not forwarded */ }
+}
+
+/** valueDrag(el, { key, move, release, end, abort }) → { start(g), abort() } — THE VALUE-DRAG LIFECYCLE the arc knob, the
+ *  lane slider and the hue swatch share.  start(g) follows the pointer g.id (g is the control's own gesture record):
+ *  move(ev) for its moves; on its lift the frame job `key` is flushed (the last sample before the commit), the listeners
+ *  and `el`'s pointer capture let go, release(g) runs, then end(g, ev); on any cancel — pointercancel, the capture lost,
+ *  Escape, the page hidden — the job is dropped, the same release(g), then abort(g, ev): the control puts its value back.
+ *  abort() with no event cancels from outside (a destroy). */
+export function valueDrag(el, { key, move, release, end, abort: undo }) {
+  let g = null;
+  const doc = () => el.ownerDocument;
+  const onMove = (ev) => { if (g && ev.pointerId === g.id) move(ev); };
+  function stop() {
+    const was = g; g = null; listen(false);
+    try { el.releasePointerCapture(was.id); } catch (_) { /* already released */ }
+    if (release) release(was);
+    return was;
+  }
+  function up(ev) { if (!g || ev.pointerId !== g.id) return; frame.flush(key); const was = stop(); if (end) end(was, ev); }
+  function abort(ev) {
+    if (!g || (ev && ev.pointerId !== undefined && ev.pointerId !== g.id)) return;
+    frame.cancel(key); const was = stop(); if (undo) undo(was, ev);
+  }
+  const lost = (ev) => { if (g && ev.target === el && ev.pointerId === g.id) abort(ev); };
+  const esc = (ev) => { if (g && ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); abort(); } };
+  const hidden = () => { if (g && doc().visibilityState === 'hidden') abort(); };
+  function listen(on) {
+    const f = on ? 'addEventListener' : 'removeEventListener', d = doc();
+    d[f]('pointermove', onMove, true); d[f]('pointerup', up, true); d[f]('pointercancel', abort, true);
+    d[f]('lostpointercapture', lost, true); d[f]('keydown', esc, true); d[f]('visibilitychange', hidden);
+  }
+  return { start(state) { g = state; listen(true); return state; }, abort: () => abort() };
 }
 
 /** the pure helpers the controls and their tests share */
