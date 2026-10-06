@@ -26,7 +26,7 @@
  *   channel names: SOLEIL's twelve bands and its master) and no filter is installed.
  * PROJECT AND HISTORY  a part named `part` (default 'curves') unless `project: false`; with `history`, one domain: a gesture is one row.
  * IDLE  nothing runs at rest: the plot is painted on a change, coalesced on the frame. */
-import { el, svgEl, ariaLabel, hint, trig } from '../kit.js';
+import { el, svgEl, ariaLabel, hint, trig, setKnobLaw } from '../kit.js';
 import { control } from '../controls/factory.js';
 import { frame } from '../core/frame.js';
 import { setAttr } from '../core/perf.js';
@@ -206,7 +206,7 @@ export function curveEditor(o = {}) {
     if (k === 'Escape') { if (drag) finish({}, false); else if (sel >= 0) { sel = -1; schedule(); } else return; e.preventDefault(); e.stopPropagation(); return; }
     if (k === '+' || k === '=' || k === '-' || k === '_') { sel = sel < 0 ? (k === '-' || k === '_' ? pts.length - 1 : 0) : (sel + (k === '-' || k === '_' ? pts.length - 1 : 1)) % pts.length; schedule(); e.preventDefault(); e.stopPropagation(); return; }
     if (sel < 0 || sel >= pts.length) return;
-    const step = (e.code.startsWith('Page') ? 0.1 : 0.01) * (e.shiftKey ? 0.125 : 1);
+    const step = (e.code.startsWith('Page') ? 0.1 : 0.01) * (e.shiftKey ? setKnobLaw().keyFine : 1);   // the kit's one fine gear
     const mv = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, step], ArrowDown: [0, -step], PageUp: [0, step], PageDown: [0, -step] }[e.code];
     if (mv) {
       const p = pts[sel], end = isEnd(pts, sel), t = end ? p.t : clamp01(p.t + mv[0]), v = clamp01(p.v + mv[1]);

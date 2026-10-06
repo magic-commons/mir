@@ -1,7 +1,7 @@
 /* controls/xy.js — THE XY PAD: one square for the hand, and the two knobs that stay the modulation targets.
  *
  * THE LAW IT KEEPS: A COUPLED PAIR (pan x/y, Re c / Im c, az/el, a point in a plane) IS ONE PAD AND TWO KNOBS (AUTOMATA's MORPH contract,
- * `lab/main.js:691`).  The PAD is for the hand: drag, the arrow keys, Home or a double-tap to centre.  The two KNOBS are the kit's own
+ * `lab/main.js:691`).  The PAD is for the hand: drag, the arrow keys (Shift: the kit's fine gear), Home, Delete or a double-tap to centre.  The two KNOBS are the kit's own
  * `knob()`s, so each is a modulation target, a keyboard slider and a screen-reader value; a macro routes onto one of them, never onto
  * the pad.  The pad PAINTS FROM THE KNOBS' VALUES (the base, or the modulated value a route shows), so a modulated pair moves the dot and
  * the hand's base stays a ring: it cannot disagree with them.  The hand is the one knob law (kit.js): a press brings the dot to the
@@ -13,7 +13,7 @@
  *     onInput(x, y) while the hand or a key moves it; onChange(x, y) when it lands
  *   → { root, pad, x, y, get() → [x, y], set(x, y), setDisabled(on), paint(), destroy() }   x and y are the knob widgets: register them as the targets
  * Styled by controls.css (`.mir-xy`, `.xy-pad`, `.xy-dot`, `.xy-base`). */
-import { el, label, ariaLabel, knob, watchTouches, gearOf, tapWatcher } from '../kit.js';
+import { el, label, ariaLabel, knob, watchTouches, gearOf, tapWatcher, setKnobLaw } from '../kit.js';
 import { setVar } from '../core/perf.js';
 
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
@@ -93,9 +93,9 @@ export function xyPad(o = {}) {
   pad.addEventListener('wheel', (e) => e.stopPropagation(), { passive: true });
   pad.addEventListener('keydown', (e) => {
     if (disabled || e.ctrlKey || e.metaKey || e.altKey) return;
-    const d = 0.01 * (e.code.startsWith('Page') ? 10 : 1) * (e.shiftKey ? 0.125 : 1);
+    const d = 0.01 * (e.code.startsWith('Page') ? 10 : 1) * (e.shiftKey ? setKnobLaw().keyFine : 1);   // the kit's one fine gear
     const dir = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1], PageUp: [0, 1], PageDown: [0, -1] }[e.code];
-    if (!dir && e.code !== 'Home') return;
+    if (!dir && e.code !== 'Home' && e.code !== 'Delete' && e.code !== 'Backspace') return;   // Home and Delete: home, as on a knob
     e.preventDefault(); e.stopPropagation();
     if (dir) put(denorm('x', norm('x', kx.get()) + dir[0] * d), denorm('y', norm('y', ky.get()) + dir[1] * d)); else put(home[0], home[1]);
     land();

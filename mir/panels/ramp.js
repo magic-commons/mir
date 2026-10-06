@@ -26,7 +26,7 @@
  * are buttons, so every press is hit-testable and every handle has keys (← → one hundredth, Shift an eighth of that, Page ten, Home and End, Delete twice).
  * The project part and the history domain are `ramp` (named for the card's `id`; a gesture is one row, named for the handle it began on).  Pure parts, for tests: rampLUT, rampGradient,
  * normalizeStops, addStop, removeStop, rotateStops, reverseStops, seamOf. */
-import { el, label, ariaLabel, hint, trig, knob, readout, stepper, number, hueSwatch, rgbCss, chipStrip } from '../kit.js';
+import { el, label, ariaLabel, hint, trig, knob, readout, stepper, number, hueSwatch, rgbCss, chipStrip, setKnobLaw } from '../kit.js';
 import { drag } from '../core/pointer.js';
 import { frame } from '../core/frame.js';
 import { setVar, setAttr, rect } from '../core/perf.js';
@@ -179,7 +179,7 @@ export function createRampView(parent, o = {}) {
       onEnd() { b.classList.remove('drag'); const gone = b.hasAttribute('data-removing'); b.removeAttribute('data-removing'); if (gone) removeStopId(s.id); else push(false); },
       onCancel() { b.classList.remove('drag'); b.removeAttribute('data-removing'); s.at = was; push(false); } });
     b.addEventListener('keydown', (e) => {
-      const fine = e.shiftKey ? 1 / 8 : 1, step = 0.01 * fine * (e.code === 'PageUp' || e.code === 'PageDown' ? 10 : 1);
+      const fine = e.shiftKey ? setKnobLaw().keyFine : 1, step = 0.01 * fine * (e.code === 'PageUp' || e.code === 'PageDown' ? 10 : 1);
       const dir = e.code === 'ArrowRight' || e.code === 'ArrowUp' || e.code === 'PageUp' ? 1 : e.code === 'ArrowLeft' || e.code === 'ArrowDown' || e.code === 'PageDown' ? -1 : 0;
       if (dir) { e.preventDefault(); s.at = posOf(s.at + dir * step); push(false); return; }
       if (e.code === 'Home') { e.preventDefault(); s.at = 0; push(false); } else if (e.code === 'End') { e.preventDefault(); s.at = cyc ? TOP : 1; push(false); }

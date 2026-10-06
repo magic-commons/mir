@@ -199,6 +199,11 @@ try {
   xy = await J(`return W.xy.get();`); check('xy: under Shift nothing jumps to the pointer, and 60 px across a 240 px pad is an eighth of a quarter of the range (0.0625)', near(xy[0], 0.0625, 0.012) && Math.abs(xy[1]) < 1e-9, JSON.stringify(xy));
   await J(`W.xy.set(0.4, 0.4); W.xy.pad.focus(); return 1;`); await p.key('Home'); await sleep(40);
   xy = await J(`return W.xy.get();`); check('xy: Home centres (to its home, 0 0)', near(xy[0], 0, 1e-9) && near(xy[1], 0, 1e-9), JSON.stringify(xy));
+  await J(`W.xy.set(0.4, 0.4); W.xy.pad.focus(); return 1;`); await p.key('Delete'); await sleep(40);
+  xy = await J(`return W.xy.get();`); check('xy: Delete sends it home too, as on a knob (wave 19)', near(xy[0], 0, 1e-9) && near(xy[1], 0, 1e-9), JSON.stringify(xy));
+  await J(`const { setKnobLaw } = await import('/mir/kit.js'); setKnobLaw({ keyFine: 0.5 }); W.xy.set(0, 0); W.xy.pad.focus(); return 1;`); await p.key('Shift+ArrowRight'); await sleep(40);
+  xy = await J(`const { setKnobLaw } = await import('/mir/kit.js'); setKnobLaw({ keyFine: 1 / 8 }); return W.xy.get();`);
+  check('xy: Shift+arrow is the kit\'s fine gear, read from setKnobLaw (keyFine ½: a two-hundredth of the range, 0.01)', near(xy[0], 0.01, 1e-9) && near(xy[1], 0, 1e-9), JSON.stringify(xy));
   await J(`W.xy.set(0.4, 0.4); return 1;`);
   await sleep(450);
   { const s = await need(PAD, 'xy pad (tap tap)', [0.5, 0.5]); await mouse('mouseMoved', s.x + 40, s.y + 40);

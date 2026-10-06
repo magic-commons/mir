@@ -139,6 +139,10 @@ try {
   check('TURNTABLE · FREE is a segment: FREE is chosen (the port holds the mode)', (await get('p3', 'mode')) === 'free');
   await click(D('camera3d') + '.querySelector(".cam-home")', 'HOME');
   check('HOME (a real press) restores yaw and pitch', near(await get('p3', 'yaw'), 0, 1e-6) && near(await get('p3', 'pitch'), 0, 1e-6));
+  await drag(SPH, 'sphere (before Delete)', fine(12, -5.6), { at: [0.25, 0.5] });
+  const turned = Math.abs(await get('p3', 'yaw')) > 1;
+  await J(`${SPH}.focus(); return 1;`); await p.key('Delete'); await sleep(80);
+  check('Delete on the focused sphere sends it home, as on a knob (wave 19)', turned && near(await get('p3', 'yaw'), 0, 1e-6) && near(await get('p3', 'pitch'), 0, 1e-6), JSON.stringify({ turned, yaw: await get('p3', 'yaw') }));
 
   /* ── A PORT BY HAND: radians, port.turn, HAND, a verb ── */
   const ESPH = D('cameraeng') + '.querySelector(".cs-svg")';

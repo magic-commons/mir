@@ -31,7 +31,7 @@
  * PROJECT AND HISTORY  the values ride in the project as a part named `part` (default 'camera') unless `project: false` (the app's own part
  *   carries them); with `history` they are one snapshot domain, so a gesture is one row named CONTROL · WINDOW by the kit's own gesture names.
  * IDLE  The panel subscribes; one coalesced frame reads the port after a notice, and nothing runs at rest. */
-import { el, svgEl, label, hint, trig, watchTouches, gearOf, tapWatcher } from '../kit.js';
+import { el, svgEl, label, hint, trig, watchTouches, gearOf, tapWatcher, setKnobLaw } from '../kit.js';
 import { control } from '../controls/factory.js';
 import { arcKnob } from '../controls/arc.js';
 import { frame } from '../core/frame.js';
@@ -168,9 +168,9 @@ export function directionSphere(o = {}) {
   svg.addEventListener('wheel', (e) => e.stopPropagation(), { passive: true });
   svg.addEventListener('keydown', (e) => {
     if (e.ctrlKey || e.metaKey || e.altKey || svg.getAttribute('aria-disabled') === 'true') return;
-    const step = (2 * Math.PI / 100) * (e.code.startsWith('Page') ? 10 : 1) * (e.shiftKey ? 0.125 : 1);
+    const step = (2 * Math.PI / 100) * (e.code.startsWith('Page') ? 10 : 1) * (e.shiftKey ? setKnobLaw().keyFine : 1);   // the kit's one fine gear
     const dir = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1], PageUp: [0, 1], PageDown: [0, -1] }[e.code];
-    if (!dir && e.code !== 'Home') return;
+    if (!dir && e.code !== 'Home' && e.code !== 'Delete' && e.code !== 'Backspace') return;   // Home and Delete: home, as on a knob
     e.preventDefault(); e.stopPropagation();
     if (dir) { if (o.turn) o.turn(dir[0] * step, dir[1] * step); } else if (o.home) o.home();
     if (o.onChange) o.onChange();
