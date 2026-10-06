@@ -311,6 +311,7 @@ export function tempoPill({ tempo, panel = null, work = () => false, signal } = 
   root.setAttribute('role', 'spinbutton'); root.setAttribute('aria-valuemin', String(tempo.min)); root.setAttribute('aria-valuemax', String(tempo.max));
   root.setAttribute('aria-expanded', 'false'); root.title = 'Set transport tempo';
   const num = el('b', 'tempo-number', root), unit = el('span', 'tempo-unit', root), hz = el('i', 'tempo-hz', root);
+  num.dataset.w = '00.0';                                             // THE HAND: the widest reading (tabular digits: under 100 has the point), kept unseen under it (transport.css), so ×4 → 120 moves nothing after the pill
   el('span', 'tempo-chevron', root).setAttribute('aria-hidden', 'true');
   label(unit, 'BPM'); num.dir = 'ltr'; hz.dir = 'ltr';
   const field = el('input', 'modtempoin transport-tempo-input', wrap);

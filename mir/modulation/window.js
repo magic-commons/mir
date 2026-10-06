@@ -674,6 +674,7 @@ export function createModulation(host, port) {
   transport.sync.title = '{:WALL} follows elapsed time. {:FREE} accumulates frame time.';
   transport.sync.addEventListener('click', () => { clock.setSync(M.syncMode() === 'wall' ? 'free' : 'wall'); sync(); });
   transport.cad.title = 'Limit modulation updates per second';
+  transport.cad.dataset.w = '120 HZ';                                 // THE HAND: the chip keeps its widest word's width (modhost.css), so 60 ⇄ 120 moves nothing after it
   transport.cad.addEventListener('click', () => { if (port.setCadence) port.setCadence(port.cadence() === 120 ? 60 : 120); sync(); });
 
   const HOLD_NOTE = ['1/4', '1'];

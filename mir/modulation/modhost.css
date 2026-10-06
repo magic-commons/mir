@@ -2409,4 +2409,8 @@ body.mod-arming :is(.sw, .seg, .trig, .k:not([data-param]), .fd:not([data-param]
 #modwin.mir-modwindow .m2-workspace-switch .mod-palette-mark, #modwin.mir-modwindow .m2-workspace-switch .mod-palette-mark rect { stroke: none; }
 /* → TL on an LFO or ENV head (only while a timeline is attached) */
 #modwin.mir-modwindow .m2dev .m2ab.m2tl { width: 30px; }
+/* THE HAND (1.5.0-alpha.19): a work-bar chip whose word changes with state keeps its widest word's width — the word in
+   data-w lies unseen, 0 px tall, under the shown one — so 60 HZ ⇄ 120 HZ moves nothing after it (HOLD ¼, HOLD 1) */
+.modwin.mir-modwindow .modcad[data-w] { flex-direction: column; }
+.modwin.mir-modwindow .modcad[data-w]::after { content: attr(data-w); height: 0; overflow: hidden; visibility: hidden; }
 }   /* end @layer mir.kit.plugin.host */

@@ -140,6 +140,8 @@
 .mir-transport .tbtn.tempo-expand[aria-expanded="true"] { border-color: var(--xport-pill-rim-open); box-shadow: var(--relief-raise, var(--neu-raise)), var(--xport-pill-glow); }
 .mir-transport .tbtn.tempo-expand.drag { box-shadow: var(--xport-flat); background: var(--state-press, var(--glass-press)); }
 .mir-transport .tempo-number { grid-area: 1 / 1 / 3 / 2; align-self: center; font: var(--w-bold) var(--xport-num-size) / 1 var(--font-num); font-variant-numeric: tabular-nums; color: var(--acc2); }
+.mir-transport .tempo-number[data-w] { text-align: end; }   /* THE HAND (1.5.0-alpha.19): the reading keeps the widest one's width (data-w, 0 px tall, unseen), so the pill never resizes with the tempo */
+.mir-transport .tempo-number[data-w]::after { content: attr(data-w); display: block; height: 0; overflow: hidden; visibility: hidden; }
 .mir-transport .tempo-unit { align-self: end; font: var(--w-bold) var(--xport-micro) / 1 var(--font-ui); letter-spacing: var(--tr-wide); color: var(--ink-key, var(--dim)); }
 .mir-transport .tempo-hz { align-self: start; font: var(--w-med) var(--xport-micro) / 1.1 var(--font-num); font-style: normal; font-variant-numeric: tabular-nums; color: var(--dim); white-space: nowrap; }
 .mir-transport .tempo-chevron { position: absolute; right: 6px; top: 50%; width: 5px; height: 5px; margin-top: -4px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor;
