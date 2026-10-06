@@ -158,7 +158,6 @@ The timeline's keys are rows of the app's one key table (`docs/KEYS.md`), rebind
 | Shift+T | Fit each selected audio clip’s remaining audio into its length (varispeed) | BASINS — Shift+T |
 | Space | Play / pause, exact resume | BASINS — the transport’s one play (transportActions); FL’s Space stops to the start position instead |
 | Escape | Cancel the gesture in flight, close menus, rewind a cancelled scrub | BASINS — active wherever the timeline is open |
-| H | Release any open menu or gesture before the shell hides the UI | BASINS — active wherever the timeline is open |
 
 ### Pointer and touch
 

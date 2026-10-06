@@ -349,11 +349,9 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   listen(surface,'contextmenu',e=>e.preventDefault());listen(surface,'auxclick',e=>{if(e.button===1)e.preventDefault();});listen(surface,'lostpointercapture',e=>finish(e,true));
   listen(document,'pointermove',e=>{if(drag&&e.pointerId===drag.pointerId){e.preventDefault();updates.post(pointer(e));}},{passive:false});listen(document,'pointerup',e=>finish(e));listen(document,'pointercancel',e=>finish(e,true));
   listen(document,'pointerdown',e=>{if(menu&&!menu.contains(e.target)&&!surface.contains(e.target))closeMenu();if(confirmation&&!confirmation.contains(e.target)&&!win.rail?.el?.contains(e.target))cancelConfirm();});
-  /* ESCAPE AND H are not table actions (the kit keeps Escape; H is the shell's hide): they only end what is in flight */
-  listen(document,'keydown',e=>{
-    if(e.code==='Escape'){closeMenu();cancelConfirm();finish(null,true,true);}
-    if(e.code==='KeyH'&&!e.ctrlKey&&!e.metaKey&&!editable(e.target)){closeMenu();cancelConfirm();finish(null,true);}
-  });
+  /* ESCAPE is not a table action (the kit keeps it): it only ends what is in flight.  HIDE needs no key of its own here:
+     whatever key the table gives it, the interface going out of paint (body.ui-hidden) ends it (hiddenObserver below) */
+  listen(document,'keydown',e=>{if(e.code==='Escape'){closeMenu();cancelConfirm();finish(null,true,true);}});
   listen(document,'visibilitychange',()=>{if(document.hidden){closeMenu();cancelConfirm();finish(null,true);headPaint.reset();}});listen(globalThis,'blur',()=>{closeMenu();cancelConfirm();finish(null,true);});
   listen(view.shell,'wheel',e=>{if(!(e.ctrlKey||e.metaKey)||!e.deltaY)return;e.preventDefault();e.stopPropagation();const anchor=bounded(e.clientX-viewport.getBoundingClientRect().left,0,viewport.clientWidth),delta=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?viewport.clientHeight:1);zoom(Math.exp(-bounded(delta,-120,120)*.003),anchor);},{passive:false});
   const viewportPaint=coalesce(()=>{paint();if(drag?.last&&['select','point','points','move','trim'].includes(drag.kind))updates.post(drag.last);});

@@ -11,7 +11,7 @@ export function installTimelineKnobs({ registry, editor }) {
   let pending=null,owned=null,pop=null,suppressUntil=0;
   const events=new AbortController();
   const listen=(target,type,fn,capture=false)=>target.addEventListener(type,fn,{capture,signal:events.signal});
-  const close=()=>{pop?.remove();pop=null;};
+  const close=()=>{const p=pop;pop=null;p?.remove();};   // pop is cleared first: removing the focused menu fires its focusout
   const cancel=()=>{if(pending)clearTimeout(pending.timer);pending=null;};
   const abort=()=>{const p=pending||owned;cancel();owned=null;if(p){p.dial.dispatchEvent(new PointerEvent('pointercancel',{pointerId:p.id,bubbles:false}));try{if(p.dial.hasPointerCapture(p.id))p.dial.releasePointerCapture(p.id);}catch(_){}}};
   const open=(root,x,y)=>{
@@ -20,6 +20,8 @@ export function installTimelineKnobs({ registry, editor }) {
     const title=document.createElement('div');title.className='tl-pop-title';label(title,'TIMELINE CLIP');pop.append(title);
     const b=document.createElement('button');b.type='button';b.className='trig';b.dataset.tlAction='create-clip';label(b,'CREATE AUTOMATION CLIP');b.onclick=()=>{close();editor.createClip(id);};pop.append(b);
     const locate=document.createElement('button');locate.type='button';locate.className='trig';locate.dataset.tlAction='locate-clips';label(locate,'LOCATE CLIPS');locate.onclick=()=>{close();editor.locate(id);};pop.append(locate);
+    /* the focus leaving the menu closes it (Tab away, or HIDE, which blurs what it hides: no key of its own for that) */
+    const me=pop;me.tabIndex=-1;me.addEventListener('focusout',e=>{if(pop===me&&!me.contains(e.relatedTarget))close();});
     document.body.append(pop);const r=pop.getBoundingClientRect();pop.style.left=Math.max(8,Math.min(innerWidth-r.width-8,x))+'px';pop.style.top=Math.max(8,Math.min(innerHeight-r.height-8,y))+'px';b.focus();
   };
   listen(document,'pointerdown',e=>{
@@ -39,7 +41,7 @@ export function installTimelineKnobs({ registry, editor }) {
   listen(document,'pointerup',end,true);listen(document,'pointercancel',e=>{cancel();if(owned&&owned.id===e.pointerId)owned=null;},true);
   listen(document,'click',e=>{if(performance.now()<suppressUntil&&e.target.closest?.('.k[data-param]')){e.preventDefault();e.stopImmediatePropagation();}},true);
   listen(document,'contextmenu',e=>{const root=e.target.closest?.('.k[data-param]');if(root&&registry.has(root.dataset.param)){e.preventDefault();e.stopImmediatePropagation();abort();root.querySelector('.k-dial')?.dispatchEvent(new PointerEvent('pointercancel'));open(root,e.clientX,e.clientY);}},true);
-  listen(document,'keydown',e=>{if(e.key==='ContextMenu'||e.shiftKey&&e.key==='F10'){const root=document.activeElement?.closest?.('.k[data-param]');if(root&&registry.has(root.dataset.param)){e.preventDefault();const r=root.getBoundingClientRect();open(root,r.right,r.bottom);}}if(e.key==='Escape'||e.code==='KeyH'){abort();close();}});
+  listen(document,'keydown',e=>{if(e.key==='ContextMenu'||e.shiftKey&&e.key==='F10'){const root=document.activeElement?.closest?.('.k[data-param]');if(root&&registry.has(root.dataset.param)){e.preventDefault();const r=root.getBoundingClientRect();open(root,r.right,r.bottom);}}if(e.key==='Escape'){abort();close();}});
   listen(globalThis,'blur',()=>{abort();close();});
   listen(document,'visibilitychange',()=>{if(document.hidden){abort();close();}});
   return ()=>{abort();close();events.abort();};

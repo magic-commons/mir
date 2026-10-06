@@ -8,8 +8,8 @@
  * are generated from the same rows, with the user's own bindings.
  *   timelineActions(get) → [{ id, label, group, keys, hint, note, run, when }]   get() → the timeline (window.js) or null
  *   TIMELINE_POINTER  [{ label: gesture, hint: what it does, t: its FL / BASINS note }] — the pointer and touch law, which no key table holds
- *   TIMELINE_FIXED    [{ label: key, hint, t }] — Escape and H (the kit keeps Escape; H is the shell's), and Space
- *                     (the one play: the transport's row, transportActions)
+ *   TIMELINE_FIXED    [{ label: key, hint, t }] — Escape (the kit keeps it) and Space (the one play: the transport's row,
+ *                     transportActions); hiding the interface ends a gesture or a menu by itself, on whatever key 'hide' has
  *   shortcutRows(actions, keys?) → [{ keys, label, hint, note }]  ·  openTimelineShortcuts({ actions, keys, x, y }) → root
  *   renderShortcutsMarkdown(actions) → the markdown table docs/TIMELINE.md carries (tests/timeline-ticks.node.mjs)
  * Words are English keys, translated where they are shown; a key cap is never translated (keys.js displayChord). */
@@ -90,8 +90,7 @@ export const TIMELINE_POINTER = [   // tr: the timeline's pointer gestures: the 
 export const TIMELINE_FIXED = [   // tr: keys the timeline keeps outside the key table: the key, what it does, a note
   { label: 'Space', hint: 'Play / pause, exact resume', t: 'BASINS — the transport’s one play (transportActions); FL’s Space stops to the start position instead' },
   { label: 'Escape', hint: 'Cancel the gesture in flight, close menus, rewind a cancelled scrub', t: 'BASINS — active wherever the timeline is open' },
-  { label: 'H', hint: 'Release any open menu or gesture before the shell hides the UI', t: 'BASINS — active wherever the timeline is open' },
-];
+];   // H is no longer here: hiding the interface (the table's 'hide', on whatever key) releases any open menu or gesture
 
 /** shortcutRows(actions, keys?) → the sheet's keyboard rows: the user's chords when a table is given, else the declared ones */
 export function shortcutRows(actions, keys = null, platform = 'other') {
