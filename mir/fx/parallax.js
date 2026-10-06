@@ -33,9 +33,16 @@ export function parallaxOffset(px, py, view, depth) {
 
 export function createParallax({ doc = document, enabled = () => true } = {}) {
   const html = doc.documentElement, win = doc.defaultView, KEY = 'fx:parallax';
-  let live = false, life = null, view = null, x = 0, y = 0, home = false;
+  let live = false, life = null, view = null, x = 0, y = 0, home = false, els = null;
 
-  const each = (fn) => { for (const el of doc.querySelectorAll('[data-parallax]')) fn(el, parseFloat(el.dataset.parallax) || 0); };
+  /* THE ELEMENTS ARE LOOKED FOR ONCE, NOT PER MOVE (wave 18: a page query every frame of a pan, 4 ms/s, in an app with
+     nothing to move).  The list is read again on the frame after anything that can add one: a press, a release (a click
+     opens a window or a page), a key, and refresh() (a skin change).  One inside a [hidden] ancestor (a closed window,
+     a page not shown: the GUI's ABOUT logo) is not on screen and is left out; with none left, a move books no frame at
+     all.  An element an app adds or shows with no hand in it (a timer, a load) calls refresh() to be found. */
+  const all = () => doc.querySelectorAll('[data-parallax]');
+  const stale = () => { els = null; };
+  const each = (fn) => { if (!els) els = [...all()].filter((el) => !el.closest('[hidden]')); for (const el of els) fn(el, parseFloat(el.dataset.parallax) || 0); };
   const paint = () => {
     if (!view) view = { width: win.innerWidth, height: win.innerHeight };     // the one read, once per resize
     each((el, depth) => {
@@ -43,8 +50,8 @@ export function createParallax({ doc = document, enabled = () => true } = {}) {
       setVar(el, '--plx-x', o.x + 'px'); setVar(el, '--plx-y', o.y + 'px');
     });
   };
-  const move = (e) => { if (e.pointerType === 'touch') return; x = e.clientX; y = e.clientY; home = false; frame.coalesce(KEY, paint); };
-  const rest = () => { home = true; frame.coalesce(KEY, paint); };
+  const move = (e) => { if (e.pointerType === 'touch') return; x = e.clientX; y = e.clientY; home = false; if (!els || els.length) frame.coalesce(KEY, paint); };
+  const rest = () => { home = true; if (!els || els.length) frame.coalesce(KEY, paint); };
   const resized = () => { view = null; };
 
   function on() {
@@ -55,15 +62,16 @@ export function createParallax({ doc = document, enabled = () => true } = {}) {
     html.addEventListener('pointerleave', rest, o);
     win.addEventListener('blur', rest, o);
     win.addEventListener('resize', resized, o);
+    for (const t of ['pointerdown', 'pointerup', 'keydown']) doc.addEventListener(t, stale, { ...o, capture: true });
     setAttr(html, 'data-parallax-live', '');
   }
   function off() {
     if (!live) return;
     live = false; life.abort(); life = null; frame.cancel(KEY);
-    each((el) => { setVar(el, '--plx-x', null); setVar(el, '--plx-y', null); });
+    for (const el of all()) { setVar(el, '--plx-x', null); setVar(el, '--plx-y', null); }
     setAttr(html, 'data-parallax-live', null);
   }
-  function refresh() { if (enabled() && fxAllowed(fxEnv(doc))) on(); else off(); return live; }
+  function refresh() { stale(); if (enabled() && fxAllowed(fxEnv(doc))) on(); else off(); return live; }
   const unwatch = watchFxMedia(doc, refresh);
   refresh();
   return { refresh, destroy() { unwatch(); off(); }, get live() { return live; } };
