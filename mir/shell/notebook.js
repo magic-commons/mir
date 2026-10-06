@@ -90,6 +90,7 @@ import { frame } from '../core/frame.js';
 import { createProximity } from '../core/proximity.js';
 import { setText, setAttr, setVar } from '../core/perf.js';
 import { copyText } from './clipboard.js';
+import { saveBlob } from '../folders/save-blob.js';
 import { notice } from './notice.js';
 
 const VENDOR = new URL('./vendor/', import.meta.url).href;
@@ -512,8 +513,7 @@ export function createNotebook(options = {}) {
     greetBtn.addEventListener('click', () => { P.showOnOpen = !P.showOnOpen; });
     mdBtn.addEventListener('click', () => {
       flushPage(); const f = pageFile(T.sel === 'yours' ? yoursPage() : P.copyOut(T.sel));
-      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([f.text], { type: 'text/markdown' })); a.download = f.name; a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 2000); say(tx('saved {name}', { name: f.name }));
+      saveBlob(new Blob([f.text], { type: 'text/markdown' }), f.name); say(tx('saved {name}', { name: f.name }));
     });
     const MD = /\.(md|markdown|txt)$/i;
     async function addFiles(files) {

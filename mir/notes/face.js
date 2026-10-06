@@ -23,6 +23,7 @@ import { el, label as writeLabel, ariaLabel, hint } from '../kit.js';
 import { t as tx, tn } from '../core/i18n.js';
 import { createShelf } from './shelf.js';
 import { APP_KEY, askInline } from '../shell/notebook.js';
+import { saveBlob } from '../folders/save-blob.js';
 
 const keep = (e) => { if (!APP_KEY(e)) e.stopPropagation(); };
 
@@ -55,8 +56,7 @@ export function notesFace({ store = createShelf(), glyph = '▤', label = 'shelf
     exp.addEventListener('click', () => {
       if (!cur) { say(tx('nothing to export — save first')); return; }
       const file = store.exportNote(cur); if (!file) return;
-      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([file.text], { type: 'text/markdown' })); a.download = file.name; a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 2000); say(tx('saved {name}', { name: file.name }));
+      saveBlob(new Blob([file.text], { type: 'text/markdown' }), file.name); say(tx('saved {name}', { name: file.name }));
     });
     imp.addEventListener('click', () => {
       const inp = document.createElement('input'); inp.type = 'file'; inp.multiple = true; inp.accept = '.md,.markdown,.txt,text/markdown,text/plain';

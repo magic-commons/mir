@@ -34,6 +34,7 @@
 import { frame } from './frame.js';
 import { setVar, setAttr } from './perf.js';
 import { wrap, stringify, check } from './envelope.js';
+import { saveBlob } from '../folders/save-blob.js';   // the kit's one hand-a-file-over (a leaf: no imports)
 
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 
@@ -190,10 +191,7 @@ export function createPrefs({ key = 'mir.gui', schema = [], presets = {}, storag
     /** download({ app }) — DOWNLOAD SETTINGS: this browser's options as a file, '<app>-settings-<date>.json' */
     download({ app = 'mir', name } = {}) {
       if (!D || !D.body || typeof Blob === 'undefined') return false;
-      const blob = new Blob([stringify(wrap('settings', { ...state }, { app, name }))], { type: 'application/json' });
-      const a = D.createElement('a'), url = URL.createObjectURL(blob);
-      a.href = url; a.download = settingsFileName(app); a.rel = 'noopener'; D.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      saveBlob(new Blob([stringify(wrap('settings', { ...state }, { app, name }))], { type: 'application/json' }), settingsFileName(app));
       return true;
     },
     /** load(text | envelope) → { ok, changed, errors, warnings } — a settings file read against this schema and set */
