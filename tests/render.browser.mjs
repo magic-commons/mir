@@ -95,6 +95,10 @@ try {
     }
     return { name: s.name, names, widths, digests, rec: JSON.parse(new TextDecoder().decode(files.get('recording.json'))) };
   });
+  const doneState = await page.evaluate(() => window.__R.panel.view().state());
+  L.ck(doneState.done && /^mirtest-frames-.*\.zip$/.test(doneState.done.name) && doneState.done.bytes > 0 && doneState.plan && doneState.plan.frames === FRAMES && doneState.plan.range && doneState.plan.range.start === 1
+    && doneState.motions.some(([id, name]) => id === 'sweep' && name === 'SWEEP') && doneState.running === false && doneState.held === null,
+    'view.state() has the finished film, the plan, the motion list and no held picture (BASINS\' rigs read them)', { done: doneState.done, plan: doneState.plan, motions: doneState.motions });
   L.ck(zip1 && zip1.names.filter((n) => n.endsWith('.png')).length === FRAMES && zip1.names[0] === 'frame_000000.png' && zip1.names.includes('recording.json'), 'the saved ZIP holds 12 numbered PNG frames and recording.json', zip1 && zip1.names);
   const want = Array.from({ length: FRAMES }, (_, i) => Math.round(((15 + i) / 15 / 4) * (128 - 2)));
   L.ck(zip1 && zip1.widths.every((w, i) => Math.abs(w - want[i]) <= 1) && new Set(zip1.widths).size > 8, 'frame i shows the arrangement at its beat: the bar\'s length follows the ramp exactly (±1 px)', { got: zip1 && zip1.widths, want });
@@ -271,6 +275,62 @@ try {
   const cardBtn = await at('#rackcard .sr-film > .sv-primary.trig');
   L.ck(cardBtn && cardBtn.hit, 'the card\'s RENDER is what a hand presses (elementFromPoint)', cardBtn);
   await page.screenshot({ path: '.tmp/W13/R/render-card.png' });
+
+  /* ── 7b · BASINS parity, round seven: the second card wears BASINS' options ── */
+  const C2 = '#rackcard .dev[data-id="rackRender2"] .mir-render ';
+  const opened = await page.evaluate((c) => { const v = document.querySelector(c), d = v.closest('.dev');
+    const rows = [...v.querySelectorAll('.sr-film .sr-row:not(.sr-prog) > .sr-label')].filter((n) => !n.closest('[hidden]')).map((n) => n.textContent.trim());
+    return { motion: v.querySelector('select[data-t-aria="Recording motion"]').value, rows, mark: !!d.querySelector('.dev-loading .mark'), markCard1: !!document.querySelector('#rackcard .dev[data-id="rackRender"] .dev-loading .mark'),
+      fact: v.querySelector('.sr-keyfact .sr-value').textContent, section: (v.querySelector('.p7-section') || {}).textContent }; }, C2);
+  L.ck(opened.motion === 'sweep', 'defaults.motion: the card opens on the app\'s motion (BASINS: ZOOM), nothing stored', opened.motion);
+  L.ck(opened.rows.join('|') === 'motion|amount|format|size|fps|length|speed|start at|modulation|timeline', 'row(…, \'length\') seats a motion\'s row under LENGTH (BASINS\' SPEED), the rest under MOTION', opened.rows);
+  L.ck(!opened.mark && opened.markCard1, 'createRenderCard({ loadingMark: false }) has no waiting mark (the default card clones the wordmark\'s)', opened);
+  L.ck(opened.fact === 'CARD-GALLERY' && opened.section === 'CARD-GALLERY', 'subject.facts and sections are handed the view\'s own gallery', opened);
+  /* SPEED → LENGTH through the panel's fields, by a hand: click into the field, type, leave it */
+  await page.evaluate((c) => { document.querySelector(c + '.p7-speed').scrollIntoView({ block: 'center' }); }, C2);
+  await page.waitForTimeout(60);
+  const sp = await at(C2 + '.p7-speed');
+  L.ck(sp && sp.hit, 'the seated SPEED field is what a hand presses (elementFromPoint)', sp);
+  await page.mouse.click(sp.x, sp.y);
+  for (const k of ['End', 'Backspace', 'Backspace', 'Backspace', '4', 'Tab']) await page.keyboard.press(k);
+  await page.waitForTimeout(150);
+  const len = await page.evaluate((c) => ({ length: document.querySelector(c + 'input[data-t-aria="Recording duration in seconds"]').value, est: document.querySelector(c + '.sr-record-estimate').textContent, seen: window.__p7 }), C2);
+  L.ck(len.length === '0.250' && /\b8 frames\b/.test(len.est) && len.seen && len.seen.fps === '30', 'the motion\'s row writes LENGTH through fields.length (4 per second → 0.250 s, 8 frames) and reads fields.fps', len);
+  /* a paint that throws refuses the run with its sentence */
+  await page.evaluate(() => { window.__breakPaint = true; });
+  await page.evaluate((c) => { document.querySelector(c + '.p7-amount').scrollIntoView({ block: 'center' }); }, C2);
+  await page.waitForTimeout(60);
+  const am = await at(C2 + '.p7-amount');
+  await page.mouse.click(am.x, am.y);
+  for (const k of ['End', 'Backspace', 'Backspace', 'Backspace', '1', 'Tab']) await page.keyboard.press(k);
+  await page.waitForTimeout(150);
+  const refused = await page.evaluate((c) => { const b = document.querySelector(c + '.sr-film > .sv-primary.trig'); return { disabled: b.disabled, est: document.querySelector(c + '.sr-record-estimate').textContent, plan: window.__R.card2.view.state().plan, opacity: getComputedStyle(b).opacity, bg: getComputedStyle(b).backgroundColor }; }, C2);
+  await page.evaluate((c) => document.querySelector(c + '.sr-film > .sv-primary.trig').scrollIntoView({ block: 'center' }), C2);
+  await page.waitForTimeout(60);
+  const rb = await at(C2 + '.sr-film > .sv-primary.trig');
+  if (rb) await page.mouse.click(rb.x, rb.y);                                  // a disabled trigger lets the press through: nothing is there to take it
+  await page.waitForTimeout(150);
+  const ran = await page.evaluate(() => window.__R.rec.running());
+  L.ck(refused.disabled && refused.est === 'This sweep cannot be flown on this device' && refused.plan === null && rb && !rb.hit && !ran, 'a motionUi.paint that throws leaves RENDER off with the thrown sentence on the estimate row; a press at its centre starts nothing', { refused, rb, ran });
+  const wellW = await page.evaluate(() => { const b = document.querySelector('.mir-folders .mir-render .sr-picture .sr-download'); return { disabled: b.disabled, opacity: getComputedStyle(b).opacity }; });
+  L.ck(refused.opacity === '0.55' && wellW.disabled && wellW.opacity === '0.38', 'a disabled RENDER fades to .55 in the card, a disabled DOWNLOAD IMAGE to the kit\'s one fade (.38) in the window', { card: refused.opacity, window: wellW });
+  await page.evaluate(() => { window.__breakPaint = false; });
+  /* the picture made, read from state() */
+  await page.evaluate((c) => document.querySelector(c + '.sr-capture').scrollIntoView({ block: 'center' }), C2);
+  await page.waitForTimeout(60);
+  const cap = await at(C2 + '.sr-capture');
+  if (cap && cap.hit) await page.mouse.click(cap.x, cap.y);
+  await page.waitForTimeout(200);
+  const heldState = await page.evaluate(() => window.__R.card2.view.state().held);
+  L.ck(cap && cap.hit && heldState && heldState.w === 128 && heldState.h === 72 && heldState.bytes === 4096, 'CAPTURE IMAGE, pressed: view.state().held is the picture made', { cap, heldState });
+  /* BASINS' sheet: the card's sections flush, notes in the window's text, no container, the second key fact grows, a motion's rows at the section gap */
+  const sheet = await page.evaluate((c) => { const v = document.querySelector(c), cs = (n) => getComputedStyle(n);
+    const note = v.querySelector('.sr-film > .sv-note'), film = v.querySelector('.sr-film');
+    const ui = v.querySelector('.sr-motion-ui:not([hidden])');
+    return { gap: cs(v).rowGap, container: cs(v).containerType, noteSize: cs(note).fontSize, filmSize: cs(film).fontSize, noteInk: cs(note).color, filmInk: cs(film).color,
+      keyBasis: cs(v.querySelectorAll('.sr-keyfact')[1]).flexBasis, uiGap: ui ? cs(ui).rowGap : null, sectionGap: cs(film).rowGap }; }, C2);
+  L.ck(sheet.gap === '0px' && sheet.container === 'normal' && sheet.noteSize === sheet.filmSize && sheet.noteInk === sheet.filmInk && sheet.keyBasis === '140px' && sheet.uiGap === sheet.sectionGap,
+    'the card\'s sections stand flush, the notes inherit the window\'s text, no container is declared, the second key fact grows, a motion\'s rows keep the section gap', sheet);
 
   /* ── 8 · nothing broke on the way ── */
   const errs = errors();

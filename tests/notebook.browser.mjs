@@ -95,6 +95,22 @@ try {
   check('the preview shows the complete notes', /Hello/.test(await p.eval(`__NB.html`)));
   const cap = JSON.parse(await p.eval(`JSON.stringify(__NB.project.capture('NAME'))`));
   check('capture gives { title, subtitle, text }', cap.title === 'HAS TEXT' && cap.subtitle === 'sub' && /Hello/.test(cap.text), JSON.stringify(cap));
+  /* BASINS parity, round seven: a face that runs an action (BASINS' ▤ opens its SAVE window), and BASINS' ABOUT through the kit's data */
+  await p.goto(PAGE + '?reset&basins', 1200); await ready();
+  await p.eval(`__NB.open('notes')`); await sleep(150);
+  const act = await p.click('#notebook .nb-projects-btn'); await sleep(100);
+  const after = JSON.parse(await p.eval(`JSON.stringify({ ran: window.__ran || 0, face: __NB.face, open: __NB.isOpen, faceEl: !!document.querySelector('#notebook .nb-projectsface') })`));
+  check('a face with run() is a button that runs its action and flips nothing (hit-tested press), with no face element', act.hit && after.ran === 1 && after.face === 'notes' && after.open && !after.faceEl, JSON.stringify([act, after]));
+  const ab = await p.click('#notebook .nb-about'); await sleep(150);
+  const about = JSON.parse(await p.eval(`(() => { const f = document.querySelector('#notebook .nb-aboutface');
+    const team = f.querySelector('.ab-team'), made = f.querySelector('.ab-made');
+    return JSON.stringify({ face: __NB.face, tag: f.querySelector('.ab-tag').textContent, version: f.querySelector('.ab-version').textContent,
+      taglines: [...f.querySelectorAll('.ab-tagline')].map((n) => n.innerHTML), teamEyebrow: team.previousElementSibling.className + ' ' + team.previousElementSibling.textContent,
+      made: made && made.tagName + ' ' + made.className, makers: made ? [...made.querySelectorAll('.ab-makers > span')].map((n) => n.firstChild.textContent + '/' + n.querySelector('small').textContent) : [] }); })()`));
+  check('BASINS\' ABOUT from data: the tag up to the last " · ", two taglines (10<sup>500</sup>), the team\'s eyebrow, the makers block', ab.hit && about.face === 'about' && about.tag === 'MANDELBROT · BASINS'
+    && about.version === 'MANDELBROT · BASINS · 2026-09-26' && about.taglines.length === 2 && /10<sup>500<\/sup>, minibrot/.test(about.taglines[1])
+    && about.teamEyebrow === 'ab-eyebrow Independent research & Assistance' && about.made === 'DIV ab-credit ab-made'
+    && about.makers.join() === 'Claude/Anthropic,Gemini/Google DeepMind,GPT/OpenAI', JSON.stringify(about));
   check('the page raised no exception', p.logs.filter((l) => l.startsWith('EXCEPTION')).length === 0, p.logs.join(' | '));
 } finally {
   await p.close();

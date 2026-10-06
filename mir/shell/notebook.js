@@ -40,7 +40,9 @@
  *   title         the notebook's default title (default 'NOTEBOOK')
  *   storageKey    localStorage prefix for text, title, subtitle and sizes (default 'mir.notebook')
  *   about         data for shell/about.js (false: no ABOUT face)
- *   faces         [{ id, glyph, label, title, build(faceEl, api) }] — extra faces, their buttons after ◐
+ *   faces         [{ id, glyph, label, title, build(faceEl, api) }] — extra faces, their buttons after ◐.  A face with
+ *                 `run(api)` instead of `build` is a button that runs an action and flips nothing (BASINS' ▤ opens its SAVE
+ *                 window); it has no face element.  A face change is a swap, never animated (BASINS measured: no transition)
  *   render        (markdown) => html  (default: the kit's renderer)
  *   vendor        false: never load the kit's marked/KaTeX (the page brings its own, or wants none)
  *   logo          () => the wordmark element the ABOUT logo is cloned from (default #title)
@@ -138,7 +140,7 @@ export function createNotebook(options = {}) {
   const foot = el('div', 'nb-foot', notes); const countEl = el('span', 'nb-count', foot);
   const copyBtn = label(el('button', 'nb-copy', foot), 'COPY'); copyBtn.type = 'button'; copyBtn.title = 'copy the notes as text';
   const faces = { notes };
-  for (const f of extra) { faces[f.id] = el('div', 'nb-face nb-' + f.id + 'face', nb); faces[f.id].hidden = true; }
+  for (const f of extra) if (!f.run) { faces[f.id] = el('div', 'nb-face nb-' + f.id + 'face', nb); faces[f.id].hidden = true; }
   if (o.about !== false) { faces.about = el('div', 'nb-face nb-aboutface', nb); faces.about.hidden = true; aboutFace(faces.about, { name: o.name, ...(o.about || {}) }); }
   const grip = el('div', 'nb-grip', nb); grip.title = 'Drag to resize the notebook'; grip.setAttribute('aria-hidden', 'true');
 
@@ -225,7 +227,7 @@ export function createNotebook(options = {}) {
     if (face === 'notes') { if (tabs) tabs.reveal(); ta.focus(); }
   };
   if (aboutBtn) aboutBtn.addEventListener('click', () => show(nb.dataset.face === 'about' ? 'notes' : 'about'));
-  for (const f of extra) f.btn.addEventListener('click', () => show(nb.dataset.face === f.id ? 'notes' : f.id));
+  for (const f of extra) f.btn.addEventListener('click', () => { if (f.run) f.run(api); else show(nb.dataset.face === f.id ? 'notes' : f.id); });
   nb.querySelector('.nb-close').addEventListener('click', () => { nb.hidden = true; });
 
   /* ── COPY DUMP: the ABOUT face's own words, then whatever the app adds ── */
@@ -583,6 +585,6 @@ export function createNotebook(options = {}) {
     if (tabs) tabs.repaint(); else ta.placeholder = yoursHint();
     if ((!tabs || tabs.sel === 'yours') && read(K.title) === null && !titleIn.matches(':focus')) titleIn.value = tx(o.title);
   });
-  for (const f of extra) if (f.build) f.build(faces[f.id], api);
+  for (const f of extra) if (f.build && faces[f.id]) f.build(faces[f.id], api);
   return api;
 }

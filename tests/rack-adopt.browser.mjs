@@ -86,6 +86,25 @@ try {
   check('BASINS\' layout: its ☆ slot is listed and loads through the store adapter', r.ok && /^1  ·  6 windows  ·  both racks  ·  1 floating/.test(r.label), JSON.stringify(r));
   check('BASINS\' layout: order and sides, CAMERA folded, SAVE closed, SETTINGS floating at (520, 180), the transport card first in the left rack', r.left.join() === 'transport,colour,camera' && r.all.join() === 'notes,history,controls,rackSave'
     && r.folded && r.saveClosed && r.floating.join() === 'settings' && r.at.join() === '520,180' && r.seen.join() === '520,180' && r.trParent === 'rackL', JSON.stringify(r));
+  /* BASINS parity, round seven: the kit's sortable list inside a window of the ADOPTED left rack (#rackL wears no kit look class)
+     seats its chips on the rack's outer edge, as BASINS' three #rackL rules did by hand: the list reads [data-mir-rack][data-side] */
+  {
+    const r = await run(`
+      const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = '../../mir/controls/colour-controls.css';
+      await new Promise((res) => { link.onload = res; link.onerror = res; document.head.appendChild(link); });
+      const { sortableList } = await import('../../mir/controls/list.js');
+      const host = [...document.querySelectorAll('#rackL > .dev')].find((d) => !d.classList.contains('folded') && d.querySelector('.dev-body') && d.dataset.id !== 'transport');
+      const list = sortableList({ items: [{ id: 1 }, { id: 2 }], noun: 'colour', build(it, i, pane) { pane.style.minHeight = '44px'; } });
+      host.querySelector('.dev-body').appendChild(list.root);
+      await wait(120);
+      const strip = list.stripOf(1).el.getBoundingClientRect(), pane = list.nodeOf(1).getBoundingClientRect();
+      const grip = list.root.querySelector('.mir-list-item .mir-chip'), g = grip.getBoundingClientRect(), hit = document.elementFromPoint(g.left + g.width / 2, g.top + g.height / 2);
+      const out = { rack: document.getElementById('rackL').className, hook: document.getElementById('rackL').dataset.mirRack, side: document.getElementById('rackL').dataset.side,
+        stripRight: Math.round(strip.right), paneLeft: Math.round(pane.left), gripHit: !!hit && (hit === grip || grip.contains(hit)) };
+      list.destroy(); list.root.remove(); link.remove();
+      return out;`);
+    check('the sortable list in an adopted left rack (no kit look class) puts its chips on the outer edge, left of the pane; the grip is what a hand presses', r.rack === '' && r.hook === '' && r.side === 'left' && r.stripRight <= r.paneLeft + 1 && r.gripHit, JSON.stringify(r));
+  }
   check('the page raised no exception', !p.logs.some((l) => l.startsWith('EXCEPTION')), p.logs.join(' | '));
 } finally {
   await p.close();

@@ -3,19 +3,23 @@
  * The DOM is λWAVES' `.nb-aboutface` (index.html), built from data instead of written by hand:
  *   .nb-logo            filled from the wordmark when the face first shows (shell/notebook.js)
  *   .ab-eyebrow ABOUT
- *   .ab-version         the build line; its first " · " part is the uppercase .ab-tag
- *   .ab-tagline         one sentence
+ *   .ab-version         the build line; its first " · " part is the uppercase .ab-tag (`tagSplit: 'last'`: all but the last part,
+ *                       BASINS' "MANDELBROT · BASINS · 2026-09-26")
+ *   .ab-tagline         one sentence, or one per line of `taglines` (BASINS has two)
  *   .ab-fine            the copyright line
  *   .ab-fine            THE LICENCE — by default the GPL-3.0-only notice with LICENSE and NOTICE links
  *   .ab-rule
  *   .ab-eyebrow SPECIAL THANKS, then .ab-credit lines (optional)
- *   .ab-credit.ab-team, .ab-credit.ab-made   (optional)
+ *   .ab-eyebrow `teamTitle`, then .ab-credit.ab-team   (optional; BASINS: "Independent research & Assistance")
+ *   .ab-credit.ab-made  `made` as a line, or with `makers` BASINS' block: "Made with" (or `made`) over .ab-makers, one
+ *                       <span>name<small>house</small></span> per maker (shell.css lays them out three across)
  *   .ab-rule
  *   .ab-fine            THE TYPE — by default the kit's three faces and their SIL OFL 1.1 licences
  *   .ab-actions         COPY DUMP (the notebook wires it) and a home link (optional)
  *
  * RICH TEXT WITHOUT innerHTML.  A line is a string, or an array of parts where a part is a string (text; '\n' is a
- * line break) or [text, href] (a link that opens a new tab without a handle on this window).  An href whose scheme
+ * line break), [text, href] (a link that opens a new tab without a handle on this window) or { sup: text } (a superscript:
+ * BASINS' 10<sup>500</sup>).  An href whose scheme
  * could run or smuggle content (javascript:, data:, vbscript:, file:, blob:) is dropped and its words stay as text —
  * the same rule the notebook's renderer applies to a note.
  *
@@ -25,7 +29,8 @@
  * plain string part is the app's own words (a name, a copyright) and is written as it is.  The eyebrows and buttons
  * are kit labels.  Every line is written again when the language changes.
  *
- * aboutFace(face, data) → face;  data = { name, version, tagline, copyright, licence, thanks, team, made, type, home, dump } */
+ * aboutFace(face, data) → face;  data = { name, version, tagSplit, tagline, taglines, copyright, licence, thanks, teamTitle, team, made,
+ *                                         makers, type, home, dump } */
 import { el, label } from '../kit.js';
 import { t, onLanguage } from '../core/i18n.js';
 
@@ -58,6 +63,7 @@ export function richText(node, line) {
   const parts = Array.isArray(line) ? line : [line];
   for (const part of parts) {
     if (Array.isArray(part)) { link(node, part); continue; }
+    if (part && typeof part === 'object' && part.sup != null) { const s = document.createElement('sup'); s.textContent = String(part.sup); node.appendChild(s); continue; }
     if (part && typeof part === 'object' && typeof part.t === 'string') {
       /* a sentence with its links as {vars}: the plain vars are substituted by t(), the link vars are cut out here */
       const v = part.vars || {}, plain = {};
@@ -78,14 +84,19 @@ export function aboutFace(face, data = {}) {
   const logo = el('div', 'nb-logo', face); logo.setAttribute('aria-label', name);
   label(el('div', 'ab-eyebrow', face), 'ABOUT');
   const v = el('div', 'ab-version', face);
-  if (data.version) { const i = data.version.indexOf(' · '); el('span', 'ab-tag', v, i < 0 ? data.version : data.version.slice(0, i)); if (i >= 0) v.appendChild(document.createTextNode(data.version.slice(i))); }
-  if (data.tagline) richText(el('p', 'ab-tagline', face), data.tagline);
+  if (data.version) { const i = data.tagSplit === 'last' ? data.version.lastIndexOf(' · ') : data.version.indexOf(' · '); el('span', 'ab-tag', v, i < 0 ? data.version : data.version.slice(0, i)); if (i >= 0) v.appendChild(document.createTextNode(data.version.slice(i))); }
+  for (const line of data.taglines || (data.tagline ? [data.tagline] : [])) richText(el('p', 'ab-tagline', face), line);
   if (data.copyright) richText(el('p', 'ab-fine', face), data.copyright);
   if (data.licence !== false) richText(el('p', 'ab-fine', face), data.licence || gplLicence(name));
   el('div', 'ab-rule', face);
   if (data.thanks && data.thanks.length) { label(el('div', 'ab-eyebrow', face), 'SPECIAL THANKS'); for (const line of data.thanks) richText(el('p', 'ab-credit', face), line); }
-  if (data.team) richText(el('p', 'ab-credit ab-team', face), data.team);
-  if (data.made) richText(el('p', 'ab-credit ab-made', face), data.made);
+  if (data.team) { if (data.teamTitle) label(el('div', 'ab-eyebrow', face), data.teamTitle); richText(el('p', 'ab-credit ab-team', face), data.team); }
+  if (data.makers && data.makers.length) {
+    const m = el('div', 'ab-credit ab-made', face);
+    richText(el('span', 'ab-made-lead', m), data.made || { t: 'Made with' });
+    const k = el('div', 'ab-makers', m);
+    for (const [who, house] of data.makers) el('small', '', el('span', '', k, who), house);
+  } else if (data.made) richText(el('p', 'ab-credit ab-made', face), data.made);
   if (data.type !== false) { el('div', 'ab-rule', face); richText(el('p', 'ab-fine', face), data.type || kitType()); }
   const actions = el('div', 'ab-actions', face);
   if (data.dump !== false) { const b = label(el('button', 'nb-dump', actions), 'COPY DUMP'); b.type = 'button'; }

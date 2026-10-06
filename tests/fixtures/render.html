@@ -22,6 +22,7 @@
 <canvas id="ground" aria-hidden="true"></canvas>
 <div id="card" class="glass"></div>
 <button id="probe" type="button" class="trig"><span class="trig-l">PROBE</span></button>
+<div id="title" hidden><span class="mark">M</span></div>   <!-- the wordmark a waiting card clones (kit.device's default loading mark) -->
 <div id="rackcard"></div>
 <div id="floats"></div>
 <div id="winlayer"></div>
@@ -86,6 +87,22 @@ const folders = createFolders({ host: document.getElementById('winlayer'), app: 
   adapter: { thumbnail: () => ground }, panels: [panel], chipSide: 'left', onTab: () => {} });
 const cardView = createRenderCard({ recorder: rec, prefix: 'mirtest.render.card.', say: (t, bad) => { window.__said.push({ t, bad: !!bad, card: true }); }, save: (blob, name) => { window.__saved.push({ blob, name }); } });
 document.getElementById('rackcard').appendChild(cardView.card.root);
+/* BASINS parity, round seven: a second card with BASINS' options — opens on the app's motion, no loading mark, its own gallery handed to
+   the subject and the sections, a motion row seated under LENGTH that writes LENGTH through the panel's fields, a paint that can refuse */
+const gallery2 = { tag: 'CARD-GALLERY', selected: () => null, select: () => {} };
+const motionUi2 = { sweep: (host, { row, fields, change }) => {
+  const a = row('amount', 'How far the marker sweeps'), x = document.createElement('input'); x.type = 'number'; x.min = 0; x.max = 1; x.step = 0.05; x.value = '0.5'; x.className = 'sel sr-sel sr-record-time p7-amount'; a.appendChild(x);
+  const sp = row('speed', 'Sweeps per second', 'length'), v = document.createElement('input'); v.type = 'number'; v.min = 0.01; v.max = 100; v.step = 0.01; v.value = '1'; v.className = 'sel sr-sel sr-record-time p7-speed'; sp.appendChild(v);
+  x.addEventListener('change', change);
+  v.addEventListener('change', () => { fields.length.value = (1 / Number(v.value)).toFixed(3); fields.length.dispatchEvent(new Event('change')); window.__p7 = { fps: fields.fps.value, size: fields.size.value }; change(); });
+  return { options: () => ({ amount: Number(x.value) }), paint: () => { if (window.__breakPaint) throw new Error('This sweep cannot be flown on this device'); }, text: () => 'sweep ' + x.value };
+} };
+const card2 = createRenderCard({ recorder: rec, id: 'rackRender2', prefix: 'mirtest.render.p7.', defaults: { motion: 'sweep' }, loadingMark: false, gallery: gallery2, motionUi: motionUi2,
+  subject: { facts: (e, g) => [['GALLERY', g ? g.tag : 'none'], ['DEPTH', '10^0.0'], ['MORE', 'x']], text: () => 'p7', json: () => ({ name: 'p7.json', body: {} }) },
+  sections: (wrap, g) => { const d = document.createElement('div'); d.className = 'p7-section'; d.textContent = g ? g.tag : 'none'; wrap.appendChild(d); },
+  picture: { capture: async () => ({ w: 128, h: 72, name: 'picture.png', bytes: 4096 }), save: () => 'download', stale: () => false, size: () => ({ w: 128, h: 72 }) },
+  say: (t, bad) => { window.__said.push({ t, bad: !!bad, card: 2 }); }, save: (blob, name) => { window.__saved.push({ blob, name }); } });
+document.getElementById('rackcard').appendChild(card2.card.root);
 document.getElementById('probe').addEventListener('click', () => { window.__probe = (window.__probe || 0) + 1; });
 
 /* the arrangement: a ramp 0 → 1 on SIZE over the first four beats (value at beat b is b / 4) */
@@ -93,7 +110,7 @@ const id = tl.model.create({ targetId: 'scene.size', name: 'SIZE', value: 0, sta
 const clip = tl.model.state().clips.find((c) => c.id === id);
 tl.model.updateCurve(clip.curveId, { points: [{ t: 0, v: 0, tension: 0 }, { t: 1, v: 1, tension: 0 }] });
 mod.host.clock.setBpm(120);
-window.__R = { rec, mod, tl, folders, panel, cardView, S, slow, params };
+window.__R = { rec, mod, tl, folders, panel, cardView, card2, S, slow, params };
 window.__ready = true;
 </script>
 </body>

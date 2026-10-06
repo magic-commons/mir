@@ -226,6 +226,34 @@ try {
   const flip = await get(`(() => { const s = __C.list.stripOf(__C.list.items()[0].id).el.getBoundingClientRect(), p = __C.list.nodeOf(__C.list.items()[0].id).getBoundingClientRect(); return s.right <= p.left + 1; })()`);
   L.ck(flip, 'on the left rack the chips mirror to the left of the pane', {});
 
+  /* BASINS parity, round seven (BASINS' COLOUR window, measured on it 2026-10-06): a stepper in an item's pane is BASINS' blend; + ADD
+     is in the look's corner with the pane's shadow and wears the pane's material under TINTED and FROST; the rows stand 5 + 7 px above it */
+  await page.evaluate(async () => {
+    if (!document.querySelector('link[href$="controls/controls.css"]')) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '../mir/controls/controls.css'; await new Promise((r) => { l.onload = r; l.onerror = r; document.head.prepend(l); }); }   // the stepper's own sheet, as BASINS links it
+    const { stepper } = await import('../mir/controls/stepper.js'); const pane = __C.list.nodeOf(__C.list.items()[0].id);
+    __C.blend = stepper({ aria: 'Blend', cls: 'blend', items: [{ id: 'normal', label: 'NORMAL' }, { id: 'add', label: 'ADD' }, { id: 'screen', label: 'SCREEN' }], value: 'normal', onChange: (v) => { __C.blendSeen = v; } });
+    __C.blend.root.style.gridColumn = '1 / -1'; pane.appendChild(__C.blend.root); return 0; });   // the lane's grid seats it across (BASINS: 150 px)
+  await sleep(80);
+  const face = await get(`(() => { const r = __C.blend.root, cs = (n) => getComputedStyle(n), name = r.querySelector('.mir-step-name'), b = r.querySelector('.mir-step-b'), row = r.querySelector('.mir-step-row');
+    const add = __C.list.root.querySelector('.mir-list-add'), rows = __C.list.root.querySelector('.mir-list-rows').getBoundingClientRect(), addrow = __C.list.root.querySelector('.mir-list-addrow').getBoundingClientRect();
+    return { nameSize: cs(name).fontSize, nameInk: cs(name).color, nameMinH: cs(name).minHeight, bRadius: cs(b).borderRadius, bGlyph: cs(b).fontSize, bW: cs(b).width, bH: cs(b).height, stepB: cs(r).getPropertyValue('--step-b').trim(), row: cs(row).display + ' ' + cs(row).justifyContent + ' ' + cs(row).columnGap,
+      addRadius: cs(add).borderRadius, surfaceRadius: cs(document.body).getPropertyValue('--surface-radius').trim() || cs(document.body).getPropertyValue('--card-r').trim(), addShadow: cs(add).boxShadow, foot: Math.round(addrow.top - rows.bottom) }; })()`);
+  L.ck(face.nameSize === '8px' && face.nameMinH === '0px' && face.bRadius === '3px' && face.bGlyph === '22px' && face.bW === face.bH && face.row === 'flex space-between 2px',
+    'a stepper in a pane is BASINS\' blend: an 8 px name, square arrows (the touch seat) in the 3 px corner with a 22 px glyph, the row across the pane', face);
+  L.ck(face.addRadius === face.surfaceRadius && face.foot === 12, '+ ADD is in the look\'s corner, 12 px under the rows (5 + 7)', face);
+  const tintedAdd = await get(`(() => { const b = document.body, was = [b.dataset.card, b.className]; const add = __C.list.root.querySelector('.mir-list-add'), out = {};
+    b.dataset.card = 'tinted'; b.classList.remove('frost'); out.tinted = getComputedStyle(add).backgroundColor;
+    b.classList.add('frost'); b.classList.remove('frost-hold'); out.frost = getComputedStyle(add).backgroundColor; out.frostFilter = getComputedStyle(add).backdropFilter;
+    b.classList.add('frost-hold'); out.holdFilter = getComputedStyle(add).backdropFilter;
+    b.dataset.card = was[0]; b.className = was[1]; return out; })()`);
+  const alpha = (c) => { const m = /rgba?\(([^)]+)\)/.exec(c || ''); const v = m ? m[1].split(',').map(Number) : []; return v.length === 4 ? v[3] : 1; };
+  L.ck(Math.abs(alpha(tintedAdd.tinted) - 0.84) < 0.03 && Math.abs(alpha(tintedAdd.frost) - 0.58) < 0.01 && /blur/.test(tintedAdd.frostFilter) && tintedAdd.holdFilter === 'none',
+    '+ ADD wears the pane\'s material: the TINTED fill (.84), thinner under FROST (.58) with FROST\'s filter, none while frost holds', tintedAdd);
+  const nb = await pt(`__C.blend.root.querySelectorAll('.mir-step-b')[1]`);
+  L.ck(await hitIs(nb.x, nb.y, `__C.blend.root.querySelectorAll('.mir-step-b')[1]`), 'the pane stepper\'s › is what a hand presses (elementFromPoint)', nb);
+  await page.mouse.click(nb.x, nb.y); await sleep(60);
+  L.ck((await get('__C.blendSeen')) === 'add', 'a press on › steps the blend', await get('__C.blendSeen'));
+
   /* every press was a hit test */
   const bad = presses().filter((p) => /nothing|body$|html$/.test(p.at));
   L.ck(bad.length === 0, 'every mouse press landed on a control (the rig hit-tests each one)', bad.slice(0, 3));

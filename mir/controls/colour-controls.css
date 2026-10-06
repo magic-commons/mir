@@ -58,6 +58,8 @@ body[data-theme="light"] :is(.k-arcknob, .mir-swatch-seat) { --arc-groove: hsl(0
   --list-rail-gap: 4px;
   --list-add-pad: 18px;                                          /* the + ADD pill */
   --list-add-min: 96px;
+  --list-foot-gap: 5px;                                          /* the rows to the + ADD row: this, then the islands' gap (BASINS' 5 + 7) */
+  --list-step-glyph: 22px;                                       /* a pane's stepper arrows: BASINS' blend, 44 px squares with a 22 px glyph */
   --list-drag-fade: .55;                                         /* the pane of the row under the hand */
   --list-glide: var(--motion-micro);                             /* the rows it passes glide out of its way */
 }
@@ -140,7 +142,7 @@ body[data-theme="light"] :is(.k-arcknob, .mir-swatch-seat) { --arc-groove: hsl(0
 .mir-chipstrip .mir-chip .mir-chip-sure { color: var(--bad); font-size: var(--chipstrip-sure-size); font-weight: var(--w-bold); line-height: 1; letter-spacing: var(--chipstrip-sure-track); text-transform: none; }
 
 /* ── THE SORTABLE LIST: a pane per item, the chips on the rack's outer edge, + ADD at the foot ────────────────── */
-.mir-list { display: flex; flex-direction: column; gap: var(--list-gap); min-width: 0; }
+.mir-list { display: flex; flex-direction: column; gap: var(--list-foot-gap); min-width: 0; }
 .mir-list-rows { display: flex; flex-direction: column; gap: var(--list-gap); }
 .mir-list-item { display: grid; grid-template-columns: minmax(0, 1fr) var(--list-rail); gap: var(--list-rail-gap); align-items: center; }
 .mir-list-item { transition: transform var(--list-glide) var(--ease-out); }
@@ -148,20 +150,37 @@ body[data-theme="light"] :is(.k-arcknob, .mir-swatch-seat) { --arc-groove: hsl(0
 .mir-list-item.dragging > .mir-list-pane { opacity: var(--list-drag-fade); }
 .mir-list-rows.settling > .mir-list-item { transition: none; }
 /* the DOM keeps the rail first (the grip is the first tab stop); only the grid moves it: on the right of the pane on the
-   right rack and in a floating window, on the left of it on the left rack and on a phone (whose one rack is on the left) */
+   right rack and in a floating window, on the left of it on the left rack and on a phone (whose one rack is on the left).
+   The rack is read by its behaviour hook, [data-mir-rack], which the kit's racks and an app's adopted ones both carry
+   (BASINS' #rackL wears no kit look class, so `.mir-rack` never reached it) */
 .mir-list-item > .mir-chipstrip { grid-column: 2; grid-row: 1; }
 .mir-list-item > .mir-list-pane { grid-column: 1; grid-row: 1; min-width: 0; }
-.mir-rack[data-side="left"] .mir-list:not([data-side="right"], [data-axis="x"]) > .mir-list-rows > .mir-list-item, body.phone .mir-list:not([data-side="right"], [data-axis="x"]) > .mir-list-rows > .mir-list-item, .mir-list[data-side="left"]:not([data-axis="x"]) > .mir-list-rows > .mir-list-item {
+[data-mir-rack][data-side="left"] .mir-list:not([data-side="right"], [data-axis="x"]) > .mir-list-rows > .mir-list-item, body.phone .mir-list:not([data-side="right"], [data-axis="x"]) > .mir-list-rows > .mir-list-item, .mir-list[data-side="left"]:not([data-axis="x"]) > .mir-list-rows > .mir-list-item {
   grid-template-columns: var(--list-rail) minmax(0, 1fr); }
-.mir-rack[data-side="left"] .mir-list:not([data-side="right"], [data-axis="x"]) > .mir-list-rows > .mir-list-item > .mir-chipstrip, body.phone .mir-list:not([data-side="right"], [data-axis="x"]) > .mir-list-rows > .mir-list-item > .mir-chipstrip, .mir-list[data-side="left"]:not([data-axis="x"]) > .mir-list-rows > .mir-list-item > .mir-chipstrip { grid-column: 1; }
-.mir-rack[data-side="left"] .mir-list:not([data-side="right"], [data-axis="x"]) > .mir-list-rows > .mir-list-item > .mir-list-pane, body.phone .mir-list:not([data-side="right"], [data-axis="x"]) > .mir-list-rows > .mir-list-item > .mir-list-pane, .mir-list[data-side="left"]:not([data-axis="x"]) > .mir-list-rows > .mir-list-item > .mir-list-pane { grid-column: 2; }
+[data-mir-rack][data-side="left"] .mir-list:not([data-side="right"], [data-axis="x"]) > .mir-list-rows > .mir-list-item > .mir-chipstrip, body.phone .mir-list:not([data-side="right"], [data-axis="x"]) > .mir-list-rows > .mir-list-item > .mir-chipstrip, .mir-list[data-side="left"]:not([data-axis="x"]) > .mir-list-rows > .mir-list-item > .mir-chipstrip { grid-column: 1; }
+[data-mir-rack][data-side="left"] .mir-list:not([data-side="right"], [data-axis="x"]) > .mir-list-rows > .mir-list-item > .mir-list-pane, body.phone .mir-list:not([data-side="right"], [data-axis="x"]) > .mir-list-rows > .mir-list-item > .mir-list-pane, .mir-list[data-side="left"]:not([data-axis="x"]) > .mir-list-rows > .mir-list-item > .mir-list-pane { grid-column: 2; }
 /* axis 'x' (strips): the items side by side in one island pane, each one's chips under it, whatever the rack's side */
 .mir-list[data-axis="x"] > .mir-list-rows { flex-direction: row; }
 .mir-list[data-axis="x"] > .mir-list-rows > .mir-list-item { grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr auto; justify-items: center; align-items: stretch; }
 .mir-list[data-axis="x"] > .mir-list-rows > .mir-list-item > .mir-list-pane { grid-column: 1; grid-row: 1; width: 100%; }
 .mir-list[data-axis="x"] > .mir-list-rows > .mir-list-item > .mir-chipstrip { grid-column: 1; grid-row: 2; }
-/* + ADD: a centred pill under the last item, the kit's trigger with the pill's corner; it dims at the cap */
-.mir-list-addrow { display: flex; justify-content: center; }
-.mir-list-addrow > .trig.mir-list-add { border-radius: var(--r-pill); padding: 0 var(--list-add-pad); min-width: var(--list-add-min); }
+/* + ADD: a centred pill under the last item, in the look's corner; it dims at the cap.  It floats outside the panes, so it wears
+   their material: the TINTED fill (thinner under FROST), and FROST's filter (none while frost holds), BASINS colour.css:65–66 and
+   material.css:154–161.  A press shows the trigger's own pressed face.  Its relief stays the trigger's raise: BASINS gives it the
+   pane's float shadow, which INTENT forbids on a button ("a pane floats; a button does not"), so that one line is not taken. */
+.mir-list-addrow { display: flex; justify-content: center; margin-top: var(--list-gap); }
+.mir-list-addrow > .trig.mir-list-add { border-radius: var(--surface-radius, var(--card-r)); padding: 0 var(--list-add-pad); min-width: var(--list-add-min);
+ }
+body[data-card="tinted"] .mir-list-addrow > .trig.mir-list-add:not(:active) { background-color: hsl(var(--glass-tint) / var(--card-opacity)); background-image: none; }
+body.frost[data-card="tinted"] .mir-list-addrow > .trig.mir-list-add:not(:active) { background-color: hsl(var(--glass-tint) / var(--frost-opacity)); }
+body.frost:not(.frost-hold) .mir-list-addrow > .trig.mir-list-add { -webkit-backdrop-filter: var(--frost-filter); backdrop-filter: var(--frost-filter); }
+
+/* a stepper in an item's pane (BASINS' blend, colour.css:59–63): it spans the pane, its name is the micro size in the key ink, its
+   arrows are squares in the small corner with a large glyph */
+.mir-list-pane .mir-step { min-width: 0; align-items: stretch; }
+.mir-list-pane .mir-step-row { display: flex; justify-content: space-between; gap: 2px; }
+.mir-list-pane .mir-step-name { flex: 1; min-width: 0; min-height: 0; padding: 0; border-radius: var(--r-xs); text-align: center; font-size: var(--fs-micro); letter-spacing: var(--tr-wide); color: var(--ink-key); }
+.mir-list-pane .mir-step-text { font-size: var(--fs-micro); letter-spacing: var(--tr-wide); color: var(--ink-key); }
+.mir-list-pane .mir-step-b { border-radius: var(--r-xs); font: var(--list-step-glyph)/1 var(--font-ui); color: var(--ink-key); }
 
 }   /* end @layer mir.kit.plugin.host */

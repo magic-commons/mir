@@ -6,6 +6,7 @@
  *   restoreAssets(read, { store }) → Promise<{ restored, skipped, written }>   writes them; a failure rolls back what it wrote
  *   rollbackAssets(written, { store })     deletes assets this open added (never one that was already there)
  *   projectAssetIds(project) → [id]        the ids a project names: its `assets` part's manifest and its timeline's audio curves
+ *   zipProject({ entry, parts, capture, untitled }) → Promise<{ name, project }>   what SAVE AS ZIP writes (below)
  *
  * THE ZIP (docs/FORMAT.md): `project.json` (the project's data, plus `name`) · `assets/audio/<id>.<ext>` (the file's own
  * bytes, stored not deflated) · `assets/audio/<id>.json` (its analysis: peaks as base64).  The same layout BASINS made, so a
@@ -28,6 +29,16 @@ export function projectAssetIds(project) {
   for (const tl of timelines) for (const c of Array.isArray(tl?.curves) ? tl.curves : []) if (c && c.kind === 'audio') take(c.assetId);
   for (const m of [project?.parts?.assets, project?.assets]) for (const a of Array.isArray(m?.audio) ? m.audio : []) take(a && a.id);
   return [...ids];
+}
+
+/** zipProject({ entry, parts, capture, untitled }) — what SAVE AS ZIP writes: the LIVE project, named after the entry the gallery
+ *  shows (selected or open), else `untitled` (BASINS' UNTITLED; never the name field's proposal, which is the app's default name,
+ *  BASINS' FRACTAL).  The project's data is `parts()` when the app hands its project parts (FOLDERS `zip: { parts }`: BASINS'
+ *  session, read with no engine up), else `capture().payload` (the adapter's capture, which may need the engine for its thumbnail). */
+export async function zipProject({ entry = null, parts = null, capture, untitled = 'UNTITLED' } = {}) {
+  const data = typeof parts === 'function' ? await parts() : (await capture()).payload;
+  const name = entry && entry.name ? entry.name : untitled;
+  return { name, project: { ...(data && typeof data === 'object' && !Array.isArray(data) ? data : {}), name } };
 }
 
 /** projectZip(project, { store, ids }) — project.json plus every asset the project names (those the store lacks are left out) */

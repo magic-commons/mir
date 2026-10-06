@@ -87,15 +87,20 @@ Pointer, wheel, click and key events are swallowed for the run's length. **Escap
 
 ## The panel and the rack card
 
-`renderPanel(options)` is a panel for `createFolders({ panels })` (id `render`, glyph `render`); `createRenderCard(options)` is a `kit.device` holding the same rows (`data-seat="card"` gives BASINS' compact rack-card sizes); `createRenderView(parent, options)` puts them anywhere. The rows are BASINS': SUBJECT (this view or the inspected project: name, key facts, VIEW DETAILS, COPY, JSON), IMAGE (FORMAT, CAPTURE IMAGE, DOWNLOAD IMAGE: two taps so the save runs inside a tap on iPad), DETERMINISTIC RENDER (motion, format, size, fps, length, start at, modulation, timeline, the estimate, RENDER, PREVIEW FIRST 3 SECONDS, progress with CANCEL, the finished files, the stored renders), CHECK (RUN SELF-TEST), then whatever `sections(wrap)` adds. The app's own parts arrive as options:
+`renderPanel(options)` is a panel for `createFolders({ panels })` (id `render`, glyph `render`); `createRenderCard(options)` is a `kit.device` holding the same rows (`data-seat="card"` gives BASINS' compact rack-card sizes); `createRenderView(parent, options)` puts them anywhere. The rows are BASINS': SUBJECT (this view or the inspected project: name, key facts, VIEW DETAILS, COPY, JSON), IMAGE (FORMAT, CAPTURE IMAGE, DOWNLOAD IMAGE: two taps so the save runs inside a tap on iPad), DETERMINISTIC RENDER (motion, format, size, fps, length, start at, modulation, timeline, the estimate, RENDER, PREVIEW FIRST 3 SECONDS, progress with CANCEL, the finished files, the stored renders), CHECK (RUN SELF-TEST), then whatever `sections(wrap, gallery)` adds. The app's own parts arrive as options:
 
 | Option | For |
 |---|---|
-| `subject: { facts(entry), text(entry), json(entry), name? }` | the SUBJECT block (BASINS: the fractal's position and depth); omit it and there is none |
+| `subject: { facts(entry, gallery), text(entry, gallery), json(entry, gallery), name?(entry, gallery) }` | the SUBJECT block (BASINS: the fractal's position and depth); omit it and there is none. Each is handed the view's own gallery (the window's, or the rack card's), so one subject serves both |
 | `picture: { capture(), save(held), stale(held), size(), formats?, format?(), setFormat?() }` | the IMAGE block; the same adapter FOLDERS' `capturePicture` / `savePicture` / `pictureStale` take |
-| `motionUi: { zoom: (host, { row, change }) → { options(), paint?(plan), text?(plan) } }` | the rows of an app's own motion (BASINS: ZOOM's route and speed); shown only while it is chosen, `options()` becomes `motionOptions` |
+| `motionUi: { zoom: (host, { row, fields, change }) → { options(), paint?(estimate), text?(estimate) } }` | the rows of an app's own motion (BASINS: ZOOM's route and speed); shown only while it is chosen, `options()` becomes `motionOptions`. `row(text, tip, at)` seats a row under MOTION, or under the panel row `at` names (`'format'`, `'size'`, `'fps'`, `'length'`, `'start'`, `'modulation'`, `'timeline'`: BASINS' SPEED is `at: 'length'`). `fields` is `{ length, size, fps }`, the panel's own inputs (SPEED sets LENGTH: write `length.value`, then dispatch `change`). A `paint` that throws refuses the run: RENDER stays off and the thrown sentence is the estimate row |
+| `defaults: { fps, motion }` | the first choices before anything is stored (default 30 FPS, STILL; BASINS: its FPS, `motion: 'zoom'`) |
+| `sections(wrap, gallery)` | the app's own sections after CHECK (BASINS: SETTINGS & FILES) |
+| `loadingMark` | `createRenderCard` only: the card's waiting mark, as `kit.device` takes it (`false`: none, BASINS' card) |
 | `prefix` | the storage keys' prefix (BASINS: `mandel.record.`) |
 | `say(text, warn)`, `save(blob, name)` | a toast; handing a file over (default: the share sheet on iPad, else an anchor download) |
+
+`view.state()` is what a harness reads: `{ motion, motions: [[id, label]], format, size, fps, estimate, status, progress, running, plan, held, done }`, where `plan` is `{ frames, startFrame, fps, range }` (null while the rows refuse), `held` the picture made (`{ w, h, bytes }`) and `done` the finished film's first file (`{ name, bytes }`, until DISCARD RENDER).
 
 The panel repaints when it is shown, when the timeline's model changes (the active range is in it), on resize and on every choice. The selection range (not in the model) is read at paint and at press.
 

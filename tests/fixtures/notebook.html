@@ -19,7 +19,14 @@ import { createNotebook } from '../../mir/shell/notebook.js';
 const q = new URLSearchParams(location.search);
 if (q.has('reset')) { try { for (const k of Object.keys(localStorage)) if (k.startsWith('mir.test.nb')) localStorage.removeItem(k); } catch (_) {} }
 const nb = createNotebook({ host: document.getElementById('stage'), name: 'TEST', storageKey: 'mir.test.nb', keyLabel: 'J',
-  ...(q.has('about') ? { aboutSize: { w: 400, h: 500 } } : {}) });
+  ...(q.has('about') ? { aboutSize: { w: 400, h: 500 } } : {}),
+  /* ?basins: BASINS' ABOUT words through the kit's data (two taglines, a superscript, the team's eyebrow, the makers, its build line)
+     and its ▤, a face that runs an action instead of flipping */
+  ...(q.has('basins') ? { faces: [{ id: 'projects', glyph: '▤', label: 'projects', title: 'projects', run: () => { window.__ran = (window.__ran || 0) + 1; } }],
+    about: { version: 'MANDELBROT · BASINS · 2026-09-26', tagSplit: 'last',
+      taglines: ['Explore, animate and perform inside z² + c.', ['GPU zoom beyond 10', { sup: '500' }, ', minibrot tracking and live palette modulation.']],
+      teamTitle: 'Independent research & Assistance', team: 'Seth Shultz · Beatriz Erranté',
+      makers: [['Claude', 'Anthropic'], ['Gemini', 'Google DeepMind'], ['GPT', 'OpenAI']] } } : {}) });
 window.__NB = nb;
 </script>
 </body>

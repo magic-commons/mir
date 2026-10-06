@@ -9,7 +9,7 @@ import { audioSource } from '../mir/timeline/audio-kind.js';
 import { analyseAudio } from '../mir/timeline/audio-analysis.js';
 import { createAssetStore, assetId, toBase64, fromBase64 } from '../mir/core/assets.js';
 import { readStoredZip, StoredZip } from '../mir/core/zip.js';
-import { projectZip, readProjectZip, restoreAssets, rollbackAssets, projectAssetIds } from '../mir/folders/zip.js';
+import { projectZip, readProjectZip, restoreAssets, rollbackAssets, projectAssetIds, zipProject } from '../mir/folders/zip.js';
 
 const store = createAssetStore({ name: 'test-assets' });             // no IndexedDB in node: the memory fallback, the same API
 
@@ -86,4 +86,11 @@ await assert.rejects(() => restoreAssets(two, { store: flaky }), /quota/);
 assert.deepEqual(await flaky.list(), [], 'the first asset this call wrote was given back');
 await store.put({ id: 'a1'.repeat(16), peaks: [] }, Uint8Array.from([1])); await rollbackAssets(['b2'.repeat(16)], { store });
 assert.deepEqual((await store.list()).includes('a1'.repeat(16)), true, 'rollback deletes only the ids it was given');
-console.log('audio zip: the store by content hash, project + asset round trip, a second import skips, a tampered zip refused by its CRC, a swapped asset rejected, a failed write rolled back pass.');
+// SAVE AS ZIP's project (BASINS parity, round seven): the app's parts need no capture (no engine); an unopened project is UNTITLED, not
+// the app's default name; a shown entry names the live project
+let captured = 0; const capture = async () => { captured++; return { payload: { look: 'captured' } }; };
+const live = await zipProject({ entry: null, parts: () => ({ timeline: { clips: [] }, look: 'session' }), capture });
+assert.deepEqual([live.name, live.project.name, live.project.look, captured], ['UNTITLED', 'UNTITLED', 'session', 0], 'parts() is the project, read with no capture; an unopened project is UNTITLED');
+const named = await zipProject({ entry: { name: 'PEAS IN A POD', payload: { look: 'saved' } }, capture });
+assert.deepEqual([named.name, named.project.look, captured], ['PEAS IN A POD', 'captured', 1], 'without parts the live capture is the project, named after the entry shown');
+console.log('audio zip: the store by content hash, project + asset round trip, a second import skips, a tampered zip refused by its CRC, a swapped asset rejected, a failed write rolled back, SAVE AS ZIP\'s project (parts, UNTITLED) pass.');

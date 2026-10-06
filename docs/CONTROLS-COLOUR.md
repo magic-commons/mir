@@ -61,7 +61,7 @@ The rail's round discs (`.mir-chip`: the same faces, the same ladder of card sty
 
 `sortableList({ items, build, onMove, onRemove, onAdd, cap = 8, min = 1, noun = 'item', addLabel = '+ ADD', side = 'auto', armMs, material, axis = 'y' })` → `{ root, rows, add(), items(), setItems(items), rebuild(), move(id, to), remove(id), nodeOf(id), stripOf(id), count(), destroy() }`.
 
-One pane per item (`data-mir-surface="island"`, so CARD STYLE and FROST paint it as a window's body card), a grip over an armed × on a chip strip beside it, and a centred `+ ADD` pill at the foot. `axis: 'x'` (1.5.0-alpha.14) lays the items side by side as strips: one island pane holds them all, each item's chip strip sits under it whatever the rack's side, the drag runs along x and ← → move an item (flipped under `direction: rtl`; ↑ ↓ still work). The LANES panel's strips are this.
+One pane per item (`data-mir-surface="island"`, so CARD STYLE and FROST paint it as a window's body card), a grip over an armed × on a chip strip beside it, and a centred `+ ADD` pill at the foot. The pill is drawn as BASINS' COLOUR window draws it: the look's corner (`--surface-radius`) and, because it floats outside the panes, their material: the TINTED fill (`--frost-opacity` under FROST) and FROST's filter (none while frost holds); its relief stays the trigger's raise (BASINS gives it the pane's float shadow, which INTENT forbids on a button). The rows stand 5 px (`--list-foot-gap`) and the islands' gap above it. A `stepper` inside an item's pane is BASINS' blend: it spans the pane, its name is the micro size in the key ink, and its arrows are 44 px squares in the small corner with a 22 px glyph (`--list-step-glyph`). `axis: 'x'` (1.5.0-alpha.14) lays the items side by side as strips: one island pane holds them all, each item's chip strip sits under it whatever the rack's side, the drag runs along x and ← → move an item (flipped under `direction: rtl`; ↑ ↓ still work). The LANES panel's strips are this.
 
 | | |
 |---|---|
@@ -70,7 +70,7 @@ One pane per item (`data-mir-surface="island"`, so CARD STYLE and FROST paint it
 | `onMove(id, to)` | `false` refuses and the list goes back |
 | the × | the first tap arms it ("sure?", 2.6 s), the second removes; it is disabled while the list holds `min` items. `onRemove(id)` returning `false` refuses |
 | `+ ADD` | `onAdd()` returns the new item (appended); it **dims at `cap`** and its hint says `n of cap` |
-| `side` | `'auto'`: the chips on the rack's OUTER edge: right of the pane on the right rack and in a floating window, left on the left rack and on a phone; `'left'` / `'right'` force it |
+| `side` | `'auto'`: the chips on the rack's OUTER edge: right of the pane on the right rack and in a floating window, left on the left rack and on a phone; `'left'` / `'right'` force it. The rack is read by `[data-mir-rack][data-side]`, which an app's adopted rack carries too (BASINS' `#rackL`) |
 
 ## The laws they keep
 

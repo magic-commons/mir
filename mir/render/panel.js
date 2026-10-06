@@ -18,16 +18,29 @@
  *
  * options
  *   recorder   the createRecorder() handle (required)
- *   subject    { facts(entry | null) → [[label, value], …] (the first two are the key facts, the rest are VIEW DETAILS),
- *                name?(entry) → string, text(entry | null) → string (COPY), json(entry | null) → { name, body } (JSON) }
+ *   subject    { facts(entry | null, gallery) → [[label, value], …] (the first two are the key facts, the rest are VIEW DETAILS),
+ *                name?(entry, gallery) → string, text(entry | null, gallery) → string (COPY), json(entry | null, gallery) → { name, body }
+ *                (JSON) }: each is handed the view's own gallery, so one subject serves the window and the rack card
  *   picture    { capture() → Promise<held { w, h, name, bytes, settled? }>, save(held) → 'share' | 'download', stale(held) → bool,
  *                size() → { w, h }, formats?: [{ id, label }], format?(), setFormat?(id) }
- *   motionUi   { [motionId]: (host, tools) → { root, options() → motionOptions, paint(plan?), text(plan) → string } } the app's rows for
- *                its own motion (BASINS: ZOOM's route and speed); the view shows `root` only while that motion is chosen
+ *   motionUi   { [motionId]: (host, tools) → { options() → motionOptions, paint(estimate), text(estimate) → string } } the app's rows
+ *                for its own motion (BASINS: ZOOM's route and speed), shown only while that motion is chosen.  tools:
+ *                  row(text, tip, at?)   a row; `at` seats it under one of the panel's own rows ('motion' — the default — 'format',
+ *                                        'size', 'fps', 'length', 'start', 'modulation', 'timeline'): BASINS' SPEED sits under LENGTH
+ *                  fields { length, size, fps }   the panel's own inputs (SPEED → LENGTH reads and writes them; a write is followed
+ *                                        by a 'change' event the caller dispatches)
+ *                  change()   repaint the estimate        el, label, prefix
+ *                `paint` may throw a sentence: RENDER then stays off and the sentence is the estimate row (a ZOOM the device
+ *                cannot fly), as BASINS' panel had it
  *   gallery    the FOLDERS gallery (api.gallery): `selected()` and `select(null)` for the subject
  *   say(text, warn)   a toast        save(blob, name)   hand a file over (default: an anchor download, the share sheet on iPad)
- *   prefix     the storage keys' prefix (BASINS: "mandel.record."); defaults { fps: 30 }
- *   seat       'window' | 'card'      sections(wrap)   the app's own sections, after CHECK
+ *   prefix     the storage keys' prefix (BASINS: "mandel.record."); defaults { fps: 30, motion: 'still' } (BASINS: motion 'zoom'):
+ *              the first run's choices; a stored one wins
+ *   seat       'window' | 'card'      sections(wrap, gallery)   the app's own sections, after CHECK
+ *   loadingMark   createRenderCard only: the card's waiting mark (kit.device; false: none, as BASINS' card had)
+ * view.state() → { motion, motions: [[id, label]], format, size, fps, estimate, status, progress, running,
+ *                  plan: { frames, startFrame, fps, range } | null (null while the rows refuse), held: { w, h, bytes } | null,
+ *                  done: { name, bytes } | null (the finished film's first file, until DISCARD) }
  * Every row is a kit control or a native select, hit-testable; touch targets are 44 px. */
 import { el, label, ariaLabel, hint, trig, seg, device } from '../kit.js';
 import { glyphEl } from '../glyph.js';
@@ -57,14 +70,14 @@ export function createRenderView(parent, o = {}) {
     subject.textContent = '';
     const e = o.gallery ? o.gallery.selected() : null;
     const head = el('div', 'sr-subject-head', subject);
-    const name = e ? (o.subject.name ? o.subject.name(e) : e.name) : t('THIS VIEW');
+    const name = e ? (o.subject.name ? o.subject.name(e, o.gallery || null) : e.name) : t('THIS VIEW');
     el('strong', 'sr-subject-name', head, name);
     if (e) {
       const back = trig({ label: 'THIS VIEW', cls: 'sv-act sr-back', title: ['Stop inspecting {name} and describe the live view again', { name: e.name }], onFire: () => { o.gallery.select(null); paintSubject(); } });
       head.appendChild(back.root);
     }
     const verbs = el('div', 'sr-verbs', subject);
-    const rows = o.subject.facts(e) || [];
+    const rows = o.subject.facts(e, o.gallery || null) || [];
     const summary = el('div', 'sr-subject-summary', subject);
     for (const [k, v] of rows.slice(0, 2)) { const f = el('div', 'sr-keyfact', summary); label(el('span', 'sr-label', f), k); el('b', 'sr-value', f, String(v)); }
     const details = el('details', 'sr-view-details', subject);
@@ -72,13 +85,13 @@ export function createRenderView(parent, o = {}) {
     label(el('summary', 'sr-detail-toggle', details), 'VIEW DETAILS');
     for (const [k, v] of rows.slice(2)) { const r = el('div', 'sr-row', details); label(el('span', 'sr-label', r), k); el('b', 'sr-value', r, String(v)); }
     const copyBtn = trig({ label: 'COPY', cls: 'sv-act', title: 'Copy the exact centre, zoom and rotation as text', onFire: async () => {
-      let ok = false; const text = o.subject.text(o.gallery ? o.gallery.selected() : null);
+      let ok = false; const text = o.subject.text(o.gallery ? o.gallery.selected() : null, o.gallery || null);
       try { await navigator.clipboard.writeText(text); ok = true; } catch (_) { /* the textarea fallback */ }
       if (!ok) { const ta = el('textarea', '', document.body); ta.value = text; ta.style.cssText = 'position:fixed;opacity:0'; ta.select(); try { ok = document.execCommand('copy'); } catch (_) { /* refused */ } ta.remove(); }
       copyBtn.setLabel(ok ? 'COPIED' : 'FAILED'); setTimeout(() => copyBtn.setLabel('COPY'), 1400);
     } });
     const fileBtn = trig({ label: 'JSON', cls: 'sv-act', title: 'Download the same numbers as a .json file', onFire: () => {
-      const j = o.subject.json(o.gallery ? o.gallery.selected() : null);
+      const j = o.subject.json(o.gallery ? o.gallery.selected() : null, o.gallery || null);
       save(new Blob([JSON.stringify(j.body, null, 1)], { type: 'application/json' }), j.name);
     } });
     for (const [button, glyph] of [[copyBtn, 'duplicate'], [fileBtn, 'projectFile']]) {
@@ -146,13 +159,7 @@ export function createRenderView(parent, o = {}) {
     label(el('span', 'sr-unit', line), unit); return x;
   };
   const motionChoices = Object.entries(rec.motions()).map(([id, m]) => [id, m.label]);
-  const motion = select('motion', 'Recording motion', motionChoices, get('motion', 'still'));
-  const motionUis = {};
-  for (const [id, build] of Object.entries(o.motionUi || {})) {
-    const holder = el('div', 'sr-motion-ui', film); holder.dataset.motion = id;
-    const ui = build(holder, { row: (text, tip) => row(holder, text, tip), el, label, change: () => { paintEstimate(); void paintPath(); }, prefix });
-    motionUis[id] = { holder, ui };
-  }
+  const motion = select('motion', 'Recording motion', motionChoices, get('motion', (o.defaults && o.defaults.motion) || 'still'));
   const isTimeline = () => motion.value === 'timeline-active' || motion.value === 'timeline-selection';
   const recFormat = select('format', 'Recording format', [['mp4', 'MP4 · HIGH BITRATE'], ['png', 'PNG FRAMES · LOSSLESS']], get('format', 'mp4'));
   const sizes = [['1080p', '1920 × 1080'], ['1440p', '2560 × 1440'], ['2160p', '3840 × 2160']];
@@ -164,6 +171,27 @@ export function createRenderView(parent, o = {}) {
   const modSelect = select('modulation', 'Recording modulation', [['off', 'OFF · FREEZE THIS LOOK'], ['on', 'ON · FROM FIRST SPACE']], get('modulation', 'off'));
   const timelineSelect = select('timeline', 'Recording Timeline automation', [['on', 'ON · FROM BEAT ZERO'], ['off', 'OFF · BYPASS AUTOMATION']], get('timeline', 'on'));
   label(el('div', 'sv-note', film), 'Modulation ON replays the rack from its first Space edge. Timeline ON replays clips from beat zero. Both skip to “start at”. With both OFF, the current look is frozen. Escape cancels.');
+  /* the app's motions: their rows are seated under MOTION, or under the panel row a row names (BASINS: SPEED under LENGTH); one
+     holder per motion and seat, shown only while that motion is chosen */
+  const seats = { motion, format: recFormat, size: recSize, fps: recFps, length: recDuration, start: recOffset, modulation: modSelect, timeline: timelineSelect };
+  const motionUis = {};
+  for (const [id, build] of Object.entries(o.motionUi || {})) {
+    const holders = new Map();
+    const holderAt = (at) => {
+      const seat = seats[at] ? at : 'motion';
+      if (!holders.has(seat)) {
+        const h = el('div', 'sr-motion-ui'); h.dataset.motion = id; if (seat !== 'motion') h.dataset.seat = seat;
+        let after = seats[seat].closest('.sr-row');
+        while (after.nextElementSibling && after.nextElementSibling.classList.contains('sr-motion-ui')) after = after.nextElementSibling;
+        after.after(h); holders.set(seat, h);
+      }
+      return holders.get(seat);
+    };
+    const host = holderAt('motion');
+    const ui = build(host, { row: (text, tip, at) => row(holderAt(at), text, tip), fields: { length: recDuration, size: recSize, fps: recFps },
+      el, label, change: () => { paintEstimate(); void paintPath(); }, prefix });
+    motionUis[id] = { holders, ui };
+  }
   const estimate = el('div', 'sv-note sr-record-estimate', film);
   const renderStatus = el('div', 'sv-note sr-record-status', film);
   const renderBtn = trig({ label: 'RENDER', cls: 'sv-act sv-wide sv-primary', onFire: () => startFilm(false) }); film.appendChild(renderBtn.root);
@@ -190,13 +218,14 @@ export function createRenderView(parent, o = {}) {
     return opts;
   };
   function paintEstimate() {
-    for (const [id, m] of Object.entries(motionUis)) m.holder.hidden = motion.value !== id;
+    for (const [id, m] of Object.entries(motionUis)) for (const h of m.holders.values()) h.hidden = motion.value !== id;
     recDuration.parentElement.hidden = recOffset.parentElement.hidden = isTimeline();
     ready = null;
     try {
-      const e = rec.estimate(runOptions(false)); ready = e;
+      const e = rec.estimate(runOptions(false));
       const ui = motionUis[motion.value] && motionUis[motion.value].ui;
-      if (ui && ui.paint) ui.paint(e);
+      if (ui && ui.paint) ui.paint(e);                 // a paint that throws refuses the run: its sentence is the estimate row
+      ready = e;
       estimate.textContent = e.size.w + ' × ' + e.size.h + ' · ' + e.plan.frames.toLocaleString() + ' ' + t('frames') + ' · ' + fmtClock(e.plan.durationS) +
         (ui && ui.text ? ' · ' + ui.text(e) : '') +
         (e.range ? ' · ' + t('beats {from} → {to} at {bpm} BPM', { from: +e.range.start.toFixed(3), to: +e.range.end.toFixed(3), bpm: +e.plan.bpm.toFixed(2) }) : '') +
@@ -274,7 +303,7 @@ export function createRenderView(parent, o = {}) {
     if (rec.running() || starting) return;
     paintEstimate();
     if (!recovery && !ready) { if (isTimeline()) say(estimate.textContent, true); return; }
-    starting = true; paintEstimate(); releasePreview(); doneFiles.textContent = ''; doneRow.hidden = true; renderStatus.textContent = '';
+    starting = true; paintEstimate(); releasePreview(); doneFiles.textContent = ''; doneRow.hidden = true; renderStatus.textContent = ''; result = null;
     let lastPaint = 0;
     const onProgress = (p) => {
       const now = performance.now();
@@ -305,11 +334,16 @@ export function createRenderView(parent, o = {}) {
     finally { runCheck.root.disabled = false; }
   } });
   check.appendChild(runCheck.root);
-  if (typeof o.sections === 'function') o.sections(wrap);
+  if (typeof o.sections === 'function') o.sections(wrap, o.gallery || null);
 
   const paint = () => { paintSubject(); paintPicture(); if (!rec.running() && !starting) paintEstimate(); void paintPath(); void paintRecoveries(); };
   paint();
-  return { root: wrap, paint, state: () => ({ motion: motion.value, format: recFormat.value, size: recSize.value, fps: recFps.value, estimate: estimate.textContent, status: renderStatus.textContent, progress: prog.textContent }),
+  const state = () => ({ motion: motion.value, motions: [...motion.options].map((op) => [op.value, op.textContent]), format: recFormat.value, size: recSize.value, fps: recFps.value,
+    estimate: estimate.textContent, status: renderStatus.textContent, progress: prog.textContent, running: rec.running(),
+    plan: ready ? { frames: ready.plan.frames, startFrame: ready.plan.startFrame, fps: ready.plan.fps, range: ready.range || null } : null,
+    held: held ? { w: held.w, h: held.h, bytes: held.bytes } : null,
+    done: result && result.files && result.files[0] ? { name: result.files[0].name, bytes: result.files[0].bytes } : null });
+  return { root: wrap, paint, state,
     controls: { motion, recFormat, recSize, recFps, recDuration, recOffset, modSelect, timelineSelect, renderBtn: renderBtn.root, previewBtn: previewBtn.root, cancel: cancel.root, runCheck: runCheck.root, lines, estimate, renderStatus, doneRow, doneFiles, recoveryRow },
     destroy() { life.abort(); offRange(); releasePreview(); wrap.remove(); } };
 }
@@ -325,7 +359,7 @@ export function renderPanel(o = {}) {
 
 /** the rack card (BASINS' `rackRender`): the same rows in a kit.device, painted when it opens */
 export function createRenderCard(o = {}) {
-  const card = device({ id: o.id || 'rackRender', eyebrow: o.eyebrow || 'RENDER', status: o.status || 'IMAGE · FILM' });
+  const card = device({ id: o.id || 'rackRender', eyebrow: o.eyebrow || 'RENDER', status: o.status || 'IMAGE · FILM', loadingMark: o.loadingMark });
   card.root.classList.add('mir-render-card');
   const view = createRenderView(card.body, { ...o, seat: 'card' });
   card.root.addEventListener('devopen', () => view.paint());

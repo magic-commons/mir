@@ -95,7 +95,7 @@ Read from BASINS (`save-window.js`, `mir-plugins/kwin/kwin.js`, `shell.js`; adop
 | `firstSeat()` / `anchor`, `top` | BASINS' seat: `anchor: 'right'`, `top: 162` | `{ x, y, h? }` for the first open. `freeSeat({ vw, vh, w, h, minH, clear, anchor, top, gutter })` is exported and pure; `anchor: 'centre'` centres the window between the racks |
 | `say(text, warn)` | the kit's notice in its toast seat | the app's own voice |
 | `download(blob, name)` | `saveBlob` (`folders/save-blob.js`: a Blob and an `<a download>`; the share sheet on iPad) | how an export leaves |
-| `zip` | on | SAVE AS ZIP… and OPEN ZIP… in the gallery's foot (`docs/AUDIO.md`, `docs/FORMAT.md`): `false` removes them; `{ store, validate(project) }` names the asset store (default `core/assets.js`) and what a project must be to be taken |
+| `zip` | on | SAVE AS ZIP… and OPEN ZIP… in the gallery's foot (`docs/AUDIO.md`, `docs/FORMAT.md`): `false` removes them; `{ store, validate(project), parts() }` names the asset store (default `core/assets.js`), what a project must be to be taken, and where SAVE AS ZIP reads the live project (`parts()`: the app's project parts, BASINS' session, with no engine needed; default the adapter's `capture`). The zip is named after the project the gallery shows, or UNTITLED (`folders/zip.js zipProject`) |
 | `picture(entry)` | the saved thumbnail | a canvas or Blob to embed the project in on EXPORT › PICTURE |
 | `defaultName`, `capChars` | `'UNTITLED'`, 2.6 M | passed to the store |
 | `parts` | none | `[{ id, label, soon? }]`: component switches (BASINS: MODULATION, COLOUR & BRIGHTNESS, POSITION, CACHE soon) |

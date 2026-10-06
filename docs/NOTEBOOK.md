@@ -114,6 +114,10 @@ Four things BASINS measured against the kit's notebook on 2026-10-02, closed to 
 
 **`notesFace({ store, glyph, label })`** → a face for `createNotebook({ faces })` (id `shelf`, glyph ▤), with `current` (the path of the note open in YOURS).
 
+**A face that runs an action.** A face in `faces` with `run(api)` and no `build` is only a button: a press calls `run` and flips nothing, and it has no face element. BASINS' ▤ is one: `{ id: 'projects', glyph: '▤', label: 'projects', title: '…', run: () => openSave() }`. A face change is a swap, never animated (BASINS measured none).
+
+**The ABOUT data** (`about`, drawn by `shell/about.js aboutFace`): `name`, `version`, `tagSplit` (`'last'`: the tag is the build line up to its last ` · `, BASINS' `MANDELBROT · BASINS · 2026-09-26`; default the first part, λWAVES'), `tagline` or `taglines` (one `.ab-tagline` per line), `copyright`, `licence`, `thanks`, `teamTitle` (an eyebrow over the team, BASINS' "Independent research & Assistance"), `team`, `made`, `makers` (`[[name, house], …]`: the "Made with" block, one name over its house, three across), `type`, `home`, `dump`. A line is a string or an array of parts; a part is a string, `[text, href]`, `{ t, vars }` or `{ sup: text }` (a superscript: `['GPU zoom beyond 10', { sup: '500' }, ', minibrot tracking …']`).
+
 ## What is not built
 
 - **The title card's design.** Josh will design the greeting's card himself. Here the greeting is only page 0, marked **0** on its tab.
