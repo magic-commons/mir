@@ -16,9 +16,8 @@ Try them all: `gallery/parts.html` (`?theme=light`, `?lang=qps`). Plates, dark a
 | `mir/shell/boot.js` | the boot card and the boot failure in plain words | NEBULA's `#bootStatus`, EARTH's link-failure voice |
 | `mir/shell/flash-guard.js` | the flash limiter, the field judge, the photosensitivity notice | POLAR and EARTH (the route-naming guard), λWAVES (the notice) |
 | `mir/shell/share-link.js` | the share-link codec | SOLEIL, AUTOMATA, EARTH, POLAR (the shape), λWAVES (the header law) |
-| `mir/shell/settings-rows.js` | a settings panel built from rows of data; the `select` and `number` fields | NEBULA (`control()` and the edit-ownership law) |
 | `mir/shell/banner.js` + `banner.css` | the banner: a persistent, dismissable pane of problems, and the reload offer | BASINS (`overlay.js report / fail / warn / offerReload`, `#banner`) |
-| `mir/shell/boot.js` `bootVeil`, `watchDevice` | the veil until the first real frame; a lost GPU offers RELOAD | BASINS (`main.js armVeil / dismissVeil`, `gpu.js` device lost) |
+| `mir/shell/boot.js` `bootVeil` | the veil until the first real frame | BASINS (`main.js armVeil / dismissVeil`, `gpu.js` device lost) |
 | `mir/shell/clipboard.js`, `menubar.js` rows | `copyText` with the textarea fallback; COPY DUMP, Purge Cache/RAM, the "coming" rows, recent projects | BASINS (`shell.js` menus, `debug.js copyDebugInfo`) |
 | `mir/core/wakelock.js` | the screen stays on while the clock plays or something records | BASINS (`wakelock.js`, node-tested) |
 
@@ -210,40 +209,9 @@ await link.copy(state); // FILE › COPY A LINK → the url
 
 **An app deletes:** `statelink.js` (SOLEIL, AUTOMATA, EARTH, POLAR: four files for one job) once its keys are written as a defaults object; the debounced `replaceState` and the COPY LINK verb.
 
-## 7. Settings rows — `mir/shell/settings-rows.js`
+## 7. Settings rows (removed)
 
-A settings panel built from rows of data, with the kit's own controls, and NEBULA's edit-ownership law.
-
-```js
-import { settingsRows } from './mir/shell/settings-rows.js';
-const panel = settingsRows(win.body, [
-  { id: 'theme', label: 'THEME', control: 'seg', options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], get: () => S.theme, set: setTheme },
-  { id: 'hints', label: 'HINTS', hint: 'show a hint when the pointer rests on a control', control: 'sw', get: () => S.hints, set: (v) => (S.hints = v) },
-  { id: 'quality', label: 'QUALITY', control: 'select', options: [{ id: 'full', label: 'FULL' }, { id: 'auto', label: 'AUTO' }], get, set },
-  { id: 'blur', label: 'GLASS BLUR', control: 'fader', min: 0, max: 40, fmt: (x) => x.toFixed(0) + ' px', get, set, when: () => S.card === 'refractive' },
-  { id: 'hue', label: 'ACCENT HUE', control: 'knob', min: 0, max: 360, wrap: true, get, set, begin: () => history.begin(), end: () => history.end() },
-  { id: 'fps', label: 'FRAME CAP', control: 'number', min: 15, max: 240, step: 1, get, set }
-], { onBegin, onEnd, onChange });
-panel.sync();   // after the engine changed something: repaints only what moved, never what is held
-```
-
-| Row field | Meaning |
-|---|---|
-| `control` | `sw` · `seg` · `fader` · `knob` (the kit's) · `select` · `number` (built here, the kit's field look) |
-| `get` / `set` | read the value; write it (the row calls `set` as the hand moves) |
-| `label`, `hint`, `options`, `min`, `max`, `step`, `log`, `wrap`, `fmt` | as the kit control takes them; `hint` becomes the control's title |
-| `when()` | the row shows only while it is true; asked again on every `sync()` |
-| `begin()` / `end()` | the edit's two ends (an undo group, an engine's `begin/end`) |
-
-| Law | How |
-|---|---|
-| Begin and end around a drag | a press or an edit key on a fader or knob begins; release, key up or focus leaving ends. A switch, segment or select change is one whole edit. A number field is held from focus to blur |
-| `sync()` skips what is held | a control under the hand is never repainted; proved with a real drag |
-| A field you type in is a well | `select.sel` (the kit's) and `.mir-num` |
-
-`selectField(o)` and `numberField(o)` are exported on their own (`{ root, input, get, set, setDisabled }`); they belong in `kit.js` and will move there.
-
-**An app deletes:** NEBULA's `control()` and `bindWidget()` (main.js:113-161) and its `.choice select` / `.number-control` CSS; SOLEIL's and EARTH's raw `<select>`s and their `--option-ink` fixes; AUTOMATA's `seg` standing in for a port list; each app's hand-built SETTINGS groups (APPEARANCE, SAFETY, WORKSPACE).
+`mir/shell/settings-rows.js` (`settingsRows`, `selectField`, `numberField`) is removed in 1.5.0-alpha.18: no app used it. A settings list is the kit's own controls (`docs/CONTROLS.md`: `sw`, `seg`, `fader`, `knob`, `select()`, `number()`).
 
 ## 8. Banner — `mir/shell/banner.js`
 
@@ -280,7 +248,7 @@ offerReload();                                  // the last honest move, once re
 <!-- first in the stage -->  <div class="mir-veil" aria-hidden="true"></div>
 ```
 ```js
-import { bootVeil, watchDevice } from './mir/shell/boot.js';
+import { bootVeil } from './mir/shell/boot.js';
 const veil = bootVeil({ ready: () => renderer.presents > 0 });   // or a Promise; asked once a frame until it holds
 // veil.stat → { firstPresentMs, dismissedMs, frames, dismissed, via, timeoutMs }
 ```
@@ -293,7 +261,7 @@ const veil = bootVeil({ ready: () => renderer.presents > 0 });   // or a Promise
 | Measured | navigation start → first present on `stat`, and a `boot veil` line in every dump |
 | A rAF chain that stops dead | it asks `ready()` once a frame and stops when it holds or times out: never a poller |
 
-**The reload offer.** `watchDevice(device, { recover })` watches a GPU device after boot. When it is lost, the app's own `recover(info)` is tried first; if it resolves true, a notice says the picture is being rebuilt. If not, the banner says what happened (the boot card's `lost` words) and offers **Reload the page**. A loss with reason `destroyed` is the app's own teardown and says nothing.
+**The reload offer.** `watchDevice` is removed in 1.5.0-alpha.18: no app used it. An app that loses its GPU device calls `offerReload()` on the banner itself.
 
 ## 10. Copy, the dump and the menu rows — `mir/shell/clipboard.js`, `mir/shell/menubar.js`
 

@@ -42,7 +42,7 @@ Every block is headed `/* FROST · values */` and closed by `/* ── end of th
 | `mir/css/skin.css` | `body[data-theme="light"]` | `--glass-hue` `--glass-sat-tint` `--glass-lum` `--glass-tint` `--glass-opacity` `--fg` `--fg-soft` `--dim` `--ink-key` `--ink-faint` `--glass-border-color` `--glass-hairline` `--glass-sheen` `--glass-well` `--glass-raise` `--glass-press` `--glass-shadow` `--surface-shadow-float` `--surface-shadow-menu` `--state-on` `--state-on-rim` `--neu-raise` `--neu-inset` `--lum-acc` `--acc` `--acc-ink` `--n1` `--n2` `--n3` `--n4` `--n5` `--n6` |
 | `mir/css/skin.css` | `@media (hover: none) and (max-width: 700px), (hover: none) and (max-height: 520px) and (max-width: 1000px) → :root` | `--phone` `--rack-w` `--rack-edge` `--top-bar` |
 | `mir/css/skin.css` | `@media (hover: none) and (max-width: 700px), (hover: none) and (max-height: 520px) and (max-width: 1000px) → :root, body[data-theme]` | `--glass-opacity` |
-| `mir/css/skin.css` | `.dev, .dev-head, .dev-body` | `--dev-carried-ring` `--dev-tab-ring` |
+| `mir/css/skin.css` | `.dev, .dev-head, .dev-body` | `--dev-tab-ring` |
 | `mir/css/skin.css` | `.k-dial, .trig` | `--state-hover-wash` |
 | `mir/css/skin.css` | `.k-dial` | `--knob-face` `--k-live-ring` |
 | `mir/css/skin.css` | `.k-val` | `--k-val-fill` |
@@ -131,7 +131,7 @@ Declared on the element that draws them (the table above gives the selector), so
 | `--badge-led-glow` | `--ok` / `--acc` / `--warn` / `--bad` | each `.badge.<status> i` |
 | `--fd-fill-color`, `--fd-pop-fill` | `--hue-acc`, `--sat-acc` (base) / `--acc` (skin); `--nc`, `--acc` | `.fd-fill` |
 | `--tip-fill`, `--k-val-fill`, `--knob-face`, `--trig-face`, `--popover-fill`, `--nb-phone-fill`, `--mb-list-veil` | `--glass-tint` (themed on `<body>`) | `#graphTip`, `.k-val`, `.k-dial`, `.trig`, the help panel and hint, `#notebook`, `.mb-list` |
-| `--cv-area`, `--cv-head-ink`, `--k-live-ring`, `--dev-carried-ring`, `--dev-tab-ring`, `--prox-fill`, `--prox-fill-capture`, `--pointer-light` | `--acc` | `.cv-fill`, `.cv-head`, `.k-dial`, `.dev, .dev-head, .dev-body`, `.mir-prox`, `.mir-glow` |
+| `--cv-area`, `--cv-head-ink`, `--k-live-ring`, `--dev-tab-ring`, `--prox-fill`, `--prox-fill-capture`, `--pointer-light` | `--acc` | `.cv-fill`, `.cv-head`, `.k-dial`, `.dev, .dev-head, .dev-body`, `.mir-prox`, `.mir-glow` |
 | `--k-ring-stack-ink` | `--acc2` | `.k-ring-stack` |
 | `--state-hover-wash` | `--state-hover`, `--glass-raise` | `.k-dial, .trig` (skin.css) and `.nb-tools button` (shell.css) |
 | `--nb-btn-line-hot` | `--acc`, `--nb-btn-line` | `.nb-dump, .ab-home` |

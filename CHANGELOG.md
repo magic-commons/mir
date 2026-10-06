@@ -1,6 +1,90 @@
 # MIR — changelog
 
-## 1.5.0-alpha.17 — 2026-10-07 · BASINS parity, round eight
+## 1.5.0-alpha.18 — 2026-10-06 · the consolidation
+
+Not released: built on branch `worktree-mir-1.5`. Nothing new: the kit is smaller. This release removes what was said twice and what nothing uses, fixes the defects that turned up while looking, and reports what BASINS' adoption of alpha.17 cost and saved at run time. No feature was added, and no option, store or file format changed except the removals named below.
+
+### Fixed
+- **One raise stack.** A floated rack card is now in the same window stack as the kit's windows, so a floated card and a window swap on each press (the card stayed under a window before), and the modulation window comes to the top when it opens (its rail tied the timeline's pane and sat under the timeline's rail). The rack keeps its own order of floating cards, so a saved layout is unchanged.
+- **`createApp` hands its history to the timeline and the pattern.** With `createApp({ history })` a timeline edit was not an undo row; now it is, and one Ctrl+Z undoes it.
+- **The modulation plugin's motion obeys the flat tier and motion off.** Its two transition times (80 and 120 ms) go to 0 under `data-ui-tier="flat"` and `data-motion="off"`; they were only cut by the system's reduced-motion setting.
+- **The clock never reads 0:60.** RENDER's estimate and the recorder's projection truncate the seconds (59.6 s reads 0:59); `render/plan.js fmtClock` is now the timeline's `formatSeconds`.
+- **The three downloads go through `saveBlob`.** DOWNLOAD SETTINGS (`prefs.download()`), the shelf's EXPORT .MD and the notebook's .MD each built their own link; they now use `folders/save-blob.js`, as FOLDERS' exports already did.
+- **The notebook's COPY has the fallback.** It called the clipboard API directly and copied nothing where that is missing; it now uses `shell/clipboard.js copyText` (the API, then the textarea).
+- **A closed modulation window does not paint its body.** Closed, a paint redraws only the routing rings on the app's own knobs, and only when forced; opening still rebuilds and paints. Measured on `gallery/modulation.html`, 40 paints closed: changes inside the window 1,260 → 0, 17.5 ms → 0.
+- **Parallax does no work per move when there is nothing to move.** It finds its elements once, then again after a press, a release or a key, and on `refresh()`; an element under a `[hidden]` ancestor is left out. 60 moves with no elements: 60 queries → 1.
+- **The timeline's readout exists only while the timeline is open** (made on open, put away on close, as the modulation window's editor readouts already were). 60 moves with the timeline closed: 60 layout reads → 0.
+- **Opening the modulation window forces no style or layout pass of its own.** One open: style recalculations 20 → 17, layouts 9 → 7. The rebuild on open is unchanged.
+- **The flaky SPACING AIRY test.** `tests/themes.browser.mjs` read the rack's geometry while the rack's own 320 ms card motion was still running. It and its kin (`timeline.browser`, `gui.browser`) now wait until every running animation has finished (`tests/settle.mjs`: two frames, then the animations, at most 3 s) instead of a fixed pause.
+
+### One copy now
+- **Colour maths**: `palette.js` holds the sRGB curve (`srgbToLinear`, `linearToSrgb`) and HSL ↔ RGB (`hslToRgb01`, `rgbToHsl`); `kit.js`, `core/look.js` and `shell/accent.js` call it.
+- **SVG elements**: `kit.js svgEl` / `svgNode`, used by the modulation window, CAMERA, CURVES and the timeline.
+- **The notebook's two keys and its inline yes / no**: `shell/notebook.js APP_KEY` and `askInline`; the shelf uses both.
+- **The hand law** (a hand on a routed control moves its base): `modulation/registry.js handWrite`, used by `createApp` and the LANES, XY, GRADE, CURVES and CAMERA panels.
+- **"Is the user typing"**: `core/pointer.js isField` (five copies before; `shell/keys.js` re-exports it).
+- **Storage**: `core/prefs.js jsonStore`, under the rack's layout, the transport's seat, the key table, the modulation, pattern and timeline records, and FOLDERS' and HISTORY's window shapes. The keys and the stored shapes are unchanged.
+- **The value drag** of the arc knob, the lane slider and the hue swatch: `controls/gesture.js valueDrag`.
+- **The grip drag** of the kit window and the modulation window: `window/window.js gripGesture`.
+- **Smaller ones**: `fmtBytes` is `render/plan.js`'; the modulation window re-exports `glyph.js setGlyph`; one nine-square builder in `wordmark.js`; FOLDERS' gallery takes `ARM_MS` from `controls/list.js`; the history list and the menubar schedule through `core/frame.js`.
+- **CSS**: each declaration said once. `modhost.css` no longer re-declares 24 `--m2-*` tokens the window sheet already sets, says each seat of a routed knob, a chip and a slot once, and reads two refractive literals from `--frost-veil-light` / `-dark`; `skin.css` drops what `base.css` already says (`base.css` still stands alone); `--z-prox` is declared once in the z ladder; `--rack-enter` reads `--dev-enter-time`; the openers and the timeline play `lw-warn-in` (three identical fades gone); seven pairs of identical rules are one rule each.
+
+### Removed (nothing used them)
+- **Options**: `createRack({ name })` (COPY's head line; BASINS passes it and it is now ignored), `createRack({ layoutExtra })` with `rack.touch()` and `readLayout`'s `extra`, `createFolders({ zip: { foot } })` and `mountGallery(el, { zip })` (the gallery-foot ZIP buttons; SAVE AS ZIP… and OPEN ZIP… stay in RENDER's FILES), `number({ editFmt })` / `bindNumber({ editFmt })`, `select({ host })` / `listPane({ host })`.
+- **Behaviour**: the rack's COPY of a window's readouts (`rack.digest`, `rack.copyDigest`, `digestText`, the 900 ms `· COPIED` flash, `RACK.copied`); `knob.setState('warn' | 'clamped')` and `knob.state` with their four rules; the modulation matrix dialog (hidden and disabled since alpha.3) with its rules and the kit select and number imports only it used.
+- **A module**: `mir/shell/settings-rows.js` (`settingsRows`, `selectField`, `numberField`), and its section of `gallery/parts.html`.
+- **Exports**: `parentOf` (folders/files.js), `inkRatio` (kit.js), `labPresetFolders` (modulation/host.js), `fireTriggers`, `releaseTriggers`, `clearTrigger`, `audioApplicationDemand`, `dormantCountOfMacro`, `setPresetFolder` (modulation/mod.js), `CHIPRAIL_LABEL` (modwindow.js), `forgetVerified` (render/encoder.js), `PLACEMENTS` (shell/transport.js), the `wireTouches` alias (controls/gesture.js), `watchDevice` (shell/boot.js). `WAVE_WORDS` stays in `modulation/window.js` but is no longer exported (its `phrase()` calls are the catalogue's only source of SAW↓, S&H and DRIFT).
+- **Inline properties**: the timeline's `--tl-quarter` and `--tl-subdivision` (no sheet read them; `--tl-beat-alpha` stays, a test reads it).
+- **Keyframes**: `mir-opener-in`, `mir-opener-card-in`, `tl-popup-in`.
+- **Token rows**: 73, 1,427 → 1,354: the 62 `proposed` rows that no sheet or script ever declared or read (the list: `.tmp/W18/S/rows_c.py`), and `--dev-carried-ring`, `--fr-r-card`, `--tl-tail-max`, `--m2-matrix-edge`, `--m2-matrix-face`, `--pane`, `--m2-r-14`, `--m2-fs-12`, `--m2-input-edge`, `--k-state-ink`, `--k-state-ring`. Five `proposed` rows stay (kit code reads them).
+- **Strings**: 13 keys only the matrix dialog reached left the catalogue and the ten packs (ADD ROUTE, BIPOLAR, UNIPOLAR, POLARITY, DESTINATION, CLOSE, MODULATION MATRIX and six sentences). 1,510 → 1,497 keys.
+- `docs/ADOPTING-1.5.md` §10 lists the removed names for an adopter.
+
+### Measured: BASINS before and after adopting alpha.17
+Headless Firefox on this machine, BASINS' fix branch before adoption (`:8920`) against the adopted branch (`:8930`), each phase run more than once:
+
+| | before | after |
+|---|---|---|
+| at rest, main thread | 3.62 ms/s | 1.15 ms/s |
+| at rest, live timers | 5 | 3 |
+| elements | 5,159 | 4,282 |
+| CSS rules | 7,462 | 4,281 |
+| first frame (veil down) | 1,236 ms | 1,246 ms |
+| pan, mean frame | 29.9 ms | 30.2 ms |
+| play (an LFO on a knob), main thread | 32.0 ms/s | 45.0 ms/s |
+| MODULATION opened, opens over 50 ms | 1 of 10 | 10 of 10 |
+| JavaScript loaded | 5,373 KB | 6,157 KB |
+
+At rest the adoption is a clear saving. Two things got worse. **Play**: BASINS' own glue (`app/modulation.js:100-101`) forces a full repaint of the modulation window on every tick, even closed; the kit's half is fixed here (a closed window does not paint its body), and BASINS' half is its stage 8 at re-adoption. **Opening MODULATION**: a forced style read in the window's open and its rebuild; the forced read is fixed here, the rebuild stays. **Load**: the after branch loads 67 more requests and 784 KB more JavaScript (the old hidden stack, 1,084 KB, still downloads and costs nothing at run time); loading the windows closed at boot only when they are first opened is deferred to the iPad pass.
+
+### Tokens, strings, tests
+- 1,354 token rows (73 removed, none added); `docs/TOKENS.md` regenerated. The two timeline inks' notes say what they read (the patterns `view.js` writes), not that `view.js` writes them.
+- 1,497 catalogue keys (13 removed, none added).
+- `npm test`: 136/136 (no test file removed). Rows removed with what they tested: `controls.browser`' KNOB STATES (warn, clamped, cleared); `plugin-intent.browser`' SCRIM row (the matrix dialog's backdrop); `rack-leftovers.browser`' COPY row and its two `layoutExtra` rows; `rack-leftovers.node`' `digestText`; `rack.node`' `readLayout` `extra` rows; `parts.browser`' four SETTINGS rows and the row-label and select-option half of its LANGUAGE check. Changed: `audio.browser` step 5 presses SAVE AS ZIP… in RENDER's FILES (its fixture gains a RENDER panel); `modwindow.node`'s source check looks for `gripGesture(rail,`; `themes`, `timeline` and `gui` wait on `tests/settle.mjs` (new). `tests/i18n-catalogue.node.mjs` is green again on the regenerated catalogue.
+
+### Choices to overrule
+- **Culled** (the census found no user in the kit, BASINS or the six older apps): the gallery-foot ZIP buttons; the rack's COPY digest; `knob.setState('warn' | 'clamped')`; the modulation matrix dialog; `select` / `listPane({ host })`; `createRack({ layoutExtra })` and `rack.touch()`; `number({ editFmt })`; `watchDevice`; `shell/settings-rows.js`; 13 unused exports; the 62 undeclared `proposed` token rows and 3 unread tokens.
+- **Kept against the census**: the kit's DOWNLOAD SETTINGS (BASINS should switch to it at its stage 8); `laneSlider({ orient: 'v' })` (NEBULA and SOLEIL have vertical lanes); every glyph (the icon library is your ask); `wordmark({ svg, mark })` (the title card is yours); the five panels and the 3-D camera (you asked for them by name); the 1.4 compatibility options.
+- **Taken as defects, not as your calls**: the one raise stack, `createApp` handing its history on, and `saveBlob` for the three downloads.
+- **Not taken, because they are yours**: undo / redo as rows in the key table; the transport's reorder engine; the native `<select>` and number fields left in `timeline/editor.js` and `render/panel.js`; the two double-tap laws (320 ms, and 300 ms with 14 px); the rack and the tempo as project parts; a registry of floating-window ids; `modhost.css:1995`; the plugin's ink ladder; the typed ‹ › ★ against the unused chevron and star glyphs.
+- **Left for a later pass**: `bind.js`' install half of one-copy `add` (the install is one batch before the window exists; `add` rebuilds and starts the loop, not the same thing); `history.css` / `shell.css` inks (neither sheet always loads with the other); `base.css`' 29 values that `skin.css` re-sets (`base.css` alone is a supported unskinned load); `lw-busy-breathe` and the four `lw-tr-*` keyframes (λWAVES, AUTOMATA and EARTH play them); `window/dock.js` reading layout every frame of a rack transition and four times inside `open()`.
+- **Deferred to the iPad pass**: loading the windows that are closed at boot only when first opened.
+
+### For Josh's eye
+- **A floated rack card and a kit window now swap on each press**, and the modulation window comes to the top when it opens.
+- **The clock truncates**: RENDER's estimate and the recorder's projection read 0:59 for 59.6 s.
+- **The share sheet**: DOWNLOAD SETTINGS, the shelf's EXPORT .MD and the notebook's .MD give the same download on Linux Chromium, but a browser that can share files (Safari, Chrome and Edge on Windows, the iPad) now opens its share sheet, as FOLDERS' exports already do.
+- **The shelf's yes / no question re-translates** when the language changes.
+- **The hue swatch cancels a drag when the page is hidden**, and lets go of the pointer it captured on Escape (the arc and the lane already cancelled on a hidden page).
+- **Date and time inputs keep their own undo** (Ctrl+Z in one is the field's, as the key table already said).
+- **A HISTORY window record holding `null`** opens the window in its first place.
+- **The modulation plugin's transitions are instant** in the flat tier and with motion off.
+- **An AUDIO device's level-history graph has a gap** for the time the modulation window was closed (it fills only while the window paints; BASINS before adoption behaved the same).
+- **Not true any more, and not rewritten**: alpha.14's line "no native `<select>` is left in a kit window". `timeline/editor.js` and `render/panel.js` still have native fields; replacing them is one of your calls above.
+- **The rack's blurred glass halves the pan frame rate** over a moving picture: about 30 fps with the rack shown, 60 with it hidden, on BASINS before and after adoption alike (headless Firefox on this machine). It is not new and nothing was changed: the glass is yours.
+- **Twenty yes / no questions** from the census (`.tmp/W18/C/CENSUS.md`) will be in the vault note for you (the panels question alone decides about 4,745 lines).
+
+## 1.5.0-alpha.17 — 2026-10-06 · BASINS parity, round eight
 
 Not released: built on branch `worktree-mir-1.5`. Two kit gaps measured by the BASINS adoption (stage 6, log rows 66–67), closed with BASINS' law.
 

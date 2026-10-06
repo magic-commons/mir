@@ -1,12 +1,14 @@
 # MIR · API
 
-Every module the kit exports, what each export is, and what it returns. MIR 1.5.0-alpha.11.
+Every module the kit exports, what each export is, and what it returns. MIR 1.5.0-alpha.18.
 
 Each module's own header holds its laws and their reasons. This page is the map to them.
 
 How an app loads the kit, the body attributes it reads, the ids it owns and the tokens an app may re-point are all in [CONTRACT.md](CONTRACT.md).
 
 Import paths below are from an adopted app's `lab/` folder: `./mir/…`.
+
+**What is public.** The kit's public surface is what this page names (and the pages it links to). A module exports more than that: a helper a sibling module imports, a constant a test reads. Anything exported and not named here is internal plumbing; it may change or go in any release without a changelog line of its own. An app that needs one asks for it to be named here first.
 
 ---
 
@@ -19,11 +21,13 @@ Import paths below are from an adopted app's `lab/` folder: `./mir/…`.
 | `makeParam({ state, key, label, min, max, map, mod, onChange, id, make, …widget })` | One number as a kit control (`make`, default `knob`), a modulation target (`mod.add`; id `app.<key>`) and a saved value. → `{ id, key, label, unit, min, max, map, widget, root, home, get(), value(), set(v), remove() }`; `value()` is the base, never the modulated reading. With no `id`, a `key` that does not match `/^[a-z][a-z0-9]*$/` throws a `TypeError` naming it and the fix. |
 | `PRESSABLE` | the selector `installPress` is given (`.sw, .seg-b, .trig, .tbtn, .mir-rack-btn`) |
 
-**`createApp` (1.5.0-alpha.12).** More options: `banner`, `sceneGuard`, `wakeLock` (each `false` or options), `canvas` (the picture's canvas, for the scene guard), `coming: [[NAME, hint]]` (menu rows for what is not built yet), `session` (off by default: `true` or `{ key, … }` keeps the live project in one key, [SESSION.md](SESSION.md)), `pattern` (the PATTERN with the modulation; `false` leaves it out; WINDOW › PATTERN), `factory` (bundled starter presets, `{ presets, folder, apply }`, handed to `installModulation`), `timeline` (`true` or options: the TIMELINE, the lego stack under the modulation window and the MIR switch between the two). The rack gets `scrollbar: true, name, notebook`; the GUI window gets the rack; the accent's angles go to the modulation window's `setAccent`, and the GUI's saved SAMPLING · AUTOMATION grid goes to `installModulation({ automationGrid })`. More members: `hideInterface()`, `dump()`, `banner`, `sceneGuard`, `wakeLock`, `session`, `pattern`, `timeline`, `workspaces`. Key actions `rack` (B), `dock` (T), `hide` (H), `fullscreen` (F); `folders` moved to S. `window.__MIR.app`.
+**`createApp` (1.5.0-alpha.12).** More options: `banner`, `sceneGuard`, `wakeLock` (each `false` or options), `canvas` (the picture's canvas, for the scene guard), `coming: [[NAME, hint]]` (menu rows for what is not built yet), `session` (off by default: `true` or `{ key, … }` keeps the live project in one key, [SESSION.md](SESSION.md)), `pattern` (the PATTERN with the modulation; `false` leaves it out; WINDOW › PATTERN), `factory` (bundled starter presets, `{ presets, folder, apply }`, handed to `installModulation`), `timeline` (`true` or options: the TIMELINE, the lego stack under the modulation window and the MIR switch between the two). The rack gets `scrollbar: true, notebook`; the GUI window gets the rack; the accent's angles go to the modulation window's `setAccent`, and the GUI's saved SAMPLING · AUTOMATION grid goes to `installModulation({ automationGrid })`. More members: `hideInterface()`, `dump()`, `banner`, `sceneGuard`, `wakeLock`, `session`, `pattern`, `timeline`, `workspaces`. Key actions `rack` (B), `dock` (T), `hide` (H), `fullscreen` (F); `folders` moved to S. `window.__MIR.app`.
 
 **`createApp` (1.5.0-alpha.13).** More options: `history` (the app's one stack, `createHistory()`: a HISTORY window behind WINDOW › HISTORY, with the keys, the gesture naming and the modulation rack as a domain; `historyWindow` adds that window's options), `render` (`{ frame, motions?, subject?, picture?, motionUi?, sections?, prefix?, card?, …createRecorder options }`: the recorder, `busy` to the timeline, RENDER in FOLDERS and as a rack window; [RENDER.md](RENDER.md)). `timeline` now installs the audio clip too (`timeline: { audio: false }` leaves it out). A notebook without pages registers its project part. Returns `history` and `recorder` as well.
 
 **`createApp` (1.5.0-alpha.14).** `modRoots: ['grade', 'curves', …]`: more modulation id roots beside `app`, so a kit panel's targets (`camera.*`, `grade.*`, `curves.*`, `lanes.*`, `xy.*` by default) route with no other line; `mod: { roots }` still wins.
+
+**`createApp` (1.5.0-alpha.18).** The app's `history` is handed to the timeline and the pattern as well, so their edits are rows in the one stack. The rack no longer takes `name` (it was COPY's head line; the rack's COPY is removed).
 
 **`mir/mir.css`**: every kit sheet, by `@import`, in the kit's order: `<link rel="stylesheet" href="mir/mir.css">`. Its header says which order still matters under the cascade layers. `tests/mir-css.node.mjs` fails if a sheet under `mir/` is missing from it or imported twice.
 
@@ -48,6 +52,8 @@ Each builder makes its own DOM, styled by `mir/css/base.css` and `skin.css`, and
 | `gripDots(parent, size=13)` | | the 3 × 3 DRAG-ME grip |
 | `chip(button, glyphName, label)` | | draws a glyph on a round chip |
 | `el(tag, cls, parent, text)` | | the one DOM helper. Text in `<m>…</m>` is set as mathematics |
+| `svgEl(tag, cls, parent)` | | the SVG twin of `el()`: an element in the SVG namespace, its class, appended (1.5.0-alpha.18) |
+| `svgNode(tag, attrs, parent)` | | an SVG element with every attribute of `attrs` set, appended (1.5.0-alpha.18) |
 
 Notes on the builders:
 - **The modulated look.** `show(x)` paints a value over the base: the knob's needle moves while a tick marks the base, and a fader gets `.mod`. `get()` stays the value the user set. A control driven by modulation announces its base once `setBase(() => base)` is wired.
@@ -74,7 +80,7 @@ About `setKnobLaw`:
 | `lightTheme()` | `true` on the light theme |
 | `onThemeChange(fn)` → `unsubscribe` | Called when `body[data-theme]` flips; repaint a canvas here |
 | `parseCssColor(text)`, `cssRGB(ctx, name, fallback)` | Read a CSS colour (hex, rgb, hsl, `color(display-p3 …)`) as 0–255 RGB |
-| `themeInk(…)`, `vividInk(…)`, `inkRatio`, `nRGB`, `N_COLOR`, `N_RGB`, `N_RGB_LIGHT` | The six data inks `--n1…n6`, per theme, for canvas drawing |
+| `themeInk(…)`, `vividInk(…)`, `nRGB`, `N_COLOR`, `N_RGB`, `N_RGB_LIGHT` | The six data inks `--n1…n6`, per theme, for canvas drawing |
 | `setAccentRGB(a, b)`, `accentRGB(ctx, n)` | The accents as numbers, for canvas views (`shell/accent.js` writes them) |
 | `graphHover(canvas, { objects, plot, repaint, draw })` → `{ set, hit, clear, plot }`, `showGraphTip`, `hideGraphTip` | Hover labels on a canvas graph |
 | `fitText(…)` | Shrink a label into its box |
@@ -112,6 +118,8 @@ Since 1.5.0-alpha.3 a skin may also set the state and height tokens the house re
 | Export | What it is |
 |---|---|
 | `rgbToOklab`, `oklabToRgb`, `hexToRgb`, `rgbToHex` | 0–1 RGB triples |
+| `srgbToLinear(c)`, `linearToSrgb(c)` | The sRGB transfer curve, one channel in 0…1: the kit's one copy (1.5.0-alpha.18; `kit.js` and `look.js` adapt their 0…255 callers to it) |
+| `hslToRgb01(h, s, l)` → `[r, g, b]`, `rgbToHsl([r, g, b])` → `[h, s, l]` | The kit's one HSL ↔ RGB (1.5.0-alpha.18): `h` in degrees, the rest 0…1 (`look.js`, `accent.js` and `kit.js` scale it) |
 | `relLuminance`, `contrastRatio(a, b)` | WCAG 2.x |
 | `visibleInk(rgb, ground, floor = 3)` | The same hue and chroma, at the nearest lightness that clears `floor` against `ground` |
 | `normalize(stops)`, `toLUT(stops)` | A 256 × RGBA table, interpolated in OKLab |
@@ -173,6 +181,8 @@ A pack: `{ tag, name, dir, reviewed, fonts, type, strings: { English: "…" | { 
 - `migratePrefs(storage, key, { version, migrate, projectKeys, project })` → `{ ok, migrated, moved? }` · `forgetPrefs(key, storage?)` · `settingsFileName(app, date?)`
 - A schema row: `{ key, type: 'enum' | 'bool' | 'number', values?, min?, max?, step?, wrap?, default, apply: [{ on, attr, map? } | { on, cls, when? } | { on, prop, map? } | { run(v, state, env, context) }] }`
 - Pure: `valid`, `defaults`, `repair`, `coerce`, `resolve(state, schema, env)`, `matchPreset(state, presets)`, `migratePrefs`, `settingsFileName`
+- `jsonStore(key, from = globalThis)` → `{ get(), set(v), remove() }` (1.5.0-alpha.18): one JSON value under one key, the kit's one localStorage helper (the rack's layout, the transport's seat, the key table, the modulation, pattern and timeline records, FOLDERS' and HISTORY's window shapes). `from` is a Storage, or a window whose `localStorage` is read at each call. A private window, blocked storage or a damaged value reads null; a refused write is lost, never thrown.
+- `download({ app, name })` hands the file to `saveBlob` (`folders/save-blob.js`) since 1.5.0-alpha.18: a browser that can share files opens its share sheet.
 
 ## `mir/core/session.js`: the live project ([SESSION.md](SESSION.md))
 
@@ -261,6 +271,7 @@ A pack: `{ tag, name, dir, reviewed, fonts, type, strings: { English: "…" | { 
 Notes on the shell:
 - **Menus are data:** `name → () => [[label + '\t' + key, run, disabled, hint] | null, …]`.
 - **App faces:** each face in `faces` is `{ id, glyph, label, title, build(faceEl, api), show(faceEl, api) }` and gets a round button after ◐. A face `{ id, glyph, label, title, run(api) }` (1.5.0-alpha.16) is only a button: a press runs `run` and flips nothing (BASINS' ▤ opens its SAVE window).
+- **`APP_KEY(event)`, `askInline(row, { cls, label, then, back })`** (1.5.0-alpha.18, `shell/notebook.js`): `APP_KEY` is true for the two keys a notebook field lets through to the app (Ctrl/⌘+S and Ctrl/⌘+,; the shelf's face keeps the same law); `askInline` puts an inline "label yes / no" on a row (a notebook tab, a shelf row): YES runs `then`, NO and Escape put the row back and call `back`; it returns the NO button (to focus) or null when the row is already asking. `cls` is the class prefix (`'nb-tab'` → `.nb-tab-ask .nb-tab-q .nb-tab-yes .nb-tab-no`).
 - **COPY DUMP acknowledges** (1.5.0-alpha.17): the ABOUT face's COPY DUMP copies through `shell/clipboard.js` `copyText` and shows the kit's `notice()`: COPIED (`kind: 'ok'`) or FAILED (`kind: 'warn'`, the dump then goes to the console), for 1.4 s (BASINS' flash).
 - **Accent defaults:** A 30°, B 300°, vivid 0.1, as λWAVES ships. Josh's law is `{ a: 60, b: 300 }`.
 - **Sheets:** `shell/shell.css` is required for the shell. `shell/stage.css` is an optional ground.
@@ -307,10 +318,9 @@ Storage: `{ items: { [path]: { path, folder, name, saved, opened, title, md } },
   - `saveLayout(slot?)`, `loadLayout(slot)`, `forgetLayout(slot)`, `layouts()`.
 - **Reading the state.** `windows()` → `[{ id, title, side, open, built, floating, folded }]`, `keepClear()` → the rects of the racks showing a window and the transport bar (`[{ left, top, right, bottom }]`), `built`, `registered`, `isBuilt(id)`, `window(id)`, `order(side)`, `floating()`, `floatOf(id)`, `phone`, `dragging`, `cancelDrag()`, `activity`, `el`, `sync()`, `destroy()`.
 - **The rack's motion (1.5.0-alpha.11, BASINS' `rack-motion.js`):** `createRackMotion(hosts, view)` → `{ refresh(), hold(card), follow(card, x, y), release(card, settle), holding, destroy() }`; any card change animates the card's height and every moved card's travel at `--rack-motion` / `--rack-ease`; a card enters 6 px up over `--rack-enter` / `--rack-enter-ease` (BASINS' 220 ms). `reorderIndex(boxes, at, bar)` and `insertionIndex(boxes, bar)` take the title bar's middle (the title bar decides above or below); `RACK.hyst` is removed. Racks carry `data-mir-rack`. The rack's height motion joins the core's one-writer registry through `core/motion.js` `own(el, anim)` → Promise<boolean> (`docs/CORE.md`).
-- **createRack options (1.5.0-alpha.12)**: `scrollbar` (false; true seats BASINS' scrollbar at the card column), `tabletClamp` (true), `retired` (`{ oldId: heirId }`), `notebook` (the notebook or `() => it`; layouts keep `nb: [w, h]`), `name` (COPY's head line), `persist` (`'all'` | `'closed'`: `'closed'` keeps only which windows are closed and the phone rack shown across a reload; `closedLayout(windows, { phoneShown, at })` is that record).
-- **Rack verbs (1.5.0-alpha.12)**: `rack.resetLayout()` → true (RESET LAYOUT: every float docked home, every window opened, powered on, unfolded and in its home rack; the rack shown; app cards keep their place and state) · `rack.digest(id)` → string (`name · TITLE · ISO time`, `status\t…`, then one `label\tvalue\tsub` line per readout) · `rack.copyDigest(id)` → Promise&lt;string&gt; (the digest to the clipboard and a 900-ms `· COPIED` flash on the status) · `rack.scrollbar` → `{ paint(), tracks, destroy() }` | null.
-- **createRack (1.5.0-alpha.14)**: `layoutExtra: { capture() → object, apply(object, layout) }` (the app's own layout state rides every layout as `extra`, BASINS' `docked`); `rack.touch()` (the layout changed outside the rack: save it); `readLayout` keeps `extra`.
-- **Pure helpers (1.5.0-alpha.12)**: `readLayout(raw, known, retired)` (resolves retired ids, keeps `nb`), `clampFloatTablet(x, y, w, h, vv, edge)`, `digestText({ name, title, status, rows, at })`. **`mir/shell/rack-scrollbar.js`**: `createRackScrollbars({ host, racks, span, view })` → `{ paint(), tracks, destroy() }`; pure `scrollbarSeat({ side, rect, gutter, view, overflow, uiHidden, hidden })`, `thumbOf({ height, client, scrollHeight, scrollTop })`, `SCROLLBAR`.
+- **createRack options (1.5.0-alpha.12)**: `scrollbar` (false; true seats BASINS' scrollbar at the card column), `tabletClamp` (true), `retired` (`{ oldId: heirId }`), `notebook` (the notebook or `() => it`; layouts keep `nb: [w, h]`), `persist` (`'all'` | `'closed'`: `'closed'` keeps only which windows are closed and the phone rack shown across a reload; `closedLayout(windows, { phoneShown, at })` is that record).
+- **Rack verbs (1.5.0-alpha.12)**: `rack.resetLayout()` → true (RESET LAYOUT: every float docked home, every window opened, powered on, unfolded and in its home rack; the rack shown; app cards keep their place and state) · `rack.scrollbar` → `{ paint(), tracks, destroy() }` | null.
+- **Pure helpers (1.5.0-alpha.12)**: `readLayout(raw, known, retired)` (resolves retired ids, keeps `nb`), `clampFloatTablet(x, y, w, h, vv, edge)`. **`mir/shell/rack-scrollbar.js`**: `createRackScrollbars({ host, racks, span, view })` → `{ paint(), tracks, destroy() }`; pure `scrollbarSeat({ side, rect, gutter, view, overflow, uiHidden, hidden })`, `thumbOf({ height, client, scrollHeight, scrollTop })`, `SCROLLBAR`.
 - **Pure helpers.** `reorderIndex`, `insertionIndex`, `slotRect`, `moveId`, `clampFloat`, `detached`, `peekSide`, `dodgeSeat`, `queueToggle`, `openOrder`, `favSlot`, `readLayout`, `layoutLabel`, `localStore`, `RACK`, `SIDES`.
 - **`mir/shell/rack.css`** loads after the kit's sheets and core.css, in `mir.kit.house`.
 
@@ -346,7 +356,7 @@ A vanilla theme is a named set of the built-in settings and nothing else; its to
 ### Pointer effects: `mir/fx/`
 
 - `createPointerLight({ doc, enabled })` → `{ refresh(), destroy(), live }` — surfaces opt in with `data-light`; writes `--light-x/--light-y` (px) and `data-lit`; `<html data-pointer-light>` while live.
-- `createParallax({ doc, enabled })` → `{ refresh(), destroy(), live }` — elements opt in with `data-parallax="<px>"`; writes `--plx-x/--plx-y`; `<html data-parallax-live>` while live.
+- `createParallax({ doc, enabled })` → `{ refresh(), destroy(), live }` — elements opt in with `data-parallax="<px>"`; writes `--plx-x/--plx-y`; `<html data-parallax-live>` while live. It finds its elements once, then again on the frame after a press, a release or a key, and on `refresh()`; an element under a `[hidden]` ancestor is left out. An element added or un-hidden with no press or key is found at the next press: call `refresh()` for it (1.5.0-alpha.18).
 - Pure: `fxAllowed({ coarse, motion, tier })`, `fxEnv(doc)`, `watchFxMedia(doc, fn)`, `parallaxOffset(px, py, view, depth)`.
 - Sheet: `mir/fx/fx.css` (`@layer mir.kit.house`).
 
@@ -374,7 +384,7 @@ The kit gives the parts and the look; the layout is the app's (BASINS' design, �
 **Additions (1.5.0-alpha.12).**
 - `createTransport({ …, door: 'palette' | 'mark', onSwitch, macros })` → adds `mountIn(host | null)` → placement, `placement` (`'stage' | 'work' | 'rack'`), `closed`, `tempoPanel(show)`. Event `transport-placement` (`detail.placement`) on the bar. The timeline takes the app's one bar as `transport: { shared: tr }`.
 - `bindTempoField({ button, input, tempo, enabled, drag, paint, signal })` → `{ open(), close(take), editing, destroy() }` · `tempoPill({ tempo, panel, work })` (`work()` true: a click types, a drag is the travel law) · `tempoPanel({ tempo, mod, macros })` → adds `rail` · `macroRail({ M, api, signal })` → `{ root, rail, tiles, sync(), rebuild(), destroy() }` · `modDoor({ mod, mark, onSwitch, work })`.
-- Pure: `placementOf({ docked, host })`, `tempoDirection(rect, panelHeight, viewHeight)`, `travelBpm(start, rise, { shift, touch, min, max })`, `reorderTo(key, at, count)`; `PLACEMENTS`; `TRANSPORT.fieldChars / travel / travelTouch / travelFine / panelGap`.
+- Pure: `placementOf({ docked, host })`, `tempoDirection(rect, panelHeight, viewHeight)`, `travelBpm(start, rise, { shift, touch, min, max })`, `reorderTo(key, at, count)`; `TRANSPORT.fieldChars / travel / travelTouch / travelFine / panelGap`.
 - `shell/wordmark.js`: `wordmark(parent, { lead, word, sub, id, svg, mark })`: `svg` = SVG markup or an element, or `{ dark, light }` image URLs (wordmark-dark carries white ink); `mark` = the app's symbol in place of the nine squares (kept unseen in `.word` so `#title .mark` still feeds loading seats); `.word` becomes `role="img"` with `aria-label` = `word`, `data-art`; its height is `--title-art-h`. `createMirDiamond(target, { colors })` → `{ diamond, tiles, destroy() }`; `installPaletteCycle(target, tiles, colors)` → destroy; `MIR_PALETTE`, `PALETTE_STEP` (240), `paletteAt(i, offset, colors)`.
 
 ---
@@ -412,7 +422,7 @@ Notes:
 
 ---
 
-## The shell parts: `mir/shell/dialog.js`, `notice.js`, `busy.js`, `boot.js`, `flash-guard.js`, `share-link.js`, `settings-rows.js` ([SHELL-PARTS.md](SHELL-PARTS.md))
+## The shell parts: `mir/shell/dialog.js`, `notice.js`, `busy.js`, `boot.js`, `flash-guard.js`, `share-link.js` ([SHELL-PARTS.md](SHELL-PARTS.md))
 
 Load `mir/shell/parts.css` after the kit's sheets.
 
@@ -462,11 +472,7 @@ Load `mir/shell/parts.css` after the kit's sheets.
 | `createShareLink(opts)` → `{ encode, decode, inspect, measure, read(), write(state), url(state), copy(state), destroy() }` | `write` = replaceState, debounced 400 ms |
 | `crc32(str)`, `flatten(obj)` | |
 
-### `mir/shell/settings-rows.js`
-| Export | |
-|---|---|
-| `settingsRows(host, rows, { onBegin, onEnd, onChange })` → `{ root, sync(), control(id), editing(id?), beginEdit(id), endEdit(id), destroy() }` | a row: `{ id, label, hint, control: 'sw' \| 'seg' \| 'fader' \| 'knob' \| 'select' \| 'number', get, set, options, min, max, step, log, wrap, fmt, when, begin, end }` |
-| `selectField({ label, options, value, onChange, aria, title })`, `numberField({ label, value, min, max, step, fmt, onChange, aria, title })` → `{ root, input, get, set, setDisabled }` | to move into kit.js |
+`mir/shell/settings-rows.js` (`settingsRows`, `selectField`, `numberField`) is removed (1.5.0-alpha.18): no app used it.
 
 ---
 
@@ -492,7 +498,6 @@ Load `mir/shell/parts.css` after the kit's sheets.
 |---|---|
 | `bootVeil({ ready, el, host, timeout = 8000 })` → `{ el, stat, dismiss(via), done }` | the veil until the first real frame (+1), a 160 ms fade; `ready` a function asked once a frame, or a Promise; `stat` measured; a `boot veil` dump line |
 | `veilLine(stat)` | that line |
-| `watchDevice(device, { recover })` → `off()` | a GPU device lost after boot: `recover(info)` first, else the banner and RELOAD |
 
 **`mir/shell/clipboard.js`**: `copyText(text)` → `Promise<boolean>`: the clipboard, then a hidden textarea and `execCommand('copy')`; never throws.
 
@@ -531,7 +536,7 @@ Load `mir/shell/parts.css` after the kit's sheets.
 
 **`folders/files.js`** (pure; BASINS' model) — `createFiles({ key, storage, capChars, defaultName })` → `{ save, overwrite, rename, move,
   remove, renameFolder, deleteFolder, setFolderPicture, folderPicture, saveMakingRoom, evictOldest, entries, entry, folders, count,
-  proposedName, state, subscribe, reload, key, cap, setCap, chars }`; `normalizeFolder`, `inFolderTree`, `leafOf`, `parentOf`,
+  proposedName, state, subscribe, reload, key, cap, setCap, chars }`; `normalizeFolder`, `inFolderTree`, `leafOf`,
   `uniqueName`, `savedAtLabel`, `entryOk`, `FILES_V`, `NAME_MAX`
 
 **`folders/seed.js`** (pure) — `seed(files, starters, { storage, seededKey })` → `{ ok, added, skipped, total }`; `seedId(starter)`
@@ -606,6 +611,7 @@ The modulation window `installModulation` mounts joins the kit's one window stac
 | `createRegistry({ roots, onError })` | The registry every modulation target is registered in. `roots` defaults to λWAVES' `observer · material · state · transport · field` |
 | `idFault(id, roots)` | Why an id is not valid, or `null` |
 | `MAP_KINDS` | `linear · log · wrap · integer · bipolar` |
+| `handWrite(mod, id, v)` → bool | The hand law in one place (1.5.0-alpha.18): true when `mod` (an `installModulation`, or anything with its `hand` door) took the hand as a routed control's new base; false, and nothing written, when there is no mod, the id is unknown or unrouted, or the door throws. A control writes `if (!handWrite(mod, id, v)) <its own value> = v` |
 
 ### `curve.js`: the curve editor's maths
 
@@ -632,21 +638,21 @@ The modulation window `installModulation` mounts joins the kit's one window stac
 
 ### `mod.js`: the model
 
-188 exports. Grouped:
+190 exports (1.5.0-alpha.18). Grouped:
 
 | Group | Exports |
 |---|---|
 | **Sources** (LFO, envelope, audio, steps) | `addSource, setSource, removeSource, moveSource, sourceList, sourceOf, sourceIndexOf, sourceCount, sourceIds, WAVES, WAVE_LABEL, waveAt, waveSeedOf, envAt, envDuration, envPoints, trigger, release, curveEdit, copyBank, pasteBank, STEPS_*, stepQuant, stepsRungIndex` |
-| **Audio** | `modFeedAudio, audioReset, audioArm, audioConsumers, audioDemand, audioApplicationDemand, audioOutputOf, audioReadout, audioRangeNorm, audioDbAmp, audioDbPow, audioNorm, audioAlpha, audioRiseMs, AUDIO_*` |
-| **Macros and triggers** | `addMacro, setMacro, removeMacro, moveMacro, macroList, macroOf, MACRO_KINDS, MACRO_BOOT, MACRO_MAX, isTriggerMacro, triggerMacros, fireMacro, releaseMacro, fireTriggers, releaseTriggers, triggerLevel, setSourceTrigger, subsOfTrigger, subCountOfTrigger, clearTrigger, pruneTriggerRefs, isHitOutput, HIT_ENV, hitEnvOf, hitMacroFor` |
-| **Routes** | `addRoute, removeRoute, removeRoutesOfTarget, removeRoutesOfMacro, setRouteRange, routeList, routeOfTarget, routeOfId, routesOfTarget, routeCountOfTarget, routesOfMacro, routeCountOfMacro, targetDepth, targetPos, targetValue, targetDriven, anyLiveRoute, syncDormant, dormantRoutes, dormantCount, dormantCountOfMacro` |
+| **Audio** | `modFeedAudio, audioReset, audioArm, audioConsumers, audioDemand, audioOutputOf, audioReadout, audioRangeNorm, audioDbAmp, audioDbPow, audioNorm, audioAlpha, audioRiseMs, AUDIO_*` |
+| **Macros and triggers** | `addMacro, setMacro, removeMacro, moveMacro, macroList, macroOf, MACRO_KINDS, MACRO_BOOT, MACRO_MAX, isTriggerMacro, triggerMacros, fireMacro, releaseMacro, triggerLevel, setSourceTrigger, subsOfTrigger, subCountOfTrigger, pruneTriggerRefs, isHitOutput, HIT_ENV, hitEnvOf, hitMacroFor` |
+| **Routes** | `addRoute, removeRoute, removeRoutesOfTarget, removeRoutesOfMacro, setRouteRange, routeList, routeOfTarget, routeOfId, routesOfTarget, routeCountOfTarget, routesOfMacro, routeCountOfMacro, targetDepth, targetPos, targetValue, targetDriven, anyLiveRoute, syncDormant, dormantRoutes, dormantCount` |
 | **Clock and transport** | `transport, setTransport, reanchorTransport, advance, needsClock, lfoHz, freeHz, freePos, beatsPerCycle, smoothTau, syncMode, setSyncMode, clampSyncMode, effectiveSyncMode, setExternalClock, externalClockActive, transportLag, tapTempo, TAP_*, HOLD_NOTES, heldBeat, holdStart, holdEnd, snapshotPhases, restorePhases, resetPhases, modPlayEdge, BPM_MIN, RATE_MIN, LFO_MULTS, LFO_MULT_LABEL, LFO_MULT_DEFAULT, TRIPLET, BEATS_PER_WHOLE, SYNC_MODES, SYNC_DEFAULT` |
 | **State** | `serialize, deserialize, serializeRack, deserializeRack, migrateRack, modStateReadable, MOD_STATE_V, MOD_STATE_READS, modState, modStat, modReset, materialize, legacyOf, setLegacy, demolish, migrateFromLegacy` |
-| **Presets** | `presetList, presetFolders, setPresetFolder, presetGet, presetApply, presetSave, presetDelete, presetStoreReload, presetStoreState, FACTORY_PRESETS, PRESET_LS, PRESET_FORMAT_V, PRESET_NAME_MAX, PRESET_FOLDER_DEFAULT, PRESET_FOLDER_FACTORY, PRESET_FOLDER_MAX` |
+| **Presets** | `presetList, presetFolders, presetGet, presetApply, presetSave, presetDelete, presetStoreReload, presetStoreState, FACTORY_PRESETS, PRESET_LS, PRESET_FORMAT_V, PRESET_NAME_MAX, PRESET_FOLDER_DEFAULT, PRESET_FOLDER_FACTORY, PRESET_FOLDER_MAX` |
 
 About the preset store:
 - **The key and folders** are λWAVES' (`lambdawaves.q0.modpresets`; `Josh's Collection`, factory `MANDELBROT`), and every reader shares them (each app has its own origin).
-- **Not injectable yet.** Making them options is a `mod.js` edit, and `mod.js` stays byte-identical to its vendored source while λWAVES' `tests/mir.test.mjs` §16 proves it.
+- **Not injectable yet.** Making them options is a `mod.js` edit. The kit's `mod.js` is no longer byte-identical to λWAVES' copy (it had drifted before 1.5.0-alpha.18, which also removed six exports nothing read).
 
 ### `host.js`: the host a window talks to
 
@@ -669,7 +675,7 @@ pointer end/cancel, blur, close, project replacement and disposal; recording cli
 must reject interactive ownership before taking over the clock.
 
 The remaining exports are **λWAVES content that still lives in the kit**:
-- `labParameters`, `LAB_PRESET_FOLDER`, `LAB_PRESETS`, `presetRouteTargets`, `foreignPresets`, `labPresetList`, `labPresetFolders`, `labPresetGet`, `labPresetApply`;
+- `labParameters`, `LAB_PRESET_FOLDER`, `LAB_PRESETS`, `presetRouteTargets`, `foreignPresets`, `labPresetList`, `labPresetGet`, `labPresetApply`;
 - `barTempo`.
 
 They go home to λWAVES when the kit drops its λWAVES leftovers (2.0.0).
@@ -687,7 +693,7 @@ Since 1.5.0-alpha.13 the window draws through the house's one icon library (`gly
 | `setViewHeight`, `setWorkLane` | Sizing the rack view and the work lane |
 | `ringGeom`, `knobArc` | Ring and arc geometry |
 | `gripIcon`, `powIcon`, `glyphEl` (a re-export of `glyph.js`'s), `setGlyph`, `m2mk`, `m2svg`, `SVG_PLAY`, `SVG_PAUSE`, `SVG_POWER` | The window's own icons and DOM helpers |
-| `NS`, `WINDOW_ID`, `WINDOW_TITLE`, `CHIPRAIL_LABEL`, `IDS`, `GEOM`, `sizeLaw`, `COPY` | Names, ids, geometry and copy |
+| `NS`, `WINDOW_ID`, `WINDOW_TITLE`, `IDS`, `GEOM`, `sizeLaw`, `COPY` | Names, ids, geometry and copy |
 
 **The complete controller that wires the window to a host is not in the kit yet.** Routes, rings, the clock and presets (`wireGrip`, `wireDepth`, `paintDepth`, `moveMacro`, `rebuildMacros`) live in λWAVES' `lab/modwindow.js`, which BASINS and NEBULA copied. Curve pointer semantics are the exception since 1.4.2: every host imports `curve-gesture.js`, so copied controllers cannot drift on point/tension controls.
 
@@ -819,9 +825,11 @@ mir/pattern/sequencer.js
 - `window/window.js` (1.5.0-alpha.9): `windowOf(el)` → the kit window whose pane or rail is `el` (or holds it), or null; a window's `pair` is `{ root, rail }`; `win.stackAt(z, { railOffset })` puts the pane at z-index `z` and its rail at `z + railOffset` (default `createWindow({ railTier })`, itself default 1), so an app's own stacking law never parts them, and an app that keeps its rails in a tier above its windows passes `railTier` (1.5.0-alpha.10).
 - `window/rail.js`: `RAIL.gap`, `gapOf(gap, side)`; `chipPosition(side, box, w, h, view, pad, gap)`, `seatOn(…, pad, gap)`, `seatRail({ …, gap })`, `roomFor(…, pad, gap)` (gap default 0, so the modulation window seats as BASINS' `positionChips` does).
 - `window/dock.js`: `anchorTarget(box, seat, { reach })`, `anchorBox(seat, height)`; `createDockGuide({ layer, enabled, window, cls })` (one guide drawing; its overlays carry `data-mir-guide="dock"`, `data-window`, `data-edge` and the app's class), whose `track(box, o, seat?)` takes the seat as a third argument.
+- `core/pointer.js` `isField(node, anyInput = false)` (1.5.0-alpha.18; `shell/keys.js` re-exports it): the kit's one "is the user typing": a textarea, a select, anything contenteditable, an input of a text-like type (date and time included); with `anyInput`, every input (a colour well, a range, a box keeps its own keys).
 - `core/pointer.js` `drag()`: a non-primary press is refused only when it is trusted (a real second finger); a scripted `PointerEvent` (isPrimary unset) is a press (1.5.0-alpha.8).
 
 - `window/window.js` (1.5.0-alpha.12): `win.resize({ w, h })` → the window's own size, keeping its dock (an edge or an anchor), one layout, saved; `reserveTop(px)`, `reserved`, `stackAbove(anchor | null)`, `isStacked`, `stackHeight()` (the lego stack). Pure: `stackedAt(box, anchor, view, gap)`, `withReserve(span, px)`; `windowLayout`'s env takes `top` (a floating floor). Docked-resize rules: [WINDOWS.md](WINDOWS.md) law 12.
+- `window/window.js` (1.5.0-alpha.18): `gripGesture(rail, w)` → `{ drag, active() }`: the grip drag of a window and its rail, shared by the kit's window and the modulation window (which keeps its own layout). Shift hands the rail to the nearest edge; a docked window dragged away detaches with the pressed point keeping its place; near a dock the guide tracks the landing and a release there docks it; any cancel puts the state back. `w` is the window's side: `P()`, `box()`, `moving()`, `still()`, `floatSize()`, `layout(o)`, `relocate(side)`, `guide`, `track()`, `save()`, `begin()` / `undo(it)`. **One raise stack** (1.5.0-alpha.18): a floated rack card is in the window stack, so a floated card and a kit window swap on each press, and the modulation window comes to the top when it opens.
 - `window/window.js` (1.5.0-alpha.15): `registerWindow({ root, rail? })` → `{ root, rail, pair, raise(), leave() }`: a window the app built itself joins the kit's one stack (on top). A press on its pane or rail raises the pair over every kit window; a press on a kit window raises that one over it. `windowOf(el)` finds it. `leave()` takes it out (its z-index stays where it was). Registering the same root twice returns the first registration.
 - `window/window.js` (1.5.0-alpha.17): **every rail above every window.** The one stack puts the panes at z 1 … n in press order and the rails at n + 1 … 2n in the same order (it was 1 + 2k / 2 + 2k), so no window covers another's chips and the pressed window's rail is the top rail; a rail joined by `registerWindow({ root, rail })` is in the same tier. `stackAt(z, { railOffset })` and `railTier` are unchanged.
 - `window/window.js` (1.5.0-alpha.15): `win.restore(shape)` puts the window in a persisted shape `{ x, y, w, h, open, dock, chipSide }` (fields left out keep theirs); it opens or closes as the shape says; `dock: 'anchor'` seats it on its anchor again. `dock.anchor.rect()` may return `{ …, avoid, outer }`: the glass the rail must keep off and the edge facing away from it. Seated on an anchor, the window takes the seat's width as its own (kept when a hand frees it).
@@ -855,8 +863,8 @@ The kit prescribes one control per kind of value. Every control below is re-expo
 | Export | What it does |
 |---|---|
 | `stepper({ label, aria, items, value, onChange(id, dir), wrap, list, pager, count, compact, cls })` → `{ root, prev, next, name, get, set(id), setItems(items, id), step(d), open(), close(), destroy() }` | `‹ NAME ›`: two round 44 px buttons around a live name; a tap on the name opens the full list in the menu pane (`list: false` makes it a label); `pager: true` is the page turner (`count: true` adds `n / N`); `compact: true` (alpha.14) leaves the arrows out of the DOM (the name opens the list, ← → still step); an item with `coming` is listed and never chosen; the arrows mirror under `dir="rtl"`. Buttons are `.mir-step-b[data-step]`, the name `.mir-step-name` |
-| `select({ label, aria, items, value, onChange, placeholder, cls, disabled, host })` → `{ root, button, get, set(id), setItems(list, id), open(), close(), isOpen, setDisabled(on), destroy() }` · `listPane({ anchor, items, value, onPick, onClose, label, cls, signal, host })` → `{ root, close(), items }` | the kit's own choose-one, for a long list of data: the list opens in the menu pane (`.mir-pick`, a `.glass[data-mir-surface="menu"]` on the body, or in `host`: alpha.14, a popup's own node, its containing-block offset corrected), never the platform's popup; keys: arrows, Home, End, Enter, typeahead (700 ms), Escape; items are `{ id, label, vars?, coming? }` |
-| `number({ label, aria, min, max, value, step, digits, fmt, editFmt, parse, unit, chars, range, drag, onInput, onChange, cls })` → `{ root, face, input, get, set(x), setDisabled(on), open(), close(take), editing, destroy() }` · `bindNumber({ button, input, model, parse, editFmt, enabled, drag, click, paint, chars, step, range, signal })` → `{ open(), close(take), editing, destroy() }` | the tempo field's law for every typed number (alpha.14: the field opens on `editFmt(v)`, default `String(v)`; with `parse` its inverse a value is typed in the unit shown): drag (the whole range in 220 px, 320 under a finger, ⅛ on any modifier or a second finger, on a virtual point), click or Enter opens the field, Enter or leaving takes it, Escape does not; ↑ → ↓ ← one step, Shift an eighth, Page ten, Home / End the ends, Delete home |
+| `select({ label, aria, items, value, onChange, placeholder, cls, disabled })` → `{ root, button, get, set(id), setItems(list, id), open(), close(), isOpen, setDisabled(on), destroy() }` · `listPane({ anchor, items, value, onPick, onClose, label, cls, signal })` → `{ root, close(), items }` | the kit's own choose-one, for a long list of data: the list opens in the menu pane (`.mir-pick`, a `.glass[data-mir-surface="menu"]` on the body), never the platform's popup; keys: arrows, Home, End, Enter, typeahead (700 ms), Escape; items are `{ id, label, vars?, coming? }` |
+| `number({ label, aria, min, max, value, step, digits, fmt, parse, unit, chars, range, drag, onInput, onChange, cls })` → `{ root, face, input, get, set(x), setDisabled(on), open(), close(take), editing, destroy() }` · `bindNumber({ button, input, model, parse, enabled, drag, click, paint, chars, step, range, signal })` → `{ open(), close(take), editing, destroy() }` | the tempo field's law for every typed number: drag (the whole range in 220 px, 320 under a finger, ⅛ on any modifier or a second finger, on a virtual point), click or Enter opens the field, Enter or leaving takes it, Escape does not; ↑ → ↓ ← one step, Shift an eighth, Page ten, Home / End the ends, Delete home |
 | `numberTravel(start, p, opts)`, `parseNumber(text)`, `digitsOf(step)`, `NUMBER` | the pure parts |
 | `rangeSlider({ label, aria, min, max, lo, hi, step, log, fmt, minGap, onInput(lo, hi), onChange(lo, hi), cls, loLabel, hiLabel })` → `{ root, lo, hi, get() → [lo, hi], set(lo, hi), setDisabled(on), destroy() }` | one track, two thumbs that never cross; each thumb (`.rng-t`) is a modulation target; a press goes to the nearest thumb |
 | `xyPad({ label, aria, x, y, home, tags, onInput(x, y), onChange(x, y), cls })` → `{ root, pad, x, y, get() → [x, y], set(x, y), setDisabled(on), paint(), destroy() }` | one square for the hand and the two knobs that stay the modulation targets (`x`, `y` are the knobs' options and then the widgets); a press brings the dot to the pointer; Home or a double-tap goes to `home` |
@@ -867,20 +875,21 @@ The kit prescribes one control per kind of value. Every control below is re-expo
 | Export | What it does |
 |---|---|
 | `arcRing(parent, { from = 0, span = 360 })` → `{ svg, set(turn) }` | an SVG ring with round caps: a track `span`° long starting `from`° clockwise from the top, and a value ring `turn`° of it (0 hides it) |
-| `arcKnob(o)` → the kit knob plus `{ law, home, paintArc(), arc(), gesture(), dragging(), destroy() }` | every `knob()` option and widget method; `law: 'vertical'` (default) or `'angular'`; `home`; `ink` (a colour or `(base) → colour`); `size: 'sm'`; `onPress(event)`; `live()`. The ring strokes in `--k-state-ink`, then `--lane-ink`, then the accent |
+| `arcKnob(o)` → the kit knob plus `{ law, home, paintArc(), arc(), gesture(), dragging(), destroy() }` | every `knob()` option and widget method; `law: 'vertical'` (default) or `'angular'`; `home`; `ink` (a colour or `(base) → colour`); `size: 'sm'`; `onPress(event)`; `live()`. The ring strokes in `--lane-ink`, then the accent |
 | `ARC` | `{ SWEEP: 300, DEAD: 7, NEAR: 34, FLOOR: .15 }`: the sweep and the angular law's numbers |
 | `hueSwatch({ rgb, label, title, onInput(rgb), onChange(), fine })` → `{ root, button, input, arc, set(rgb), get(), dragging(), destroy() }` | a circle of the colour: tap = the platform's chooser, an 8 px drag up or down turns the hue |
 | `rgbToHsv(rgb)`, `hsvToRgb(h, s, v)`, `rgbCss(rgb)`, `SWATCH` | pure helpers (`rgb` is `[r, g, b]` in 0..1, `h` in turns); `SWATCH = { ARM: 8, TRAVEL: 220 }` |
 | `laneSlider({ home, value, orient: 'h' \| 'v', ink, …fader() options })` → the kit fader plus `{ home, orient }` · `laneInk(node, css)` | a pill in the lane's ink with a glowing thumb; one hand law for both orientations; a modulation target natively; `laneInk` writes `--lane-ink` (`null` clears it) |
 | `chipStrip({ id, title, chips, onChip, onGrip, onKey, glyphSize, flow, material })` → `{ el, grip, chip(name), setChip(name, state), state(name), setDisabled(name, on), destroy() }` | a static strip of the rail's `.mir-chip` discs; the rail's chip specs plus `confirm: { text, ms, label }` (an armed-to-fire chip) |
 | `sortableList({ items, build, onMove, onRemove, onAdd, cap, min, noun, addLabel, side, armMs, material, axis })` → `{ root, rows, add(), items(), setItems(items), rebuild(), move(id, to), remove(id), nodeOf(id), stripOf(id), count(), destroy() }` · `ARM_MS` (2600) | a stack of island panes with a grip over an armed × beside each, and a + ADD pill that dims at `cap`; reordered by drag or arrows. `axis: 'x'` (alpha.14): strips side by side in one island pane, the chips under each, the drag along x, ← → (mirrored under rtl). 1.5.0-alpha.16: the rack is read by `[data-mir-rack][data-side]` (an adopted rack seats the chips on its outer edge); a stepper in an item's pane is BASINS' blend; + ADD is in the look's corner, in the panes' material, 5 + 7 px below the rows (`--list-foot-gap`, `--list-step-glyph`) |
-| `fineHeld`, `fineGain`, `wireTouches` (re-exports of `kit.js`), `tapHome(onHome)`, `forward(root, ev)`, `lawNow()`, `TAP`, `clamp01`, `frac` | the pieces the colour hands share |
+| `valueDrag(el, { key, move, release, end, abort })` → `{ start(g), abort() }` | The value-drag lifecycle the arc knob, the lane slider and the hue swatch share (1.5.0-alpha.18): `start(g)` follows the pointer `g.id`; `move(ev)` for its moves; on the lift the frame job `key` is flushed, the listeners and the capture let go, `release(g)`, then `end(g, ev)`; on any cancel (pointercancel, the capture lost, Escape, the page hidden) the job is dropped, `release(g)`, then `abort(g, ev)` puts the value back. `abort()` with no event cancels from outside |
+| `fineHeld`, `fineGain` (re-exports of `kit.js`), `tapHome(onHome)`, `forward(root, ev)`, `lawNow()`, `TAP`, `clamp01`, `frac` | the pieces the colour hands share |
 
 ### `mir/kit.js` additions
 
 | Export | What it does |
 |---|---|
-| `knob.setState('warn' \| 'clamped', reason)`, `knob.dragging()` | `warn` draws a 1 px `--warn` ring and the value in `--warn`; `clamped` adds the needle in `--warn`; the reason is the hover hint and `aria-description` |
+| `knob.dragging()` | whether a hand is on the knob (`knob.setState('warn' \| 'clamped')` is removed, 1.5.0-alpha.18: nothing used it) |
 | `sw({ lamp: false })` | ON is the frost face with the label in accent A, as a trigger's (no lamp) |
 | `sw({ glyph, glyphSize = 24 })` (alpha.14) | the glyph is the state (power, an eye, invert): `.sw.sw-glyph`, a 44 px round target with no face, no lamp and no word (the label is the accessible name); the owner shows ON in the glyph |
 | `verticalDrag(down, { travel, fine, touchTravel, axis })` → `{ id, touch, move(e), gear, p }` | the knob law as an accumulator (up is +, `axis: 'sum'` also adds Δx) |
@@ -903,7 +912,7 @@ The kit prescribes one control per kind of value. Every control below is re-expo
 
 **`mir/timeline/audio-drop.js`**: `installAudioDrop(editor, { mod, controller, say, busy, store }) → { add(file, at), addAll(files, at), pick(at), choose(file, at), playback, retempo, dispose() }`; registers the project part `assets`. `installTimeline({ audio })` calls it (`audio: false` leaves it out; an object is its options) and exposes it as `tl.audio`.
 
-**`mir/folders/zip.js`**: `projectZip(project, { store, ids }) → Promise<Blob>` · `readProjectZip(blob) → Promise<{ project, assets: [{ id, meta, bytes }], rejected }>` · `restoreAssets(read, { store }) → Promise<{ restored, skipped, written }>` · `rollbackAssets(written, { store })` · `projectAssetIds(project)`. **`folders/save-blob.js`**: `saveBlob(blob, name) → 'share' | 'download'` · `prefersVideoDownload()`. **`folders/folders.js`**: option `zip` (false | `{ store, validate(project), parts(), foot }`: `parts()` the live project's data with no capture, `foot: true` the gallery's foot buttons, 1.5.0-alpha.16), api `exportZip()`, `openZip(file)`, `zip` (`{ save(), open() }` or null: RENDER's FILES rows), `mountGallery(el, { zip })`. `zipProject({ entry, parts, capture, untitled }) → { name, project }` (`folders/zip.js`): SAVE AS ZIP's rule (the open project's name, else UNTITLED). **`folders/seed.js`**: starters take `revision` and `replaces(entry)`; `seed()` returns `refreshed` / `refreshFailed`; `refreshes(files, starters)`. **`folders/files.js`**: `files.refresh([{ id, at?, thumb?, payload, facts? }]) → { ok, updated }`.
+**`mir/folders/zip.js`**: `projectZip(project, { store, ids }) → Promise<Blob>` · `readProjectZip(blob) → Promise<{ project, assets: [{ id, meta, bytes }], rejected }>` · `restoreAssets(read, { store }) → Promise<{ restored, skipped, written }>` · `rollbackAssets(written, { store })` · `projectAssetIds(project)`. **`folders/save-blob.js`**: `saveBlob(blob, name) → 'share' | 'download'` · `prefersVideoDownload()`. **`folders/folders.js`**: option `zip` (false | `{ store, validate(project), parts() }`: `parts()` the live project's data with no capture, 1.5.0-alpha.16; the gallery's foot buttons, `foot`, and `mountGallery(el, { zip })` are removed, 1.5.0-alpha.18), api `exportZip()`, `openZip(file)`, `zip` (`{ save(), open() }` or null: RENDER's FILES rows). `zipProject({ entry, parts, capture, untitled }) → { name, project }` (`folders/zip.js`): SAVE AS ZIP's rule (the open project's name, else UNTITLED). **`folders/seed.js`**: starters take `revision` and `replaces(entry)`; `seed()` returns `refreshed` / `refreshFailed`; `refreshes(files, starters)`. **`folders/files.js`**: `files.refresh([{ id, at?, thumb?, payload, facts? }]) → { ok, updated }`.
 
 ## `mir/render/`: the recorder ([RENDER.md](RENDER.md), 1.5.0-alpha.13)
 

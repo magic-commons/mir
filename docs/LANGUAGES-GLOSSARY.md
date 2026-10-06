@@ -103,7 +103,6 @@ One table, ten language columns. The alpha.14 join added the panels' terms (Grou
 | follower | seguidor | suiveur | seguidor | pengikut | — | — | — | — | — | — | Controls and instrument terms | as in "envelope follower" |
 | input / output | entrada / salida | entrée / sortie | entrada / saída | input / output | — | — | — | — | — | — | Controls and instrument terms | id keeps English |
 | MODULATION | MODULACIÓN | MODULATION | MODULAÇÃO | MODULASI | 调制 | モジュレーション | модуляция | मॉड्यूलेशन | মডুলেশন | التضمين | The modulation rack | hi/bn/ar: ar UNSURE |
-| MODULATION MATRIX | MATRIZ DE MODULACIÓN | MATRICE DE MODULATION | MATRIZ DE MODULAÇÃO | MATRIKS MODULASI | — | — | — | मॉड्यूलेशन मैट्रिक्स | মডুলেশন ম্যাট্রিক্স | مصفوفة التضمين | The modulation rack |  |
 | device | dispositivo | dispositif | dispositivo | perangkat | 设备 | デバイス | устройство | डिवाइस | ডিভাইস | جهاز | The modulation rack | **real choice**: Ableton Live's word in es, fr and pt-BR |
 | route (noun) | ruta | **liaison** | rota | rute | 路由 | ルート | маршрут | — | — | — | The modulation rack | **real choice (fr)**: "route" is an English calque; modulation matrices say "assignation" (too long for a button); "liaison" is short and clear. UNSURE |
 | ADD ROUTE | AÑADIR RUTA | AJOUTER LIAISON | ADICIONAR ROTA | TAMBAH RUTE | — | — | — | — | — | — | The modulation rack |  |

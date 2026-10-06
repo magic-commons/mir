@@ -1,13 +1,13 @@
 [
  {
   "file": "mir/app.js",
-  "line": 326,
+  "line": 327,
   "why": "fragment",
   "text": " · an MIR app"
  },
  {
   "file": "mir/core/describe.js",
-  "line": 249,
+  "line": 250,
   "why": "fragment",
   "text": "unhandled rejection: "
  },
@@ -67,61 +67,55 @@
  },
  {
   "file": "mir/modulation/mod.js",
-  "line": 2530,
+  "line": 2494,
   "why": "fragment",
   "text": "a slow sine opening and closing the colour bands, with the whole palette "
  },
  {
   "file": "mir/modulation/mod.js",
-  "line": 2590,
+  "line": 2554,
   "why": "fragment",
   "text": "two sample-and-hold wanderers on the first two colour phases — "
  },
  {
   "file": "mir/modulation/mod.js",
-  "line": 2701,
+  "line": 2665,
   "why": "fragment",
   "text": "the stored modulation presets are format "
  },
  {
   "file": "mir/modulation/mod.js",
-  "line": 2701,
+  "line": 2665,
   "why": "fragment",
   "text": " and this build reads format "
  },
  {
   "file": "mir/modulation/mod.js",
-  "line": 2702,
+  "line": 2666,
   "why": "fragment",
   "text": " — the file is left untouched and this session runs on the "
  },
  {
   "file": "mir/modulation/modwindow/modwindow.js",
-  "line": 74,
+  "line": 430,
   "why": "fragment",
   "text": " window controls"
  },
  {
   "file": "mir/modulation/modwindow/modwindow.js",
-  "line": 443,
-  "why": "fragment",
-  "text": " window controls"
- },
- {
-  "file": "mir/modulation/modwindow/modwindow.js",
-  "line": 611,
+  "line": 598,
   "why": "textContent",
   "text": "BPM"
  },
  {
   "file": "mir/modulation/modwindow/modwindow.js",
-  "line": 935,
+  "line": 922,
   "why": "textContent",
   "text": "A"
  },
  {
   "file": "mir/modulation/modwindow/modwindow.js",
-  "line": 937,
+  "line": 924,
   "why": "textContent",
   "text": "B"
  },
@@ -139,13 +133,13 @@
  },
  {
   "file": "mir/modulation/window.js",
-  "line": 1157,
+  "line": 1116,
   "why": "fragment",
   "text": "px,"
  },
  {
   "file": "mir/modulation/window.js",
-  "line": 2004,
+  "line": 1901,
   "why": "fragment",
   "text": " failed to build"
  },
@@ -157,49 +151,49 @@
  },
  {
   "file": "mir/panels/camera.js",
-  "line": 364,
+  "line": 363,
   "why": "fragment",
   "text": "NORTH · back to "
  },
  {
   "file": "mir/panels/curves.js",
-  "line": 122,
+  "line": 121,
   "why": "fragment",
   "text": ": in "
  },
  {
   "file": "mir/panels/curves.js",
-  "line": 122,
+  "line": 121,
   "why": "fragment",
   "text": ", out "
  },
  {
   "file": "mir/panels/xy.js",
-  "line": 321,
+  "line": 322,
   "why": "fragment",
   "text": " — XY pad"
  },
  {
   "file": "mir/panels/xy.js",
-  "line": 330,
+  "line": 331,
   "why": "fragment",
   "text": " — XY controller"
  },
  {
   "file": "mir/panels/xy.js",
-  "line": 352,
+  "line": 353,
   "why": "fragment",
   "text": "the XY controller's "
  },
  {
   "file": "mir/panels/xy.js",
-  "line": 404,
+  "line": 405,
   "why": "fragment",
   "text": "the morph pad's "
  },
  {
   "file": "mir/panels/xy.js",
-  "line": 404,
+  "line": 405,
   "why": "fragment",
   "text": ": A and "
  },
@@ -391,37 +385,37 @@
  },
  {
   "file": "mir/shell/boot.js",
-  "line": 79,
+  "line": 72,
   "why": "fragment",
   "text": " could not start · "
  },
  {
   "file": "mir/shell/boot.js",
-  "line": 83,
+  "line": 76,
   "why": "fragment",
   "text": "steps done: "
  },
  {
   "file": "mir/shell/boot.js",
-  "line": 148,
+  "line": 141,
   "why": "fragment",
   "text": "boot veil   "
  },
  {
   "file": "mir/shell/boot.js",
-  "line": 149,
+  "line": 142,
   "why": "fragment",
   "text": "down after "
  },
  {
   "file": "mir/shell/boot.js",
-  "line": 150,
+  "line": 143,
   "why": "fragment",
   "text": " ms via "
  },
  {
   "file": "mir/shell/boot.js",
-  "line": 150,
+  "line": 143,
   "why": "fragment",
   "text": " frames waited"
  },

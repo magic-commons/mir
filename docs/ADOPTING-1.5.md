@@ -145,6 +145,17 @@ BASINS does not swap its rack or its SAVE window in one step. Each kit part adop
 - **The rack**: `docs/RACK.md`, "Adopting into an app that has a rack" (four stages: one dock span in place of `rack-bounds.js`; `createRack` takes the existing windows (`register({ id, el })`, `card: true` for an app card) and the motion with them; the `+` and ☆ menus (`chrome: true`); the containers' look), and "What BASINS' rack does that the kit still does not".
 - **FOLDERS**: `docs/FOLDERS.md`, "BASINS: the exact options, and where each job of `save-window.js` sits" (the options that reproduce BASINS' window, and which of its jobs moved where).
 
+## 10. Names removed in 1.5.0-alpha.18 (the consolidation)
+
+alpha.18 adds nothing; it removes what no app used. An app that used one of these drops it:
+- **Options**: `createRack({ name })` (it was COPY's head line; BASINS passes it and it is now ignored, so the line can go), `createRack({ layoutExtra })` and `rack.touch()`, `createFolders({ zip: { foot } })` and `mountGallery(el, { zip })`, `number({ editFmt })` / `bindNumber({ editFmt })`, `select({ host })` / `listPane({ host })`.
+- **Methods**: `knob.setState('warn' | 'clamped')` and `knob.state`; `rack.digest`, `rack.copyDigest`, `RACK.copied`.
+- **A module**: `mir/shell/settings-rows.js` (`settingsRows`, `selectField`, `numberField`).
+- **Exports**: `parentOf` (folders/files.js), `inkRatio` (kit.js), `labPresetFolders` (modulation/host.js), `fireTriggers`, `releaseTriggers`, `clearTrigger`, `audioApplicationDemand`, `dormantCountOfMacro`, `setPresetFolder` (modulation/mod.js), `CHIPRAIL_LABEL` (modwindow.js), `forgetVerified` (render/encoder.js), `PLACEMENTS` (shell/transport.js), `wireTouches` (controls/gesture.js; use kit.js `watchTouches`), `digestText`, `watchDevice` (shell/boot.js); `WAVE_WORDS` is no longer exported.
+- **Token rows**: 73 rows left `mir/tokens.json` (the 62 never-declared `proposed` rows, and `--dev-carried-ring`, `--fr-r-card`, `--tl-tail-max`, `--m2-matrix-edge`, `--m2-matrix-face`, `--pane`, `--m2-r-14`, `--m2-fs-12`, `--m2-input-edge`, `--k-state-ink`, `--k-state-ring`). A skin that set one of them sets nothing now.
+
+Nothing else changes for an adopter: every other name, option and stored shape is as it was in alpha.17. What does behave differently is listed under "Fixed" in the alpha.18 changelog entry (one raise stack, `createApp` handing its history on, the three downloads through `saveBlob`).
+
 ## Check
 
 `npm test` in the kit; in your app, load once and confirm the chips keep their material (the stylehash neutrality

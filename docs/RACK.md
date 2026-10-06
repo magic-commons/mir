@@ -54,8 +54,6 @@ A registered window costs one Map entry. Its `device()` shell is made, and its `
 | `retired` | — | `{ oldId: heirId }`: a saved layout that names an old window id opens its heir instead. If the layout names the heir too, the old record is dropped (BASINS') |
 | `persist` | `'all'` | what a reload keeps. `'all'`: every window's side, order, fold, float, and whether the rack is hidden. `'closed'` (BASINS `rack.js persist`): only which windows are closed, and whether the phone rack is shown; each window comes back on its own side, in registration order. ☆ layouts keep everything either way |
 | `notebook` | — | the notebook (`createNotebook()`'s result: `size()`, `resize(w, h)`), or `() => it` when it is made later. A layout then keeps the notebook's size as `nb: [w, h]`, and loading a ☆ layout (or `apply`) resizes it. A reload leaves the notebook's own saved size alone |
-| `layoutExtra` | — | `{ capture() → object, apply(object, layout) }` (1.5.0-alpha.14): the app's own layout state (BASINS' `docked`, where its transport sits). `capture()` is stored on every layout, the reload record and each ☆ slot, as `extra` (a plain JSON object); `apply()` is handed it after the cards are placed whenever a layout that carries one is applied (a reload, a ☆ load, `apply(layout)`). A throw in either is caught: the layout still lands. `rack.touch()` keeps the layout again after the app's state changes. `persist: 'closed'` does not carry it |
-| `name` | `''` | the app's name, the head of COPY's text (BASINS: `'BASINS REDUX'`) |
 
 **`rack.register(spec)` → id.** `spec` is:
 - `id` (required, unique), `title` (default: the id in capitals), `side` (`'left'` / `'right'`, its home), `open` (open by default), `glyph` (a `glyph.js` name, shown in the `+` list), `hint`, `key` (a key hint for the WINDOW row), `status`, `loadingMark`;
@@ -92,9 +90,7 @@ The window's `api` is `{ id, dev, root, body, setStatus, canPresent(), open(), c
 - The ☆ slots: `saveLayout(slot?)`, `loadLayout(slot)`, `forgetLayout(slot)`, `layouts()`.
 - `resetLayout()`: RESET LAYOUT (BASINS' Settings button). Every floating window docks home; every window opens, powers on and unfolds; every window goes back to its home rack (the right rack keeps its order, the left rack's windows that are not left-homed join the end of it, then every left-homed window goes to the left rack in that order); the rack shows. An app card (`card: true`, or a `.dev` the app never registered) keeps its place and its state. A settings row calls it: `trig({ label: 'RESET LAYOUT', onFire: () => rack.resetLayout() })`.
 
-**COPY a window's readouts.**
-- `digest(id)` returns the window's readouts as text: a head line (`name · TITLE · ISO time`), then `status<TAB>…` when it has a status, then one line per readout (`.ro`: label, value, sub), tab-separated.
-- `copyDigest(id)` puts that on the clipboard and flashes ` · COPIED` after the window's status for 900 ms (`.dev.copied`; the word comes from `t()`). It returns the text, also when the clipboard refuses.
+**COPY a window's readouts** (`digest`, `copyDigest`, `digestText`, the `name` option and the `· COPIED` flash) is removed in 1.5.0-alpha.18: no app pressed it.
 
 **The scrollbar at the card column** (`scrollbar: true`, `mir/shell/rack-scrollbar.js`). A rack keeps its native scrolling and its 48-px shadow gutter, so the native bar would sit at the far edge of the gutter, away from the cards (Josh: "scrollers seems to be way too far out from the rack"). This turns the native bar off on a wide screen (`body.rack-scrollbars`) and stands a transparent 12-px track beside the cards instead, at the gutter's inner edge (left rack: its right − gutter − 8; right rack: its left + gutter − 4), 8 px in from the top and bottom, with a 3-px accent thumb (never shorter than 32 px).
 - A hand drags the thumb, or presses the track to jump there; a wheel turns it; ↑ ↓ step 40 px, PageUp / PageDown 90 %, Home / End the ends.
@@ -114,7 +110,7 @@ The window's `api` is `{ id, dev, root, body, setStatus, canPresent(), open(), c
 - `reorderIndex(boxes, at, center, hyst)`, `insertionIndex(boxes, y)`, `slotRect(col, boxes, index)`, `moveId`;
 - `clampFloat`, `detached`, `peekSide`, `dodgeSeat`;
 - `queueToggle`, `openOrder`, `favSlot`;
-- `readLayout(raw, knownIds, retired)` (keeps `nb` and `extra`), `closedLayout(windows, { phoneShown })` (the `persist: 'closed'` record), `layoutLabel`, `localStore`, `digestText`, `clampFloatTablet`;
+- `readLayout(raw, knownIds, retired)` (keeps `nb`), `closedLayout(windows, { phoneShown })` (the `persist: 'closed'` record), `layoutLabel`, `localStore`, `clampFloatTablet`;
 - in `rack-scrollbar.js`: `scrollbarSeat`, `thumbOf`, `SCROLLBAR` (node-tested in `tests/rack-leftovers.node.mjs`);
 - `RACK` (the numbers) and `SIDES`.
 
@@ -229,7 +225,7 @@ The brief asked for survey C's 65-item rack list. Survey C has no numbered list 
 | 68 | Phone: the hide toggle follows the rack edge in the thumb zone | kept (rack.css) |
 | 69 | Narrow screens (≤ 860 px): the rack along the bottom | kept (rack.css) |
 | 70 | No way back from H on touch | added: the edge handle |
-| 71 | `copyDigest` / `digest` (COPY a window's readouts) | **closed** (1.5.0-alpha.12): `rack.digest(id)`, `rack.copyDigest(id)` with BASINS' flash; the head line's app name is `name` |
+| 71 | `copyDigest` / `digest` (COPY a window's readouts) | **closed** (1.5.0-alpha.12): `rack.digest(id)`, `rack.copyDigest(id)` with BASINS' flash; the head line's app name is `name`; **removed** in 1.5.0-alpha.18 (no app pressed it) |
 | 72 | `resetLayout` | **closed** (1.5.0-alpha.12): `rack.resetLayout()`, BASINS' verb |
 | 73 | The rack's own scrollbar seated at the card column (BASINS `rack-scrollbars.js`) | **closed** (1.5.0-alpha.12): `createRack({ scrollbar: true })`, `mir/shell/rack-scrollbar.js`, fed by `span()` |
 | 74 | Rack height motion when a card folds (BASINS animates height) | kept (ruled 2026-10-02): BASINS' motion, height included, the one sanctioned layout animation (MOTION-LAW, "The rack's cards") |
@@ -305,7 +301,7 @@ Each item is exact. "Stays" means it stays in BASINS until the kit has it.
 4. ~~Retired ids~~: **in the kit** (1.5.0-alpha.12), `retired: { old: heir }`.
 5. **A layout's `docked`.** The kit reads the cards, `rackHidden` and (1.5.0-alpha.12) `nb` from a BASINS record. Docking the transport is the app's: it reads `docked` from the record and acts on it before or after `loadLayout`.
 6. **What persists across a reload.** BASINS keeps only the closed list (`closed`, plus the one-shot `rackFileWindowsV1` migration) and `phoneRack` / `phoneTr`. The kit keeps the whole arrangement (order, sides, folds, floats). The first adoption must seed the kit's record from `closed`, or the first load opens the defaults.
-7. ~~`copyDigest` / `digest`~~: **in the kit** (1.5.0-alpha.12), with `name` for BASINS' head line.
+7. ~~`copyDigest` / `digest`~~: **in the kit** (1.5.0-alpha.12), with `name` for BASINS' head line. Removed again in 1.5.0-alpha.18: no app pressed it.
 8. **The transport card's docking** (`dockTransport`, `dockSide`, `dockIndex`, `wTr`). The card's PLACE is the kit's (`card: true`). Docking it and undocking it are the transport's (`shell/transport.js` in the kit, or BASINS' own).
 9. **`body.rack-l`.** BASINS sets it when the left rack has children, and nothing in BASINS reads it now. Not built.
 
@@ -364,4 +360,3 @@ Each item is exact. "Stays" means it stays in BASINS until the kit has it.
 - The Linux blur bug itself: the law is enforced and tested as "no ancestor below opacity 1", but no Linux GPU run was made.
 - A hidden page cancelling a drag: CDP cannot hide a headless page.
 - The tablet clamp on a real iPad with the on-screen keyboard up (the visual viewport smaller than the layout one): the node test covers the arithmetic; the browser check ran under Chromium's touch emulation with the full viewport.
-- The clipboard write itself: headless Chromium refuses it without a permission. The text `copyDigest` returns is what it writes.

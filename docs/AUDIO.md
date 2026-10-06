@@ -61,7 +61,7 @@ States: `idle · asking · live · denied · nodevice · unavailable · error`, 
 
 ## The project ZIP — `mir/core/zip.js`, `mir/folders/zip.js`, FOLDERS
 
-FL Studio's "Save project as zip": the current project and the audio it uses in one file. **SAVE AS ZIP…** and **OPEN ZIP…** are in FOLDERS' gallery foot (`createFolders({ zip: false })` removes them; `zip: { store, validate(project) }` names the asset store and what a project must be); a `.zip` dropped on the window, or chosen with OPEN FILE, opens too. The file is `<name>.<app>.zip`, and leaves through `saveBlob` (a Blob and `<a download>`; the share sheet on iPad). The layout is in `docs/FORMAT.md`.
+FL Studio's "Save project as zip": the current project and the audio it uses in one file. **SAVE AS ZIP…** and **OPEN ZIP…** are RENDER's FILES rows (`createFolders({ zip: false })` removes them; `zip: { store, validate(project) }` names the asset store and what a project must be); a `.zip` dropped on the window, or chosen with OPEN FILE, opens too. The file is `<name>.<app>.zip`, and leaves through `saveBlob` (a Blob and `<a download>`; the share sheet on iPad). The layout is in `docs/FORMAT.md`.
 
 **Opening is checked, then written, then rolled back if it fails.** The ZIP is read and every entry passes its CRC-32 before anything is written; an asset is taken only when its bytes hash to its own name; an id already in the store is skipped (never rewritten); a ZIP with no project or one `validate` refuses changes nothing; the project is saved under its own name in the current folder (a clash is numbered by the library, never an overwrite) and opened; if the library refuses it (full, quota) the assets this open wrote are deleted again. A damaged ZIP says `That is not a project zip: <why>`.
 

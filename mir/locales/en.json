@@ -48,7 +48,6 @@
   "ADD ENV": "ADD ENV",
   "ADD LFO": "ADD LFO",
   "ADD MACRO": "ADD MACRO",
-  "ADD ROUTE": "ADD ROUTE",
   "AIRY": "AIRY",
   "ALWAYS": "ALWAYS",
   "AMOUNT": "AMOUNT",
@@ -71,7 +70,6 @@
   "AUTOMATION": "AUTOMATION",
   "Active": "Active",
   "Add a macro": "Add a macro",
-  "Add a macro in the modulation window to begin routing.": "Add a macro in the modulation window to begin routing.",
   "Add a point that preserves its current value": "Add a point that preserves its current value",
   "Add a stop opposite the selected one": "Add a stop opposite the selected one",
   "Add a {noun} — {count} of {cap}": "Add a {noun} — {count} of {cap}",
@@ -114,7 +112,6 @@
   "BASINS — the range the record window renders": "BASINS — the range the record window renders",
   "BASINS — the transport’s one play (transportActions); FL’s Space stops to the start position instead": "BASINS — the transport’s one play (transportActions); FL’s Space stops to the start position instead",
   "BEAT": "BEAT",
-  "BIPOLAR": "BIPOLAR",
   "BLACK": "BLACK",
   "BLACK · WHITE": "BLACK · WHITE",
   "BLACK · WHITE — the input levels: below BLACK is black, above WHITE is white; double-tap a thumb to send it home": "BLACK · WHITE — the input levels: below BLACK is black, above WHITE is white; double-tap a thumb to send it home",
@@ -139,7 +136,6 @@
   "CENTRE": "CENTRE",
   "CHANNEL — which curve the plot edits": "CHANNEL — which curve the plot edits",
   "CLEAR": "CLEAR",
-  "CLOSE": "CLOSE",
   "CLOSED": "CLOSED",
   "CMP": "CMP",
   "COMPACT": "COMPACT",
@@ -238,7 +234,6 @@
   "DELETE": "DELETE",
   "DENIED": "DENIED",
   "DESELECT": "DESELECT",
-  "DESTINATION": "DESTINATION",
   "DIRECTION": "DIRECTION",
   "DISCARD RENDER": "DISCARD RENDER",
   "DISCARD STORED RENDER": "DISCARD STORED RENDER",
@@ -325,7 +320,6 @@
   "Edit or preview the notebook": "Edit or preview the notebook",
   "Edit tool": "Edit tool",
   "Enable or bypass modulation": "Enable or bypass modulation",
-  "Enable route": "Enable route",
   "Escape": "Escape",
   "Escape is kept for closing and cancelling.": "Escape is kept for closing and cancelling.",
   "Every key is back to its default": "Every key is back to its default",
@@ -532,7 +526,6 @@
   "MOD off": "MOD off",
   "MOD on": "MOD on",
   "MODULATION": "MODULATION",
-  "MODULATION MATRIX": "MODULATION MATRIX",
   "MOTION": "MOTION",
   "MOVE CONTENTS TO {:ROOT}?": "MOVE CONTENTS TO {:ROOT}?",
   "MOVE EARLIER": "MOVE EARLIER",
@@ -629,7 +622,6 @@
   "Open a project saved as one .zip (SAVE AS ZIP): its audio comes back with it and it becomes the current project.": "Open a project saved as one .zip (SAVE AS ZIP): its audio comes back with it and it becomes the current project.",
   "Open folder {name}": "Open folder {name}",
   "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.": "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.",
-  "Open modulation matrix": "Open modulation matrix",
   "Open or close audio input. Audio is analysed locally and is not stored.": "Open or close audio input. Audio is analysed locally and is not stored.",
   "Open the modulation window": "Open the modulation window",
   "Open the preset list — {factory} ships with the app, the rest are yours": "Open the preset list — {factory} ships with the app, the rest are yours",
@@ -666,7 +658,6 @@
   "PLAY / PAUSE": "PLAY / PAUSE",
   "POINTER": "POINTER",
   "POINTER GLOW": "POINTER GLOW",
-  "POLARITY": "POLARITY",
   "PRESET": "PRESET",
   "PRESET NAME": "PRESET NAME",
   "PRESET — a curve to start from": "PRESET — a curve to start from",
@@ -788,7 +779,6 @@
   "Resize the clip from its left edge": "Resize the clip from its left edge",
   "Resize the clip from its right edge": "Resize the clip from its right edge",
   "Resize window": "Resize window",
-  "Response curve, zero is linear": "Response curve, zero is linear",
   "Restart phase on triggers and playback": "Restart phase on triggers and playback",
   "Restore the default window layout": "Restore the default window layout",
   "Restore this window layout": "Restore this window layout",
@@ -933,7 +923,6 @@
   "Show the data for {name}": "Show the data for {name}",
   "Show the interface": "Show the interface",
   "Show the main transport bar, floating or docked": "Show the main transport bar, floating or docked",
-  "Signed route amount percent": "Signed route amount percent",
   "Slice every selected clip at the playhead (one undo)": "Slice every selected clip at the playhead (one undo)",
   "Slice sphere and plane. Drag or use arrow keys to rotate; Home resets.": "Slice sphere and plane. Drag or use arrow keys to rotate; Home resets.",
   "Slice tool": "Slice tool",
@@ -1060,7 +1049,6 @@
   "Type: {roboto} · {title} (a renamed subset of Spinwerad by gluk) · {stix} · the notebook’s {spectral}, {playfair} and {alegreya} — all SIL OFL 1.1.": "Type: {roboto} · {title} (a renamed subset of Spinwerad by gluk) · {stix} · the notebook’s {spectral}, {playfair} and {alegreya} — all SIL OFL 1.1.",
   "Type: {title}, a renamed subset of Spinwerad by gluk · {roboto} · {stix} — all SIL OFL 1.1, subset for this app.": "Type: {title}, a renamed subset of Spinwerad by gluk · {roboto} · {stix} — all SIL OFL 1.1, subset for this app.",
   "UNDO": "UNDO",
-  "UNIPOLAR": "UNIPOLAR",
   "UNSAVED CHANGES": "UNSAVED CHANGES",
   "UNTITLED": "UNTITLED",
   "UP": "UP",
@@ -1562,7 +1550,6 @@
   "{shape} — {points} points, {bent} bent. Right-drag empty space to add; drag dots and handles.": "{shape} — {points} points, {bent} bent. Right-drag empty space to add; drag dots and handles.",
   "{skins} — coming (“name”-specs)": "{skins} — coming (“name”-specs)",
   "{step} of {total}": "{step} of {total}",
-  "{target} (unavailable)": "{target} (unavailable)",
   "{title} controls": "{title} controls",
   "{title} window controls": "{title} window controls",
   "{value} · base · modulated": "{value} · base · modulated",
@@ -1592,10 +1579,8 @@
   "(root)": "the top of the shelf: the notes in no folder",
   "ANCHOR": "ANCHOR: on resume, the LFO continues from the phase where the pause caught it, holding the beat",
   "ARMED: {macro} — tap a lit control to route it, tap the grip again to cancel": "ARMED: the macro waits for a tap on a control to route itself there (as a record button is armed)",
-  "BIPOLAR": "UNIPOLAR: the route only adds (0 to +); BIPOLAR: it swings both ways around the base",
   "BRIGHTNESS": "how far both accent colours are mixed toward white (not the glass's BRIGHT)",
   "CMP": "short for COMPACT: the device shows only its performance bank",
-  "COPIED": "the flash on a window's status after COPY put its readouts on the clipboard",
   "Capture image": "the button that takes a still picture of the current view",
   "DEAD SENDS": "routes (sends) whose target control is missing from this build: they wait, keeping their range, until it comes back",
   "DRIFT": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
@@ -1667,7 +1652,6 @@
   "The controls take the panes’ light: one {:ANGLE} for everything": "the relief follows the pane light's ANGLE: one light for the whole interface",
   "The {panel} panel could not be built: {why}": "an error notice: {panel} is a panel's name (RENDER …), {why} the program's reason, left as it is",
   "This device’s tier, measured once: A and B are {:FULL}, C is {:BALANCED}": "a short benchmark sorts this device into tier A, B or C",
-  "UNIPOLAR": "UNIPOLAR: the route only adds (0 to +); BIPOLAR: it swings both ways around the base",
   "WALL": "the clock follows wall-clock time (real elapsed seconds), as opposed to FREE, which counts frame time and slows with the picture",
   "clock state::HOLD": "— the modulation clock is held (paused in place), as opposed to RUN",
   "close ({key})": "{key} is the notebook’s shortcut key, e.g. J",
@@ -1843,9 +1827,6 @@
   "ADD MACRO": [
    "mir/modulation/modwindow/modwindow.js"
   ],
-  "ADD ROUTE": [
-   "mir/modulation/window.js"
-  ],
   "AIRY": [
    "mir/shell/gui.js"
   ],
@@ -1853,7 +1834,6 @@
    "mir/shell/gui.js"
   ],
   "AMOUNT": [
-   "mir/modulation/window.js",
    "mir/panels/curves.js"
   ],
   "AMOUNT — how much of the curves apply: the diagonal at 0, the whole curve at 100 %": [
@@ -1915,9 +1895,6 @@
    "mir/keyboard/keyboard.js"
   ],
   "Add a macro": [
-   "mir/modulation/window.js"
-  ],
-  "Add a macro in the modulation window to begin routing.": [
    "mir/modulation/window.js"
   ],
   "Add a point that preserves its current value": [
@@ -2046,9 +2023,6 @@
   "BEAT": [
    "mir/modulation/window.js"
   ],
-  "BIPOLAR": [
-   "mir/modulation/window.js"
-  ],
   "BLACK": [
    "mir/panels/grade.js"
   ],
@@ -2126,9 +2100,6 @@
   "CLEAR": [
    "mir/history/window.js"
   ],
-  "CLOSE": [
-   "mir/modulation/window.js"
-  ],
   "CLOSED": [
    "mir/modulation/window.js"
   ],
@@ -2167,8 +2138,7 @@
   "COPIED": [
    "mir/kit.js",
    "mir/render/panel.js",
-   "mir/shell/notebook.js",
-   "mir/shell/rack.js"
+   "mir/shell/notebook.js"
   ],
   "COPY": [
    "mir/modulation/modwindow/modwindow.js",
@@ -2437,9 +2407,6 @@
   "DESELECT": [
    "mir/timeline/shortcuts.js"
   ],
-  "DESTINATION": [
-   "mir/modulation/window.js"
-  ],
   "DIRECTION": [
    "mir/panels/camera.js"
   ],
@@ -2695,9 +2662,6 @@
   "Enable or bypass modulation": [
    "mir/modulation/window.js",
    "mir/shell/transport.js"
-  ],
-  "Enable route": [
-   "mir/modulation/window.js"
   ],
   "Escape": [
    "mir/timeline/shortcuts.js"
@@ -3320,9 +3284,6 @@
    "mir/app.js",
    "mir/modulation/window.js"
   ],
-  "MODULATION MATRIX": [
-   "mir/modulation/window.js"
-  ],
   "MOTION": [
    "mir/shell/gui.js"
   ],
@@ -3583,7 +3544,6 @@
    "mir/folders/folders.js"
   ],
   "OPEN ZIP…": [
-   "mir/folders/gallery.js",
    "mir/render/panel.js"
   ],
   "ORBIT": [
@@ -3614,7 +3574,6 @@
    "mir/folders/folders.js"
   ],
   "Open a project saved as one .zip (SAVE AS ZIP): its audio comes back with it and it becomes the current project.": [
-   "mir/folders/gallery.js",
    "mir/render/panel.js"
   ],
   "Open folder {name}": [
@@ -3622,9 +3581,6 @@
   ],
   "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.": [
    "mir/shell/boot.js"
-  ],
-  "Open modulation matrix": [
-   "mir/modulation/window.js"
   ],
   "Open or close audio input. Audio is analysed locally and is not stored.": [
    "mir/modulation/window.js"
@@ -3737,9 +3693,6 @@
   ],
   "POINTER GLOW": [
    "mir/shell/gui.js"
-  ],
-  "POLARITY": [
-   "mir/modulation/window.js"
   ],
   "PRESET": [
    "mir/modulation/modwindow/modwindow.js",
@@ -4114,9 +4067,6 @@
   "Resize window": [
    "mir/window/window.js"
   ],
-  "Response curve, zero is linear": [
-   "mir/modulation/window.js"
-  ],
   "Restart phase on triggers and playback": [
    "mir/modulation/window.js"
   ],
@@ -4187,7 +4137,6 @@
    "mir/notes/face.js"
   ],
   "SAVE AS ZIP…": [
-   "mir/folders/gallery.js",
    "mir/render/panel.js"
   ],
   "SAVE TO": [
@@ -4288,8 +4237,7 @@
    "mir/panels/lanes.js"
   ],
   "SOURCE": [
-   "mir/modulation/modwindow/modwindow.js",
-   "mir/modulation/window.js"
+   "mir/modulation/modwindow/modwindow.js"
   ],
   "SPACING": [
    "mir/shell/gui.js"
@@ -4383,7 +4331,6 @@
    "mir/folders/folders.js"
   ],
   "Save the current project, with the audio files it uses, as one .zip.": [
-   "mir/folders/gallery.js",
    "mir/render/panel.js"
   ],
   "Save the current window arrangement": [
@@ -4560,9 +4507,6 @@
   ],
   "Show the main transport bar, floating or docked": [
    "mir/shell/gui.js"
-  ],
-  "Signed route amount percent": [
-   "mir/modulation/window.js"
   ],
   "Slice every selected clip at the playhead (one undo)": [
    "mir/timeline/shortcuts.js"
@@ -4947,9 +4891,6 @@
   "UNDO": [
    "mir/history/history-list.js",
    "mir/timeline/shortcuts.js"
-  ],
-  "UNIPOLAR": [
-   "mir/modulation/window.js"
   ],
   "UNSAVED CHANGES": [
    "mir/folders/folders.js"
@@ -5646,7 +5587,6 @@
    "mir/controls/stepper.js"
   ],
   "no": [
-   "mir/notes/face.js",
    "mir/shell/notebook.js"
   ],
   "no microphone was found on this device": [
@@ -6152,7 +6092,6 @@
    "mir/render/panel.js"
   ],
   "yes": [
-   "mir/notes/face.js",
    "mir/shell/notebook.js"
   ],
   "your notes: save, open, folders, recent": [
@@ -6421,9 +6360,6 @@
   ],
   "{step} of {total}": [
    "mir/shell/boot.js"
-  ],
-  "{target} (unavailable)": [
-   "mir/modulation/window.js"
   ],
   "{title} controls": [
    "mir/controls/list.js"

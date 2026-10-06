@@ -79,7 +79,7 @@ The plugin's two sheets (`mir/modulation/modhost.css`, `mir/modulation/modwindow
 
 | Name | What it reaches in the plugin |
 |---|---|
-| `--surface-filter` | every frost blur: the panes, the work bar, the chip rail's discs (the matrix dialog has no backdrop of its own) |
+| `--surface-filter` | every frost blur: the panes, the work bar, the chip rail's discs |
 | `--surface-shadow` | the six panes (work bar, macro rail, device cards, the three picker sheets), the audio sheet, the hint, the chip discs. With it unset they wear the house's `--glass-shadow`: the plugin has no pane height of its own |
 | `--surface-shadow-float` | the routing pill while it is carried |
 | `--surface-fill` / `--surface-veil` | the pane fill: TINTED reads `--surface-fill`, REFRACTIVE (and its frost whisper) reads `--surface-veil`; the picker sheets read `--surface-fill` |

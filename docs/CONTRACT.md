@@ -107,7 +107,7 @@ The kit writes `localStorage` only here:
 | Key | Owner | Default |
 |---|---|---|
 | `<storageKey>`, `.title`, `.subtitle`, `.size` | `createNotebook({ storageKey })` | `mir.notebook` |
-| `PRESET_LS` | `mod.js` | `lambdawaves.q0.modpresets` (λWAVES', inherited by BASINS and NEBULA; each app has its own origin, so they never meet). Not injectable yet: `mod.js` stays byte-identical to its source while λWAVES' §16 gate proves it |
+| `PRESET_LS` | `mod.js` | `lambdawaves.q0.modpresets` (λWAVES', inherited by BASINS and NEBULA; each app has its own origin, so they never meet). Not injectable yet (a `mod.js` edit; the kit's `mod.js` is no longer byte-identical to λWAVES' copy) |
 
 ## 8. Laws the kit keeps for an app
 

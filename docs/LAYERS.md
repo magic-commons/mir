@@ -83,8 +83,8 @@ The kit's other CSS is **not** layered and stays so: `mir/shell/vendor/katex/kat
 | 20–21 | shell.css `body.ui-hidden #menubar, #title, #notebook` | `display:none` | **Keep.** H hides the interface |
 | 22–23 | shell.css reduced motion `#title` | `transition:none`, `transform:none` | **Moved to `mir.a11y`.** |
 | 24–27 | shell.css phone `#notebook` | `left`, `top`, `width`, `height` | **Keep.** They must beat the inline size the resize grip writes, and only `!important` beats an inline style |
-| 28–30 | modhost.css `.mod-matrix-bars > *` | `position`, `inset`, `transform` | **Review (1.5.1).** Unscoped, and it fights an app's matrix layout. Scope it to the plugin or drop it |
-| 31 | modhost.css `#modwin .m2-side-grip, .m2-matrix-open` | `display:none` | **Keep.** Retired controls stay hidden |
+| 28–30 | modhost.css `.mod-matrix-bars > *` | `position`, `inset`, `transform` | **Gone (1.5.0-alpha.18)** with the modulation matrix dialog |
+| 31 | modhost.css `#modwin .m2-side-grip, .m2-matrix-open` | `display:none` | **Keep.** Retired controls stay hidden (`.m2-matrix-open` gone in 1.5.0-alpha.18 with the matrix; `.m2-side-grip` stays) |
 | 32 | modwindow.css `.kwin-chips-only > .kwin-bar` | `display:none` | **Keep.** The vendored guarantee ("THE BAR IS HIDDEN BY THIS ONE LINE") |
 | 33–34 | modwindow.css reduced motion | `transition:none`, `animation:none` | **Moved to `mir.a11y`.** |
 
