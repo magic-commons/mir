@@ -91,6 +91,7 @@
   --tl-pop-title-track: .08em;
   --tl-pop-trig-h: 32px;
   --tl-pop-trig-size: 10px;
+  --tl-row-gap: 8px;                                           /* a folded tool's row in ⋯'s list: icon, then word */
   --tl-field-size: 9px;
   --tl-field-gap: 6px;
   --tl-input-r: 6px;
@@ -166,8 +167,10 @@
 .mir-timeline .tl-worklane { display: flex; align-items: flex-start; gap: var(--tl-lane-gap); flex: 0 0 auto; min-width: 0; margin-bottom: var(--tl-bar-gap); }
 .mir-timeline .tl-transport-host { display: flex; flex: 0 0 auto; min-width: 0; max-width: 100%; }
 .mir-timeline .tl-transport-host > .mir-transport { flex-shrink: 0; }
-.mir-timeline .tl-toolbar { display: flex; align-items: center; gap: var(--tl-bar-gap); flex: 0 1 auto; flex-wrap: wrap; min-height: var(--tl-bar-h); height: auto; box-sizing: border-box;
+/* ONE LINE, always (wave 19): the bar never wraps; editor.js folds the tools that do not fit, from the end, behind ⋯ */
+.mir-timeline .tl-toolbar { display: flex; align-items: center; gap: var(--tl-bar-gap); flex: 0 1 auto; flex-wrap: nowrap; min-width: 0; min-height: var(--tl-bar-h); height: auto; box-sizing: border-box;
   padding: var(--tl-bar-pad); margin: 0 0 0 auto; font-size: var(--tl-bar-size); color: var(--fg-soft); color-scheme: dark; }
+.mir-timeline .tl-toolbar > * { flex: none; }
 :where(body[data-theme="light"]) .mir-timeline .tl-toolbar { color-scheme: light; }
 /* where the resize corner shares the bar's row (docked at the bottom with the lane on top, or floating with it below) */
 .mir-win.mir-timeline[data-dock="bottom"] .timeline-surface:not([data-work-lane="bottom"]) .tl-toolbar,
@@ -179,14 +182,14 @@
   .mir-timeline .tl-transport-host { width: 100%; }
   .mir-timeline .tl-toolbar { width: 100%; }
 }
-@container timeline (max-width: 420px) { .mir-timeline .tl-toolbar { flex-wrap: wrap; } }
 
 /* the bar's buttons: the kit's trig and sel faces (the GUI's CONTROL FACES paints them); this sheet owns their box */
 .mir-win.mir-timeline button.tl-action { box-sizing: border-box; min-height: var(--tl-action-h); height: var(--tl-action-h); padding: var(--tl-action-pad); border-radius: var(--tl-action-r);
   font-size: var(--tl-action-size); letter-spacing: var(--tl-action-track); }
 .mir-win.mir-timeline .tl-toolbar .trig:not(.on) { color: var(--ink-key); }   /* BASINS: the bar's words are the key ink (.86), as the transport's */
-.mir-win.mir-timeline .tl-tool.tl-icon { display: inline-flex; align-items: center; justify-content: center; min-width: var(--tl-icon-min); }
-.mir-win.mir-timeline .tl-tool.tl-icon svg { width: var(--tl-icon); height: var(--tl-icon); display: block; flex: none; }
+.mir-win.mir-timeline .tl-action.tl-icon { display: inline-flex; align-items: center; justify-content: center; min-width: var(--tl-icon-min); }
+.mir-win.mir-timeline .tl-action.tl-icon svg { width: var(--tl-icon); height: var(--tl-icon); display: block; flex: none; }
+.mir-win.mir-timeline .tl-toolbar > .tl-folded { display: none; }   /* folded behind ⋯ (after the icon rule: it wins the tie) */
 .mir-timeline .tl-setting { display: flex; align-items: center; gap: var(--tl-bar-gap); padding: var(--tl-action-pad); height: var(--tl-setting-h); box-sizing: border-box; border-radius: var(--tl-action-r); white-space: nowrap; }
 .mir-timeline .tl-select-wrap { position: relative; display: inline-flex; align-items: center; flex: none; }
 .mir-timeline .tl-select-wrap select.sel { -webkit-appearance: none; appearance: none; font: inherit; font-size: var(--tl-action-size); color: inherit; padding: var(--tl-select-pad); border-radius: var(--tl-select-r); }
@@ -338,6 +341,9 @@
   max-height: calc(100dvh - 16px); overflow: auto; color: var(--fg); animation: lw-warn-in var(--tl-pop-t) var(--tl-ease-spring); }
 .tl-pop-title { font-size: var(--tl-pop-title-size); padding: 4px; letter-spacing: var(--tl-pop-title-track); }
 .tl-pop .trig { min-height: var(--tl-pop-trig-h); font-size: var(--tl-pop-trig-size); }
+/* a folded tool's row in ⋯'s list: its icon (when it has one), then its word */
+.tl-pop .trig.tl-row { display: flex; align-items: center; gap: var(--tl-row-gap); }
+.tl-pop .trig.tl-row svg { width: var(--tl-icon); height: var(--tl-icon); display: block; flex: none; }
 .tl-confirm { position: fixed; z-index: calc(var(--z-veil) + 21); max-width: var(--tl-confirm-max); padding: var(--tl-confirm-pad); font-size: var(--tl-confirm-size); animation: lw-warn-in var(--tl-pop-t) var(--tl-ease-spring); }
 .tl-confirm .trig { margin: 8px 4px 0 0; }
 .tl-pop .tl-value-input { width: 100%; box-sizing: border-box; color: inherit; background: var(--glass-well); border: 1px solid var(--glass-border-color); border-radius: var(--tl-input-r); padding: var(--tl-input-pad); font: inherit; }

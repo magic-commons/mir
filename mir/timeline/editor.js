@@ -3,8 +3,8 @@
  *
  * WHAT IT IS.  The surface inside the TIMELINE window: the WORK LANE (the transport in its work-bar form hugging the left,
  * and ONE right-aligned tool bar EDIT · SELECT · SCRUB · SLICE · CLIPS/POINTS · SNAP · STEP · SLIDE · ACTIVE · ⋯ reaching the
- * resize corner: Josh's fix 5), the ruler strip (scrub, range, Shift-zoom), the lanes and their clips, the playhead, the
- * selection, the curve editor (FL's gestures: modulation/curve-gesture.js is the law), the popups, drops.  No hint row at
+ * resize corner: Josh's fix 5; ONE line always: what does not fit folds from the end behind ⋯, wave 19), the ruler strip
+ * (scrub, range, Shift-zoom), the lanes and their clips, the playhead, the selection, the curve editor (FL's gestures: modulation/curve-gesture.js is the law), the popups, drops.  No hint row at
  * the foot (fix 6): the status line takes no space and shows only while it says something.
  *
  *   buildTimelineEditor(win, { model, mod, controller, present, say, audio }) → api
@@ -28,6 +28,8 @@
  * core/frame.js; the popups are the house's menu pane; BASINS' CURVE_VIEW numbers live in geometry.js. */
 import { svgPoint, curveHit, curveAction, pointDrag, pointAddValue, tensionDelta } from '../modulation/curve-gesture.js';
 import { el, label, ariaLabel } from '../kit.js';
+import { glyphSvg } from '../glyph.js';
+import { frame } from '../core/frame.js';
 import { isField } from '../core/pointer.js';
 import { t, tn } from '../core/i18n.js';
 import { coalesce } from './readout.js';
@@ -49,6 +51,8 @@ const editable=target=>isField(target,true);   // every input counts: the clip m
 const word=(node,w)=>{if(w&&typeof w==='object'&&!Array.isArray(w)){node.textContent=w.raw;return node;}if(Array.isArray(w))return label(node,w[0],w[1]),node;label(node,w);return node;};
 export const SNAPS=[[4,'MEASURE'],[1,'QUARTER'],[.5,'EIGHTH'],[.25,'SIXTEENTH'],[0,'OFF']];   // tr: the timeline's snap grid
 export const TOOLS=[['edit','EDIT'],['select','SELECT'],['scrub','SCRUB'],['slice','SLICE']];   // tr: the timeline's tools
+const SCOPES=[['clips','CLIPS'],['points','POINTS']];   // what a selection picks: whole clips or curve points
+const FOLD_SLACK=6;   // px: a folded tool comes back to the bar only with this much room to spare (a bar at the edge never flickers)
 export const SWATCHES=['#a7adb8','#ed8d91','#e2b579','#a9c987','#7bbfc8','#96a8df','#be9bdd'];   // BASINS' seven clip tints (data: a clip's colour is saved)
 
 export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say=()=>{},audio=null}) {
@@ -65,7 +69,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   // The tools keep their word as the accessible name and the hint (data-help) when the icon takes the face.
   const toolButtons=new Map();for(const[name,text]of TOOLS){const b=button(toolbar,text,()=>setTool(name),'tl-tool');b.dataset.tool=name;b.setAttribute('aria-pressed',String(name===tool));ariaLabel(b,text);b.dataset.help=text;
     if(TIMELINE_ICONS[name]){b.textContent='';delete b.dataset.t;b.insertAdjacentHTML('beforeend',TIMELINE_ICONS[name]);b.querySelector('svg')?.setAttribute('aria-hidden','true');b.classList.add('tl-icon');}toolButtons.set(name,b);}
-  const scopeWrap=el('span','tl-select-wrap',toolbar),ss=el('select','sel tl-scope tl-action',scopeWrap);ariaLabel(ss,'Selection scope');for(const[value,name]of [['clips','CLIPS'],['points','POINTS']]){const o=el('option','',ss);label(o,name);o.value=value;}   // tr: what a selection picks: whole clips or curve points
+  const scopeWrap=el('span','tl-select-wrap',toolbar),ss=el('select','sel tl-scope tl-action',scopeWrap);ariaLabel(ss,'Selection scope');for(const[value,name]of SCOPES){const o=el('option','',ss);label(o,name);o.value=value;}   // tr: what a selection picks: whole clips or curve points
   ss.onchange=()=>{finish(null,true);scope=ss.value;setTool('select');};
   const snapLabel=el('label','tl-setting',toolbar),snapWord=el('span','tl-setting-word',snapLabel),snapWrap=el('span','tl-select-wrap',snapLabel),sn=el('select','sel',snapWrap);label(snapWord,'SNAP');ariaLabel(sn,'Timeline snap');
   for(const[value,name]of SNAPS){const o=el('option','',sn);label(o,name);o.value=value;if(value===1)o.selected=true;}sn.onchange=()=>{finish(null,true);snap=Number(sn.value);};
@@ -74,9 +78,36 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   const slideButton=modeButton('SLIDE',()=>slideMode,v=>slideMode=v,'Move following point times together.','slide');
   // ACTIVE marks the ruler's range (none: the whole arrangement) as THE ACTIVE RANGE; pressed again on the same span, it clears.
   const activeButton=button(toolbar,'ACTIVE',()=>markActive());activeButton.dataset.mode='active';activeButton.setAttribute('aria-pressed','false');activeButton.title='Mark the selected time range (or the whole arrangement) as the active range';
-  const moreButton=button(toolbar,{raw:'⋯'},b=>{const r=b.getBoundingClientRect();pop(r.left,r.bottom,'SELECTION',[
-    ...(audio?.pick?[['ADD AUDIO…',()=>audio.pick({laneId:selectedLane,start:controller.state().beat}),'add-audio']]:[]),['ZOOM TO SELECTION · SHIFT+Z',zoomSelection,'zoom-selection'],['DUPLICATE',duplicateSelection,'duplicate'],['COPY',()=>copySelection(),'copy'],['CUT',()=>copySelection(true),'cut'],['PASTE',pasteSelection,'paste'],['DELETE',deleteSelection,'delete'],['SELECT ALL',selectAll,'select-all'],['DESELECT',deselect,'deselect'],['SHORTCUTS',()=>api.onShortcuts?.(r.left,r.bottom),'shortcuts']],'more');});
-  moreButton.dataset.mode='more';ariaLabel(moreButton,'Selection actions');
+  // MORE (⋯, a trigger: no lamp) always ends the bar: the tools folded off the bar (in bar order), then the selection's actions.
+  const moreButton=button(toolbar,{raw:''},b=>{const r=b.getBoundingClientRect();pop(r.left,r.bottom,'SELECTION',[
+    ...(audio?.pick?[['ADD AUDIO…',()=>audio.pick({laneId:selectedLane,start:controller.state().beat}),'add-audio']]:[]),['ZOOM TO SELECTION · SHIFT+Z',zoomSelection,'zoom-selection'],['DUPLICATE',duplicateSelection,'duplicate'],['COPY',()=>copySelection(),'copy'],['CUT',()=>copySelection(true),'cut'],['PASTE',pasteSelection,'paste'],['DELETE',deleteSelection,'delete'],['SELECT ALL',selectAll,'select-all'],['DESELECT',deselect,'deselect'],['SHORTCUTS',()=>api.onShortcuts?.(r.left,r.bottom),'shortcuts']],'more');
+    const head=menu.firstChild;for(const f of fold.slice(shown))menu.insertBefore(f.row(r),head);if(shown<fold.length){placeMenu(r.left,r.bottom);menu.querySelector('button')?.focus();}},'tl-icon');
+  moreButton.dataset.mode='more';moreButton.insertAdjacentHTML('beforeend',glyphSvg('more','gly gly-more',16));ariaLabel(moreButton,'More tools and actions');
+  /* THE ONE LINE (wave 19, Josh: "never let the timeline's work bars word wrap"): the bar keeps one line; the tools that do
+     not fit fold from the END behind MORE, so the first tools never move (the hand law).  A folded tool's row in MORE's list
+     acts through the bar's own control (the same press, the same state; the keys never cared where it sits) and shows its
+     pressed state.  Space is measured in the kit's frame (read, then write) on ONE ResizeObserver: no loop, no poll. */
+  const mirrorRow=(src,text)=>()=>{const row=button(menu,{raw:''},()=>{closeMenu();src.click();},'tl-row');row.dataset.fold=src.dataset.tool||src.dataset.mode;
+    const icon=src.querySelector('svg');if(icon)row.appendChild(icon.cloneNode(true));word(el('span','tl-row-word',row),text);
+    const on=src.getAttribute('aria-pressed');if(on){row.setAttribute('aria-pressed',on);row.classList.toggle('on',on==='true');}return row;};
+  const choiceRow=(id,select,rows,title,text)=>r=>{const now=rows.find(([v])=>String(v)===select.value)||rows[0];
+    const row=button(menu,{raw:text(t(now[1]))},()=>pop(r.left,r.bottom,title,rows.map(([v,w])=>[w,()=>{select.value=String(v);select.onchange();},id+'-'+v,String(v)===select.value]),id),'tl-row');row.dataset.fold=id;return row;};
+  const fold=[...[...toolButtons].map(([name,b])=>({node:b,row:mirrorRow(b,TOOLS.find(x=>x[0]===name)[1])})),
+    {node:scopeWrap,row:choiceRow('scope',ss,SCOPES,'Selection scope',value=>t('SCOPE · {value}',{value}))},{node:snapLabel,row:choiceRow('snap',sn,SNAPS,'SNAP',value=>t('SNAP · {value}',{value}))},   // tr: a folded setting's row in the ⋯ list: its name · the choice in force
+    {node:stepButton,row:mirrorRow(stepButton,'STEP')},{node:slideButton,row:mirrorRow(slideButton,'SLIDE')},{node:activeButton,row:mirrorRow(activeButton,'ACTIVE')}];
+  let shown=fold.length,fitBooked=false;const widths=new Map();
+  function fit(){
+    if(!worklane.getClientRects().length)return;   // the lane is hidden or the window is closed: nothing to measure
+    const bar=getComputedStyle(toolbar),lane=getComputedStyle(worklane),num=v=>parseFloat(v)||0,gap=num(bar.columnGap);
+    let room=worklane.clientWidth;if(lane.flexDirection!=='column')room-=transportHost.getBoundingClientRect().width+num(lane.columnGap);
+    for(const f of fold)if(!f.node.classList.contains('tl-folded'))widths.set(f.node,f.node.getBoundingClientRect().width);
+    let need=num(bar.paddingLeft)+num(bar.paddingRight)+num(bar.borderLeftWidth)+num(bar.borderRightWidth)+moreButton.getBoundingClientRect().width,k=0;
+    for(;k<fold.length;k++){need+=(widths.get(fold[k].node)||0)+gap;if(need>room-(k>=shown?FOLD_SLACK:0)+.5)break;}
+    if(k!==shown)frame.write(()=>foldAt(k));
+  }
+  function foldAt(k){shown=k;fold.forEach((f,i)=>f.node.classList.toggle('tl-folded',i>=k));moreButton.dataset.folded=String(fold.length-k);if(menu?.dataset.pop==='more')closeMenu();}
+  const fitObserver=new ResizeObserver(()=>{if(fitBooked)return;fitBooked=true;frame.read(()=>{fitBooked=false;fit();});});
+  for(const n of [worklane,transportHost,moreButton,...fold.map(f=>f.node)])fitObserver.observe(n);
   const view=createTimelineView(surface,{pixels:()=>px,onClipMenu(e,c,curve){finish(null,true);clipMenu(e.clientX,e.clientY,c,curve);}});
   const {viewport,status}=view;
   const headPaint=createTimelinePlayhead({head:view.head,tail:view.tail,controller,clock:{beats:transportBeat,playing:()=>mod.host.clock.isPlaying(),bpm:()=>mod.host.model.transport.bpm},visible:()=>win.isOpen()&&!document.hidden&&!document.body.classList.contains('ui-hidden'),pixels:()=>px,scroll:()=>viewport.scrollLeft});
@@ -115,11 +146,12 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   function placeMenu(x,y) {
     const r=menu.getBoundingClientRect();menu.style.left=Math.max(8,Math.min(innerWidth-r.width-8,x))+'px';menu.style.top=Math.max(8,Math.min(innerHeight-r.height-8,y))+'px';
   }
-  /* a popup: the house's menu pane; `title` is a word (or { raw } for a clip's own name); each action [word, fn] */
+  /* a popup: the house's menu pane; `title` is a word (or { raw } for a clip's own name); each action [word, fn, id, chosen?]
+     (a boolean `chosen` makes the row a choice that shows whether it is the one in force) */
   function pop(x,y,title,actions,id='') {
     closeMenu();menu=el('div','tl-pop glass',document.body);menu.dataset.mirSurface='menu';if(id)menu.dataset.pop=id;menu.setAttribute('role','menu');
     const head=word(el('div','tl-pop-title',menu),title);ariaLabel(menu,typeof title==='string'?title:'Clip options');if(title&&title.raw)menu.setAttribute('aria-label',head.textContent);
-    for(const [text,fn,id]of actions){const b=button(menu,text,()=>{closeMenu();fn();});if(id)b.dataset.row=id;}
+    for(const [text,fn,id,chosen]of actions){const b=button(menu,text,()=>{closeMenu();fn();});if(id)b.dataset.row=id;if(typeof chosen==='boolean'){b.setAttribute('aria-pressed',String(chosen));b.classList.toggle('on',chosen);}}
     placeMenu(x,y);menu.querySelector('button')?.focus();
   }
   function editIdentity(x,y,curve) {
@@ -360,10 +392,12 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
     range:()=>range?{...range}:null,activeRange,setActiveRange,onDrop(fn){dropHandlers.add(fn);return()=>dropHandlers.delete(fn);},
     slice:(ids,beat)=>sliceAt(ids,beat,true),tool:()=>tool,setTool(name){finish(null,true);if(toolButtons.has(name))setTool(name);},gesture:()=>drag?{kind:drag.kind,clip:drag.clip?.id??null,curve:drag.curve?.id??null,index:drag.index??null,edge:drag.edge??null}:null,paintHead:()=>headPaint.paint(),selected:()=>selected,selection:()=>({clips:[...selection],points:pointSelection?[...pointSelection.indices]:[]}),workLane:()=>workLane,setWorkLane,
     snap:()=>snap,setSnap(v){snap=Number(v)||0;sn.value=String(snap);},scope:()=>scope,
+    /** how many of the bar's tools are folded behind MORE (the bar keeps one line; they fold from its end) */
+    folded:()=>fold.length-shown,
     /** the timeline's keys are live: the window is open and the focus is in the surface, not in a field or the transport */
     keysLive:()=>win.isOpen()&&!!document.activeElement&&surface.contains(document.activeElement)&&!editable(document.activeElement)&&!transportHost.contains(document.activeElement),
     locate(id){finish(null,true);const curve=doc.curves.find(c=>c.targetId===id),clip=doc.clips.find(c=>c.curveId===curve?.id);win.open();if(clip){selectOnly(clip.id);selectedLane=clip.laneId;paint();viewport.scrollLeft=Math.max(0,clip.start*px-20);}},
     removeLane(){finish(null,true);removeLane();},addLane(){finish(null,true);return model.addLane();},close(){closeMenu();cancelConfirm();finish(null,true);headPaint.reset();},
-    dispose(){api.close();events.abort();observer.disconnect();hiddenObserver.disconnect();viewportPaint.cancel();updates.cancel();unsubscribe();resetSubscription();transportSubscription();surface.remove();}};
+    dispose(){api.close();events.abort();observer.disconnect();fitObserver.disconnect();hiddenObserver.disconnect();viewportPaint.cancel();updates.cancel();unsubscribe();resetSubscription();transportSubscription();surface.remove();}};
   view.setDocument(doc);setTool('edit');setWorkLane('top');paint();return api;
 }

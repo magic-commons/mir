@@ -457,6 +457,11 @@ const GLYPHS = {
     '<circle cx="2.4" cy="12" r="2.4" fill="currentColor"/><circle cx="12" cy="12" r="2.4" fill="currentColor"/><circle cx="21.6" cy="12" r="2.4" fill="currentColor"/>' +
     '<circle cx="2.4" cy="21.6" r="2.4" fill="currentColor"/><circle cx="12" cy="21.6" r="2.4" fill="currentColor"/><circle cx="21.6" cy="21.6" r="2.4" fill="currentColor"/>',
 
+  /* ── more.  Three dots in a row: a bar's MORE trigger, behind which wait the tools that do not fit (the timeline's work
+     bar, wave 19) and the actions that have no seat of their own. */
+  more:
+    '<circle cx="5" cy="12" r="2.1" fill="currentColor"/><circle cx="12" cy="12" r="2.1" fill="currentColor"/><circle cx="19" cy="12" r="2.1" fill="currentColor"/>',
+
   /* ── the windows that follow this wave. */
   xy:
     '<rect x="3.5" y="3.5" width="17" height="17" rx="2.5" ' + STROKE + '/>' +
