@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>MIR · grade panel</title>
+<!-- THE GRADE PANEL, LIVE (docs/PANEL-GRADE.md).  Two rack cards on the right, both built by createGradePanel:
+       GRADE        no engine at all: `canvas` is given, and one SVG filter on the left picture does the whole grade (picture-filter.js).
+                    Every continuous control is a modulation target (grade.exposure, grade.hue …): press ROUTE and an LFO turns HUE.
+       GRADE · PORT an app that takes the values into its own drawing: the right picture is shaded pixel by pixel by the page's own code
+                    from port.set(id, v); no filter is installed on it.  Two rows of its own by descriptor (VIBRANCE, TINT) and BLEND hidden.
+     ?theme=light · ?reset (forget the saved layout and modulation) · ?bench (the left picture fills the window and is redrawn every frame:
+     the page the default filter's cost is measured on; window.__bench(ms) → the frame times) -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/css/tokens.css">
+<link rel="stylesheet" href="../mir/shell/shell.css">
+<link rel="stylesheet" href="../mir/shell/stage.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<link rel="stylesheet" href="../mir/window/window.css">
+<link rel="stylesheet" href="../mir/shell/rack.css">
+<link rel="stylesheet" href="../mir/controls/controls.css">
+<link rel="stylesheet" href="../mir/controls/colour-controls.css">
+<link rel="stylesheet" href="../mir/modulation/modwindow/modwindow.css">
+<link rel="stylesheet" href="../mir/modulation/modhost.css">
+<link rel="stylesheet" href="../mir/panels/grade.css">
+<style>
+  html, body { margin: 0; min-height: 100%; background: #070a0f; }
+  body[data-theme="light"] { background: #eef1f6; }
+  #stage { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; padding: 70px 340px 110px 24px; box-sizing: border-box; }
+  .g-frame { position: relative; overflow: hidden; border-radius: var(--r-md); background: var(--glass-well); box-shadow: var(--relief-well, var(--neu-inset)); min-height: 0; display: grid; place-items: center; }
+  .g-frame > canvas { width: 80%; max-width: 420px; aspect-ratio: 3 / 2; display: block; }
+  .g-cap { position: absolute; left: 10px; top: 8px; font-size: var(--fs-tiny); letter-spacing: var(--tr-wider); color: var(--ink-key); z-index: 1; }
+  #bar { position: absolute; left: 24px; top: 16px; display: flex; gap: 8px; z-index: 4; }
+  body.bench #stage { padding: 0; grid-template-columns: 1fr; }
+  body.bench .g-frame { border-radius: 0; }
+  body.bench .g-frame:last-child { display: none; }
+  body.bench #pic { width: 100%; height: 100%; max-width: none; aspect-ratio: auto; }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted" class="disconnected">
+<div id="lab">
+  <div id="stage">
+    <div class="g-frame"><span class="g-cap">NO ENGINE · ONE SVG FILTER</span><canvas id="pic" width="600" height="400" aria-hidden="true"></canvas></div>
+    <div class="g-frame"><span class="g-cap">A PORT · THE PAGE SHADES IT</span><canvas id="own" width="300" height="200" aria-hidden="true"></canvas></div>
+  </div>
+  <div id="bar"></div>
+</div>
+<script type="module">
+import { trig } from '../mir/kit.js';
+import { frame } from '../mir/core/frame.js';
+import { createRack } from '../mir/shell/rack.js';
+import { installModulation } from '../mir/modulation/bind.js';
+import { createGradePanel } from '../mir/panels/grade.js';
+import { toneAt, colourMatrix, GRADE_HOME } from '../mir/panels/picture-filter.js';
+
+const q = new URLSearchParams(location.search);
+if (q.get('theme') === 'light') document.body.dataset.theme = 'light';
+if (q.has('reset')) try { for (const k of ['mir.gallery.grade.rack', 'mir.gallery.grade.mod', 'mir.gallery.grade.presets']) localStorage.removeItem(k); } catch (_) { /* storage refused */ }
+const bench = q.has('bench');
+if (bench) document.body.classList.add('bench');
+const $ = (id) => document.getElementById(id);
+
+/* ── a test card: a hue band, a grey ramp, three patches of known colour (the test samples them), a mid-grey square ── */
+function card(c, t = 0) {
+  const g = c.getContext('2d'), w = c.width, h = c.height;
+  for (let x = 0; x < w; x++) { g.fillStyle = 'hsl(' + ((x / w) * 360 + t * 40) % 360 + ' 85% 55%)'; g.fillRect(x, 0, 1, h * 0.4); }
+  for (let x = 0; x < w; x++) { const v = Math.round((x / (w - 1)) * 255); g.fillStyle = 'rgb(' + v + ',' + v + ',' + v + ')'; g.fillRect(x, h * 0.4, 1, h * 0.2); }
+  g.fillStyle = '#202a3a'; g.fillRect(0, h * 0.6, w, h * 0.4);
+  const P = [['#dc3c28', 0.06], ['#808080', 0.38], ['#2c64d2', 0.70]];
+  for (const [col, x] of P) { g.fillStyle = col; g.fillRect(w * x, h * 0.66, w * 0.24, h * 0.28); }
+  if (t) { g.fillStyle = 'rgba(255,255,255,.8)'; g.beginPath(); g.arc(w / 2 + Math.cos(t) * w * 0.3, h * 0.8, h * 0.05, 0, Math.PI * 2); g.fill(); }
+}
+const pic = $('pic');
+if (bench) { const fit = () => { pic.width = innerWidth; pic.height = innerHeight; }; fit(); addEventListener('resize', fit); }
+card(pic);
+
+/* ── the rack and the modulation (roots: the two panels' prefixes) ── */
+const rack = createRack({ host: $('lab'), key: 'mir.gallery.grade.rack', handle: 'always' });
+const mod = installModulation({ mount: rack.el.floats, roots: ['grade', 'gport'], params: [], storageKey: 'mir.gallery.grade.mod', presetKey: 'mir.gallery.grade.presets' });
+
+/* ── GRADE: no engine, the SVG filter on the left picture ── */
+const pg = createGradePanel({ rack, id: 'grade', title: 'GRADE', open: true, canvas: pic, mod });
+
+/* ── GRADE · PORT: the page's own drawing takes the values (as an engine's shader would) ── */
+const own = $('own'), og = own.getContext('2d');
+card(own);
+const src = og.getImageData(0, 0, own.width, own.height);
+const V = { ...GRADE_HOME, vibrance: 0, tint: 0 };
+function shade() {
+  const out = og.createImageData(src.width, src.height), a = src.data, b = out.data, M = colourMatrix(V.saturation, V.hue);
+  const T = new Float32Array(256); for (let i = 0; i < 256; i++) T[i] = toneAt(i / 255, V);
+  for (let i = 0; i < a.length; i += 4) {
+    let r = a[i] / 255, gg = a[i + 1] / 255, bb = a[i + 2] / 255;
+    const s = (r + gg + bb) / 3, vib = 1 + V.vibrance * (1 - Math.max(r, gg, bb) + Math.min(r, gg, bb));   // VIBRANCE: the dull colours get more
+    [r, gg, bb] = [r, gg, bb].map((x) => s + (x - s) * vib);
+    const R = M[0] * r + M[1] * gg + M[2] * bb, G = M[5] * r + M[6] * gg + M[7] * bb + V.tint * 0.1, B = M[10] * r + M[11] * gg + M[12] * bb;
+    const t = (x) => { const y = T[Math.max(0, Math.min(255, Math.round(x * 255)))]; return 255 * (V.invert ? 1 - y : y); };
+    b[i] = t(R); b[i + 1] = t(G); b[i + 2] = t(B); b[i + 3] = 255;
+  }
+  og.putImageData(out, 0, 0);
+  own.style.opacity = String(V.opacity);
+}
+const port = {
+  set(id, v) { V[id] = v; frame.coalesce('gallery.grade.shade', shade); },
+  rows: [{ id: 'vibrance', label: 'VIBRANCE', min: 0, max: 1, home: 0, group: 'THE APP\'S OWN', hint: 'VIBRANCE — the dull colours lifted more than the vivid ones (a row the app added)' },
+    { id: 'tint', label: 'TINT', min: -1, max: 1, home: 0, group: 'THE APP\'S OWN', hint: 'TINT — green against magenta (a row the app added)' }],
+  hide: ['blend'],
+};
+const pp = createGradePanel({ rack, id: 'gport', title: 'GRADE · PORT', open: !bench, port, mod, part: 'gport' });
+shade();
+
+/* ── a route, for the eye: an LFO onto HUE ── */
+let routes = null;
+const routeBtn = trig({ label: 'ROUTE', onFire: () => {
+  if (routes) { routes.forEach((r) => r.remove()); routes = null; routeBtn.on = false; mod.play(false); return; }
+  routes = [mod.route('lfo', 'grade.hue', 0.5)].filter(Boolean);
+  routeBtn.on = true; if (mod.setPower) mod.setPower(true); if (mod.play) mod.play(true);
+} });
+$('bar').append(routeBtn.root, trig({ label: 'MOD', onFire: () => mod.toggle() }).root);
+
+/* ── the bench: the picture redrawn every frame, as an engine would; __bench(ms) → the frame times ── */
+let running = false;
+const loop = (t) => { if (!running) return; card(pic, t / 1000); requestAnimationFrame(loop); };
+window.__bench = (ms = 3000) => new Promise((done) => {
+  const times = []; let last = 0, end = 0;
+  const step = (t) => { if (last) times.push(t - last); last = t; if (!end) end = t + ms; if (t < end) requestAnimationFrame(step); else { times.sort((a, b) => a - b); const mean = times.reduce((s, x) => s + x, 0) / times.length;
+    done({ n: times.length, mean: +mean.toFixed(2), p50: +times[times.length >> 1].toFixed(2), p95: +times[Math.floor(times.length * 0.95)].toFixed(2), max: +times[times.length - 1].toFixed(2) }); } };
+  requestAnimationFrame(step);
+});
+window.__animate = (on) => { running = !!on; if (running) requestAnimationFrame(loop); };
+if (bench) window.__animate(true);
+rack.start();
+window.__K = { rack, mod, pg, pp, port, V, pic, own, routeBtn };
+window.__ready = true;
+</script>
+</body>
+</html>

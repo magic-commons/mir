@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>MIR · curves panel</title>
+<!-- THE CURVES PANEL, LIVE (docs/PANEL-CURVES.md).  Two rack cards on the right, on ONE picture and ONE filter:
+       CURVES   no engine: `canvas` is given, so each channel's 256-entry table goes into the picture's SVG filter (picture-filter.js).
+                Press on the plot to add a point and drag it; drag a point out, or double-tap it, to remove it; drag a ring to bend.
+                MASTER · R · G · B; PRESET; AMOUNT (a modulation target: curves.amount); RESET.  The histogram behind the curve is the
+                page's own, counted once from the picture: the panel draws what the app hands it.
+       GRADE    the master grade on the same picture: the two panels share the one filter.
+     ?theme=light · ?reset (forget the saved layout and modulation) -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/css/tokens.css">
+<link rel="stylesheet" href="../mir/shell/shell.css">
+<link rel="stylesheet" href="../mir/shell/stage.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<link rel="stylesheet" href="../mir/window/window.css">
+<link rel="stylesheet" href="../mir/shell/rack.css">
+<link rel="stylesheet" href="../mir/controls/controls.css">
+<link rel="stylesheet" href="../mir/controls/colour-controls.css">
+<link rel="stylesheet" href="../mir/modulation/modwindow/modwindow.css">
+<link rel="stylesheet" href="../mir/modulation/modhost.css">
+<link rel="stylesheet" href="../mir/panels/grade.css">
+<link rel="stylesheet" href="../mir/panels/curves.css">
+<style>
+  html, body { margin: 0; min-height: 100%; background: #070a0f; }
+  body[data-theme="light"] { background: #eef1f6; }
+  #stage { position: absolute; inset: 0; display: grid; place-items: center; padding: 70px 340px 110px 24px; box-sizing: border-box; }
+  .g-frame { position: relative; overflow: hidden; width: 100%; height: 100%; border-radius: var(--r-md); background: var(--glass-well); box-shadow: var(--relief-well, var(--neu-inset)); display: grid; place-items: center; }
+  .g-frame > canvas { width: 80%; max-width: 720px; aspect-ratio: 3 / 2; display: block; }
+  .g-cap { position: absolute; left: 10px; top: 8px; font-size: var(--fs-tiny); letter-spacing: var(--tr-wider); color: var(--ink-key); z-index: 1; }
+  #bar { position: absolute; left: 24px; top: 16px; display: flex; gap: 8px; z-index: 4; }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted" class="disconnected">
+<div id="lab">
+  <div id="stage"><div class="g-frame"><span class="g-cap">NO ENGINE · CURVES AND GRADE ON ONE FILTER</span><canvas id="pic" width="600" height="400" aria-hidden="true"></canvas></div></div>
+  <div id="bar"></div>
+</div>
+<script type="module">
+import { trig } from '../mir/kit.js';
+import { createRack } from '../mir/shell/rack.js';
+import { installModulation } from '../mir/modulation/bind.js';
+import { createCurvesPanel } from '../mir/panels/curves.js';
+import { createGradePanel } from '../mir/panels/grade.js';
+
+const q = new URLSearchParams(location.search);
+if (q.get('theme') === 'light') document.body.dataset.theme = 'light';
+if (q.has('reset')) try { for (const k of ['mir.gallery.curves.rack', 'mir.gallery.curves.mod', 'mir.gallery.curves.presets']) localStorage.removeItem(k); } catch (_) { /* storage refused */ }
+const $ = (id) => document.getElementById(id);
+
+/* ── the picture: a hue band, a grey ramp, three patches of known colour (the test samples the mid-grey one) ── */
+const pic = $('pic'), g = pic.getContext('2d'), w = pic.width, h = pic.height;
+for (let x = 0; x < w; x++) { g.fillStyle = 'hsl(' + (x / w) * 360 + ' 85% 55%)'; g.fillRect(x, 0, 1, h * 0.4); }
+for (let x = 0; x < w; x++) { const v = Math.round((x / (w - 1)) * 255); g.fillStyle = 'rgb(' + v + ',' + v + ',' + v + ')'; g.fillRect(x, h * 0.4, 1, h * 0.2); }
+g.fillStyle = '#202a3a'; g.fillRect(0, h * 0.6, w, h * 0.4);
+for (const [col, x] of [['#dc3c28', 0.06], ['#808080', 0.38], ['#2c64d2', 0.70]]) { g.fillStyle = col; g.fillRect(w * x, h * 0.66, w * 0.24, h * 0.28); }
+
+/* ── the histogram: the page's own, counted once (an engine would hand its own: BASINS' tiles, AUTOMATA's observe) ── */
+const px = g.getImageData(0, 0, w, h).data, H = { MASTER: new Float32Array(64), R: new Float32Array(64), G: new Float32Array(64), B: new Float32Array(64) };
+for (let i = 0; i < px.length; i += 4) { H.R[px[i] >> 2]++; H.G[px[i + 1] >> 2]++; H.B[px[i + 2] >> 2]++; H.MASTER[Math.round(0.2126 * px[i] + 0.7152 * px[i + 1] + 0.0722 * px[i + 2]) >> 2]++; }
+
+const rack = createRack({ host: $('lab'), key: 'mir.gallery.curves.rack', handle: 'always' });
+const mod = installModulation({ mount: rack.el.floats, roots: ['curves', 'grade'], params: [], storageKey: 'mir.gallery.curves.mod', presetKey: 'mir.gallery.curves.presets' });
+const pc = createCurvesPanel({ rack, id: 'curves', title: 'CURVES', open: true, canvas: pic, mod, histogram: H });
+const pg = createGradePanel({ rack, id: 'grade', title: 'GRADE', open: true, canvas: pic, mod });
+
+let routes = null;
+const routeBtn = trig({ label: 'ROUTE', onFire: () => {
+  if (routes) { routes.forEach((r) => r.remove()); routes = null; routeBtn.on = false; mod.play(false); return; }
+  routes = [mod.route('lfo', 'curves.amount', 0.5)].filter(Boolean);
+  routeBtn.on = true; if (mod.setPower) mod.setPower(true); if (mod.play) mod.play(true);
+} });
+$('bar').append(routeBtn.root, trig({ label: 'MOD', onFire: () => mod.toggle() }).root);
+rack.start();
+window.__K = { rack, mod, pc, pg, pic };
+window.__ready = true;
+</script>
+</body>
+</html>
