@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MIR · developer tools fixture</title>
+<!-- the pages tests/dev-tools.browser.mjs points tools/hit-probe.mjs, tools/audit-material.mjs and tools/check-app.mjs at.  Plain CSS, no kit:
+     the tools read computed style and the browser's own hit test, so a bare page is enough, and every case is built here on purpose. -->
+<style>
+  :root { --acc: rgb(110, 200, 220); --acc2: rgb(200, 150, 220); --ok: rgb(150, 210, 160); --warn: rgb(230, 190, 120); --bad: rgb(230, 140, 130); }
+  html, body { margin: 0; background: #20242a; color: #e8ecf0; font: 14px sans-serif; }
+  .box { position: absolute; width: 200px; height: 120px; }
+  #drag { left: 20px; top: 20px; background: #345; touch-action: none; }
+  #drag i { position: absolute; left: 0; top: 0; width: 20px; height: 20px; background: #6cf; }
+  #ghost { left: 260px; top: 20px; background: #345; pointer-events: none; }
+  #covered { left: 20px; top: 180px; background: #345; }
+  #cover { position: absolute; left: 120px; top: 180px; width: 120px; height: 120px; background: transparent; }
+  .dev { position: absolute; left: 520px; top: 20px; width: 300px; padding: 8px; background: rgba(40, 46, 56, .3); }
+  .dev label { display: block; margin: 4px 0; }
+  .face { position: absolute; left: 20px; top: 340px; width: 160px; height: 60px; background: rgba(28, 32, 38, .84); }
+  .accent { position: absolute; left: 200px; top: 340px; width: 160px; height: 60px; background: var(--acc); color: #071114; }
+  .faint { position: absolute; left: 380px; top: 340px; width: 160px; height: 60px; background: rgb(60, 60, 60); color: rgb(72, 72, 72); }
+  #clean { position: absolute; left: 20px; top: 440px; width: 300px; height: 60px; background: rgba(40, 46, 56, .3); }
+  #outside { position: absolute; left: 560px; top: 340px; }
+</style>
+</head>
+<body data-theme="dark">
+<div id="drag" class="box"><i></i></div>
+<div id="ghost" class="box"></div>
+<div id="covered" class="box"></div><div id="cover"></div>
+
+<div class="dev" data-id="demo">
+  <label>PICK <select id="n-select"><option>a</option><option>b</option></select></label>
+  <label>GAIN <input id="n-range" type="range"></label>
+  <label>TEMPO <input id="n-number" type="number"></label>
+  <label>TINT <input id="n-color" type="color"></label>
+  <label>FILE-LIKE <input id="ok-text" type="text"></label>
+  <label data-native="ok">DELIBERATE <select id="ok-select"><option>x</option></select></label>
+</div>
+<select id="outside"><option>not in a window</option></select>
+
+<div class="face">a dense face</div><div class="accent">an accent</div><div class="faint">faint text</div>
+<div id="clean">nothing dense here</div>
+
+<script>
+  /* what check-app.mjs waits for: an app that says it started and can describe itself */
+  window.__MIR = { describe: () => '# fixture\n\n**Clock:** paused\n', prefs: { set() {} } };
+  /* a draggable: the vertical drag sets a value and moves the bead, so hit-probe sees the markup change */
+  const box = document.getElementById('drag'), bead = box.querySelector('i'); let y0 = null;
+  box.addEventListener('pointerdown', (e) => { y0 = e.clientY; box.setPointerCapture(e.pointerId); });
+  box.addEventListener('pointermove', (e) => { if (y0 != null) { box.dataset.value = String(Math.round(y0 - e.clientY)); bead.style.top = (y0 - e.clientY) / 4 + 'px'; } });
+  box.addEventListener('pointerup', () => { y0 = null; });
+</script>
+</body>
+</html>

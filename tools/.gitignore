@@ -1,0 +1,2 @@
+# the dev server's self-signed certificate: made on first use by `node tools/serve.mjs --https`, never committed
+.certs/
