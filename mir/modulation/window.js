@@ -41,9 +41,9 @@ import { evaluate as curveEval, curveHash, curveInfo, presetPoints, presetMirror
          pointsEqual, PRESET_LABEL } from './curve.js';
 import { svgPoint, curveHit, curveAction, pointDrag, pointAddValue, tensionDelta,
          editablePresetForWave } from './curve-gesture.js';
-import { createRail, seatRail, seatOn, nearestSide, roomFor, SIDES, RAIL } from '../window/rail.js';
+import { createRail, seatRail, seatOn, roomFor, SIDES } from '../window/rail.js';
 import { createDockGuide } from '../window/dock.js';
-import { windowLayout, dockInput, stackedAt, windowOf } from '../window/window.js';
+import { windowLayout, dockInput, stackedAt, windowOf, gripGesture } from '../window/window.js';
 import { workspaceSwitch } from '../window/workspaces.js';
 import { bindTempoField } from '../shell/transport.js';
 import { drag as pointerDrag } from '../core/pointer.js';
@@ -151,8 +151,6 @@ function chipWords(name, state) {
   if (spec.kind === 'cycle') { const row = spec.states.find((s) => s.id === state) || spec.states[0]; return { label: row.label, hint: row.hint }; }
   return { label: spec.label, hint: spec.hint };
 }
-/** along(p, lo, size, next) — where a span of `next` starts so the point p keeps its place on it (a dock detaching) */
-const along = (p, lo, size, next) => (p < lo ? lo : p > lo + size ? lo + size - next : p - ((p - lo) / size) * next);
 
 /* ═══ THE MACRO ROW'S GESTURES, IMPORTABLE (1.5.0-alpha.12) ════════════════════════════════════════════════════════════
    Another face of the macro row (BASINS' transport tempo panel: transport.js buildMacros) uses THIS window's own
@@ -364,7 +362,7 @@ export function createModulation(host, port) {
      macro rail sits on the right.  A side the hand chose (Shift-drag, the keyboard, a long press) is kept as chosen. */
   const sideOf = (Q) => (Q.chipSide === 'auto' || !Q.chipSide ? (Q.macroSide === 'right' ? 'right' : 'left') : Q.chipSide);
   const stateFor = (Q) => { const b = lawBox(); return { x: Q.x, y: Q.y, w: b.w, h: b.h, dock: stackOn ? null : Q.dock, chipSide: sideOf(Q) }; };
-  let box = null, moving = null, deferred = false, rackOff = null, gest = null, kbBefore = null, stack = null, stackOn = false;
+  let box = null, moving = null, deferred = false, rackOff = null, gripping = () => false, kbBefore = null, stack = null, stackOn = false;
   /* THE CONTENT BOX DOCKS (BASINS modwindow.js place(): "shift = dock top ? geometry.y - content.top : geometry.bottom
      - content.bottom"): the rack and the work bars that show meet the dock edge, not the window's own box, whose float
      room and a lane above the rack would leave a gap or overhang.  The offsets are measured once each layout (placeLane). */
@@ -423,7 +421,7 @@ export function createModulation(host, port) {
     }
     /* the rail carries the dock (data-dock): docked at the top or bottom its chips sit tighter, so its length is set first */
     /* THE LEGO STACK (window/workspaces.js, BASINS stackAbove): 8 px above the window stack() names, left edges together */
-    const on = stack && !gest ? stack() : null;
+    const on = stack && !gripping() ? stack() : null;
     stackOn = !!on;
     if (on) {   /* BASINS: the CONTENT's bottom 8 px over the lower window, the window's left on the lower's */
       const off = contentOff || { top: 0, bottom: 0 };
@@ -608,7 +606,6 @@ export function createModulation(host, port) {
   /* THE DRAG — core/pointer.js on the grip.  Shift: the nearest edge takes the rail.  Near a dock the guide draws
      the exact landing; release there and the window travels into it.  Any cancel puts everything back. */
   const guide = dockOpt ? createDockGuide({ layer: host, enabled: dockOpt.guide || (() => true) }) : null;
-  const pin = () => { if (!P.dock && box) { P.x = box.left; P.y = box.top; } };
   /** stop the window's own travel where it is seen, so a hand can take it */
   function still() {
     if (!moving) return;
@@ -617,49 +614,17 @@ export function createModulation(host, port) {
     tweenRect(root, r);
     box = { left: Math.round(r.left), top: Math.round(r.top), width: Math.round(r.width), height: Math.round(r.height) };
   }
-  const gripDrag = pointerDrag(rail.grip, { slop: RAIL.slop,
-    onStart() { still(); pin(); placed = true; gest = { before: { ...P }, anchor: null, shifted: false, stack }; stack = null; stackOn = false; rail.grip.classList.add('drag'); },
-    onMove(s) {
-      if (!gest || rail.holding()) return;
-      if (s.shiftKey) {
-        gest.shifted = true; gest.anchor = null; if (guide) guide.cancel();
-        const side = nearestSide(s.x, s.y, box); if (side !== P.chipSide) relocate(side);
-        return;
-      }
-      if (!gest.anchor) {
-        const at = gest.shifted ? { x: s.x, y: s.y } : { x: s.x0, y: s.y0 };
-        if (P.dock) {                                                // drag away to detach: the point keeps its place
-          const v = view(), lb = lawBox(), w = Math.min(lb.w, v.width - 16), h = Math.min(lb.h, v.height - 16);
-          P.x = Math.round(along(at.x, box.left, box.width, w)); P.y = Math.round(along(at.y, box.top, box.height, h)); P.dock = null;
-        }
-        if (moving) still();
-        gest.anchor = { dx: at.x - P.x, dy: at.y - P.y };
-      }
-      P.x = Math.round(s.x - gest.anchor.dx); P.y = Math.round(s.y - gest.anchor.dy);
-      place();
-      /* the guide is the landing: the CONTENT box lands at the edge (BASINS snapTarget(contentBox())), so the guide is drawn
-         at the content's height and measured from the content */
-      if (guide) {
-        const off = contentOff || { top: 0, bottom: 0 }, inp = dockInput(stateFor(P), env());
-        guide.track({ ...box, top: box.top + off.top, height: box.height - off.top - off.bottom }, { ...inp, height: Math.max(52, inp.height - off.top - off.bottom) });
-      }
+  const grip = gripGesture(rail, { P: () => P, box: () => box, moving: () => !!moving, still, layout: place, relocate, guide, save: () => persist(),
+    floatSize: () => { const v = view(), lb = lawBox(); return { w: Math.min(lb.w, v.width - 16), h: Math.min(lb.h, v.height - 16) }; },
+    /* the guide is the landing: the CONTENT box lands at the edge (BASINS snapTarget(contentBox())), so the guide is drawn
+       at the content's height and measured from the content */
+    track: () => {
+      const off = contentOff || { top: 0, bottom: 0 }, inp = dockInput(stateFor(P), env());
+      guide.track({ ...box, top: box.top + off.top, height: box.height - off.top - off.bottom }, { ...inp, height: Math.max(52, inp.height - off.top - off.bottom) });
     },
-    onEnd() {
-      rail.grip.classList.remove('drag');
-      const was = gest; gest = null;
-      if (!was || rail.holding()) return;
-      const hit = guide ? guide.end() : null;
-      if (hit) { P.dock = hit.id; place({ animate: true }); }
-      persist();
-    },
-    onCancel() {
-      rail.grip.classList.remove('drag');
-      if (guide) guide.cancel();
-      if (!gest) return;
-      Object.assign(P, gest.before); stack = gest.stack; gest = null;
-      still(); place();
-    },
-  });
+    begin: () => { placed = true; const s = stack; stack = null; stackOn = false; return s; },
+    undo: (s) => { stack = s; } });
+  const gripDrag = grip.drag; gripping = grip.active;
   const onResize = () => { if (P.open) place(); };
   window.addEventListener('resize', onResize, { passive: true });
   const unSpan = dockOpt && dockOpt.span && dockOpt.span.subscribe ? dockOpt.span.subscribe(() => { if (P.open && P.dock) place(); }) : null;

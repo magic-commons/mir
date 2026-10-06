@@ -150,6 +150,63 @@ const PRESSABLE = 'button, input, select, textarea, a[href], label, summary, [co
 /** along(p, lo, size, next) — where a span of `next` starts so the point p keeps its place on it (detaching a dock) */
 const along = (p, lo, size, next) => (p < lo ? lo : p > lo + size ? lo + size - next : p - ((p - lo) / size) * next);
 
+/** gripGesture(rail, w) → { drag, active() } — THE GRIP DRAG of a window and its rail: the kit's window here, and the
+ *  modulation window, which keeps its own layout.  core/pointer.js drag on the rail's grip: Shift hands the rail to the
+ *  nearest edge; a docked window dragged away detaches with the pressed point keeping its place; near a dock the guide
+ *  tracks the landing and a release there docks it; any cancel puts the state back.  `w` is the window's side of it:
+ *    P() → its state (changed in place) · box() → its box now · moving() → its own travel is running · still() stops it
+ *    floatSize() → { w, h } a detached window floats at · layout(o) lays it out from P ({ animate }) · relocate(side)
+ *    guide (the dock guide, or null) · track() feeds the guide during a move · save() after a release
+ *    begin() → what the window leaves when a drag starts (its lego stack), handed back to undo(it) on a cancel */
+export function gripGesture(rail, w) {
+  let gest = null;
+  const grip = drag(rail.grip, { slop: RAIL.slop,
+    onStart() {
+      const P = w.P(); w.still();
+      const b = w.box(); if (!P.dock && b) { P.x = b.left; P.y = b.top; }
+      gest = { before: { ...P }, anchor: null, shifted: false, own: w.begin ? w.begin() : null };
+      rail.grip.classList.add('drag');
+    },
+    onMove(s) {
+      if (!gest || rail.holding()) return;
+      const P = w.P();
+      if (s.shiftKey) {                                              // Shift: the nearest edge takes the rail
+        gest.shifted = true; gest.anchor = null; if (w.guide) w.guide.cancel();
+        const side = nearestSide(s.x, s.y, w.box()); if (side !== P.chipSide) w.relocate(side);
+        return;
+      }
+      if (!gest.anchor) {
+        const at = gest.shifted ? { x: s.x, y: s.y } : { x: s.x0, y: s.y0 };
+        if (P.dock) {                                                // drag away to detach: the point keeps its place
+          const b = w.box(), f = w.floatSize();
+          P.x = Math.round(along(at.x, b.left, b.width, f.w)); P.y = Math.round(along(at.y, b.top, b.height, f.h)); P.dock = null;
+        }
+        if (w.moving()) w.still();
+        gest.anchor = { dx: at.x - P.x, dy: at.y - P.y };
+      }
+      P.x = Math.round(s.x - gest.anchor.dx); P.y = Math.round(s.y - gest.anchor.dy);
+      w.layout();
+      if (w.guide) w.track();
+    },
+    onEnd() {
+      rail.grip.classList.remove('drag');
+      const was = gest; gest = null;
+      if (!was || rail.holding()) return;
+      const hit = w.guide ? w.guide.end() : null;
+      if (hit) { w.P().dock = hit.id; w.layout({ animate: true }); }
+      w.save();
+    },
+    onCancel() {
+      rail.grip.classList.remove('drag');
+      if (w.guide) w.guide.cancel();
+      if (!gest) return;
+      const was = gest; Object.assign(w.P(), was.before); if (w.undo) w.undo(was.own); gest = null;
+      w.still(); w.layout();
+    },
+  });
+  return { drag: grip, active: () => !!gest };
+}
+
 /** createWindow({ id, title, host, chips, body | panels, size, min, resizable, emptyDrag, dock, persist, material,
  *  railGap, railTier, onMoved, onOpen, onClose })
  *    chips      rail chip specs (window/rail.js); a chip may carry press(state, win).  The close chip and the grip are
@@ -203,7 +260,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
   /* ── the state ── */
   const P = readShape(persist && persist.read ? persist.read() : null, { w: size.w, h: size.h, chipSide: 'left' }, min);
   const wantOpen = P.open; P.open = false;
-  let box = null, moving = null, deferred = false, gest = null, kbBefore = null, active = panels && panels.length ? panels[0].name : null;
+  let box = null, moving = null, deferred = false, gripping = () => false, kbBefore = null, active = panels && panels.length ? panels[0].name : null;
   let reserve = 0, stack = null;                                     // the lego stack: a band kept free above; the window this one sits on
   const seatOf = () => (dock && dock.anchor && typeof dock.anchor.rect === 'function' ? dock.anchor.rect() || null : undefined);
   const env = () => ({ view: { width: view.innerWidth, height: view.innerHeight }, sizes: rail.sizes(), span: dock ? withReserve(dock.span.read(), reserve) : null,
@@ -242,7 +299,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
       return box;
     }
     /* stacked on another window (the lego stack): it floats where the stack puts it; its own dock is kept as a wish */
-    const on = stack && !gest ? stack() : null;
+    const on = stack && !gripping() ? stack() : null;
     if (on) {
       rail.setDock(null);
       const e = env(), w = Math.min(P.w, e.view.width - CLAMP.inset), h = Math.min(P.h, e.view.height - CLAMP.inset), at = stackedAt({ width: w, height: h }, on, e.view);
@@ -288,44 +345,12 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
   function relocate(side) { Object.assign(P, relocated(side).Q); layout({ animate: true }); }
 
   /* ── THE DRAG: the grip (and empty glass, handed to it) ── */
-  const gripDrag = drag(rail.grip, { slop: RAIL.slop,
-    onStart() { still(); pin(); gest = { before: { ...P }, anchor: null, shifted: false, stack }; stack = null; rail.grip.classList.add('drag'); },   // dragged away, a stacked window leaves its stack (BASINS)
-    onMove(s) {
-      if (!gest || rail.holding()) return;
-      if (s.shiftKey) {                                              // Shift: the nearest edge takes the rail
-        gest.shifted = true; gest.anchor = null; if (guide) guide.cancel();
-        const side = nearestSide(s.x, s.y, box); if (side !== P.chipSide) relocate(side);
-        return;
-      }
-      if (!gest.anchor) {
-        const at = gest.shifted ? { x: s.x, y: s.y } : { x: s.x0, y: s.y0 };
-        if (P.dock) {                                                // drag away to detach: the point keeps its place
-          const e = env(), w = Math.min(P.w, e.view.width - CLAMP.inset), h = Math.min(P.h, e.view.height - CLAMP.inset);
-          P.x = Math.round(along(at.x, box.left, box.width, w)); P.y = Math.round(along(at.y, box.top, box.height, h)); P.dock = null;
-        }
-        if (moving) still();
-        gest.anchor = { dx: at.x - P.x, dy: at.y - P.y };
-      }
-      P.x = Math.round(s.x - gest.anchor.dx); P.y = Math.round(s.y - gest.anchor.dy);
-      layout();
-      if (guide) guide.track(box, dockInput(P, env()), seatOf() || null);
-    },
-    onEnd() {
-      rail.grip.classList.remove('drag');
-      const was = gest; gest = null;
-      if (!was || rail.holding()) return;
-      const hit = guide ? guide.end() : null;
-      if (hit) { P.dock = hit.id; layout({ animate: true }); }
-      save();
-    },
-    onCancel() {
-      rail.grip.classList.remove('drag');
-      if (guide) guide.cancel();
-      if (!gest) return;
-      Object.assign(P, gest.before); stack = gest.stack; gest = null;
-      still(); layout();
-    },
-  });
+  const grip = gripGesture(rail, { P: () => P, box: () => box, moving: () => !!moving, still, layout, relocate, guide, save,
+    floatSize: () => { const e = env(); return { w: Math.min(P.w, e.view.width - CLAMP.inset), h: Math.min(P.h, e.view.height - CLAMP.inset) }; },
+    track: () => guide.track(box, dockInput(P, env()), seatOf() || null),
+    begin: () => { const s = stack; stack = null; return s; },   // dragged away, a stacked window leaves its stack (BASINS)
+    undo: (s) => { stack = s; } });
+  const gripDrag = grip.drag; gripping = grip.active;
   const onEmpty = (e) => {
     const t = e.target;
     if (e.button !== 0 || (!e.isPrimary && e.isTrusted) || gripDrag.active || !(t instanceof view.Element)) return;
@@ -363,7 +388,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
   view.addEventListener('resize', resized, { passive: true });
   const unSpan = dock && dock.span.subscribe ? dock.span.subscribe(() => { if (P.dock && P.dock !== 'anchor') layout(); }) : null;
   /* an anchored window follows its seat: the host says when the seat moved (a scroll, a relayout of its owner) */
-  const unSeat = dock && dock.anchor && typeof dock.anchor.subscribe === 'function' ? dock.anchor.subscribe(() => { if (P.dock === 'anchor' && !gest) layout(); }) : null;
+  const unSeat = dock && dock.anchor && typeof dock.anchor.subscribe === 'function' ? dock.anchor.subscribe(() => { if (P.dock === 'anchor' && !gripping()) layout(); }) : null;
 
   function tab(name) {
     if (!panelEls.has(name)) return active;

@@ -32,7 +32,7 @@ ok(M.setPresetKey('') === M.PRESET_LS, 'an empty key restores the default');
 
 /* ── 2 · one window set ── */
 const win = code(read('mir/modulation/window.js'));
-for (const [what, re] of [['createRail', /createRail\(/], ['windowLayout', /windowLayout\(/], ['createDockGuide', /createDockGuide\(/], ['core/pointer drag', /pointerDrag\(rail\.grip/], ['tweenRect', /tweenRect\(root/], ['presence', /presence\(root/]])
+for (const [what, re] of [['createRail', /createRail\(/], ['windowLayout', /windowLayout\(/], ['createDockGuide', /createDockGuide\(/], ['core/pointer drag (on the grip, through window/window.js gripGesture)', /gripGesture\(rail,/], ['tweenRect', /tweenRect\(root/], ['presence', /presence\(root/]])
   ok(re.test(win), `window.js uses ${what}`);
 for (const [what, re] of [['snapTarget', /snapTarget/], ['nearestChipSide', /nearestChipSide/], ['buildChipRail', /buildChipRail\(/], ['a hand-rolled grip capture', /rail\.grip\.setPointerCapture|chips\.drag\.addEventListener/]])
   ok(!re.test(win), `window.js carries no ${what}`);
