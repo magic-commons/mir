@@ -1,2 +1,4 @@
 # the dev server's self-signed certificate: made on first use by `node tools/serve.mjs --https`, never committed
 .certs/
+# the remote probe's records (node tools/probe.mjs serve): sessions, logs, results and shots from a device, never committed
+.probe/

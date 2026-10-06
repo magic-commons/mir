@@ -10,7 +10,9 @@
  * a video or an audio file without it): one current module graph on every reload.  From the command line an HTML page also carries
  * Clear-Site-Data: "cache", which empties a browser's HTTP cache that kept files from before no-store (only the cache: projects,
  * preferences and files stay).  Import { serve } to start one on a free port from a test: const { url, close } = await serve(0);
- * serve(port, root, { https, lan, resetCache }) takes the same switches. */
+ * serve(port, root, { https, lan, resetCache }) takes the same switches.  Two hooks for a dev tool (tools/probe.mjs), off unless given:
+ *   intercept(req, res) → true when the tool answered the request itself (its own paths, before any file);
+ *   html(text, req) → text: every .html file is passed through it and sent whole (a Range on an HTML page is then ignored). */
 import http from 'node:http'; import https from 'node:https'; import fs from 'node:fs'; import path from 'node:path'; import os from 'node:os';
 import { execFileSync } from 'node:child_process'; import { fileURLToPath } from 'node:url';
 
@@ -44,9 +46,10 @@ export function devCertificate(addresses = lanAddresses(), dir = CERTS) {
   return { key: fs.readFileSync(key), cert: fs.readFileSync(crt) };
 }
 
-export function serve(port = 8790, root = fileURLToPath(new URL('..', import.meta.url)), { https: tls = false, lan = false, resetCache = false } = {}) {
+export function serve(port = 8790, root = fileURLToPath(new URL('..', import.meta.url)), { https: tls = false, lan = false, resetCache = false, intercept = null, html = null } = {}) {
   const base = path.resolve(root);
   const handler = (req, res) => {
+    if (intercept && intercept(req, res)) return;
     let rel;
     try { rel = decodeURIComponent(new URL(req.url, 'http://x').pathname); } catch { res.writeHead(400).end(); return; }
     let file = path.resolve(base, '.' + rel);
@@ -55,6 +58,10 @@ export function serve(port = 8790, root = fileURLToPath(new URL('..', import.met
     const ext = path.extname(file);
     const head = { 'content-type': TYPES[ext] || 'application/octet-stream', 'cache-control': 'no-store', 'accept-ranges': 'bytes' };
     if (resetCache && ext === '.html') head['clear-site-data'] = '"cache"';
+    if (html && ext === '.html') {
+      let body; try { body = Buffer.from(html(fs.readFileSync(file, 'utf8'), req), 'utf8'); } catch { res.writeHead(500).end(); return; }
+      res.writeHead(200, { ...head, 'content-length': body.length }); res.end(req.method === 'HEAD' ? undefined : body); return;
+    }
     const range = req.headers.range ? byteRange(req.headers.range, stat.size) : null;   // a conditional header is ignored on purpose: the bytes are always sent
     if (range === 'bad') { res.writeHead(416, { 'content-range': `bytes */${stat.size}` }).end(); return; }
     const opts = range ? { start: range.start, end: range.end } : {};
