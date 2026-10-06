@@ -8,7 +8,7 @@
  *   1. THIN.  Every piece is the kit's own constructor, called with the options an app would pass, in this order:
  *      the banner · a first run? · the rack (and its float layer) · the look (accent, GUI) · the language · the key table ·
  *      modulation · the one clock and the transport bar · the parameters · the pages · the notebook · FOLDERS ·
- *      INFORMATIONAL and its greeting · the keys' help view · the menus · the hints and the pressed look · describe ·
+ *      INFORMATIONAL and its greeting · the keys' help view and the KEYBOARD window · the menus · the hints and the pressed look · describe ·
  *      the scene guard · the wake lock · the skip link · the live project (off by default).  It adds no behaviour of its
  *      own; read the function below as the checklist.
  *   2. EVERY PIECE IS OPTIONAL AND STILL YOURS.  Pass `false` to leave one out (`folders: false`), an object to add
@@ -47,7 +47,7 @@ import { createRack } from './shell/rack.js';
 import { createGui } from './shell/gui.js';
 import { createKeys, localKeyStorage, KIT_KEYS, toggleFullscreen } from './shell/keys.js';
 import { createTransport, firstRun, rackOpeners, transportActions } from './shell/transport.js';
-import { createKeysHelp } from './keyboard/keyboard.js';
+import { createKeysHelp, createKeyboardWindow } from './keyboard/keyboard.js';
 import { languageMenu, startLanguage } from './shell/language.js';
 import { notice } from './shell/notice.js';
 import { createFolders } from './folders/folders.js';
@@ -105,7 +105,7 @@ export function makeParam({ state, key, label = String(key).toUpperCase(), min =
  *   pages          rows to add to the pages ({ title, md, shared }); page 0 is the greeting
  *   thumbnail      () → the canvas FOLDERS takes a project's picture from
  *   about          extra ABOUT options (tagline, copyright …); sub: the line under the wordmark
- *   and one entry per piece — gui, transport, rack, mod, pattern, notebook, folders, info, greet, help, menubar, describe,
+ *   and one entry per piece — gui, transport, rack, mod, pattern, notebook, folders, info, greet, help, keyboard, menubar, describe,
  *   banner, sceneGuard, wakeLock — each `false` to leave it out, or an object of extra options for its constructor.
  *   pattern        the PATTERN window (mir/pattern/window.js) with the modulation: PATT on every ENV face, WINDOW › PATTERN
  *   factory        the app's bundled starter presets, handed to installModulation (`{ presets, folder, apply }` or a list)
@@ -133,7 +133,7 @@ export function makeParam({ state, key, label = String(key).toUpperCase(), min =
  *                  board, the ring); the greeting rests beside it, never under the bar or a rack (default: none)
  *   → { first, param, params, playing(), play(), pause(), safeRect(), hideInterface(), dump(), rack, keys, gui, accent,
  *       transport, mod, pattern, timeline, workspaces, pages, notebook, folders, info, greeting, help, menubar, describe, floats, banner, sceneGuard,
- *       wakeLock, session, history, recorder }   (also window.__MIR.app, the live shell object for a rig or the console: BASINS' __BASINS)
+ *       wakeLock, session, history, recorder, keyboard }   (also window.__MIR.app, the live shell object for a rig or the console: BASINS' __BASINS)
  *   The app's `present()` is also called when the theme or the look changes and when a window opens or closes.
  */
 export async function createApp(o = {}) {
@@ -141,7 +141,7 @@ export async function createApp(o = {}) {
   const stage = o.stage, host = o.host || stage.parentElement, state = o.state || {};
   const present = () => { if (o.present) o.present(); };
   const want = (piece) => o[piece] !== false;
-  let tr = null, rack = null, mod = null, notebook = null, folders = null, info = null, help = null, pattern = null, timeline = null, ws = null, recorder = null, hist = null;
+  let tr = null, rack = null, mod = null, notebook = null, folders = null, info = null, help = null, kb = null, pattern = null, timeline = null, ws = null, recorder = null, hist = null;
 
   /* 0. THE BANNER first, so a problem anywhere below is on the screen (BASINS: "the only debugger on an iPad") */
   const banner = want('banner') ? installBanner({ host: stage, ...opt(o.banner) }) : null;
@@ -185,6 +185,7 @@ export async function createApp(o = {}) {
     { id: 'timeline', label: 'TIMELINE', group: 'WINDOW', keys: [], run: () => timeline && timeline.toggle() },
     { id: 'notebook', label: 'NOTEBOOK', group: 'WINDOW', keys: K('notebook'), run: () => notebook && notebook.toggle() },
     { id: 'help', label: 'KEYS', group: 'WINDOW', keys: K('help'), run: () => help && help.toggle() },
+    ...(want('keyboard') ? [{ id: 'keyboard', label: 'KEYBOARD', group: 'WINDOW', keys: [], run: () => kb && kb.toggle() }] : []),
     ...(want('rack') ? [{ id: 'rack', label: 'HIDE / SHOW the rack', group: 'WINDOW', keys: K('rack'), run: () => rack && rack.toggleHidden() }] : []),
     ...(want('rack') && bar ? [{ id: 'dock', label: 'DOCK / UNDOCK the transport', group: 'WINDOW', keys: K('dock'), run: () => tr && tr.dock(!tr.docked) }] : []),
     /* EVERY KIT WINDOW IS A ROW, keys or none (wave 19), so the KEYBOARD window can bind it and a menu shows what it holds;
@@ -301,6 +302,8 @@ export async function createApp(o = {}) {
 
   /* 12. THE KEYS' HELP VIEW (?) and THE MENUS: data; WINDOW from the rack, LANGUAGE from the kit, keys from the table */
   if (want('help')) help = createKeysHelp({ keys, host: floats });
+  /* THE KEYBOARD WINDOW beside it: any row of the table re-recorded from the UI (mir/keyboard/keyboard.js), behind WINDOW › KEYBOARD */
+  if (want('keyboard')) kb = createKeyboardWindow({ keys, host: floats, onMoved: moved, ...opt(o.keyboard) });
   /* the menus are BASINS' (app/shell.js): FILE ends with the five recent projects (↺), EDIT has PLAY / PAUSE and Purge
      Cache/RAM, VIEW hide and full screen, WINDOW the kit's windows with their keys then the rack's, and the windows to
      come; ABOUT · SETTINGS · COPY DUMP.  A row whose piece is left out is not shown. */
@@ -314,7 +317,7 @@ export async function createApp(o = {}) {
     EDIT: M.EDIT || (() => rows(k('undo'), k('redo'), keys.get('undo') ? null : undefined, bar ? k('transport.play') : undefined, bar ? null : undefined, purgeRow({ name }))),
     VIEW: M.VIEW || (() => rows(k('hide'), k('fullscreen'))),
     WINDOW: M.WINDOW || (() => rows(mod ? k('modulation') : undefined, timeline ? k('timeline') : undefined, pattern ? k('pattern') : undefined, folders ? k('folders') : undefined, notebook ? k('notebook') : undefined,
-      hist ? k('history') : undefined, help ? k('help') : undefined, k('rack'), k('dock'), ...(rack ? [null, ...rack.windowMenu()] : []),
+      hist ? k('history') : undefined, help ? k('help') : undefined, kb ? k('keyboard') : undefined, k('rack'), k('dock'), ...(rack ? [null, ...rack.windowMenu()] : []),
       ...((o.coming || []).length ? [null, ...o.coming.map(([n, h]) => comingRow(n, h))] : []))),
     ...Object.fromEntries(Object.entries(M).filter(([g]) => !['FILE', 'EDIT', 'VIEW', 'WINDOW', 'ABOUT', 'LANGUAGE', 'GUI'].includes(g))),
     ABOUT: M.ABOUT || (() => rows(['ABOUT ' + name, () => notebook && notebook.open('about')],
@@ -387,7 +390,7 @@ export async function createApp(o = {}) {
     play: () => (tr ? tr.play() : clock && !clock.isPlaying() ? clock.play() : null),
     pause: () => (tr ? tr.pause() : clock && clock.isPlaying() ? clock.pause() : null),
     accent, gui, keys, transport: tr, rack, mod, pattern, timeline, workspaces: ws, pages, notebook, folders, info, greeting, help, menubar, describe, floats,
-    banner, sceneGuard, wakeLock, session, history: hist, recorder };
+    banner, sceneGuard, wakeLock, session, history: hist, recorder, keyboard: kb };
   (globalThis.__MIR = globalThis.__MIR || {}).app = app;     // the live shell object for a rig or the console (BASINS' window.__BASINS)
   return app;
 }

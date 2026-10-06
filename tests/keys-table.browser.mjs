@@ -68,6 +68,14 @@ try {
   check('the menus show the bound key from the table', menu.win === 'HISTORY\tShift+H' && menu.gui === 'MIR OPTIONS\tShift+O', JSON.stringify(menu));
   await ev(`for (const id of ['history', 'gui', 'gui-about']) A.keys.reset(id); A.history.close(); A.gui.window.close(); A.gui.about.close(); return 1;`);
 
+  /* 5. createApp installs the KEYBOARD window: a row itself, and it lists the app's rows (undo, the windows, the timeline's) */
+  await ev(`A.keys.bind('keyboard', 'Shift+KeyK'); return 1;`);
+  await p.key('Shift+K'); await sleep(300);
+  const kbw = await ev(`const r = A.keyboard && A.keyboard.root; return { made: !!A.keyboard, open: !!A.keyboard && A.keyboard.isOpen(), rows: ['undo', 'history', 'gui', 'keyboard', 'timeline.copy'].map((id) => !!(r && r.querySelector('[data-id="' + id + '"]'))) };`);
+  check('app.keyboard is the KEYBOARD window, opened from its row', kbw.made && kbw.open, JSON.stringify(kbw));
+  check('it lists the table: undo, HISTORY, MIR OPTIONS, KEYBOARD, the timeline\'s COPY', kbw.rows.every(Boolean), JSON.stringify(kbw.rows));
+  await ev(`A.keys.reset('keyboard'); A.keyboard.close(); return 1;`);
+
   check('the page raised no exception', p.logs.filter((l) => l.startsWith('EXCEPTION')).length === 0, p.logs.join(' | '));
 } finally {
   await p.close();
