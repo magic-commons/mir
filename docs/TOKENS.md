@@ -794,8 +794,8 @@ Durations and easings (docs/MOTION-LAW.md).
 | `--ease-out` | semantic | easing | `cubic-bezier(.22, 1, .36, 1)` |  | kit | ✓ | stable |  | 1.5 core: the out curve; F1 §5.2 proposed the name. MOTION-LAW's entrance curve (.23,1,.32,1) is a different literal in base.css |
 | `--logo-turn` | primitive | duration | `1.2s` |  | kit | ✓ | stable |  | one turn of the palette through the mark |
 | `--m2-motion-ease` | component | easing | `cubic-bezier(.2, .7, .2, 1)` |  | plugin |  | stable |  | plugin easing |
-| `--m2-motion-micro` | component | duration | `80ms` |  | plugin |  | stable |  | plugin micro motion |
-| `--m2-motion-structural` | component | duration | `120ms` |  | plugin |  | stable |  | plugin structural motion |
+| `--m2-motion-micro` | component | duration | `80ms` |  | plugin |  | stable |  | plugin micro motion: 80 ms; 0 in the flat tier and under data-motion="off" (and reduced motion) |
+| `--m2-motion-structural` | component | duration | `120ms` |  | plugin |  | stable |  | plugin structural motion: 120 ms; 0 in the flat tier and under data-motion="off" (and reduced motion) |
 | `--motion-micro` | semantic | duration | `80ms` |  | kit | ✓ | stable |  | 1.5 core (mir/core/core.css): micro motion, 80ms; 0 under data-motion="off"; = --m2-motion-micro |
 | `--motion-structural` | semantic | duration | `320ms` |  | kit | ✓ | stable |  | 1.5 core: rack and window motion, 320ms (BASINS RACK_MOTION); the plugin's --m2-motion-structural is 120ms *[read-by-js]* |
 | `--motion-ui` | semantic | duration | `160ms` |  | kit | ✓ | stable |  | 1.5 core: a UI change, 160ms |

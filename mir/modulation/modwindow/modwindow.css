@@ -2153,6 +2153,9 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   --m2-mat-inner: hsl(0 0% 100% / calc(.055 + var(--m2-blend) * .055));
   --m2-signal-glow: 0 0 4px color-mix(in oklch, hsl(var(--hue-acc2, 288) var(--sat-acc2, 75%) 68% / .20), white var(--acc-white, 0%));
 }
+/* the plugin's two durations obey the kit's motion switches like every other surface: the flat tier (css/tokens.css)
+   and motion off (core/core.css, core/motion.js) zero them; at the default they stay the 80 and 120 ms above */
+:root:is([data-ui-tier="flat"], [data-motion="off"]) { --m2-motion-micro: 0ms; --m2-motion-structural: 0ms; }
 /* LIGHT is not a white theme. It bends the material toward a brighter local
    neutral while the instrument ink and the protected recess stay dark. */
 :root.fr-light {
