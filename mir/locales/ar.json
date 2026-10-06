@@ -1640,7 +1640,9 @@
   "route {axis} — drag onto a control, or tap to arm": "توجيه {axis} — اسحب إلى عنصر تحكم، أو المس للتجهيز",
   "snapshot {n}'s name": "اسم اللقطة {n}",
   "the modulation rack is full: free a macro for {axis}": "راك التضمين ممتلئ: حرّر ماكرو لـ {axis}",
-  "what the pad does": "ما يفعله PAD"
+  "what the pad does": "ما يفعله PAD",
+  "FILES": "الملفات",
+  "Made with": "صُنع باستخدام"
  },
  "review": {}
 }

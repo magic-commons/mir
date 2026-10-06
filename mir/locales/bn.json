@@ -1580,7 +1580,9 @@
   "route {axis} — drag onto a control, or tap to arm": "{axis} রুট করুন — কোনো কন্ট্রোলে টানুন, বা আর্ম করতে ট্যাপ করুন",
   "snapshot {n}'s name": "স্ন্যাপশট {n}-এর নাম",
   "the modulation rack is full: free a macro for {axis}": "মডুলেশন র‍্যাক ভরে গেছে: {axis}-এর জন্য একটি ম্যাক্রো খালি করুন",
-  "what the pad does": "PAD কী করে"
+  "what the pad does": "PAD কী করে",
+  "FILES": "ফাইল",
+  "Made with": "যাদের সাথে তৈরি"
  },
  "review": {}
 }

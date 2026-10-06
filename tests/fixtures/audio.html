@@ -37,7 +37,7 @@ let au = null;
 const tl = installTimeline({ mount: floats, mod, say: (t) => says.push(t), storageKey: 'mir.test.audio.tl', audio: { pick: (at) => au && au.pick(at) },
   initial: { dock: 'bottom', open: true, h: 440, chipSide: 'left' } });
 au = installAudioDrop(tl.editor, { mod, controller: tl.controller, say: (t) => says.push(t) });
-const folders = createFolders({ host: floats, store: 'mir.test.audio.library', app: 'mirtest', download: (blob, name) => downloads.push({ blob, name }), say: (t, bad) => says.push((bad ? '! ' : '') + t) });
+const folders = createFolders({ host: floats, store: 'mir.test.audio.library', app: 'mirtest', zip: { foot: true }, download: (blob, name) => downloads.push({ blob, name }), say: (t, bad) => says.push((bad ? '! ' : '') + t) });
 window.__AU = { mod, tl, au, folders, assets, says, downloads, S };
 window.__ready = true;
 </script>

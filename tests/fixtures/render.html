@@ -84,7 +84,7 @@ const panel = renderPanel({ recorder: rec, motionUi, prefix: 'mirtest.render.', 
   picture: { capture: async () => ({ w: 128, h: 72, name: 'picture.png', bytes: 4096 }), save: () => 'download', stale: () => false, size: () => ({ w: 128, h: 72 }) } });
 window.__said = []; window.__saved = [];
 const folders = createFolders({ host: document.getElementById('winlayer'), app: 'mirtest', store: 'mirtest.folders', defaultName: 'STUDY', size: { w: 400, h: 760 },
-  adapter: { thumbnail: () => ground }, panels: [panel], chipSide: 'left', onTab: () => {} });
+  adapter: { thumbnail: () => ground }, panels: [panel], chipSide: 'left', onTab: () => {}, download: (blob, name) => { window.__saved.push({ blob, name, folders: true }); } });
 const cardView = createRenderCard({ recorder: rec, prefix: 'mirtest.render.card.', say: (t, bad) => { window.__said.push({ t, bad: !!bad, card: true }); }, save: (blob, name) => { window.__saved.push({ blob, name }); } });
 document.getElementById('rackcard').appendChild(cardView.card.root);
 /* BASINS parity, round seven: a second card with BASINS' options — opens on the app's motion, no loading mark, its own gallery handed to

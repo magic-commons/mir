@@ -279,7 +279,7 @@ export async function createApp(o = {}) {
   /* RENDER as a rack window too (BASINS' rackRender): the same rows, built when it first opens */
   if (recorder && rack && rCard !== false) {
     let view = null;
-    rack.register({ id: 'render', title: 'RENDER', side: 'right', build: (body) => { view = renderUi.createRenderView(body, { ...renderOpts(), seat: 'card' }); }, onOpen: () => view && view.paint() });
+    rack.register({ id: 'render', title: 'RENDER', side: 'right', build: (body) => { view = renderUi.createRenderView(body, { ...renderOpts(), seat: 'card', files: folders ? folders.zip : null }); }, onOpen: () => view && view.paint() });
   }
   /* a notebook with no pages keeps its text in the project (the landing law, notebook.project) */
   if (notebook && notebook.project) registerProjectPart('notebook', notebook.project.part());

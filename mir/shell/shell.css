@@ -55,6 +55,8 @@
   --lam-scale: 1.3em;                                              /* the λ beside the wordmark, in the title and on the about face */
   --wordmark-tracking: .06em; --wordmark-ink: #fff; --wordmark-ink-light: #000;
   --ab-version-size: 12px; --ab-version-tracking: .06em; --ab-credit-size: 12px; --ab-fine-size: 10.5px;
+  --ab-made-w: 440px;        /* the makers block's measure (BASINS about.css:46) */
+  --ab-makers-gap: 8px;      /* between the three makers */
   --ab-rule-ink: hsl(0 0% 50% / .25);
   --mb-btn-r: 7px; --mb-list-r: 10px; --mb-item-r: 6px;
 }
@@ -122,6 +124,9 @@ body[data-theme="dark"] #notebook::before { content: ''; position: absolute; ins
 .ab-credit { margin: 2px 0; font-size: var(--ab-credit-size); line-height: 1.4; color: var(--fg-soft); }
 .ab-team { color: var(--fg); }
 .ab-made { text-align: center; }
+.ab-made:has(> .ab-makers) { width: 100%; max-width: var(--ab-made-w); }
+.ab-makers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ab-makers-gap); margin-top: 4px; }
+.ab-makers small { display: block; font-size: var(--fs-small); }
 .ab-fine { margin: 1px 0; font-size: var(--ab-fine-size); color: var(--dim); }
 .nb-aboutface a { color: var(--acc); }
 .ab-rule { width: 60%; height: 1px; background: var(--ab-rule-ink); margin: 8px 0; }

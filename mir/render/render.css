@@ -31,6 +31,7 @@
   --render-video-h: 220px;                           /* the preview player */
   --render-status-pad: 7px 9px;
   --render-unit-track: .1em;
+  --render-files-gap: 6px;                           /* FILES' rows, and above them (BASINS' .sr-files-body) */
 }
 .mir-render[data-seat="card"] { --render-section-gap: 5px; --render-section-pad: 8px; --render-row-h: 26px; }
 .mir-render[data-seat="card"] { gap: 0; }            /* BASINS' card: its sections stacked flush */
@@ -77,8 +78,11 @@
 .mir-render .sr-detail-toggle { display: flex; align-items: center; gap: 5px; min-height: 40px; list-style: none; cursor: pointer;
   font: var(--w-semi) var(--fs-micro)/1.2 var(--font-ui); letter-spacing: var(--tr-wide); color: var(--fg-soft); }
 .mir-render .sr-detail-toggle::-webkit-details-marker { display: none; }
-.mir-render .sr-detail-toggle::before { content: '▸'; color: var(--acc); font-size: var(--fs-base); }
-.mir-render details[open] > .sr-detail-toggle::before { content: '▾'; }
+.mir-render .sr-detail-glyph { display: inline-flex; color: var(--acc); }
+.mir-render .sr-files-toggle { list-style: none; cursor: pointer; padding: 2px; }                   /* BASINS' SETTINGS & FILES summary */
+.mir-render .sr-files-toggle::-webkit-details-marker { display: none; }
+.mir-render .sr-files-toggle:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
+.mir-render .sr-files-body { display: flex; flex-direction: column; gap: var(--render-files-gap); padding-top: var(--render-files-gap); }
 .mir-render .sr-detail-toggle:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
 .mir-render .sr-view-details[open] { border-top: 1px solid var(--glass-hairline); padding-top: 3px; }
 .mir-render .sr-view-details .sr-row { min-height: 25px; }

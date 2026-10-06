@@ -1655,7 +1655,9 @@
   "route {axis} — drag onto a control, or tap to arm": "маршрут {axis} — перетащите на элемент или коснитесь, чтобы взвести",
   "snapshot {n}'s name": "имя снимка {n}",
   "the modulation rack is full: free a macro for {axis}": "стойка модуляции заполнена: освободите макро для {axis}",
-  "what the pad does": "что делает PAD"
+  "what the pad does": "что делает PAD",
+  "FILES": "ФАЙЛЫ",
+  "Made with": "Создано с помощью"
  },
  "review": {}
 }

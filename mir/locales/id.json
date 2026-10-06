@@ -1565,7 +1565,9 @@
   "route {axis} — drag onto a control, or tap to arm": "rutekan {axis} — seret ke kontrol, atau ketuk untuk menyiapkan",
   "snapshot {n}'s name": "nama snapshot {n}",
   "the modulation rack is full: free a macro for {axis}": "rack modulasi penuh: kosongkan sebuah macro untuk {axis}",
-  "what the pad does": "apa yang dilakukan pad"
+  "what the pad does": "apa yang dilakukan pad",
+  "FILES": "BERKAS",
+  "Made with": "Dibuat dengan"
  },
  "review": {}
 }

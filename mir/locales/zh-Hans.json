@@ -1583,7 +1583,9 @@
   "route {axis} — drag onto a control, or tap to arm": "路由 {axis}：拖到控件上，或点按以就绪",
   "snapshot {n}'s name": "快照 {n} 的名称",
   "the modulation rack is full: free a macro for {axis}": "调制机架已满：请为 {axis} 腾出一个宏",
-  "what the pad does": "PAD 的作用"
+  "what the pad does": "PAD 的作用",
+  "FILES": "文件",
+  "Made with": "协助制作"
  },
  "review": {}
 }

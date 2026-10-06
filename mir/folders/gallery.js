@@ -223,7 +223,8 @@ export function buildGallery(panel, opts) {
     foot.appendChild(fac.root);
   }
   /* SAVE AS ZIP… and OPEN ZIP… (BASINS' SETTINGS & FILES, FL's "Save project as zip"): the host's `adapter.zip = { save(), open() }`;
-     FOLDERS gives the window's gallery both (a rack card has none unless mountGallery({ zip: true })) */
+     FOLDERS gives the window's gallery both only with createFolders({ zip: { foot: true } }) (by default they are RENDER's FILES
+     rows, where BASINS had them), and a rack card only with mountGallery({ zip: true }) */
   if (adapter.zip && typeof adapter.zip.save === 'function') {
     const zipSave = kit.trig({ label: 'SAVE AS ZIP…', cls: 'sv-act sv-wide sv-zip', title: 'Save the current project, with the audio files it uses, as one .zip.', onFire: () => adapter.zip.save() });
     const zipOpen = kit.trig({ label: 'OPEN ZIP…', cls: 'sv-act sv-wide sv-zip', title: 'Open a project saved as one .zip (SAVE AS ZIP): its audio comes back with it and it becomes the current project.', onFire: () => adapter.zip.open() });

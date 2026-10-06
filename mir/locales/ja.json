@@ -1583,7 +1583,9 @@
   "route {axis} — drag onto a control, or tap to arm": "{axis} をルーティング：コントロールにドラッグするか、タップして待機にします",
   "snapshot {n}'s name": "スナップショット {n} の名前",
   "the modulation rack is full: free a macro for {axis}": "モジュレーションラックがいっぱいです：{axis} のためにマクロを空けてください",
-  "what the pad does": "PAD の動作"
+  "what the pad does": "PAD の動作",
+  "FILES": "ファイル",
+  "Made with": "制作協力"
  },
  "review": {}
 }

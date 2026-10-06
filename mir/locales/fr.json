@@ -1580,7 +1580,9 @@
   "route {axis} — drag onto a control, or tap to arm": "router {axis} — glissez sur un contrôle, ou touchez pour armer",
   "snapshot {n}'s name": "nom de l’instantané {n}",
   "the modulation rack is full: free a macro for {axis}": "le rack de modulation est plein : libérez une macro pour {axis}",
-  "what the pad does": "ce que fait le pad"
+  "what the pad does": "ce que fait le pad",
+  "FILES": "FICHIERS",
+  "Made with": "Réalisé avec"
  },
  "review": {}
 }

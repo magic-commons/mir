@@ -1,5 +1,45 @@
 # MIR — changelog
 
+## 1.5.0-alpha.16 — 2026-10-06 · BASINS parity, round seven
+
+Not released: built on branch `worktree-mir-1.5`. Twelve kit gaps measured by the BASINS adoption (stage 5, log rows 56–61), closed with BASINS' values, and two more from BASINS' stage-5 report (the VIEW DETAILS caret, the ZIP rows' seat); one (the arcs' value chip) was measured as BASINS' own and left there.
+
+**Behaviour changes (read these first):**
+- **RENDER's rows are in BASINS' order, SPEED under LENGTH.** `motionUi`'s `row(text, tip, at)` seats a motion's row under MOTION (the default) or under `'format' | 'size' | 'fps' | 'length' | 'start' | 'modulation' | 'timeline'`; BASINS' SPEED sits under LENGTH again (it sat under ROUTE).
+- **RENDER opens on the app's motion**: `renderPanel` / `createRenderCard({ defaults: { motion } })` (BASINS: `zoom`); a stored choice still wins (it always opened on STILL).
+- **`motionUi` is handed the panel's own fields**: `tools.fields` is `{ length, size, fps }`, so BASINS' SPEED → LENGTH writes LENGTH through `fields.length` (it found the fields by their aria-labels: English in a lookup).
+- **`ready` is set after `paint`**: a `motionUi.paint` that throws refuses the run; RENDER stays off and the thrown sentence is the estimate row (RENDER used to stay on).
+- **The subject and the sections are handed the view's gallery**: `subject.facts(entry, gallery)`, `name`, `text` and `json` the same, `sections(wrap, gallery)`; one subject serves the window and the rack card.
+- **`view.state()`** has `motions`, `running`, `plan` (`{ frames, startFrame, fps, range }`, or null while the rows refuse), `held` (`{ w, h, bytes }`) and `done` (`{ name, bytes }` of the finished film, until DISCARD). `createRenderCard({ loadingMark })` is passed to `kit.device` (`false`: no waiting mark, BASINS' card).
+- **The RENDER sheet draws BASINS'**: a note inherits the window's text (it was 10 px soft ink); the second key fact grows (`:nth-child(2)`, was `:last-child`); a disabled RENDER and DOWNLOAD IMAGE fade by `--state-disabled` (.38) in the window and by .55 in the card, and a disabled RENDER is the well; the card's sections stand flush (gap 0); `.mir-render` declares no container (an app's `@container` rules stay as inert as they were); a motion's rows keep the section's gap.
+- **VIEW DETAILS' caret is glyph.js'**: `chevronDown` closed, `chevronUp` open (`.sr-detail-glyph`, in the accent). The sheet drew the text glyphs ▸ / ▾, which `docs/ICONS.md` forbids.
+- **The sortable list's pane stepper and + ADD are BASINS'.** The list reads its rack by `[data-mir-rack][data-side]`, so an adopted rack (BASINS' `#rackL`, which carries no kit look class) seats the chips on its outer edge. A stepper in an item's pane is BASINS' blend: it spans the pane, the name 8 px in the key ink with no seat height, the arrows 44 px squares in the 3 px corner with a 22 px glyph (`--list-step-glyph`). + ADD is in the look's corner (`--surface-radius`, it was a pill) and wears the panes' material: the TINTED fill (`--card-opacity`; `--frost-opacity` under FROST) and FROST's filter (none while frost holds); the rows stand 5 + 7 px above it (`--list-foot-gap` + `--list-gap`; it was 7).
+- **`aboutFace` takes BASINS' ABOUT as data**: `taglines` (one `.ab-tagline` each), a `{ sup }` rich part (10<sup>500</sup>), `teamTitle` (an eyebrow over the team), `makers` (`[[name, house]]`: BASINS' "Made with" block, three across in a 440 px measure with an 8 px gap, the house 10 px on its own line: `--ab-made-w`, `--ab-makers-gap`) and `tagSplit: 'last'` (the tag is the build line up to its last ` · `: BASINS' `MANDELBROT · BASINS · 2026-09-26`).
+- **A notebook face can `run(api)`**: a face with `run` and no `build` is a button that runs an action and flips nothing (BASINS' ▤ opens its SAVE window). Measured on BASINS: a face change has no transition or animation, so none was added.
+- **SAVE AS ZIP reads the app's parts**: `createFolders({ zip: { parts } })` makes the zip from the live project the app's parts give (BASINS: its session), with no `capture()` (whose thumbnail needed BASINS' tile engine); an unopened project's zip is UNTITLED, not the name field's proposal (BASINS' `defaultName` FRACTAL). `zipProject({ entry, parts, capture, untitled })` is the rule (`mir/folders/zip.js`); with no `parts` the data is still the live capture.
+- **SAVE AS ZIP… and OPEN ZIP… sit in RENDER's FILES section**, where BASINS' SETTINGS & FILES had them: `renderPanel({ files })` takes FOLDERS' `api.zip` by default when FOLDERS has its zip, and draws the two rows in a closed FILES section after CHECK (before the app's own `sections`); `files: false` leaves them out; `createRenderCard({ files: folders.zip })` gives a card the same (`createApp`'s RENDER rack card is handed them). **FOLDERS' gallery foot no longer has them unless asked**: `createFolders({ zip: { foot: true } })`. `api.zip` (`{ save(), open() }`) is new; OPEN FILE and a dropped `.zip` still open a project zip either way.
+
+### What BASINS can delete
+The `recorder.js` mappings for render gaps 1–5 (`mandel.record.motion = zoom`, the aria-label field lookups, the `estimate` wrap, the per-view closures, `render.state()`'s plan / motions / done); the five unlayered `save.css` `sr-*` rules (flush card, key facts, container, motion rows' gap, notes) and the disabled fades; `colour.css`' blend stepper, list gap, + ADD margin and the three `#rackL` list rules; `material.css`' four + ADD rules; `notebook.js`' hand-built `aboutFace` (its about data lines become `about: { … }`) and the ▤ face's capture-phase listener; `about.css:46–48`; `save-window.js`' GPU-free SAVE AS ZIP stub (`zip: { parts }`). The lines are in `docs/ADOPTING-1.5.md` §7.
+
+### Tokens, tests
+- Five new tokens: `--list-foot-gap` (5 px), `--list-step-glyph` (22 px), `--ab-made-w` (440 px), `--ab-makers-gap` (8 px), `--render-files-gap` (6 px); `--list-gap`'s and `--render-disabled`'s notes say what they are now; readers synced from the sheets. 1,427 rows.
+- `tests/render.browser.mjs` 63/63 (+15: `view.state()`, the second card's defaults.motion, the seat under LENGTH, `loadingMark: false`, the gallery handed, SPEED → LENGTH by typing, the refusing paint pressed at RENDER's centre, the two disabled fades, `held`, the sheet; the caret's two glyphs with a real press; the ZIP rows in FILES and not the foot, SAVE AS ZIP… pressed and hit-tested); `tests/controls-colour.browser.mjs` 63/63 (+5); `tests/rack-adopt.browser.mjs` 13/13 (+1); `tests/notebook.browser.mjs` 23/23 (+2); `tests/audio-zip.node.mjs` (+2 assertions: `zipProject`). The audio fixture asks for `zip: { foot: true }`; `folders`, `folders-basins`, `audio` and `shell` pass with the folders and shell hunks.
+
+### Choices to overrule
+- `createRack` still gives an adopted rack no `mir-rack` class (its look rules would land on the app's rack); the list reads `[data-mir-rack][data-side]` instead.
+- A motion row's seat names are the panel's own rows (`'format'` … `'timeline'`); an unknown name seats it under MOTION.
+- A refused run's estimate row is the thrown sentence as it is, with no prefix.
+- `tagSplit` is `'first'` (λWAVES') unless an app says `'last'`; `makers` is always three across.
+- A notebook face with both `build` and `run` is a button (`run` wins; it gets no face element).
+- An unopened project's zip is UNTITLED even when the name field holds a proposal.
+- RENDER's FILES section is titled FILES (BASINS' was SETTINGS & FILES, which also held its settings and gallery files), starts closed as BASINS' did, and its summary has no caret, as BASINS' had none. An app with FOLDERS and no RENDER panel shows no SAVE AS ZIP… button unless it asks for `zip: { foot: true }`.
+- `--ab-made-w` and `--ab-makers-gap` are in the `layout` group of the token table.
+
+### For Josh's eye
+- **+ ADD keeps a raised relief**, the trigger's raise, not BASINS' pane float shadow: INTENT says a pane floats and a button does not. Everything else about it (corner, fill, filter, gap) is BASINS'.
+- **The arcs' value-chip tag** is left to BASINS' own rule: measured, it is BASINS' drawing, not a kit gap.
+
 ## 1.5.0-alpha.15 — 2026-10-06 · BASINS parity, round six
 
 Not released: built on branch `worktree-mir-1.5`. Ten kit gaps measured by the BASINS adoption (stage 4 part B, log rows 51–55), closed with BASINS' values; the tenth is left for Josh's eye.

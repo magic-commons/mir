@@ -10,6 +10,7 @@
  *             rate · length · start at · modulation · timeline · the estimate · RENDER · PREVIEW FIRST 3 SECONDS · progress ·
  *             the finished files · DISCARD · the stored renders (RECOVER COMPLETED FRAMES, RESUME WITH MATCHING PROJECT, DISCARD)
  *   CHECK     RUN SELF-TEST
+ *   FILES     SAVE AS ZIP… · OPEN ZIP… (FOLDERS' project zip; BASINS' SETTINGS & FILES had them)                          (`files`)
  *   then      whatever the app's `sections(wrap)` adds (BASINS: SETTINGS & FILES)
  *
  *   renderPanel(options) → { id:'render', label, glyph, hint, build(body, api), onShow(), view() }       for createFolders({ panels: [panel] })
@@ -36,14 +37,16 @@
  *   say(text, warn)   a toast        save(blob, name)   hand a file over (default: an anchor download, the share sheet on iPad)
  *   prefix     the storage keys' prefix (BASINS: "mandel.record."); defaults { fps: 30, motion: 'still' } (BASINS: motion 'zoom'):
  *              the first run's choices; a stored one wins
- *   seat       'window' | 'card'      sections(wrap, gallery)   the app's own sections, after CHECK
+ *   seat       'window' | 'card'      sections(wrap, gallery)   the app's own sections, after CHECK and FILES
+ *   files      { save(), open() } (FOLDERS' api.zip): SAVE AS ZIP… and OPEN ZIP… in a FILES section; renderPanel takes FOLDERS'
+ *              own by default (`files: false` leaves them out); a card is handed them (createRenderCard({ files: folders.zip }))
  *   loadingMark   createRenderCard only: the card's waiting mark (kit.device; false: none, as BASINS' card had)
  * view.state() → { motion, motions: [[id, label]], format, size, fps, estimate, status, progress, running,
  *                  plan: { frames, startFrame, fps, range } | null (null while the rows refuse), held: { w, h, bytes } | null,
  *                  done: { name, bytes } | null (the finished film's first file, until DISCARD) }
  * Every row is a kit control or a native select, hit-testable; touch targets are 44 px. */
 import { el, label, ariaLabel, hint, trig, seg, device } from '../kit.js';
-import { glyphEl } from '../glyph.js';
+import { glyphEl, setGlyph } from '../glyph.js';
 import { t } from '../core/i18n.js';
 import { RECORD_FPS, fmtBytes, fmtMs, fmtClock } from './plan.js';
 import { saveBlob as defaultSave, prefersVideoDownload } from '../folders/save-blob.js';
@@ -82,7 +85,10 @@ export function createRenderView(parent, o = {}) {
     for (const [k, v] of rows.slice(0, 2)) { const f = el('div', 'sr-keyfact', summary); label(el('span', 'sr-label', f), k); el('b', 'sr-value', f, String(v)); }
     const details = el('details', 'sr-view-details', subject);
     details.open = detailsOpen;
-    label(el('summary', 'sr-detail-toggle', details), 'VIEW DETAILS');
+    const toggle = el('summary', 'sr-detail-toggle', details), caret = el('i', 'sr-detail-glyph', toggle);
+    label(el('span', 'sr-detail-t', toggle), 'VIEW DETAILS');
+    const turn = () => setGlyph(caret, details.open ? 'chevronUp' : 'chevronDown', { size: 14 });   // the fold caret (docs/ICONS.md: no text glyphs)
+    turn(); details.addEventListener('toggle', turn, { signal: life.signal });
     for (const [k, v] of rows.slice(2)) { const r = el('div', 'sr-row', details); label(el('span', 'sr-label', r), k); el('b', 'sr-value', r, String(v)); }
     const copyBtn = trig({ label: 'COPY', cls: 'sv-act', title: 'Copy the exact centre, zoom and rotation as text', onFire: async () => {
       let ok = false; const text = o.subject.text(o.gallery ? o.gallery.selected() : null, o.gallery || null);
@@ -334,6 +340,17 @@ export function createRenderView(parent, o = {}) {
     finally { runCheck.root.disabled = false; }
   } });
   check.appendChild(runCheck.root);
+  /* ── FILES: SAVE AS ZIP… and OPEN ZIP…, where BASINS' SETTINGS & FILES had them (FOLDERS' project zip: `files` = api.zip) ── */
+  const zipVerbs = o.files && typeof o.files.save === 'function' ? o.files : null;
+  if (zipVerbs) {
+    const det = el('details', 'sr-section sr-files', wrap);
+    label(el('summary', 'sv-title sr-title sr-files-toggle', det), 'FILES');
+    const body = el('div', 'sr-files-body', det);
+    const zipSave = trig({ label: 'SAVE AS ZIP…', cls: 'sv-act sv-wide sr-zip', title: 'Save the current project, with the audio files it uses, as one .zip.', onFire: () => zipVerbs.save() });
+    const zipOpen = trig({ label: 'OPEN ZIP…', cls: 'sv-act sv-wide sr-zip', title: 'Open a project saved as one .zip (SAVE AS ZIP): its audio comes back with it and it becomes the current project.', onFire: () => zipVerbs.open() });
+    zipSave.root.dataset.zip = 'save'; zipOpen.root.dataset.zip = 'open';
+    body.append(zipSave.root, zipOpen.root);
+  }
   if (typeof o.sections === 'function') o.sections(wrap, o.gallery || null);
 
   const paint = () => { paintSubject(); paintPicture(); if (!rec.running() && !starting) paintEstimate(); void paintPath(); void paintRecoveries(); };
@@ -352,7 +369,10 @@ export function createRenderView(parent, o = {}) {
 export function renderPanel(o = {}) {
   let view = null;
   return { id: 'render', label: 'RENDER', glyph: 'render', hint: 'Render — this project, and the picture or film you make of it',
-    build(body, api) { view = createRenderView(body, { ...o, gallery: o.gallery || (api && api.gallery) }); },
+    build(body, api) {   // `files`: FOLDERS' SAVE AS ZIP… / OPEN ZIP… by default when it has its zip; false leaves them out
+      const files = o.files === false ? null : (o.files && typeof o.files === 'object' ? o.files : (api && api.zip) || null);
+      view = createRenderView(body, { ...o, files, gallery: o.gallery || (api && api.gallery) });
+    },
     onShow() { if (view) view.paint(); },
     view: () => view };
 }

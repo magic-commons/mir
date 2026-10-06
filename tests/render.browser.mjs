@@ -332,6 +332,26 @@ try {
   L.ck(sheet.gap === '0px' && sheet.container === 'normal' && sheet.noteSize === sheet.filmSize && sheet.noteInk === sheet.filmInk && sheet.keyBasis === '140px' && sheet.uiGap === sheet.sectionGap,
     'the card\'s sections stand flush, the notes inherit the window\'s text, no container is declared, the second key fact grows, a motion\'s rows keep the section gap', sheet);
 
+  /* ── 7c · the fold caret is glyph.js' (no text glyph), and SAVE AS ZIP… / OPEN ZIP… are RENDER's FILES rows, not the gallery's foot ── */
+  const caret0 = await page.evaluate((w) => { const s = document.querySelector(w + '.sr-detail-toggle'), g = s && s.querySelector('.sr-detail-glyph');
+    return { gly: g && g.dataset.gly, svg: !!(g && g.querySelector('svg')), before: s && getComputedStyle(s, '::before').content }; }, C2);
+  L.ck(await press(C2 + '.sr-detail-toggle', 'VIEW DETAILS'), 'VIEW DETAILS was pressed');
+  await page.waitForTimeout(80);
+  const caret1 = await page.evaluate((w) => { const s = document.querySelector(w + '.sr-detail-toggle'); return { open: s.parentElement.open, gly: s.querySelector('.sr-detail-glyph').dataset.gly }; }, C2);
+  L.ck(caret0.gly === 'chevronDown' && caret0.svg && (caret0.before === 'none' || caret0.before === 'normal') && caret1.open && caret1.gly === 'chevronUp',
+    'VIEW DETAILS draws glyph.js\' chevronDown closed and chevronUp open, no text glyph', { caret0, caret1 });
+  const seat = await page.evaluate((w) => ({ foot: document.querySelectorAll('.mir-folders .sv-foot [data-zip]').length, any: document.querySelectorAll('.mir-folders [data-zip]').length,
+    files: [...document.querySelectorAll(w + '.sr-files [data-zip]')].map((b) => b.dataset.zip).join(), title: (document.querySelector(w + '.sr-files > summary') || {}).textContent }), W);
+  L.ck(seat.foot === 0 && seat.any === 2 && seat.files === 'save,open' && seat.title === 'FILES', 'SAVE AS ZIP… and OPEN ZIP… sit in RENDER\'s FILES section (BASINS\' SETTINGS & FILES), not the gallery\'s foot', seat);
+  await page.evaluate(() => { window.__R.folders.open(); window.__R.folders.tab('render'); });
+  await page.waitForTimeout(300);
+  L.ck(await press(W + '.sr-files > summary', 'FILES'), 'FILES was pressed open');
+  await page.waitForTimeout(80);
+  const nSaved = await page.evaluate(() => window.__saved.length);
+  L.ck(await press(W + '.sr-files [data-zip="save"]', 'SAVE AS ZIP…'), 'SAVE AS ZIP… was pressed');
+  const zipped = await waitFor((n) => window.__saved.length > n, 8000, nSaved) && await page.evaluate(() => { const s = window.__saved.at(-1); return { name: s.name, folders: s.folders, type: s.blob.type }; });
+  L.ck(zipped && zipped.folders && /\.mirtest\.zip$/.test(zipped.name) && zipped.type === 'application/zip', 'pressed, it is FOLDERS\' SAVE AS ZIP (a <name>.mirtest.zip handed to its download)', zipped);
+
   /* ── 8 · nothing broke on the way ── */
   const errs = errors();
   L.ck(errs.length === 0, 'no uncaught exception on the page', errs.slice(0, 3));

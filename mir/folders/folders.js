@@ -42,7 +42,7 @@ import { notice } from '../shell/notice.js';
 import { createProjectAdapter, openWithRollback, emptyProject } from './project.js';
 import { seed as seedLibrary } from './seed.js';
 import { saveBlob } from './save-blob.js';
-import { projectZip, readProjectZip, restoreAssets, rollbackAssets } from './zip.js';
+import { projectZip, readProjectZip, restoreAssets, rollbackAssets, zipProject } from './zip.js';
 import { assets } from '../core/assets.js';
 
 export const FOLDERS_COPY = {
@@ -135,13 +135,16 @@ export function createFolders(options = {}) {
   const readPrefs = () => prefs.read() || {};
   const writePrefs = (patch) => prefs.write({ ...readPrefs(), ...patch });
 
-  /* the project ZIP's options: `zip: false` leaves it out; `zip: { store, validate(project) }` the asset store (default core/assets.js)
-     and what a project must be to be taken (default: an object).  Nothing is written until the project has been read and checked. */
+  /* the project ZIP's options: `zip: false` leaves it out; `zip: { store, validate(project), parts(), foot }` the asset store (default
+     core/assets.js), what a project must be to be taken (default: an object), where SAVE AS ZIP reads the live project, and
+     `foot: true` to seat SAVE AS ZIP… / OPEN ZIP… in the gallery's foot too (by default they sit in RENDER's FILES section, as
+     BASINS' SETTINGS & FILES had them: render/panel.js `files`).  Nothing is written until the project has been read and checked. */
   const zipOpt = o.zip === false ? null : (o.zip && typeof o.zip === 'object' ? o.zip : {});
   const zipStore = (zipOpt && zipOpt.store) || assets;
   const zipValid = zipOpt && typeof zipOpt.validate === 'function' ? zipOpt.validate : (p) => !!p && typeof p === 'object' && !Array.isArray(p);
   const zipApp = String(o.app || 'mir').toLowerCase().replace(/[^a-z0-9]+/g, '') || 'mir';
   const zipWhy = (e) => String((e && e.message) || e || 'unknown');
+  const zipVerbs = zipOpt ? { save: () => exportZip(), open: () => pickFile(true) } : null;   // SAVE AS ZIP… · OPEN ZIP… (api.zip)
 
   /* ── 3. the store, and 5. the seeds ── */
   const files = o.files || createFiles({ key: store, storage, defaultName: o.defaultName || 'UNTITLED', capChars: o.capChars });
@@ -168,7 +171,7 @@ export function createFolders(options = {}) {
     freshLoses: typeof o.freshLoses === 'function' ? o.freshLoses : () => true,
     locked: o.locked, projection: o.projection,
     factory: o.factory,
-    zip: zipOpt ? { save: () => exportZip(), open: () => pickFile(true) } : null,
+    zip: zipOpt && zipOpt.foot === true ? zipVerbs : null,
     depthOf: o.depthOf,
     picture: o.capturePicture, savePicture: o.savePicture, pictureStale: o.pictureStale,
   };
@@ -284,7 +287,7 @@ export function createFolders(options = {}) {
     let v = null;
     v = buildGallery(el, viewOptions(() => v, {
       pageSize: mo.pageSize ?? 8, actions: mo.actions || o.actions || DEFAULT_ACTIONS,
-      adapter: { ...galleryAdapter, factory: mo.factory, zip: mo.zip && zipOpt ? galleryAdapter.zip : null },   // a rack card has no ZIP buttons unless asked
+      adapter: { ...galleryAdapter, factory: mo.factory, zip: mo.zip ? zipVerbs : null },   // a rack card has no ZIP buttons unless asked
       prefs: readPrefs()[key] || gp, persist: (g) => writePrefs({ [key]: g }),
       onInspect: mo.onInspect || o.onInspect,
     }));
@@ -366,8 +369,8 @@ export function createFolders(options = {}) {
   async function exportZip() {
     if (!zipOpt) return null;
     try {
-      const s = await subject(), c = await capture();
-      const blob = await projectZip({ ...(c.payload && typeof c.payload === 'object' ? c.payload : {}), name: s.name }, { store: zipStore }), file = fileName(s.name) + '.' + zipApp + '.zip';
+      const z = await zipProject({ entry: gallery.selected() || currentEntry(), parts: zipOpt.parts, capture, untitled: t('UNTITLED') });
+      const blob = await projectZip(z.project, { store: zipStore }), file = fileName(z.name) + '.' + zipApp + '.zip';
       download(blob, file);
       say(t('Saved {file} · {size}', { file, size: fmtBytes(blob.size) }));
       return blob;
@@ -445,7 +448,7 @@ export function createFolders(options = {}) {
     openEntry: (eid, oo) => gallery.openEntry(eid, oo),
     current: () => currentEntry(), dirty: () => gallery.dirty(),
     seed: (list) => { const r = seedLibrary(files, list, { storage, seededKey: o.seededKey }); gallery.paint(); return r; },
-    exportProject, exportZip, openZip, importEnvelope, ingest: (input, io) => intake.ingest(input, io), say,
+    exportProject, exportZip, openZip, zip: zipVerbs, importEnvelope, ingest: (input, io) => intake.ingest(input, io), say,
     state: () => ({ window: win.state(), gallery: gallery.state(), library: files.state(), current, dirty: gallery.dirty() }),
     destroy() { life.abort(); offLang(); if (unsub) unsub(); frame.cancel(MARK); intake.destroy(); for (const v of [...views]) v.destroy(); win.destroy(); },
   };
