@@ -25,14 +25,17 @@ try {
   /* ── tweenRect ─────────────────────────────────────────────────────────────────────────────────────────── */
   let r = await run(`
     const el = $('tw'), B = { left: 400, top: 100, width: 200, height: 120 }, C = { left: 220, top: 420, width: 160, height: 60 };
+    const A = R(el);
     M.tweenRect(el, B); const owned = M.owns(el);
+    const first = { left: el.style.left, width: el.style.width, clip: getComputedStyle(el).clipPath, scale: getComputedStyle(el).scale, w: R(el).width };
     await wait(150); const leftMid = el.style.left; const v0 = R(el);
     const p2 = M.tweenRect(el, C); const v1 = R(el);
     const landed = await p2; await M.settled(el);
-    return { owned, leftMid, jump: off(v0, v1), landed, off: off(R(el), C), clean: clean(el), left: el.style.left };`);
+    return { owned, leftMid, A, first, jump: Math.max(Math.abs(v0.left - v1.left), Math.abs(v0.top - v1.top)), landed, off: off(R(el), C), clean: clean(el) && getComputedStyle(el).clipPath === 'none', left: el.style.left };`);
   check('tweenRect (a): retargeted halfway it continues from where it was seen', r.jump < 0.5, `jump ${r.jump.toFixed(3)} px`);
   check('tweenRect (a): and lands exactly on the new target, nothing left inline but the committed layout', r.landed && r.off < 0.5 && r.clean, `off ${r.off.toFixed(3)} px · clean ${r.clean} · left ${r.left}`);
-  check('tweenRect: layout is not written mid-flight (commit once, at the end)', r.leftMid === '' , `style.left mid-flight '${r.leftMid}'`);
+  check('tweenRect: the layout is written ONCE, before the travel (the box rests where it will land from the first frame)', r.leftMid === '400px' && r.first.left === '400px' && r.first.width === '200px', `style.left at start '${r.first.left}' mid-flight '${r.leftMid}' width '${r.first.width}'`);
+  check('tweenRect: nothing is scaled; a side that grew is revealed by clip-path from the seen size', r.first.scale === 'none' && /inset\(0px/.test(r.first.clip) && Math.abs(r.first.w - 200) < 0.5, `scale '${r.first.scale}' clip '${r.first.clip}' A ${Math.round(r.A.width)}×${Math.round(r.A.height)}`);
   check('tweenRect (d): owns(el) is true while it runs', r.owned);
 
   r = await run(`

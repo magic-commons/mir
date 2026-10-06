@@ -124,25 +124,30 @@ export function commitRect(el, to, base) {
   setVar(el, 'height', `${parseFloat(cs.height) + to.height - base.height}px`);
 }
 
-/** tweenRect(el, toRect, { duration, easing, commit }) — move/resize a positioned box to a viewport rect by
- *  TRANSFORM, and commit the layout ONCE when it lands (commit(el, to, layoutRect); the default writes inline
- *  left/top/width/height).  Retargeting mid-flight starts from the box's current visual rect. */
+/** tweenRect(el, toRect, { duration, easing, commit }) — move/resize a positioned box to a viewport rect.  The layout
+ *  is committed ONCE, FIRST (commit(el, to, layoutRect); the default writes inline left/top/width/height), so the box
+ *  is its resting self from the first frame; then it TRAVELS by `translate` from where it was seen, and a side that
+ *  grew is revealed by `clip-path` as it goes (a side that shrank snaps: nothing can paint outside the resting box).
+ *  Nothing is scaled — Josh, 2026-10-06, on the iPad: the old transform tween "squashes it horizontally, before
+ *  readjusting"; a window must never be shown as a stretched picture of another layout.  Retargeting mid-flight
+ *  starts from the box's current visual rect. */
 export function tweenRect(el, toRect, o = {}) {
   const to = box(toRect), commit = o.commit || commitRect;
   const visual = rect(el);
   take(el);
   const base = rect(el);                                            // the layout, with the old motion gone
   const near = (r) => ['left', 'top', 'width', 'height'].every((k) => Math.abs(r[k] - to[k]) < 0.5);
-  const landed = near(base);
-  if (!animates() || near(visual) || base.width <= 0 || base.height <= 0) {
-    if (!landed) commit(el, to, base);
-    release(el); return Promise.resolve(true);
-  }
-  const at = (r) => ({ transformOrigin: '0 0', translate: `${r.left - base.left}px ${r.top - base.top}px`,
-    scale: `${r.width / base.width} ${r.height / base.height}` });
-  const a = el.animate([at(visual), at(to)], { ...opts(o, 'structural', 'out'), fill: 'forwards' });
+  if (!near(base)) commit(el, to, base);                             // the one layout write: it rests where it will land
+  if (!animates() || near(visual) || base.width <= 0 || base.height <= 0) { release(el); return Promise.resolve(true); }
+  const now = rect(el);                                             // the resting box (≈ to; the commit may have been clamped)
+  if (now.width <= 0 || now.height <= 0) { release(el); return Promise.resolve(true); }
+  const dx = visual.left - now.left, dy = visual.top - now.top;
+  const grewR = Math.max(0, now.width - visual.width), grewB = Math.max(0, now.height - visual.height);
+  const from = { translate: `${dx}px ${dy}px`, clipPath: `inset(0px ${grewR}px ${grewB}px 0px)` };
+  const rest = { translate: '0px 0px', clipPath: 'inset(0px 0px 0px 0px)' };
+  const a = el.animate([from, rest], { ...opts(o, 'structural', 'out'), fill: 'forwards' });
   count('writes');
-  return hold(el, a, () => { commit(el, to, base); a.cancel(); });   // one task: layout lands, transform goes
+  return hold(el, a, () => a.cancel());                               // it landed: the travel goes, the layout was already there
 }
 
 /* ── presence ───────────────────────────────────────────────────────────────────────────────────────────── */
