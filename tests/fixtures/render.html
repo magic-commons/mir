@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MIR · render fixture</title>
+<!-- tests/render.browser.mjs: a 2D "app" whose picture is a white bar (its length is the parameter SIZE) over a hue band; the
+     modulation (SIZE, HUE), the timeline (a ramp clip on SIZE), the recorder (mir/render/recorder.js) and FOLDERS holding the
+     RENDER panel (mir/render/panel.js); the same rows again in a rack card.  No GPU. -->
+<link rel="stylesheet" href="../../mir/mir.css">
+<link rel="stylesheet" href="../../mir/render/render.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0e14; }
+  #ground { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  #card { position: fixed; left: 8px; top: 8px; width: 120px; padding: 10px; z-index: 5; }
+  #probe { position: fixed; left: 8px; bottom: 8px; z-index: 40; width: 120px; height: 44px; }
+  #rackcard { position: fixed; right: 8px; top: 8px; width: 330px; z-index: 20; max-height: 90vh; overflow: auto; }
+  #floats, #winlayer { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  #floats > *, #winlayer > * { pointer-events: auto; }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted" class="disconnected">
+<canvas id="ground" aria-hidden="true"></canvas>
+<div id="card" class="glass"></div>
+<button id="probe" type="button" class="trig"><span class="trig-l">PROBE</span></button>
+<div id="rackcard"></div>
+<div id="floats"></div>
+<div id="winlayer"></div>
+<script type="module">
+import { knob } from '../../mir/kit.js';
+import { installModulation } from '../../mir/modulation/bind.js';
+import { installTimeline } from '../../mir/timeline/bind.js';
+import { createFolders } from '../../mir/folders/folders.js';
+import { createRecorder } from '../../mir/render/recorder.js';
+import { renderPanel, createRenderCard } from '../../mir/render/panel.js';
+
+try { for (const k of Object.keys(localStorage)) if (k.startsWith('mir.test.render') || k.startsWith('mirtest.')) localStorage.removeItem(k); } catch (_) {}
+const S = { size: 0.2, hue: 200 };
+const sizeKnob = knob({ label: 'SIZE', min: 0, max: 1, value: S.size, onInput: (v) => { S.size = v; paint(); } });
+const hueKnob = knob({ label: 'HUE', min: 0, max: 360, value: S.hue, onInput: (v) => { S.hue = v; paint(); } });
+document.getElementById('card').append(sizeKnob.root, hueKnob.root);
+const params = [
+  { id: 'scene.size', label: 'SIZE', min: 0, max: 1, map: 'linear', get: () => S.size, set: (v) => { S.size = v; sizeKnob.set?.(v); paint(); }, widget: sizeKnob },
+  { id: 'scene.hue', label: 'HUE', min: 0, max: 360, map: 'wrap', get: () => S.hue, set: (v) => { S.hue = v; hueKnob.set?.(v); paint(); }, widget: hueKnob },
+];
+const mod = installModulation({ mount: document.getElementById('floats'), params, storageKey: 'mir.test.render.mod', presetKey: 'mir.test.render.presets' });
+let rec = null;
+const tl = installTimeline({ mount: document.getElementById('floats'), mod, storageKey: 'mir.test.render.tl', busy: () => !!(rec && rec.running()) });
+
+/* the picture: a white bar whose length is SIZE, over a band in HUE; drawn at any size */
+function draw(g, w, h) {
+  g.fillStyle = '#000'; g.fillRect(0, 0, w, h);
+  g.fillStyle = '#fff'; g.fillRect(1, 10, Math.round(S.size * (w - 2)), 8);
+  g.fillStyle = 'hsl(' + S.hue + ' 80% 50%)'; g.fillRect(1, 30, w - 2, 6);
+}
+const ground = document.getElementById('ground');
+function paint() { const g = ground.getContext('2d'); if (ground.width !== innerWidth) { ground.width = innerWidth; ground.height = innerHeight; } draw(g, ground.width, ground.height); }
+paint();
+
+window.__wake = [];
+const off = document.createElement('canvas');
+const slow = { ms: 0, frames: [] };
+rec = createRecorder({
+  host: mod.host, editor: tl.editor, app: 'mirtest', dir: 'mirtest-recordings',
+  frame: async (i, ctx) => {
+    off.width = ctx.width; off.height = ctx.height; const g = off.getContext('2d'); draw(g, ctx.width, ctx.height);
+    if (ctx.view != null) { g.fillStyle = '#f00'; g.fillRect(1 + Math.round(ctx.view * (ctx.width - 2)), 50, 3, 8); }   // an app motion's view: a marker
+    slow.frames.push({ i, frame: ctx.frame, beat: ctx.beat, size: S.size });
+    if (slow.ms) await new Promise((r) => setTimeout(r, slow.ms));
+    return off;
+  },
+  motions: { sweep: { label: 'SWEEP', prepare: ({ frames, options }) => ({ view: (i) => (i / Math.max(1, frames - 1)) * (options && options.amount != null ? options.amount : 1), spec: { amount: options && options.amount } }) } },
+  currentSize: () => ({ w: 128, h: 72 }),
+  wake: (reason) => { window.__wake.push(reason); return () => window.__wake.push('release'); },
+  calib: { read: () => null, write: () => {} },
+});
+const motionUi = { sweep: (host, { row, change }) => {
+  const line = row('amount', 'How far the marker sweeps'), x = document.createElement('input'); x.type = 'number'; x.min = 0; x.max = 1; x.step = 0.05; x.value = '0.5'; x.className = 'sel sr-sel sr-record-time sweep-amount'; line.appendChild(x);
+  x.addEventListener('change', change);
+  return { options: () => ({ amount: Number(x.value) }), paint: () => {}, text: () => 'sweep ' + x.value };
+} };
+const panel = renderPanel({ recorder: rec, motionUi, prefix: 'mirtest.render.', say: (t, bad) => { window.__said.push({ t, bad: !!bad }); },
+  save: (blob, name) => { window.__saved.push({ blob, name }); },
+  picture: { capture: async () => ({ w: 128, h: 72, name: 'picture.png', bytes: 4096 }), save: () => 'download', stale: () => false, size: () => ({ w: 128, h: 72 }) } });
+window.__said = []; window.__saved = [];
+const folders = createFolders({ host: document.getElementById('winlayer'), app: 'mirtest', store: 'mirtest.folders', defaultName: 'STUDY', size: { w: 400, h: 760 },
+  adapter: { thumbnail: () => ground }, panels: [panel], chipSide: 'left', onTab: () => {} });
+const cardView = createRenderCard({ recorder: rec, prefix: 'mirtest.render.card.', say: (t, bad) => { window.__said.push({ t, bad: !!bad, card: true }); }, save: (blob, name) => { window.__saved.push({ blob, name }); } });
+document.getElementById('rackcard').appendChild(cardView.card.root);
+document.getElementById('probe').addEventListener('click', () => { window.__probe = (window.__probe || 0) + 1; });
+
+/* the arrangement: a ramp 0 → 1 on SIZE over the first four beats (value at beat b is b / 4) */
+const id = tl.model.create({ targetId: 'scene.size', name: 'SIZE', value: 0, start: 0, duration: 4 });
+const clip = tl.model.state().clips.find((c) => c.id === id);
+tl.model.updateCurve(clip.curveId, { points: [{ t: 0, v: 0, tension: 0 }, { t: 1, v: 1, tension: 0 }] });
+mod.host.clock.setBpm(120);
+window.__R = { rec, mod, tl, folders, panel, cardView, S, slow, params };
+window.__ready = true;
+</script>
+</body>
+</html>

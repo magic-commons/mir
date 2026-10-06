@@ -53,7 +53,7 @@ export const SWATCHES=['#a7adb8','#ed8d91','#e2b579','#a9c987','#7bbfc8','#96a8d
 export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say=()=>{},audio=null}) {
   let doc=model.state(),selectedLane=doc.lanes[0].id,selected=null,selection=new Set(),pointSelection=null;
   let px=20,snap=1,range=null,confirmation=null,menu=null,drag=null,lastTap=null,clipboard=null;
-  let stepMode=false,slideMode=false,drawTension=0,tool='edit',scope='clips',workLane='top',activeLocal=null;
+  let stepMode=false,slideMode=false,drawTension=0,tool='edit',scope='clips',workLane='top';
   const dropHandlers=new Set();
   const transportBeat=()=>mod.host.model.transport.beats;
   const events=new AbortController(),listen=(target,type,fn,options={})=>target.addEventListener(type,fn,{...options,signal:events.signal});
@@ -191,10 +191,10 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
     const id=model.create({targetId:targetId||source.targetId||kind+':'+(source.envId??source.assetId??'clip'),name:name||source.name,value:Number.isFinite(source.value)?source.value:0,start:s,duration:d,laneId:laneId||selectedLane,
       source:curveKind?(points?{...source,kind:'curve',points}:null):{...source,kind}});
     if(id&&select){selectOnly(id);paint();}return id;}
-  // THE ACTIVE RANGE: the model's own field (the project carries it).
+  // THE ACTIVE RANGE: the model's own field (model.setActive; the project, the signature and the history carry it) — the range the recorder renders.
   const validRange=r=>r&&Number.isFinite(r.start)&&Number.isFinite(r.end)&&r.end>r.start?{start:Math.max(0,r.start),end:r.end}:null;
-  const activeRange=()=>validRange(doc.active??activeLocal);
-  function setActiveRange(value){const next=validRange(value);if(typeof model.setActive==='function')model.setActive(next);else activeLocal=next;
+  const activeRange=()=>validRange(doc.active);
+  function setActiveRange(value){model.setActive(validRange(value));
     view.setActive(activeRange());paint();win.root?.dispatchEvent(new CustomEvent('timeline-active-range',{detail:activeRange()}));return activeRange();}
   const pointer=e=>({x:e.clientX,y:e.clientY,clientX:e.clientX,clientY:e.clientY,altKey:e.altKey,shiftKey:e.shiftKey,ctrlKey:e.ctrlKey,metaKey:e.metaKey,pointerId:e.pointerId});
   function drawStep(position,shiftKey){const{clip:c,curve,previous}=drag,grid=(snap||.0625)*c.scale;const samples=timelineStepSamples(previous,position,{step:grid,origin:c.offset-c.start*c.scale,min:c.offset,max:c.offset+c.duration*c.scale}),result=samples&&model.drawPoints(curve.id,samples,{hold:shiftKey,tension:drawTension});if((!samples||result?.full)&&!drag.warned){drag.warned=true;say(t('Curve point limit reached. Use a wider Snap grid or remove points.'));}drag.previous=position;}
