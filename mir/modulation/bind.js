@@ -44,6 +44,7 @@ import { createModulation, ROUTABLE } from './window.js';
 import { frame } from '../core/frame.js';
 import { createAudioCapture } from './audio-capture.js';
 import { registerWindow } from '../window/window.js';
+import { jsonStore } from '../core/prefs.js';
 
 const TICK = 'mir:modulation:tick', PAINT = 'mir:modulation:paint', APP_PLAY = 'app.play';
 const IDLE = { state: 'idle', reason: '', live: false, deviceId: '', sampleRate: 0, frames: 0, inputLatencyMs: null,
@@ -52,8 +53,8 @@ const IDLE = { state: 'idle', reason: '', live: false, deviceId: '', sampleRate:
 /** a store in localStorage under one key: read() → the record, write(patch) merges.  Every access is guarded (a
  *  private window or blocked storage reads empty and writes nothing). */
 export function localStore(key) {
-  const read = () => { try { const s = globalThis.localStorage && globalThis.localStorage.getItem(key); return s ? JSON.parse(s) || {} : {}; } catch (_) { return {}; } };
-  return { read, write(patch) { try { globalThis.localStorage.setItem(key, JSON.stringify({ ...read(), ...patch })); } catch (_) { /* storage refused */ } } };
+  const s = jsonStore(key), read = () => s.get() || {};
+  return { read, write(patch) { s.set({ ...read(), ...patch }); } };
 }
 
 /* THE LIVE INSTALL.  The model is one per page (mod.js), so the seam is too: the module-level doors below reach the

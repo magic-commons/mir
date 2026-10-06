@@ -47,6 +47,7 @@ import { setGlyph, glyphEl, glyphSvg, hasGlyph } from '../glyph.js';
 import { markSvg, createMirDiamond } from './wordmark.js';
 import { buildMacroSlot } from '../modulation/modwindow/modwindow.js';
 import * as MOD from '../modulation/mod.js';
+import { jsonStore } from '../core/prefs.js';
 
 /** the numbers the bar keeps (BASINS transport.js measured them) */
 export const TRANSPORT = Object.freeze({
@@ -155,10 +156,8 @@ export function firstRun(...stores) {
   return true;
 }
 export function localSeatStore(key = 'mir.transport') {
-  return {
-    get() { try { const raw = globalThis.localStorage.getItem(key); return raw ? JSON.parse(raw) : null; } catch { return null; } },
-    set(v) { try { globalThis.localStorage.setItem(key, JSON.stringify(v)); } catch { /* private mode */ } },
-  };
+  const s = jsonStore(key);
+  return { get: s.get, set: s.set };
 }
 /** menuRow(row) — a WINDOW-menu row ([label, run, disabled, hint]) read back as { label, key, hint } */
 export function menuRow(row) {

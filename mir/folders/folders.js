@@ -45,6 +45,7 @@ import { saveBlob } from './save-blob.js';
 import { projectZip, readProjectZip, restoreAssets, rollbackAssets, zipProject } from './zip.js';
 import { assets } from '../core/assets.js';
 import { fmtBytes } from '../render/plan.js';
+import { jsonStore } from '../core/prefs.js';
 
 export const FOLDERS_COPY = {
   save: [phrase('SAVE'), phrase('this project'), phrase('Save — store what is on screen over the open project (a new one the first time).')],
@@ -62,10 +63,8 @@ export const GALLERY_PANEL = Object.freeze({ id: 'gallery', label: 'GALLERY', gl
 
 /** localPrefs(storage, key) — the default window prefs: one JSON object under one key */
 export function localPrefs(storage, key) {
-  return {
-    read() { try { const v = JSON.parse(storage.getItem(key) || 'null'); return v && typeof v === 'object' ? v : null; } catch (_) { return null; } },
-    write(v) { try { storage.setItem(key, JSON.stringify(v)); } catch (_) {} },
-  };
+  const s = jsonStore(key, storage);
+  return { read() { const v = s.get(); return v && typeof v === 'object' ? v : null; }, write: s.set };
 }
 
 /** freeSeat({ vw, vh, w, h, minH, clear, top, margin }) → { x, y, h? } — pure: where a new floating window lands.

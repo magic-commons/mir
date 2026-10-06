@@ -33,6 +33,7 @@ import { notice } from '../shell/notice.js';
 import { historyList, installHistoryKeys } from './history-list.js';
 import { installHistoryGestures } from './gestures.js';
 import { registerModulation } from './domains.js';
+import { jsonStore } from '../core/prefs.js';
 
 const SIZE = Object.freeze({ w: 320, h: 440 }), MIN = Object.freeze({ w: 240, h: 200 });
 
@@ -49,12 +50,10 @@ export function createHistoryWindow(o = {}) {
 
   /* the shape is remembered like every kit window's; the first place is BASINS': left of the right rack, 12 % down */
   const key = o.storageKey || 'mir.history.window';
+  const kept = jsonStore(key, view);
   const persist = o.persist || {
-    read() {
-      try { const s = view.localStorage.getItem(key); if (s) return JSON.parse(s); } catch (_) {}
-      return { x: Math.max(8, view.innerWidth - size.w - 380), y: Math.round(view.innerHeight * 0.12) };
-    },
-    write(s) { try { view.localStorage.setItem(key, JSON.stringify(s)); } catch (_) {} },
+    read: () => kept.get() ?? { x: Math.max(8, view.innerWidth - size.w - 380), y: Math.round(view.innerHeight * 0.12) },
+    write: kept.set,
   };
 
   let list = null, undo = null, redo = null, count = null;

@@ -38,6 +38,20 @@ import { saveBlob } from '../folders/save-blob.js';   // the kit's one hand-a-fi
 
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 
+/** jsonStore(key, from = globalThis) → { get(), set(v), remove() } — ONE JSON value under one key: the kit's one
+ *  localStorage helper (the rack's layout, the transport's seat, the key table, the modulation / pattern / timeline
+ *  records, FOLDERS' and HISTORY's window shapes).  `from` is a Storage, or a window whose localStorage is read at each
+ *  call.  Every access is guarded: a private window, blocked storage, a missing, empty or damaged value reads null, and a
+ *  refused write is lost, never thrown.  Each caller keeps its own shape on top (merge, replace, remove when empty). */
+export function jsonStore(key, from = globalThis) {
+  const S = () => (from && typeof from.getItem === 'function' ? from : from.localStorage);
+  return {
+    get() { try { const raw = S().getItem(key); return raw ? JSON.parse(raw) : null; } catch (_) { return null; } },
+    set(v) { try { S().setItem(key, JSON.stringify(v)); } catch (_) { /* quota or private mode: lost, nothing breaks */ } },
+    remove() { try { S().removeItem(key); } catch (_) { /* nothing */ } },
+  };
+}
+
 /** valid(row, v) — does v belong to this row? */
 export function valid(row, v) {
   if (row.type === 'bool') return typeof v === 'boolean';

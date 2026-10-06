@@ -49,6 +49,7 @@ import { observeSpan } from '../window/dock.js';
 import { glyphEl, hasGlyph } from '../glyph.js';
 import { t } from '../core/i18n.js';
 import { createRackScrollbars } from './rack-scrollbar.js';
+import { jsonStore } from '../core/prefs.js';
 
 export const SIDES = Object.freeze(['left', 'right']);
 /** the numbers the rack keeps (BASINS and λWAVES measured them) */
@@ -201,10 +202,8 @@ export function layoutLabel(L, slot) {
 }
 /** localStore(key) — the default store: one JSON value in localStorage under `key`; a failing storage is a no-op */
 export function localStore(key, view = globalThis) {
-  return {
-    get() { try { return JSON.parse(view.localStorage.getItem(key)); } catch { return null; } },
-    set(v) { try { view.localStorage.setItem(key, JSON.stringify(v)); } catch { /* quota or private mode: the layout is lost, nothing breaks */ } },
-  };
+  const s = jsonStore(key, view);
+  return { get: s.get, set: s.set };
 }
 
 /* ── THE RACK'S MOTION: BASINS' app/rack-motion.js createRackMotion, harvested (Josh, 2026-10-02: "Yes to basins

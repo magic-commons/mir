@@ -58,6 +58,7 @@
  * Pure, exported and node-tested: parseChord, normalize, chordFromEvent, displayChord, ariaChord, pickAction,
  * isField, ownsKey, steal, diffSaved, repairSaved, bindError, detectPlatform. */
 import { isField } from '../core/pointer.js';
+import { jsonStore } from '../core/prefs.js';
 
 /* ── the spelling ───────────────────────────────────────────────────────────────────────────────────────── */
 export const MOD_ORDER = Object.freeze(['Mod', 'Ctrl', 'Alt', 'Shift', 'Meta']);
@@ -262,10 +263,8 @@ export function repairSaved(raw, ids, platform = 'other') {
 
 /** localKeyStorage(name) → { get, set } over localStorage; a private window or a full quota costs the save, nothing else */
 export function localKeyStorage(name = 'mir.keys') {
-  return {
-    get() { try { return JSON.parse(localStorage.getItem(name) || 'null'); } catch (_) { return null; } },
-    set(o) { try { if (o && Object.keys(o).length) localStorage.setItem(name, JSON.stringify(o)); else localStorage.removeItem(name); } catch (_) { /* nothing */ } },
-  };
+  const s = jsonStore(name);
+  return { get: s.get, set(o) { if (o && Object.keys(o).length) s.set(o); else s.remove(); } };   // nothing rebound: no record at all
 }
 
 /* ── the kit's default keys: BASINS' table (app/shell.js: "M modulation, S save, J about, B rack, T dock, H hide,
