@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MIR · BASINS parity, round five</title>
+<!-- tests/parity5.browser.mjs.  The kit's real TIMELINE with the shared transport mounted in its work lane (a bar that is
+     NOT inside the modulation window), under the look store (FROST, the GUI's engine without its window), and the accent
+     engine: BASINS parity, round five. -->
+<link rel="stylesheet" href="../../mir/mir.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0f18; }
+  #floats { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  #floats > * { pointer-events: auto; }
+</style>
+<script>
+  window.__rafCalls = 0;
+  const raf0 = window.requestAnimationFrame.bind(window);
+  window.requestAnimationFrame = (f) => { window.__rafCalls++; return raf0(f); };
+</script>
+</head>
+<body data-theme="dark">
+<div id="ground"><div id="transport"></div></div>
+<div id="floats"></div>
+<script type="module">
+import { createTransport } from '../../mir/shell/transport.js';
+import { installModulation } from '../../mir/modulation/bind.js';
+import { installTimeline } from '../../mir/timeline/bind.js';
+import { createWindow } from '../../mir/window/window.js';
+import { createWorkspaces, workspaceSwitch } from '../../mir/window/workspaces.js';
+import { frame } from '../../mir/core/frame.js';
+import * as motion from '../../mir/core/motion.js';
+import * as M from '../../mir/modulation/mod.js';
+import { createPrefs } from "../../mir/core/prefs.js";
+import { lookSchema } from "../../mir/shell/gui.js";
+import { themeValues } from "../../mir/shell/themes.js";
+import { createAccent } from "../../mir/shell/accent.js";
+
+try { localStorage.clear(); } catch (_) { /* private mode */ }
+const P = createPrefs({ key: "parity5", schema: lookSchema(), storage: null });   // the look engine, as the GUI window drives it
+P.set({ ...themeValues("frost"), glow: false, parallax: false }); P.apply({ now: true });
+const $ = (id) => document.getElementById(id);
+const S = { size: 0.5 };
+const mod = installModulation({ mount: $('floats'), storageKey: 'mir.fx.tp.mod', presetKey: 'mir.fx.tp.presets',
+  params: [{ id: 'scene.size', label: 'SIZE', min: 0, max: 1, map: 'linear', get: () => S.size, set: (v) => { S.size = v; } }] });
+if (!M.macroList().length) { M.addMacro && M.addMacro(); }
+mod.view && mod.view.rebuild && mod.view.rebuild();
+
+let tr = null, tl = null, ws = null;
+/* THE ONE BAR: the page's transport is handed to the timeline, which moves it into its work lane and back */
+tr = createTransport({ root: $('transport'), clock: { play() { return { ok: true }; }, pause() { return { ok: true }; }, isPlaying: () => false },
+  mod, key: 'mir.fx.tp.transport', onSwitch: () => ws.show('upper') });
+tl = installTimeline({ mount: $('floats'), mod, transport: { shared: tr }, storageKey: 'mir.fx.tp',
+  initial: { open: false, x: 220, y: 360, w: 900, h: 420, chipSide: 'left' },
+  onWindow: () => { if (ws) ws.sync(); },
+  moved: (r) => { if (ws) ws.moved('lower', r); } });
+tr.start();
+
+/* UPPER: a kit window in MODULATION's seat; its MIR switch swaps to the timeline */
+const sw = workspaceSwitch({ run: () => ws.show('lower') });
+const upper = createWindow({ id: 'upper', title: 'UPPER', host: $('floats'), size: { w: 600, h: 200 }, min: { w: 240, h: 120 },
+  body: (b) => { b.appendChild(sw.root); }, onOpen: () => ws && ws.sync(), onClose: () => ws && ws.sync(),
+  onMoved: (r) => { if (ws) ws.moved('upper', r); } });
+ws = createWorkspaces({ upper, lower: tl.win });
+
+window.__T = { tr, tl, upper, ws, sw, mod, M, motion, frame, P, createAccent };
+window.__ready = true;
+</script>
+</body>
+</html>

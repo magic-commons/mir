@@ -14,7 +14,7 @@ const tl = installTimeline({ mount, mod, say, busy: () => recorder.running() });
 const folders = createFolders({ host, app: 'myapp' });      // SAVE AS ZIP… and OPEN ZIP… are in the window
 ```
 
-An audio file dropped on a lane (or ⋯ › ADD AUDIO…) opens a small popup: **DRIVES** (the target the envelope drives), **KEEP AUDIO** (the envelope drives the target and the file plays with the transport), **SIGNAL ONLY** (the envelope drives it and the file stays silent), CANCEL. The clip shows the waveform; its menu (the clip's ⋯) has ENVELOPE · LEVEL / LOW / MID / HIGH, KEEP AUDIO ↔ SIGNAL ONLY, and STRETCH TO CLIP · Shift+T.
+An audio file dropped on a lane (or ⋯ › ADD AUDIO…) opens a small popup: **DRIVES** (the target the envelope drives: the kit's `select()`, never a native list; its list pane opens on the body and a press in it is the popup's own, an Escape closes the list and not the popup), **KEEP AUDIO** (the envelope drives the target and the file plays with the transport), **SIGNAL ONLY** (the envelope drives it and the file stays silent), CANCEL. The clip shows the waveform; its menu (the clip's ⋯) has ENVELOPE · LEVEL / LOW / MID / HIGH, KEEP AUDIO ↔ SIGNAL ONLY, and STRETCH TO CLIP · Shift+T.
 
 ## The microphone — `mir/modulation/audio-capture.js`
 

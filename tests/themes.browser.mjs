@@ -117,9 +117,9 @@ try {
   await p.goto(URL_ + '?fresh', 900); await ready();
   let r = await J(`const L = () => ['--fg', '--fg-soft', '--ink-key', '--dim', '--ink-faint'].map((n) => getComputedStyle(document.body).getPropertyValue(n).trim());
     G.applyTheme('frost'); P.set('theme', 'dark'); await wait(200); const auto = L(), attr = document.body.dataset.text;
-    P.set('text', 'light'); await wait(150); const white = L(); P.set('text', 'theme'); P.set('theme', 'light'); await wait(200); const light = L(); P.set('theme', 'dark'); await wait(150);
-    return { auto, white, attr, light };`);
-  check("FROST dark: TEXT AUTO computes the recipe's white ladder exactly (the same as TEXT LIGHT); FROST light: the black ladder", r.attr === 'light' && JSON.stringify(r.auto) === JSON.stringify(r.white) && r.auto[0] === 'hsl(0 0% 100%)' && r.light[0] === 'hsl(0 0% 0%)', JSON.stringify(r));
+    P.set('text', 'theme'); await wait(150); const autoDark = L(); P.set('theme', 'light'); await wait(200); const autoLight = L(); P.set('text', 'light'); await wait(150); const lightWhite = L(); P.set('theme', 'dark'); await wait(150);
+    return { auto, attr, autoDark, autoLight, lightWhite };`);
+  check("FROST is the recipe's White Text (TEXT LIGHT) in either mode; TEXT AUTO under glass is the same white in dark and the black ladder in light", r.attr === 'light' && r.auto[0] === 'hsl(0 0% 100%)' && JSON.stringify(r.auto) === JSON.stringify(r.autoDark) && r.autoLight[0] === 'hsl(0 0% 0%)' && JSON.stringify(r.lightWhite) === JSON.stringify(r.auto), JSON.stringify(r));
   r = await J(`${COLOR} G.applyTheme('frost'); await wait(200); const i = document.createElement('i'); i.style.cssText = 'position:fixed;left:0;top:0;width:4px;height:4px;box-shadow:var(--surface-shadow-menu)'; document.body.appendChild(i);
     const s = getComputedStyle(i).boxShadow; i.remove(); const alphas = s.split(/,(?![^(]*\\))/).filter((t) => !/inset/.test(t)).map((t) => rgba(t.match(/(rgba?|color)\\([^)]*\\)/)[0])[3]);
     return { max: Math.max(...alphas), s };`);
@@ -148,19 +148,19 @@ try {
       const face = (n) => over(rgba(getComputedStyle(n).backgroundColor), pane), ink = (n) => over(rgba(getComputedStyle(n).color), face(n));
       const pairs = { on: ratio(ink(on), face(on)), trigger: ratio(ink(trg), face(trg)), label: ratio(over(rgba(getComputedStyle(lbl).color), pane), pane) };
       const inkLight = lum(rgba(getComputedStyle(on).color)) > .5;
-      return JSON.stringify({ mode, card, min: +Math.min(...Object.values(pairs)).toFixed(2), pairs, agree: (mode === 'dark') === inkLight }); })()`));
+      return JSON.stringify({ mode, card, inkLight, min: +Math.min(...Object.values(pairs)).toFixed(2), pairs, agree: (mode === 'dark') === inkLight }); })()`));
     const glass = c.card === 'refractive';
-    const ok = glass ? c.agree : c.min >= 4.5;
+    const ok = glass ? (t.values.text === 'light' ? c.inkLight : c.agree) : c.min >= 4.5;   // FROST states White Text: its ink is white in light mode too
     tiles.push(`${t.name}·${o.name} ${mode}${c.mode !== mode ? '→' + c.mode : ''}: ${c.min}${glass ? ' (glass, over the ground)' : ''}`);
     if (!ok) bad.push(`${t.id}/${o.id} ${mode}: ${JSON.stringify(c)}`);
   }
-  check('every tile of the wall, both modes: label ink ≥ 4.5 : 1 on SOLID and TINTED panes; on glass the ink agrees with the mode', bad.length === 0, bad.join(' ; '));
+  check('every tile of the wall, both modes: label ink ≥ 4.5 : 1 on SOLID and TINTED panes; on glass the ink agrees with the mode (FROST: white in both)', bad.length === 0, bad.join(' ; '));
   report.push('label contrast per tile (min of the ON label, a trigger, a knob label): ' + tiles.join(' · '));
   /* the wall's own DARK / LIGHT control */
   const wall = [];
   for (const mode of ['dark', 'light']) {
     await p.goto(`${BASE}/gallery/themes.html`, 900); await ready();
-    await p.eval(`__T.gui.prefs.set('theme', '${mode}'); 0`); await sleep(300);
+    await p.eval(`__T.gui.prefs.set({ theme: '${mode}', text: 'theme' }); 0`); await sleep(300);   // TEXT AUTO: FROST's own White Text (alpha.14) is white in the light theme too, by the recipe; this proves the control's ink law
     wall.push(JSON.parse(await p.eval(`(() => { ${COLOR} const b = [...document.querySelectorAll('.w-modes .seg-b')], ground = rgba(getComputedStyle(document.body).backgroundColor);
       return JSON.stringify(b.map((n) => { const f = over(rgba(getComputedStyle(n).backgroundColor), ground), i = rgba(getComputedStyle(n).color); return { label: n.textContent, ratio: +ratio(over(i, f), f).toFixed(2), agree: (document.body.dataset.theme === 'dark') === (lum(i) > .5) }; })); })()`)));
   }

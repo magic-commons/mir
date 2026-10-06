@@ -3,7 +3,7 @@
  * writes each option resolves to, and presets resolving to option sets with CUSTOM when they stop matching. */
 import assert from 'node:assert/strict';
 import { createPrefs, repair, defaults, resolve, matchPreset, coerce } from '../mir/core/prefs.js';
-import { lookSchema, LOOK_PRESETS } from '../mir/shell/gui.js';
+import { lookSchema, LOOK_PRESETS, forgetLook } from '../mir/shell/gui.js';
 import { THEMES, themeValues, matchTone } from '../mir/shell/themes.js';
 
 let n = 0;
@@ -19,7 +19,7 @@ const mk = (storage) => createPrefs({ key: 'mir.gui', schema, presets: LOOK_PRES
   assert.equal(P.get('help'), false, "HELP is off for a new user (BASINS: Status Tags, Help OFF; Control Hints ON)"); assert.equal(P.get('hints'), true); assert.equal(P.get('badges'), false);
   assert.equal(P.preset(), 'frost', 'a fresh store is the FROST look');
   const F = LOOK_PRESETS.frost;
-  assert.deepEqual([F.card, F.frost, F.blur, F.veil, F.saturation, F.corners, F.faces, F.text, F.shadow, F.disconnected], ['refractive', 'always', 11, 0, 1.3, 24, 'glass', 'theme', 2, false], "FROST is Josh's recipe (its white text is dark mode's AUTO)");
+  assert.deepEqual([F.card, F.frost, F.blur, F.veil, F.saturation, F.corners, F.faces, F.text, F.shadow, F.disconnected], ['refractive', 'always', 11, 0, 1.3, 24, 'glass', 'light', 2, false], "FROST is Josh's recipe (White Text is TEXT LIGHT)");
   assert.equal(matchTone(P.all(), 'frost'), 'clear', 'and its own tone: BRIGHT 0, TINT 0');
   pass("defaults: a fresh store is FROST (Josh's recipe) on the dark theme", `${schema.length} options`);
 }
@@ -85,7 +85,7 @@ const mk = (storage) => createPrefs({ key: 'mir.gui', schema, presets: LOOK_PRES
   const g = at(themeValues('frost'));
   assert.equal(g['html prop --glass-blur'], '11px'); assert.equal(g['body prop --surface-filter'], 'blur(11px) saturate(1.30)'); assert.equal(g['body prop --surface-veil'], 'rgb(255 255 255 / 0.000)', 'VEIL 0 is a clear veil (BASINS)');
   assert.equal(g['body class disconnected'], false); assert.equal(g['body class frost'], true); assert.equal(g['body prop --surface-radius'], '24px'); assert.equal(g['body prop --glass-tint'], '214 20.8% 13%', 'SATURATION 130 % multiplies the tint\'s chroma (BASINS applyGlass)');
-  assert.equal(g['body attr data-text'], 'light', 'white text in dark'); assert.equal(at(themeValues('frost'), { theme: 'light' })['body attr data-text'], 'dark', 'and black in light');
+  assert.equal(g['body attr data-text'], 'light', 'white text in dark'); assert.equal(at(themeValues('frost'), { theme: 'light' })['body attr data-text'], 'light', 'and white in light: the recipe says White Text, the user\'s THEME does not change it');
   assert.equal(at({ text: 'theme', card: 'tinted', frost: 'off' })['body attr data-text'], null, 'AUTO on a tinted pane: the house ladder');
   assert.equal(at({ text: 'sampled' })['body attr data-text'], null, "SAMPLED writes no data-text: the app's sampler decides"); assert.equal(g['body attr data-faces'], 'glass', 'glass control faces'); assert.equal(g['html prop --shadow-amount'], '2', 'shadow maxed');
   assert.equal(g['html attr data-cast'], '', 'SHADOW 200 % draws the cast'); assert.equal(g['html attr data-shine'], null); assert.equal(g['body prop --pane-edge'], 'transparent', 'no pane edge (BASINS ABOUT)');
@@ -108,6 +108,18 @@ const mk = (storage) => createPrefs({ key: 'mir.gui', schema, presets: LOOK_PRES
   assert.equal(at({ hints: false, help: false })['body class control-hints-off'], true);
   assert.equal(at({ help: false })['body class window-info-off'], true);
   pass('resolve: home writes nothing (BLUR aside), each option writes its hook, the tier owns the pane below FULL, off is never blur(0) or none');
+}
+
+{
+  /* FORGET (alpha.14): the look's own key, then each key the app listed — and nothing else */
+  const st = memory({ 'mir.gui': JSON.stringify({ theme: 'light' }), 'app.settings': '{"x":1}', 'app.layouts': '[]', 'app.keep': '1' });
+  const P = createPrefs({ key: 'mir.gui', schema: lookSchema(), storage: st });
+  assert.equal(P.get('theme'), 'light');
+  forgetLook(P, ['app.settings', 'app.layouts'], st);
+  assert.equal(P.get('theme'), 'dark', 'the look is home'); assert.equal(st.m.has('mir.gui'), false);
+  assert.deepEqual([st.m.has('app.settings'), st.m.has('app.layouts'), st.m.has('app.keep')], [false, false, true], 'the listed keys are wiped, an unlisted one stays');
+  forgetLook(P, undefined, st); forgetLook(P, [null, '', 3], st); assert.equal(st.m.has('app.keep'), true, 'no list, or junk in it: only the look');
+  pass('forgetLook: the look store and the listed storage keys are wiped; an unlisted key is left alone');
 }
 
 console.log(`ALL ${n} MIR look-store laws passed`);

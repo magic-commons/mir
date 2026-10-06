@@ -20,6 +20,7 @@
  * seconds }] } (the bytes stay in the store; the project ZIP carries them) and restore says how many files this browser lacks.
  * Shift+T (STRETCH AUDIO) is the timeline's own key row: shortcuts.js. */
 import { el, label, ariaLabel, hint } from '../kit.js';
+import { select } from '../controls/select.js';
 import { t, tn } from '../core/i18n.js';
 import { assets } from '../core/assets.js';
 import { registerProjectPart } from '../core/project.js';
@@ -53,22 +54,23 @@ export function installAudioDrop(editor, { mod, controller, say = () => {}, busy
       const pop = el('div', 'tl-pop glass tl-audio-pop', document.body);
       pop.dataset.mirSurface = 'menu'; pop.setAttribute('role', 'dialog'); ariaLabel(pop, 'Add audio');
       label(el('div', 'tl-pop-title', pop), 'AUDIO · {name}', { name: audioBaseName(file.name) });
-      const field = el('label', 'tl-field tl-audio-target', pop), pickTarget = el('select', 'sel', field);
-      ariaLabel(pickTarget, 'Target the envelope drives');
-      for (const [id, name] of targets()) { const o = el('option', '', pickTarget); o.value = id; o.textContent = name; }   // data: the target's own label
-      pickTarget.value = registry?.has?.(last) ? last : registry?.has?.('palette.phase') ? 'palette.phase' : pickTarget.options[0]?.value || '';
-      field.prepend(label(el('span', 'tl-field-word'), 'DRIVES'));
-      const life = new AbortController(), done = (v) => { life.abort(); pop.remove(); resolve(v); };
+      /* DRIVES is the kit's select (never the platform's list: no native field in a kit window).  Its list pane opens on the
+         body, so the popup counts a press inside it as its own and an Escape that closes the list does not close the popup */
+      const field = el('div', 'tl-field tl-audio-target', pop), list = targets().map(([id, name]) => ({ id, label: name }));   // data: the target's own label
+      const first = registry?.has?.(last) ? last : registry?.has?.('palette.phase') ? 'palette.phase' : list[0]?.id || '';
+      label(el('span', 'tl-field-word', field), 'DRIVES');
+      const pickTarget = select({ aria: 'Target the envelope drives', items: list, value: first, cls: 'tl-audio-select' }); field.append(pickTarget.root);
+      const life = new AbortController(), done = (v) => { life.abort(); pickTarget.destroy(); pop.remove(); resolve(v); };
       for (const { label: text, keep, hint: tip } of CHOICES) {
         const b = el('button', 'trig tl-action', pop); b.type = 'button'; label(b, text); b.dataset.audio = keep === null ? 'cancel' : keep ? 'keep' : 'signal';
         if (tip) hint(b, tip);
-        b.addEventListener('click', () => done(keep === null ? null : { keep, targetId: pickTarget.value }), { signal: life.signal });
+        b.addEventListener('click', () => done(keep === null ? null : { keep, targetId: pickTarget.get() }), { signal: life.signal });
       }
       const r = pop.getBoundingClientRect();
       pop.style.left = Math.max(8, Math.min(innerWidth - r.width - 8, x)) + 'px'; pop.style.top = Math.max(8, Math.min(innerHeight - r.height - 8, y)) + 'px';
-      document.addEventListener('pointerdown', (e) => { if (!pop.contains(e.target)) done(null); }, { signal: life.signal, capture: true });
-      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); done(null); } }, { signal: life.signal, capture: true });
-      pop.querySelector('button')?.focus();
+      document.addEventListener('pointerdown', (e) => { if (!pop.contains(e.target) && !e.target.closest('.mir-pick')) done(null); }, { signal: life.signal, capture: true });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !pickTarget.isOpen) { e.stopPropagation(); done(null); } }, { signal: life.signal, capture: true });
+      pop.querySelector('button[data-audio]')?.focus();   // the first answer, as before: the list is opened on purpose
     });
   }
 

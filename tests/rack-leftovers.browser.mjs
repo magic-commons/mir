@@ -95,6 +95,16 @@ try {
   check('COPY: the digest is name · title · time, the status, and each readout row tab-separated; the status flashes · COPIED for 900 ms',
     /^FIXTURE · MIX · \d{4}-/.test(lines[0]) && lines[1] === 'status\tLIVE' && lines[2] === 'MIX\t42\tunits' && r.flash && r.after.includes('COPIED') && r.gone, JSON.stringify(r));
 
+  /* ── 4b. the app's own layout state (layoutExtra: BASINS' `docked`) rides a ☆ layout and a reload record ── */
+  r = await run(`T.ext.docked = true; const slot = R.saveLayout(); const kept = R.capture().extra; T.ext.docked = false; T.ext.applied.length = 0;
+    R.loadLayout(slot); const loaded = { docked: T.ext.docked, calls: T.ext.applied.length };
+    T.ext.docked = true; R.touch(); await wait(120); const stored = JSON.parse(localStorage.getItem('mir.test.rack-leftovers')).layout.extra;
+    T.ext.docked = false; return { kept, loaded, stored };`);
+  check('layoutExtra: capture() rides every layout as `extra`, a ☆ load hands it back to apply() once, touch() keeps the layout again', JSON.stringify(r.kept) === '{"docked":true}' && r.loaded.docked === true && r.loaded.calls === 1 && JSON.stringify(r.stored) === '{"docked":true}', JSON.stringify(r));
+  await load();
+  r = await run(`return { docked: T.ext.docked, calls: T.ext.applied.length };`);
+  check('layoutExtra: the reload record carries it (the last touch() saved docked: true) and apply() is handed it once at start', r.docked === true && r.calls === 1, JSON.stringify(r));
+
   /* ── 5. the touch-tablet clamp ───────────────────────────────────────────────────────────────────────────── */
   await p.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
   await sleep(200);

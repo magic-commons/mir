@@ -23,7 +23,7 @@
  *   · The pointer glow and the parallax (mir/fx/) are installed here, because their two switches live here.
  *
  * createGui({ host, prefs, app: { name, version }, about, accent, defaults, storageKey, inkSampler, tierBench, sampling,
- *             projectAccent, rack }) →
+ *             projectAccent, rack, forget }) →
  *   { root, prefs, open(page?), close(), toggle(page?), get page, turn(dir), moving(bool), dropGuides(), census(),
  *     applyTheme(id), applyTone(id), themeCost(id?), tier(), measureTier(force?), sampling(), destroy() }
  *   host       where the window goes (a fixed layer above the stage)
@@ -43,6 +43,8 @@
  *              SCRUB · LIVE warning (default: the window's own FRAME reading)
  *   projectAccent  default true: ACCENT A, B, VIVID and BRIGHTNESS ride the project (registerProjectPart('accent'))
  *   rack       the app's rack (shell/rack.js): THEME shows RESET LAYOUT (rack.resetLayout()) only when it is handed in
+ *   forget     [storage key…] what FORGET wipes besides the look's own key (1.5.0-alpha.14; BASINS' FORGET wiped its whole
+ *              settings blob: the window arrangement, the ☆ layouts, the keyboard seat).  Default []: the look's own key only
  *
  * 1.5.0-alpha.12 (BASINS' missing rows): STATUS TAGS, FORGET, TRANSPORT BAR, ACCENT BRIGHTNESS, SAMPLING (SCRUB ·
  * AUTOMATION), QUALITY · AUTO with the device tier, the first-run blur by device, body.touch-tablet. */
@@ -51,7 +53,7 @@ import { phrase, t } from '../core/i18n.js';
 import { stepper } from '../controls/stepper.js';
 import { arcKnob } from '../controls/arc.js';
 import { createWindow } from '../window/window.js';
-import { createPrefs } from '../core/prefs.js';
+import { createPrefs, forgetPrefs } from '../core/prefs.js';
 import { setMotionPolicy } from '../core/motion.js';
 import { frame } from '../core/frame.js';
 import { setText } from '../core/perf.js';
@@ -143,7 +145,7 @@ export function lookSchema({ tier = () => null } = {}) {
        SOLID pane the pane's lightness; on a TINTED pane the house ladder.  No sampling: BASINS' sampler is the app's.
        SAMPLED leaves the ink to the app: no data-text at all, so an app's own sampler (BASINS' adaptive-ink.js, which
        writes its own w | k ink on each label) decides; the GUI window offers it only to an app that says it has one */
-    { key: 'text', type: 'enum', values: ['theme', 'light', 'dark', 'sampled'], default: 'theme', apply: [{ on: 'body', attr: 'data-text',
+    { key: 'text', type: 'enum', values: ['theme', 'light', 'dark', 'sampled'], default: 'light', apply: [{ on: 'body', attr: 'data-text',
       map: (v, s, e) => (v === 'sampled' ? null : v !== 'theme' ? v : autoInk(s, e.theme)) }] },
     { key: 'relief', type: 'enum', values: ['default', 'flat'], default: 'default', apply: [
       { on: 'html', prop: '--relief-raise', map: (v) => (v === 'flat' ? ZERO_SHADOW : null) },
@@ -310,7 +312,13 @@ const PAGE_OF = { theme: 1, accent: 1, material: 1, controls: 1, text: 1, qualit
 const SHEET_COUNT = 5;
 const ACCENT_KEYS = ['accentA', 'accentB', 'vivid', 'accentBright'];
 
-export function createGui({ host, prefs, app = {}, about = {}, accent, defaults = {}, storageKey = 'mir.gui', inkSampler = false, tierBench, sampling = {}, projectAccent = true, rack = null } = {}) {
+/** forgetLook(prefs, keys, storage?) — FORGET: the look store's own key is wiped (every option home), then each key the app listed */
+export function forgetLook(prefs, keys = [], storage) {
+  if (prefs.forget) prefs.forget(); else prefs.reset();
+  for (const k of keys) if (typeof k === 'string' && k) forgetPrefs(k, storage);
+}
+
+export function createGui({ host, prefs, app = {}, about = {}, accent, defaults = {}, storageKey = 'mir.gui', inkSampler = false, tierBench, sampling = {}, projectAccent = true, rack = null, forget = [] } = {}) {
   const doc = host.ownerDocument, win = doc.defaultView;
   const life = new AbortController(), on = { signal: life.signal };
   const appName = app.name || 'This app';
@@ -383,7 +391,7 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
     /* RESET LAYOUT (BASINS settings-window.js:130, before FORGET): the rack's windows back to their default places */
     ...(rack && typeof rack.resetLayout === 'function' ? [trig({ label: 'RESET LAYOUT', title: 'Restore the default window layout', onFire: () => rack.resetLayout() }).root] : []),
     /* FORGET (BASINS Settings › LOOK): this browser's saved look is wiped and the page reloads at the new user's look */
-    trig({ label: 'FORGET', title: 'Clear saved interface settings and reload', onFire: () => { if (P.forget) P.forget(); else P.reset(); win.location.reload(); } }).root);
+    trig({ label: 'FORGET', title: 'Clear saved interface settings and reload', onFire: () => { forgetLook(P, forget, win.localStorage); win.location.reload(); } }).root);
 
   /* ACCENT — a hue is cyclic, so it is an arc (INTENT rule 2): the kit's accent dial */
   g = groupEl('accent', phrase('ACCENT'));

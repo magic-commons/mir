@@ -31,6 +31,7 @@
   --chip-fill: hsl(var(--glass-tint) / var(--glass-opacity));
   --chip-filter: var(--glass-filter);
   --chip-lift: hsl(0 0% 100% / .16);
+  --chip-ink-drop: drop-shadow(0 1px 0 var(--glass-raise));   /* the glyph's and the dots' one-pixel lift (BASINS rail rule 32) */
   --chip-rim: hsl(0 0% 100% / .30);
   --chip-sink: inset 0 2px 5px hsl(0 0% 0% / .30), inset 0 0 0 1px var(--chip-rim);
   /* ON reads the semantic tier (a skin may set it); the fallbacks are §56's: the plugin's frost at its default blend */
@@ -135,6 +136,8 @@ body.frost.frost-hold[data-card="refractive"] .mir-rail { --chip-fill: var(--sur
   width: calc(2px * var(--ui-scale)); height: calc(2px * var(--ui-scale));
   align-self: center; justify-self: center; border-radius: 50%; background: currentColor;
 }
+/* the dots wear the chip's ink and its one-pixel lift, as BASINS' rail rule 32 (.kwin-chiprail .crail-ink, .kwin-grip-dots): colour --ink-key, drop-shadow(0 1px 0 --glass-raise) */
+.mir-grip-dots { color: var(--ink-key); filter: var(--chip-ink-drop); }
 
 /* ON — the frost face and its rim */
 .mir-chip:is(.on, .drag, .armed) { color: var(--fg); }

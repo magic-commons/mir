@@ -345,7 +345,7 @@
 .tl-pop .tl-value-input { width: 100%; box-sizing: border-box; color: inherit; background: var(--glass-well); border: 1px solid var(--glass-border-color); border-radius: var(--tl-input-r); padding: var(--tl-input-pad); font: inherit; }
 .tl-pop .tl-field { display: flex; flex-direction: column; gap: var(--tl-field-gap); font-size: var(--tl-field-size); padding: 4px; }
 .tl-pop .tl-audio-target { flex-direction: row; align-items: center; gap: var(--tl-field-gap); padding: 2px 4px; font-size: var(--tl-pop-title-size); letter-spacing: var(--tl-pop-title-track); }
-.tl-pop .tl-audio-target .sel { flex: 1; min-width: 0; font-size: var(--tl-pop-title-size); }
+.tl-pop .tl-audio-target :is(.sel, .mir-select) { flex: 1; min-width: 0; font-size: var(--tl-pop-title-size); }
 .tl-pop .tl-color-field { flex-direction: row; align-items: center; justify-content: space-between; }
 .tl-pop .tl-color-input { width: var(--tl-color-w); height: var(--tl-setting-h); border: 0; padding: 0; background: transparent; cursor: pointer; }
 .tl-pop .tl-swatches { display: flex; gap: var(--tl-field-gap); padding: 4px; }
@@ -364,5 +364,14 @@
 :root:is([data-motion="reduced"], [data-motion="off"]) .mir-timeline .tl-playhead-tail { display: none; }
 :root:is([data-motion="reduced"], [data-motion="off"]) :is(.mir-timeline :is(.tl-fill, .tl-tab-tint, .tl-tab-rim, .tl-clip-more, .tl-point, .tl-tension), .tl-pop, .tl-confirm, .readout-layer :is(.rl-line, .rl-track, .rl-corner)) { transition: none; animation: none; }
 :root:is([data-motion="reduced"], [data-motion="off"]) .mir-timeline :is(.tl-trim, .tl-edge)::after, :root:is([data-motion="reduced"], [data-motion="off"]) .mir-timeline .tl-playhead::before { transition: none; }
+
+/* THE TRANSPORT IN A WORK BAR, IN ANY WINDOW (alpha.14, BASINS parity round five, row 36 iii-4).  modwindow.css draws this
+   bar as the house pane inside .mir-modwindow (alpha.12); a work bar is the same pane wherever its window stands, so the rule
+   does not name the window.  The fill is the pane's by CARD STYLE (--pane-fill: TINTED .58 under FROST, REFRACTIVE the veil),
+   the shadow the pane's (--surface-shadow), the tempo's Hz reading the ink ladder's .82 (--dim), as BASINS draws its
+   timeline-mounted bar.  The filter and the sheen stay the house's.  This sheet is a later layer than the window's, so it
+   wins inside .mir-modwindow with the same values. */
+.glass.mir-transport[data-bar="work"] { background-color: var(--pane-fill, hsl(var(--glass-tint) / var(--card-opacity))); box-shadow: var(--surface-shadow, var(--glass-shadow)); }
+.mir-transport[data-bar="work"] .tempo-hz { color: var(--dim); }
 
 }   /* end @layer mir.kit.plugin.host */

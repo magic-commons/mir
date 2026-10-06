@@ -38,11 +38,21 @@ const RUN = await (async () => {
       return { bytes: buf.byteLength, prevented };
     }, lanePoint);
     await page.waitForTimeout(400);
-    const pop = await S(() => { const p = document.querySelector('.tl-audio-pop'); if (!p) return null; const r = p.getBoundingClientRect(), b = [...p.querySelectorAll('button')].map((n) => n.dataset.audio);
-      const sel = p.querySelector('select'); return { buttons: b, title: p.querySelector('.tl-pop-title').textContent, target: sel.value, options: sel.options.length, inside: r.left >= 0 && r.right <= innerWidth && r.top >= 0 && r.bottom <= innerHeight, role: p.getAttribute('role') }; });
+    const pop = await S(() => { const p = document.querySelector('.tl-audio-pop'); if (!p) return null; const r = p.getBoundingClientRect(), b = [...p.querySelectorAll('button[data-audio]')].map((n) => n.dataset.audio);
+      const sel = p.querySelector('.mir-select .mir-sel-b'), reg = window.__AU.mod.host.registry; return { buttons: b, title: p.querySelector('.tl-pop-title').textContent, native: !!p.querySelector('select'), word: sel.textContent, want: reg.describeOne('palette.phase').label, inside: r.left >= 0 && r.right <= innerWidth && r.top >= 0 && r.bottom <= innerHeight, role: p.getAttribute('role') }; });
     L.ck(dropped.bytes === 44 + 64000, 'the generated WAV is 4 s of PCM16 at 8 kHz', dropped);
-    L.ck(pop && pop.buttons.join() === 'keep,signal,cancel' && pop.title.startsWith('AUDIO · TONE TEST') && pop.options === 1 && pop.target === 'palette.phase' && pop.inside && pop.role === 'dialog',
+    L.ck(pop && pop.buttons.join() === 'keep,signal,cancel' && pop.title.startsWith('AUDIO · TONE TEST') && !pop.native && pop.word === pop.want && pop.inside && pop.role === 'dialog',
       'the popup: AUDIO · name, DRIVES the registered target, KEEP AUDIO · SIGNAL ONLY · CANCEL, inside the screen', pop);
+    /* DRIVES is the kit's select: a real press opens its list pane, the popup stays open (a press in the pane is the popup's own), the row is chosen, the pane closes */
+    const selBox = await page.locator('.tl-audio-pop .mir-sel-b').boundingBox();
+    await page.mouse.click(selBox.x + selBox.width / 2, selBox.y + selBox.height / 2);
+    await page.waitForTimeout(150);
+    const rowBox = await page.locator('.mir-pick .mir-pick-i').first().boundingBox();
+    const hitRow = await S(({ x, y }) => { const n = document.elementFromPoint(x, y); return !!n && !!n.closest('.mir-pick-i'); }, { x: rowBox.x + rowBox.width / 2, y: rowBox.y + rowBox.height / 2 });
+    L.ck(hitRow && await S(() => !!document.querySelector('.tl-audio-pop') && document.querySelectorAll('.mir-pick .mir-pick-i').length === 1), 'DRIVES opens the kit\'s list pane: its row is what elementFromPoint finds, the popup is still open', rowBox);
+    await page.mouse.click(rowBox.x + rowBox.width / 2, rowBox.y + rowBox.height / 2);
+    await page.waitForTimeout(150);
+    L.ck(await S(() => !!document.querySelector('.tl-audio-pop') && !document.querySelector('.mir-pick')), 'a press on the row chooses it: the pane closes and the popup stays');
     const keepBox = await page.locator('.tl-audio-pop [data-audio="keep"]').boundingBox();
     const hitKeep = await S(({ x, y }) => { const n = document.elementFromPoint(x, y); return !!n && !!n.closest('.tl-audio-pop [data-audio="keep"]'); }, { x: keepBox.x + keepBox.width / 2, y: keepBox.y + keepBox.height / 2 });
     L.ck(hitKeep, 'KEEP AUDIO is what elementFromPoint finds at its centre', keepBox);

@@ -86,6 +86,10 @@ const B = [{ top: 0, height: 100 }, { top: 110, height: 100 }, { top: 220, heigh
   assert.equal(L.cards[1].side, 'right'); assert.equal(L.cards[2].side, 'left'); assert.equal(L.cards[2].open, false, 'BASINS `closed` is read');
   for (const junk of [null, undefined, 'x', 3, [], { cards: 'no' }]) assert.deepEqual(readLayout(junk, known).cards, []);
   assert.match(layoutLabel(L, 2), /^2  ·  2 windows  ·  both racks  ·  1 floating  ·  \d\d:\d\d$/);
+  const X = readLayout({ cards: [], extra: { docked: true, n: [1, 2] } }, known);
+  assert.deepEqual(X.extra, { docked: true, n: [1, 2] }, 'the app\'s own layout state (layoutExtra) is kept as a plain object');
+  for (const junk of [null, 3, 'x', [1], undefined]) assert.equal('extra' in readLayout({ cards: [], extra: junk }, known), false, 'anything else is dropped');
+  const cyc = { a: 1 }; cyc.self = cyc; assert.equal('extra' in readLayout({ cards: [], extra: cyc }, known), false, 'a state that cannot be copied is dropped, never thrown on');
   pass('readLayout: the one shape, repaired; λWAVES and BASINS records read as they are; junk is an empty layout');
 }
 console.log(`\n${n} rack groups pass`);

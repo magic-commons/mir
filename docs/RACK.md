@@ -54,6 +54,7 @@ A registered window costs one Map entry. Its `device()` shell is made, and its `
 | `retired` | — | `{ oldId: heirId }`: a saved layout that names an old window id opens its heir instead. If the layout names the heir too, the old record is dropped (BASINS') |
 | `persist` | `'all'` | what a reload keeps. `'all'`: every window's side, order, fold, float, and whether the rack is hidden. `'closed'` (BASINS `rack.js persist`): only which windows are closed, and whether the phone rack is shown; each window comes back on its own side, in registration order. ☆ layouts keep everything either way |
 | `notebook` | — | the notebook (`createNotebook()`'s result: `size()`, `resize(w, h)`), or `() => it` when it is made later. A layout then keeps the notebook's size as `nb: [w, h]`, and loading a ☆ layout (or `apply`) resizes it. A reload leaves the notebook's own saved size alone |
+| `layoutExtra` | — | `{ capture() → object, apply(object, layout) }` (1.5.0-alpha.14): the app's own layout state (BASINS' `docked`, where its transport sits). `capture()` is stored on every layout, the reload record and each ☆ slot, as `extra` (a plain JSON object); `apply()` is handed it after the cards are placed whenever a layout that carries one is applied (a reload, a ☆ load, `apply(layout)`). A throw in either is caught: the layout still lands. `rack.touch()` keeps the layout again after the app's state changes. `persist: 'closed'` does not carry it |
 | `name` | `''` | the app's name, the head of COPY's text (BASINS: `'BASINS REDUX'`) |
 
 **`rack.register(spec)` → id.** `spec` is:
@@ -113,7 +114,7 @@ The window's `api` is `{ id, dev, root, body, setStatus, canPresent(), open(), c
 - `reorderIndex(boxes, at, center, hyst)`, `insertionIndex(boxes, y)`, `slotRect(col, boxes, index)`, `moveId`;
 - `clampFloat`, `detached`, `peekSide`, `dodgeSeat`;
 - `queueToggle`, `openOrder`, `favSlot`;
-- `readLayout(raw, knownIds, retired)`, `closedLayout(windows, { phoneShown })` (the `persist: 'closed'` record), `layoutLabel`, `localStore`, `digestText`, `clampFloatTablet`;
+- `readLayout(raw, knownIds, retired)` (keeps `nb` and `extra`), `closedLayout(windows, { phoneShown })` (the `persist: 'closed'` record), `layoutLabel`, `localStore`, `digestText`, `clampFloatTablet`;
 - in `rack-scrollbar.js`: `scrollbarSeat`, `thumbOf`, `SCROLLBAR` (node-tested in `tests/rack-leftovers.node.mjs`);
 - `RACK` (the numbers) and `SIDES`.
 

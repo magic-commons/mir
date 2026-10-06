@@ -147,7 +147,7 @@ export function createRail({ id, title, chips = [], layer, seats, onChip, onSide
     const b = doc.createElement('button');
     b.type = 'button'; b.className = 'mir-chip';
     b.dataset.mirChip = spec.name; b.dataset.kind = spec.kind;
-    if (spec.kind === 'grip') { const dots = doc.createElement('span'); dots.className = 'mir-grip-dots'; dots.setAttribute('aria-hidden', 'true'); for (let i = 0; i < 9; i++) dots.appendChild(doc.createElement('i')); b.appendChild(dots); }
+    if (spec.kind === 'grip') { const dots = doc.createElement('span'); dots.className = 'mir-grip-dots kwin-grip-dots'; dots.setAttribute('aria-hidden', 'true'); for (let i = 0; i < 9; i++) dots.appendChild(doc.createElement('i')); b.appendChild(dots); }
     el.appendChild(b);
     specs.set(spec.name, spec); nodes.set(spec.name, b); tables.set(spec.name, chipTable(spec));
     setChip(spec.name, initial(spec));

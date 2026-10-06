@@ -48,12 +48,14 @@ engine.onMoving((moving) => gui.moving(moving));               // FROST · STILL
 ## The API
 
 **`shell/gui.js`**
-- `createGui({ host, prefs, app, about, accent, defaults, storageKey, inkSampler, tierBench, sampling, projectAccent, rack })` → `{ root, window, prefs, open(page), close(), toggle(page), page, turn(dir), moving(bool), dropGuides(), census(), applyTheme(id), applyTone(id), themeCost(id?), tier(), measureTier(force?), sampling(), light, parallax, destroy() }`.
+- `createGui({ host, prefs, app, about, accent, defaults, storageKey, inkSampler, tierBench, sampling, projectAccent, rack, forget })` → `{ root, window, prefs, open(page), close(), toggle(page), page, turn(dir), moving(bool), dropGuides(), census(), applyTheme(id), applyTone(id), themeCost(id?), tier(), measureTier(force?), sampling(), light, parallax, destroy() }`.
   - `inkSampler`: a sampler from `core/ink.js` (`createInkSampler`) makes TEXT · AUTO sample the picture under each label (`docs/INK.md`); `true` is the 1.5.0-alpha.7 contract (the app runs its own sampler; TEXT offers SAMPLED).
   - `tierBench`: QUALITY · AUTO's benchmark, `async ({ win, doc, budgetMs }) → { periodMs, passMs }` (default `uiBench`, below).
   - `sampling`: `{ automation(grid), frameMs() }`, the SAMPLING rows' two reaches (defaults: `modulation/bind.js setAutomationGrid`, loaded only when the row moves; the window's own FRAME reading).
   - `projectAccent` (default true): ACCENT A, B, VIVID and BRIGHTNESS ride the project as the part `accent`.
   - `rack`: the app's rack; THEME then shows RESET LAYOUT (`rack.resetLayout()`).
+  - `forget` (alpha.14, default `[]`): storage keys FORGET wipes besides the look's own (`forgetLook(prefs, keys)`). BASINS' FORGET wiped its whole settings blob (window arrangement, ☆ layouts, keyboard seat): `forget: ['basins.settings', …]`.
+  - `accent`: an engine from `shell/accent.js`. `createAccent({ model: 'hsl', a: 180, b: 20, vivid: 1 })` (alpha.14) is BASINS' accent: an angle is an HSL hue and VIVID sets saturation and lightness, `hsl(A, 20 + 80·v %, 28 + 36·v %)`, so A = 180° is `hsl(180 100% 64%)` where the default palette model gives `#e000ff`. It writes BASINS' six tokens (`--hue-acc`, `--sat-acc`, `--lum-acc`, and the three for B) and BRIGHTNESS mixes toward white in OKLCH.
   - `tier()` → this device's reading `{ tier, hz, periodMs, passMs, headroom, ms, why, … }` or null; `measureTier(force)` → a Promise of it; `sampling()` → `{ scrub, grid }` (the SCRUB level for `createTransportController({ scrubLevel })`, the automation grid in beats for the modulation host).
 - `measureTier({ bench, storage, key, force, win })`, `storedTier(storage, key)`, `uiBench({ win, doc, budgetMs })`, `TIER_KEY` (`'mir.tier'`), `AUTOMATION_GRID`, `effectiveQuality(quality, tier)`, `touchTablet(doc, signal)` (alpha.12).
   - `open('options' | 'options:2' | 'about')`; `turn(±1)` steps the page turner; `page` is `'options'` or `'about'`.
@@ -108,7 +110,7 @@ Every control on MIR OPTIONS changes what is drawn through a hook a kit sheet or
 | | POINTER GLOW | switch | `fx/pointer-light.js` (below) | on (ruling 13) |
 | | PARALLAX | switch | `fx/parallax.js` (below) | on |
 | | DROP GUIDES | switch | `gui.dropGuides()`, handed to `createWindow({ dock: { guide } })` | on |
-| TEXT | INK auto · light · dark | seg | `<body data-text>`: white or black, the pure ladder, no emboss (BASINS' TEXT). AUTO: under glass the ladder in the mode's polarity (BASINS' unsampled seat), on a SOLID pane its lightness, on a TINTED pane the house ladder. **With an ink sampler** (`createGui({ inkSampler })`, `docs/INK.md`) AUTO is BASINS' AUTO: each label white or black from the picture beneath it, and LIGHT · DARK stop the sampler | auto |
+| TEXT | INK auto · light · dark | seg | `<body data-text>`: white or black, the pure ladder, no emboss (BASINS' TEXT). AUTO: under glass the ladder in the mode's polarity (BASINS' unsampled seat), on a SOLID pane its lightness, on a TINTED pane the house ladder. **With an ink sampler** (`createGui({ inkSampler })`, `docs/INK.md`) AUTO is BASINS' AUTO: each label white or black from the picture beneath it, and LIGHT · DARK stop the sampler | light (FROST's White Text since alpha.14; AUTO is BASINS' pre-recipe seat) |
 | | HINTS | switch | `body.control-hints-off` (`control-help.js`) | on |
 | | HELP | switch | `body.window-info-off` (skin.css hides every ⓘ; the GUI's own help prose goes with it) | off (BASINS' new user: "Status Tags, Help: OFF · CONTROL HINTS: ON", 1.5.0-alpha.12) |
 | | STATUS TAGS | switch | off: `body.no-badges` hides `#badges` or an app's `[data-mir-badges]` strip (BASINS' badges and stats bar) | off (BASINS' new user) |
@@ -133,7 +135,7 @@ Every control on MIR OPTIONS changes what is drawn through a hook a kit sheet or
 
 **How MIR names a look** (Josh, 2026-10-01): a **vanilla theme** is a named set of the built-in settings and nothing else. **FROST** (glassmorphism, Josh's recipe, the default) is one; **MORPH** (neumorphism) is coming. Anything that needs rules or art outside the settings is a **'name'-spec** MIR build or theme: **METRO** and **SPRITES** are 'name'-specs.
 
-**FROST is whole.** WHITE TEXT, GLASS CONTROL FACES and SHADOW maxed (200 %), the three parts of Josh's recipe that waited for a hook in alpha.4, are built-in settings since alpha.5, so FROST is a vanilla theme with nothing faked. Against BASINS at the same recipe, `docs/THEMES.md` lists what still differs and why.
+**FROST is whole.** WHITE TEXT (TEXT · LIGHT: white in either mode, alpha.14), GLASS CONTROL FACES and SHADOW maxed (200 %), the three parts of Josh's recipe that waited for a hook in alpha.4, are built-in settings since alpha.5, so FROST is a vanilla theme with nothing faked. Against BASINS at the same recipe, `docs/THEMES.md` lists what still differs and why.
 
 **QUALITY is the tier.** FULL is no attribute, BALANCED is `lite` (no blur anywhere, one shadow layer, a legible tinted pane) and LIGHT is `flat` (lite, plus no relief, no shadows, no sheen, no motion). Below FULL the tier owns the pane, so BLUR, VEIL and SATURATION stand down: they write nothing and their dials are disabled.
 
