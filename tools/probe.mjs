@@ -146,6 +146,10 @@ export async function startProbe({ port = DEFAULT_PORT, root = process.cwd(), ht
     if (route === 'client.js' && req.method === 'GET') {
       const b = fs.readFileSync(CLIENT); res.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8', 'cache-control': 'no-store', 'content-length': b.length }); res.end(b); return;
     }
+    if (route === 'autorun.js' && req.method === 'GET') {                                  // the experiment that survives a reload
+      const f = path.join(data, 'autorun.js'), b = fs.existsSync(f) ? fs.readFileSync(f) : Buffer.alloc(0);
+      res.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8', 'cache-control': 'no-store', 'content-length': b.length }); res.end(b); return;
+    }
     if (route === 'log' && req.method === 'POST') {
       const body = JSON.parse(await readBody(req, 4 << 20)); const s = sid(body.s) && session(body.s, true);
       if (!s || !Array.isArray(body.recs)) return json(res, 400, { error: 'bad batch' });
@@ -173,6 +177,12 @@ export async function startProbe({ port = DEFAULT_PORT, root = process.cwd(), ht
 
   async function control(req, res, route, q) {
     if (route === 'sessions') return json(res, 200, newest().map(summary));
+    if (route === 'autorun') {                                                             // set or clear the script every page load runs
+      const f = path.join(data, 'autorun.js');
+      if (req.method === 'POST') { const body = JSON.parse(await readBody(req, 4 << 20)); if (typeof body.code !== 'string') return json(res, 400, { error: 'no code' }); fs.mkdirSync(data, { recursive: true }); fs.writeFileSync(f, body.code); return json(res, 200, { set: true, bytes: body.code.length }); }
+      if (req.method === 'DELETE') { try { fs.unlinkSync(f); } catch {} return json(res, 200, { set: false }); }
+      return json(res, 200, { set: fs.existsSync(f), bytes: fs.existsSync(f) ? fs.statSync(f).size : 0 });
+    }
     const id = resolveId(q.get('s')), s = id && session(id, false);
     if (!s) return json(res, 404, { error: 'no such session: ' + q.get('s') });
     if (route === 'log') {
@@ -260,6 +270,7 @@ async function main(argv) {
     const a = argv[i];
     if (a === '-e') { flags.e = argv[++i]; continue; }
     if (['--port', '--since', '--kind', '--timeout', '--data'].includes(a)) { flags[a.slice(2)] = argv[++i]; continue; }
+    if (a === '--clear') { flags.clear = true; continue; }
     if (a.startsWith('--')) { flags[a.slice(2)] = true; continue; }
     pos.push(a);
   }
@@ -310,7 +321,12 @@ async function main(argv) {
     if (cmd === 'shot') { const v = r.body.value || {}; console.log(v.png + `   (${v.width}×${v.height}, ${v.bytes} bytes${v.blank ? ', BLANK: one colour in a 32×32 sample' : ''}, ${v.canvas})`); return; }
     console.log(JSON.stringify(r.body.value, null, 2)); return;
   }
-  die('usage: node tools/probe.mjs serve [port] <root> [--http] [--lan] | sessions | report <s> | log <s> [--errors] [--since n] [--kind k] | run <s> <file | -e code> | shot <s> [selector]   (--port, default 8931)');
+  if (cmd === 'autorun') {                                                                // autorun <file.js> | --clear | (nothing: show)
+    if (flags.clear) { const r = await ctl(port, 'DELETE', 'autorun'); if (r.status !== 200) die(r.body.error); console.log('autorun cleared'); return; }
+    if (pos[0]) { const code = fs.readFileSync(pos[0], 'utf8'); const r = await ctl(port, 'POST', 'autorun', { code }); if (r.status !== 200) die(r.body.error); console.log(`autorun set (${r.body.bytes} bytes): it runs on every page load from now on; reload the device`); return; }
+    const r = await ctl(port, 'GET', 'autorun'); if (r.status !== 200) die(r.body.error); console.log(r.body.set ? `autorun set (${r.body.bytes} bytes)` : 'no autorun'); return;
+  }
+  die('usage: node tools/probe.mjs serve [port] <root> [--http] [--lan] | sessions | report <s> | log <s> [--errors] [--since n] [--kind k] | run <s> <file | -e code> | shot <s> [selector] | autorun [<file.js> | --clear]   (--port, default 8931)');
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {

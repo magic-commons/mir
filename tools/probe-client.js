@@ -409,9 +409,21 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addDot); else addDot();
 
   window.__probe = probe;
+  /* the autorun: a script this machine set with `probe.mjs autorun <file>`, run once the page has loaded (it survives Safari's
+     reloads, which a `run` command does not); its value or error is one record */
+  function autorun() {
+    fetch(BASE + 'autorun.js', { cache: 'no-store', credentials: 'same-origin' }).then(function (r) { return r.ok ? r.text() : ''; })
+      .then(function (code) {
+        if (!code || !AsyncFn) return;
+        var t0 = nowMs();
+        return new AsyncFn('probe', code)(probe).then(function (v) { rec('autorun', { ok: true, value: ser(v, 4, 20000), ms: Math.round(nowMs() - t0) }); },
+          function (e) { rec('autorun', { ok: false, error: ser(e, 2), ms: Math.round(nowMs() - t0) }); });
+      }).catch(function () {});
+  }
   function start() {
     deviceReport().then(function (r) { queue.unshift({ k: 'device', t: nowMs(), report: r }); ready = true; flush(); }, function (e) { queue.unshift({ k: 'device', t: nowMs(), report: { reportError: ser(e) } }); ready = true; });
     poll();
+    if (document.readyState === 'complete') setTimeout(autorun, 0); else window.addEventListener('load', function () { setTimeout(autorun, 0); });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
