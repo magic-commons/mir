@@ -77,7 +77,7 @@ export function createReadoutLayer({ mount, resolve }) {
     if (cursor && pointerType === 'touch' && cursor.state !== 'held' && !touchActive && performance.now() > touchGraceUntil) cursor = null;
     const state = cursor ? cursor.state : 'idle';
     if (nodes.root.dataset.state !== state) nodes.root.dataset.state = state;
-    const mountRect = mount.getBoundingClientRect();
+    const mountRect = cursor ? mount.getBoundingClientRect() : null;   // nothing to place, nothing to read (a layer mounted mid-build forced a layout)
     setLine(nodes.vline, cursor && cursor.vLine, mountRect, true);
     setLine(nodes.hline, cursor && cursor.hLine, mountRect, false);
     setTrack(nodes, cursor && cursor.track, mountRect);

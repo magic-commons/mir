@@ -3261,9 +3261,12 @@ export function createModulation(host, port) {
     if (port.opened) port.opened();
     /* THE RAIL RISES WITH ITS WINDOW, in the rails' tier above every window (window/window.js law 5): a window in the one
        stack (bind.js registers it) is raised there, pane and rail; one outside it keeps its rail just above its pane */
-    { const w = windowOf(root);
-      if (w) w.raise(); else { const z = parseInt(getComputedStyle(root).zIndex, 10); if (Number.isFinite(z)) rail.el.style.zIndex = String(z + 1); } }
-    rebuild(); rail.measure(); place(); paint(true);
+    const w = windowOf(root); if (w) w.raise();
+    rebuild(); rail.measure();
+    /* (outside the stack, its z-index is read AFTER the measure, whose layout left the style clean: the read costs nothing,
+       where read straight after the un-hide it forced a style pass of its own) */
+    if (!w) { const z = parseInt(getComputedStyle(root).zIndex, 10); if (Number.isFinite(z)) rail.el.style.zIndex = String(z + 1); }
+    place(); paint(true);
     if (wasHidden) { root.hidden = true; rail.el.hidden = true; }
     if (wasHidden || exiting) { presence(root, true); presence(rail.el, true); }
     persist();
