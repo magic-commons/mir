@@ -16,8 +16,11 @@
   --banner-ink: hsl(0 0% 96%);
   --banner-x-hover: hsl(0 0% 100% / .12);
   --banner-w: 520px;
-  position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); z-index: var(--z-banner);
-  max-width: var(--banner-w); padding: var(--sp-5); border-radius: var(--r-lg);
+  --banner-rise: 23px;   /* its top sits this far above the stage's 40 %, so a one-line message is centred where BASINS' was */
+  /* THE HAND (1.5.0-alpha.19): its top and its width are fixed — a longer or a second message grows it DOWN, so the ×
+     stays where the finger left it (centred and as wide as its words, the × moved 16 px a line and 148 px across) */
+  position: absolute; left: 50%; top: calc(40% - var(--banner-rise)); transform: translateX(-50%); z-index: var(--z-banner);
+  box-sizing: border-box; width: min(var(--banner-w), calc(100% - 2 * var(--sp-4))); padding: var(--sp-5); border-radius: var(--r-lg);
   font-family: var(--font-sans); background: var(--banner-fill); border: 1px solid var(--banner-edge); color: var(--banner-ink);
   pointer-events: auto; user-select: text; -webkit-user-select: text;
 }

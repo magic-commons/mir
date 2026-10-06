@@ -105,15 +105,16 @@ try {
 
   /* ── 6. the banner, the boot veil, the dump ── */
   const bn = await ev(`const B = await import('../../mir/shell/banner.js'), V = await import('../../mir/shell/boot.js');
-    B.warn('A thing is slow'); B.fail('The picture broke', new Error('boom')); B.fail('The picture broke', new Error('boom'));
-    const pane = document.getElementById('mir-banner');
+    B.warn('A thing is slow');
+    const pane = document.getElementById('mir-banner'), x0 = pane.querySelector('.mir-banner-x').getBoundingClientRect();
+    B.fail('The picture broke', new Error('boom')); B.fail('The picture broke', new Error('boom'));
     const items = [...pane.querySelectorAll('.mir-banner-item')].map((n) => n.firstChild.textContent + n.children[1].textContent);
     B.offerReload(); const reload = !pane.querySelector('.mir-banner-acts').hidden;
     const x = pane.querySelector('.mir-banner-x').getBoundingClientRect();
     const xHit = document.elementFromPoint(x.left + x.width / 2, x.top + x.height / 2) === pane.querySelector('.mir-banner-x');
     const veil = V.bootVeil({ ready: () => true }); await veil.done;
     const dump = A.dump();
-    return { shown: !pane.hidden, kind: pane.dataset.kind, items, xHit, reload, xc: { x: x.left + x.width / 2, y: x.top + x.height / 2 }, fill: getComputedStyle(pane).backgroundColor,
+    return { shown: !pane.hidden, kind: pane.dataset.kind, items, xHit, reload, xStill: x0.left === x.left && x0.top === x.top, xc: { x: x.left + x.width / 2, y: x.top + x.height / 2 }, fill: getComputedStyle(pane).backgroundColor,
       veil: { hidden: veil.el.hidden, via: veil.stat.via, first: veil.stat.firstPresentMs > 0 },
       dump: { problems: /--- problems \\(2\\) ---/.test(dump), veil: /boot veil {3}down after/.test(dump), wake: /wakeLock {4}/.test(dump) } };`);
   check('banner: a warning and a twice-reported error are two lines, the second counted (x2); the pane is an error pane in BASINS\' maroon',
@@ -124,6 +125,7 @@ try {
   await mouse('mouseMoved', bn.xc.x, bn.xc.y); await mouse('mousePressed', bn.xc.x, bn.xc.y); await mouse('mouseReleased', bn.xc.x, bn.xc.y); await sleep(150);
   const gone = await ev(`const p = document.getElementById('mir-banner'); return p.hidden || p.textContent;`);
   check('banner: its × (hit-tested) puts it down', bn.xHit && gone === true, JSON.stringify({ xHit: bn.xHit, gone }));
+  check('THE HAND: the banner\'s × stays where it was while a second and a third message (and RELOAD) grow the pane down', bn.xStill, JSON.stringify({ xStill: bn.xStill }));
 
   /* ── 6b. the notebook's COPY DUMP says whether it worked (1.5.0-alpha.17; BASINS flashed COPIED / FAILED for 1.4 s) ── */
   const dumpPress = async (refuse) => {

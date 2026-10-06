@@ -235,6 +235,7 @@ offerReload();                                  // the last honest move, once re
 | An error makes it an error pane | `data-kind="error"` for good; warnings alone leave it `warn` |
 | Dismissable | the × (26 px of ink, 44 px of finger) hides it; a new problem shows it again |
 | In the dump | `--- problems (n) ---` and every problem with its detail, drawn or not |
+| The × never moves (THE HAND, 1.5.0-alpha.19) | the pane's top and width are fixed (`--banner-rise` above the stage's 40 %, so one line is centred where BASINS' was; `--banner-w`, less a gutter on a narrow stage): a longer or a second message grows it down, and the × stays where the finger left it (before, centred and as wide as its words, it moved 16 px a line and up to 148 px across) |
 | BASINS' look | one pane at 40 % of the stage, at most 520 px, BASINS' maroon (`--banner-fill`, `--banner-edge`) with its own near-white ink on both themes (`--banner-ink`): the pane does not follow the theme, so its ink cannot either. No shadow, no scrim |
 
 ## 9. Boot veil and the reload offer — `mir/shell/boot.js`
