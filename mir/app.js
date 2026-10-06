@@ -270,7 +270,7 @@ export async function createApp(o = {}) {
 
   /* 9. THE NOTEBOOK (J): the pages, ABOUT, the dump */
   let describe = null;
-  if (want('notebook')) notebook = createNotebook({ host: stage, name, storageKey: key + '.notebook', pages,
+  if (want('notebook')) notebook = createNotebook({ host: stage, name, storageKey: key + '.notebook', pages, keys,   // its fields let the table's inFields rows through
     about: { version: o.version || '', licence: gplLicence(name, { license: LICENSE, notice: null }), type: kitType([], FONTS), ...opt(o.about) },
     onLogo: () => accent.paintMarks(), dump: () => (describe ? describe.dump() : ''), ...opt(o.notebook) });
   /* its × runs the table's 'notebook': the key it shows is the table's (keys.hints → data-key-hint), never a typed 'J' */
