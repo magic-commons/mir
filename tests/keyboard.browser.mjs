@@ -80,7 +80,11 @@ try {
 
   /* ── the window: open, then a key on the board shows its action ── */
   await run(`W.open(); await rest(W.win); return 0;`);
+  const listSeat = `return ['.km-search', '.km-list', '.km-btn-record'].map((s) => { const b = W.root.querySelector(s).getBoundingClientRect(); return Math.round(b.left) + ',' + Math.round(b.top) + ',' + Math.round(b.height); }).join(' ');`;
+  const seat0 = await run(listSeat);
   c = await click(`__T.kb.root.querySelector('.km-key[data-code="KeyH"]')`);
+  const seat1 = await run(listSeat);
+  check('THE HAND: a key pressed on the board writes the status in its kept line — the search and the list do not move', seat0 === seat1, seat0 + ' → ' + seat1);
   r = await run(`return { status: W.root.querySelector('.km-status').textContent, row: (W.root.querySelector('.km-action-row-selected') || {}).dataset?.id,
     sel: [...W.root.querySelectorAll('.km-key-selected')].map((k) => k.dataset.code) };`);
   check('pressing a drawn key shows its action: the status names it and its row is chosen', c.hit && r.row === 'hide' && /HIDE/.test(r.status) && r.sel.includes('KeyH'), JSON.stringify({ c, r }));

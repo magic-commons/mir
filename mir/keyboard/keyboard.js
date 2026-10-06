@@ -104,7 +104,7 @@ export function createKeyboardWindow({ keys, host, persist = null, platform, onM
   const rec = trig({ label: 'RECORD INPUT', cls: 'km-btn km-btn-record', onFire: () => (recording ? cancelRecording() : startRecording()) });   // tr[RECORD INPUT]: start listening for the new KEY (or chord) of the chosen shortcut: it records a keypress, not audio
   const rst = trig({ label: 'RESET TO DEFAULT', cls: 'km-btn km-btn-reset', onFire: () => resetAll() });
   rec.on = false; tools.append(rec.root, rst.root);
-  const statusEl = el('div', 'km-status', colR); statusEl.hidden = true; statusEl.setAttribute('role', 'status');
+  const statusEl = el('div', 'km-status', colR); statusEl.setAttribute('role', 'status');   // THE HAND: its seat is kept when it says nothing (keyboard.css), so a key pressed on the board moves no row of the list
   const search = el('input', 'km-search', colR); search.type = 'search'; ariaLabel(search, 'Find a keyboard action');
   const placeholder = () => { search.placeholder = t('Find an action or key…'); };
   placeholder();
@@ -119,7 +119,7 @@ export function createKeyboardWindow({ keys, host, persist = null, platform, onM
   function status(msg, vars, tone = 'info') {
     const en = msg && typeof msg === 'object' ? msg.t : msg;                    // { t: 'English' } so the catalogue finds it
     last = en ? { en, vars, tone } : null;
-    statusEl.hidden = !en; statusEl.dataset.tone = tone;
+    statusEl.dataset.tone = tone;
     statusEl.textContent = en ? t(en, vars) : '';
   }
   const named = (id) => ({ t: (keys.get(id) || {}).label || id });
