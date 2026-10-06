@@ -9,8 +9,8 @@
  *   · the DOUBLE-TAP is two presses within 300 ms and 14 px, taken on the press itself;
  *   · a press a control stops is FORWARDED, so the menus, the rack's + list and the float layer's raise still hear
  *     "a press happened outside you".
- * (Harvested from BASINS app/colour-controls.js wireTouches, fineHeld, forward.)  When kit.js exports the one law
- * for every control (lane C2, wave 13) `fineHeld` here becomes a re-export of it. */
+ * (Harvested from BASINS app/colour-controls.js wireTouches, fineHeld, forward.)  `fineHeld`, the second-finger tracker and
+ * `fineGain` are re-exports of kit.js's one law. */
 import { setKnobLaw } from '../kit.js';
 
 /** the double-tap: two presses this close in time (ms) and place (px) are a home gesture (BASINS' numbers) */
@@ -19,25 +19,9 @@ export const TAP = Object.freeze({ ms: 300, px: 14 });
 /** the kit's drag law as it stands now: { travel, fine, keyFine, faderFine, touchTravel } (setKnobLaw() with no argument only reads) */
 export const lawNow = () => setKnobLaw();
 
-/* THE SECOND FINGER.  A touch that is down while another pointer drags is the fine gear on a glass; a primary
-   touch means no other touch is down, which clears a lost pointerup. */
-const touches = new Set();
-let wired = false;
-export function wireTouches() {
-  if (wired || typeof document === 'undefined') return;
-  wired = true;
-  const opt = { capture: true, passive: true };
-  document.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'touch') return; if (e.isPrimary) touches.clear(); touches.add(e.pointerId); }, opt);
-  const up = (e) => touches.delete(e.pointerId);
-  document.addEventListener('pointerup', up, opt);
-  document.addEventListener('pointercancel', up, opt);
-}
-const otherTouch = (id) => { for (const t of touches) if (t !== id) return true; return false; };
-
-/** the fine gear's one decision: any modifier held, or a second finger down (`id` is the dragging pointer) */
-export const fineHeld = (ev, id) => !!(ev.shiftKey || ev.altKey || ev.ctrlKey || ev.metaKey || otherTouch(id));
-/** the gain of the hand now: 1, or 1 / the kit's fine divisor (`fine` is a control's own divisor, as the kit's `o.fine`) */
-export const fineGain = (ev, id, fine) => (fineHeld(ev, id) ? 1 / (fine > 0 ? fine : lawNow().fine) : 1);
+/* THE SECOND FINGER and the fine gear's one decision are the kit's own (kit.js watchTouches, fineHeld, gearOf): one law, one tracker.
+   `fineGain(ev, id, fine)` is `gearOf`: 1, or 1 / the control's divisor (default the kit's ⅛) while any modifier or a second finger is held. */
+export { watchTouches as wireTouches, fineHeld, gearOf as fineGain } from '../kit.js';
 
 /** tapHome(onHome) → (e) → true when this press is the second of a double-tap (and home has been taken) */
 export function tapHome(onHome) {

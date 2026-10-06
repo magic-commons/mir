@@ -22,7 +22,9 @@
  "strings": {
   "  ·  replaces the oldest": "  ·  replaces the oldest",
   " — where the project stands": " — where the project stands",
+  "(learned from the last render)": "(learned from the last render)",
   "(root)": "(root)",
+  "+ ADD": "+ ADD",
   "+ DEVICE": "+ DEVICE",
   "+ MACRO": "+ MACRO",
   ".MD": ".MD",
@@ -34,6 +36,7 @@
   "60 Hz": "60 Hz",
   "A": "A",
   "A file the app needs did not load.": "A file the app needs did not load.",
+  "A film is rendering — wait for it, or CANCEL it in RENDER, before moving the picture.": "A film is rendering — wait for it, or CANCEL it in RENDER, before moving the picture.",
   "A soft light follows the pointer over lit surfaces (never on touch)": "A soft light follows the pointer over lit surfaces (never on touch)",
   "ABOUT": "ABOUT",
   "ACCENT": "ACCENT",
@@ -56,6 +59,7 @@
   "AUDIO": "AUDIO",
   "AUDIO IN": "AUDIO IN",
   "AUDIO ON": "AUDIO ON",
+  "AUDIO · {name}": "AUDIO · {name}",
   "AUTO": "AUTO",
   "AUTO: measuring this device": "AUTO: measuring this device",
   "AUTO: not measured": "AUTO: not measured",
@@ -65,13 +69,17 @@
   "Add a macro": "Add a macro",
   "Add a macro in the modulation window to begin routing.": "Add a macro in the modulation window to begin routing.",
   "Add a point that preserves its current value": "Add a point that preserves its current value",
+  "Add a {noun} — {count} of {cap}": "Add a {noun} — {count} of {cap}",
+  "Add a {noun} — {count} of {cap}, full": "Add a {noun} — {count} of {cap}, full",
   "Add an LFO, envelope, or audio follower": "Add an LFO, envelope, or audio follower",
   "Add an audio follower; {:AUDIO IN} uses the microphone": "Add an audio follower; {:AUDIO IN} uses the microphone",
   "Add an envelope to the rack": "Add an envelope to the rack",
   "Add and place a point": "Add and place a point",
+  "Add audio": "Add audio",
   "Add automation lane": "Add automation lane",
   "Add the theme tint behind window content: no blur, no compositor cost": "Add the theme tint behind window content: no blur, no compositor cost",
   "Add to the rectangle selection": "Add to the rectangle selection",
+  "Added {name}": "Added {name}",
   "All meter · click for Low, Mid and High": "All meter · click for Low, Mid and High",
   "Alt (held)": "Alt (held)",
   "Alt + left-click a point": "Alt + left-click a point",
@@ -113,9 +121,12 @@
   "Bypass Snap for the gesture in progress": "Bypass Snap for the gesture in progress",
   "Bypass this device and keep its settings": "Bypass this device and keep its settings",
   "CALCULATING": "CALCULATING",
+  "CANCEL": "CANCEL",
   "CAPTURE": "CAPTURE",
+  "CAPTURE IMAGE": "CAPTURE IMAGE",
   "CENTER PLAYHEAD": "CENTER PLAYHEAD",
   "CENTRE": "CENTRE",
+  "CLEAR": "CLEAR",
   "CLOSE": "CLOSE",
   "CLOSED": "CLOSED",
   "CMP": "CMP",
@@ -141,6 +152,8 @@
   "Cancel removing the lane": "Cancel removing the lane",
   "Cancel the gesture in flight, close menus, rewind a cancelled scrub": "Cancel the gesture in flight, close menus, rewind a cancelled scrub",
   "Cancelled: “{action}” keeps its keys": "Cancelled: “{action}” keeps its keys",
+  "Capture an image first": "Capture an image first",
+  "Capture an image to enable Download": "Capture an image to enable Download",
   "Capture image": "Capture image",
   "Capture this view as an image. Capture again to try another version.": "Capture this view as an image. Capture again to try another version.",
   "Center the view on the playhead": "Center the view on the playhead",
@@ -163,11 +176,15 @@
   "Collapse or expand this device": "Collapse or expand this device",
   "Collapse or expand this window": "Collapse or expand this window",
   "Colour intensity across glass surfaces: 0% neutral · 100% original · 200% vivid.": "Colour intensity across glass surfaces: 0% neutral · 100% original · 200% vivid.",
+  "Complete · {frames} frames · {time} render time": "Complete · {frames} frames · {time} render time",
   "Continue from the clock phase": "Continue from the clock phase",
+  "Copy the exact centre, zoom and rotation as text": "Copy the exact centre, zoom and rotation as text",
   "Copy the selection": "Copy the selection",
   "Corner radius across window panes.": "Corner radius across window panes.",
+  "Could not add the project: {why}": "Could not add the project: {why}",
   "Could not delete: {why}": "Could not delete: {why}",
   "Could not duplicate: {why}": "Could not duplicate: {why}",
+  "Could not keep the zip’s files: {why}": "Could not keep the zip’s files: {why}",
   "Could not keep {name}: {why}": "Could not keep {name}: {why}",
   "Could not make the picture for {name} — it has none; export the .mir file instead": "Could not make the picture for {name} — it has none; export the .mir file instead",
   "Could not make the picture: {why}": "Could not make the picture: {why}",
@@ -177,6 +194,7 @@
   "Could not remove the folder: {why}": "Could not remove the folder: {why}",
   "Could not rename: {why}": "Could not rename: {why}",
   "Could not restore the factory gallery: {why}": "Could not restore the factory gallery: {why}",
+  "Could not save the zip: {why}": "Could not save the zip: {why}",
   "Could not save: {why}": "Could not save: {why}",
   "Could not save: {why} — nothing was cleared.": "Could not save: {why} — nothing was cleared.",
   "Could not save: {why} — nothing was opened.": "Could not save: {why} — nothing was opened.",
@@ -201,6 +219,8 @@
   "DENIED": "DENIED",
   "DESELECT": "DESELECT",
   "DESTINATION": "DESTINATION",
+  "DISCARD RENDER": "DISCARD RENDER",
+  "DISCARD STORED RENDER": "DISCARD STORED RENDER",
   "DISCONNECTED": "DISCONNECTED",
   "DIST": "DIST",
   "DISTANCE": "DISTANCE",
@@ -208,8 +228,12 @@
   "DOTTED": "DOTTED",
   "DOWN": "DOWN",
   "DOWNLOAD": "DOWNLOAD",
+  "DOWNLOAD IMAGE": "DOWNLOAD IMAGE",
+  "DOWNLOAD STORED PNG PART": "DOWNLOAD STORED PNG PART",
+  "DOWNLOAD {name}": "DOWNLOAD {name}",
   "DRAFT": "DRAFT",
   "DRIFT": "DRIFT",
+  "DRIVES": "DRIVES",
   "DROP GUIDES": "DROP GUIDES",
   "DROP SHADOW": "DROP SHADOW",
   "DUPLICATE": "DUPLICATE",
@@ -230,10 +254,14 @@
   "Download image — capture first": "Download image — capture first",
   "Download image — {name}, {size}": "Download image — {name}, {size}",
   "Download the captured image to your photos or files.": "Download the captured image to your photos or files.",
+  "Download the same numbers as a .json file": "Download the same numbers as a .json file",
+  "Download {name} · {size}": "Download {name} · {size}",
   "Download {name} · {w} × {h}": "Download {name} · {w} × {h}",
+  "Download, then share from Files.": "Download, then share from Files.",
   "Drag a pattern / audio clip body": "Drag a pattern / audio clip body",
   "Drag sideways to set; double-tap the row grip to rename": "Drag sideways to set; double-tap the row grip to rename",
   "Drag to reorder": "Drag to reorder",
+  "Drag to reorder this {noun}; arrow keys move it": "Drag to reorder this {noun}; arrow keys move it",
   "Drag to reorder; double-tap to rename": "Drag to reorder; double-tap to rename",
   "Drag to resize the notebook": "Drag to resize the notebook",
   "Drag to route; tap to arm; double-tap to reset": "Drag to route; tap to arm; double-tap to reset",
@@ -252,6 +280,14 @@
   "EDIT TOOL": "EDIT TOOL",
   "ENV": "ENV",
   "ENV {n}": "ENV {n}",
+  "ENVELOPE · HIGH": "ENVELOPE · HIGH",
+  "ENVELOPE · HIGH ✓": "ENVELOPE · HIGH ✓",
+  "ENVELOPE · LEVEL": "ENVELOPE · LEVEL",
+  "ENVELOPE · LEVEL ✓": "ENVELOPE · LEVEL ✓",
+  "ENVELOPE · LOW": "ENVELOPE · LOW",
+  "ENVELOPE · LOW ✓": "ENVELOPE · LOW ✓",
+  "ENVELOPE · MID": "ENVELOPE · MID",
+  "ENVELOPE · MID ✓": "ENVELOPE · MID ✓",
   "ERROR": "ERROR",
   "EVT": "EVT",
   "EXPORT": "EXPORT",
@@ -268,11 +304,13 @@
   "Every key is back to its default": "Every key is back to its default",
   "Every look option back home: the {:name::FROST} theme": "Every look option back home: the {:name::FROST} theme",
   "Everything": "Everything",
+  "Exact video time, fixed resolution, complete frames. The active project supplies the colours and rack.": "Exact video time, fixed resolution, complete frames. The active project supplies the colours and rack.",
   "Export the selected project (or the open one) as a .mir file, or as a picture that carries it.": "Export the selected project (or the open one) as a .mir file, or as a picture that carries it.",
   "Exported {name} as a .mir file": "Exported {name} as a .mir file",
   "Exported {name} as a picture that carries it": "Exported {name} as a picture that carries it",
   "FACES": "FACES",
   "FACTORY": "FACTORY",
+  "FAILED": "FAILED",
   "FILL EACH {n} STEPS": "FILL EACH {n} STEPS",
   "FIT": "FIT",
   "FL — Alt temporarily sets snap to none": "FL — Alt temporarily sets snap to none",
@@ -312,6 +350,7 @@
   "FLIP": "FLIP",
   "FOLDERS": "FOLDERS",
   "FORGET": "FORGET",
+  "FORMAT": "FORMAT",
   "FOV": "FOV",
   "FRAME": "FRAME",
   "FREE": "FREE",
@@ -339,6 +378,7 @@
   "Folders": "Folders",
   "Follow the system": "Follow the system",
   "Follow the theme (on a {:SOLID} pane, its lightness)": "Follow the theme (on a {:SOLID} pane, its lightness)",
+  "Forget the rows; the picture stays as it is": "Forget the rows; the picture stays as it is",
   "GAIN": "GAIN",
   "GALLERY": "GALLERY",
   "GATE": "GATE",
@@ -383,6 +423,7 @@
   "INVERT": "INVERT",
   "INVERT SELECTION": "INVERT SELECTION",
   "ISO": "ISO",
+  "Image format": "Image format",
   "Imported — {name}": "Imported — {name}",
   "In the most recently saved layout": "In the most recently saved layout",
   "Include {what} in the next save": "Include {what} in the next save",
@@ -390,6 +431,9 @@
   "Input dB at 0% output; upper boundary reaches 100%.": "Input dB at 0% output; upper boundary reaches 100%.",
   "Invert the clip selection": "Invert the clip selection",
   "Invert the curve output: 1 − v": "Invert the curve output: 1 − v",
+  "JSON": "JSON",
+  "KEEP AUDIO": "KEEP AUDIO",
+  "KEEP AUDIO (PLAY THE FILE)": "KEEP AUDIO (PLAY THE FILE)",
   "KEYBOARD": "KEYBOARD",
   "KEYS": "KEYS",
   "KNEE": "KNEE",
@@ -412,6 +456,7 @@
   "LIVE": "LIVE",
   "LOAD LAYOUT": "LOAD LAYOUT",
   "LOCATE CLIPS": "LOCATE CLIPS",
+  "LONGER than {limit}: keep this page open and visible (the screen is held awake), or shorten it; a failed render keeps its completed frames to recover": "LONGER than {limit}: keep this page open and visible (the screen is held awake), or shorten it; a failed render keeps its completed frames to recover",
   "LOW": "LOW",
   "LOWER": "LOWER",
   "LW Title": "LW Title",
@@ -427,6 +472,7 @@
   "MACRO {i} DEPTH": "MACRO {i} DEPTH",
   "MACROS": "MACROS",
   "MAKE ROOM — delete oldest (“{name}”) and save": "MAKE ROOM — delete oldest (“{name}”) and save",
+  "MAKING…": "MAKING…",
   "MATERIAL": "MATERIAL",
   "MAX": "MAX",
   "METRO": "METRO",
@@ -449,6 +495,7 @@
   "MOVE EARLIER": "MOVE EARLIER",
   "MOVE LATER": "MOVE LATER",
   "MOVE TO": "MOVE TO",
+  "MP4 unavailable at this size/FPS. Choose PNG frames or a smaller size.": "MP4 unavailable at this size/FPS. Choose PNG frames or a smaller size.",
   "MULTI-SAW": "MULTI-SAW",
   "MULTI-TRI": "MULTI-TRI",
   "MY PRESETS": "MY PRESETS",
@@ -461,6 +508,7 @@
   "Master depth for this macro. Double-tap for 100%.": "Master depth for this macro. Double-tap for 100%.",
   "Master depth for {macro}": "Master depth for {macro}",
   "Middle button, hold + drag": "Middle button, hold + drag",
+  "Modulation ON replays the rack from its first Space edge. Timeline ON replays clips from beat zero. Both skip to “start at”. With both OFF, the current look is frozen. Escape cancels.": "Modulation ON replays the rack from its first Space edge. Timeline ON replays clips from beat zero. Both skip to “start at”. With both OFF, the current look is frozen. Escape cancels.",
   "Modulation cadence": "Modulation cadence",
   "Modulation on or off": "Modulation on or off",
   "Move it": "Move it",
@@ -498,7 +546,10 @@
   "No copies made: source budget reached.": "No copies made: source budget reached.",
   "No envelopes on the rack — add one with +": "No envelopes on the rack — add one with +",
   "No macros yet — add one in the modulation window.": "No macros yet — add one in the modulation window.",
+  "No room for this audio clip here: add a lane or choose another time.": "No room for this audio clip here: add a lane or choose another time.",
   "No room on the timeline for {what} — add a lane or move the playhead": "No room on the timeline for {what} — add a lane or move the playhead",
+  "No room: {max} minutes of audio is the budget (this would be {now}).": "No room: {max} minutes of audio is the budget (this would be {now}).",
+  "No room: {n} audio clips is the budget.": "No room: {n} audio clips is the budget.",
   "No such action.": "No such action.",
   "Nothing animates": "Nothing animates",
   "Nothing is saved at {:ROOT} yet.  Open a folder, or save what is on screen here.": "Nothing is saved at {:ROOT} yet.  Open a folder, or save what is on screen here.",
@@ -513,17 +564,21 @@
   "ON": "ON",
   "OPEN": "OPEN",
   "OPEN FILE": "OPEN FILE",
+  "OPEN ZIP…": "OPEN ZIP…",
   "OUT": "OUT",
   "OUTPUT": "OUTPUT",
   "One camera orbit per bar, with a vertical sweep.": "One camera orbit per bar, with a vertical sweep.",
   "Open a project file (.mir) or a picture that carries one — or drop it on this window.": "Open a project file (.mir) or a picture that carries one — or drop it on this window.",
+  "Open a project saved as one .zip (SAVE AS ZIP): its audio comes back with it and it becomes the current project.": "Open a project saved as one .zip (SAVE AS ZIP): its audio comes back with it and it becomes the current project.",
   "Open folder {name}": "Open folder {name}",
   "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.": "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.",
   "Open modulation matrix": "Open modulation matrix",
   "Open or close audio input. Audio is analysed locally and is not stored.": "Open or close audio input. Audio is analysed locally and is not stored.",
   "Open the modulation window": "Open the modulation window",
   "Open the preset list — {factory} ships with the app, the rest are yours": "Open the preset list — {factory} ships with the app, the rest are yours",
+  "Open {name}": "Open {name}",
   "Open {name} — tap again": "Open {name} — tap again",
+  "Opened {name}": "Opened {name}",
   "Opened — {name}": "Opened — {name}",
   "Opening \"{name}\" replaces what is on screen, which may be unsaved.": "Opening \"{name}\" replaces what is on screen, which may be unsaved.",
   "Opening \"{name}\" replaces what is on screen.": "Opening \"{name}\" replaces what is on screen.",
@@ -546,6 +601,7 @@
   "PRESET": "PRESET",
   "PRESET NAME": "PRESET NAME",
   "PRESETS": "PRESETS",
+  "PREVIEW FIRST 3 SECONDS": "PREVIEW FIRST 3 SECONDS",
   "PREVIOUS BAR": "PREVIOUS BAR",
   "PROJECT": "PROJECT",
   "PROJECT COMPONENTS": "PROJECT COMPONENTS",
@@ -555,6 +611,7 @@
   "Paste a compatible device patch": "Paste a compatible device patch",
   "Paste at the playhead, into the active lane": "Paste at the playhead, into the active lane",
   "Pattern: drive this envelope from its step row in the PATTERN window": "Pattern: drive this envelope from its step row in the PATTERN window",
+  "Picture made — {w}×{h}. Tap DOWNLOAD IMAGE to keep it.": "Picture made — {w}×{h}. Tap DOWNLOAD IMAGE to keep it.",
   "Picture made — {w}×{h}. Tap the download icon to keep it.": "Picture made — {w}×{h}. Tap the download icon to keep it.",
   "Play / pause, exact resume": "Play / pause, exact resume",
   "Play or pause": "Play or pause",
@@ -562,6 +619,7 @@
   "Point time in beats": "Point time in beats",
   "Point value": "Point value",
   "Preset name — type one, then tap {:SAVE}": "Preset name — type one, then tap {:SAVE}",
+  "Preview ready": "Preview ready",
   "Previous preset": "Previous preset",
   "Previous project page": "Previous project page",
   "Project components and display options": "Project components and display options",
@@ -581,6 +639,8 @@
   "RATE": "RATE",
   "RECENT": "RECENT",
   "RECORD INPUT": "RECORD INPUT",
+  "RECOVER COMPLETED FRAMES": "RECOVER COMPLETED FRAMES",
+  "RECOVERABLE FRAMES": "RECOVERABLE FRAMES",
   "REDO": "REDO",
   "REDUCED": "REDUCED",
   "REFRACTIVE": "REFRACTIVE",
@@ -591,17 +651,20 @@
   "RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})": "RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})",
   "REMOVE": "REMOVE",
   "REMOVE ALL": "REMOVE ALL",
+  "RENDER": "RENDER",
   "RES": "RES",
   "RESET": "RESET",
   "RESET LAYOUT": "RESET LAYOUT",
   "RESET LOOK": "RESET LOOK",
   "RESET TO DEFAULT": "RESET TO DEFAULT",
   "RESTORE FACTORY GALLERY": "RESTORE FACTORY GALLERY",
+  "RESUME WITH MATCHING PROJECT": "RESUME WITH MATCHING PROJECT",
   "RETRY": "RETRY",
   "RIBBON": "RIBBON",
   "RISE": "RISE",
   "ROOT": "ROOT",
   "RUN": "RUN",
+  "RUN SELF-TEST": "RUN SELF-TEST",
   "Rack presets, in folders: {factory} ships with the app, the rest are yours": "Rack presets, in folders: {factory} ships with the app, the rest are yours",
   "Rack windows flush to each other and to the screen’s edge": "Rack windows flush to each other and to the screen’s edge",
   "Raise {name}": "Raise {name}",
@@ -622,7 +685,15 @@
   "Remove the macro from this control": "Remove the macro from this control",
   "Remove this device and release its macros": "Remove this device and release its macros",
   "Remove this route": "Remove this route",
+  "Remove this {noun} (tap twice)": "Remove this {noun} (tap twice)",
+  "Remove {noun} {n}": "Remove {noun} {n}",
+  "Remove {noun} {n} — tap again to confirm": "Remove {noun} {n} — tap again to confirm",
   "Rename {name}": "Rename {name}",
+  "Render cancelled. Completed checkpoints remain available below.": "Render cancelled. Completed checkpoints remain available below.",
+  "Render complete": "Render complete",
+  "Render failed: {why}": "Render failed: {why}",
+  "Render — this project, and the picture or film you make of it": "Render — this project, and the picture or film you make of it",
+  "Reorder {noun} {n} — drag, or the arrow keys": "Reorder {noun} {n} — drag, or the arrow keys",
   "Reset it": "Reset it",
   "Reset the base value and keep its routes": "Reset the base value and keep its routes",
   "Reset window size": "Reset window size",
@@ -649,7 +720,9 @@
   "SATURATION": "SATURATION",
   "SAVE": "SAVE",
   "SAVE AS": "SAVE AS",
+  "SAVE AS ZIP…": "SAVE AS ZIP…",
   "SAVE TO": "SAVE TO",
+  "SAVE {name} · {size}": "SAVE {name} · {size}",
   "SAW↑": "SAW↑",
   "SAW↓": "SAW↓",
   "SCRUB": "SCRUB",
@@ -667,6 +740,8 @@
   "SHORTCUTS": "SHORTCUTS",
   "SHOW": "SHOW",
   "SHOW ON OPEN": "SHOW ON OPEN",
+  "SIGNAL ONLY": "SIGNAL ONLY",
+  "SIGNAL ONLY (MUTE THE FILE)": "SIGNAL ONLY (MUTE THE FILE)",
   "SINE": "SINE",
   "SKIN": "SKIN",
   "SLICE AT PLAYHEAD": "SLICE AT PLAYHEAD",
@@ -686,7 +761,10 @@
   "STEP: draw; Shift for pulses": "STEP: draw; Shift for pulses",
   "STEPS": "STEPS",
   "STILL": "STILL",
+  "STORED RENDER": "STORED RENDER",
   "STRETCH AUDIO": "STRETCH AUDIO",
+  "STRETCH TO CLIP · SHIFT+T": "STRETCH TO CLIP · SHIFT+T",
+  "STRETCH ×{rate} · pitch follows": "STRETCH ×{rate} · pitch follows",
   "STUTTER released — rejoined the running beat": "STUTTER released — rejoined the running beat",
   "STUTTER {note} latched — applies to BPM-synced LFOs; press again to release": "STUTTER {note} latched — applies to BPM-synced LFOs; press again to release",
   "SUSTAIN": "SUSTAIN",
@@ -697,12 +775,14 @@
   "Sample on a 1/8-beat grid. Values step on the grid.": "Sample on a 1/8-beat grid. Values step on the grid.",
   "Sample the arrangement every rendered frame. The CLOCK tile sets how often modulation ticks at all.": "Sample the arrangement every rendered frame. The CLOCK tile sets how often modulation ticks at all.",
   "Save as — store what is on screen as a new project, with the name and folder below.": "Save as — store what is on screen as a new project, with the name and folder below.",
+  "Save the current project, with the audio files it uses, as one .zip.": "Save the current project, with the audio files it uses, as one .zip.",
   "Save the current window arrangement": "Save the current window arrangement",
   "Save this first?": "Save this first?",
   "Save this rack as a preset": "Save this rack as a preset",
   "Save to folder": "Save to folder",
   "Save — store what is on screen over the open project (a new one the first time).": "Save — store what is on screen over the open project (a new one the first time).",
   "Saved projects and folders": "Saved projects and folders",
+  "Saved {file} · {size}": "Saved {file} · {size}",
   "Saved — {name}": "Saved — {name}",
   "Saved — {name} · made room by deleting {n} projects": {
    "one": "Saved — {name} · made room by deleting {n} project",
@@ -772,7 +852,9 @@
   "Sort shallowest zoom first": "Sort shallowest zoom first",
   "Source: {link}": "Source: {link}",
   "Space": "Space",
+  "Starter projects": "Starter projects",
   "Step through twelve density levels to reveal shells.": "Step through twelve density levels to reveal shells.",
+  "Stop inspecting {name} and describe the live view again": "Stop inspecting {name} and describe the live view again",
   "Strength of the pane shadow. {:DROP SHADOW} can switch it off.": "Strength of the pane shadow. {:DROP SHADOW} can switch it off.",
   "Stutter: hold the beat at this note value": "Stutter: hold the beat at this note value",
   "Surfaces that blur what is behind them: one compositor pass each": "Surfaces that blur what is behind them: one compositor pass each",
@@ -784,12 +866,15 @@
   "TEXT": "TEXT",
   "THEME": "THEME",
   "THIS CONTROL IS HELD BY {n} MACROS  ·  which one the outer arc edits": "THIS CONTROL IS HELD BY {n} MACROS  ·  which one the outer arc edits",
+  "THIS VIEW": "THIS VIEW",
   "TIER": "TIER",
   "TIGHT": "TIGHT",
   "TIME": "TIME",
   "TIME · BEATS FROM 0": "TIME · BEATS FROM 0",
   "TIMELINE": "TIMELINE",
   "TIMELINE CLIP": "TIMELINE CLIP",
+  "TIMELINE · ACTIVE": "TIMELINE · ACTIVE",
+  "TIMELINE · SELECTION": "TIMELINE · SELECTION",
   "TINT": "TINT",
   "TINTED": "TINTED",
   "TITLE": "TITLE",
@@ -805,13 +890,19 @@
   "TRIPLET": "TRIPLET",
   "TURN": "TURN",
   "Tab is kept for moving the focus.": "Tab is kept for moving the focus.",
+  "Tap for the colour chooser · drag up or down to turn its hue (Shift: finer)": "Tap for the colour chooser · drag up or down to turn its hue (Shift: finer)",
   "Tap repeatedly to set the modulation clock": "Tap repeatedly to set the modulation clock",
   "Tap the tempo": "Tap the tempo",
   "Tap the tempo: four taps set it": "Tap the tempo: four taps set it",
+  "Target the envelope drives": "Target the envelope drives",
+  "That is not a project zip — nothing changed": "That is not a project zip — nothing changed",
+  "That is not a project zip: {why}": "That is not a project zip: {why}",
   "The MIR logo is outlined from Butler Free Extra Bold by {who}.": "The MIR logo is outlined from Butler Free Extra Bold by {who}.",
   "The browser has WebGPU but found no graphics adapter to use.": "The browser has WebGPU but found no graphics adapter to use.",
   "The controls take the panes’ light: one {:ANGLE} for everything": "The controls take the panes’ light: one {:ANGLE} for everything",
   "The dotted guide where a dragged window will land": "The dotted guide where a dragged window will land",
+  "The envelope drives the target and the file plays with the transport": "The envelope drives the target and the file plays with the transport",
+  "The envelope drives the target; the file stays silent": "The envelope drives the target; the file stays silent",
   "The factory gallery is already complete.": "The factory gallery is already complete.",
   "The graphics device was lost: the GPU was reset, its driver changed, or it ran out of memory.": "The graphics device was lost: the GPU was reset, its driver changed, or it ran out of memory.",
   "The keyboard": "The keyboard",
@@ -819,11 +910,14 @@
   "The library is full: {count} saved, {need} needed of {cap}.  This save was NOT stored.  Delete projects yourself, or make room — the oldest go first.": "The library is full: {count} saved, {need} needed of {cap}.  This save was NOT stored.  Delete projects yourself, or make room — the oldest go first.",
   "The mean frame time over 30 frames after the last change": "The mean frame time over 30 frames after the last change",
   "The pane’s hairline rim": "The pane’s hairline rim",
+  "The picture on screen, without controls": "The picture on screen, without controls",
   "The picture waits until you let go. The playhead and readers move at once.": "The picture waits until you let go. The playhead and readers move at once.",
   "The renderer currently owns the clock.": "The renderer currently owns the clock.",
   "The shadow’s blur": "The shadow’s blur",
   "The shine’s blur": "The shine’s blur",
   "The view moved since the picture was made — capture it again.": "The view moved since the picture was made — capture it again.",
+  "The view moved since the picture was made — tap CAPTURE IMAGE again.": "The view moved since the picture was made — tap CAPTURE IMAGE again.",
+  "The {noun} list is full — {count} of {cap}": "The {noun} list is full — {count} of {cap}",
   "The {panel} panel could not be built: {why}": "The {panel} panel could not be built: {why}",
   "The ⓘ panels on windows": "The ⓘ panels on windows",
   "Theme-coloured glass fill. Zero is clear.": "Theme-coloured glass fill. Zero is clear.",
@@ -869,6 +963,7 @@
   "Use transparent window surfaces: the blur, with a veil": "Use transparent window surfaces: the blur, with a veil",
   "VALUE · 0 TO 1": "VALUE · 0 TO 1",
   "VEIL": "VEIL",
+  "VIEW DETAILS": "VIEW DETAILS",
   "VIVID": "VIVID",
   "WALL": "WALL",
   "WAVE": "WAVE",
@@ -935,8 +1030,10 @@
   "automation::FRAME": "FRAME",
   "balmer": "balmer",
   "beacon": "beacon",
+  "beats {from} → {to} at {bpm} BPM": "beats {from} → {to} at {bpm} BPM",
   "biolum": "biolum",
   "bipolar (Re/Im legible)": "bipolar (Re/Im legible)",
+  "captured before the picture finished resolving": "captured before the picture finished resolving",
   "carousel": "carousel",
   "clock": "clock",
   "clock state::HOLD": "HOLD",
@@ -953,6 +1050,7 @@
   "copy this side's whole patch": "copy this side's whole patch",
   "copy your note into the project as a new page (a copy)": "copy your note into the project as a new page (a copy)",
   "copy {name} into the project": "copy {name} into the project",
+  "could not open it": "could not open it",
   "could not read it: {why}": "could not read it: {why}",
   "could not save that preset": "could not save that preset",
   "cym": "cym",
@@ -982,6 +1080,7 @@
   "fold or unfold this window": "fold or unfold this window",
   "folder/name": "folder/name",
   "forget this layout": "forget this layout",
+  "frames": "frames",
   "frost setting::FROST": "FROST",
   "gas lamp": "gas lamp",
   "gemstone": "gemstone",
@@ -1026,6 +1125,7 @@
   "input gain, ±24 dB before the band response ranges": "input gain, ±24 dB before the band response ranges",
   "keep tapping — two taps make an interval": "keep tapping — two taps make an interval",
   "lasers": "lasers",
+  "left": "left",
   "left rack scroll": "left rack scroll",
   "light source::LIGHT": "LIGHT",
   "listening": "listening",
@@ -1042,6 +1142,7 @@
   "neon": "neon",
   "next": "next",
   "no": "no",
+  "no microphone was found on this device": "no microphone was found on this device",
   "no notes yet — name one above and {:SAVE AS}": "no notes yet — name one above and {:SAVE AS}",
   "no presets yet — type a name and press {:SAVE}": "no presets yet — type a name and press {:SAVE}",
   "no route": "no route",
@@ -1060,6 +1161,7 @@
   "nothing saved yet": "nothing saved yet",
   "nothing to export — save first": "nothing to export — save first",
   "nothing to read": "nothing to read",
+  "numbered lossless PNG frames": "numbered lossless PNG frames",
   "one cycle": "one cycle",
   "opal": "opal",
   "open a window": "open a window",
@@ -1092,13 +1194,16 @@
   "rename this tab": "rename this tab",
   "rename to folder/name": "rename to folder/name",
   "rename {name}": "rename {name}",
+  "renamed beside a project already there": "renamed beside a project already there",
   "renamed to {name}": "renamed to {name}",
   "reorder or rename {macro}": "reorder or rename {macro}",
   "replace yours?": "replace yours?",
+  "retrying without the processing constraints": "retrying without the processing constraints",
   "right rack scroll": "right rack scroll",
   "rose window": "rose window",
   "route removed — {target} is the hand’s again": "route removed — {target} is the hand’s again",
   "route {macro} — drag onto a control, or tap to arm": "route {macro} — drag onto a control, or tap to arm",
+  "running…": "running…",
   "save as folder/name": "save as folder/name",
   "save image": "save image",
   "save into no folder": "save into no folder",
@@ -1109,6 +1214,7 @@
   "scrub::LIGHT": "LIGHT",
   "scrub::LIVE": "LIVE",
   "sea": "sea",
+  "seek": "seek",
   "selected project": "selected project",
   "shared with a visiting model — hide it": "shared with a visiting model — hide it",
   "shared: a visiting model may read this page": "shared: a visiting model may read this page",
@@ -1119,6 +1225,7 @@
   "standard — not an FL Playlist binding": "standard — not an FL Playlist binding",
   "start over": "start over",
   "step {n}": "step {n}",
+  "stored on disk": "stored on disk",
   "subtitle": "subtitle",
   "supernova": "supernova",
   "sure?": "sure?",
@@ -1138,6 +1245,7 @@
   "that output cannot be bound": "that output cannot be bound",
   "that preset could not be loaded": "that preset could not be loaded",
   "that preset was written by a model this build cannot honour": "that preset was written by a model this build cannot honour",
+  "the audio graph could not be built": "the audio graph could not be built",
   "the bar at the bottom centre": "the bar at the bottom centre",
   "the bar at the top centre": "the bar at the top centre",
   "the browser refused the write: {why}": "the browser refused the write: {why}",
@@ -1151,7 +1259,11 @@
   "the left rack": "the left rack",
   "the library is full: {need} k needed of {cap} k": "the library is full: {need} k needed of {cap} k",
   "the loop clock claims the resume: the beat jumped back {moved} of a beat to the {grid}-beat note boundary just passed": "the loop clock claims the resume: the beat jumped back {moved} of a beat to the {grid}-beat note boundary just passed",
+  "the microphone could not be opened": "the microphone could not be opened",
   "the microphone did not open": "the microphone did not open",
+  "the microphone needs a secure page — open this over HTTPS, or on localhost": "the microphone needs a secure page — open this over HTTPS, or on localhost",
+  "the microphone was disconnected": "the microphone was disconnected",
+  "the microphone was refused — allow it for this page in the browser’s site settings, then press MIC again": "the microphone was refused — allow it for this page in the browser’s site settings, then press MIC again",
   "the note ladder × 2/3 — three in the space of two": "the note ladder × 2/3 — three in the space of two",
   "the note ladder × 3/2 — a note and a half": "the note ladder × 3/2 — a note and a half",
   "the notebook’s subtitle — type to rename": "the notebook’s subtitle — type to rename",
@@ -1163,6 +1275,7 @@
   "the pattern": "the pattern",
   "the phase offset": "the phase offset",
   "the rack": "the rack",
+  "the self-test threw: {why}": "the self-test threw: {why}",
   "the shelf cannot be read — {why}": "the shelf cannot be read — {why}",
   "the shelf could not be saved — {why}": "the shelf could not be saved — {why}",
   "the shelf was damaged and has been mended — the old text is kept under {key}": "the shelf was damaged and has been mended — the old text is kept under {key}",
@@ -1173,6 +1286,8 @@
   "theme mode::DARK": "DARK",
   "theme mode::LIGHT": "LIGHT",
   "thirty-two points is the curve’s ceiling": "thirty-two points is the curve’s ceiling",
+  "this browser does not offer microphone capture": "this browser does not offer microphone capture",
+  "this browser has no Web Audio, so there is nothing to analyse with": "this browser has no Web Audio, so there is nothing to analyse with",
   "this build has no such target — the route keeps its range until one appears": "this build has no such target — the route keeps its range until one appears",
   "this host supplies no audio capture": "this host supplies no audio capture",
   "this host supplies no capture": "this host supplies no capture",
@@ -1188,7 +1303,9 @@
   "ukiyo": "ukiyo",
   "ultraviolet": "ultraviolet",
   "values step on the grid": "values step on the grid",
+  "waiting for permission to use the microphone": "waiting for permission to use the microphone",
   "window {s} s": "window {s} s",
+  "written": "written",
   "yes": "yes",
   "your notes: save, open, folders, recent": "your notes: save, open, folders, recent",
   "yours — the note open from your shelf, kept in this browser": "yours — the note open from your shelf, kept in this browser",
@@ -1247,12 +1364,16 @@
   "{macro} already reaches {target}": "{macro} already reaches {target}",
   "{macro} value": "{macro} value",
   "{macro} → {target}  ·  {lo} … {hi}": "{macro} → {target}  ·  {lo} … {hi}",
+  "{mbps} Mbps target · ≈ {size}": "{mbps} Mbps target · ≈ {size}",
   "{name} already exists": "{name} already exists",
   "{name} came with the app and cannot be renamed — {:DUPLICATE} makes your own copy": "{name} came with the app and cannot be renamed — {:DUPLICATE} makes your own copy",
   "{name} came with the app — saving it as your own copy": "{name} came with the app — saving it as your own copy",
+  "{name} could not be decoded as audio.": "{name} could not be decoded as audio.",
   "{name} could not start": "{name} could not start",
+  "{name} holds no audio.": "{name} holds no audio.",
   "{name} in {unit}": "{name} in {unit}",
   "{name} is already there": "{name} is already there",
+  "{name} is longer than {minutes} minutes.": "{name} is longer than {minutes} minutes.",
   "{name} on {kind} {id}": "{name} on {kind} {id}",
   "{name} window controls": "{name} window controls",
   "{name} · automation curve": "{name} · automation curve",
@@ -1267,6 +1388,14 @@
    "other": "{n} PROJECTS"
   },
   "{n} SUB": "{n} SUB",
+  "{n} audio assets": {
+   "one": "{n} audio asset",
+   "other": "{n} audio assets"
+  },
+  "{n} audio files of this project are not in this browser: their envelopes still drive, KEEP AUDIO stays silent until the project ZIP is imported.": {
+   "one": "{n} audio file of this project is not in this browser: its envelope still drives, KEEP AUDIO stays silent until the project ZIP is imported.",
+   "other": "{n} audio files of this project are not in this browser: their envelopes still drive, KEEP AUDIO stays silent until the project ZIP is imported."
+  },
   "{n} clips selected · {target}": {
    "one": "{n} clip selected · {target}",
    "other": "{n} clips selected · {target}"
@@ -1301,6 +1430,7 @@
   "{skins} — coming (“name”-specs)": "{skins} — coming (“name”-specs)",
   "{step} of {total}": "{step} of {total}",
   "{target} (unavailable)": "{target} (unavailable)",
+  "{title} controls": "{title} controls",
   "{title} window controls": "{title} window controls",
   "{value} · base · modulated": "{value} · base · modulated",
   "{value} · modulated": "{value} · modulated",
@@ -1322,7 +1452,8 @@
   "“{action}” already has {chord}": "“{action}” already has {chord}",
   "“{action}” is now bound to {chord}": "“{action}” is now bound to {chord}",
   "… preview truncated at 200 000 characters; the notes are kept whole": "… preview truncated at 200 000 characters; the notes are kept whole",
-  "→TL": "→TL"
+  "→TL": "→TL",
+  "≈ {time} to render": "≈ {time} to render"
  },
  "notes": {
   "(root)": "the top of the shelf: the notes in no folder",
@@ -1340,6 +1471,10 @@
   "Download {name} · {w} × {h}": "the same button's hint: {w} × {h} the picture's width and height in pixels",
   "Drag to route; tap to arm; double-tap to reset": "route: connect this macro to a control so it moves it; arm: make it wait for a tap on the control to connect to",
   "Drag ✥ onto a slider or knob to route it (a PAD’s ✥ makes that control get hit) · drop it there again to release · a macro bar: drag sideways to set, double-tap to reset, tap to rename or unassign · number ring: up/down = master depth, double-tap = 100% · route ring: up/down = depth, sideways = direction.": "✥ is the macro’s routing grip; a PAD is a trigger macro; one sentence of help shown along the window’s foot",
+  "ENVELOPE · LEVEL": "a clip's menu: the envelope band to follow, the one in use ticked",
+  "ENVELOPE · LEVEL ✓": "a clip's menu: the envelope band to follow, the one in use ticked",
+  "ENVELOPE · LOW": "a clip's menu: the envelope band to follow, the one in use ticked",
+  "ENVELOPE · LOW ✓": "a clip's menu: the envelope band to follow, the one in use ticked",
   "EVT": "short for EVENT: this output fires on a hit (an onset), it does not carry a level",
   "Each label’s ink from the picture under it (this app’s sampler)": "the app's own sampler reads the picture behind each word and picks white or black ink",
   "FOV": "field of view: how wide the camera sees",
@@ -1354,6 +1489,7 @@
   "HOLD ¼": "STUTTER: hold the current beat and repeat it at this note value (a quarter note, a whole beat) while held",
   "Hold and repeat {note}; release to resume the original clock": "{note} is a note value, 1/4 or 1 (a beat or a bar)",
   "Include {what} in the next save": "{what} is the name of a part of the project (LAYOUT, PICTURE …), as its switch is labelled",
+  "KEEP AUDIO (PLAY THE FILE)": "a clip's menu: the file plays / the envelope alone / fit the audio into the clip's length (varispeed)",
   "KNEE": "the bend in the picture's tone curve where the highlights start to roll off (as in a compressor's knee)",
   "KNOB": "the two kinds of macro: KNOB (a value you turn) and TRIGGER (a button that fires)",
   "LAP": "a demo LFO's name: it moves the camera one lap round per bar (the user can rename it)",
@@ -1376,12 +1512,14 @@
   "SAW↑": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
   "SAW↓": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
   "SHELF": "the SHELF: where your notes are kept in this browser (not the RACK, the column of windows)",
+  "SIGNAL ONLY (MUTE THE FILE)": "a clip's menu: the file plays / the envelope alone / fit the audio into the clip's length (varispeed)",
   "SINE": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
   "SKIN": "the look the kit wears: one of the built-in THEMES (FROST, MORPH …, whose names stay as written)",
   "SOURCE": "the head of a device's left column: the shape PRESETs, the envelope TIME, the audio SOURCE",
   "SQR": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
   "STARTER": "a preset the app ships (a starter project's modulation), not one the user saved",
   "STATUS TAGS": "the small status labels over the picture (BASINS' badges and stats bar)",
+  "STRETCH TO CLIP · SHIFT+T": "a clip's menu: the file plays / the envelope alone / fit the audio into the clip's length (varispeed)",
   "STUTTER {note} latched — applies to BPM-synced LFOs; press again to release": "STUTTER: the clock holds the current beat and repeats it at the note value {note} (1/4 or 1)",
   "Selection scope": "what a selection picks: whole clips or curve points",
   "Step through twelve density levels to reveal shells.": "shells: the nested surfaces of equal density in the picture (like the layers of an onion)",
@@ -1424,19 +1562,29 @@
   "history::SEGMENT": "a history row: a timeline edit's name",
   "history::TENSION": "a history row: a timeline edit's name",
   "left rack scroll": "the scrollbar beside the cards of the left / right RACK (the column of docked windows)",
+  "no microphone was found on this device": "the microphone's state: no input",
   "notes — markdown, {inline} and {display} maths; ctrl+enter previews — kept in this browser": "{inline} and {display} are the maths syntax, $inline$ and $$display$$, shown exactly as typed",
   "notes — markdown, {inline} and {display} maths; ctrl+enter previews — kept in this browser and in the project": "{inline} and {display} are the maths syntax, $inline$ and $$display$$, shown exactly as typed",
   "open {path} in your notes tab": "your notes tab is the notebook’s first tab: the note you are writing, kept in this browser",
   "patch copied — {:PASTE} onto any {kind}": "a patch: all of one device’s settings together, as a synth patch; {kind} is the device kind (LFO, ENV, AUDIO)",
   "peak hold::HOLD": "the audio follower's PEAK HOLD: how long a band's peak is held before it falls (a time), not the envelope stage",
+  "retrying without the processing constraints": "the microphone's state: a browser that cannot turn AGC off is still worth listening to",
   "right rack scroll": "the scrollbar beside the cards of the left / right RACK (the column of docked windows)",
   "text ink::SAMPLED": "TEXT (the label ink) set by the app itself, from the picture under each label: \"measured\", not \"a sample\"",
+  "the audio graph could not be built": "the microphone's state: a fault",
   "the gate opens here and stays open until hysteresis below it": "hysteresis: a small margin below the opening level, so the gate does not flicker open and shut",
   "the left rack": "the RACK: the column of docked windows at the screen’s edge (not the SHELF, where notes are kept)",
+  "the microphone could not be opened": "the microphone's state: a fault",
+  "the microphone needs a secure page — open this over HTTPS, or on localhost": "why the microphone cannot start",
+  "the microphone was disconnected": "the microphone's state: unplugged",
+  "the microphone was refused — allow it for this page in the browser’s site settings, then press MIC again": "the microphone's state: refused",
   "the rack": "the RACK: the column of docked windows at the screen’s edge (not the SHELF, where notes are kept)",
+  "this browser does not offer microphone capture": "why the microphone cannot start",
+  "this browser has no Web Audio, so there is nothing to analyse with": "why the microphone cannot start",
   "this page — markdown, {inline} and {display} maths — saved in the project": "{inline} and {display} are the maths syntax, shown exactly as typed",
   "this place takes {accept}; that is a {kind}": "{accept} and {kind} are kinds of MIR file (project, page …), written as their ids",
   "time span::WINDOW": "a span of time (in seconds) the view looks across, not an interface window",
+  "waiting for permission to use the microphone": "the microphone's state: the permission prompt is up",
   "window {s} s": "a window of time: the envelope graph now spans {s} seconds",
   "{band} · A {a} · R {r} · H {h} ms": "A, R and H are the initials of ATTACK, RELEASE and HOLD (the peak hold), each in milliseconds: use the initials of your own labels",
   "{kind} {id}": "a device's name: its kind and its id (LFO s2); reorder if your language puts the id first",
@@ -1484,8 +1632,14 @@
   " — where the project stands": [
    "mir/history/history-list.js"
   ],
+  "(learned from the last render)": [
+   "mir/render/panel.js"
+  ],
   "(root)": [
    "mir/notes/face.js"
+  ],
+  "+ ADD": [
+   "mir/controls/list.js"
   ],
   "+ DEVICE": [
    "mir/modulation/modwindow/modwindow.js"
@@ -1519,6 +1673,9 @@
   ],
   "A file the app needs did not load.": [
    "mir/shell/boot.js"
+  ],
+  "A film is rendering — wait for it, or CANCEL it in RENDER, before moving the picture.": [
+   "mir/render/panel.js"
   ],
   "A soft light follows the pointer over lit surfaces (never on touch)": [
    "mir/shell/gui.js"
@@ -1590,6 +1747,9 @@
   "AUDIO ON": [
    "mir/modulation/window.js"
   ],
+  "AUDIO · {name}": [
+   "mir/timeline/audio-drop.js"
+  ],
   "AUTO": [
    "mir/shell/gui.js"
   ],
@@ -1617,6 +1777,12 @@
   "Add a point that preserves its current value": [
    "mir/timeline/shortcuts.js"
   ],
+  "Add a {noun} — {count} of {cap}": [
+   "mir/controls/list.js"
+  ],
+  "Add a {noun} — {count} of {cap}, full": [
+   "mir/controls/list.js"
+  ],
   "Add an LFO, envelope, or audio follower": [
    "mir/modulation/window.js"
   ],
@@ -1629,6 +1795,9 @@
   "Add and place a point": [
    "mir/timeline/shortcuts.js"
   ],
+  "Add audio": [
+   "mir/timeline/audio-drop.js"
+  ],
   "Add automation lane": [
    "mir/timeline/window.js"
   ],
@@ -1637,6 +1806,9 @@
   ],
   "Add to the rectangle selection": [
    "mir/timeline/shortcuts.js"
+  ],
+  "Added {name}": [
+   "mir/folders/folders.js"
   ],
   "All meter · click for Low, Mid and High": [
    "mir/modulation/window.js"
@@ -1764,14 +1936,24 @@
    "mir/kit.js",
    "mir/shell/busy.js"
   ],
+  "CANCEL": [
+   "mir/render/panel.js",
+   "mir/timeline/audio-drop.js"
+  ],
   "CAPTURE": [
    "mir/folders/gallery.js"
+  ],
+  "CAPTURE IMAGE": [
+   "mir/render/panel.js"
   ],
   "CENTER PLAYHEAD": [
    "mir/timeline/shortcuts.js"
   ],
   "CENTRE": [
    "mir/modulation/window.js"
+  ],
+  "CLEAR": [
+   "mir/history/window.js"
   ],
   "CLOSE": [
    "mir/modulation/window.js"
@@ -1804,11 +1986,13 @@
   ],
   "COPIED": [
    "mir/kit.js",
+   "mir/render/panel.js",
    "mir/shell/rack.js"
   ],
   "COPY": [
    "mir/modulation/modwindow/modwindow.js",
    "mir/modulation/window.js",
+   "mir/render/panel.js",
    "mir/shell/notebook.js",
    "mir/timeline/shortcuts.js"
   ],
@@ -1853,6 +2037,12 @@
   ],
   "Cancelled: “{action}” keeps its keys": [
    "mir/keyboard/keyboard.js"
+  ],
+  "Capture an image first": [
+   "mir/render/panel.js"
+  ],
+  "Capture an image to enable Download": [
+   "mir/render/panel.js"
   ],
   "Capture image": [
    "mir/folders/gallery.js"
@@ -1923,8 +2113,14 @@
   "Colour intensity across glass surfaces: 0% neutral · 100% original · 200% vivid.": [
    "mir/shell/gui.js"
   ],
+  "Complete · {frames} frames · {time} render time": [
+   "mir/render/panel.js"
+  ],
   "Continue from the clock phase": [
    "mir/modulation/window.js"
+  ],
+  "Copy the exact centre, zoom and rotation as text": [
+   "mir/render/panel.js"
   ],
   "Copy the selection": [
    "mir/timeline/shortcuts.js"
@@ -1932,11 +2128,17 @@
   "Corner radius across window panes.": [
    "mir/shell/gui.js"
   ],
+  "Could not add the project: {why}": [
+   "mir/folders/folders.js"
+  ],
   "Could not delete: {why}": [
    "mir/folders/gallery.js"
   ],
   "Could not duplicate: {why}": [
    "mir/folders/gallery.js"
+  ],
+  "Could not keep the zip’s files: {why}": [
+   "mir/folders/folders.js"
   ],
   "Could not keep {name}: {why}": [
    "mir/folders/folders.js"
@@ -1945,7 +2147,8 @@
    "mir/folders/folders.js"
   ],
   "Could not make the picture: {why}": [
-   "mir/folders/gallery.js"
+   "mir/folders/gallery.js",
+   "mir/render/panel.js"
   ],
   "Could not move: {why}": [
    "mir/folders/gallery.js"
@@ -1964,6 +2167,9 @@
   ],
   "Could not restore the factory gallery: {why}": [
    "mir/folders/gallery.js"
+  ],
+  "Could not save the zip: {why}": [
+   "mir/folders/folders.js"
   ],
   "Could not save: {why}": [
    "mir/folders/folders.js",
@@ -2038,6 +2244,12 @@
   "DESTINATION": [
    "mir/modulation/window.js"
   ],
+  "DISCARD RENDER": [
+   "mir/render/panel.js"
+  ],
+  "DISCARD STORED RENDER": [
+   "mir/render/panel.js"
+  ],
   "DISCONNECTED": [
    "mir/shell/gui.js"
   ],
@@ -2059,11 +2271,23 @@
   "DOWNLOAD": [
    "mir/folders/gallery.js"
   ],
+  "DOWNLOAD IMAGE": [
+   "mir/render/panel.js"
+  ],
+  "DOWNLOAD STORED PNG PART": [
+   "mir/render/panel.js"
+  ],
+  "DOWNLOAD {name}": [
+   "mir/render/panel.js"
+  ],
   "DRAFT": [
    "mir/shell/language.js"
   ],
   "DRIFT": [
    "mir/modulation/window.js"
+  ],
+  "DRIVES": [
+   "mir/timeline/audio-drop.js"
   ],
   "DROP GUIDES": [
    "mir/shell/gui.js"
@@ -2126,8 +2350,17 @@
   "Download the captured image to your photos or files.": [
    "mir/folders/gallery.js"
   ],
+  "Download the same numbers as a .json file": [
+   "mir/render/panel.js"
+  ],
+  "Download {name} · {size}": [
+   "mir/render/panel.js"
+  ],
   "Download {name} · {w} × {h}": [
    "mir/folders/gallery.js"
+  ],
+  "Download, then share from Files.": [
+   "mir/render/panel.js"
   ],
   "Drag a pattern / audio clip body": [
    "mir/timeline/shortcuts.js"
@@ -2138,6 +2371,9 @@
   "Drag to reorder": [
    "mir/modulation/window.js",
    "mir/shell/transport.js"
+  ],
+  "Drag to reorder this {noun}; arrow keys move it": [
+   "mir/controls/list.js"
   ],
   "Drag to reorder; double-tap to rename": [
    "mir/modulation/window.js"
@@ -2186,6 +2422,30 @@
   ],
   "ENV {n}": [
    "mir/pattern/window.js"
+  ],
+  "ENVELOPE · HIGH": [
+   "mir/timeline/audio-kind.js"
+  ],
+  "ENVELOPE · HIGH ✓": [
+   "mir/timeline/audio-kind.js"
+  ],
+  "ENVELOPE · LEVEL": [
+   "mir/timeline/audio-kind.js"
+  ],
+  "ENVELOPE · LEVEL ✓": [
+   "mir/timeline/audio-kind.js"
+  ],
+  "ENVELOPE · LOW": [
+   "mir/timeline/audio-kind.js"
+  ],
+  "ENVELOPE · LOW ✓": [
+   "mir/timeline/audio-kind.js"
+  ],
+  "ENVELOPE · MID": [
+   "mir/timeline/audio-kind.js"
+  ],
+  "ENVELOPE · MID ✓": [
+   "mir/timeline/audio-kind.js"
   ],
   "ERROR": [
    "mir/modulation/window.js"
@@ -2236,6 +2496,9 @@
   "Everything": [
    "mir/shell/gui.js"
   ],
+  "Exact video time, fixed resolution, complete frames. The active project supplies the colours and rack.": [
+   "mir/render/panel.js"
+  ],
   "Export the selected project (or the open one) as a .mir file, or as a picture that carries it.": [
    "mir/folders/folders.js"
   ],
@@ -2251,6 +2514,9 @@
   "FACTORY": [
    "mir/modulation/modwindow/modwindow.js",
    "mir/modulation/window.js"
+  ],
+  "FAILED": [
+   "mir/render/panel.js"
   ],
   "FILL EACH {n} STEPS": [
    "mir/pattern/window.js"
@@ -2370,6 +2636,9 @@
   "FORGET": [
    "mir/shell/gui.js"
   ],
+  "FORMAT": [
+   "mir/render/panel.js"
+  ],
   "FOV": [
    "mir/modulation/host.js"
   ],
@@ -2433,6 +2702,9 @@
   ],
   "Follow the theme (on a {:SOLID} pane, its lightness)": [
    "mir/shell/gui.js"
+  ],
+  "Forget the rows; the picture stays as it is": [
+   "mir/history/window.js"
   ],
   "GAIN": [
    "mir/modulation/modwindow/modwindow.js",
@@ -2533,7 +2805,8 @@
    "mir/modulation/window.js"
   ],
   "Handed to the share sheet — choose Save Image or Save to Files.": [
-   "mir/folders/gallery.js"
+   "mir/folders/gallery.js",
+   "mir/render/panel.js"
   ],
   "Hold a knob": [
    "mir/timeline/shortcuts.js"
@@ -2576,6 +2849,9 @@
   "ISO": [
    "mir/modulation/host.js"
   ],
+  "Image format": [
+   "mir/render/panel.js"
+  ],
   "Imported — {name}": [
    "mir/folders/folders.js"
   ],
@@ -2596,6 +2872,15 @@
   ],
   "Invert the curve output: 1 − v": [
    "mir/modulation/window.js"
+  ],
+  "JSON": [
+   "mir/render/panel.js"
+  ],
+  "KEEP AUDIO": [
+   "mir/timeline/audio-drop.js"
+  ],
+  "KEEP AUDIO (PLAY THE FILE)": [
+   "mir/timeline/audio-kind.js"
   ],
   "KEYBOARD": [
    "mir/keyboard/keyboard.js",
@@ -2659,6 +2944,9 @@
   "LOCATE CLIPS": [
    "mir/timeline/knobs.js"
   ],
+  "LONGER than {limit}: keep this page open and visible (the screen is held awake), or shorten it; a failed render keeps its completed frames to recover": [
+   "mir/render/plan.js"
+  ],
   "LOW": [
    "mir/modulation/modwindow/modwindow.js",
    "mir/modulation/window.js"
@@ -2704,6 +2992,9 @@
   ],
   "MAKE ROOM — delete oldest (“{name}”) and save": [
    "mir/folders/gallery.js"
+  ],
+  "MAKING…": [
+   "mir/render/panel.js"
   ],
   "MATERIAL": [
    "mir/shell/gui.js"
@@ -2773,6 +3064,9 @@
   "MOVE TO": [
    "mir/folders/gallery.js"
   ],
+  "MP4 unavailable at this size/FPS. Choose PNG frames or a smaller size.": [
+   "mir/render/panel.js"
+  ],
   "MULTI-SAW": [
    "mir/modulation/modwindow/modwindow.js",
    "mir/modulation/window.js"
@@ -2810,6 +3104,9 @@
   ],
   "Middle button, hold + drag": [
    "mir/timeline/shortcuts.js"
+  ],
+  "Modulation ON replays the rack from its first Space edge. Timeline ON replays clips from beat zero. Both skip to “start at”. With both OFF, the current look is frozen. Escape cancels.": [
+   "mir/render/panel.js"
   ],
   "Modulation cadence": [
    "mir/shell/transport.js"
@@ -2926,8 +3223,17 @@
   "No macros yet — add one in the modulation window.": [
    "mir/shell/transport.js"
   ],
+  "No room for this audio clip here: add a lane or choose another time.": [
+   "mir/timeline/audio-drop.js"
+  ],
   "No room on the timeline for {what} — add a lane or move the playhead": [
    "mir/modulation/window.js"
+  ],
+  "No room: {max} minutes of audio is the budget (this would be {now}).": [
+   "mir/timeline/audio-kind.js"
+  ],
+  "No room: {n} audio clips is the budget.": [
+   "mir/timeline/audio-kind.js"
   ],
   "No such action.": [
    "mir/shell/keys.js"
@@ -2974,6 +3280,9 @@
   "OPEN FILE": [
    "mir/folders/folders.js"
   ],
+  "OPEN ZIP…": [
+   "mir/folders/gallery.js"
+  ],
   "OUT": [
    "mir/modulation/modwindow/modwindow.js"
   ],
@@ -2985,6 +3294,9 @@
   ],
   "Open a project file (.mir) or a picture that carries one — or drop it on this window.": [
    "mir/folders/folders.js"
+  ],
+  "Open a project saved as one .zip (SAVE AS ZIP): its audio comes back with it and it becomes the current project.": [
+   "mir/folders/gallery.js"
   ],
   "Open folder {name}": [
    "mir/folders/gallery.js"
@@ -3004,8 +3316,14 @@
   "Open the preset list — {factory} ships with the app, the rest are yours": [
    "mir/modulation/modwindow/modwindow.js"
   ],
+  "Open {name}": [
+   "mir/shell/opener.js"
+  ],
   "Open {name} — tap again": [
    "mir/folders/gallery.js"
+  ],
+  "Opened {name}": [
+   "mir/folders/folders.js"
   ],
   "Opened — {name}": [
    "mir/folders/gallery.js"
@@ -3076,6 +3394,9 @@
   "PRESETS": [
    "mir/modulation/modwindow/modwindow.js"
   ],
+  "PREVIEW FIRST 3 SECONDS": [
+   "mir/render/panel.js"
+  ],
   "PREVIOUS BAR": [
    "mir/timeline/shortcuts.js"
   ],
@@ -3103,6 +3424,9 @@
   "Pattern: drive this envelope from its step row in the PATTERN window": [
    "mir/modulation/window.js"
   ],
+  "Picture made — {w}×{h}. Tap DOWNLOAD IMAGE to keep it.": [
+   "mir/render/panel.js"
+  ],
   "Picture made — {w}×{h}. Tap the download icon to keep it.": [
    "mir/folders/gallery.js"
   ],
@@ -3123,6 +3447,9 @@
   ],
   "Preset name — type one, then tap {:SAVE}": [
    "mir/modulation/modwindow/modwindow.js"
+  ],
+  "Preview ready": [
+   "mir/render/panel.js"
   ],
   "Previous preset": [
    "mir/modulation/modwindow/modwindow.js"
@@ -3182,6 +3509,12 @@
   "RECORD INPUT": [
    "mir/keyboard/keyboard.js"
   ],
+  "RECOVER COMPLETED FRAMES": [
+   "mir/render/panel.js"
+  ],
+  "RECOVERABLE FRAMES": [
+   "mir/render/panel.js"
+  ],
   "REDO": [
    "mir/history/history-list.js",
    "mir/timeline/shortcuts.js"
@@ -3216,6 +3549,10 @@
   "REMOVE ALL": [
    "mir/modulation/window.js"
   ],
+  "RENDER": [
+   "mir/app.js",
+   "mir/render/panel.js"
+  ],
   "RES": [
    "mir/modulation/host.js"
   ],
@@ -3234,6 +3571,9 @@
   "RESTORE FACTORY GALLERY": [
    "mir/folders/gallery.js"
   ],
+  "RESUME WITH MATCHING PROJECT": [
+   "mir/render/panel.js"
+  ],
   "RETRY": [
    "mir/shell/boot.js"
   ],
@@ -3249,6 +3589,9 @@
   ],
   "RUN": [
    "mir/modulation/window.js"
+  ],
+  "RUN SELF-TEST": [
+   "mir/render/panel.js"
   ],
   "Rack presets, in folders: {factory} ships with the app, the rest are yours": [
    "mir/modulation/modwindow/modwindow.js"
@@ -3310,8 +3653,32 @@
   "Remove this route": [
    "mir/modulation/window.js"
   ],
+  "Remove this {noun} (tap twice)": [
+   "mir/controls/list.js"
+  ],
+  "Remove {noun} {n}": [
+   "mir/controls/list.js"
+  ],
+  "Remove {noun} {n} — tap again to confirm": [
+   "mir/controls/list.js"
+  ],
   "Rename {name}": [
    "mir/folders/gallery.js"
+  ],
+  "Render cancelled. Completed checkpoints remain available below.": [
+   "mir/render/panel.js"
+  ],
+  "Render complete": [
+   "mir/render/panel.js"
+  ],
+  "Render failed: {why}": [
+   "mir/render/panel.js"
+  ],
+  "Render — this project, and the picture or film you make of it": [
+   "mir/render/panel.js"
+  ],
+  "Reorder {noun} {n} — drag, or the arrow keys": [
+   "mir/controls/list.js"
   ],
   "Reset it": [
    "mir/timeline/shortcuts.js"
@@ -3396,8 +3763,14 @@
    "mir/folders/folders.js",
    "mir/notes/face.js"
   ],
+  "SAVE AS ZIP…": [
+   "mir/folders/gallery.js"
+  ],
   "SAVE TO": [
    "mir/folders/gallery.js"
+  ],
+  "SAVE {name} · {size}": [
+   "mir/render/panel.js"
   ],
   "SAW↑": [
    "mir/modulation/modwindow/modwindow.js",
@@ -3450,6 +3823,12 @@
   ],
   "SHOW ON OPEN": [
    "mir/shell/notebook.js"
+  ],
+  "SIGNAL ONLY": [
+   "mir/timeline/audio-drop.js"
+  ],
+  "SIGNAL ONLY (MUTE THE FILE)": [
+   "mir/timeline/audio-kind.js"
   ],
   "SINE": [
    "mir/modulation/modwindow/modwindow.js",
@@ -3511,10 +3890,20 @@
    "mir/modulation/modwindow/modwindow.js"
   ],
   "STILL": [
+   "mir/render/recorder.js",
    "mir/shell/gui.js"
+  ],
+  "STORED RENDER": [
+   "mir/render/panel.js"
   ],
   "STRETCH AUDIO": [
    "mir/timeline/shortcuts.js"
+  ],
+  "STRETCH TO CLIP · SHIFT+T": [
+   "mir/timeline/audio-kind.js"
+  ],
+  "STRETCH ×{rate} · pitch follows": [
+   "mir/timeline/editor.js"
   ],
   "STUTTER released — rejoined the running beat": [
    "mir/modulation/window.js"
@@ -3547,6 +3936,9 @@
   "Save as — store what is on screen as a new project, with the name and folder below.": [
    "mir/folders/folders.js"
   ],
+  "Save the current project, with the audio files it uses, as one .zip.": [
+   "mir/folders/gallery.js"
+  ],
   "Save the current window arrangement": [
    "mir/shell/rack.js"
   ],
@@ -3565,9 +3957,13 @@
   "Saved projects and folders": [
    "mir/folders/gallery.js"
   ],
+  "Saved {file} · {size}": [
+   "mir/folders/folders.js"
+  ],
   "Saved — {name}": [
    "mir/folders/folders.js",
-   "mir/folders/gallery.js"
+   "mir/folders/gallery.js",
+   "mir/render/panel.js"
   ],
   "Saved — {name} · made room by deleting {n} projects": [
    "mir/folders/gallery.js"
@@ -3766,8 +4162,14 @@
   "Space": [
    "mir/timeline/shortcuts.js"
   ],
+  "Starter projects": [
+   "mir/shell/opener.js"
+  ],
   "Step through twelve density levels to reveal shells.": [
    "mir/modulation/host.js"
+  ],
+  "Stop inspecting {name} and describe the live view again": [
+   "mir/render/panel.js"
   ],
   "Strength of the pane shadow. {:DROP SHADOW} can switch it off.": [
    "mir/shell/gui.js"
@@ -3804,6 +4206,9 @@
   "THIS CONTROL IS HELD BY {n} MACROS  ·  which one the outer arc edits": [
    "mir/modulation/window.js"
   ],
+  "THIS VIEW": [
+   "mir/render/panel.js"
+  ],
   "TIER": [
    "mir/shell/gui.js"
   ],
@@ -3821,6 +4226,12 @@
   ],
   "TIMELINE CLIP": [
    "mir/timeline/knobs.js"
+  ],
+  "TIMELINE · ACTIVE": [
+   "mir/render/recorder.js"
+  ],
+  "TIMELINE · SELECTION": [
+   "mir/render/recorder.js"
   ],
   "TINT": [
    "mir/shell/gui.js",
@@ -3870,6 +4281,9 @@
   "Tab is kept for moving the focus.": [
    "mir/shell/keys.js"
   ],
+  "Tap for the colour chooser · drag up or down to turn its hue (Shift: finer)": [
+   "mir/controls/swatch.js"
+  ],
   "Tap repeatedly to set the modulation clock": [
    "mir/modulation/window.js"
   ],
@@ -3878,6 +4292,15 @@
   ],
   "Tap the tempo: four taps set it": [
    "mir/shell/transport.js"
+  ],
+  "Target the envelope drives": [
+   "mir/timeline/audio-drop.js"
+  ],
+  "That is not a project zip — nothing changed": [
+   "mir/folders/folders.js"
+  ],
+  "That is not a project zip: {why}": [
+   "mir/folders/folders.js"
   ],
   "The MIR logo is outlined from Butler Free Extra Bold by {who}.": [
    "mir/shell/gui.js"
@@ -3890,6 +4313,12 @@
   ],
   "The dotted guide where a dragged window will land": [
    "mir/shell/gui.js"
+  ],
+  "The envelope drives the target and the file plays with the transport": [
+   "mir/timeline/audio-drop.js"
+  ],
+  "The envelope drives the target; the file stays silent": [
+   "mir/timeline/audio-drop.js"
   ],
   "The factory gallery is already complete.": [
    "mir/folders/gallery.js"
@@ -3912,6 +4341,9 @@
   "The pane’s hairline rim": [
    "mir/shell/gui.js"
   ],
+  "The picture on screen, without controls": [
+   "mir/render/panel.js"
+  ],
   "The picture waits until you let go. The playhead and readers move at once.": [
    "mir/shell/gui.js"
   ],
@@ -3926,6 +4358,12 @@
   ],
   "The view moved since the picture was made — capture it again.": [
    "mir/folders/gallery.js"
+  ],
+  "The view moved since the picture was made — tap CAPTURE IMAGE again.": [
+   "mir/render/panel.js"
+  ],
+  "The {noun} list is full — {count} of {cap}": [
+   "mir/controls/list.js"
   ],
   "The {panel} panel could not be built: {why}": [
    "mir/folders/folders.js"
@@ -4063,6 +4501,9 @@
   ],
   "VEIL": [
    "mir/shell/gui.js"
+  ],
+  "VIEW DETAILS": [
+   "mir/render/panel.js"
   ],
   "VIVID": [
    "mir/shell/gui.js"
@@ -4255,11 +4696,17 @@
   "beacon": [
    "mir/palette.js"
   ],
+  "beats {from} → {to} at {bpm} BPM": [
+   "mir/render/panel.js"
+  ],
   "biolum": [
    "mir/palette.js"
   ],
   "bipolar (Re/Im legible)": [
    "mir/palette.js"
+  ],
+  "captured before the picture finished resolving": [
+   "mir/render/panel.js"
   ],
   "carousel": [
    "mir/palette.js"
@@ -4308,6 +4755,9 @@
   ],
   "copy {name} into the project": [
    "mir/notes/face.js"
+  ],
+  "could not open it": [
+   "mir/folders/folders.js"
   ],
   "could not read it: {why}": [
    "mir/core/intake.js"
@@ -4397,6 +4847,9 @@
   ],
   "forget this layout": [
    "mir/shell/rack.js"
+  ],
+  "frames": [
+   "mir/render/panel.js"
   ],
   "frost setting::FROST": [
    "mir/shell/gui.js"
@@ -4521,6 +4974,9 @@
   "lasers": [
    "mir/palette.js"
   ],
+  "left": [
+   "mir/render/panel.js"
+  ],
   "left rack scroll": [
    "mir/shell/rack-scrollbar.js"
   ],
@@ -4644,11 +5100,14 @@
    "mir/palette.js"
   ],
   "next": [
-   "mir/shell/gui.js"
+   "mir/controls/stepper.js"
   ],
   "no": [
    "mir/notes/face.js",
    "mir/shell/notebook.js"
+  ],
+  "no microphone was found on this device": [
+   "mir/modulation/audio-capture.js"
   ],
   "no notes yet — name one above and {:SAVE AS}": [
    "mir/notes/face.js"
@@ -4703,6 +5162,9 @@
   ],
   "nothing to read": [
    "mir/core/intake.js"
+  ],
+  "numbered lossless PNG frames": [
+   "mir/render/panel.js"
   ],
   "one cycle": [
    "mir/modulation/window.js"
@@ -4766,7 +5228,7 @@
    "mir/keyboard/keyboard.js"
   ],
   "previous": [
-   "mir/shell/gui.js"
+   "mir/controls/stepper.js"
   ],
   "prism": [
    "mir/palette.js"
@@ -4801,6 +5263,9 @@
   "rename {name}": [
    "mir/notes/face.js"
   ],
+  "renamed beside a project already there": [
+   "mir/folders/folders.js"
+  ],
   "renamed to {name}": [
    "mir/notes/face.js"
   ],
@@ -4809,6 +5274,9 @@
   ],
   "replace yours?": [
    "mir/notes/face.js"
+  ],
+  "retrying without the processing constraints": [
+   "mir/modulation/audio-capture.js"
   ],
   "right rack scroll": [
    "mir/shell/rack-scrollbar.js"
@@ -4821,6 +5289,9 @@
   ],
   "route {macro} — drag onto a control, or tap to arm": [
    "mir/modulation/window.js"
+  ],
+  "running…": [
+   "mir/render/panel.js"
   ],
   "save as folder/name": [
    "mir/notes/face.js"
@@ -4853,6 +5324,9 @@
   "sea": [
    "mir/palette.js"
   ],
+  "seek": [
+   "mir/render/panel.js"
+  ],
   "selected project": [
    "mir/folders/gallery.js"
   ],
@@ -4883,6 +5357,9 @@
   "step {n}": [
    "mir/pattern/window.js"
   ],
+  "stored on disk": [
+   "mir/render/panel.js"
+  ],
   "subtitle": [
    "mir/shell/notebook.js"
   ],
@@ -4890,6 +5367,7 @@
    "mir/palette.js"
   ],
   "sure?": [
+   "mir/controls/list.js",
    "mir/folders/gallery.js"
   ],
   "take this window off the rack": [
@@ -4941,6 +5419,9 @@
   "that preset was written by a model this build cannot honour": [
    "mir/modulation/window.js"
   ],
+  "the audio graph could not be built": [
+   "mir/modulation/audio-capture.js"
+  ],
   "the bar at the bottom centre": [
    "mir/shell/transport.js"
   ],
@@ -4980,8 +5461,20 @@
   "the loop clock claims the resume: the beat jumped back {moved} of a beat to the {grid}-beat note boundary just passed": [
    "mir/modulation/window.js"
   ],
+  "the microphone could not be opened": [
+   "mir/modulation/audio-capture.js"
+  ],
   "the microphone did not open": [
    "mir/modulation/window.js"
+  ],
+  "the microphone needs a secure page — open this over HTTPS, or on localhost": [
+   "mir/modulation/audio-capture.js"
+  ],
+  "the microphone was disconnected": [
+   "mir/modulation/audio-capture.js"
+  ],
+  "the microphone was refused — allow it for this page in the browser’s site settings, then press MIC again": [
+   "mir/modulation/audio-capture.js"
   ],
   "the note ladder × 2/3 — three in the space of two": [
    "mir/modulation/window.js"
@@ -5006,6 +5499,9 @@
   ],
   "the rack": [
    "mir/shell/rack.js"
+  ],
+  "the self-test threw: {why}": [
+   "mir/render/panel.js"
   ],
   "the shelf cannot be read — {why}": [
    "mir/notes/shelf.js"
@@ -5036,6 +5532,12 @@
   ],
   "thirty-two points is the curve’s ceiling": [
    "mir/modulation/window.js"
+  ],
+  "this browser does not offer microphone capture": [
+   "mir/modulation/audio-capture.js"
+  ],
+  "this browser has no Web Audio, so there is nothing to analyse with": [
+   "mir/modulation/audio-capture.js"
   ],
   "this build has no such target — the route keeps its range until one appears": [
    "mir/modulation/window.js"
@@ -5082,8 +5584,14 @@
   "values step on the grid": [
    "mir/shell/gui.js"
   ],
+  "waiting for permission to use the microphone": [
+   "mir/modulation/audio-capture.js"
+  ],
   "window {s} s": [
    "mir/modulation/window.js"
+  ],
+  "written": [
+   "mir/render/panel.js"
   ],
   "yes": [
    "mir/notes/face.js",
@@ -5251,6 +5759,9 @@
   "{macro} → {target}  ·  {lo} … {hi}": [
    "mir/modulation/window.js"
   ],
+  "{mbps} Mbps target · ≈ {size}": [
+   "mir/render/panel.js"
+  ],
   "{name} already exists": [
    "mir/notes/shelf.js"
   ],
@@ -5260,14 +5771,23 @@
   "{name} came with the app — saving it as your own copy": [
    "mir/folders/folders.js"
   ],
+  "{name} could not be decoded as audio.": [
+   "mir/timeline/audio-drop.js"
+  ],
   "{name} could not start": [
    "mir/shell/boot.js"
+  ],
+  "{name} holds no audio.": [
+   "mir/timeline/audio-analysis.js"
   ],
   "{name} in {unit}": [
    "mir/modulation/window.js"
   ],
   "{name} is already there": [
    "mir/folders/gallery.js"
+  ],
+  "{name} is longer than {minutes} minutes.": [
+   "mir/timeline/audio-analysis.js"
   ],
   "{name} on {kind} {id}": [
    "mir/modulation/window.js"
@@ -5292,6 +5812,12 @@
   ],
   "{n} SUB": [
    "mir/modulation/window.js"
+  ],
+  "{n} audio assets": [
+   "mir/folders/folders.js"
+  ],
+  "{n} audio files of this project are not in this browser: their envelopes still drive, KEEP AUDIO stays silent until the project ZIP is imported.": [
+   "mir/timeline/audio-drop.js"
   ],
   "{n} clips selected · {target}": [
    "mir/timeline/editor.js"
@@ -5341,13 +5867,18 @@
   "{target} (unavailable)": [
    "mir/modulation/window.js"
   ],
+  "{title} controls": [
+   "mir/controls/list.js"
+  ],
   "{title} window controls": [
    "mir/window/rail.js"
   ],
   "{value} · base · modulated": [
+   "mir/controls/range.js",
    "mir/kit.js"
   ],
   "{value} · modulated": [
+   "mir/controls/range.js",
    "mir/kit.js"
   ],
   "{value} · {n} OUT": [
@@ -5406,6 +5937,9 @@
   ],
   "→TL": [
    "mir/modulation/window.js"
+  ],
+  "≈ {time} to render": [
+   "mir/render/panel.js"
   ]
  }
 }

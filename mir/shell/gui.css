@@ -21,13 +21,12 @@
   --gui-grp-r: var(--r-lg);
   --gui-grp-pad: var(--sp-3) var(--sp-4) var(--sp-4);
   --gui-logo-h: 92px;
-  --gui-step-b: var(--touch);
 }
 /* ── end of the values ── */
 
 /* ── the page turner: above both pages ── */
 .mir-gui .gui-head { display: flex; justify-content: center; padding-bottom: var(--sp-2); }
-.gui-turner .gui-step-name { min-width: 14em; font-weight: var(--w-bold); letter-spacing: var(--label-tracking, var(--tr-wider)); color: var(--fg); }
+.gui-turner .mir-step-name { min-width: 14em; font-weight: var(--w-bold); letter-spacing: var(--label-tracking, var(--tr-wider)); color: var(--fg); }
 
 /* ── OPTIONS: the grid ── */
 .gui-grid {
@@ -74,27 +73,13 @@ body.window-info-off .mir-gui .gui-help { display: none; }
 .gui-note { font-size: var(--fs-tiny); letter-spacing: var(--label-tracking, var(--tr-wide)); color: var(--ink-faint); }
 .gui-cost { flex-wrap: nowrap; }
 .gui-cost > .ro { flex: 1 1 0; }
-.gui-pair > .gui-step { flex: 1 1 0; min-width: 0; }
-.gui-pair > .gui-step .gui-step-name { min-width: 0; flex: 1 1 auto; }
-.gui-pair > .gui-step .gui-step-row { width: 100%; }
+.gui-pair > .mir-step { flex: 1 1 0; min-width: 0; }
+.gui-pair > .mir-step .mir-step-name { min-width: 0; flex: 1 1 auto; }
+.gui-pair > .mir-step .mir-step-row { width: 100%; }
 .gui-pair > .trig { align-self: flex-end; }
 .gui-theme-cost { font-variant-numeric: tabular-nums; }
 .gui-ro .ro-sub { display: none; }
 .gui-ro .ro-val { font-size: var(--fs-small); }
-
-/* ── the stepper: ‹ NAME › ── */
-.gui-step { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
-.gui-step-row { display: inline-flex; align-items: center; gap: var(--sp-1); }
-.gui-step-name { min-width: 6em; text-align: center; font-size: var(--fs-small); letter-spacing: var(--label-tracking, var(--tr-wide)); color: var(--fg); font-variant-numeric: tabular-nums; }
-.gui-step-b {
-  width: var(--gui-step-b); height: var(--gui-step-b); padding: 0; border: 0; border-radius: 50%;
-  background: transparent; color: var(--ink-key); font-size: var(--fs-lead); line-height: 1; cursor: pointer;
-  transition: background-color var(--motion-micro) var(--ease-out), transform var(--motion-micro) var(--ease-out);
-}
-.gui-step-b:hover { background: var(--state-hover, var(--glass-raise)); color: var(--fg); }
-.gui-step-b:is(:active, .press) { background: var(--state-press, var(--glass-press)); transform: scale(.92); }
-.gui-step-b:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
-.gui-step-b:disabled { opacity: var(--state-disabled, .38); cursor: default; background: transparent; }
 
 /* ── ABOUT ── */
 .gui-about { width: var(--gui-about-w); display: flex; flex-direction: column; align-items: center; gap: var(--sp-3); text-align: center; }
@@ -120,7 +105,7 @@ body.window-info-off .mir-gui .gui-help { display: none; }
   .gui-options[data-sheet="5"] .gui-grp:not([data-sheet="5"]) { display: none; }
   .gui-grid[data-page="2"] { grid-template-columns: var(--gui-col-narrow); grid-template-areas: none; }
   .gui-about { width: var(--gui-about-w-narrow); }
-  .gui-turner .gui-step-name { min-width: 10em; }
+  .gui-turner .mir-step-name { min-width: 10em; }
 }
 
 }   /* end @layer mir.kit.house */

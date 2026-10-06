@@ -22,7 +22,7 @@ The tokens named below are in `mir/tokens.json` (the schema) and `docs/TOKENS.md
 | **A relationship or time** (a route, a macro, the playhead) | Accent B | `--acc2`, `--acc2-soft` | Accent A. Mixing A and B for the same thing |
 | **Carried** (mid-drag) | One height up (the floating window's shadow), plus an accent ring | `--state-carried` = `--surface-shadow-float` + ring | An upward shadow. Two drawings for one carry |
 | **Drop here** | A dotted outline that brightens as the thing gets near; solid when it will land | `--prox` (core/proximity.js) + core.css `.mir-prox` | A whole-container line |
-| **A value in its own colour** | An arc, or a coloured thumb, with a glow in that colour — and no other relief | `--accent-sweep`, `--nc`, `--m2-slot-ink`; `--glow-own` (proposed) | Raise or well on top of it |
+| **A value in its own colour** | An arc, or a coloured thumb, with a glow in that colour — and no other relief | `--arc-dash`, `--nc`, `--m2-slot-ink`; `--glow-own` (proposed) | Raise or well on top of it |
 | **Disabled** | Faded, no relief, no pointer | `--state-disabled` (.38) | Keeping its relief. More than one fade |
 | **Words on the stage** (INFORMATIONAL: a greeting, a label, a slide) | Ink plus a soft halo in the opposite ink; a jointed line that is only ever flat, 45° or vertical; on request (`data-pane`) the same type on a pane that floats (the surface tokens) | `--info-ink`, `--info-halo`, `--info-line-w` (mir/info/info.css) | A pane by default. A fifth shadow height. Any other line angle |
 

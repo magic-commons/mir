@@ -7,13 +7,10 @@ Four parts of one thing, harvested from BASINS (`app/audio.js`, `audio-clip.js`,
 ```js
 import { installModulation } from './mir/modulation/bind.js';
 import { installTimeline } from './mir/timeline/bind.js';
-import { installAudioDrop } from './mir/timeline/audio-drop.js';
 import { createFolders } from './mir/folders/folders.js';
 
 const mod = installModulation({ mount, params });          // the microphone is the kit's: no `audio` option needed (`audio: false` leaves it out)
-let au = null;
-const tl = installTimeline({ mount, mod, say, audio: { pick: (at) => au && au.pick(at) } });   // ⋯ › ADD AUDIO…
-au = installAudioDrop(tl.editor, { mod, controller: tl.controller, say, busy: () => recorder.running });   // drop · popup · playback
+const tl = installTimeline({ mount, mod, say, busy: () => recorder.running() });   // the audio clip installs with it: a drop on a lane, ⋯ › ADD AUDIO…, the popup, the playback (`audio: false` leaves it out; `tl.audio` is `installAudioDrop`'s handle)
 const folders = createFolders({ host, app: 'myapp' });      // SAVE AS ZIP… and OPEN ZIP… are in the window
 ```
 

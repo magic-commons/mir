@@ -18,7 +18,7 @@ Then, in Claude Code, say *"build me Tetris with MIR"*. Claude loads the skill w
 | `starter/` | the app to copy |
 | `mir/`, `fonts/` | the whole kit, as the kit's repository has it |
 | `docs/*.md` | the kit's laws, one page per part |
-| `tools/serve.mjs`, `tools/check-envelope.mjs`, `tools/cdp.mjs` | a static server (it prints the pages it finds), the skin and file checker, the headless browser (`key()`, `click()`: real keys and clicks) |
+| `tools/serve.mjs`, `tools/check-envelope.mjs`, `tools/cdp.mjs`, `tools/hit-probe.mjs`, `tools/audit-material.mjs` | a static server (it prints the pages it finds), the skin and file checker, the headless browser (`key()`, `click()`: real keys and clicks), the real-pointer hit test and the look audit |
 | `tools/check-app.mjs` | loads an app headless and **plays it**: `--keys Space,ArrowLeft`, `--click <selector>`, `--wait`, then `--expect playing` (the one clock), `--expect '<text in describe()>'`, `--changed '<js>'`, `--light`, `--shot`, `--pages`. Exit 0 only when it started with no console error and every step and check held; prints `describe()` with each shared page as its title and line count (`--pages` for their text). SKILL.md's copy step puts it in the app's own `tools/` |
 | `BUILD.json` | the kit's version and commit, and whether it was built from uncommitted changes |
 

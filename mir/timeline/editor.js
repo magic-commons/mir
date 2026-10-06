@@ -40,7 +40,7 @@ import { createTimelineView } from './view.js';
 import { createTimelinePlayhead } from './playhead.js';
 import { selectionRect, clipsInRectangle, pointsInRectangle } from './selection.js';
 import { TIMELINE_ICONS } from './icons.js';
-import { stretchAudioClip } from './audio-kind.js';
+import { stretchAudioClip, audioRate } from './audio-kind.js';
 
 const bounded=(n,lo=0,hi=1)=>Math.min(hi,Math.max(lo,n));
 const editable=target=>target?.closest?.('input,textarea,select,[contenteditable="true"]');
@@ -97,7 +97,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   function zoomAt(next,anchor=0,beat=(viewport.scrollLeft+anchor)/px){px=bounded(next,8,100);paint();viewport.scrollLeft=Math.max(0,beat*px-anchor);paint();}
   function zoom(mult,anchor=0){finish(null,true);zoomAt(px*mult,anchor);}
   // SLICE: every listed clip spanning the beat cuts there as one undo; the halves join (Insert) or become (the tool) the selection.
-  function sliceAt(ids,beat,keep=false){finish(null,true);const cuts=sliceClips(model,ids,beat);if(!cuts){say(t('Nothing sliced: the cut must fall inside a clip.'));return null;}
+  function sliceAt(ids,beat,keep=false){finish(null,true);const cuts=sliceClips(model,ids,beat);if(!cuts){const r=model.lastRefusal;say(r?t(r.why,r.vars):t('Nothing sliced: the cut must fall inside a clip.'));return null;}
     selection=new Set([...(keep?selection:[]),...cuts.flatMap(c=>[c.left,c.right])]);selected=cuts[0].right;pointSelection=null;paintSelection();return cuts;}
   function markActive(){const end=Math.max(0,...doc.clips.map(c=>c.start+c.duration)),next=range?{...range}:end>0?{start:0,end}:null,now=activeRange();
     if(!next){say(t('Nothing to mark: drag a time range on the strip or add clips.'));return;}
@@ -105,9 +105,9 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   function zoomSelection(){finish(null,true);const clips=doc.clips.filter(c=>selection.has(c.id)),chosen=clips.length?clips:doc.clips;
     const bounds=clips.length||!range?chosen.length?{start:Math.min(...chosen.map(c=>c.start)),end:Math.max(...chosen.map(c=>c.start+c.duration))}:null:range;if(!bounds)return;
     px=bounded((viewport.clientWidth-40)/Math.max(.0625,bounds.end-bounds.start),8,100);paint();viewport.scrollLeft=Math.max(0,bounds.start*px-20);paint();}
-  function duplicateSelection(){const ids=model.duplicateClips([...selection]);if(!ids){say(t('No copies made: select clips with room in the arrangement.'));return;}selection=new Set(ids);selected=ids[0];pointSelection=null;paintSelection();}
+  function duplicateSelection(){const ids=model.duplicateClips([...selection]);if(!ids){const r=model.lastRefusal;say(r?t(r.why,r.vars):t('No copies made: select clips with room in the arrangement.'));return;}selection=new Set(ids);selected=ids[0];pointSelection=null;paintSelection();}
   function copySelection(cut=false){const value=model.copyClips([...selection]);if(!value)return;clipboard=value;if(cut){model.deleteClips([...selection]);selection.clear();selected=null;}paintSelection();}
-  function pasteSelection(){if(!clipboard)return;const ids=model.pasteClips(clipboard,{start:snapBeat(transportBeat()),laneId:selectedLane});if(!ids){say(t('No clips pasted: the selected lanes or source budget cannot fit this group.'));return;}selection=new Set(ids);selected=ids[0];pointSelection=null;paintSelection();}
+  function pasteSelection(){if(!clipboard)return;const ids=model.pasteClips(clipboard,{start:snapBeat(transportBeat()),laneId:selectedLane});if(!ids){const r=model.lastRefusal;say(r?t(r.why,r.vars):t('No clips pasted: the selected lanes or source budget cannot fit this group.'));return;}selection=new Set(ids);selected=ids[0];pointSelection=null;paintSelection();}
   function deleteSelection(){if(scope==='points'){if(pointSelection?.indices.size){const result=model.removePoints(pointSelection.curveId,[...pointSelection.indices]);if(!result?.removed)say(t('Keep at least two curve points.'));else pointSelection=null;}}else{model.deleteClips([...selection]);selection.clear();selected=null;}paintSelection();}
   function selectAll(){if(scope==='points'){const c=view.getClip(selected),curve=view.getCurve(c?.curveId);if(curve)pointSelection={clipId:c.id,curveId:curve.id,indices:new Set(curve.points.flatMap((p,i)=>p.t*curve.length>=c.offset&&p.t*curve.length<=c.offset+c.duration*c.scale?[i]:[]))};}else{selection=new Set(doc.clips.map(c=>c.id));selected||=doc.clips[0]?.id||null;}paintSelection();}
   function deselect(){selection.clear();pointSelection=null;selected=null;paintSelection();}
@@ -349,7 +349,9 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
     invert:()=>{selection=new Set(doc.clips.filter(c=>!selection.has(c.id)).map(c=>c.id));selected=selection.values().next().value||null;paintSelection();},
     nudge, sliceAtPlayhead:()=>{if(selection.size)sliceAt([...selection],transportBeat(),true);else say(t('Select clips to slice them at the playhead.'));},
     tool:name=>{finish(null,true);setTool(name);},
-    stretchAudio:()=>{const curves=new Map(doc.curves.map(c=>[c.id,c])),chosen=[...selection].filter(id=>curves.get(doc.clips.find(c=>c.id===id)?.curveId)?.kind==='audio');if(!chosen.length)return false;model.begin();for(const id of chosen)stretchAudioClip(model,id);model.commit();return true;},
+    stretchAudio:()=>{const curves=new Map(doc.curves.map(c=>[c.id,c])),chosen=[...selection].filter(id=>curves.get(doc.clips.find(c=>c.id===id)?.curveId)?.kind==='audio');if(!chosen.length)return false;model.begin();const scales=chosen.map(id=>stretchAudioClip(model,id));model.commit();
+      const first=model.state().clips.find(c=>c.id===chosen[0]),src=model.state().curves.find(c=>c.id===first?.curveId);
+      if(first&&src&&scales[0]!=null)say(t('STRETCH ×{rate} · pitch follows',{rate:audioRate(first,src,mod.host.model.transport.bpm).toFixed(3)}));return true;},
   };
   const api={surface,transportHost,toolbar,createClip,addClip,at,model,paint,px:()=>px,view,act,onShortcuts:null,
     range:()=>range?{...range}:null,activeRange,setActiveRange,onDrop(fn){dropHandlers.add(fn);return()=>dropHandlers.delete(fn);},

@@ -699,9 +699,6 @@ body.disconnected:not(.phone) .dev.tab-hot > .dev-body { outline: none; }
 .camera-export-toggle svg { width:14px;height:14px;transform:rotate(-90deg); }
 .camera-export-toggle[aria-expanded="true"] svg { transform:none; }
 .camera-export-details:not([hidden]) { display:flex;flex-direction:column;gap:10px; }
-.accent-dial .k-dial { position:relative; }
-.accent-dial .k-dial::after { content:'';position:absolute;inset:-4px;border-radius:50%;background:conic-gradient(var(--acc) var(--accent-sweep),transparent 0);mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 0);pointer-events:none; }
-.accent-dial-b .k-dial::after { background:conic-gradient(var(--acc2) var(--accent-sweep),transparent 0); }
 #menubar[popover] { position:fixed;inset:auto;margin:0;overflow:visible;border:0;padding:0;background:transparent;color:var(--fg); }
 
 /* ── 1.4.0 · THE PARTS THE KIT BUILDS, STYLED AS λWAVES STYLES THEM ──────────────────────────────────────────

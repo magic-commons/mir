@@ -37,12 +37,13 @@
  *      transport"), and the kit's double click types through the same binder.
  *
  * The pure helpers are exported for node tests. */
+import { bindNumber } from '../controls/number.js';
 import { el, label, ariaLabel, trig, gripDots } from '../kit.js';
 import { onLanguage, phrase } from '../core/i18n.js';
 import { drag } from '../core/pointer.js';
 import { frame } from '../core/frame.js';
 import { setText, setAttr } from '../core/perf.js';
-import { setGlyph, glyphEl, hasGlyph } from '../glyph.js';
+import { setGlyph, glyphEl, glyphSvg, hasGlyph } from '../glyph.js';
 import { markSvg, createMirDiamond } from './wordmark.js';
 import { buildMacroSlot } from '../modulation/modwindow/modwindow.js';
 import * as MOD from '../modulation/mod.js';
@@ -73,7 +74,7 @@ export function tempoDirection(r, height, vh) {
   return below >= height + TRANSPORT.panelGap || below >= r.top ? 'below' : 'above';
 }
 /** travelBpm(start, rise, { shift, touch, min, max }) — BASINS tempo-editor.js drag: the range over 220 px (a finger
- *  320, Shift 1760), clamped to the tenth */
+ *  320, ⅛ on any modifier), clamped to the tenth */
 export function travelBpm(start, rise, { shift = false, touch = false, min = TRANSPORT.bpmMin, max = TRANSPORT.bpmMax } = {}) {
   const travel = shift ? TRANSPORT.travelFine : touch ? TRANSPORT.travelTouch : TRANSPORT.travel;
   return clampBpm(start + (rise / travel) * (max - min), min, max);
@@ -97,7 +98,6 @@ export const BAR_SEATS = '.transport-home, .dock-btn, .mod-exp';
 /** the bars a transport can sit in: 'float' (on the stage, BASINS `#transport.mini`) or 'work' (inside a work bar,
  *  BASINS `timeline-mounted`: its seats are the bar's buttons) */
 export const BARS = Object.freeze(['float', 'work']);
-const SVG = 'http://www.w3.org/2000/svg';
 
 /* ── the pure part ─────────────────────────────────────────────────────────────────────────────────────────── */
 /** formatBpm(bpm) — one decimal under 100, whole above (BASINS) */
@@ -264,7 +264,7 @@ export function playButton({ clock, onRefused = null, signal } = {}) {
 export function modPower({ mod, signal } = {}) {
   const life = lifeOf(signal), root = tbtn('modb mir-mod-power');
   root.dataset.face = 'power';
-  root.innerHTML = '<svg class="mir-power-icon" width="28" height="28" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle class="mir-power-halo" cx="12" cy="12" r="10.5"/><path class="mir-power-ring" d="M6.7 5.7a8.2 8.2 0 1 0 10.6 0"/><path class="mir-power-stem" d="M12 2.5v9"/></svg>';
+  root.innerHTML = glyphSvg('power', 'mir-power-icon', 28);
   ariaLabel(root, 'Modulation on or off'); root.title = 'Enable or bypass modulation'; root.setAttribute('aria-pressed', 'true');
   const armed = () => (mod && typeof mod.armed === 'function' ? !!mod.armed() : false);
   function sync() { const on = armed(); root.classList.toggle('on', on); setAttr(root, 'aria-pressed', String(on)); }
@@ -294,43 +294,12 @@ export function modDoor({ mod, mark = 'palette', onSwitch = null, work = () => f
  *  tempo-editor.js `bindTempoEditor`, one module for the modulation and timeline work bars).  A click on `button` (when
  *  `enabled()`) puts `input` in its seat at the button's size with the tempo as it is, selected; Enter or leaving takes
  *  it, Escape does not (focus goes back to the button); 8 characters, decimals.  `drag: true` also gives the button
- *  BASINS' drag (the whole range in 220 px, a finger 320, Shift 1760; a drag is not a click).  `tempo` is
+ *  BASINS' drag (the whole range in 220 px, a finger 320, ⅛ on any modifier; a drag is not a click).  `tempo` is
  *  createTempo's { get, set, commit, min, max }.  → { open(), close(take), editing, destroy() } */
 export function bindTempoField({ button, input, tempo, enabled = () => true, drag: dragToo = false, paint = () => {}, signal } = {}) {
-  const life = lifeOf(signal), on = { signal: life.signal };
-  input.maxLength = TRANSPORT.fieldChars; input.spellcheck = false; input.inputMode = 'decimal'; input.dir = 'ltr';
-  if (!input.type || input.type === 'text') input.type = 'text';
-  let editing = false, dragged = false;
-  function open() {
-    if (editing || !enabled()) return false;
-    const seat = button.getBoundingClientRect();
-    Object.assign(input.style, { width: seat.width + 'px', flex: '0 0 ' + seat.width + 'px', height: seat.height + 'px' });
-    button.hidden = true; input.hidden = false; input.value = String(tempo.get()); editing = true;
-    input.focus({ preventScroll: true }); input.select();
-    return true;
-  }
-  function close(take = true, refocus = false) {
-    if (!editing) return; editing = false;
-    if (take) { const v = parseBpm(input.value); if (v !== null) { tempo.set(v); tempo.commit(); } }
-    input.hidden = true; button.hidden = false;
-    if (refocus) button.focus({ preventScroll: true });
-    paint();
-  }
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(e.key === 'Enter', true); }
-  }, on);
-  input.addEventListener('blur', () => close(true), on);
-  let g = null;
-  const gesture = dragToo ? drag(button, { slop: TRANSPORT.slop,
-    onStart: (s) => { if (!enabled()) return; g = { bpm: tempo.get(), touch: s.pointerType === 'touch' }; },
-    onMove: (s) => { if (!g) return; tempo.set(travelBpm(g.bpm, -s.dy, { shift: s.shiftKey, touch: g.touch, min: tempo.min, max: tempo.max })); paint(); },
-    onEnd: () => { if (!g) return; g = null; dragged = true; tempo.commit(); },
-    onCancel: () => { if (!g) return; const b = g.bpm; g = null; tempo.set(b); paint(); } }) : null;
-  if (dragToo) {
-    button.addEventListener('pointerdown', () => { dragged = false; }, on);
-    button.addEventListener('click', () => { if (dragged) { dragged = false; return; } open(); }, on);
-  }
-  return { open, close: (take = true) => close(take), get editing() { return editing; }, destroy() { close(false); if (gesture) gesture.destroy(); life.abort(); } };
+  /* the tempo field IS the kit's number field (controls/number.js bindNumber): a click opens it, Enter or leaving takes the number, Escape
+     does not; the drag is the one knob law (220 px, 320 under a finger, ⅛ on any modifier or a second finger, on a virtual point) */
+  return bindNumber({ button, input, model: tempo, parse: parseBpm, enabled, drag: dragToo, click: dragToo, paint, chars: TRANSPORT.fieldChars, step: 0.1, signal });
 }
 
 /** tempoPill({ tempo, panel, work }) — BASINS' BPM pill (`.tbtn.tempo-expand`: the number, BPM, the Hz, the chevron).
@@ -526,7 +495,7 @@ export function barButton({ cls = '', glyph = '', svg = '', text = '', label: na
   return { root, sync() {}, destroy: () => life.abort() };
 }
 /** BASINS' and λWAVES' rewind drawing (transport.js:15) */
-export const SVG_REWIND = '<svg xmlns="' + SVG + '" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" class="tr-rewind"><rect x="5" y="5" width="2.6" height="14" rx="1.1"/><polygon points="20 5 9 12 20 19"/></svg>';
+export const SVG_REWIND = glyphSvg('rewind', 'tr-rewind', 24);   // `.tbtn.transport-home svg { 13px }` sets its size
 
 /** latch(opener) — one window's latch (the kit's: neither BASINS nor λWAVES puts window buttons on the bar): its
  *  glyph and word; lit while the window is open; a press toggles the window */
@@ -631,7 +600,7 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
       case 'seat': seatB = tbtn('tr-seat'); setGlyph(seatB, 'grip', { label: 'Choose where the transport sits', size: 16 });
         seatB.title = 'Where the transport sits'; seatB.setAttribute('aria-haspopup', 'menu'); seatB.setAttribute('aria-expanded', 'false'); return seatB;
       case 'dock':
-        dockB = el('button', 'dock-btn'); dockB.type = 'button'; setGlyph(dockB, 'north', { label: 'Dock the transport into the rack' });
+        dockB = el('button', 'dock-btn'); dockB.type = 'button'; setGlyph(dockB, 'dock', { label: 'Dock the transport into the rack' });
         dockB.title = 'Move the transport between the stage and the rack'; dockB.setAttribute('aria-pressed', 'false'); return dockB;
       case 'back': return null;                                     // the way back is always the bar's last child
       default: return null;
@@ -783,7 +752,7 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
   function setDocked(v) {
     docked = !!v;
     bar.classList.toggle('docked', docked); bar.classList.toggle('mini', !docked);
-    if (dockB) { setAttr(dockB, 'aria-pressed', String(docked)); setGlyph(dockB, docked ? 'reopen' : 'north', { label: docked ? 'Undock the transport' : 'Dock the transport into the rack' }); }
+    if (dockB) { setAttr(dockB, 'aria-pressed', String(docked)); setGlyph(dockB, docked ? 'popOut' : 'dock', { label: docked ? 'Undock the transport' : 'Dock the transport into the rack' }); }
     seatBar();                                                      // undocked: back to the work lane if one shows, else the stage
     rove(null); soon();
   }

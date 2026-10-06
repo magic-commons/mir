@@ -36,7 +36,7 @@ for (const [what, re] of [['createRail', /createRail\(/], ['windowLayout', /wind
   ok(re.test(win), `window.js uses ${what}`);
 for (const [what, re] of [['snapTarget', /snapTarget/], ['nearestChipSide', /nearestChipSide/], ['buildChipRail', /buildChipRail\(/], ['a hand-rolled grip capture', /rail\.grip\.setPointerCapture|chips\.drag\.addEventListener/]])
   ok(!re.test(win), `window.js carries no ${what}`);
-ok(/ROUTABLE = '\.k\[data-param\], \.fd\[data-param\]'/.test(win), 'a fader is routable like a knob');
+ok(/ROUTABLE = '\.k\[data-param\], \.fd\[data-param\], \.rng-t\[data-param\]'/.test(win), 'a fader and a range slider\'s thumb are routable like a knob');
 ok(/createProximity\(/.test(win), 'routing glows through core/proximity.js');
 
 /* ── 3 · strings ── */

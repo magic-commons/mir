@@ -344,6 +344,8 @@
 @keyframes tl-popup-in { from { opacity: 0; } to { opacity: 1; } }
 .tl-pop .tl-value-input { width: 100%; box-sizing: border-box; color: inherit; background: var(--glass-well); border: 1px solid var(--glass-border-color); border-radius: var(--tl-input-r); padding: var(--tl-input-pad); font: inherit; }
 .tl-pop .tl-field { display: flex; flex-direction: column; gap: var(--tl-field-gap); font-size: var(--tl-field-size); padding: 4px; }
+.tl-pop .tl-audio-target { flex-direction: row; align-items: center; gap: var(--tl-field-gap); padding: 2px 4px; font-size: var(--tl-pop-title-size); letter-spacing: var(--tl-pop-title-track); }
+.tl-pop .tl-audio-target .sel { flex: 1; min-width: 0; font-size: var(--tl-pop-title-size); }
 .tl-pop .tl-color-field { flex-direction: row; align-items: center; justify-content: space-between; }
 .tl-pop .tl-color-input { width: var(--tl-color-w); height: var(--tl-setting-h); border: 0; padding: 0; background: transparent; cursor: pointer; }
 .tl-pop .tl-swatches { display: flex; gap: var(--tl-field-gap); padding: 4px; }

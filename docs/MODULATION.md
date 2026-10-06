@@ -32,7 +32,7 @@ const mod = installModulation({
   present: redraw,                                                // the app draws a frame
   storageKey: 'myapp.modulation', presetKey: 'myapp.modpresets',  // name your own stores
   dock: { span: observeSpan({ left: rackL, right: rackR }) },     // ONE span per page, shared with every window
-  audio: createAudioCapture,                                      // optional: the app's microphone edge (lab/audio.js)
+  audio: createAudioCapture,                                      // optional: the app's own microphone edge; absent = the kit's, false = none
 });
 const size = makeParam({ state: S, key: 'size', label: 'SIZE', min: 0, max: 1, mod, onChange: redraw });   // → mod.add(…)
 // or entirely by hand: a widget whose onInput keeps the hand law, and mod.add({ id, label, min, max, map, get, set, widget })
@@ -61,7 +61,7 @@ That is the whole seam. `installModulation` registers every parameter as a targe
 | `store` | `{ read() → record, write(patch) }`, the app's settings | `localStore(storageKey)` |
 | `storageKey` | the localStorage key of the default store | `'mir.modulation'` |
 | `presetKey` | the preset store's key | `mod.js PRESET_LS` (`'lambdawaves.q0.modpresets'`) |
-| `audio` | the capture factory, `createAudioCapture({ onState })` | none: ADD AUDIO is offered disabled |
+| `audio` | the capture factory, `createAudioCapture({ onState })` | **absent: the kit's own** (`modulation/audio-capture.js`, [AUDIO.md](AUDIO.md)); `false`: no AUDIO device |
 | `dock` | `{ span, guide }` for the window (see window.js below); `false`: it never docks | the viewport is the span |
 | `copy` | words of the window (`modwindow.js COPY`), e.g. `{ factory: 'MANDELBROT' }` | `COPY` |
 | `targets` | the selector of routable controls | `'.k[data-param], .fd[data-param]'` |

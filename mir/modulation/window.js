@@ -33,7 +33,7 @@
  * Kept as they were: every law in modwindow/ACCEPTANCE.md and host-contract.md, the FL curve gestures
  * (curve-gesture.js), Sol's automation / exact resume / runtime capture in host.js and mod.js.
  */
-import { el, seg, trig, knob, tapWatcher, gripDots, label, ariaLabel, hint as hintTo } from '../kit.js';
+import { el, seg, trig, knob, tapWatcher, gripDots, label, ariaLabel, hint as hintTo, gearOf, watchTouches, select as kitSelect, number as kitNumber } from '../kit.js';
 import { bindSliderKeys } from '../slider-keys.js';
 import { createModWindow, setDeviceMode, setWorkLane, sizeLaw, GEOM,
          buildGhost, buildAudioSheet, COPY } from './modwindow/modwindow.js';
@@ -73,8 +73,8 @@ const svgEl = (tag, cls, parent) => {
 const TRAVEL = (e, touch) => (e.shiftKey ? 1760 : touch ? 320 : 220);
 const TENSION_PX = 114, GRAB = 20;
 
-/** the controls a macro may route onto: a knob and a fader, each carrying the registry id in data-param */
-export const ROUTABLE = '.k[data-param], .fd[data-param]';
+/** the controls a macro may route onto: a knob, a fader and a range slider's thumb, each carrying the registry id in data-param */
+export const ROUTABLE = '.k[data-param], .fd[data-param], .rng-t[data-param]';
 /** the routing glow's law (core/proximity.js): a control starts to glow 56 px away and captures the drop at 18 px */
 export const ROUTE_REACH = 56, ROUTE_CAPTURE = 18;
 
@@ -957,9 +957,12 @@ export function createModulation(host, port) {
 
   /** a press held 600 ms (or a right-click) on `node` opens the route pop-over — the touch road to what Serum puts
    *  behind a right-click */
-  function holdForPop(node, id) {
+  function holdForPop(node, id, capture = false) {
     let hold = 0;
-    node.addEventListener('pointerdown', (e) => {
+    /* `capture`: the press is heard on the node's parent in the capture phase, so a control that takes its own press in capture and stops it
+       (the arc knob, controls/arc.js) still starts the hold; only a press on `node` itself counts */
+    (capture && node.parentElement ? node.parentElement : node).addEventListener('pointerdown', (e) => {
+      if (capture && !node.contains(e.target)) return;
       focusRing(id);
       if (e.button) return;
       const x0 = e.clientX, y0 = e.clientY; clearTimeout(hold);
@@ -967,7 +970,7 @@ export function createModulation(host, port) {
       const move = (ev) => { if (Math.abs(ev.clientX - x0) > 4 || Math.abs(ev.clientY - y0) > 4) done(); };
       const done = () => { clearTimeout(hold); hold = 0; window.removeEventListener('pointermove', move, true); window.removeEventListener('pointerup', done, true); window.removeEventListener('pointercancel', done, true); };
       window.addEventListener('pointermove', move, true); window.addEventListener('pointerup', done, true); window.addEventListener('pointercancel', done, true);
-    });
+    }, capture);
     node.addEventListener('contextmenu', (e) => { e.preventDefault(); e.stopPropagation(); focusRing(id); openPop(id, e.clientX, e.clientY); });
   }
 
@@ -997,12 +1000,13 @@ export function createModulation(host, port) {
       wireRing(rec);
     }
     hostEl.classList.add('has-ring');
-    dial.addEventListener('pointerdown', (e) => {
-      if (e.button) return;
+    /* heard on the host in the capture phase: an arc knob takes its own press in capture and stops it, which a listener on the dial would miss */
+    hostEl.addEventListener('pointerdown', (e) => {
+      if (e.button || !dial.contains(e.target) || e.target.closest('.k-route-depth, .k-route-x')) return;
       const rs = M.routesOfTarget(id).filter((r) => !r.dormant);
       const chosen = rs.find(routeSelected) || rs[0];
       if (chosen) selectMacro(chosen.macroId);
-    });
+    }, true);
     const depth = knob({ label: 'RANGE', min: -1, max: 1, value: 0, fmt: (v) => (v * 100).toFixed(0) + '%',
       onInput: (d) => { const r = editRouteOf(id); if (!r) return; M.setRouteRange(r.id, { min: Math.max(0, -d), max: Math.max(0, d) }); apply(); paintRings(); } });
     depth.root.classList.add('k-route-depth'); depth.root.title = 'Selected macro range; the large dial sets the base';
@@ -1026,7 +1030,7 @@ export function createModulation(host, port) {
       holdForPop(depth.root, id);
       hostEl.addEventListener('pointerdown', () => focusRing(id));
       hostEl.addEventListener('contextmenu', (e) => { e.preventDefault(); e.stopPropagation(); focusRing(id); openPop(id, e.clientX, e.clientY); });
-    } else holdForPop(dial, id);
+    } else holdForPop(dial, id, true);
     return rec;
   }
   /** one routed control at a time wears its badges: the one the hand last touched */
@@ -1627,17 +1631,20 @@ export function createModulation(host, port) {
       if (e.button) return;
       e.preventDefault(); e.stopPropagation();
       try { elm.setPointerCapture(e.pointerId); } catch (_) {}
-      d = { x: e.clientX, y: e.clientY, v: o.get(), moved: false, touch: e.pointerType === 'touch' };
+      watchTouches();
+      d = { id: e.pointerId, p: 0, lx: e.clientX, ly: e.clientY, x: e.clientX, y: e.clientY, v: o.get(), moved: false, touch: e.pointerType === 'touch' };
       elm.classList.add('drag');
     });
     elm.addEventListener('pointermove', (e) => {
-      if (!d) return;
+      if (!d || e.pointerId !== d.id) return;
+      /* THE ONE KNOB LAW (kit.js): the gear (⅛ on any modifier or a second finger) multiplies the step since the last move, so engaging it
+         moves nothing; the travel is the plain 220 px (320 under a finger) */
+      const span = d.touch ? 320 : 220, g = gearOf(e, d.id);
+      d.p += g * (o.axis === 'x' ? e.clientX - d.lx : o.axis === 'y' ? d.ly - e.clientY : (d.ly - e.clientY) + (e.clientX - d.lx)) / span;
+      d.lx = e.clientX; d.ly = e.clientY;
       if (!d.moved && Math.abs(e.clientX - d.x) < 3 && Math.abs(e.clientY - d.y) < 3) return;
       d.moved = true;
-      const dp = o.axis === 'x' ? (e.clientX - d.x) / TRAVEL(e, d.touch)
-        : o.axis === 'y' ? (d.y - e.clientY) / TRAVEL(e, d.touch)
-        : ((d.y - e.clientY) + (e.clientX - d.x)) / TRAVEL(e, d.touch);
-      o.set(d.v + dp);
+      o.set(d.v + d.p);
     });
     const stop = () => { if (!d) return; const moved = d.moved; d = null; elm.classList.remove('drag'); if (!moved) dtap(); };
     elm.addEventListener('pointerup', stop);
@@ -1851,10 +1858,10 @@ export function createModulation(host, port) {
     const table = el('table', '', matrixBody), head = el('tr', '', el('thead', '', table));
     for (const name of [{ t: 'ON' }, { t: 'SOURCE' }, { t: 'DESTINATION' }, { t: 'AMOUNT' }, { t: 'POLARITY' }, { t: 'CURVE' }, { t: '' }]) label(el('th', '', head), name.t);
     const body = el('tbody', '', table);
+    /* the kit's own select (controls/select.js): its list opens in the kit's menu pane, never the platform's popup */
     const select = (cell, values, value, name, change) => {
-      const input = el('select', '', cell); ariaLabel(input, name);
-      for (const [id, name] of values) { const option = el('option', '', input, name); option.value = id; }
-      input.value = value; input.addEventListener('change', () => change(input.value)); return input;
+      const w = kitSelect({ aria: name, items: values.map(([id, text]) => ({ id, label: text })), value, onChange: change });
+      cell.appendChild(w.root); return w;
     };
     const macros = M.macroList().filter(m => m.kind !== 'trigger').map(m => [m.id, m.name]);
     const targets = registry.describe().map(d => [d.id, t(d.label)]);
@@ -1870,8 +1877,9 @@ export function createModulation(host, port) {
         if(next && !next.already) { M.setRouteRange(next.route.id,{bi:r.bi,enabled:r.enabled,curve:r.curve}); M.removeRoute(r.id); clock.recomputeRunning(); apply(); rebuild(); }
         renderMatrix();
       });
-      const amount = el('input', '', cell()); amount.type = 'number'; amount.min = -100; amount.max = 100; amount.step = 1; amount.value = ((r.max - r.min) * 100).toFixed(1); ariaLabel(amount, 'Signed route amount percent');
-      amount.addEventListener('change', () => { if (!Number.isFinite(amount.valueAsNumber)) return; const d = Math.max(-1, Math.min(1, amount.valueAsNumber / 100)); update(r, {min:Math.max(0,-d),max:Math.max(0,d)}); amount.value = (d*100).toFixed(1); });
+      const amount = kitNumber({ aria: 'Signed route amount percent', min: -100, max: 100, step: 1, digits: 1, value: (r.max - r.min) * 100,
+        onChange: (v) => { const d = Math.max(-1, Math.min(1, v / 100)); update(r, { min: Math.max(0, -d), max: Math.max(0, d) }); amount.set(d * 100); } });
+      cell().appendChild(amount.root);
       select(cell(), [['uni',t('UNIPOLAR')],['bi',t('BIPOLAR')]], r.bi ? 'bi' : 'uni', 'Route polarity', v => update(r, {bi:v === 'bi'}));   // tr: UNIPOLAR: the route only adds (0 to +); BIPOLAR: it swings both ways around the base
       const curve = el('input', '', cell()); curve.type = 'range'; curve.min = -1; curve.max = 1; curve.step = .01; curve.value = r.curve || 0; ariaLabel(curve, 'Response curve, zero is linear'); curve.addEventListener('input', () => update(r, {curve:curve.valueAsNumber}));
       const remove = label(el('button', '', cell()), 'REMOVE'); remove.type = 'button'; remove.addEventListener('click', () => { M.removeRoute(r.id); clock.recomputeRunning(); apply(); rebuild(); renderMatrix(); });
@@ -1880,7 +1888,7 @@ export function createModulation(host, port) {
     const source = select(add, macros, selectedMacro(), 'New route source', () => {});
     const target = select(add, targets, targets[0] && targets[0][0], 'New route destination', () => {});
     const button = label(el('button', '', add), 'ADD ROUTE'); button.type = 'button'; button.disabled = !macros.length || !targets.length;
-    button.addEventListener('click', () => { dropOn(source.value, target.value); renderMatrix(); });
+    button.addEventListener('click', () => { dropOn(source.get(), target.get()); renderMatrix(); });
     if (!macros.length) label(el('p', '', matrixBody), 'Add a macro in the modulation window to begin routing.');
   }
   matrixButton.addEventListener('click', (e) => {

@@ -47,7 +47,7 @@ const wrap = document.getElementById('wrap');
 const d = device({ id: 'kit', eyebrow: 'KIT CARD' }); wrap.append(d.root);
 const r1 = d.row(); const sOn = sw({ label: 'ON', value: true }), sOff = sw({ label: 'OFF', value: false }); r1.append(sOn.root, sOff.root);
 const r2 = d.row(); const sg = seg({ value: 'b', options: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }] }); const tr = trig({ label: 'GO' }); r2.append(sg.root, tr.root);
-const r3 = d.row(); const k = knob({ label: 'K', min: 0, max: 1, value: .5 }); const arc = knob({ label: 'ARC', min: 0, max: 360, value: 120, wrap: true, cls: 'accent-dial' }); r3.append(k.root, arc.root);
+const r3 = d.row(); const k = knob({ label: 'K', min: 0, max: 1, value: .5 }); const arc = knob({ label: 'ARC', min: 0, max: 360, value: 120, wrap: true }); r3.append(k.root, arc.root);
 const fd = fader({ label: 'LANE', min: 0, max: 1, value: .5 }); fd.root.classList.add('pop'); fd.root.style.setProperty('--nc', 'hsl(30 90% 60%)'); d.body.append(fd.root);
 /* an app's own panes, with the hook */
 const card = el('div', 'app-card', wrap); card.dataset.mirSurface = 'island'; card.id = 'hook-island';

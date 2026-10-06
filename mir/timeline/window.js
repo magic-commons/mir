@@ -21,6 +21,7 @@
  *   ONE STORE.  The window's shape and the work lane persist through `store` ({ read, write }); the arrangement is the
  *     project's (project.js), never the window's. */
 import { createWindow } from '../window/window.js';
+import { glyphSvg } from '../glyph.js';
 import { createTransport } from '../shell/transport.js';
 import { t } from '../core/i18n.js';
 import { buildTimelineEditor } from './editor.js';
@@ -34,7 +35,6 @@ import { openTimelineShortcuts, timelineActions } from './shortcuts.js';
    send-to-rack (only with a rack) and the logo door */
 export const TIMELINE_TRANSPORT = Object.freeze([{ group: 'native-play-row', items: ['play', 'power', 'tempo', 'app:readout', 'rewind'] }, 'dock', 'door']);
 export const TIMELINE_SIZE = Object.freeze({ w: 1080, h: 440 }), TIMELINE_MIN = Object.freeze({ w: 320, h: 400 });
-const MINUS = '<svg class="gly gly-minus" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14"/></svg>';   // Gemini 3.8 Flash High (BASINS): a rounded minus matching the kit's plus
 
 export function createTimeline(host, port) {
   const { model, mod } = port;
@@ -68,7 +68,7 @@ export function createTimeline(host, port) {
     onClose: () => { if (editor) editor.close(); seatBar(); if (port.onWindow) port.onWindow(false); present(); },
   });
   win.root.classList.add('mir-timeline');
-  const minus = win.rail.chip('removeLane'); if (minus) { const ink = minus.querySelector('.mir-chip-text'); if (ink) ink.outerHTML = MINUS.replace('class="gly gly-minus"', 'class="mir-chip-ink gly gly-minus"'); }   // an action is inked once
+  const minus = win.rail.chip('removeLane'); if (minus) { const ink = minus.querySelector('.mir-chip-text'); if (ink) ink.outerHTML = glyphSvg('minus', 'mir-chip-ink gly gly-minus', 26); }   // an action is inked once
 
   editor = buildTimelineEditor({ body: win.body, root: win.root, rail: win.rail, isOpen: win.isOpen, open: win.open }, { model, mod, controller, present, say, audio: port.audio || null });
   editor.setWorkLane(workLane);

@@ -112,7 +112,7 @@ The door to the modulation window is BASINS' MIR palette diamond (`wordmark.js c
 | **TAP's place**: in the tempo panel | BASINS' |
 | **The resting pill stands proud** (its own face and the raised relief), not a well | ruled by Josh 2026-10-01 (INTENT: BASINS' rested in a well and read as already pressed) |
 | A double click on the pill types the tempo, in a well in the pill's seat (Enter or leaving takes it, Escape does not) | the kit's (BASINS types the tempo only in its timeline form) |
-| **The dock chip** (`.dock-btn`, the north glyph): the bar goes into a rack window named TRANSPORT and back | BASINS' / λWAVES' |
+| **The dock chip** (`.dock-btn`, the dock glyph): the bar goes into a rack window named TRANSPORT and back | BASINS' / λWAVES' |
 | **To-start** (`.transport-home`) is one of the round seats: 34 px with the dock chip's and the door's hairline ring | BASINS' (ui-fixes 11, Josh 2026-10-01) |
 | The dock chip, the door and to-start wear no pane shadow | ruled (INTENT: a button never wears a pane's float; BASINS gave them `--glass-shadow`) |
 | **In a work bar** (`bar: 'work'`): to-start, send-to-rack and the logo take the bar's button face (`.trig`) in a 34 × 34, radius-8 box; the pill is 34 px tall; the transport is 52 px tall with 3 px padding | BASINS' (ui-fixes 8 and 11, Josh 2026-10-01: "match the button style and size of the right work bar") |

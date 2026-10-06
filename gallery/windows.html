@@ -30,7 +30,7 @@
   .g-swatch { width: 54px; height: 54px; border-radius: 10px; }
 </style>
 </head>
-<body data-card="tinted" data-theme="dark">
+<body data-card="refractive" data-faces="glass" data-theme="dark">
 <canvas id="ground" aria-hidden="true"></canvas>
 <div id="rackL" class="g-rack"></div>
 <div id="rackR" class="g-rack"></div>
@@ -91,15 +91,20 @@ const alpha = createWindow({ id: 'alpha', title: 'ALPHA', host, size: { w: 520, 
 const beta = createWindow({ id: 'beta', title: 'BETA', host, size: { w: 340, h: 240 }, persist: keep('beta'),
   body: (b) => { el('p', 'g-note', b, 'BETA floats only. Press either window: it and its rail come up together.'); },
   chips: [{ name: 'pin', kind: 'toggle', glyph: 'lock', label: 'Pin', states: { true: { hint: 'Pinned · press to unpin' }, false: { hint: 'Not pinned · press to pin' } } }] });
+/* first visit: the two windows are seated apart (BETA above ALPHA, both between the racks), so each one's whole box is its own to press */
+if (!keep('alpha').read() && !keep('beta').read()) {
+  const ax = Math.max(272, Math.round((innerWidth - 520) / 2));
+  alpha.place({ x: ax, y: Math.round(innerHeight * .42) }); beta.place({ x: ax + 60, y: 72 });
+}
 if (!alpha.isOpen()) alpha.open();
-if (!beta.isOpen()) { beta.place({ x: Math.round(innerWidth * .55), y: 140 }); beta.open(); }
+if (!beta.isOpen()) beta.open();
 installPress({ selector: '.sw, .seg-b, .trig' });
 
 /* ── the bar: the seats and the switches ── */
 const bar = document.getElementById('bar');
 /* (under the windows: a window docked at the bottom covers it — drag the window away to reach it) */
 bar.appendChild(seg({ label: 'THEME', value: 'dark', options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], onChange: (v) => { document.body.dataset.theme = v; paint(); } }).root);
-bar.appendChild(seg({ label: 'CARD', value: 'tinted', options: [{ id: 'tinted', label: 'TINTED' }, { id: 'refractive', label: 'REFRACTIVE' }], onChange: (v) => { document.body.dataset.card = v; } }).root);
+bar.appendChild(seg({ label: 'CARD', value: 'refractive', options: [{ id: 'tinted', label: 'TINTED' }, { id: 'refractive', label: 'REFRACTIVE' }], onChange: (v) => { document.body.dataset.card = v; } }).root);
 bar.appendChild(sw({ label: 'FROST', value: false, onChange: (v) => document.body.classList.toggle('frost', v) }).root);
 bar.appendChild(sw({ label: 'DOCK GUIDE', value: true, title: 'the Display switch: off hides the guide, the snap still works', onChange: (v) => { guideOn = v; } }).root);
 bar.appendChild(sw({ label: 'HIDE RACKS', value: false, onChange: (v) => document.body.classList.toggle('racks-hidden', v) }).root);

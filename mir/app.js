@@ -120,11 +120,16 @@ export function makeParam({ state, key, label = String(key).toUpperCase(), min =
  *                  registered right after `await createApp()` are in it.  → app.session (core/session.js)
  *   THE KEYS are BASINS' (shell/keys.js KIT_KEYS): Space play · S FOLDERS · M modulation · J notebook · B the rack ·
  *   T dock the transport · H hide the interface · F full screen · Ctrl/⌘+S save · ? the keys.
+ *   history        off by default.  The app's one stack (history/history.js createHistory): a HISTORY window behind WINDOW › HISTORY (history/window.js),
+ *                  which brings the keys, the gesture naming and the modulation rack as a domain; `historyWindow` adds that window's options
+ *   render         off by default.  { frame(i, ctx) → the picture, motions?, subject?, picture?, motionUi?, sections?, prefix?, card?: false, …createRecorder
+ *                  options }: RENDER (render/recorder.js): the recorder on the modulation host and the timeline's editor, `busy` to the timeline, RENDER as a
+ *                  FOLDERS tab and as a rack window (`card: false` leaves the window out) → app.recorder.  Needs `mod`; docs/RENDER.md
  *   subject        () → { left, top, width, height } in stage px: the thing the words on the picture talk about (the
  *                  board, the ring); the greeting rests beside it, never under the bar or a rack (default: none)
  *   → { first, param, params, playing(), play(), pause(), safeRect(), hideInterface(), dump(), rack, keys, gui, accent,
  *       transport, mod, pattern, timeline, workspaces, pages, notebook, folders, info, greeting, help, menubar, describe, floats, banner, sceneGuard,
- *       wakeLock, session }   (also window.__MIR.app, the live shell object for a rig or the console: BASINS' __BASINS)
+ *       wakeLock, session, history, recorder }   (also window.__MIR.app, the live shell object for a rig or the console: BASINS' __BASINS)
  *   The app's `present()` is also called when the theme or the look changes and when a window opens or closes.
  */
 export async function createApp(o = {}) {
@@ -132,7 +137,7 @@ export async function createApp(o = {}) {
   const stage = o.stage, host = o.host || stage.parentElement, state = o.state || {};
   const present = () => { if (o.present) o.present(); };
   const want = (piece) => o[piece] !== false;
-  let tr = null, rack = null, mod = null, notebook = null, folders = null, info = null, help = null, pattern = null, timeline = null, ws = null;
+  let tr = null, rack = null, mod = null, notebook = null, folders = null, info = null, help = null, pattern = null, timeline = null, ws = null, recorder = null, hist = null;
 
   /* 0. THE BANNER first, so a problem anywhere below is on the screen (BASINS: "the only debugger on an iPad") */
   const banner = want('banner') ? installBanner({ host: stage, ...opt(o.banner) }) : null;
@@ -197,11 +202,26 @@ export async function createApp(o = {}) {
     say: (text) => notice(text, { kind: 'warn' }), moved, ...opt(o.pattern) });
   if (mod && o.timeline) {
     const { installTimeline } = await import('./timeline/bind.js');
-    timeline = installTimeline({ mount: floats, mod, present, keys, storageKey: key + '.timeline', say: (text) => notice(text),
+    timeline = installTimeline({ mount: floats, mod, present, keys, storageKey: key + '.timeline', say: (text) => notice(text), busy: () => !!(recorder && recorder.running()),
       moved: (r) => { moved(r); if (ws) ws.moved('lower', r); }, onWindow: () => { if (ws) ws.sync(); present(); }, ...opt(o.timeline) });
     ws = createWorkspaces({ upper: mod.view, lower: timeline.win });
     ws.sync();
   }
+  /* 5d. RENDER: the recorder on the modulation host and the timeline's editor; the screen is held awake through the wake lock built below */
+  const { subject: rSubject, picture: rPicture, motionUi: rMotionUi, sections: rSections, prefix: rPrefix, card: rCard, ...rOpts } = opt(o.render);
+  let renderUi = null;
+  if (mod && o.render) {
+    const [{ createRecorder }, ui] = await Promise.all([import('./render/recorder.js'), import('./render/panel.js')]);   // loaded only when the app asks
+    renderUi = ui;
+    recorder = createRecorder({ host: mod.host, editor: timeline ? timeline.editor : undefined, app: key,
+      wake: (reason) => (wakeLock ? wakeLock.hold(reason) : () => {}), ...rOpts });
+  }
+  const renderOpts = () => ({ recorder, subject: rSubject, picture: rPicture, motionUi: rMotionUi, sections: rSections, prefix: rPrefix,
+    say: rOpts.say || ((text, warn) => notice(text, { kind: warn ? 'warn' : 'ok' })), save: rOpts.save });
+
+  /* 5e. THE HISTORY WINDOW: the app's one stack, the keys, the gesture naming and the rack as a domain (a render running stops them) */
+  if (o.history && want('history') && mod) hist = (await import('./history/window.js')).createHistoryWindow({ history: o.history, host: floats, mod, present: o.present, stage: o.canvas || stage.querySelector('canvas'),
+    canAct: () => !(recorder && recorder.running()), ...opt(o.historyWindow) });
 
   /* 6. THE ONE CLOCK and THE TRANSPORT BAR, the main opener: ▶ (and Space) plays; the power ring is modulation's */
   const clock = o.clock || (mod ? { play: () => mod.play(true), pause: () => mod.play(false), isPlaying: () => mod.playing(), onChange: (fn) => mod.onPlay(fn) } : null);
@@ -250,7 +270,15 @@ export async function createApp(o = {}) {
     /* A PROJECT SAVE IS ALSO A PRESET (Josh 10-01): with modulation installed, every save writes the rack as a preset
        named the project in CAPS (modulation/bind.js upsertProjectPreset) */
     onSaved: (e) => { if (mod && e && e.name && typeof modBind.upsertProjectPreset === 'function') modBind.upsertProjectPreset(e.name); },
-    ...opt(o.folders) });
+    ...opt(o.folders),
+    ...(recorder ? { panels: [...(Array.isArray(opt(o.folders).panels) ? opt(o.folders).panels : []), renderUi.renderPanel(renderOpts())] } : {}) });
+  /* RENDER as a rack window too (BASINS' rackRender): the same rows, built when it first opens */
+  if (recorder && rack && rCard !== false) {
+    let view = null;
+    rack.register({ id: 'render', title: 'RENDER', side: 'right', build: (body) => { view = renderUi.createRenderView(body, { ...renderOpts(), seat: 'card' }); }, onOpen: () => view && view.paint() });
+  }
+  /* a notebook with no pages keeps its text in the project (the landing law, notebook.project) */
+  if (notebook && notebook.project) registerProjectPart('notebook', notebook.project.part());
 
   /* 11. INFORMATIONAL: words on the picture, never under the bar or a rack; the greeting is page 0's first part */
   const keepClear = () => (rack ? rack.keepClear() : bar && bar.isConnected && bar.offsetWidth ? [bar.getBoundingClientRect()] : []);
@@ -272,7 +300,7 @@ export async function createApp(o = {}) {
     EDIT: M.EDIT || (() => rows(bar ? k('transport.play') : undefined, bar ? null : undefined, purgeRow({ name }))),
     VIEW: M.VIEW || (() => rows(k('hide'), k('fullscreen'))),
     WINDOW: M.WINDOW || (() => rows(mod ? k('modulation') : undefined, timeline ? k('timeline') : undefined, pattern ? k('pattern') : undefined, folders ? k('folders') : undefined, notebook ? k('notebook') : undefined,
-      help ? k('help') : undefined, k('rack'), k('dock'), ...(rack ? [null, ...rack.windowMenu()] : []),
+      hist ? ['HISTORY', () => hist.toggle()] : undefined, help ? k('help') : undefined, k('rack'), k('dock'), ...(rack ? [null, ...rack.windowMenu()] : []),
       ...((o.coming || []).length ? [null, ...o.coming.map(([n, h]) => comingRow(n, h))] : []))),
     ...Object.fromEntries(Object.entries(M).filter(([g]) => !['FILE', 'EDIT', 'VIEW', 'WINDOW', 'ABOUT', 'LANGUAGE', 'GUI'].includes(g))),
     ABOUT: M.ABOUT || (() => rows(['ABOUT ' + name, () => notebook && notebook.open('about')],
@@ -345,7 +373,7 @@ export async function createApp(o = {}) {
     play: () => (tr ? tr.play() : clock && !clock.isPlaying() ? clock.play() : null),
     pause: () => (tr ? tr.pause() : clock && clock.isPlaying() ? clock.pause() : null),
     accent, gui, keys, transport: tr, rack, mod, pattern, timeline, workspaces: ws, pages, notebook, folders, info, greeting, help, menubar, describe, floats,
-    banner, sceneGuard, wakeLock, session };
+    banner, sceneGuard, wakeLock, session, history: hist, recorder };
   (globalThis.__MIR = globalThis.__MIR || {}).app = app;     // the live shell object for a rig or the console (BASINS' window.__BASINS)
   return app;
 }

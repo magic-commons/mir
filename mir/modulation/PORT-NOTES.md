@@ -230,7 +230,7 @@ goes wrong (iOS substitutes a colour emoji; the advance width is the font's busi
 missing codepoint is a notdef box). Wave 55 replaced the ones with a drawn equivalent and left the ones
 without, and REPORT.md wave 55 (λWAVES) lists both sides of that line so the polish wave knows what is outstanding.
 The two NEW chips this wave needed — pop-out / dock, and compact / full — were already in the library:
-`north` and `reopen`, `compact` and `expand`.
+`popOut` and `dock` (the old `north` is an alias), and `reopen`, `compact` and `expand`.
 
 ## THE THREE DIVERGENCES (wave 69) — the plugin's own defects, fixed HERE, and the diff for the port back
 

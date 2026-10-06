@@ -227,10 +227,10 @@ m { font-family: var(--font-math); font-style: normal; font-size: var(--math-sca
    ("the caret each folder header turns", glyph.js), not one glyph rotated into another's meaning. */
 .dev.folded .dev-fold > svg { transform: rotate(-90deg); }
 .dev-close > svg { width: 13px; height: 13px; }
-/* `north` is the one SOLID mark in a header of hairline outlines (it is drawn that way at source, and
+/* `popOut` (and `dock`, its mate; `north` is the old name) is the one SOLID mark in a header of hairline outlines (it is drawn that way at source, and
    glyph.js is maintained by diff — we size it, we do not redraw it), so its box is two pixels smaller
    and the optical mass matches the rest of the row. */
-button[data-gly="north"] > svg { width: 12px; height: 12px; }
+button:is([data-gly="north"], [data-gly="popOut"], [data-gly="dock"]) > svg { width: 12px; height: 12px; }
 .row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--sp-2); }
 .row.tight { gap: var(--sp-1); }
 .grp { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-2) var(--sp-2) var(--sp-3); border: var(--glass-border) solid var(--glass-hairline); border-radius: var(--r-md); background: transparent; }

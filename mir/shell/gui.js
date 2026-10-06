@@ -49,11 +49,12 @@
 import { el, knob, seg, sw, trig, readout, label, ariaLabel } from '../kit.js';
 import { phrase, t } from '../core/i18n.js';
 import { stepper } from '../controls/stepper.js';
+import { arcKnob } from '../controls/arc.js';
 import { createWindow } from '../window/window.js';
 import { createPrefs } from '../core/prefs.js';
 import { setMotionPolicy } from '../core/motion.js';
 import { frame } from '../core/frame.js';
-import { setText, setVar } from '../core/perf.js';
+import { setText } from '../core/perf.js';
 import { registerProjectPart } from '../core/project.js';
 import { glassTint as lookTint, glassVeil, autoInk, solidRelief, spacingPx, DEVICE_BLUR, TIER_LAW, classifyTier, qualityOfTier, isIPad, TOUCH_TABLET_MQ } from '../core/look.js';
 import { createAccent, accentPart } from './accent.js';
@@ -359,11 +360,10 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   const line = (g, cls = '') => el('div', 'gui-line' + (cls ? ' ' + cls : ''), g);
   const segOf = (key, label, options) => bind(key, seg({ label, options: options.map(([id, l, title]) => ({ id, label: l, title })), value: P.get(key), onChange: (v) => P.set(key, v) }));
   const swOf = (key, label, title) => bind(key, sw({ label, title, value: P.get(key), onChange: (v) => P.set(key, v) }));
-  const knobOf = (key, label, o) => bind(key, knob({ label, title: o.title, aria: o.aria, value: o.toUi ? o.toUi(P.get(key)) : P.get(key), min: o.min, max: o.max, fmt: o.fmt, wrap: o.wrap, cls: o.cls,
+  const knobOf = (key, label, o) => bind(key, (o.arc ? arcKnob : knob)({ label, title: o.title, aria: o.aria, value: o.toUi ? o.toUi(P.get(key)) : P.get(key), min: o.min, max: o.max, fmt: o.fmt, wrap: o.wrap, cls: o.cls, ink: o.ink,
     onInput: (v) => { P.set(key, o.fromUi ? o.fromUi(v) : v); if (o.input) o.input(v); } }), o.toUi);
   const pct = (v) => Math.round(v) + '%', px = (v) => Math.round(v) + 'px', deg = (v) => Math.round(v) + '°';
   const hundred = { min: 0, max: 100, fmt: pct, toUi: (v) => v * 100, fromUi: (v) => v / 100 };
-  const sweep = (k) => (v) => setVar(k.root, '--accent-sweep', Math.round(v) + 'deg');
   const seat = () => { const h = el('div', 'k'); h.setAttribute('aria-hidden', 'true'); return h; };   // an empty dial seat, so dial rows share columns
 
   /* THEME — the vanilla themes (SKIN), their tones (TONE), the theme (LIGHT · DARK · SYSTEM), and what the theme costs */
@@ -387,10 +387,9 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
 
   /* ACCENT — a hue is cyclic, so it is an arc (INTENT rule 2): the kit's accent dial */
   g = groupEl('accent', phrase('ACCENT'));
-  const kA = knobOf('accentA', phrase('A'), { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial' });
-  const kB = knobOf('accentB', phrase('B'), { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial accent-dial-b' });
+  const kA = knobOf('accentA', phrase('A'), { min: 0, max: 360, wrap: true, fmt: deg, arc: true, ink: 'var(--acc)' });
+  const kB = knobOf('accentB', phrase('B'), { min: 0, max: 360, wrap: true, fmt: deg, arc: true, ink: 'var(--acc2)' });
   const kV = knobOf('vivid', phrase('VIVID'), hundred);
-  const swA = sweep(kA), swB = sweep(kB); swA(P.get('accentA')); swB(P.get('accentB'));
   line(g, 'gui-knobs').append(kA.root, kB.root, kV.root);
   /* BRIGHTNESS (BASINS, Josh 2026-10-01): both accents toward white; it rides the project with them */
   const kBr = knobOf('accentBright', phrase('BRIGHTNESS'), { ...hundred, aria: 'ACCENT BRIGHTNESS', title: 'BRIGHTNESS — shifts both accents toward white. Saved with the project, like the accents.' });   // tr[BRIGHTNESS]: how far both accent colours are mixed toward white (not the glass's BRIGHT)
@@ -437,10 +436,8 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   const signed = (v) => (v > 0.005 ? '+' : v < -0.005 ? '−' : '') + Math.abs(v * 100).toFixed(0);
   const kBright = knobOf('bright', phrase('BRIGHT'), { min: -1, max: 1, fmt: signed, title: '{:BRIGHT} — how light or dark the glass is' });
   /* HUE is cyclic, so an arc (INTENT rule 2), drawn in the hue it names */
-  const kHue = knobOf('hue', phrase('HUE'), { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial', title: '{:HUE} — the colour {:TINT} gives the glass' });
+  const kHue = knobOf('hue', phrase('HUE'), { min: 0, max: 360, wrap: true, fmt: deg, arc: true, ink: (v) => `hsl(${Math.round(v)} 70% 55%)`, title: '{:HUE} — the colour {:TINT} gives the glass' });
   const kTint = knobOf('tint', phrase('TINT'), { ...hundred, title: '{:TINT} — how much of {:HUE} the glass carries' });
-  const hueArc = (v) => { setVar(kHue.root, '--accent-sweep', Math.round(v) + 'deg'); setVar(kHue.root, '--acc', `hsl(${Math.round(v)} 70% 55%)`); };
-  hueArc(P.get('hue'));
   line(g, 'gui-knobs').append(kBright.root, kHue.root, kTint.root, seat());
 
   /* CONTROLS — the relief, the faces (BASINS' CONTROL FACES) and BLEND */
@@ -462,16 +459,14 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   /* ── page 2 ── */
   /* LIGHT — one light: where it is, the shadow it casts, the shine across from it */
   g = groupEl('light', phrase('LIGHT', 'light source'));
-  const kAngle = knobOf('lightAngle', phrase('ANGLE'), { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial', aria: 'LIGHT ANGLE', title: '{:LIGHT ANGLE} — where the light is, clockwise from above: shadows fall away from it, the shine sits toward it, the controls’ relief turns with it' });
-  const angleArc = sweep(kAngle); angleArc(P.get('lightAngle'));
+  const kAngle = knobOf('lightAngle', phrase('ANGLE'), { min: 0, max: 360, wrap: true, fmt: deg, arc: true, aria: 'LIGHT ANGLE', title: '{:LIGHT ANGLE} — where the light is, clockwise from above: shadows fall away from it, the shine sits toward it, the controls’ relief turns with it' });
   const kShadow = knobOf('shadow', phrase('SHADOW'), { min: 0, max: 2, fmt: (v) => Math.round(v * 100) + '%', title: 'Strength of the pane shadow. {:DROP SHADOW} can switch it off.' });
   const kDist = knobOf('shadowDist', phrase('DISTANCE'), { min: 0, max: 24, fmt: px, title: 'How far the shadow falls from its pane (and the shine across from it)' });
   const kSoft = knobOf('shadowSoft', phrase('SOFTNESS'), { min: 0, max: 48, fmt: px, title: 'The shadow’s blur' });
   line(g, 'gui-knobs').append(kAngle.root, kShadow.root, kDist.root, kSoft.root);
   const kShine = knobOf('shine', phrase('SHINE'), { ...hundred, title: '{:SHINE} — the shadow’s opposite: a light across the pane’s edge toward the light, added to what is behind' });
   const kShineSoft = knobOf('shineSoft', phrase('SHINE SOFT'), { min: 0, max: 48, fmt: px, aria: 'SHINE SOFTNESS', title: 'The shine’s blur' });
-  const kRelief = knobOf('reliefAngle', phrase('RELIEF'), { min: 0, max: 360, wrap: true, fmt: deg, cls: 'accent-dial', aria: 'RELIEF ANGLE', title: 'RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})' });   // tr[RELIEF]: the controls' relief (their raised and sunken look), here the angle of its light // tr[RELIEF ANGLE]: the direction the controls' light comes from, in degrees // tr[RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})]: raise = a control standing out; wells = sunken tracks and fields; ANGLE is the panes' light angle
-  const reliefArc = sweep(kRelief); reliefArc(P.get('reliefAngle'));
+  const kRelief = knobOf('reliefAngle', phrase('RELIEF'), { min: 0, max: 360, wrap: true, fmt: deg, arc: true, aria: 'RELIEF ANGLE', title: 'RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})' });   // tr[RELIEF]: the controls' relief (their raised and sunken look), here the angle of its light // tr[RELIEF ANGLE]: the direction the controls' light comes from, in degrees // tr[RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})]: raise = a control standing out; wells = sunken tracks and fields; ANGLE is the panes' light angle
   const swLink = swOf('reliefLink', phrase('LINK'), phrase('The controls take the panes’ light: one {:ANGLE} for everything'));   // tr[LINK]: a switch that joins the controls' light to the panes' light (link = tie together, not a web link) // tr[The controls take the panes’ light: one {:ANGLE} for everything]: the relief follows the pane light's ANGLE: one light for the whole interface
   swLink.root.classList.add('gui-link');
   line(g, 'gui-knobs').append(kShine.root, kShineSoft.root, kRelief.root, swLink.root);
@@ -623,11 +618,6 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   /* ── the window follows the store ── */
   function sync(state, changed) {
     for (const k of changed) { const c = controls.get(k); if (c) c.set(state[k]); }
-    if (changed.includes('accentA')) swA(state.accentA);
-    if (changed.includes('accentB')) swB(state.accentB);
-    if (changed.includes('hue')) hueArc(state.hue);
-    if (changed.includes('lightAngle')) angleArc(state.lightAngle);
-    if (changed.includes('reliefAngle')) reliefArc(state.reliefAngle);
     kRelief.setDisabled(state.reliefLink || state.relief === 'flat');
     const theme = P.preset();
     skinStep.set(theme); toneStep.setItems(toneItems(theme), theme === 'custom' ? undefined : matchTone(state, theme));

@@ -1670,6 +1670,10 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin.mir-modwindow .modxport.on .mir-power-halo { opacity: var(--m2-power-halo-on); }
 #modwin.mir-modwindow .m2workbar .modxport.mir-mod-power.on { color: var(--m2-power-on-ink); }
 #modwin.mir-modwindow .m2workbar .modxport.mir-mod-power :is(.mir-power-halo, .mir-power-ring, .mir-power-stem) { color: inherit; stroke: currentColor; fill: none; }   /* the glyph is drawn in its button's ink, in every theme */   /* the frost face and rim stay (the .on rule above) */
+#modwin.mir-modwindow .m2pow svg.mir-power-icon .mir-power-ring[stroke] { stroke-width: var(--m2-pow-ring-sw); }   /* the macro head's power is the heavier BASINS drawing: its own two weights, and no halo */
+#modwin.mir-modwindow .m2pow svg.mir-power-icon .mir-power-stem[stroke] { stroke-width: var(--m2-pow-stem-sw); }
+#modwin.mir-modwindow .m2pow .mir-power-halo { display: none; }
+#modwin.mir-modwindow svg.mir-power-icon :is(.mir-power-ring, .mir-power-stem)[stroke] { stroke-width: var(--m2-power-sw); }   /* the glyph's strokes are attributes: the window's weight is a token (the [stroke] outranks the glyph-weight rule in modwindow.css) */
 @media (hover: hover) { #modwin.mir-modwindow .modxport:hover .mir-power-icon { transform: scale(var(--m2-power-hover-scale)); } }
 #modwin.mir-modwindow .modxport:active .mir-power-icon { transform: scale(var(--m2-power-press-scale)); }
 @media (prefers-reduced-motion: reduce) {

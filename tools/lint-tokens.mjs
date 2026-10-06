@@ -8,7 +8,7 @@
  * deliberately leaves to the app, each with the reason.  A var() WITH a fallback is not an error — the rule
  * says what happens without it — but it is listed when --unused is asked for, so a typo in a fallback-guarded
  * name can still be seen.  A read with no fallback and no writer is a bug: the property silently falls back
- * to its initial value (measured 2026-09-16: --w-medium, --accent-sweep, --line).
+ * to its initial value (measured 2026-09-16: --w-medium, --line).
  *
  * 1.5.0 · NO :root LADDERS.  The kit is in cascade layers (docs/LAYERS.md): rank comes from the layer, so a
  * `:root:root…` prefix that buys specificity is a bug.  Every kit sheet is counted; a sheet listed in LADDER_FREE
@@ -22,7 +22,6 @@ export const LADDER_FREE = ['mir/modulation/modhost.css'];
 const ROOT = new URL('..', import.meta.url).pathname;
 /* written by the app, read by the kit — the contract (docs/CONTRACT.md lists them too) */
 export const HOST = {
-  '--accent-sweep': 'an accent dial\'s arc angle, written per knob by the app that builds accent dials (λWAVES native-ui.js)',
   '--cx': 'the busy mark\'s pointer x, written by the app that shows a busy mark (λWAVES rack.js)',
   '--cy': 'the busy mark\'s pointer y (λWAVES rack.js)',
 };

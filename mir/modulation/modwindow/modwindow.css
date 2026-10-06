@@ -263,7 +263,6 @@
   --m2-win-font: 700 11px var(--font-sans);
   --m2-win-shadow: var(--surface-shadow, var(--m2-mat-shadow));   /* the pane shadow alone, as BASINS' material (1.5.0-alpha.9) */
   --m2-win-wash: linear-gradient(180deg, hsl(0 0% 100% / .025), hsl(0 0% 0% / .07));
-  --m2-xport-sw: 1.6;
 }
 /* @outside */ :root {
   --m2-r-2: 2px;
@@ -2300,6 +2299,11 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
       to PART B. ── */
 }
 
+/* 1.5.0-alpha.13 · THE HOUSE'S GLYPHS (glyph.js) drawn in this window: the transport faces sit centred, and the glyph weight and the dim rung are
+   the window's tokens (the library's strokes are attributes, so a rule of the window's own can take them) */
+#modwin.mir-modwindow .m2-xport-gly { display: block; margin: auto; }
+#modwin.mir-modwindow svg[viewBox="0 0 24 24"] :is(path, rect, circle, ellipse)[stroke="currentColor"] { stroke-width: var(--m2-glyph-sw); }
+#modwin.mir-modwindow svg[viewBox="0 0 24 24"] [opacity="0.42"] { opacity: var(--m2-glyph-dim); }
 }   /* end @layer mir.kit.plugin.artifact */
 
 /* 1.5.0 · mir.a11y — reduced motion stops every transition and animation in the window, verbatim from PART B's

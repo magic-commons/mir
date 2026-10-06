@@ -69,12 +69,12 @@ try {
   r = await J(`return { preset: P.preset(), theme: document.body.dataset.theme, card: document.body.dataset.card, frost: document.body.classList.contains('frost'), blur: hv('--glass-blur'), radius: bv('--surface-radius'), filter: bv('--surface-filter') };`);
   check("a new user starts on FROST (Josh's recipe) on the dark theme", r.preset === 'frost' && r.theme === 'dark' && r.card === 'refractive' && r.frost && r.blur === '11px' && r.radius === '24px' && r.filter === 'blur(11px) saturate(1.30)', JSON.stringify(r));
   /* the walk below starts from CLASSIC, stepped to with the mouse (SKIN ›, ›: FROST → MORPH → CLASSIC), so each option moves something */
-  const skinNext = `${grp('theme')}.querySelector('.gui-skin .gui-step-b[data-step="1"]')`, toneNext = `${grp('theme')}.querySelector('.gui-tone .gui-step-b[data-step="1"]')`;
+  const skinNext = `${grp('theme')}.querySelector('.gui-skin .mir-step-b[data-step="1"]')`, toneNext = `${grp('theme')}.querySelector('.gui-tone .mir-step-b[data-step="1"]')`;
   await option('SKIN › › CLASSIC (a vanilla theme)', async () => { const a = await click(skinNext, 'SKIN ›'); const b = await click(skinNext, 'SKIN ›'); return a && b; },
-    `[P.preset(), document.body.dataset.card, ${grp('theme')}.querySelector('.gui-skin .gui-step-name').textContent]`, ['classic', 'tinted', 'CLASSIC'], `cs('#pane', 'background-color')`);
+    `[P.preset(), document.body.dataset.card, ${grp('theme')}.querySelector('.gui-skin .mir-step-name').textContent]`, ['classic', 'tinted', 'CLASSIC'], `cs('#pane', 'background-color')`);
   r = await J(`return document.documentElement.dataset.skin;`);
   check('SKIN keeps the seam: <html data-skin="frost"> (the vanilla themes are settings, not a skin package)', r === 'frost', r);
-  await option('TONE › (INK: the theme\'s colours only)', () => click(toneNext, 'TONE ›'), `[P.preset(), ${grp('theme')}.querySelector('.gui-tone .gui-step-name').textContent, P.get('tint')]`, ['classic', 'INK', 0.2], `cs('#knob .k-dial', 'background-color')`);
+  await option('TONE › (INK: the theme\'s colours only)', () => click(toneNext, 'TONE ›'), `[P.preset(), ${grp('theme')}.querySelector('.gui-tone .mir-step-name').textContent, P.get('tint')]`, ['classic', 'INK', 0.2], `cs('#knob .k-dial', 'background-color')`);
   await option('THEME light', () => click(segB('theme', 0, 0), 'THEME LIGHT'), `document.body.dataset.theme`, 'light', `bv('--fg')`);
   await click(segB('theme', 0, 1), 'THEME DARK');
   await option('ACCENT A', () => dragUp(dial('accent', 0), 'ACCENT A'), `P.get('accentA') !== 200`, true, `bv('--acc')`);
@@ -149,9 +149,9 @@ try {
   check('QUALITY shows what the look costs: blurred surfaces and a measured frame time', /^\d+$/.test(r.blur) && /ms$/.test(r.frame), JSON.stringify(r));
 
   /* ── MIR OPTIONS 2: the light, the windows ── */
-  const pageNext = `document.querySelector('.mir-gui .gui-turner .gui-step-b[data-step="1"]')`;
+  const pageNext = `document.querySelector('.mir-gui .gui-turner .mir-step-b[data-step="1"]')`;
   const p2 = await click(pageNext, 'turner › (OPTIONS 2)'); await sleep(400);
-  r = await J(`return [G.page, G.root.querySelector('.gui-turner .gui-step-name').textContent, !!${grp('light')}.getClientRects().length];`);
+  r = await J(`return [G.page, G.root.querySelector('.gui-turner .mir-step-name').textContent, !!${grp('light')}.getClientRects().length];`);
   check('the page turner shows MIR OPTIONS 2 (the light and the windows)', p2 && r[0] === 'options' && r[1] === 'MIR OPTIONS 2' && r[2], JSON.stringify(r));
   await option('LIGHT ANGLE (an arc)', () => dragUp(dial('light', 0), 'LIGHT ANGLE', 50), `[hv('--light-angle') !== '', document.documentElement.hasAttribute('data-cast')]`, [true, true], `cs('#pane', 'box-shadow')`);
   await option('SHADOW (0–200 %)', () => dragUp(dial('light', 1), 'SHADOW', 40), `[P.get('shadow') > 1, hv('--shadow-amount') === String(P.get('shadow'))]`, [true, true], `cs('#pane', 'box-shadow')`);
@@ -169,16 +169,16 @@ try {
   await click(pageNext, 'turner › (ABOUT)'); await sleep(300); await click(pageNext, 'turner › (OPTIONS 1)'); await sleep(300);
 
   /* ── SKIN: the sets, and CUSTOM ── */
-  r = await J(`return { preset: P.preset(), name: ${grp('theme')}.querySelector('.gui-skin .gui-step-name').textContent };`);
+  r = await J(`return { preset: P.preset(), name: ${grp('theme')}.querySelector('.gui-skin .mir-step-name').textContent };`);
   check('SKIN: after all that the options match no theme, and the stepper says CUSTOM', r.preset === 'custom' && r.name === 'CUSTOM', JSON.stringify(r));
   await option('SKIN › FROST (from CUSTOM, the first theme)', () => click(skinNext, 'SKIN › FROST'), `[P.preset(), document.body.dataset.card, document.body.classList.contains('frost'), document.body.classList.contains('disconnected'), document.body.style.getPropertyValue('--glass-tint')]`, ['frost', 'refractive', true, false, '214 20.8% 13%'], `[cs('.dev', 'border-top-left-radius'), cs('#pane', 'backdrop-filter')]`);
-  r = await J(`await wait(900); return [${grp('theme')}.querySelector('.gui-skin .gui-step-name').textContent, ${grp('theme')}.querySelector('.gui-tone .gui-step-name').textContent, ${grp('theme')}.querySelector('.gui-theme-cost').textContent, G.themeCost('frost')];`);
+  r = await J(`await wait(900); return [${grp('theme')}.querySelector('.gui-skin .mir-step-name').textContent, ${grp('theme')}.querySelector('.gui-tone .mir-step-name').textContent, ${grp('theme')}.querySelector('.gui-theme-cost').textContent, G.themeCost('frost')];`);
   check('a theme that matches names itself and its tone, and shows what it cost when applied', r[0] === 'FROST' && r[1] === 'CLEAR' && /BLUR .* ms$/.test(r[2]) && r[3] && r[3].ms > 0, JSON.stringify(r));
 
   /* ── a reload keeps the choices ── */
   await click(segB('theme', 0, 0), 'THEME LIGHT');
   await p.goto(URL_, 900); await ready();
-  r = await J(`return { preset: P.preset(), tone: ${grp('theme')}.querySelector('.gui-tone .gui-step-name').textContent, theme: document.body.dataset.theme, card: document.body.dataset.card, frost: document.body.classList.contains('frost'), guides: P.get('dropGuides'), hints: document.body.classList.contains('control-hints-off') };`);
+  r = await J(`return { preset: P.preset(), tone: ${grp('theme')}.querySelector('.gui-tone .mir-step-name').textContent, theme: document.body.dataset.theme, card: document.body.dataset.card, frost: document.body.classList.contains('frost'), guides: P.get('dropGuides'), hints: document.body.classList.contains('control-hints-off') };`);
   check('a reload keeps the choices, the theme and its tone (one localStorage key, applied before the first paint)', r.preset === 'frost' && r.tone === 'CLEAR' && r.theme === 'light' && r.card === 'refractive' && r.frost && r.guides === false && r.hints, JSON.stringify(r));
 
   /* ── the page turner, and nothing scrolls ── */
@@ -186,15 +186,15 @@ try {
   const overflow = async () => J(`const over = []; const all = [G.window.body, ...G.window.body.querySelectorAll('.mir-win-panel:not([hidden]), .gui-grp, .gui-page')];
     for (const n of all) { if (!n.getClientRects().length) continue; if (n.scrollHeight > n.clientHeight + 0.5 || n.scrollWidth > n.clientWidth + 0.5) over.push((n.className || n.tagName) + ' ' + n.scrollWidth + '×' + n.scrollHeight + ' in ' + n.clientWidth + '×' + n.clientHeight); }
     const r = G.root.getBoundingClientRect(); if (r.right > innerWidth || r.bottom > innerHeight || r.left < 0 || r.top < 0) over.push('the window leaves the screen');
-    return { page: G.page, name: G.root.querySelector('.gui-turner .gui-step-name').textContent, over };`);
+    return { page: G.page, name: G.root.querySelector('.gui-turner .mir-step-name').textContent, over };`);
   const pages1280 = [await overflow()];
-  const next = `document.querySelector('.mir-gui .gui-turner .gui-step-b[data-step="1"]')`, prev = `document.querySelector('.mir-gui .gui-turner .gui-step-b[data-step="-1"]')`;
+  const next = `document.querySelector('.mir-gui .gui-turner .mir-step-b[data-step="1"]')`, prev = `document.querySelector('.mir-gui .gui-turner .mir-step-b[data-step="-1"]')`;
   const tHit = await click(next, 'turner ›'); await sleep(400);
   pages1280.push(await overflow());
   await click(next, 'turner ›'); await sleep(400);
   pages1280.push(await overflow());
   const back = await click(prev, 'turner ‹'); await sleep(400); await click(prev, 'turner ‹'); await sleep(400);
-  r = await J(`return G.root.querySelector('.gui-turner .gui-step-name').textContent;`);
+  r = await J(`return G.root.querySelector('.gui-turner .mir-step-name').textContent;`);
   check('the page turner: › MIR OPTIONS 2, › MIR ABOUT, ‹ ‹ back to MIR OPTIONS 1 (real clicks, hit-tested)', tHit && back && pages1280.map((x) => x.name).join() === 'MIR OPTIONS 1,MIR OPTIONS 2,MIR ABOUT' && r === 'MIR OPTIONS 1', pages1280.map((x) => x.name).join(' → ') + ' → ' + r);
   check('nothing scrolls at 1280×720: every panel, group and page fits (scrollHeight ≤ clientHeight)', pages1280.every((x) => !x.over.length), JSON.stringify(pages1280.flatMap((x) => x.over)));
   /* ── the pointer glow follows the pointer, and writes nothing when the pointer is still ── */
@@ -235,7 +235,7 @@ try {
   const seen = [];
   for (let i = 0; i < 7; i++) {
     seen.push(await J(`const over = []; for (const n of [G.window.body, ...G.window.body.querySelectorAll('.mir-win-panel:not([hidden]), .gui-grp, .gui-page')]) { if (!n.getClientRects().length) continue; if (n.scrollHeight > n.clientHeight + 0.5 || n.scrollWidth > n.clientWidth + 0.5) over.push(n.className + ' ' + n.scrollWidth + '×' + n.scrollHeight + ' in ' + n.clientWidth + '×' + n.clientHeight); }
-      const r = G.root.getBoundingClientRect(); if (r.right > innerWidth || r.bottom > innerHeight) over.push('off screen'); return { name: G.root.querySelector('.gui-turner .gui-step-name').textContent, over };`));
+      const r = G.root.getBoundingClientRect(); if (r.right > innerWidth || r.bottom > innerHeight) over.push('off screen'); return { name: G.root.querySelector('.gui-turner .mir-step-name').textContent, over };`));
     await p.eval(`__T.gui.turn(1)`); await sleep(400);
   }
   check('at 390×844 the OPTIONS groups page sideways (5 sheets, then ABOUT) and nothing scrolls on any of them', seen.slice(0, 6).map((s) => s.name).join() === 'MIR OPTIONS 1/5,MIR OPTIONS 2/5,MIR OPTIONS 3/5,MIR OPTIONS 4/5,MIR OPTIONS 5/5,MIR ABOUT' && seen.every((s) => !s.over.length),

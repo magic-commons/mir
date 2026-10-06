@@ -33,7 +33,7 @@
 
 /* ── THE NAMESPACE ──────────────────────────────────────────────────────── */
 
-import { setGlyph as setHouseGlyph } from '../../glyph.js';
+import { setGlyph as setHouseGlyph, glyphEl, glyphSvg, hasGlyph } from '../../glyph.js';
 import { label as kitLabel, ariaLabel as kitAria, hint as kitHint, placeholder as kitPlaceholder } from '../../kit.js';
 import { t, phrase, onLanguage } from '../../core/i18n.js';
 
@@ -210,16 +210,15 @@ export const COPY = {
   ]
 };
 
-/* anim.js:1525-1526 — the two transport faces, verbatim.  They are swapped
-   through innerHTML; they are not glyphs. */
-export const SVG_PAUSE = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="width:14px;height:14px;display:block;margin:auto;stroke-width:var(--m2-xport-sw)"><rect x="6" y="4" width="3.5" height="16" rx="1"/><rect x="14.5" y="4" width="3.5" height="16" rx="1"/></svg>';
-export const SVG_PLAY = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="width:14px;height:14px;display:block;margin:auto;stroke-width:var(--m2-xport-sw)"><polygon points="6 4 20 12 6 20 6 4"/></svg>';
+/* the two transport faces, swapped through innerHTML: the house's own play and pause (glyph.js), 14 px, centred by `.m2-xport-gly` */
+export const SVG_PAUSE = glyphSvg('pause', 'gly gly-pause m2-xport-gly', 14);
+export const SVG_PLAY = glyphSvg('play', 'gly gly-play m2-xport-gly', 14);
 
 /* 1.5.0-alpha.4 · THE WORK BAR'S FIRST SEAT IS MODULATION'S POWER, NOT A PLAY (Josh, 2026-10-01: one clock — the timeline
    has the true play, modulation a power button like BASINS').  The drawing is BASINS' own (transport-controls.js
    mountModulationPower): a faint halo, the ring, the stem; its weight is a token.  SVG_PLAY / SVG_PAUSE stay exported
    for callers that still draw them; the window no longer does. */
-export const SVG_POWER = '<svg class="mir-power-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="stroke-width:var(--m2-power-sw)"><circle class="mir-power-halo" cx="12" cy="12" r="10.5"/><path class="mir-power-ring" d="M6.7 5.7a8.2 8.2 0 1 0 10.6 0"/><path class="mir-power-stem" d="M12 2.5v9"/></svg>';
+export const SVG_POWER = glyphSvg('power', 'mir-power-icon', 24);
 
 /* ── THE TWO ELEMENT HELPERS (anim.js:1042, 3313) ───────────────────────── */
 
@@ -244,73 +243,8 @@ export function m2svg(tag, cls, parent, attrs) {
   return e;
 }
 
-/* ── THE GLYPHS (EXTRACT file 05, verbatim from glyph.js) ────────────────── */
-
-/* glyph.js:44,60,65,70 — ONE stroke weight for the whole set. */
-/* 1.5.0-alpha.4 · the weight and the dim rung are tokens (modwindow.css FROST · values), read in an inline style */
-const STROKE = 'fill="none" stroke="currentColor" style="stroke-width: var(--m2-glyph-sw)" ' +
-  'stroke-linecap="round" stroke-linejoin="round"';
-const STROKE_DIM = 'fill="none" stroke="currentColor" style="stroke-width: var(--m2-glyph-sw); opacity: var(--m2-glyph-dim)" ' +
-  'stroke-linecap="round" stroke-linejoin="round"';
-
-export const GLYPHS = {
-  chevronDown:
-    '<path ' + STROKE + ' d="M6.6 9.4 L12 15.2 L17.4 9.4"/>',
-  clear:
-    '<path ' + STROKE + ' d="M8.6 5.4 L20.1 5.4 A1.7 1.7 0 0 1 21.8 7.1 ' +
-    'L21.8 16.9 A1.7 1.7 0 0 1 20.1 18.6 L8.6 18.6 L2.4 12 Z"/>' +
-    '<path ' + STROKE + ' d="M11.6 9.4 L16.8 14.6 M16.8 9.4 L11.6 14.6"/>',
-  close:
-    '<path ' + STROKE + ' d="M7.1 7.1 L16.9 16.9 M16.9 7.1 L7.1 16.9"/>',
-
-
-  dirNext:
-    '<path fill="currentColor" d="M9.4 6.4 L17.4 11.4 A0.7 0.7 0 0 1 17.4 12.6 ' +
-    'L9.4 17.6 A0.7 0.7 0 0 1 8.3 17 L8.3 7 A0.7 0.7 0 0 1 9.4 6.4 Z"/>',
-  dirPrev:
-    '<path fill="currentColor" d="M14.6 6.4 L6.6 11.4 A0.7 0.7 0 0 0 6.6 12.6 ' +
-    'L14.6 17.6 A0.7 0.7 0 0 0 15.7 17 L15.7 7 A0.7 0.7 0 0 0 14.6 6.4 Z"/>',
-  grip:
-    '<circle cx="9" cy="7" r="1.45" fill="currentColor"/>' +
-    '<circle cx="15" cy="7" r="1.45" fill="currentColor"/>' +
-    '<circle cx="9" cy="12" r="1.45" fill="currentColor"/>' +
-    '<circle cx="15" cy="12" r="1.45" fill="currentColor"/>' +
-    '<circle cx="9" cy="17" r="1.45" fill="currentColor"/>' +
-    '<circle cx="15" cy="17" r="1.45" fill="currentColor"/>',
-  leave:
-    '<path ' + STROKE + ' d="M6.6 12 L17.4 12"/>',
-  swap:
-    '<path ' + STROKE + ' d="M3.4 9.1 L20.6 9.1 M16.6 5.1 L20.6 9.1 L16.6 13.1"/>' +
-    '<path ' + STROKE + ' d="M20.6 16.5 L3.4 16.5 M7.4 12.5 L3.4 16.5 L7.4 20.5"/>',
-  compact:
-    '<path ' + STROKE + ' d="M7.6 3.9 L7.6 20.1 M16.4 3.9 L16.4 20.1"/>' +
-    '<path ' + STROKE + ' d="M2.2 12 L6.5 12 M4.5 9.6 L6.9 12 L4.5 14.4"/>' +
-    '<path ' + STROKE + ' d="M21.8 12 L17.5 12 M19.5 9.6 L17.1 12 L19.5 14.4"/>',
-  barsTop:
-    '<path ' + STROKE + ' d="M3.1 5.2 H9.2 M14.8 5.2 H20.9"/>' +
-    '<path ' + STROKE_DIM + ' d="M3.1 18.8 H20.9"/>',
-  barsBottom:
-    '<path ' + STROKE_DIM + ' d="M3.1 5.2 H20.9"/>' +
-    '<path ' + STROKE + ' d="M3.1 18.8 H9.2 M14.8 18.8 H20.9"/>'
-};
-
-/** glyph.js:~70 glyphEl.  createElementNS + innerHTML — NOT createElement,
- *  which makes an HTML element named svg that lays out as an inline box and
- *  draws nothing. */
-export function glyphEl(name, cls, size) {
-  const body = GLYPHS[name];
-  if (!body) return null;
-  const s = document.createElementNS(SVGNS, 'svg');
-  s.setAttribute('class', cls || ('gly gly-' + name));
-  s.setAttribute('viewBox', '0 0 24 24');
-  s.setAttribute('aria-hidden', 'true');
-  s.setAttribute('focusable', 'false');
-  const px = String(size === undefined ? 20 : size);
-  s.setAttribute('width', px);
-  s.setAttribute('height', px);
-  s.innerHTML = body;
-  return s;
-}
+/* ── THE GLYPHS: the house's one library (glyph.js, docs/ICONS.md); `glyphEl` stays exported for old imports ── */
+export { glyphEl };
 
 /** glyph.js:414 setGlyph, exactly. */
 export function setGlyph(el, name, opts) {
@@ -377,28 +311,17 @@ export function knobArc(elm, opts) {
 
 /* ── SMALL SHARED ICONS (anim.js:3322, 3332) ────────────────────────────── */
 
-/** anim.js:3322 — the four-way drag cross.  The svg has NO class. */
+/** the four-way drag cross: the house's `move` glyph (glyph.js).  The svg carries the glyph's own classes. */
 export function gripIcon(parent) {
-  const s = m2svg('svg', null, parent, { viewBox: '0 0 24 24' });
-  m2svg('path', null, s, {
-    d: 'M12 2.5 L15 6 H13 V11 H18 V9 L21.5 12 L18 15 V13 H13 V18 H15 L12 21.5 L9 18 H11 V13 H6 V15 ' +
-      'L2.5 12 L6 9 V11 H11 V6 H9 Z',
-    fill: 'currentColor'
-  });
+  const s = glyphEl('move', null, 24);
+  if (parent) parent.appendChild(s);
   return s;
 }
 
-/** anim.js:3332 — the power ring.  The svg has NO class. */
+/** the power ring: the house's `power` glyph (glyph.js); its two weights are this window's tokens (modhost.css `.m2pow`). */
 export function powIcon(parent) {
-  const s = m2svg('svg', null, parent, { viewBox: '0 0 24 24' });
-  m2svg('path', null, s, {
-    d: 'M12 2 V11', stroke: 'currentColor', style: 'stroke-width: var(--m2-pow-stem-sw)',
-    'stroke-linecap': 'round', fill: 'none'
-  });
-  m2svg('path', null, s, {
-    d: 'M6.2 5.6 A8.4 8.4 0 1 0 17.8 5.6', stroke: 'currentColor',
-    style: 'stroke-width: var(--m2-pow-ring-sw)', 'stroke-linecap': 'round', fill: 'none'
-  });
+  const s = glyphEl('power', 'mir-power-icon', 24);
+  if (parent) parent.appendChild(s);
   return s;
 }
 
@@ -622,7 +545,7 @@ function buildPresetStrip(panel, copy) {
   const navBtn = (cls, glyph, size, label, parent, vars) => {
     const b = m2mk('button', cls, parent || core);
     b.type = 'button';
-    if (glyph && GLYPHS[glyph]) setGlyph(b, glyph, { size, label, vars });
+    if (glyph && hasGlyph(glyph)) setGlyph(b, glyph, { size, label, vars });
     else { if (glyph) b.textContent = glyph; kitAria(b, label, vars); }
     return b;
   };

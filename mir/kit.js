@@ -43,7 +43,7 @@
  *   of the eleven modulation targets its registry base, and a dial nobody drives never sees it.
  *   B140 gates the EAR, the EYE and the MODEL together, which is what B127 could not see.
  */
-import { setGlyph } from './glyph.js';
+import { setGlyph, glyphEl } from './glyph.js';
 import { setText, setVar } from './core/perf.js';   // paint writes only what changed, and the meter counts both
 import { t as tx, onLanguage } from './core/i18n.js';
 
@@ -491,12 +491,7 @@ export function seg(o) {
 /** THE DOT GRIP — Josh's 5×5: dots at rows 1, 3, 5 × columns 1, 3, 5. The reorder handle in the modulation
  *  rail and the transport's macro tiles; the four-way cross stays the ROUTING grip. */
 export function gripDots(parent, size = 13) {
-  const NS = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', '0 0 5 5'); svg.setAttribute('aria-hidden', 'true');
-  svg.setAttribute('width', String(size)); svg.setAttribute('height', String(size)); svg.style.display = 'block'; svg.style.pointerEvents = 'none';
-  for (const y of [0.5, 2.5, 4.5]) for (const x of [0.5, 2.5, 4.5]) {
-    const c = document.createElementNS(NS, 'circle'); c.setAttribute('cx', String(x)); c.setAttribute('cy', String(y)); c.setAttribute('r', '0.5'); c.setAttribute('fill', 'currentColor'); svg.appendChild(c);
-  }
+  const svg = glyphEl('gripDots', 'mir-grip-dots-svg', size); svg.style.display = 'block'; svg.style.pointerEvents = 'none';
   if (parent) parent.appendChild(svg);
   return svg;
 }
@@ -664,7 +659,7 @@ export function device(o) {
    * The rail chip is in the DOM for every window and shown by CSS only while the window floats, so the
    * header's box never changes shape when a window comes off the rack. */
   const pop = el('button', 'dev-pop', util); pop.type = 'button';
-  chip(pop, 'north', 'take this window off the rack');
+  chip(pop, 'popOut', 'take this window off the rack');
   pop.title = 'Move this window between the rack and stage';
   const rail = el('button', 'dev-rail', util); rail.type = 'button';
   chip(rail, 'compact', 'narrow this window to its rail');

@@ -79,8 +79,7 @@ Write them in the app's own sheet or on `<body>`. They are resolved where they a
   - That's done by BASINS' `ink.css`, never by editing a kit file.
 - **App-specific readability is expected, not a breach of the one rule.** The rule is about reusing the kit's nodes, gestures and CSS, not about every app wearing the same ink.
 
-Two families of tokens are written by the app and read by the kit (`tools/lint-tokens.mjs` checks both):
-- `--accent-sweep`: an accent dial's arc, per dial;
+One family of tokens is written by the app and read by the kit (`tools/lint-tokens.mjs` checks it):
 - `--cx`, `--cy`: the busy mark's pointer position.
 
 ## 5. Ids and one-per-page parts

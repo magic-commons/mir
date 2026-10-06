@@ -449,10 +449,11 @@ export function createModClock(opts) {
      *  the clock is running; the MODEL only moves when it is. */
     advanceTo(w) {
       if (!Number.isFinite(w)) return 0;
+      if (realtimeOwner) return 0;     // a scrub or a recorder owns the clock: the wall stamp is theirs, an app's own tick must not move it
       const dt = prevWall === null ? 0 : Math.min(Math.max(w - prevWall, 0), maxStep);
       prevWall = w;
       wall = w;
-      if (!running || realtimeOwner) return 0;
+      if (!running) return 0;
       stats.frames++;
       stats.seconds += dt;
       M.advance(dt, w);

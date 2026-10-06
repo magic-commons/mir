@@ -65,7 +65,7 @@ engine.onMoving((moving) => gui.moving(moving));               // FROST · STILL
 **`shell/themes.js`** — the vanilla themes as data: `THEMES` (`[{ id, name, values, tones: [{ id, name, values }] }]`), `THEME_KEYS`, `COLOUR_KEYS`, `themeById(id)`, `themeValues(id)` (the theme's options and its first tone's), `toneValues(theme, tone)`, `matchTheme(state)`, `matchTone(state, theme)`.
 
 **`core/look.js`** — the look's arithmetic, pure: `glassTint`, `glassVeil` (BASINS' `applyGlass`), `paneShadow` (BASINS' ABOUT shadow), `lightOffset(angle, d)`, `lightIsHome(state)`, `solidInk(state, theme)`, `spacingPx(s)`, `THEME_GLASS`, `LIGHT_HOME`.
-- `stepper({ label, items, value, onChange, wrap })` — the `‹ NAME ›` control (BASINS' blend-mode picker): two 44 px buttons around a live label; arrow keys step it; an item marked `coming` is listed but never chosen.
+- `stepper({ label, items, value, onChange, wrap })` — the `‹ NAME ›` control: now the kit's own (`mir/controls/stepper.js`, [CONTROLS.md](CONTROLS.md); `gui.js` still exports it): two 44 px buttons around a live label, a tap on the name opens the list; arrow keys step it; an item marked `coming` is listed but never chosen.
 - `census(doc)` → `{ blur, shadow, shine }` — how many visible surfaces carry a backdrop filter, a drawn shadow, and a shine layer of their own.
 
 **`core/prefs.js`** — one store for any set of browser preferences.
@@ -91,7 +91,7 @@ Every control on MIR OPTIONS changes what is drawn through a hook a kit sheet or
 | | RESET LOOK | trig | every option home (FROST); the stored key is removed | |
 | | RESET LAYOUT | trig | `rack.resetLayout()` (BASINS: "Restore the default window layout"); shown only when `createGui({ rack })` | |
 | | FORGET | trig | `prefs.forget()` then a reload (BASINS: "Clear saved interface settings and reload") | |
-| ACCENT | A, B | arc dials (`.accent-dial`, cyclic: INTENT rule 2) | `shell/accent.js` `set({ a, b })` → `--acc`, `--acc2` on `<body>` | 30°, 300° |
+| ACCENT | A, B | arc dials (`arcKnob`, `controls/arc.js`, cyclic: INTENT rule 2) | `shell/accent.js` `set({ a, b })` → `--acc`, `--acc2` on `<body>` | 30°, 300° |
 | | VIVID | dial | `accent.set({ vivid })` → `--acc-glow` and the chroma | 10 % |
 | | BRIGHTNESS 0–100 % | dial | `accent.set({ bright })`: both accents mixed toward white in OKLCH, so `--acc`, `--acc2` and everything derived from them follow; `--acc-white` on `<body>` while above 0. Rides the project with A, B and VIVID | 0 |
 | MATERIAL | PANE tinted · refractive · solid | seg | `<body data-card>`; SOLID is the opaque pane in the tint's colour (`docs/THEMES.md`) | tinted |

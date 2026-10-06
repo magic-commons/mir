@@ -47,6 +47,6 @@ MIR is **GPL-3.0-only** (`LICENSE`). An app made by copying the kit is a work ba
 | the starter | `SKILL_DIR/starter/` (`index.html`, `app.js`, `README.md`) |
 | every export | `SKILL_DIR/docs/API.md` |
 | what every shadow, bevel and light means | `SKILL_DIR/docs/INTENT.md` |
-| one page per part | `docs/RACK.md`, `MODULATION.md`, `TIMELINE.md`, `PATTERN.md`, `SESSION.md`, `SCENE-GUARD.md`, `INK.md`, `FOLDERS.md`, `KEYS.md`, `NOTEBOOK.md`, `INFORMATIONAL.md`, `GUI.md`, `SHELL-PARTS.md`, `LANGUAGES.md`, `FORMAT.md` |
+| one page per part | `docs/RACK.md`, `MODULATION.md`, `TIMELINE.md`, `PATTERN.md`, `SESSION.md`, `SCENE-GUARD.md`, `INK.md`, `CONTROLS.md`, `CONTROLS-COLOUR.md`, `AUDIO.md`, `RENDER.md`, `HISTORY.md`, `OPENER.md`, `ICONS.md`, `FOLDERS.md`, `KEYS.md`, `NOTEBOOK.md`, `INFORMATIONAL.md`, `GUI.md`, `SHELL-PARTS.md`, `LANGUAGES.md`, `FORMAT.md` |
 | the tokens a skin may set | `SKILL_DIR/mir/tokens.json` (`skin: true`), `docs/TOKENS.md` |
 | the kit's version | `SKILL_DIR/BUILD.json`, `mir/version.js` |

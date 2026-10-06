@@ -180,7 +180,7 @@ The brief asked for survey C's 65-item rack list. Survey C has no numbered list 
 | 20 | Touch-tablet clamp to the visual viewport (BASINS) | **closed** (1.5.0-alpha.12): `tabletClamp` (on by default), `clampFloatTablet`; floats re-fit when the visual viewport resizes |
 | 21 | Floats re-clamped on resize | kept |
 | 22 | COMPACT floating window (the rail chip) | kept (`setCompact`, the `.dev-rail` chip) |
-| 23 | The pop chip's face (north / reopen) and the rail chip's face | kept |
+| 23 | The pop chip's face (popOut / dock) and the rail chip's face | kept |
 | 24 | `--float-w` as a custom property, not inline width | kept |
 | 25 | `raise(id)`: open, unfold, show the rack, top of the rack | kept |
 | 26 | `reopen(id, side)`: prepend into a rack, with the card-enter animation | kept (`open`), translate-only entrance, no fade |

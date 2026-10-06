@@ -519,7 +519,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
   function popFace(d) {
     const b = d.querySelector('.dev-pop'); if (!b) return;
     const out = d.classList.contains('floating');
-    chip(b, out ? 'reopen' : 'north', out ? 'dock this window back into the rack' : 'take this window off the rack');
+    chip(b, out ? 'dock' : 'popOut', out ? 'dock this window back into the rack' : 'take this window off the rack');
     b.title = out ? 'Return this window to its rack' : 'Move this window onto the stage';
   }
   function railFace(d) {

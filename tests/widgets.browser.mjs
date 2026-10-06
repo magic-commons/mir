@@ -29,10 +29,10 @@ try {
 
   /* ── the drag law ── */
   const law0 = JSON.parse(await ev('JSON.stringify(__T.kit.setKnobLaw())'));
-  check('setKnobLaw() returns the shipped law', law0.travel === 220 && near(law0.fine, 900 / 220) && law0.keyFine === 0.25 && law0.faderFine === 5 && law0.touchTravel === 320, JSON.stringify(law0));
+  check('setKnobLaw() returns the shipped law', law0.travel === 220 && law0.fine === 8 && law0.keyFine === 0.125 && law0.faderFine === 8 && law0.touchTravel === 320, JSON.stringify(law0));
   const law1 = JSON.parse(await ev('JSON.stringify(__T.kit.setKnobLaw(__T.kit.setKnobLaw()))'));
   check('setKnobLaw(setKnobLaw()) is the identity', JSON.stringify(law1) === JSON.stringify(law0), JSON.stringify(law1));
-  check('dragTravel: 220 plain, 900 with Shift, 320 under a finger', await ev(`__T.kit.dragTravel({}) === 220 && Math.abs(__T.kit.dragTravel({ shiftKey: true }) - 900) < 1e-9 && __T.kit.dragTravel({}, { touch: true }) === 320`));
+  check('dragTravel: 220 plain, 1760 with a modifier, 320 under a finger', await ev(`__T.kit.dragTravel({}) === 220 && Math.abs(__T.kit.dragTravel({ shiftKey: true }) - 1760) < 1e-9 && __T.kit.dragTravel({}, { touch: true }) === 320`));
 
   /* ── knob: pointer ── */
   let [cx, cy] = await center(kSel + ' .k-dial');
@@ -42,16 +42,16 @@ try {
   await ev('__T.k.set(0)');
   await drag(cx, cy, cx, cy - 90, 8 /* Shift */);
   v = await ev('__T.k.get()');
-  check('knob: Shift drag is fine (90 px ≈ 0.1 of the range)', near(v, 0.1, 0.02), String(v));
+  check('knob: Shift drag is an eighth (90 px ≈ 0.05 of the range)', near(v, 0.0511, 0.005), String(v));
 
   /* ── knob: keys ── */
   await ev('__T.k.set(0.5)');
   await key(kSel, 'ArrowUp', 'ArrowUp'); v = await ev('__T.k.get()');
   check('knob: ArrowUp is 1/100 of the range', near(v, 0.51), String(v));
   await key(kSel, 'ArrowUp', 'ArrowUp', 8); v = await ev('__T.k.get()');
-  check('knob: Shift+ArrowUp is a quarter of that', near(v, 0.5125), String(v));
+  check('knob: Shift+ArrowUp is an eighth of that', near(v, 0.51125), String(v));
   await key(kSel, 'PageDown', 'PageDown'); v = await ev('__T.k.get()');
-  check('knob: PageDown is ten steps', near(v, 0.4125), String(v));
+  check('knob: PageDown is ten steps', near(v, 0.41125), String(v));
   await key(kSel, 'End', 'End'); check('knob: End is the maximum', await ev('__T.k.get() === 1'));
   await key(kSel, 'Delete', 'Delete'); check('knob: Delete resets to the default', await ev('__T.k.get() === 0'));
   await ev('__T.kit.setKnobLaw({ fine: 8 })'); await ev('__T.k.set(0.5)');
@@ -78,7 +78,7 @@ try {
   await drag(fx0 + fw * 0.75, fy, fx0 + fw * 0.75, fy); v = await ev('__T.f.get()');
   check('fader: a press at 75 % sets 0.75', near(v, 0.75, 0.01), String(v));
   await ev('__T.f.set(0.5)'); await key('.fd', 'ArrowRight', 'ArrowRight', 8); v = await ev('__T.f.get()');
-  check('fader: Shift+Arrow is a quarter step', near(v, 0.5025), String(v));
+  check('fader: Shift+Arrow is an eighth step', near(v, 0.50125), String(v));
   await ev('__T.f.setBase(() => 0.3); __T.f.show(0.9)');
   const fa = JSON.parse(await ev(`JSON.stringify({ now: document.querySelector('.fd').getAttribute('aria-valuenow'), text: document.querySelector('.fd').getAttribute('aria-valuetext'), mod: document.querySelector('.fd').classList.contains('mod') })`));
   check('fader: setBase(fn) makes a driven fader announce its base', fa.now === '0.3' && /base · modulated/.test(fa.text) && fa.mod, JSON.stringify(fa));
@@ -134,7 +134,7 @@ try {
 
   /* ── slider keys ── */
   await key('.sk', 'ArrowUp', 'ArrowUp'); check('slider keys: an arrow is 0.01', await ev('Math.abs(__T.skv - 0.51) < 1e-9'));
-  await key('.sk', 'ArrowUp', 'ArrowUp', 8); check('slider keys: Shift is 0.001', await ev('Math.abs(__T.skv - 0.511) < 1e-9'));
+  await key('.sk', 'ArrowUp', 'ArrowUp', 8); check('slider keys: Shift is an eighth of 0.01', await ev('Math.abs(__T.skv - 0.51125) < 1e-9'));
 
   /* ── the accent follows what an app writes on <body> (1.4.0) ── */
   const acc = JSON.parse(await ev(`JSON.stringify((() => {

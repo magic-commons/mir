@@ -21,6 +21,8 @@ Import paths below are from an adopted app's `lab/` folder: `./mir/…`.
 
 **`createApp` (1.5.0-alpha.12).** More options: `banner`, `sceneGuard`, `wakeLock` (each `false` or options), `canvas` (the picture's canvas, for the scene guard), `coming: [[NAME, hint]]` (menu rows for what is not built yet), `session` (off by default: `true` or `{ key, … }` keeps the live project in one key, [SESSION.md](SESSION.md)), `pattern` (the PATTERN with the modulation; `false` leaves it out; WINDOW › PATTERN), `factory` (bundled starter presets, `{ presets, folder, apply }`, handed to `installModulation`), `timeline` (`true` or options: the TIMELINE, the lego stack under the modulation window and the MIR switch between the two). The rack gets `scrollbar: true, name, notebook`; the GUI window gets the rack; the accent's angles go to the modulation window's `setAccent`, and the GUI's saved SAMPLING · AUTOMATION grid goes to `installModulation({ automationGrid })`. More members: `hideInterface()`, `dump()`, `banner`, `sceneGuard`, `wakeLock`, `session`, `pattern`, `timeline`, `workspaces`. Key actions `rack` (B), `dock` (T), `hide` (H), `fullscreen` (F); `folders` moved to S. `window.__MIR.app`.
 
+**`createApp` (1.5.0-alpha.13).** More options: `history` (the app's one stack, `createHistory()`: a HISTORY window behind WINDOW › HISTORY, with the keys, the gesture naming and the modulation rack as a domain; `historyWindow` adds that window's options), `render` (`{ frame, motions?, subject?, picture?, motionUi?, sections?, prefix?, card?, …createRecorder options }`: the recorder, `busy` to the timeline, RENDER in FOLDERS and as a rack window; [RENDER.md](RENDER.md)). `timeline` now installs the audio clip too (`timeline: { audio: false }` leaves it out). A notebook without pages registers its project part. Returns `history` and `recorder` as well.
+
 **`mir/mir.css`**: every kit sheet, by `@import`, in the kit's order: `<link rel="stylesheet" href="mir/mir.css">`. Its header says which order still matters under the cascade layers. `tests/mir-css.node.mjs` fails if a sheet under `mir/` is missing from it or imported twice.
 
 ---
@@ -55,12 +57,12 @@ Notes on the builders:
 
 | Export | What it is |
 |---|---|
-| `setKnobLaw({ travel, fine, keyFine, faderFine, touchTravel })` | Retunes the law and returns the law in force. Defaults: `travel 220`, `fine 900/220`, `keyFine .25`, `faderFine 5`, `touchTravel 320`. |
-| `dragTravel(event, { touch, travel, fine })` | Pixels for a full scale under the law. It's for drag surfaces the kit did not build. |
+| `setKnobLaw({ travel, fine, keyFine, faderFine, touchTravel })` | Retunes the law and returns the law in force. Defaults (1.5.0-alpha.13): `travel 220`, `fine 8`, `keyFine .125`, `faderFine 8`, `touchTravel 320`. |
+| `dragTravel(event, { touch, travel, fine })` | Pixels for a full scale under the law (1760 with any modifier). It's for drag surfaces the kit did not build. |
 | `tapWatcher(fn)` | The shared double-tap detector (320 ms). |
 
 About `setKnobLaw`:
-- `fine` alone retunes every Shift at once. BASINS' Shift = ⅛ is `setKnobLaw({ fine: 8 })`.
+- `fine` alone retunes every fine gear at once; ⅛ (`fine: 8`) is the default since 1.5.0-alpha.13, on Shift, Alt, Ctrl, Meta or a second finger, for knobs, faders, arrow keys and `bindSliderKeys`.
 - Explicit parts win, so `setKnobLaw(setKnobLaw())` changes nothing.
 
 ### Ink, colour and canvas helpers
@@ -96,11 +98,12 @@ Since 1.5.0-alpha.3 a skin may also set the state and height tokens the house re
 
 | Export | What it is |
 |---|---|
-| `glyphNames()` | Every glyph name (see the gallery) |
-| `hasGlyph(name)` | Whether a glyph exists |
+| `glyphNames()` | Every canonical glyph name, aliases excluded (75; see [ICONS.md](ICONS.md) and `gallery/icons.html`) |
+| `glyphAliases()` | `{ old: target }`: the retired names that still draw (`north` → `popOut`) |
+| `hasGlyph(name)` | Whether a glyph exists; true for an alias too |
 | `glyphSvg(name, cls, size)` | The glyph as an SVG string |
 | `glyphEl(name, cls, size)` | The glyph as an SVG element |
-| `setGlyph(el, name, { label })` | Draw a glyph into a button and set its accessible label |
+| `setGlyph(el, name, { label })` | Draw a glyph into a button and set its accessible label. `glyphSvg`, `glyphEl` and `setGlyph` draw an alias's target and keep the name the caller passed in the class (`gly-north`) and in `data-gly` |
 
 ## `mir/palette.js`: colour science and the palette catalogue
 
@@ -660,7 +663,7 @@ They go home to λWAVES when the kit drops its λWAVES leftovers (2.0.0).
 
 `SVG_POWER` (1.5.0-alpha.4) is the work bar's first seat (`button.modxport.mir-mod-power[data-face="power"]`); `SVG_PLAY` / `SVG_PAUSE` stay exported and are no longer drawn by the window.
 
-The glyph strings (`GLYPHS`, `SVG_PLAY`, `SVG_PAUSE`, `powIcon()`) read `--m2-glyph-sw` (and `--m2-glyph-dim`, `--m2-xport-sw`, `--m2-pow-stem-sw`, `--m2-pow-ring-sw`) through an inline style: declare them if you draw a glyph outside the plugin's roots.
+Since 1.5.0-alpha.13 the window draws through the house's one icon library (`glyph.js`): its private `GLYPHS` copy is gone, `SVG_PLAY`, `SVG_PAUSE` and `SVG_POWER` are `glyphSvg` strings, `gripIcon()` is the `move` glyph and `powIcon()` the `power` glyph. The window's weights (`--m2-glyph-sw`, `--m2-glyph-dim`, `--m2-power-sw`, `--m2-pow-stem-sw`, `--m2-pow-ring-sw`) are read by the plugin's own rules (`modwindow.css`, `modhost.css`), so a glyph drawn outside the window's root keeps the library's own weight; `--m2-xport-sw` is retired.
 
 | Export | What it is |
 |---|---|
@@ -668,7 +671,7 @@ The glyph strings (`GLYPHS`, `SVG_PLAY`, `SVG_PAUSE`, `powIcon()`) read `--m2-gl
 | `buildChipRail`, `buildMacroSlot`, `buildDevice`, `setDeviceMode`, `buildAudioSheet`, `buildRing`, `buildSpan`, `buildClear` | The sub-builders |
 | `setViewHeight`, `setWorkLane` | Sizing the rack view and the work lane |
 | `ringGeom`, `knobArc` | Ring and arc geometry |
-| `gripIcon`, `powIcon`, `GLYPHS`, `glyphEl`, `setGlyph`, `m2mk`, `m2svg`, `SVG_PLAY`, `SVG_PAUSE` | The window's own icons and DOM helpers |
+| `gripIcon`, `powIcon`, `glyphEl` (a re-export of `glyph.js`'s), `setGlyph`, `m2mk`, `m2svg`, `SVG_PLAY`, `SVG_PAUSE`, `SVG_POWER` | The window's own icons and DOM helpers |
 | `NS`, `WINDOW_ID`, `WINDOW_TITLE`, `CHIPRAIL_LABEL`, `IDS`, `GEOM`, `sizeLaw`, `COPY` | Names, ids, geometry and copy |
 
 **The complete controller that wires the window to a host is not in the kit yet.** Routes, rings, the clock and presets (`wireGrip`, `wireDepth`, `paintDepth`, `moveMacro`, `rebuildMacros`) live in λWAVES' `lab/modwindow.js`, which BASINS and NEBULA copied. Curve pointer semantics are the exception since 1.4.2: every host imports `curve-gesture.js`, so copied controllers cannot drift on point/tension controls.
@@ -821,6 +824,84 @@ mir/pattern/sequencer.js
   - Sets `window.__MIR.describe` and `window.__MIR.dump`.
 - Pure: `describeText(state)`, `dumpText(state)`, `targetOf(node)`, `eventEntry(event)`, `scrub(text, typed)`, `DESCRIBE_ID`.
 
+## `mir/controls/`: the control language ([CONTROLS.md](CONTROLS.md), [CONTROLS-COLOUR.md](CONTROLS-COLOUR.md), 1.5.0-alpha.13)
+
+The kit prescribes one control per kind of value. Every control below is re-exported from `mir/kit.js`; each takes `label` / `aria` words through `label()` (so they translate) and returns a widget with the kit knob's contract (`root`, `get`, `set`, `destroy`, and for a value a macro may drive: `show`, `shown`, `setBase`, `setDisabled`, `setDefault`, `paint`).
+
+### The general set: `stepper.js`, `select.js`, `number.js`, `range.js`, `xy.js`, `factory.js`
+
+| Export | What it does |
+|---|---|
+| `stepper({ label, aria, items, value, onChange(id, dir), wrap, list, pager, count, cls })` → `{ root, prev, next, name, get, set(id), setItems(items, id), step(d), open(), close(), destroy() }` | `‹ NAME ›`: two round 44 px buttons around a live name; a tap on the name opens the full list in the menu pane (`list: false` makes it a label); `pager: true` is the page turner (`count: true` adds `n / N`); an item with `coming` is listed and never chosen; the arrows mirror under `dir="rtl"`. Buttons are `.mir-step-b[data-step]`, the name `.mir-step-name` |
+| `select({ label, aria, items, value, onChange, placeholder, cls, disabled })` → `{ root, button, get, set(id), setItems(list, id), open(), close(), isOpen, setDisabled(on), destroy() }` · `listPane({ anchor, items, value, onPick, onClose, label, cls, signal })` → `{ root, close(), items }` | the kit's own choose-one, for a long list of data: the list opens in the menu pane (`.mir-pick`, a `.glass[data-mir-surface="menu"]` on the body), never the platform's popup; keys: arrows, Home, End, Enter, typeahead (700 ms), Escape; items are `{ id, label, vars?, coming? }` |
+| `number({ label, aria, min, max, value, step, digits, fmt, parse, unit, chars, range, drag, onInput, onChange, cls })` → `{ root, face, input, get, set(x), setDisabled(on), open(), close(take), editing, destroy() }` · `bindNumber({ button, input, model, parse, enabled, drag, click, paint, chars, step, range, signal })` → `{ open(), close(take), editing, destroy() }` | the tempo field's law for every typed number: drag (the whole range in 220 px, 320 under a finger, ⅛ on any modifier or a second finger, on a virtual point), click or Enter opens the field, Enter or leaving takes it, Escape does not; ↑ → ↓ ← one step, Shift an eighth, Page ten, Home / End the ends, Delete home |
+| `numberTravel(start, p, opts)`, `parseNumber(text)`, `digitsOf(step)`, `NUMBER` | the pure parts |
+| `rangeSlider({ label, aria, min, max, lo, hi, step, log, fmt, minGap, onInput(lo, hi), onChange(lo, hi), cls, loLabel, hiLabel })` → `{ root, lo, hi, get() → [lo, hi], set(lo, hi), setDisabled(on), destroy() }` | one track, two thumbs that never cross; each thumb (`.rng-t`) is a modulation target; a press goes to the nearest thumb |
+| `xyPad({ label, aria, x, y, home, tags, onInput(x, y), onChange(x, y), cls })` → `{ root, pad, x, y, get() → [x, y], set(x, y), setDisabled(on), paint(), destroy() }` | one square for the hand and the two knobs that stay the modulation targets (`x`, `y` are the knobs' options and then the widgets); a press brings the dot to the pointer; Home or a double-tap goes to `home` |
+| `control(descriptor)` → `{ kind, root, widget, targets, get(), set(v), desc, params() }` · `controlKind(descriptor)` · `KINDS` | the kind of value chooses the control: switch · swatch · xy · range · segment (1 to 4 options, every label under 26 characters) · stepper (5 or more, in order) · select (a long list, over 16) · arc · lane · knob · number; `params()` is the record `installModulation({ params })` takes |
+
+### The colour family: `arc.js`, `swatch.js`, `lane.js`, `list.js`, `gesture.js`
+
+| Export | What it does |
+|---|---|
+| `arcRing(parent, { from = 0, span = 360 })` → `{ svg, set(turn) }` | an SVG ring with round caps: a track `span`° long starting `from`° clockwise from the top, and a value ring `turn`° of it (0 hides it) |
+| `arcKnob(o)` → the kit knob plus `{ law, home, paintArc(), arc(), gesture(), dragging(), destroy() }` | every `knob()` option and widget method; `law: 'vertical'` (default) or `'angular'`; `home`; `ink` (a colour or `(base) → colour`); `size: 'sm'`; `onPress(event)`; `live()`. The ring strokes in `--k-state-ink`, then `--lane-ink`, then the accent |
+| `ARC` | `{ SWEEP: 300, DEAD: 7, NEAR: 34, FLOOR: .15 }`: the sweep and the angular law's numbers |
+| `hueSwatch({ rgb, label, title, onInput(rgb), onChange(), fine })` → `{ root, button, input, arc, set(rgb), get(), dragging(), destroy() }` | a circle of the colour: tap = the platform's chooser, an 8 px drag up or down turns the hue |
+| `rgbToHsv(rgb)`, `hsvToRgb(h, s, v)`, `rgbCss(rgb)`, `SWATCH` | pure helpers (`rgb` is `[r, g, b]` in 0..1, `h` in turns); `SWATCH = { ARM: 8, TRAVEL: 220 }` |
+| `laneSlider({ home, value, orient: 'h' \| 'v', ink, …fader() options })` → the kit fader plus `{ home, orient }` · `laneInk(node, css)` | a pill in the lane's ink with a glowing thumb; one hand law for both orientations; a modulation target natively; `laneInk` writes `--lane-ink` (`null` clears it) |
+| `chipStrip({ id, title, chips, onChip, onGrip, onKey, glyphSize, flow, material })` → `{ el, grip, chip(name), setChip(name, state), state(name), setDisabled(name, on), destroy() }` | a static strip of the rail's `.mir-chip` discs; the rail's chip specs plus `confirm: { text, ms, label }` (an armed-to-fire chip) |
+| `sortableList({ items, build, onMove, onRemove, onAdd, cap, min, noun, addLabel, side, armMs, material })` → `{ root, rows, add(), items(), setItems(items), rebuild(), move(id, to), remove(id), nodeOf(id), stripOf(id), count(), destroy() }` · `ARM_MS` (2600) | a stack of island panes with a grip over an armed × beside each, and a + ADD pill that dims at `cap`; reordered by drag or arrows |
+| `fineHeld`, `fineGain`, `wireTouches` (re-exports of `kit.js`), `tapHome(onHome)`, `forward(root, ev)`, `lawNow()`, `TAP`, `clamp01`, `frac` | the pieces the colour hands share |
+
+### `mir/kit.js` additions
+
+| Export | What it does |
+|---|---|
+| `knob.setState('warn' \| 'clamped', reason)`, `knob.dragging()` | `warn` draws a 1 px `--warn` ring and the value in `--warn`; `clamped` adds the needle in `--warn`; the reason is the hover hint and `aria-description` |
+| `sw({ lamp: false })` | ON is the frost face with the label in accent A, as a trigger's (no lamp) |
+| `verticalDrag(down, { travel, fine, touchTravel, axis })` → `{ id, touch, move(e), gear, p }` | the knob law as an accumulator (up is +, `axis: 'sum'` also adds Δx) |
+| `fineHeld(event, pointerId)`, `gearOf(event, pointerId, fine?)`, `watchTouches()`, `otherTouch(id)` | the fine gear's one decision (Shift, Alt, Ctrl, Meta or a second finger) and its gain (1, or 1 / the law's ⅛) |
+| `knob({ dragAxis: 'sum' })` | keeps 1.4's up-and-right drag (the default is vertical) |
+
+## `mir/core/zip.js`, `assets.js` and the audio clip ([AUDIO.md](AUDIO.md), [FORMAT.md](FORMAT.md), 1.5.0-alpha.13)
+
+**`mir/modulation/audio-capture.js`**: `createAudioCapture({ onState({ state, reason }), deviceId }) → { state, reason, live, deviceId, frames, sampleRate, inputLatencyMs, analysisLatencyMs, visualLatencyMs, latencyMs, latencyEstimated, upMs, processing, support(), start(id?) → Promise<state>, stop(), suspend(), resume(), setHidden(v), read(feedHz) → { feedHz, capturedAt, now, sampleRate, rms, bandPower: [low, mid, high], flux, …latency } | null, devices() → [{ id, label }], dispose() }` · `BANDS` (20–250, 250–2000, 2000–16000 Hz) · `AUDIO_STATE` · `audioSupport() → { ok, why }`. It is the default of `installModulation({ audio })` (`audio: false` leaves AUDIO out; an app's own factory wins).
+
+**`mir/core/assets.js`**: `assetId(bytes) → Promise<32 hex>` · `createAssetStore({ name = 'mir-assets', indexedDB }) → { put(meta, bytes) → id, meta(id) → meta | null, load(id) → Promise<meta | null>, bytes(id) → Promise<Uint8Array | null>, list(), delete(id), id }` · `assets` (the shared store; never changes identity) · `useAssets(store)` · `toBase64(bytes)`, `fromBase64(text)`.
+
+**`mir/core/zip.js`**: `class StoredZip { add(name, bytes) → size so far (throws 'ZIP part is full'), finish() → Blob, bytes, entries }` · `PngZipPart` (same) · `readStoredZip(Uint8Array) → Map<name, Uint8Array>` (throws on CRC, compressed, damaged, not a ZIP) · `ZIP_LIMIT` · `zipSafeName(name)`.
+
+**`mir/timeline/audio-kind.js`** (additions): `audioBudgetAdding(doc, [{ assetId, seconds }]) → { ok, clips, seconds?, why?, vars? }` · `audioBudget(doc, { seconds, assetId })` · `setAudioBand(model, clipId, band)` · the kind has a `menu` · `readjustAudioTempo(model, from, to) → count | null` · re-exports `toBase64`, `fromBase64`. **`model.js`**: `rederive([[clipId, patch]]) → bool` (derived state, no undo row), `lastRefusal → { why, vars } | null`.
+
+**`mir/timeline/audio-analysis.js`**: `analyseAudio(channels, sampleRate) → { seconds, frames, sampleRate, peaks: [{ rate, data: Int8Array }], envelopes: { level, low, mid, high } }` · `audioClipFromFile(file, { bpm, keep, band, store }) → Promise<{ source, seconds, duration }>` · `isAudioFile(file)` · `audioBaseName(name)` · `AUDIO_PEAK_RATES`.
+
+**`mir/timeline/audio-playback.js`**: `createAudioPlayback({ model, mod, controller, retempo, busy }) → { sync(), stopAll(), state(), dispose() }` · `audioPlacement(clip, curve, beat, bpm) → { rate, lead, offset, left }` · `audioContext()`, `decodeAudio(bytes)`, `rememberAudioBuffer(id, buffer)`, `forgetAudioBuffer(id)` · `AUDIO_LEASE`, `AUDIO_LOOKAHEAD`, `AUDIO_DRIFT`, `AUDIO_TAIL`.
+
+**`mir/timeline/audio-drop.js`**: `installAudioDrop(editor, { mod, controller, say, busy, store }) → { add(file, at), addAll(files, at), pick(at), choose(file, at), playback, retempo, dispose() }`; registers the project part `assets`. `installTimeline({ audio })` calls it (`audio: false` leaves it out; an object is its options) and exposes it as `tl.audio`.
+
+**`mir/folders/zip.js`**: `projectZip(project, { store, ids }) → Promise<Blob>` · `readProjectZip(blob) → Promise<{ project, assets: [{ id, meta, bytes }], rejected }>` · `restoreAssets(read, { store }) → Promise<{ restored, skipped, written }>` · `rollbackAssets(written, { store })` · `projectAssetIds(project)`. **`folders/save-blob.js`**: `saveBlob(blob, name) → 'share' | 'download'` · `prefersVideoDownload()`. **`folders/folders.js`**: option `zip` (false | `{ store, validate }`), api `exportZip()`, `openZip(file)`, `mountGallery(el, { zip })`. **`folders/seed.js`**: starters take `revision` and `replaces(entry)`; `seed()` returns `refreshed` / `refreshFailed`; `refreshes(files, starters)`. **`folders/files.js`**: `files.refresh([{ id, at?, thumb?, payload, facts? }]) → { ok, updated }`.
+
+## `mir/render/`: the recorder ([RENDER.md](RENDER.md), 1.5.0-alpha.13)
+
+- `createRecorder({ host, frame(i, ctx), motions, editor, app, dir, storage, wake, check, before, after, signature, canonical, describe, currentSize, colorSpace, hidden, pauseWhileHidden, guard, calib, selfTestStages, ceilingMs, handler })` → `rec`. `rec.run({ motion, fps, durationS, offsetS, format, resolution | size, modulation, timeline, previewS, motionOptions, onProgress })` → `{ files: [{ name, blob, bytes, firstFrame, lastFrame }], width, height, fps, frames, motion, durationS, offsetS, format, bitrate, diskBacked, wallMs, id }` · `rec.plan(options)` / `rec.estimate(options)` · `rec.encoderPath(options)` · `rec.cancel()` · `rec.running()` · `rec.state()` · `rec.subscribe(fn)` · `rec.recoveries()` · `rec.recover(job, { onProgress })` · `rec.discard(result)` · `rec.selfTest(options)` · `rec.selfTestLines(res)` · `rec.dumpLines()`. The header of `render/recorder.js` says what each option is.
+- `renderPanel(options)` → `{ id: 'render', label, glyph, hint, build(body, api), onShow(), view() }` for `createFolders({ panels })` · `createRenderCard(options)` → `{ card, view }` (a rack card) · `createRenderView(parent, options)` → `{ root, paint(), state(), destroy() }`. Options: `recorder` (required), `subject`, `picture`, `motionUi`, `gallery`, `say(text, warn)`, `save(blob, name)`, `prefix`, `seat: 'window' | 'card'`, `sections(wrap)`.
+- Pure parts: `render/plan.js` (frame plan, beat range, bitrate, ladder, estimate, ceiling), `mp4.js` (the muxer), `encoder.js` (`WcSink`, the path decision, the preflight, one PNG frame), `store.js` / `store-worker.js` (the store on disk with recovery), `selftest.js`, `clock.js` (the record clock).
+- `createApp({ render: { frame, motions?, subject?, picture?, motionUi?, sections?, prefix?, card?, …createRecorder options } })` wires it (`app.recorder`).
+
+## History window, opener, notebook project seam ([HISTORY.md](HISTORY.md), [OPENER.md](OPENER.md), [NOTEBOOK.md](NOTEBOOK.md), 1.5.0-alpha.13)
+
+- `createHistoryWindow({ history, host, id = 'history', title = 'HISTORY', mod, present, canAct, stage, windows, keys = true, gestures = true, storageKey = 'mir.history.window', persist, dock, chips, size = { w: 320, h: 440 }, min = { w: 240, h: 200 }, say, onOpen, onClose })` → `{ win, root, history, list, open(), close(), toggle(), isOpen, rows(), paint(), destroy() }` (`mir/history/window.js`). `createApp({ history, historyWindow })` seats it behind WINDOW › HISTORY.
+- `installHistoryGestures(history, { target = document, stage, windows = '[data-mir-window]', press = [0, 2] })` → remove · `gestureName(node, { windows })` → `'CONTROL · WINDOW'` (`mir/history/gestures.js`).
+- `registerModulation(history, mod, { present, name })` → unregister · `modulationDomain(mod, { present })` → `{ read, write, key }` · `rackKey(rack)` (`mir/history/domains.js`).
+- `createOpener({ covers, mainCount, session | resume, logo, label, notice, warn = 'once' | 'every' | false, search, webdriver, direct, columns, onPick, host, light, doc })` → `{ start() → Promise<id>, root, destroy() }` · `arrowTarget(count, at, key, columns)` · `nearestSlot(slots, x, y)` · `pointerPose(box, x, y)` · `footParts(foot)` · `applyChoice(session, id)` (`mir/shell/opener.js`). A cover is `{ id, name, art, video?, accent?, foot?, label? }`.
+- `photosensitivityNotice({ …, every, art, alt })` (`mir/shell/flash-guard.js`): `every: true` is BASINS' every cold start (it never reads or writes the seen flag); `art` and `alt` put the app's picture above the words.
+- `createNotebook({ …, aboutSize: { w, h }, aboutRise, landing })` and `notebook.project` → `{ capture(name), restore(saved, name) → bool, signature(), part() }`, or `null` when the notebook has `pages`.
+
+## Developer tools added (1.5.0-alpha.13)
+
+See the `tools/` table: `hit-probe.mjs`, `audit-material.mjs`, `serve.mjs --https`, `check-app.mjs --webkit` and its control-language WARN. Their headers are the docs.
+
 ---
 
 ## `tools/`: the proofs
@@ -828,7 +909,9 @@ mir/pattern/sequencer.js
 | Tool | What it does |
 |---|---|
 | `adopt.mjs <app> [--check \| --dry-run] [--prefix lab] [--allow-dirty]` | Put the kit into an app, or prove it is in step |
-| `serve.mjs [port] [root]` | A static server with no dependencies (`npm run gallery`) |
+| `serve.mjs [port] [root] [--https] [--lan] [--no-reset]` | A static server with no dependencies (`npm run gallery`): no-store, Range, and from the command line the cache-only reset. `--https` serves TLS with a self-signed certificate made on first use into `tools/.certs/` (gitignored), `--lan` listens on every address and prints the one to type on the iPad |
+| `hit-probe.mjs <url> <selector> [--drag dx,dy] [--from fx,fy] [--watch js] [--grid 5] [--shot f] [--json]` | What a real pointer lands on: an N × N grid of `elementFromPoint` over the element and (with `--drag`) a real mouse drag through whatever the browser says is there; exit 1 on a point that goes through, a press that lands outside, or a drag that changes nothing |
+| `audit-material.mjs <url> [--theme dark\|light] [--click sel]… [--scope sel] [--allow sel] [--min-alpha .5] [--min-contrast 2] [--json]` | The look audits on the live page: dense FACE fills (accent and content are allowed and counted), text under 2:1, adaptive-ink strays; exit 1 on any |
 | `lint-tokens.mjs [--unused]` | Every token the kit reads has a writer |
 | `stylehash.mjs capture\|compare` | Neutrality: does a kit change change what an app draws? |
 | `shell-parity.mjs capture\|compare` | The shell is λWAVES' shell: styles, text, boxes and pixels in 14 states |
@@ -840,6 +923,7 @@ mir/pattern/sequencer.js
 | `check-envelope.mjs <file> [--app id] [--settings schema.json] [--tokens tokens.json] [--json]` | `ok <kind>` or `error path: why` lines; exit 0 / 1 (2 on bad usage) (`npm run check:envelope`) |
 | `make-skill.mjs [--out <dir>] [--allow-dirty]` | Assembles the installable `mir-builder` skill into `dist/mir-builder/` (SKILL.md, LLM.md, LICENSE, the starter, `mir/`, `fonts/`, `docs/*.md`, `tools/serve.mjs`, `tools/check-envelope.mjs`, `tools/cdp.mjs`, `tools/check-app.mjs`, BUILD.json) and prints its size; refuses a dirty kit unless told (`npm run skill`) |
 | `check-app.mjs <url> [--keys a,b] [--click sel] [--wait ms] [--expect playing \| paused \| text] [--changed js] [--light] [--shot file] [--pages]` | Loads an app headless and **plays it**: real keys and hit-tested clicks, then the checks. Prints every console error, each step, and `describe()` (windows, clock, parameters and keys in full; each shared page as its title and line count unless `--pages`). Exit 0 only when it started with no error and every step and check held. The skill ships it in `tools/` |
+| `check-app.mjs … [--webkit]` (append to the row above) | `--webkit` runs it in WebKit through a Playwright and a WebKit already on the machine (`webkit.mjs`); it also WARNS when an app's own window holds a native select / range / number / color (the kit has its own control for each kind of value; `data-native="ok"` silences one) |
 | `cdp.mjs` | The headless Chromium under all of them: `launch()`, `page.key(spec, { hold })`, `page.click(selector)` → `{ hit, got }`, the pure `keyOf(spec)` |
 
 `npm test` runs the token lint, `tests/*.node.mjs` and `tests/*.browser.mjs`.

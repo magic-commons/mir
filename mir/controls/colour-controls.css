@@ -68,7 +68,7 @@ body[data-theme="light"] :is(.k-arcknob, .mir-swatch-seat) { --arc-groove: hsl(0
   overflow: visible; pointer-events: none; fill: none; stroke-width: var(--arc-stroke); stroke-linecap: round; shape-rendering: geometricPrecision;
   transform: rotate(calc(var(--arc-from, 0deg) - 90deg)); }
 .k-arc-track { stroke: var(--arc-groove); stroke-dasharray: var(--arc-span, 360) 360; }
-.k-arc-value { stroke: var(--lane-ink, var(--swatch, var(--acc))); stroke-dasharray: var(--arc-dash, 0) 360; }
+.k-arc-value { stroke: var(--k-state-ink, var(--lane-ink, var(--swatch, var(--acc)))); stroke-dasharray: var(--arc-dash, 0) 360; }
 .k-arc-value[data-off] { visibility: hidden; }                  /* a zero-length round cap would draw a dot */
 
 /* the knob wearing it: no body.  Every selector is a CHILD chain: the modulation window seats its own RANGE dial, a kit

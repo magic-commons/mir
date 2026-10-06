@@ -120,8 +120,7 @@ ok('every glyph name the kit calls exists in the library', () => {
 });
 
 /* An inline icon is an <svg> a module writes out itself on the 16 or 24 grid (a string, or a createElementNS with that viewBox).  A plot, a ring or a wordmark
-   has its own viewBox and is not one.  Until the join has applied the hunks in .tmp/W13/I/ASKS.md (the files that hold them are other lanes') the leftovers are
-   PRINTED, not failed; MIR_ICONS_STRICT=1 (the join's proof) fails on any. */
+   has its own viewBox and is not one.  Any leftover fails. */
 ok('no other module keeps a drawing of its own: the inline icon strings have been folded in', () => {
   const INLINE = [/<svg[^>]*viewBox="0 0 (?:16|24) (?:16|24)"/, /viewBox'?\s*[:,]\s*'0 0 24 24'/];
   const left = [];
@@ -129,8 +128,7 @@ ok('no other module keeps a drawing of its own: the inline icon strings have bee
     const src = fs.readFileSync(f, 'utf8');
     if (INLINE.some((re) => re.test(src))) left.push(path.relative(ROOT, f));
   }
-  if (process.env.MIR_ICONS_STRICT) assert.deepEqual(left, [], 'an inline icon svg is still in: ' + left.join(', ') + ' — fold it into glyph.js (docs/ICONS.md)');
-  else console.log('     pending the join: ' + (left.join(', ') || 'none'));
+  assert.deepEqual(left, [], 'an inline icon svg is still in: ' + left.join(', ') + ' — fold it into glyph.js (docs/ICONS.md)');
 });
 
 console.log(`\nALL ${n} glyph checks pass (${names.length} glyphs, ${Object.keys(glyphAliases()).length} alias)`);

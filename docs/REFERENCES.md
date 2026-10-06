@@ -91,7 +91,7 @@ provenance header, the source's 40-line header comment and the comments on three
 two marked edits still comment out `publishM4`, and a diff against the source still shows not one path, viewBox,
 stroke weight or name changed.)*
 DO NOT STEAL: its 20-px default sizing. Sizing is the caller's by the module's own design, so `mir/css/base.css`
-(λWAVES' `lab.css §55b`) owns it and no call site passes a pixel count. `north` is the one solid mark among hairline outlines and its box
+(λWAVES' `lab.css §55b`) owns it and no call site passes a pixel count. `popOut` (and `dock`, its mate) is the one solid mark among hairline outlines and its box
 is two pixels smaller *at source* so its optical mass matches — redrawing it is not ours to do.
 
 ## NEBULA's motion (MANDELBROT, `app/nebula2/`) (λWAVES ruling)

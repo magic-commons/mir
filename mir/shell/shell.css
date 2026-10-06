@@ -68,7 +68,7 @@ body[data-theme="dark"] #notebook { --nb-line: hsl(0 0% 100% / .18); --nb-btn: h
 #notebook { position: absolute; left: calc(50% - 320px); top: 12%; width: 640px; height: 460px; min-width: 320px; min-height: 240px; max-width: calc(100vw - 2 * var(--rack-w) - 40px); max-height: calc(100vh - 40px); resize: both; z-index: calc(var(--z-chrome) + 4); display: flex; flex-direction: column; border-radius: var(--surface-radius, var(--nb-r));
   border: var(--surface-edge-width, 1px) solid var(--pane-edge, var(--surface-edge, var(--nb-edge))); background: var(--surface-veil, transparent); -webkit-backdrop-filter: var(--surface-filter, blur(var(--glass-blur)) saturate(115%)); backdrop-filter: var(--surface-filter, blur(var(--glass-blur)) saturate(115%));
   box-shadow: var(--surface-shadow-float, var(--glass-shadow)); color: var(--fg); overflow: hidden; }   /* it floats like a window: height 3 (L14/L15) */
-#notebook[data-face="about"] { width: 470px; height: 670px; left: calc(50% - 235px); top: max(20px, calc(50% - 335px)); }
+#notebook[data-face="about"] { width: 520px; height: 812px; left: calc(50% - 260px); top: max(20px, calc(50% - 438px)); }
 body[data-theme="dark"] #notebook { border-color: var(--pane-edge, var(--surface-edge, var(--nb-edge))); }
 body[data-theme="dark"] #notebook::before { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--nb-shade); pointer-events: none; }
 .nb-head { display: flex; align-items: flex-start; justify-content: space-between; padding-block: 8px 6px; padding-inline: 14px 8px; cursor: grab; user-select: none; touch-action: none; }

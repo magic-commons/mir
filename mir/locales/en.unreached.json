@@ -1,7 +1,7 @@
 [
  {
   "file": "mir/app.js",
-  "line": 294,
+  "line": 322,
   "why": "fragment",
   "text": " · an MIR app"
  },
@@ -61,7 +61,7 @@
  },
  {
   "file": "mir/glyph.js",
-  "line": 421,
+  "line": 596,
   "why": "fragment",
   "text": " — known: "
  },
@@ -103,25 +103,25 @@
  },
  {
   "file": "mir/modulation/modwindow/modwindow.js",
-  "line": 520,
+  "line": 443,
   "why": "fragment",
   "text": " window controls"
  },
  {
   "file": "mir/modulation/modwindow/modwindow.js",
-  "line": 688,
+  "line": 611,
   "why": "textContent",
   "text": "BPM"
  },
  {
   "file": "mir/modulation/modwindow/modwindow.js",
-  "line": 1012,
+  "line": 935,
   "why": "textContent",
   "text": "A"
  },
  {
   "file": "mir/modulation/modwindow/modwindow.js",
-  "line": 1014,
+  "line": 937,
   "why": "textContent",
   "text": "B"
  },
@@ -139,15 +139,201 @@
  },
  {
   "file": "mir/modulation/window.js",
-  "line": 1152,
+  "line": 1156,
   "why": "fragment",
   "text": "px,"
  },
  {
   "file": "mir/modulation/window.js",
-  "line": 1995,
+  "line": 2003,
   "why": "fragment",
   "text": " failed to build"
+ },
+ {
+  "file": "mir/render/encoder.js",
+  "line": 36,
+  "why": "fragment",
+  "text": "every avc1 rung refused "
+ },
+ {
+  "file": "mir/render/encoder.js",
+  "line": 137,
+  "why": "fragment",
+  "text": " sps, "
+ },
+ {
+  "file": "mir/render/encoder.js",
+  "line": 140,
+  "why": "fragment",
+  "text": " sps, "
+ },
+ {
+  "file": "mir/render/mp4.js",
+  "line": 348,
+  "why": "fragment",
+  "text": "bad box "
+ },
+ {
+  "file": "mir/render/recorder.js",
+  "line": 78,
+  "why": "fragment",
+  "text": "TIMELINE · "
+ },
+ {
+  "file": "mir/render/recorder.js",
+  "line": 78,
+  "why": "fragment",
+  "text": " needs the TIMELINE window — open it first"
+ },
+ {
+  "file": "mir/render/recorder.js",
+  "line": 261,
+  "why": "fragment",
+  "text": ", not "
+ },
+ {
+  "file": "mir/render/recorder.js",
+  "line": 364,
+  "why": "fragment",
+  "text": " frames · "
+ },
+ {
+  "file": "mir/render/recorder.js",
+  "line": 364,
+  "why": "fragment",
+  "text": " of video · projected "
+ },
+ {
+  "file": "mir/render/recorder.js",
+  "line": 364,
+  "why": "fragment",
+  "text": " to render"
+ },
+ {
+  "file": "mir/render/recorder.js",
+  "line": 365,
+  "why": "fragment",
+  "text": " held before the file exists"
+ },
+ {
+  "file": "mir/render/recorder.js",
+  "line": 376,
+  "why": "fragment",
+  "text": " · runs "
+ },
+ {
+  "file": "mir/render/recorder.js",
+  "line": 376,
+  "why": "fragment",
+  "text": " · cancelled "
+ },
+ {
+  "file": "mir/render/recorder.js",
+  "line": 376,
+  "why": "fragment",
+  "text": " · errors "
+ },
+ {
+  "file": "mir/render/recorder.js",
+  "line": 377,
+  "why": "fragment",
+  "text": "            last error: "
+ },
+ {
+  "file": "mir/render/selftest.js",
+  "line": 50,
+  "why": "fragment",
+  "text": " fps, "
+ },
+ {
+  "file": "mir/render/selftest.js",
+  "line": 50,
+  "why": "fragment",
+  "text": " Mpx, dpr "
+ },
+ {
+  "file": "mir/render/selftest.js",
+  "line": 63,
+  "why": "fragment",
+  "text": " MB, "
+ },
+ {
+  "file": "mir/render/selftest.js",
+  "line": 63,
+  "why": "fragment",
+  "text": " distinct tones over "
+ },
+ {
+  "file": "mir/render/selftest.js",
+  "line": 63,
+  "why": "fragment",
+  "text": " samples, "
+ },
+ {
+  "file": "mir/render/selftest.js",
+  "line": 71,
+  "why": "fragment",
+  "text": " MB, header valid"
+ },
+ {
+  "file": "mir/render/selftest.js",
+  "line": 83,
+  "why": "fragment",
+  "text": " · share files "
+ },
+ {
+  "file": "mir/render/selftest.js",
+  "line": 83,
+  "why": "fragment",
+  "text": " · route this device would take: "
+ },
+ {
+  "file": "mir/render/selftest.js",
+  "line": 85,
+  "why": "fragment",
+  "text": "VideoEncoder ladder at "
+ },
+ {
+  "file": "mir/render/selftest.js",
+  "line": 111,
+  "why": "fragment",
+  "text": " kB, "
+ },
+ {
+  "file": "mir/render/selftest.js",
+  "line": 111,
+  "why": "fragment",
+  "text": " samples, "
+ },
+ {
+  "file": "mir/render/selftest.js",
+  "line": 111,
+  "why": "fragment",
+  "text": ", header valid, decoded"
+ },
+ {
+  "file": "mir/render/selftest.js",
+  "line": 121,
+  "why": "fragment",
+  "text": " bytes, not 65536"
+ },
+ {
+  "file": "mir/render/selftest.js",
+  "line": 122,
+  "why": "fragment",
+  "text": "origin-private file system: wrote and read back "
+ },
+ {
+  "file": "mir/render/selftest.js",
+  "line": 122,
+  "why": "fragment",
+  "text": ", checkpoints and recovery available"
+ },
+ {
+  "file": "mir/render/selftest.js",
+  "line": 140,
+  "why": "fragment",
+  "text": "  FIRST FAILURE: "
  },
  {
   "file": "mir/shell/boot.js",
@@ -187,7 +373,7 @@
  },
  {
   "file": "mir/shell/gui.js",
-  "line": 316,
+  "line": 284,
   "why": "fragment",
   "text": "the bench threw: "
  }

@@ -74,6 +74,7 @@
  *     Every copy is a copy: the two never share an object, so editing one never changes the other.
  *   api adds: pages, shelf, selected, select(id|'yours'), yours → { title, md }, openNote({ title, md }), flush() */
 import { el, label, ariaLabel, hint } from '../kit.js';
+import { glyphSvg } from '../glyph.js';
 import { t as tx, tn, phrase, onLanguage } from '../core/i18n.js';
 /* the maths syntax the hint shows: typed exactly so in every language, so it is a var and never translated */
 const SYNTAX = Object.freeze({ inline: '$inline$', display: '$$display$$' });
@@ -291,8 +292,8 @@ export function createNotebook(options = {}) {
     const list = el('div', 'nb-tablist', strip); list.setAttribute('role', 'tablist'); ariaLabel(list, 'pages');
     const addBtn = el('button', 'nb-tab-add', strip, '+'); addBtn.type = 'button'; ariaLabel(addBtn, 'add a page'); addBtn.title = 'add a page to the project';
 
-    const EYE_OPEN = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.8" fill="currentColor"/></svg>';
-    const EYE_SHUT = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M4.5 19.5l15-15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>';
+    const EYE_OPEN = glyphSvg('eye', 'gly gly-eye', 14);
+    const EYE_SHUT = glyphSvg('eyeShut', 'gly gly-eyeShut', 14);
     const mkTab = (key) => {
       const w = el('div', 'nb-tab'); w.setAttribute('role', 'presentation'); w.dataset.tab = key;
       const b = el('button', 'nb-tab-b', w); b.type = 'button'; b.setAttribute('role', 'tab'); b.tabIndex = -1; b.setAttribute('aria-controls', notes.id);

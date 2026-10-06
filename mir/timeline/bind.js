@@ -30,12 +30,14 @@ import { createTimeline } from './window.js';
 import { createKeys, localKeyStorage } from '../shell/keys.js';
 import { transportActions, PLAY_ACTION } from '../shell/transport.js';
 import { localStore } from '../modulation/bind.js';
+import { installAudioDrop } from './audio-drop.js';
 
 export function installTimeline(o) {
   const mod = o.mod, host = mod.host, model = o.model || createTimelineModel();
   const storageKey = o.storageKey || 'mir.timeline';
   const store = o.store || localStore(storageKey);
   const offs = [];
+  let au = null;
 
   /* THE ARRANGEMENT AS THE CLOCK'S AUTOMATION (BASINS modulation.js) */
   const automation = (id, beat) => model.value(id, beat);
@@ -51,7 +53,10 @@ export function installTimeline(o) {
   if (o.history) adoptTimeline(o.history, model);
 
   const tl = createTimeline(o.mount, { model, mod, present: o.present, say: o.say, dock: o.dock, store, initial: o.initial, keys: o.keys || null,
-    transport: o.transport, audio: o.audio, scrubLevel: o.scrubLevel, busy: o.busy, moved: o.moved, onWindow: o.onWindow, storageKey });
+    transport: o.transport, audio: o.audio === false ? null : { pick: (at) => au && au.pick(at) }, scrubLevel: o.scrubLevel, busy: o.busy, moved: o.moved, onWindow: o.onWindow, storageKey });
+  /* THE AUDIO CLIP (docs/AUDIO.md): a file dropped on a lane, ADD AUDIO… in the ⋯ menu, the playback and the asset part, with no app line;
+     `audio: false` leaves it out, an object is installAudioDrop's own options */
+  if (o.audio !== false) au = tl.audio = installAudioDrop(tl.editor, { mod, controller: tl.controller, say: o.say, busy: o.busy, ...(o.audio && typeof o.audio === 'object' ? o.audio : {}) });
   if (typeof mod.setTimeline === 'function') mod.setTimeline(tl);   // → TL on the device heads; the PATTERN reads its clips (1.5.0-alpha.12)
 
   /* THE KEYS: rows of the app's one table */
@@ -67,6 +72,7 @@ export function installTimeline(o) {
       for (const off of offs.splice(0)) { try { if (typeof off === 'function') off(); } catch (_) { /* gone */ } }
       if (o.automation !== false) { host.clock.setAutomation(null); host.clock.demand('timeline', false); }
       if (ownKeys) keys.destroy();
+      if (au) au.dispose();
       if (typeof mod.setTimeline === 'function' && mod.timeline && mod.timeline() === tl) mod.setTimeline(null);
       tl.destroy();
     },

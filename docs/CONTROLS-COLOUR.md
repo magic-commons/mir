@@ -90,6 +90,6 @@ BASINS: `colour-controls.js` (343 lines) and `arc-ring.js` (17) whole; about 95 
 
 ## Limits to know
 
-- An arc takes the press in capture and stops it for the kit's own knob, so the modulation window's **hold-for-the-route-pop-over** and its **select-the-macro-on-press** (both listen on the dial in the bubble phase) do not run on an arc: right-click still opens the pop-over, and `onPress` is where the host selects the macro. (`ASKS.md` has the one-line hunk that moves them to the root in capture.)
+- An arc takes the press in capture and stops it for the kit's own knob, so a listener on the dial in the bubble phase would miss it; the modulation window's **hold-for-the-route-pop-over** and its **select-the-macro-on-press** run on an arc as on any dial: the modulation window hears both on the host in the capture phase (1.5.0-alpha.13). A host of your own can still select the macro from the arc's `onPress`.
 - The kit's hover lift (a 1 px translate of every dial) applies to an arc as BASINS draws it.
 - The angular law differs from the vertical one only on a dial bigger than 34 px.

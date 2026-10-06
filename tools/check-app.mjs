@@ -29,11 +29,11 @@
 import { launch, sleep } from './cdp.mjs';
 
 /* the control language, as a check: a native control inside a window is the page's own (the kit's parts are listed out) */
-const NATIVE_FIX = {
-  select: 'a SEGMENT (2 to 4 modes), a STEPPER \u2039 NAME \u203a (5 or more, in order) or the kit\'s own SELECT (a long list)',
-  range: 'a LANE SLIDER (a thing\'s one principal parameter), a KNOB (any other continuous value) or a RANGE SLIDER (a lo/hi pair)',
-  number: 'a KNOB (a bounded value) or the kit\'s NUMBER FIELD (a typed number)',
-  color: 'a HUE SWATCH (tap = the platform\'s chooser, drag = the hue)',
+const NATIVE_FIX = {   // the kit's controls by their kit.js exports (docs/CONTROLS.md, docs/CONTROLS-COLOUR.md)
+  select: 'a SEGMENT (`seg`, 2 to 4 modes), a STEPPER \u2039 NAME \u203a (`stepper`, 5 or more, in order) or the kit\'s own SELECT (`select`, a long list)',
+  range: 'a LANE SLIDER (`laneSlider`, a thing\'s one principal parameter), a KNOB (`knob`, any other continuous value) or a RANGE SLIDER (`rangeSlider`, a lo/hi pair)',
+  number: 'a KNOB (`knob`, a bounded value) or the kit\'s NUMBER FIELD (`number`, a typed number)',
+  color: 'a HUE SWATCH (`hueSwatch`: tap = the platform\'s chooser, drag = the hue)',
 };
 const NATIVE_SCAN = `(() => {
   const FIX = ${JSON.stringify(NATIVE_FIX)};

@@ -73,7 +73,7 @@ Every block is headed `/* FROST · values */` and closed by `/* ── end of th
 | `mir/shell/pages.css` | `@media (pointer: coarse) → #notebook[data-tab]` | `--nb-tab-h` |
 | `mir/notes/notes.css` | `.nb-shelfface` | `--nt-line` `--nt-row-hover` `--nt-on` `--nt-on-rim` `--nt-h` |
 | `mir/notes/notes.css` | `@media (pointer: coarse) → .nb-shelfface` | `--nt-h` |
-| `mir/shell/gui.css` | `.mir-gui` | `--gui-col` `--gui-col-narrow` `--gui-about-w` `--gui-about-w-narrow` `--gui-gap` `--gui-grp-r` `--gui-grp-pad` `--gui-logo-h` `--gui-step-b` |
+| `mir/shell/gui.css` | `.mir-gui` | `--gui-col` `--gui-col-narrow` `--gui-about-w` `--gui-about-w-narrow` `--gui-gap` `--gui-grp-r` `--gui-grp-pad` `--gui-logo-h` |
 | `mir/shell/parts.css` | `.mir-busy` | `--busy-turn` `--busy-breathe` `--busy-ease` `--busy-low` `--busy-ring` |
 | `mir/shell/parts.css` | `.mir-toast` | `--toast-fill` `--toast-ink` `--toast-edge` `--toast-shadow` `--toast-radius` `--toast-size` `--toast-weight` `--toast-lh` `--toast-tracking` |
 | `mir/shell/parts.css` | `body[data-theme="light"] .mir-toast` | `--toast-fill` `--toast-ink` |
@@ -146,7 +146,6 @@ Declared on the element that draws them (the table above gives the selector), so
 | Where | Literal | Why it is not a look |
 |---|---|---|
 | `mir/core/core.css`, the proximity guide's transition | `visibility 0s … var(--motion-ui)` and `transition-delay: 0s` | the instant visibility flip that lets the fade finish without a timer: `0s` is "at once", not a duration a skin tunes |
-| `mir/css/skin.css`, `.accent-dial .k-dial::after` | `mask: radial-gradient(… #000 0)` | a mask's colour is only its alpha; nothing is painted in it |
 | `mir/css/skin.css`, DISABLED (`.k.disabled …`, `.k.disabled .k-dial`) | `box-shadow: 0 0 0 0 transparent` | INTENT's law: a disabled control has no relief. This is the kit's "off", not a drawing (a pressed trigger's relief, which a skin may draw, is `--trig-press-relief`) |
 
 **Not counted, and left as written on purpose:**

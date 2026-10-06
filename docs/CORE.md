@@ -56,6 +56,8 @@ Five more modules live in `mir/core/`. They are not part of the frame law above;
 
 **`core/i18n.js`** — `t('English')`: English is the key and the fallback; packs load on demand; `setLanguage(tag)` writes `<html lang dir>` and every kit label changes live through `kit.js`'s `label()` / `ariaLabel()`. Doc: [LANGUAGES.md](LANGUAGES.md).
 
+**`core/zip.js`** — the stored ZIP writer and reader (`StoredZip`, `readStoredZip`, CRC-32 from `png.js`, parts under 32-bit offsets). **`core/assets.js`** — file bytes and their analysis by content hash in IndexedDB, memory fallback (`assets`, `createAssetStore`, `useAssets`, `assetId`); see [AUDIO.md](AUDIO.md).
+
 **`core/envelope.js`**, **`core/png.js`**, **`core/intake.js`** — one portable file `{ mir: 1, kind, kit, app?, name?, made, data }` and one checker that never throws; the same envelope inside a PNG's `iTXt` chunk; one way in (drop, paste, picker). Doc: [FORMAT.md](FORMAT.md).
 
 ## What each module replaces in the apps

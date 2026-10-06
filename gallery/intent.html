@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="../mir/css/tokens.css">
 <link rel="stylesheet" href="../mir/shell/shell.css">
 <link rel="stylesheet" href="../mir/core/core.css">
+<link rel="stylesheet" href="../mir/controls/colour-controls.css">
 <style>
   html, body { height: auto; min-height: 100%; overflow: auto; margin: 0; background: #070a0f; }
   body[data-theme="light"] { background: #eef1f6; }
@@ -57,7 +58,7 @@
 <body data-card="tinted" data-theme="dark">
 <div class="i-page" id="page"></div>
 <script type="module">
-import { el, knob, seg, sw, trig, fader, readout, device, group } from '../mir/kit.js';
+import { el, knob, arcKnob, seg, sw, trig, fader, readout, device, group } from '../mir/kit.js';
 import { createAccent } from '../mir/shell/accent.js';
 import { createProximity } from '../mir/core/proximity.js';
 import { installControlHelp } from '../mir/control-help.js';
@@ -154,8 +155,8 @@ row(S, 'A RELATIONSHIP · TIME', 'a route, a macro, the playhead: accent B', '--
   k.root.querySelector('.k-dial').appendChild(svg);
   { const t = trig({ label: 'ROUTE' }); t.root.classList.add('acc2'); s.appendChild(t.root); }
 });
-row(S, 'A VALUE IN ITS OWN COLOUR', 'an arc or a coloured fill, with no other relief on top', '--accent-sweep · --nc · --glow-own', (s) => {
-  for (const [cls, deg] of [['accent-dial', 200], ['accent-dial accent-dial-b', 120]]) { const k = knob({ label: cls.includes('-b') ? 'ACCENT B' : 'ACCENT A', min: 0, max: 360, value: deg, wrap: true, fmt: (v) => v.toFixed(0) + '°' }); for (const c of cls.split(' ')) k.root.classList.add(c); k.root.style.setProperty('--accent-sweep', deg + 'deg'); s.appendChild(k.root); }
+row(S, 'A VALUE IN ITS OWN COLOUR', 'an arc or a coloured fill, with no other relief on top', '--arc-dash · --nc · --glow-own', (s) => {
+  for (const [ink, deg, name] of [['var(--acc)', 200, 'ACCENT A'], ['var(--acc2)', 120, 'ACCENT B']]) s.appendChild(arcKnob({ label: name, min: 0, max: 360, value: deg, wrap: true, ink, fmt: (v) => v.toFixed(0) + '°' }).root);
   const box = el('div', null, s); box.style.setProperty('--nc', 'hsl(40 90% 62%)');   // an app writes --nc on an ancestor (λWAVES' spectrum lanes)
   box.appendChild(fader({ label: '|c|²', min: 0, max: 1, value: .62, cls: 'pop', fmt: (v) => v.toFixed(2) }).root);
 });
