@@ -198,13 +198,15 @@ export function createRenderView(parent, o = {}) {
     motionUis[id] = { holders, ui };
   }
   const estimate = el('div', 'sv-note sr-record-estimate', film);
-  const renderStatus = el('div', 'sv-note sr-record-status', film);
   const renderBtn = trig({ label: 'RENDER', cls: 'sv-act sv-wide sv-primary', onFire: () => startFilm(false) }); film.appendChild(renderBtn.root);
   const previewBtn = trig({ label: 'PREVIEW FIRST 3 SECONDS', cls: 'sv-act sv-wide', onFire: () => startFilm(true) }); film.appendChild(previewBtn.root);
-  const progRow = el('div', 'sr-row sr-prog', film); progRow.hidden = true;
+  /* THE HAND (1.5.0-alpha.19): the progress row is always there (CANCEL disabled while nothing runs), and the status
+     sentence sits BELOW the buttons, so a render starting, ending or being cancelled moves no button */
+  const progRow = el('div', 'sr-row sr-prog', film);
   const prog = el('span', 'sr-value', progRow);
   const cancel = trig({ label: 'CANCEL', cls: 'sv-act sv-danger', onFire: () => rec.cancel() });
-  cancel.root.dataset.renderCancel = ''; progRow.appendChild(cancel.root);
+  cancel.root.dataset.renderCancel = ''; cancel.root.disabled = true; progRow.appendChild(cancel.root);
+  const renderStatus = el('div', 'sv-note sr-record-status', film);
   const doneRow = el('div', 'sr-record-files sr-done', film); doneRow.hidden = true;
   const videoPreview = el('video', 'sr-video-preview', doneRow); videoPreview.controls = true; videoPreview.playsInline = true; videoPreview.hidden = true;
   const doneFiles = el('div', 'sr-record-files', doneRow);
@@ -320,25 +322,25 @@ export function createRenderView(parent, o = {}) {
     };
     try {
       const run = recovery ? rec.recover(recovery, { onProgress }) : rec.run({ ...runOptions(preview), onProgress });
-      starting = false; progRow.hidden = false; paintEstimate();
+      starting = false; cancel.root.disabled = false; paintEstimate();
       const res = await run; offerFiles(res, preview); say(preview ? t('Preview ready') : t('Render complete'));
     } catch (e) {
       const cancelled = rec.state().phase === 'cancelled';
       renderStatus.textContent = cancelled ? t('Render cancelled. Completed checkpoints remain available below.') : t('Render failed: {why}', { why: String(e.message || e) });
       say(renderStatus.textContent, !cancelled);
-    } finally { starting = false; progRow.hidden = true; paintEstimate(); void paintRecoveries(); }
+    } finally { starting = false; cancel.root.disabled = true; prog.textContent = ''; paintEstimate(); void paintRecoveries(); }
   }
 
   /* ── the CHECK ── */
   const check = section('sr-check', 'check — does saving work on this device');
-  const lines = el('pre', 'sr-lines', check);
+  const lines = el('pre', 'sr-lines');                            // its report goes in BELOW the button (THE HAND), appended after it
   const runCheck = trig({ label: 'RUN SELF-TEST', cls: 'sv-act sv-wide', onFire: async () => {
     runCheck.root.disabled = true; lines.textContent = t('running…');
     try { const res = await rec.selfTest(runOptions(false)); lines.textContent = rec.selfTestLines(res).join('\n'); }
     catch (e) { lines.textContent = t('the self-test threw: {why}', { why: String((e && e.message) || e) }); }
     finally { runCheck.root.disabled = false; }
   } });
-  check.appendChild(runCheck.root);
+  check.append(runCheck.root, lines);
   /* ── FILES: SAVE AS ZIP… and OPEN ZIP…, where BASINS' SETTINGS & FILES had them (FOLDERS' project zip: `files` = api.zip) ── */
   const zipVerbs = o.files && typeof o.files.save === 'function' ? o.files : null;
   if (zipVerbs) {

@@ -238,8 +238,12 @@ try {
   /* ── 6 · the run owns the page's input; Escape cancels; CANCEL works; the live rack comes back ── */
   await page.evaluate(() => { const R = window.__R; R.slow.ms = 60; R.slow.frames.length = 0; window.__probe = 0; });
   await setSelect(W + 'select[data-t-aria="Recording format"]', 'png');
+  const filmSeats = () => page.evaluate((w) => { const f = document.querySelector(w + '.sr-film').getBoundingClientRect();   // in the film section's frame: the panel's scroll is not the hand's
+    return [...document.querySelectorAll(w + '.sr-film > .trig, ' + w + '[data-render-cancel]')].map((b) => { const r = b.getBoundingClientRect(); return [r.left - f.left, r.top - f.top, r.width].map(Math.round).join(','); }).join(' '); }, W);
+  const seatsIdle = await filmSeats();
   L.ck(await press(W + '.sr-film > .sv-primary.trig', 'RENDER (slow)'), 'RENDER was pressed again');
   await waitFor(() => window.__R.slow.frames.length > 2, 8000);
+  const seatsRun = await filmSeats();
   const running = await page.evaluate((w) => ({ busy: window.__R.rec.running(), prog: !document.querySelector(w + '.sr-prog').hidden, text: document.querySelector(w + '.sr-prog .sr-value').textContent, renderDisabled: document.querySelector(w + '.sr-film > .sv-primary.trig').disabled }), W);
   L.ck(running.busy && running.prog && /prepare|encoder|seek|capture|resolve/.test(running.text) && running.renderDisabled, 'while it runs: progress shows, RENDER is disabled', running);
   await press('#probe', 'the page\'s own button');
@@ -252,6 +256,9 @@ try {
   await waitFor(() => !window.__R.rec.running(), 8000);
   const cancelled = await page.evaluate((w) => ({ status: document.querySelector(w + '.sr-record-status').textContent, phase: window.__R.rec.state().phase, said: window.__said.slice(-1)[0] }), W);
   L.ck(/Render cancelled/.test(cancelled.status) && cancelled.phase === 'cancelled', 'CANCEL ends the run and says so', cancelled);
+  const seatsDone = await filmSeats();
+  const near = (a, b) => { const A = a.split(/[ ,]/).map(Number), B = b.split(/[ ,]/).map(Number); return A.length === B.length && A.every((v, i) => Math.abs(v - B[i]) <= 1); };   // 1 px: the hover lift of the button the pointer is still on
+  L.ck(near(seatsIdle, seatsRun) && near(seatsRun, seatsDone) && seatsIdle.split(' ').length >= 3, 'THE HAND: RENDER, PREVIEW and CANCEL keep their seats and sizes idle, running and cancelled (the progress row is always there)', { seatsIdle, seatsRun, seatsDone });
   await page.evaluate(() => { document.getElementById('probe').click(); });
   L.ck((await page.evaluate(() => window.__probe || 0)) === 1, 'and the page\'s input is the page\'s again (the guard is gone)', null);
   /* Escape */

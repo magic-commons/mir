@@ -119,6 +119,11 @@
 .mir-render .sr-render-status.is-warning { border-color: var(--bad); }
 .mir-render .sr-record-files { display: flex; flex-direction: column; gap: 5px; }
 .mir-render .sr-prog[hidden], .mir-render .sr-done[hidden] { display: none; }
+/* THE HAND (1.5.0-alpha.19): the progress row is always there; CANCEL keeps its own word's width at the row's end and the
+   progress reads on one line beside it, so the words changing never move or resize the button */
+.mir-render .sr-prog .sv-act.trig { flex: 0 0 auto; }
+.mir-render .sr-prog .sr-value { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mir-render .sr-record-status { min-height: 1lh; }   /* its line is kept when it is empty, so "Render cancelled …" moves nothing under it */
 .mir-render .sr-done { display: flex; flex-direction: column; gap: 4px; }
 .mir-render .sr-video-preview { width: 100%; max-height: var(--render-video-h); border-radius: var(--r-sm); }
 .mir-render .sr-video-details { border-top: 1px solid var(--glass-hairline); padding-top: 3px; }
