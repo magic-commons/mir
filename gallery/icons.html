@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>MIR · icons</title>
+<!-- THE ONE ICON LIBRARY, every glyph in mir/glyph.js at 16, 24 and 64 px, on a dark ground and a light one, with its name.
+     Nothing here is drawn by this page: each cell is glyphEl(name).  Docs: docs/ICONS.md.   ?only=power,eye shows just those. -->
+<style>
+  /* the page's own layout only */
+  :root { --pg-bg: #0b0e13; --pg-ink: #e8ecf2; --pg-dim: #8b95a5; --pg-line: #232a35; --pg-cell: #131821; --pg-acc: #7fb4ff; }
+  html, body { margin: 0; background: var(--pg-bg); color: var(--pg-ink); font: 13px/1.4 system-ui, sans-serif; }
+  body { padding: 20px 16px 48px; }
+  h1 { font: 700 15px/1 system-ui, sans-serif; letter-spacing: .14em; margin: 0 0 4px; }
+  p.lead { margin: 0 0 18px; color: var(--pg-dim); max-width: 70ch; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .pane { border: 1px solid var(--pg-line); border-radius: 10px; padding: 12px; }
+  .pane.dark { background: #0b0e13; color: #e8ecf2; --pg-dim: #8b95a5; --pg-cell: #131821; --pg-line: #232a35; }
+  .pane.light { background: #eef1f6; color: #141a24; --pg-dim: #5a6577; --pg-cell: #ffffff; --pg-line: #cdd4df; }
+  .pane h2 { font: 700 10px/1 system-ui, sans-serif; letter-spacing: .14em; margin: 14px 0 8px; color: var(--pg-dim); }
+  .pane h2:first-child { margin-top: 0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 8px; }
+  .cell { background: var(--pg-cell); border: 1px solid var(--pg-line); border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 6px; align-items: center; }
+  .sizes { display: flex; align-items: flex-end; gap: 10px; min-height: 64px; }
+  .cell .nm { font: 10px/1.2 ui-monospace, monospace; color: var(--pg-dim); text-align: center; overflow-wrap: anywhere; }
+  .alias { margin-top: 14px; font: 11px/1.5 ui-monospace, monospace; color: var(--pg-dim); }
+  @media (max-width: 900px) { .pair { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<h1>MIR · ICONS</h1>
+<p class="lead">Every glyph in <code>mir/glyph.js</code>, drawn by <code>glyphEl(name)</code> at 16, 24 and 64 px in <code>currentColor</code>. One drawing per meaning; the name is the call.</p>
+<div class="pair" id="pair"></div>
+<script type="module">
+import { glyphNames, glyphAliases, glyphEl } from '../mir/glyph.js';
+
+/* the groups are this page's reading order only; a glyph that is in no group still shows, under OTHER */
+const GROUPS = [
+  ['WINDOW AND RACK', ['close', 'leave', 'reopen', 'popOut', 'dock', 'grip', 'gripDots', 'move', 'compact', 'expand', 'barsTop', 'barsBottom', 'lanes']],
+  ['TRANSPORT', ['play', 'pause', 'stop', 'record', 'rewind', 'loop', 'power', 'dirPrev', 'dirNext']],
+  ['STEP AND FOLD', ['chevronUp', 'chevronDown', 'chevronLeft', 'chevronRight', 'plus', 'minus', 'check', 'clear']],
+  ['EDIT', ['undo', 'redo', 'duplicate', 'rename', 'swap', 'tune', 'edit', 'select', 'scrub', 'lock', 'eye', 'eyeShut']],
+  ['FILES', ['folder', 'saveFolder', 'save', 'download', 'upload', 'projectFile', 'gallery', 'bulletList', 'link']],
+  ['FIND AND SET', ['search', 'settings', 'home', 'info', 'star', 'starFill', 'mute', 'solo', 'sliders', 'invertColors']],
+  ['STATE', ['dot', 'pending', 'warn']],
+  ['VIEW AND CAMERA', ['camera', 'compassNorth', 'cameraOrbit', 'xy', 'curves', 'grade', 'morph', 'render']],
+  ['THE APPS\' OWN MARKS', ['mandelbrot', 'mandelbrotSmall', 'juliaRestore']]
+];
+const only = new URLSearchParams(location.search).get('only');
+const want = only ? new Set(only.split(',')) : null;
+const all = glyphNames().filter((n) => !want || want.has(n));
+const seen = new Set(), groups = [];
+for (const [title, names] of GROUPS) { const m = names.filter((n) => all.includes(n)); m.forEach((n) => seen.add(n)); if (m.length) groups.push([title, m]); }
+const rest = all.filter((n) => !seen.has(n)); if (rest.length) groups.push(['OTHER', rest]);
+
+function pane(tone) {
+  const p = document.createElement('div'); p.className = 'pane ' + tone; p.dataset.tone = tone;
+  for (const [title, names] of groups) {
+    const h = document.createElement('h2'); h.textContent = title; p.appendChild(h);
+    const g = document.createElement('div'); g.className = 'grid'; p.appendChild(g);
+    for (const n of names) {
+      const c = document.createElement('div'); c.className = 'cell'; c.dataset.glyph = n;
+      const s = document.createElement('div'); s.className = 'sizes'; c.appendChild(s);
+      for (const px of [16, 24, 64]) { const e = glyphEl(n, 'gly gly-' + n, px); if (e) s.appendChild(e); }
+      const l = document.createElement('div'); l.className = 'nm'; l.textContent = n; c.appendChild(l);
+      g.appendChild(c);
+    }
+  }
+  const a = document.createElement('div'); a.className = 'alias';
+  a.textContent = 'aliases (old names that still draw): ' + Object.entries(glyphAliases()).map(([k, v]) => k + ' → ' + v).join(' · ');
+  p.appendChild(a);
+  return p;
+}
+const host = document.getElementById('pair');
+host.append(pane('dark'), pane('light'));
+window.__ready = true;
+</script>
+</body>
+</html>
