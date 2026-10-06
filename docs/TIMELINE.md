@@ -129,7 +129,7 @@ The timeline's keys are rows of the app's one key table (`docs/KEYS.md`), rebind
 | Ctrl+X | Cut the selection | FL — Cut selection |
 | Ctrl+V | Paste at the playhead, into the active lane | FL — Paste selection |
 | Ctrl+Z | Undo | standard — not an FL Playlist binding |
-| Ctrl+Shift+Z | Redo | standard — not an FL Playlist binding |
+| Ctrl+Shift+Z · Ctrl+Y | Redo | standard — not an FL Playlist binding |
 | Ctrl+Enter | Set the time range to the selection’s span | BASINS |
 | Ctrl+← | Slide the time range back by its own width | BASINS |
 | Ctrl+→ | Slide the time range forward by its own width | BASINS |

@@ -12,15 +12,18 @@
  *       those buttons need; onChange(fn) calls fn(state()) after every change.  `limitLine: false` is the old name of
  *       count: false.
  *   historyState(history) → { canUndo, canRedo, length, count }   (pure: count is the line the list writes)
- *   installHistoryKeys(history, { target = window, canAct = () => true, onEmpty }) → remove
- *       Ctrl/Cmd+Z undo · Ctrl/Cmd+Shift+Z and Ctrl/Cmd+Y redo, in the capture phase; a text field keeps its own undo.
+ *   installHistoryKeys(history, { keys, target = window, canAct = () => true, onEmpty }) → remove
+ *       Ctrl/Cmd+Z undo · Ctrl/Cmd+Shift+Z and Ctrl/Cmd+Y redo, as the rows 'undo' and 'redo' of the app's key table `keys`
+ *       (or of a small table of their own on `target`), so the KEYBOARD window rebinds them; a text field keeps its own undo.
  *       canAct() false (a render running) lets the key through untouched; onEmpty(redo) when there was nothing to do.
+ *   historyActions(history, { canAct, onEmpty }) → those two rows, for an app that builds its table by hand
  *   editableTarget(el) → true for a field that owns its own undo
  */
 import { el, trig, label, ariaLabel } from '../kit.js';
 import { setText } from '../core/perf.js';
 import { frame } from '../core/frame.js';
 import { isField } from '../core/pointer.js';
+import { createKeys, EDIT_KEYS } from '../shell/keys.js';
 
 /* a select is NOT one: it keeps no undo of its own, so Ctrl+Z on it is the app's, and its change is a history row (gestures.js) */
 export const editableTarget = (t) => isField(t) && String(t.tagName).toUpperCase() !== 'SELECT';
@@ -35,8 +38,9 @@ export function historyList(history, host, o = {}) {
   let undo = null, redo = null;
   if (o.tools !== false) {
     const tools = el('div', 'hist-tools', root);
-    undo = trig({ label: 'UNDO', title: 'Undo (Ctrl+Z)', onFire: () => history.undo() });
-    redo = trig({ label: 'REDO', title: 'Redo (Ctrl+Shift+Z, Ctrl+Y)', onFire: () => history.redo() });
+    undo = trig({ label: 'UNDO', title: 'Undo', onFire: () => history.undo() });
+    redo = trig({ label: 'REDO', title: 'Redo', onFire: () => history.redo() });
+    undo.root.dataset.keyAction = 'undo'; redo.root.dataset.keyAction = 'redo';   // the key is the table's (keys.hints), never typed here
     tools.append(undo.root, redo.root);
   }
   const list = el('div', 'hist-list', root);
@@ -73,15 +77,26 @@ export function historyList(history, host, o = {}) {
     destroy() { dead = true; off(); offWatch(); watchers.clear(); frame.cancel(job); root.remove(); } };
 }
 
-export function installHistoryKeys(history, { target = window, canAct = () => true, onEmpty } = {}) {
-  const onKey = (e) => {
-    if (!(e.ctrlKey || e.metaKey) || e.altKey || (e.code !== 'KeyZ' && e.code !== 'KeyY')) return;
-    if (editableTarget(e.target) || !canAct()) return;
-    e.preventDefault(); e.stopImmediatePropagation();
-    const isRedo = e.code === 'KeyY' || e.shiftKey;
-    const ok = isRedo ? history.redo() : history.undo();
-    if (!ok && onEmpty) onEmpty(isRedo);
-  };
-  target.addEventListener('keydown', onKey, true);
-  return () => target.removeEventListener('keydown', onKey, true);
+/** historyActions(history, { canAct, onEmpty, doc }) → the key table's two rows, 'undo' and 'redo' (shell/keys.js EDIT_KEYS).
+ *  inFields so a focused <select> (it keeps no undo of its own) still undoes the app; `when` hands every text field its own
+ *  undo back and stands down while canAct() says no (a render running).  repeat: a held chord walks the stack. */
+export function historyActions(history, { canAct = () => true, onEmpty, doc = globalThis.document } = {}) {
+  const live = () => !!canAct() && !editableTarget(doc && doc.activeElement);
+  const row = (id, label, hint, redo) => ({ id, label, group: 'EDIT', hint, keys: EDIT_KEYS[id].slice(), inFields: true, repeat: true, when: live,
+    run: () => { const ok = redo ? history.redo() : history.undo(); if (!ok && onEmpty) onEmpty(redo); } });
+  return [row('undo', 'UNDO', 'Undo', false), row('redo', 'REDO', 'Redo', true)];
+}
+
+/* UNDO / REDO ARE ROWS OF THE ONE KEY TABLE (wave 19): the old capture-phase listener with stopImmediatePropagation beat
+   every table row, so rebinding undo did nothing.  With the app's table (`keys`) the rows are added to it (an app's own
+   'undo' row, already there, wins); without one, a small table of their own is made on `target`.
+   → remove(); remove.keys is the table the rows are in (for its hints) */
+export function installHistoryKeys(history, { keys = null, target = globalThis.window, canAct = () => true, onEmpty } = {}) {
+  let dead = false;
+  const actions = historyActions(history, { canAct: () => !dead && canAct(), onEmpty, doc: (target && target.document) || globalThis.document });
+  const table = keys || createKeys({ actions, target });
+  if (keys) keys.add(actions);
+  const remove = () => { dead = true; if (!keys) table.destroy(); };
+  remove.keys = table;
+  return remove;
 }

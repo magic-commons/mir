@@ -282,6 +282,10 @@ export const KIT_KEYS = Object.freeze({
   fullscreen: 'F',
   help: '?',
 });
+/** UNDO and REDO: one action id each, 'undo' and 'redo', whoever holds the stack — the app's one history
+ *  (history/history-list.js historyActions) or, with no history, the timeline's own rows (timeline/shortcuts.js).
+ *  Written once here so the two can never disagree (wave 19: two owners on Mod+Z made rebinding undo do nothing). */
+export const EDIT_KEYS = Object.freeze({ undo: Object.freeze(['Mod+Z']), redo: Object.freeze(['Mod+Shift+Z', 'Mod+Y']) });
 /** toggleFullscreen(doc) — the document full screen, or out of it (BASINS shell.js fullscreen; a refusal is silent) */
 export function toggleFullscreen(doc = globalThis.document) {
   try {

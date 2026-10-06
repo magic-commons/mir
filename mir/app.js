@@ -226,7 +226,7 @@ export async function createApp(o = {}) {
 
   /* 5e. THE HISTORY WINDOW: the app's one stack, the keys, the gesture naming and the rack as a domain (a render running stops them) */
   if (o.history && want('history') && mod) hist = (await import('./history/window.js')).createHistoryWindow({ history: o.history, host: floats, mod, present: o.present, stage: o.canvas || stage.querySelector('canvas'),
-    canAct: () => !(recorder && recorder.running()), ...opt(o.historyWindow) });
+    keys, canAct: () => !(recorder && recorder.running()), ...opt(o.historyWindow) });   // undo / redo: rows of the one table ('undo', 'redo')
 
   /* 6. THE ONE CLOCK and THE TRANSPORT BAR, the main opener: ▶ (and Space) plays; the power ring is modulation's */
   const clock = o.clock || (mod ? { play: () => mod.play(true), pause: () => mod.play(false), isPlaying: () => mod.playing(), onChange: (fn) => mod.onPlay(fn) } : null);
@@ -302,7 +302,7 @@ export async function createApp(o = {}) {
   const menus = {
     FILE: M.FILE || (() => rows(folders ? k('save') : undefined, folders ? ['NEW', () => folders.fresh()] : undefined, folders ? k('folders') : undefined,
       ...(folders ? recentRows(folders.files, 5, (id) => { folders.open(); folders.openEntry(id); }) : []))),
-    EDIT: M.EDIT || (() => rows(bar ? k('transport.play') : undefined, bar ? null : undefined, purgeRow({ name }))),
+    EDIT: M.EDIT || (() => rows(k('undo'), k('redo'), keys.get('undo') ? null : undefined, bar ? k('transport.play') : undefined, bar ? null : undefined, purgeRow({ name }))),
     VIEW: M.VIEW || (() => rows(k('hide'), k('fullscreen'))),
     WINDOW: M.WINDOW || (() => rows(mod ? k('modulation') : undefined, timeline ? k('timeline') : undefined, pattern ? k('pattern') : undefined, folders ? k('folders') : undefined, notebook ? k('notebook') : undefined,
       hist ? ['HISTORY', () => hist.toggle()] : undefined, help ? k('help') : undefined, k('rack'), k('dock'), ...(rack ? [null, ...rack.windowMenu()] : []),

@@ -64,7 +64,9 @@ export function installTimeline(o) {
   /* THE KEYS: rows of the app's one table */
   let keys = o.keys || null, ownKeys = false;
   const play = transportActions(() => tl.transport);
-  if (keys) { keys.add(tl.actions); if (!keys.get(PLAY_ACTION)) keys.add(play); }
+  /* with a history, undo and redo are ITS rows (history/history-list.js historyActions: the one stack, the timeline a domain of
+     it), so the timeline's own 'undo' / 'redo' are left out: one owner for each chord, wherever the focus is */
+  if (keys) { keys.add(o.history ? tl.actions.filter((a) => a.id !== 'undo' && a.id !== 'redo') : tl.actions); if (!keys.get(PLAY_ACTION)) keys.add(play); }
   else { keys = createKeys({ actions: [...play, ...tl.actions], storage: localKeyStorage(storageKey + '.keys') }); ownKeys = true; }
   if (typeof mod.onTick === 'function') offs.push(mod.onTick(() => tl.paintHead()));
 

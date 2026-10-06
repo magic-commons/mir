@@ -14,7 +14,7 @@
  *   renderShortcutsMarkdown(actions) → the markdown table docs/TIMELINE.md carries (tests/timeline-ticks.node.mjs)
  * Words are English keys, translated where they are shown; a key cap is never translated (keys.js displayChord). */
 import { el, label, ariaLabel } from '../kit.js';
-import { displayChord, normalize } from '../shell/keys.js';
+import { displayChord, normalize, EDIT_KEYS } from '../shell/keys.js';
 
 const G = 'TIMELINE';   // tr: the key table's group for the timeline's keys
 /* one row: id, the label (short, for menus and the drawn board), the hint (BASINS' sentence), the FL note, the chords, the verb */
@@ -29,8 +29,10 @@ export function timelineActions(get) {
     row({ id: 'copy', label: 'COPY', hint: 'Copy the selection', t: 'FL — Copy selection' }, ['Mod+C'], A((a) => a.copy())),
     row({ id: 'cut', label: 'CUT', hint: 'Cut the selection', t: 'FL — Cut selection' }, ['Mod+X'], A((a) => a.cut())),
     row({ id: 'paste', label: 'PASTE', hint: 'Paste at the playhead, into the active lane', t: 'FL — Paste selection' }, ['Mod+V'], A((a) => a.paste())),
-    row({ id: 'undo', label: 'UNDO', hint: 'Undo', t: 'standard — not an FL Playlist binding' }, ['Mod+Z'], A((a) => a.undo())),
-    row({ id: 'redo', label: 'REDO', hint: 'Redo', t: 'standard — not an FL Playlist binding' }, ['Mod+Shift+Z'], A((a) => a.redo())),
+    /* UNDO / REDO are the app's one pair ('undo', 'redo': shell/keys.js EDIT_KEYS), not the timeline's own: with a history
+       they are the history's rows and these are left out (bind.js); without one, these are them */
+    { ...row({ id: 'undo', label: 'UNDO', hint: 'Undo', t: 'standard — not an FL Playlist binding' }, EDIT_KEYS.undo.slice(), A((a) => a.undo())), id: 'undo', group: 'EDIT' },
+    { ...row({ id: 'redo', label: 'REDO', hint: 'Redo', t: 'standard — not an FL Playlist binding' }, EDIT_KEYS.redo.slice(), A((a) => a.redo())), id: 'redo', group: 'EDIT' },
     row({ id: 'range-to-selection', label: 'RANGE TO SELECTION', hint: 'Set the time range to the selection’s span', t: 'BASINS' }, ['Mod+Enter'], A((a) => a.rangeToSelection())),
     row({ id: 'range-back', label: 'RANGE BACK', hint: 'Slide the time range back by its own width', t: 'BASINS' }, ['Mod+ArrowLeft'], A((a) => a.slideRange(-1))),
     row({ id: 'range-forward', label: 'RANGE FORWARD', hint: 'Slide the time range forward by its own width', t: 'BASINS' }, ['Mod+ArrowRight'], A((a) => a.slideRange(1))),
