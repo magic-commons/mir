@@ -64,14 +64,15 @@ export function dumpLines() {
 import { MIR_VERSION } from '../version.js';
 import { perf } from './perf.js';
 import { frame } from './frame.js';
+import { isField as isPlace } from './pointer.js';
 import { english } from './i18n.js';   // a label's English, without the context a translator needs (time span::WINDOW → WINDOW)
 
 export const DESCRIBE_ID = 'mir-describe';
 const JOB = 'mir:describe';
 const HOOKS = ['data-param', 'data-info', 'data-key-action', 'data-mir-window', 'data-mir-chip', 'data-action', 'data-menu'];
 
-/** isField(node): a place where the user types */
-const isField = (n) => !!n && (n.isContentEditable === true || /^(INPUT|TEXTAREA|SELECT)$/.test(n.tagName || ''));
+/** a place where the user types: every input counts here, so no key pressed in one is ever kept (core/pointer.js isField) */
+const isField = (n) => isPlace(n, true);
 
 /** targetOf(node) → 'tag#id.class[data-param=…]' from hooks only: never text, value, title or aria-label */
 export function targetOf(n) {

@@ -20,6 +20,19 @@ import { rect, setVar, setAttr } from './perf.js';
 import { motionPolicy } from './motion.js';
 
 const MODS = ['Shift', 'Alt', 'Control', 'Meta'];
+
+/* ── IS THE USER TYPING: the kit's one answer (the key table, the history keys, the describe trail, a page's Escape and the
+   timeline's keys all ask it) ── */
+const TEXTY = new Set(['', 'text', 'search', 'email', 'url', 'tel', 'password', 'number', 'date', 'time', 'datetime-local', 'month', 'week']);
+/** isField(node, anyInput = false) — a place the user types: a textarea, a select, anything contenteditable, and an input
+ *  of a text-like type (with `anyInput`, every input: a colour well, a range, a box — a place that keeps its own keys) */
+export function isField(n, anyInput = false) {
+  if (!n || !n.tagName) return false;
+  const tag = String(n.tagName).toLowerCase();
+  if (tag === 'textarea' || tag === 'select') return true;
+  if (tag === 'input') return anyInput || TEXTY.has(String(n.type || n.getAttribute && n.getAttribute('type') || '').toLowerCase());
+  return !!n.isContentEditable || (!!n.getAttribute && /^(|true|plaintext-only)$/.test(n.getAttribute('contenteditable') ?? 'x'));
+}
 let uid = 0;
 
 /** drag(el, { slop, button, onStart, onMove, onEnd, onCancel }) — a drag from `el`.  Every callback gets a sample

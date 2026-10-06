@@ -20,9 +20,10 @@
 import { el, trig, label, ariaLabel } from '../kit.js';
 import { setText } from '../core/perf.js';
 import { frame } from '../core/frame.js';
+import { isField } from '../core/pointer.js';
 
-const TEXT_TYPES = /^(text|search|email|url|password|tel|number)$/i;
-export const editableTarget = (t) => !!t && (t.isContentEditable || t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && TEXT_TYPES.test(t.type || 'text')));
+/* a select is NOT one: it keeps no undo of its own, so Ctrl+Z on it is the app's, and its change is a history row (gestures.js) */
+export const editableTarget = (t) => isField(t) && String(t.tagName).toUpperCase() !== 'SELECT';
 
 export function historyState(history) {
   return { canUndo: !!history.canUndo, canRedo: !!history.canRedo, length: history.length,

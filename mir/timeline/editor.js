@@ -28,6 +28,7 @@
  * core/frame.js; the popups are the house's menu pane; BASINS' CURVE_VIEW numbers live in geometry.js. */
 import { svgPoint, curveHit, curveAction, pointDrag, pointAddValue, tensionDelta } from '../modulation/curve-gesture.js';
 import { el, label, ariaLabel } from '../kit.js';
+import { isField } from '../core/pointer.js';
 import { t, tn } from '../core/i18n.js';
 import { coalesce } from './readout.js';
 import { TIMELINE_TAB_HEIGHT, TIMELINE_ROW_GAP, TIMELINE_CURVE_GRAB, TIMELINE_TENSION_TRAVEL, resizeTimelineClip, createClipCoordinates, snapTimelineBeat, timelineResizeDelta, nearestTimelineLane } from './geometry.js';
@@ -43,7 +44,7 @@ import { TIMELINE_ICONS } from './icons.js';
 import { stretchAudioClip, audioRate } from './audio-kind.js';
 
 const bounded=(n,lo=0,hi=1)=>Math.min(hi,Math.max(lo,n));
-const editable=target=>target?.closest?.('input,textarea,select,[contenteditable="true"]');
+const editable=target=>isField(target,true);   // every input counts: the clip menu's colour well keeps its keys
 /* a word: an English key (translated, kept on the node for a language change) or [key, vars]; { raw } is data, shown as it is */
 const word=(node,w)=>{if(w&&typeof w==='object'&&!Array.isArray(w)){node.textContent=w.raw;return node;}if(Array.isArray(w))return label(node,w[0],w[1]),node;label(node,w);return node;};
 export const SNAPS=[[4,'MEASURE'],[1,'QUARTER'],[.5,'EIGHTH'],[.25,'SIXTEENTH'],[0,'OFF']];   // tr: the timeline's snap grid

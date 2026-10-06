@@ -36,6 +36,7 @@
  *   greet(layer, pages, { hold?, first?, pane?, place?, controls?, onDismiss? }) → { dismiss(), shown }
  *     first: true shows only the page's first part, up to its first `---` (a long page would fill the picture)
  *   firstPart(md)                      → the markdown up to the first `---` */
+import { isField } from '../core/pointer.js';
 
 const CALLOUT = /^\s{0,3}>\s?\[!mir\|([^\]\s|]+)(?:\s+([a-z-]+))?\s*\][+-]?[ \t]*(.*)$/i;
 const FENCE = /^\s{0,3}(`{3,}|~{3,})/;
@@ -153,8 +154,7 @@ export function greet(layer, pages, { hold = 2500, onDismiss = null, first = fal
     if (onDismiss) p.then(() => onDismiss());
     return p;
   };
-  const typing = (t) => t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
-  win.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !typing(e.target)) dismiss(); }, { signal: life.signal });
+  win.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !isField(e.target, true)) dismiss(); }, { signal: life.signal });
   if (stage) stage.addEventListener('pointerdown', () => { if (performance.now() >= until) dismiss(); }, { signal: life.signal, passive: true });
   return { shown: true, page: shown, dismiss };
 }

@@ -57,6 +57,7 @@
  *
  * Pure, exported and node-tested: parseChord, normalize, chordFromEvent, displayChord, ariaChord, pickAction,
  * isField, ownsKey, steal, diffSaved, repairSaved, bindError, detectPlatform. */
+import { isField } from '../core/pointer.js';
 
 /* ── the spelling ───────────────────────────────────────────────────────────────────────────────────────── */
 export const MOD_ORDER = Object.freeze(['Mod', 'Ctrl', 'Alt', 'Shift', 'Meta']);
@@ -179,15 +180,8 @@ export function ariaChord(chord, platform = 'other') {
 }
 
 /* ── where a key belongs ────────────────────────────────────────────────────────────────────────────────── */
-const TEXTY = new Set(['', 'text', 'search', 'email', 'url', 'tel', 'password', 'number', 'date', 'time', 'datetime-local', 'month', 'week']);
-/** isField(node) — a place the user types: a text input, a textarea, a select, anything contenteditable */
-export function isField(n) {
-  if (!n || n.nodeType !== 1) return false;
-  const tag = (n.tagName || '').toLowerCase();
-  if (tag === 'textarea' || tag === 'select') return true;
-  if (tag === 'input') return TEXTY.has(String(n.type || n.getAttribute && n.getAttribute('type') || '').toLowerCase());
-  return !!n.isContentEditable || (n.getAttribute && /^(|true|plaintext-only)$/.test(n.getAttribute('contenteditable') ?? 'x'));
-}
+/** isField(node) — a place the user types: a text input, a textarea, a select, anything contenteditable (core/pointer.js's) */
+export { isField };
 const ARROWS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End']);
 /** ownsKey(node, chord) — a focused control keeps the plain keys it operates by: a slider or spin button its arrows,
  *  Home/End and pages; a radio, tab, option or menu item its arrows; a button, link or check its Space and Enter */
