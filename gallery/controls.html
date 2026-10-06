@@ -106,13 +106,10 @@ bar.append(seg({ value: document.body.dataset.theme, options: [{ id: 'dark', lab
   W.knob = knob({ label: 'RATE', min: 0, max: 1, value: 0.4, fmt: (v) => v.toFixed(3), title: 'Drag up or down. Shift (or any modifier, or a second finger) is the eighth gear. Double-tap is home.' });
   W.exposure = knob({ label: 'EXPOSURE', min: -4, max: 4, value: 0, fmt: (v) => v.toFixed(2) + ' EV' });
   W.jog = knob({ label: 'JOG', min: 0, max: 1, value: 0, onDelta: () => {}, title: 'An unbounded turn: a wheel that holds no value' });
-  W.warn = knob({ label: 'WARN', min: 0, max: 1, value: 0.9, fmt: (v) => v.toFixed(2) }); W.warn.setState('warn', 'Near the stability limit');
-  W.clamped = knob({ label: 'CLAMPED', min: 0, max: 1, value: 1, fmt: (v) => v.toFixed(2) }); W.clamped.setState('clamped', 'Held at the engine\'s limit');
-  r.append(W.knob.root, W.exposure.root, W.jog.root, W.warn.root, W.clamped.root);
+  r.append(W.knob.root, W.exposure.root, W.jog.root);
   rules(c, [['an ordinary continuous parameter', 'KNOB', 'J', 'one drag law: vertical; any modifier or a second finger = ⅛ fine; double-tap = home'],
     ['a colour amount in a global grade', 'solid KNOB', 'J', '"the ol\' regular knobs" (EXPOSURE)'],
-    ['an unbounded turn', 'JOG WHEEL', 'kit', 'knob({ onDelta })'],
-    ['a knob that is clamped or warns', 'setState(\'warn\' | \'clamped\', reason)', 'J', 'in --warn, never an accent (INTENT rule 5)']]);
+    ['an unbounded turn', 'JOG WHEEL', 'kit', 'knob({ onDelta })']]);
 }
 
 /* ── 2 · COLOUR: arc, swatch, lane slider ── */

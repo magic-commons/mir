@@ -980,26 +980,6 @@ export function releaseMacro(id) {
   return n;
 }
 
-/** Fires every pad at once; reports both counts because sources and pads differ. */
-export function fireTriggers() {
-  let macrosFired = 0, sourcesFired = 0;
-  for (const m of macros) {
-    if (m.kind !== 'trigger') continue;
-    const n = fireMacro(m.id);
-    if (n) { macrosFired++; sourcesFired += n; }
-  }
-  return { macros: macrosFired, sources: sourcesFired };
-}
-/** …and the key coming back up. */
-export function releaseTriggers() {
-  let macrosRel = 0, sourcesRel = 0;
-  for (const m of macros) {
-    if (m.kind !== 'trigger') continue;
-    const n = releaseMacro(m.id);
-    if (n) { macrosRel++; sourcesRel += n; }
-  }
-  return { macros: macrosRel, sources: sourcesRel };
-}
 
 /** THE LOUDEST THING THIS PAD IS FIRING RIGHT NOW, 0..1 — what the rail's dot
     lights with, so a press is visible on the pad that made it.  Allocation-free
@@ -1015,14 +995,6 @@ export function triggerLevel(id) {
   return v;
 }
 
-/** Clears a pad: every device lets go of the trigger. Returns how many. */
-export function clearTrigger(id) {
-  if (!isFireSource(id)) return 0;      // a hit socket clears too
-  const key = String(id);
-  let n = 0;
-  for (const s of sources) if (s.triggerId === key) { s.triggerId = null; n++; }
-  return n;
-}
 
 /* Clears references to deleted triggers; returns how many it cleared. */
 export function pruneTriggerRefs() {
@@ -1917,7 +1889,6 @@ export function audioDemand(deviceId) {
   return !!(c && c.any);
 }
 
-export function audioApplicationDemand(deviceId) { return audioDemand(deviceId); }
 
 /** EVERY BINDABLE SOURCE ID, in rack order — LFOs and ENVs by their own id,
     an AUDIO device by its five SOCKETS.  `:beat` is absent, and that absence is
@@ -2510,13 +2481,6 @@ export function dormantRoutes() {
   }
   return out;
 }
-/** How many of this macro's sends are dead — the number the rail paints red. */
-export function dormantCountOfMacro(id) {
-  const k = String(id);
-  let n = 0;
-  for (const r of routes) if (r.dormant && r.macroId === k) n++;
-  return n;
-}
 export function dormantCount() {
   let n = 0;
   for (const r of routes) if (r.dormant) n++;
@@ -2803,28 +2767,6 @@ export function presetFolders() {
   return out.concat(list);
 }
 
-/* Moves a preset into a folder. */
-export function setPresetFolder(id, folder) {
-  const k = String(id);
-  if (FACTORY_PRESETS.some((f) => f.id === k)) return { ok: false, error: 'factory', id: k };
-  const st = presetStore();
-  const rec = st.presets.find((p) => p.id === k);
-  if (!rec) return { ok: false, error: 'missing', id: k };
-  const want = String(folder === undefined || folder === null ? '' : folder)
-    .trim().slice(0, PRESET_FOLDER_MAX).trim();
-  if (want && presetSameFolder(want, PRESET_FOLDER_FACTORY)) {
-    return { ok: false, error: 'reserved', id: k, folder: PRESET_FOLDER_FACTORY };
-  }
-  const before = Object.prototype.hasOwnProperty.call(rec, 'folder') ? rec.folder : undefined;
-  const had = Object.prototype.hasOwnProperty.call(rec, 'folder');
-  if (!want || presetSameFolder(want, PRESET_FOLDER_DEFAULT)) delete rec.folder;
-  else rec.folder = want;
-  try { presetPersist(); } catch (e) {
-    if (had) rec.folder = before; else delete rec.folder;
-    return { ok: false, error: 'storage', message: String((e && e.message) || e) };
-  }
-  return { ok: true, id: k, name: rec.name, folder: presetFolderOf(rec) };
-}
 
 export function presetGet(id) {
   const k = String(id);

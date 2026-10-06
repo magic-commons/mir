@@ -5,7 +5,7 @@
  *      hidden rack takes it away
  *   2. a retired id in a saved layout opens its heir
  *   3. RESET LAYOUT returns a window carried off the rack (and a folded, a closed and a powered-off one) home
- *   4. a ☆ layout keeps the notebook's size; COPY puts the readouts on the clipboard text and flashes
+ *   4. a ☆ layout keeps the notebook's size
  *   5. the touch-tablet clamp: under touch emulation at 1280 px a float is kept wholly inside the viewport
  * Standalone: MIR_BASE=http://127.0.0.1:8846 node tests/rack-leftovers.browser.mjs */
 import { launch, sleep } from '../tools/cdp.mjs';
@@ -85,25 +85,10 @@ try {
     moved && r.after.floating.length === 0 && r.after.tone === 'rack' && r.after.left.join() === 'display,camera' && !r.after.right.includes('display') && r.after.right.includes('scope')
       && !r.after.folded && r.after.closed.length === 0 && !r.after.off && !r.after.hidden, JSON.stringify(r));
 
-  /* ── 4. the notebook's size in a ☆ layout; COPY ─────────────────────────────────────────────────────────── */
+  /* ── 4. the notebook's size in a ☆ layout ─────────────────────────────────────────────────────────────── */
   r = await run(`T.nb.w = 500; T.nb.h = 380; const slot = R.saveLayout(); const kept = R.capture().nb; T.nb.w = 900; T.nb.h = 700; T.nb.resized.length = 0;
     R.loadLayout(slot); return { kept, resized: T.nb.resized, now: [T.nb.w, T.nb.h] };`);
   check('nb: a ☆ layout keeps the notebook\'s size and loading it resizes the notebook', JSON.stringify(r.kept) === '[500,380]' && JSON.stringify(r.now) === '[500,380]' && r.resized.length === 1, JSON.stringify(r));
-  r = await run(`const text = await R.copyDigest('mix'); const st = dev('mix').querySelector('.dev-stat'); const flash = dev('mix').classList.contains('copied'), after = getComputedStyle(st, '::after').content;
-    await wait(1000); return { text, flash, after, gone: !dev('mix').classList.contains('copied') };`);
-  const lines = r.text.split('\n');
-  check('COPY: the digest is name · title · time, the status, and each readout row tab-separated; the status flashes · COPIED for 900 ms',
-    /^FIXTURE · MIX · \d{4}-/.test(lines[0]) && lines[1] === 'status\tLIVE' && lines[2] === 'MIX\t42\tunits' && r.flash && r.after.includes('COPIED') && r.gone, JSON.stringify(r));
-
-  /* ── 4b. the app's own layout state (layoutExtra: BASINS' `docked`) rides a ☆ layout and a reload record ── */
-  r = await run(`T.ext.docked = true; const slot = R.saveLayout(); const kept = R.capture().extra; T.ext.docked = false; T.ext.applied.length = 0;
-    R.loadLayout(slot); const loaded = { docked: T.ext.docked, calls: T.ext.applied.length };
-    T.ext.docked = true; R.touch(); await wait(120); const stored = JSON.parse(localStorage.getItem('mir.test.rack-leftovers')).layout.extra;
-    T.ext.docked = false; return { kept, loaded, stored };`);
-  check('layoutExtra: capture() rides every layout as `extra`, a ☆ load hands it back to apply() once, touch() keeps the layout again', JSON.stringify(r.kept) === '{"docked":true}' && r.loaded.docked === true && r.loaded.calls === 1 && JSON.stringify(r.stored) === '{"docked":true}', JSON.stringify(r));
-  await load();
-  r = await run(`return { docked: T.ext.docked, calls: T.ext.applied.length };`);
-  check('layoutExtra: the reload record carries it (the last touch() saved docked: true) and apply() is handed it once at start', r.docked === true && r.calls === 1, JSON.stringify(r));
 
   /* ── 5. the touch-tablet clamp ───────────────────────────────────────────────────────────────────────────── */
   await p.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });

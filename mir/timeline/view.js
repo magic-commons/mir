@@ -76,8 +76,8 @@ export function createTimelineView(surface,{pixels,onClipMenu}) {
     for(const[id,n]of laneNodes)if(!laneIds.has(id)){n.root.remove();laneNodes.delete(id);}
     for(const [laneIndex,lane] of doc.lanes.entries()){
       let row=laneNodes.get(lane.id);if(!row){const root=el('div','tl-row',rows);root.dataset.lane=lane.id;row={root,title:el('div','tl-titleband',root),pane:el('div','tl-pane glass',root)};row.pane.dataset.lane=lane.id;laneNodes.set(lane.id,row);}if(rows.children[laneIndex]!==row.root)rows.insertBefore(row.root,rows.children[laneIndex]||null);
-      row.title.title=lane.name;row.pane.style.setProperty('--tl-quarter',px+'px');row.pane.style.setProperty('--tl-subdivision',px/2+'px');row.pane.style.setProperty('--tl-measure',px*doc.meter+'px');row.pane.style.setProperty('--tl-four-measures',px*doc.meter*4+'px');
-      row.pane.style.setProperty('--tl-beat-height',law.beatHeight+'px');row.pane.style.setProperty('--tl-beat-alpha',String(law.beatAlpha));
+      row.title.title=lane.name;row.pane.style.setProperty('--tl-measure',px*doc.meter+'px');row.pane.style.setProperty('--tl-four-measures',px*doc.meter*4+'px');
+      row.pane.style.setProperty('--tl-beat-height',law.beatHeight+'px');
       row.pane.style.setProperty('--tl-beat-tick',`color-mix(in srgb,currentColor ${(law.beatAlpha*100).toFixed(4)}%,transparent)`);
       row.pane.style.setProperty('--tl-beat-bevel',`color-mix(in srgb,var(--tl-tick-bevel-ink) ${(law.beatAlpha*50).toFixed(4)}%,transparent)`);
       row.pane.classList.toggle('subdivisions',law.subdivisions);

@@ -15,14 +15,12 @@
   #title .mark { width: 18px; height: 18px; }
   #opener { position: absolute; left: 16px; top: 60px; }
   #card { position: absolute; left: 16px; top: 120px; width: 240px; height: 100px; }
-  #side { position: absolute; right: 16px; top: 16px; width: 280px; }
 </style>
 </head>
 <body data-theme="dark" data-card="tinted">
 <canvas id="stage" width="640" height="400"></canvas>
 <button id="opener" class="trig" type="button"><span class="trig-l">OPEN</span></button>
 <div id="card" class="glass"></div>
-<div id="side" class="glass"></div>
 <script type="module">
 import { wordmark } from '../../mir/shell/wordmark.js';
 import { setLanguage } from '../../mir/core/i18n.js';
@@ -31,24 +29,12 @@ import { openDialog, confirmDialog } from '../../mir/shell/dialog.js';
 import { notice } from '../../mir/shell/notice.js';
 import { busyMark, busyCursor, busyLogo } from '../../mir/shell/busy.js';
 import { bootCard, explainBoot } from '../../mir/shell/boot.js';
-import { settingsRows } from '../../mir/shell/settings-rows.js';
 
 const g = document.getElementById('stage').getContext('2d');
 g.fillStyle = '#2a4a7a'; g.fillRect(0, 0, 640, 400); g.fillStyle = '#e0a040'; g.fillRect(200, 100, 240, 200);
 wordmark(document.body, { word: 'MIR' });
 const stageClicks = { n: 0 }; document.getElementById('stage').addEventListener('click', () => stageClicks.n++);
-const S = { depth: 0.2, hue: 90, on: false, mode: 'a', pick: 'two', count: 5, gone: true, more: 'x' };
-const hooks = { begin: [], end: [] };
-const panel = settingsRows(document.getElementById('side'), [
-  { id: 'depth', label: 'DEPTH', control: 'fader', min: 0, max: 1, get: () => S.depth, set: (v) => { S.depth = v; }, begin: () => hooks.begin.push('depth'), end: () => hooks.end.push('depth') },
-  { id: 'hue', label: 'HUE', control: 'knob', min: 0, max: 360, get: () => S.hue, set: (v) => { S.hue = v; } },
-  { id: 'on', label: 'SYNC', control: 'sw', get: () => S.on, set: (v) => { S.on = v; }, begin: () => hooks.begin.push('on'), end: () => hooks.end.push('on') },
-  { id: 'mode', label: 'MODE', control: 'seg', options: [{ id: 'a', label: 'ALPHA' }, { id: 'b', label: 'BETA' }], get: () => S.mode, set: (v) => { S.mode = v; } },
-  { id: 'pick', label: 'QUALITY', control: 'select', options: [{ id: 'one', label: 'LIGHT' }, { id: 'two', label: 'BALANCED' }], get: () => S.pick, set: (v) => { S.pick = v; } },
-  { id: 'count', label: 'COUNT', control: 'number', min: 1, max: 9, step: 1, get: () => S.count, set: (v) => { S.count = v; } },
-  { id: 'hidden', label: 'ONLY IN BETA', control: 'sw', get: () => S.gone, set: () => {}, when: () => S.mode === 'b' }
-]);
-window.__T = { openDialog, confirmDialog, notice, busyMark, busyCursor, busyLogo, bootCard, explainBoot, panel, S, hooks, stageClicks, setLanguage, unpseudo };
+window.__T = { openDialog, confirmDialog, notice, busyMark, busyCursor, busyLogo, bootCard, explainBoot, stageClicks, setLanguage, unpseudo };
 window.__ready = true;
 </script>
 </body>

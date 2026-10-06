@@ -71,7 +71,6 @@ export const WINDOW_ID = 'modwin';
  *  ' window controls'.  Since 1.5 no kit CSS selects on it: the rail carries
  *  data-mir-rail and each chip data-mir-chip, so this label may be translated. */
 export const WINDOW_TITLE = 'MODULATION';
-export const CHIPRAIL_LABEL = WINDOW_TITLE + ' window controls';
 
 /** The ten global ids the window plants.  Only modwin, mod2css,
  *  m2-dead-send-warning and m2-dead-send-inspector are load-bearing (the last

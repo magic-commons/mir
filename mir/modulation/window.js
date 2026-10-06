@@ -33,7 +33,7 @@
  * Kept as they were: every law in modwindow/ACCEPTANCE.md and host-contract.md, the FL curve gestures
  * (curve-gesture.js), Sol's automation / exact resume / runtime capture in host.js and mod.js.
  */
-import { el, svgEl, seg, trig, knob, tapWatcher, gripDots, label, ariaLabel, hint as hintTo, gearOf, watchTouches, select as kitSelect, number as kitNumber } from '../kit.js';
+import { el, svgEl, seg, trig, knob, tapWatcher, gripDots, label, ariaLabel, hint as hintTo, gearOf, watchTouches } from '../kit.js';
 import { bindSliderKeys } from '../slider-keys.js';
 import { createModWindow, setDeviceMode, setWorkLane, sizeLaw, GEOM,
          buildGhost, buildAudioSheet, COPY } from './modwindow/modwindow.js';
@@ -78,8 +78,9 @@ const BAND_WORD = Object.freeze({ level: { t: 'LEVEL' }, low: { t: 'LOW' }, mid:
 const BAND_SHORT = Object.freeze({ level: 'A', low: 'L', mid: 'M', high: 'H' });
 /** a device's run state, as the paint shows it (the logic compares the English ids) */
 /* the waveform and shape labels mod.js (WAVE_LABEL) and curve.js (PRESET_LABEL) name: those two files are ports kept
-   by diff, so their tables stay plain, and the catalogue learns the words here.  Shown through { t: … } below. */
-export const WAVE_WORDS = Object.freeze([phrase('SAW↑'), phrase('SAW↓'), phrase('SINE'), phrase('TRI'), phrase('SQR'), phrase('S&H'), phrase('DRIFT'), phrase('MULTI-SAW'), phrase('MULTI-TRI')]);   // tr: waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written
+   by diff, so their tables stay plain, and the catalogue learns the words here.  Shown through { t: … } below.  Not
+   exported (nothing imports it): the phrase() calls are what it is for. */
+const WAVE_WORDS = Object.freeze([phrase('SAW↑'), phrase('SAW↓'), phrase('SINE'), phrase('TRI'), phrase('SQR'), phrase('S&H'), phrase('DRIFT'), phrase('MULTI-SAW'), phrase('MULTI-TRI')]);   // tr: waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written
 const STATE_WORD =Object.freeze({ OFF: { t: 'OFF' }, GATE: { t: 'GATE' }, REL: { t: 'REL' }, RUN: { t: 'RUN' }, IDLE: { t: 'IDLE' }, HOLD: { t: 'clock state::HOLD' } });   // tr[clock state::HOLD]: — the modulation clock is held (paused in place), as opposed to RUN
 const CAPTURE_WORD = Object.freeze({ idle: { t: 'IDLE' }, asking: { t: 'ASKING' }, live: { t: 'LIVE' }, denied: { t: 'DENIED' }, error: { t: 'ERROR' }, closed: { t: 'CLOSED' } });
 const kindWord = (k) => (KIND_WORD[k] ? t(KIND_WORD[k].t) : String(k));
@@ -397,7 +398,6 @@ export function createModulation(host, port) {
   function relocate(side) { Object.assign(P, relocated(side).Q); place({ animate: true }); }
 
   function place({ animate = false } = {}) {
-    if (root.querySelector('.mod-matrix[open]')) return;
     /* a motion owns the pane — its own landing, or the entrance (presence scales it): a plain place waits for it to
        land (window.js's rule), because the work-bar lane is MEASURED and a transformed box measures wrong */
     if (!animate && owns(root)) {
@@ -1796,68 +1796,6 @@ export function createModulation(host, port) {
   sideGrip.addEventListener('pointercancel', () => { sideDrag = null; });
   sideGrip.addEventListener('dblclick', (e) => { e.stopPropagation(); setMacroSide(P.macroSide === 'right' ? 'left' : 'right'); place(); persist(); });
   sideGrip.addEventListener('keydown', (e) => { e.stopPropagation(); if (!['ArrowLeft', 'ArrowRight'].includes(e.key)) return; e.preventDefault(); setMacroSide(e.key === 'ArrowLeft' ? 'left' : 'right'); place(); persist(); });
-
-  // The matrix and the ring gestures edit the same route objects.
-  const matrix = el('dialog', 'mod-matrix', root);
-  const matrixHead = el('div', 'mod-matrix-head', matrix);
-  label(el('b', '', matrixHead), 'MODULATION MATRIX');
-  const matrixClose = label(el('button', '', matrixHead), 'CLOSE'); matrixClose.type = 'button';
-  const matrixBars = el('div', 'mod-matrix-bars m2foot', matrix);
-  const matrixBody = el('div', 'mod-matrix-body', matrix);
-  const matrixButton = el('button', 'm2-matrix-open', macroHead, '▦'); matrixButton.hidden=true;matrixButton.disabled=true;matrixButton.type = 'button';
-  matrixButton.title = 'Open modulation matrix'; ariaLabel(matrixButton, 'Open modulation matrix');
-  let barHomes = [];
-  const closeMatrix = () => {
-    for (const [node, parent, next] of barHomes) parent.insertBefore(node, next && next.parentNode === parent ? next : null);
-    barHomes = []; matrix.close(); place(); matrixButton.focus();
-  };
-  matrixClose.addEventListener('click', closeMatrix);
-  matrix.addEventListener('cancel', (e) => { e.preventDefault(); closeMatrix(); });
-  function renderMatrix() {
-    matrixBody.replaceChildren();
-    const table = el('table', '', matrixBody), head = el('tr', '', el('thead', '', table));
-    for (const name of [{ t: 'ON' }, { t: 'SOURCE' }, { t: 'DESTINATION' }, { t: 'AMOUNT' }, { t: 'POLARITY' }, { t: 'CURVE' }, { t: '' }]) label(el('th', '', head), name.t);
-    const body = el('tbody', '', table);
-    /* the kit's own select (controls/select.js): its list opens in the kit's menu pane, never the platform's popup */
-    const select = (cell, values, value, name, change) => {
-      const w = kitSelect({ aria: name, items: values.map(([id, text]) => ({ id, label: text })), value, onChange: change });
-      cell.appendChild(w.root); return w;
-    };
-    const macros = M.macroList().filter(m => m.kind !== 'trigger').map(m => [m.id, m.name]);
-    const targets = registry.describe().map(d => [d.id, t(d.label)]);
-    const update = (r, patch) => { M.setRouteRange(r.id, patch); clock.recomputeRunning(); apply(); paintRings(); };
-    for (const r of M.routeList()) {
-      const row = el('tr', '', body), cell = () => el('td', '', row);
-      const on = el('input', '', cell()); on.type = 'checkbox'; on.checked = r.enabled !== false; ariaLabel(on, 'Enable route');
-      on.addEventListener('change', () => update(r, { enabled: on.checked }));
-      select(cell(), macros, r.macroId, 'Route source', value => { const dup = M.routesOfTarget(r.targetId).some(q => q.id !== r.id && q.macroId === value); if (!dup) update(r, { macroId: value }); renderMatrix(); });
-      select(cell(), targets.some(d=>d[0]===r.targetId) ? targets : [...targets,[r.targetId,t('{target} (unavailable)', { target: r.targetId })]], r.targetId, 'Route destination', value => {
-        if (value===r.targetId || M.routesOfTarget(value).some(q=>q.macroId===r.macroId)) { renderMatrix(); return; }
-        const next=M.addRoute(r.macroId,value,r.min,r.max);
-        if(next && !next.already) { M.setRouteRange(next.route.id,{bi:r.bi,enabled:r.enabled,curve:r.curve}); M.removeRoute(r.id); clock.recomputeRunning(); apply(); rebuild(); }
-        renderMatrix();
-      });
-      const amount = kitNumber({ aria: 'Signed route amount percent', min: -100, max: 100, step: 1, digits: 1, value: (r.max - r.min) * 100,
-        onChange: (v) => { const d = Math.max(-1, Math.min(1, v / 100)); update(r, { min: Math.max(0, -d), max: Math.max(0, d) }); amount.set(d * 100); } });
-      cell().appendChild(amount.root);
-      select(cell(), [['uni',t('UNIPOLAR')],['bi',t('BIPOLAR')]], r.bi ? 'bi' : 'uni', 'Route polarity', v => update(r, {bi:v === 'bi'}));   // tr: UNIPOLAR: the route only adds (0 to +); BIPOLAR: it swings both ways around the base
-      const curve = el('input', '', cell()); curve.type = 'range'; curve.min = -1; curve.max = 1; curve.step = .01; curve.value = r.curve || 0; ariaLabel(curve, 'Response curve, zero is linear'); curve.addEventListener('input', () => update(r, {curve:curve.valueAsNumber}));
-      const remove = label(el('button', '', cell()), 'REMOVE'); remove.type = 'button'; remove.addEventListener('click', () => { M.removeRoute(r.id); clock.recomputeRunning(); apply(); rebuild(); renderMatrix(); });
-    }
-    const add = el('div', 'mod-matrix-add', matrixBody);
-    const source = select(add, macros, selectedMacro(), 'New route source', () => {});
-    const target = select(add, targets, targets[0] && targets[0][0], 'New route destination', () => {});
-    const button = label(el('button', '', add), 'ADD ROUTE'); button.type = 'button'; button.disabled = !macros.length || !targets.length;
-    button.addEventListener('click', () => { dropOn(source.get(), target.get()); renderMatrix(); });
-    if (!macros.length) label(el('p', '', matrixBody), 'Add a macro in the modulation window to begin routing.');
-  }
-  matrixButton.addEventListener('click', (e) => {
-    e.stopPropagation(); renderMatrix();
-    barHomes = [foot.prebar, transport.xport.parentNode].filter(Boolean).map(node => [node, node.parentNode, node.nextSibling]);
-    for (const [node] of barHomes) matrixBars.appendChild(node);
-    matrix.showModal();
-  });
-
 
   function seatCurveName() {
     for (const card of root.querySelectorAll('.m2dev.lfo')) {
@@ -3339,7 +3277,6 @@ export function createModulation(host, port) {
     devPickOpen = false; if (pick && pick.root) pick.root.hidden = true;
     macroPickOpen = false; if (mpick && mpick.root) mpick.root.hidden = true;
     closePop(); closePresets(); closeDead();
-    if (matrix.open) closeMatrix();
     if (was && port.moved) { try { port.moved(null); } catch (_) {} }
     if (cancelReorder) cancelReorder(); tempoField.close(false);
     /* the per-editor readouts' document listeners have nothing to follow while the window is hidden; open() rebuilds them */

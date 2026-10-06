@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MIR · audio fixture</title>
 <!-- tests/audio.browser.mjs: the TIMELINE with audio clips (mir/timeline/audio-drop.js), the modulation seam with its DEFAULT audio
-     capture, and FOLDERS with SAVE AS ZIP / OPEN ZIP, over one parameter.  A 2D page, no GPU.  The asset store is a fresh
+     capture, and FOLDERS with SAVE AS ZIP / OPEN ZIP (in its RENDER panel's FILES), over one parameter.  A 2D page, no GPU.  The asset store is a fresh
      database each load (a test never meets another run's files); FOLDERS' downloads are caught, not saved. -->
 <link rel="stylesheet" href="../../mir/mir.css">
 <style>
@@ -24,6 +24,8 @@ import { installTimeline } from '../../mir/timeline/bind.js';
 import { installAudioDrop } from '../../mir/timeline/audio-drop.js';
 import { createFolders } from '../../mir/folders/folders.js';
 import { useAssets, createAssetStore, assets } from '../../mir/core/assets.js';
+import { createRecorder } from '../../mir/render/recorder.js';
+import { renderPanel } from '../../mir/render/panel.js';
 try { for (const k of Object.keys(localStorage)) if (k.startsWith('mir.test.audio')) localStorage.removeItem(k); } catch (_) { /* private mode */ }
 useAssets(createAssetStore({ name: 'mir-test-audio-' + Date.now() + '-' + Math.random().toString(36).slice(2) }));
 const says = [], downloads = [];
@@ -37,7 +39,11 @@ let au = null;
 const tl = installTimeline({ mount: floats, mod, say: (t) => says.push(t), storageKey: 'mir.test.audio.tl', audio: { pick: (at) => au && au.pick(at) },
   initial: { dock: 'bottom', open: true, h: 440, chipSide: 'left' } });
 au = installAudioDrop(tl.editor, { mod, controller: tl.controller, say: (t) => says.push(t) });
-const folders = createFolders({ host: floats, store: 'mir.test.audio.library', app: 'mirtest', zip: { foot: true }, download: (blob, name) => downloads.push({ blob, name }), say: (t, bad) => says.push((bad ? '! ' : '') + t) });
+/* SAVE AS ZIP… / OPEN ZIP… sit in RENDER's FILES section: a RENDER panel over a 16 px picture (nothing is rendered here) */
+const pic = document.createElement('canvas'); pic.width = pic.height = 16;
+const rec = createRecorder({ host: mod.host, editor: tl.editor, app: 'mirtest', dir: 'mirtest-audio-recordings', frame: async () => pic, currentSize: () => ({ w: 16, h: 16 }) });
+const folders = createFolders({ host: floats, store: 'mir.test.audio.library', app: 'mirtest', panels: [renderPanel({ recorder: rec, prefix: 'mir.test.audio.render.' })],
+  download: (blob, name) => downloads.push({ blob, name }), say: (t, bad) => says.push((bad ? '! ' : '') + t) });
 window.__AU = { mod, tl, au, folders, assets, says, downloads, S };
 window.__ready = true;
 </script>

@@ -154,7 +154,7 @@ export async function createApp(o = {}) {
         the bar, the rack shows no + and ☆ of its own: the bar's latches open the windows (as gallery/transport.html) */
   const bar = want('transport') ? el('div', '', host) : null;
   if (bar) bar.id = 'transport';
-  if (want('rack')) rack = createRack({ host, key: key + '.rack', transport: bar, favourites: 0, scrollbar: true, name, notebook: () => notebook, ...(bar ? { chrome: false, handle: 'always' } : {}), ...opt(o.rack) });
+  if (want('rack')) rack = createRack({ host, key: key + '.rack', transport: bar, favourites: 0, scrollbar: true, notebook: () => notebook, ...(bar ? { chrome: false, handle: 'always' } : {}), ...opt(o.rack) });
   const floats = rack ? rack.el.floats : el('div', 'mir-rack-floats', host);
   const moved = (r) => (tr ? tr.moved(r) : rack ? rack.dodge(r) : null);
 

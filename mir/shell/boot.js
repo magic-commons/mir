@@ -29,20 +29,13 @@
  *   · NO MINIMUM TIME, no spinner, no logo.  After `timeout` (8 s) it comes down anyway and says so (`via: 'timeout'`).
  *   · MEASURED: stat { firstPresentMs (navigation start → ready), dismissedMs, frames, dismissed, via, timeoutMs }, and a
  *     `boot veil` line in every dump (core/describe.js registerDumpLines).
- *   · el: the page's own veil (BASINS' `#veil`, or a `.mir-veil`); one is made in `host` when the page has none.
- *
- * THE RELOAD OFFER (BASINS gpu.js device.lost → rebootGpu → offerReload)
- *   watchDevice(device, { recover }) → off()
- *   A device lost OUTSIDE boot: `recover(info)` (the app's own restart, optional) is tried first; when it resolves true the
- *   loss was undone and a notice says so.  Otherwise the banner (shell/banner.js) says what happened and offers RELOAD.
- *   A loss with reason 'destroyed' is the app's own teardown and says nothing.  The words are explainBoot's `lost`. */
+ *   · el: the page's own veil (BASINS' `#veil`, or a `.mir-veil`); one is made in `host` when the page has none. */
 import { el, label, trig } from '../kit.js';
 import { presence } from '../core/motion.js';
 import { registerDumpLines } from '../core/describe.js';
 import { busyMark } from './busy.js';
 import { notice } from './notice.js';
 import { copyText } from './clipboard.js';
-import { fail as bannerFail, offerReload } from './banner.js';
 
 /* `t` here only MARKS a sentence for the catalogue (tools/i18n-extract.mjs reads t('…')); it returns the English, and the
    card translates it where it writes it (label()), so a language change rewrites it in place. */
@@ -185,26 +178,4 @@ export function bootVeil({ ready = null, el: given = null, host = null, timeout 
   };
   requestAnimationFrame(tick);
   return { el: v, stat, dismiss, done };
-}
-
-/* ── THE RELOAD OFFER ─────────────────────────────────────────────────────────────────────────────────────── */
-export function watchDevice(device, { recover = null } = {}) {
-  let live = true;
-  if (!device || !device.lost || typeof device.lost.then !== 'function') return () => false;
-  device.lost.then(async (info) => {
-    if (!live) return;
-    const reason = (info && info.reason) || 'unknown';
-    if (reason === 'destroyed') return;                                  // the app's own teardown
-    const why = 'device lost (' + reason + ')' + (info && info.message ? ': ' + info.message : '');
-    if (typeof recover === 'function') {
-      let ok = false;
-      try { ok = !!(await recover(info)); } catch (e) { bannerFail('The graphics device could not be restarted', e); }
-      if (!live) return;
-      if (ok) { notice('The graphics device was reset. The picture is being rebuilt.', { kind: 'info', ms: 4500 }); return; }
-    }
-    const x = explainBoot({ name: 'DeviceLost', message: why });
-    bannerFail('The graphics device was lost', why + '\n' + x.what + ' ' + x.todo);
-    offerReload();
-  });
-  return () => { const was = live; live = false; return was; };
 }

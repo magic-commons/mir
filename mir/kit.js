@@ -230,8 +230,7 @@ export function dragTravel(e, { touch = false, travel, fine } = {}) {
  *   wrap: free-spinning (phase); onDelta(dRad) reports drag deltas instead of absolute values (a JOG WHEEL);
  *   onReset: what a wheel's reset does; size: 'lg'; travel / fine: this knob's own drag law (see setKnobLaw).
  *   dragAxis: 'vertical' (the default: one law for every knob) or 'sum' (the 1.4 law, rise + sideways, for an app that has not moved).
- *   → { root, get, set(x, silent = true), show(x), shown, setDefault(x), setDisabled(on), setBase(fn), setState(state, reason), state, paint }
- *   setState('warn' | 'clamped', reason): the knob says it is held off its value or near a limit, in --warn (never an accent); setState(null) clears it.
+ *   → { root, get, set(x, silent = true), show(x), shown, setDefault(x), setDisabled(on), setBase(fn), paint }
  */
 export function knob(o) {
   const root = ltr(el('div', 'k' + (o.size === 'lg' ? ' k-lg' : '') + (o.cls ? ' ' + o.cls : '')));
@@ -385,25 +384,10 @@ export function knob(o) {
     if (nv !== v) { v = nv; paint(true); if (o.onInput) o.onInput(v); if (o.onChange) o.onChange(v); }
   });
   root.addEventListener('blur', () => announce(false));     // the tree catches up the moment nobody is listening
-  /* 1.5.0-alpha.13 · A KNOB THAT WARNS OR IS CLAMPED SAYS SO IN --warn, NEVER AN ACCENT (INTENT rule 5: accent A is live signal;
-     a warning is not a signal the user asked for).  `warn`: the value is where it is, but something about it needs a look (AUTOMATA's
-     CLAMPED, POLAR's warning); `clamped`: the engine holds it off what the hand asked.  The reason is the hover hint and the
-     accessible description; `root.dataset.state` and `.k-warn` / `.k-clamped` are the hooks (controls.css draws them, and the arc
-     knob reads `--k-state-ink`).  setState(null) clears it and gives the hint back. */
-  let stateNow = null;
-  function setState(s, reason) {
-    s = s === 'warn' || s === 'clamped' ? s : null;
-    stateNow = s;
-    root.classList.toggle('k-warn', s === 'warn'); root.classList.toggle('k-clamped', s === 'clamped');
-    if (s) root.dataset.state = s; else delete root.dataset.state;
-    if (s && reason) { hint(root, reason); root.setAttribute('aria-description', mathPlain(String(reason))); }
-    else { root.removeAttribute('aria-description'); if (o.title) hint(root, o.title); else { root.removeAttribute('title'); delete root.dataset.tTitle; delete root.dataset.tHvars; } }
-    return s;
-  }
   paint();
   return { root, get: () => v, set(x, silent = true) { v = x; shown = null; paint(); if (!silent && o.onChange) o.onChange(v); },
     /** paint a modulated value over the base — the needle dances, the base (and a drag's start) stays the hand's */
-    show(x) { shown = x; paint(); }, get shown() { return shown; }, setDefault(x) { def = x; }, setState, get state() { return stateNow; }, dragging: () => dragging,
+    show(x) { shown = x; paint(); }, get shown() { return shown; }, setDefault(x) { def = x; }, dragging: () => dragging,
     /* WAVE 68 · A DEAD CONTROL SAYS SO, AND DOES NOT KEEP THE SEAT.  This wrote a class and a
        tabIndex and nothing else, so λ SCALE, HALF-WIDTH and STRENGTH mounted as sliders holding a
        live `aria-valuenow` that no key could move — and rack.js's single-key guard, keyed on the
@@ -777,8 +761,6 @@ export function vividInk(rgb) {
     if (RATIO(c, CARD_LIGHT) >= 3 && RATIO(c, WELL_LIGHT) >= 3) { out = c; break; } }
   inkCache.set(key, out); return out;
 }
-/** the contrast ratio of a drawn colour against this theme's card — the proof B61 recomputes */
-export const inkRatio = (rgb, ground) => RATIO(rgb, ground || (lightTheme() ? CARD_LIGHT : [56, 60, 65]));
 
 /* ── the theme flip ─────────────────────────────────────────────────────────────────────────────
  * A CARD CANVAS IS PAINTED WHEN ITS DATA MOVES, NOT EVERY FRAME (wave 46).  MOLECULE, H₂, QCD and the

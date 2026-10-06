@@ -6,7 +6,7 @@
  *   · THE SELECT opens the same pane; THE NUMBER FIELD drags, types (Enter takes, Escape does not) and keys.
  *   · THE RANGE SLIDER: both thumbs move, never cross, a press on the track takes the nearest.
  *   · THE XY PAD moves its two knobs; a routed knob (a real macro route) moves the pad's dot; a routed pair keeps the hand's base as a ring.
- *   · A knob in state `warn` / `clamped` is drawn in --warn; a switch has its lamp, and `lamp: false` has none and lights its label.
+ *   · A switch has its lamp, and `lamp: false` has none and lights its label.
  *   · control() builds the right kind for ten descriptors, each in the document and hit-testable.
  * Standalone: MIR_BASE=http://127.0.0.1:8856 node tests/controls.browser.mjs */
 import { launch, sleep } from '../tools/cdp.mjs';
@@ -83,18 +83,6 @@ try {
     check('knob: with the second finger down the first moves an eighth (32 px is 0.0125)', near(c, a + 0.0125, 0.0006), String(c));
   }
   await p.send('Emulation.setTouchEmulationEnabled', { enabled: false });
-
-  /* ── KNOB STATES ── */
-  r0: {
-    const r = await J(`const probe = document.createElement('i'); probe.style.color = 'var(--warn)'; document.body.append(probe); const warn = getComputedStyle(probe).color; probe.remove();
-      const cs = (k, sel, pr) => getComputedStyle(k.root.querySelector(sel))[pr];
-      return { warn, w: { ring: cs(W.warn, '.k-dial', 'boxShadow'), val: cs(W.warn, '.k-val', 'color'), state: W.warn.root.dataset.state, desc: W.warn.root.getAttribute('aria-description') },
-        c: { needle: cs(W.clamped, '.k-needle', 'backgroundColor'), val: cs(W.clamped, '.k-val', 'color'), state: W.clamped.state }, plain: cs(W.knob, '.k-needle', 'backgroundColor') };`);
-    check('knob.setState("warn", reason): the ring and the value are --warn, the hint says why', r.w.ring.includes(r.warn) && r.w.val === r.warn && r.w.state === 'warn' && !!r.w.desc, JSON.stringify(r.w));
-    check('knob.setState("clamped"): the needle and the value are --warn', r.c.needle === r.warn && r.c.val === r.warn && r.c.state === 'clamped', JSON.stringify(r.c));
-    const clr = await J(`W.warn.setState(null); const k = W.warn; const d = { state: k.state, cls: k.root.className, attr: k.root.dataset.state, desc: k.root.getAttribute('aria-description') }; W.warn.setState('warn', 'Near the stability limit'); return d;`);
-    check('knob.setState(null) clears it', clr.state === null && !/k-warn|k-clamped/.test(clr.cls) && !clr.attr && !clr.desc, JSON.stringify(clr));
-  }
 
   /* ── THE LAMP RULES ── */
   {

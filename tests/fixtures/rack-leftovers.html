@@ -30,16 +30,14 @@ const c = g.getContext('2d'); for (let i = 0; i < 40; i++) { c.fillStyle = `hsl(
 
 /* a stand-in notebook with the kit notebook's two calls */
 const nb = { w: 640, h: 460, resized: [], size() { return { w: this.w, h: this.h, custom: this.w !== 640 || this.h !== 460 }; }, resize(w, h) { this.w = w; this.h = h; this.resized.push([w, h]); return [w, h]; } };
-/* the app's own layout state (BASINS' `docked`), through layoutExtra */
-const ext = { docked: false, applied: [] };
-const rack = createRack({ host: document.getElementById('lab'), key: 'mir.test.rack-leftovers', scrollbar: true, name: 'FIXTURE',
-  retired: { oldscope: 'scope' }, notebook: () => nb, layoutExtra: { capture: () => ({ docked: ext.docked }), apply: (x) => { ext.docked = !!x.docked; ext.applied.push(x); } } });
+const rack = createRack({ host: document.getElementById('lab'), key: 'mir.test.rack-leftovers', scrollbar: true,
+  retired: { oldscope: 'scope' }, notebook: () => nb });
 const W = [['tone', 'TONE', 'right', true], ['mix', 'MIX', 'right', true], ['scope', 'SCOPE', 'right', false], ['eq', 'EQ', 'right', true],
   ['verb', 'VERB', 'right', true], ['meter', 'METER', 'right', true], ['display', 'DISPLAY', 'left', true], ['camera', 'CAMERA', 'left', true]];
 for (const [id, title, side, open] of W) rack.register({ id, title, side, open,
   build(b, api) { b.appendChild(readout({ label: id.toUpperCase(), value: '42', sub: 'units' }).root); el('div', 'fill', b); api.setStatus('LIVE'); } });
 rack.start();
-window.__T = { rack, motion, nb, ext };
+window.__T = { rack, motion, nb };
 window.__ready = true;
 </script>
 </body>

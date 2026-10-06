@@ -6,7 +6,7 @@
 <title>MIR · shell parts</title>
 <!-- THE SMALL SHELL PARTS, LIVE, over a 2D picture: the dialog and the confirm (no scrim), the notice in its two seats (BASINS' toast, NEBULA's corner), the busy
      mark in its three seats, a boot card that walks its steps and one that fails, a strobe caught by the flash guard
-     with its route named, a share link made and read back, and a settings panel built from eight rows of data.
+     with its route named, and a share link made and read back.
      Docs: docs/SHELL-PARTS.md.   ?theme=light · ?lang=qps -->
 <link rel="stylesheet" href="../mir/css/base.css">
 <link rel="stylesheet" href="../mir/css/skin.css">
@@ -47,7 +47,6 @@ import { busyMark, busyCursor, busyLogo } from '../mir/shell/busy.js';
 import { bootCard } from '../mir/shell/boot.js';
 import { createFlashGuard, photosensitivityNotice } from '../mir/shell/flash-guard.js';
 import { encodeState, inspectLink, measureState } from '../mir/shell/share-link.js';
-import { settingsRows } from '../mir/shell/settings-rows.js';
 
 const q = new URLSearchParams(location.search);
 if (q.get('theme') === 'light') document.body.dataset.theme = 'light';
@@ -139,30 +138,19 @@ btn(b5, 'MAKE', () => { const s = { ...S, view: { zoom: S.zoom, x: 0.31 } }; del
 btn(b5, 'READ BACK', () => { const r = inspectLink(lastLink, { defaults: LINK_DEFAULTS }); out5.textContent = (r.ok ? 'ok ' : 'refused: ' + r.why + ' ') + JSON.stringify(r.state); });
 btn(b5, 'DAMAGE', () => { const r = inspectLink(lastLink.slice(0, -3), { defaults: LINK_DEFAULTS }); out5.textContent = 'cut short → ' + (r.ok ? 'ok' : 'null: ' + r.why); });
 
-/* ── SETTINGS from eight rows of data ── */
+/* ── the state the share link encodes (control(descriptor), the data-driven settings row, is shown in controls.html) ── */
 const S = { theme: 'dark', card: 'tinted', hints: true, quality: 'balanced', blur: 14, hue: 172, zoom: 1, fps: 60, guard: true };
 const LINK_DEFAULTS = { theme: 'dark', card: 'tinted', hints: true, quality: 'balanced', blur: 14, hue: 172, fps: 60, guard: true, view: { zoom: 1, x: 0 } };
-const d6 = device({ id: 'settings', eyebrow: 'SETTINGS', loadingMark: false }); right.appendChild(d6.root);
-const panel = settingsRows(d6.body, [
-  { id: 'theme', label: 'THEME', control: 'seg', options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], get: () => S.theme, set: (v) => { S.theme = v; document.body.dataset.theme = v; accent.apply(); draw(); } },
-  { id: 'card', label: 'CARD STYLE', control: 'seg', options: [{ id: 'tinted', label: 'TINTED' }, { id: 'refractive', label: 'REFRACTIVE' }], get: () => S.card, set: (v) => { S.card = v; document.body.dataset.card = v; } },
-  { id: 'hints', label: 'HINTS', hint: 'show a hint when the pointer rests on a control', control: 'sw', get: () => S.hints, set: (v) => { S.hints = v; } },
-  { id: 'quality', label: 'QUALITY', control: 'select', options: [{ id: 'full', label: 'FULL' }, { id: 'balanced', label: 'BALANCED' }, { id: 'light', label: 'LIGHT' }, { id: 'auto', label: 'AUTO' }], get: () => S.quality, set: (v) => { S.quality = v; } },
-  { id: 'blur', label: 'GLASS BLUR', control: 'fader', min: 0, max: 40, fmt: (x) => x.toFixed(0) + ' px', get: () => S.blur, set: (v) => { S.blur = v; document.body.style.setProperty('--glass-blur', v.toFixed(1) + 'px'); }, when: () => S.card === 'refractive' },
-  { id: 'hue', label: 'ACCENT HUE', control: 'knob', min: 0, max: 360, wrap: true, fmt: (x) => x.toFixed(0) + '°', get: () => S.hue, set: (v) => { S.hue = v; accent.set({ a: v }); } },
-  { id: 'fps', label: 'FRAME CAP', hint: 'frames a second, at most', control: 'number', min: 15, max: 240, step: 1, get: () => S.fps, set: (v) => { S.fps = v; } },
-  { id: 'guard', label: 'FLASH GUARD', control: 'sw', get: () => S.guard, set: (v) => { S.guard = v; guard.enabled = v; } }
-]);
 
 /* ── the switches: theme and language ── */
 const strip = el('div', 'g-switch', document.body); strip.translate = false;
-const theme = (v) => { S.theme = v; document.body.dataset.theme = v; accent.apply(); draw(); panel.sync(); };
+const theme = (v) => { S.theme = v; document.body.dataset.theme = v; accent.apply(); draw(); };
 for (const [k, fn] of [['dark', () => theme('dark')], ['light', () => theme('light')], ['en', () => setLanguage('en')], ['qps', () => setLanguage('qps')]]) {
   const b = el('button', null, strip, k); b.type = 'button'; b.addEventListener('click', fn);
 }
 installControlHelp(document);
 if (q.get('lang')) await setLanguage(q.get('lang'));
-window.__P = { openDialog, confirmDialog, notice, busyMark, busyCursor, busyLogo, bootCard, guard, panel, S, cardMark, setLanguage, language, draw, accent };
+window.__P = { openDialog, confirmDialog, notice, busyMark, busyCursor, busyLogo, bootCard, guard, S, cardMark, setLanguage, language, draw, accent };
 window.__ready = true;
 </script>
 </body>

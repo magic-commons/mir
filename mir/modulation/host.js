@@ -1022,11 +1022,6 @@ export function labPresetList() {
   return LAB_PRESETS.map(labPublic).concat(M.presetList().filter((p) => !p.factory));
 }
 
-/** The folders, ours in the factory slot theirs used to hold. */
-export function labPresetFolders() {
-  return [{ name: LAB_PRESET_FOLDER, factory: 1, lab: 1, count: LAB_PRESETS.length }]
-    .concat(M.presetFolders().filter((f) => !f.factory));
-}
 
 /** One preset by id, rack and all.  A foreign one IS returned — marked, so a caller
  *  cannot load it by accident — because filtering a menu is not the same as sealing a

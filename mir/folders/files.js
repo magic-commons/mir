@@ -74,8 +74,6 @@ export function normalizeFolder(value) {
 export const inFolderTree = (folder, root) => folder === root || folder.indexOf(root + '/') === 0;
 /** the last segment of a path, '' for root */
 export const leafOf = (path) => (path ? path.slice(path.lastIndexOf('/') + 1) : '');
-/** the parent of a path, '' for a top-level folder or root */
-export const parentOf = (path) => (path && path.indexOf('/') >= 0 ? path.slice(0, path.lastIndexOf('/')) : '');
 
 const nameKey = (s) => String(s).toLocaleLowerCase();
 const folderOf = (e) => normalizeFolder(e && e.folder);

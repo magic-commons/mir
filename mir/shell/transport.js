@@ -64,8 +64,6 @@ export const TRANSPORT = Object.freeze({
   travelFine: 1760,    // … and 1760 px with Shift held
   panelGap: 16,        // the tempo panel opens below when that much room is left under it (BASINS positionTempo)
 });
-/** the placements of the one bar (BASINS transport-placement.js): on the stage, in a work lane, docked in the rack */
-export const PLACEMENTS = Object.freeze(['stage', 'work', 'rack']);
 /** placementOf({ docked, host }) — BASINS' rule: the rack's dock wins, then a work lane that shows, else the stage */
 export const placementOf = ({ docked = false, host = null } = {}) => (docked ? 'rack' : host ? 'work' : 'stage');
 /** tempoDirection(bar, panelHeight, viewHeight) — BASINS positionTempo: below while the room under the bar holds the

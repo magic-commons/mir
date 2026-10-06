@@ -4,9 +4,8 @@
  *     element with a dimming background appears under it · NOTICE: the toast (the default, BASINS') is one seat, centred,
  *     84 px up (or an app's offset), no ×; a second replaces the first; it holds under the pointer and leaves after; the
  *     corner seat (NEBULA's) still stacks · BUSY: the mark animates only transform/opacity, and when stopped has no animation and writes
- *     nothing · BOOT: a failure becomes a readable message with COPY DETAILS · SETTINGS: a click changes a switch's
- *     value; sync() during a fader drag does not move the fader under the pointer; begin/end fire once around the drag
- *   · LANGUAGE: under setLanguage('qps') the dialog, the notice and the rows' labels are the pseudo-language.
+ *     nothing · BOOT: a failure becomes a readable message with COPY DETAILS
+ *   · LANGUAGE: under setLanguage('qps') the dialog and the notice are the pseudo-language.
  * Run by tests/run.mjs with MIR_BASE set; standalone: MIR_BASE=http://127.0.0.1:8800 node tests/parts.browser.mjs */
 import { launch, sleep } from '../tools/cdp.mjs';
 
@@ -135,32 +134,13 @@ try {
   check('boot: the card walks its steps, then fails into a readable message (what happened, what to do, COPY DETAILS, RETRY)',
     r.walking === 'Asking for an adapter' && r.role === 'alert' && r.code === 'noadapter' && r.title === 'NEBULA could not start' && /no graphics adapter/.test(r.what) && /Reload/.test(r.todo) && r.buttons === 2 && r.hit && r.noMark, JSON.stringify(r));
 
-  /* ── SETTINGS ── */
-  r = await run(`const b = document.querySelector('[data-id="on"] .sw'), c = center(b), hit = document.elementFromPoint(c.x, c.y); return { ...c, hit: !!hit && b.contains(hit) };`);
-  await click(r.x, r.y);
-  let s = await run(`return { on: T.S.on, hooks: T.hooks };`);
-  check('settings: a real press on a switch row changes its value, as one begin/end', r.hit && s.on === true && s.hooks.begin.join() === 'on' && s.hooks.end.join() === 'on', JSON.stringify(s));
-  const fd = await run(`T.hooks.begin.length = 0; T.hooks.end.length = 0; const f = document.querySelector('[data-id="depth"] .fd'), b = f.getBoundingClientRect(); return { x0: b.left + b.width * 0.2, x1: b.left + b.width * 0.7, y: b.top + b.height / 2, hit: f.contains(document.elementFromPoint(b.left + b.width * 0.2, b.top + b.height / 2)) };`);
-  await mouse('mouseMoved', fd.x0, fd.y); await mouse('mousePressed', fd.x0, fd.y);
-  for (let i = 1; i <= 6; i++) { await mouse('mouseMoved', fd.x0 + (fd.x1 - fd.x0) * i / 6, fd.y); await sleep(30); }
-  r = await run(`const w = T.panel.control('depth'), before = w.get(); T.S.depth = 0.01; T.panel.sync(); await wait(50);
-    return { before, after: w.get(), fill: getComputedStyle(w.root).getPropertyValue('--fill'), editing: T.panel.editing('depth') };`);
-  check('settings: sync() during a fader drag does not move the fader under the pointer', fd.hit && r.editing && Math.abs(r.after - r.before) < 1e-9 && r.before > 0.6 && +r.fill > 0.6, JSON.stringify(r));
-  await mouse('mouseReleased', fd.x1, fd.y); await sleep(60);
-  s = await run(`return { depth: T.S.depth, editing: T.panel.editing('depth'), hooks: T.hooks };`);
-  check('settings: the drag was one edit: begin once, end once on release', !s.editing && s.hooks.begin.join() === 'depth' && s.hooks.end.join() === 'depth', JSON.stringify(s));
-  r = await run(`T.S.depth = 0.25; T.S.mode = 'b'; T.panel.sync(); return { depth: T.panel.control('depth').get(), shown: !document.querySelector('[data-id="hidden"]').hidden, sel: document.querySelector('[data-id="pick"] select').value };`);
-  check('settings: after the drag, sync() paints the new value; when() shows a row; the select is a kit well', r.depth === 0.25 && r.shown && r.sel === 'two', JSON.stringify(r));
-
   /* ── LANGUAGE ── */
   r = await run(`await T.setLanguage('qps'); await wait(100); const d = T.openDialog({ title: 'RENDER SETTINGS', actions: [{ label: 'APPLY' }] }); const n = T.notice('Saved.'); await wait(250);
-    const title = document.querySelector('.mir-dialog-title').textContent, act = document.querySelector('.mir-dialog .trig-l').textContent, note = n.root.querySelector('.mir-notice-text').textContent,
-      row = document.querySelector('[data-id="depth"] .fd-lbl').textContent, opt = document.querySelector('[data-id="pick"] option').textContent;
+    const title = document.querySelector('.mir-dialog-title').textContent, act = document.querySelector('.mir-dialog .trig-l').textContent, note = n.root.querySelector('.mir-notice-text').textContent;
     d.close(); n.close(); await wait(300); await T.setLanguage('en'); await wait(100);
-    const back = document.querySelector('[data-id="depth"] .fd-lbl').textContent;
-    return { title, act, note, row, opt, back, ok: [title, act, note, row, opt].map((s) => T.unpseudo(s)) };`);
-  check('language: under qps the dialog, its action, a notice, a row label and a select option are translated, and come back in English',
-    r.title !== 'RENDER SETTINGS' && r.ok.join('|') === 'RENDER SETTINGS|APPLY|Saved.|DEPTH|LIGHT' && r.back === 'DEPTH', JSON.stringify(r));
+    return { title, act, note, ok: [title, act, note].map((s) => T.unpseudo(s)) };`);
+  check('language: under qps the dialog, its action and a notice are translated',
+    r.title !== 'RENDER SETTINGS' && r.ok.join('|') === 'RENDER SETTINGS|APPLY|Saved.', JSON.stringify(r));
 
   const errs = p.logs.filter((l) => !/favicon/.test(l));
   check('no page errors', errs.length === 0, errs.join(' | '));

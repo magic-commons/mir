@@ -212,8 +212,6 @@ export async function verifyEncoder(width, height, fps, path, check = () => {}) 
     try { decoder?.close(); } catch (_) { /* gone */ }
   }
 }
-/** forget what the preflight has proven (a test, or a device change) */
-export const forgetVerified = () => verified.clear();
 
 /** One lossless frame: opaque RGBA bytes → a PNG through the canvas (BASINS deterministic-export.js pngBytes), 60 s timeout. */
 export async function pngBytes(rgba, w, h, canvas, ctx, colorSpace) {

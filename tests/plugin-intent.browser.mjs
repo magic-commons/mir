@@ -3,7 +3,6 @@
  *   PANE     a device card floats at the house's one pane height: its shadow IS the house's --glass-shadow (L03/L04/L06)
  *   RELIEF   the dial wears the one raised relief, the house's --neu-raise (L16/L17); no bevel token is left (L61/L62)
  *   PRESSED  a held add button is the press wash and ONE scale (--state-press-scale .96), with no translate (L21, S1)
- *   SCRIM    the matrix dialog's ::backdrop paints nothing and blurs nothing (L71)
  * Run by tests/run.mjs with MIR_BASE set; standalone: MIR_BASE=http://127.0.0.1:8790 node tests/plugin-intent.browser.mjs */
 import { launch, sleep } from '../tools/cdp.mjs';
 
@@ -52,10 +51,6 @@ try {
   const held = JSON.parse(await p.eval(`(() => { const s = getComputedStyle(document.querySelector('.m2macadd')); return JSON.stringify({ scale: s.scale, transform: s.transform, active: document.querySelector('.m2macadd').matches(':active') }); })()`));
   await p.mouse(c.x, c.y, 'mouseReleased');
   check(`a held add button scales by one press scale, no translate (${held.scale}, ${held.transform})`, held.active && held.scale === '0.96' && held.transform === 'none', JSON.stringify(held));
-  /* the matrix dialog, as a host opens it inside the window */
-  const bd = JSON.parse(await p.eval(`(() => { const d = document.createElement('dialog'); d.className = 'mod-matrix'; d.textContent = 'MATRIX'; document.querySelector('.mir-modwindow').appendChild(d); d.showModal();
-    const s = getComputedStyle(d, '::backdrop'); const out = JSON.stringify({ bg: s.backgroundColor, bf: s.backdropFilter }); d.close(); d.remove(); return out; })()`));
-  check(`the matrix dialog has no scrim and no blur behind it (${bd.bg}, ${bd.bf})`, /^rgba\(0, 0, 0, 0\)$|^transparent$/.test(bd.bg) && bd.bf === 'none', JSON.stringify(bd));
   check('no page errors', !p.logs.some((l) => /EXCEPTION/.test(l)), p.logs.join(' | '));
 } finally { await p.close(); }
 

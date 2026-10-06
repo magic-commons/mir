@@ -134,10 +134,10 @@ export function createFolders(options = {}) {
   const readPrefs = () => prefs.read() || {};
   const writePrefs = (patch) => prefs.write({ ...readPrefs(), ...patch });
 
-  /* the project ZIP's options: `zip: false` leaves it out; `zip: { store, validate(project), parts(), foot }` the asset store (default
-     core/assets.js), what a project must be to be taken (default: an object), where SAVE AS ZIP reads the live project, and
-     `foot: true` to seat SAVE AS ZIP… / OPEN ZIP… in the gallery's foot too (by default they sit in RENDER's FILES section, as
-     BASINS' SETTINGS & FILES had them: render/panel.js `files`).  Nothing is written until the project has been read and checked. */
+  /* the project ZIP's options: `zip: false` leaves it out; `zip: { store, validate(project), parts() }` the asset store (default
+     core/assets.js), what a project must be to be taken (default: an object) and where SAVE AS ZIP reads the live project.  SAVE AS
+     ZIP… / OPEN ZIP… sit in RENDER's FILES section, as BASINS' SETTINGS & FILES had them (render/panel.js `files` = api.zip).
+     Nothing is written until the project has been read and checked. */
   const zipOpt = o.zip === false ? null : (o.zip && typeof o.zip === 'object' ? o.zip : {});
   const zipStore = (zipOpt && zipOpt.store) || assets;
   const zipValid = zipOpt && typeof zipOpt.validate === 'function' ? zipOpt.validate : (p) => !!p && typeof p === 'object' && !Array.isArray(p);
@@ -170,7 +170,6 @@ export function createFolders(options = {}) {
     freshLoses: typeof o.freshLoses === 'function' ? o.freshLoses : () => true,
     locked: o.locked, projection: o.projection,
     factory: o.factory,
-    zip: zipOpt && zipOpt.foot === true ? zipVerbs : null,
     depthOf: o.depthOf,
     picture: o.capturePicture, savePicture: o.savePicture, pictureStale: o.pictureStale,
   };
@@ -286,7 +285,7 @@ export function createFolders(options = {}) {
     let v = null;
     v = buildGallery(el, viewOptions(() => v, {
       pageSize: mo.pageSize ?? 8, actions: mo.actions || o.actions || DEFAULT_ACTIONS,
-      adapter: { ...galleryAdapter, factory: mo.factory, zip: mo.zip ? zipVerbs : null },   // a rack card has no ZIP buttons unless asked
+      adapter: { ...galleryAdapter, factory: mo.factory },
       prefs: readPrefs()[key] || gp, persist: (g) => writePrefs({ [key]: g }),
       onInspect: mo.onInspect || o.onInspect,
     }));

@@ -6,7 +6,7 @@
  *   2. the clip paints a waveform canvas (the peaks level, the envelope line over it) with pixels in it, and the asset is in the store;
  *   3. the clip menu has ENVELOPE · LEVEL ✓ / LOW / MID / HIGH, KEEP AUDIO ↔ SIGNAL ONLY and STRETCH: LOW is chosen by a hit-tested press;
  *   4. KEEP AUDIO plays with the transport: one buffer source (Chromium only: no WebKit run);
- *   5. FOLDERS › EXPORT › SAVE AS ZIP… (hit-tested) downloads <name>.mirtest.zip holding project.json, the wav and its analysis; with the
+ *   5. FOLDERS › RENDER › FILES › SAVE AS ZIP… (hit-tested) downloads <name>.mirtest.zip holding project.json, the wav and its analysis; with the
  *      timeline cleared and the asset deleted, a .zip DROPPED on the FOLDERS window opens it: the project is in the library and current,
  *      the clip is back with its band, the asset is back in the store, a second open numbers the clash; a damaged zip changes nothing;
  *   6. the modulation seam's default audio capture: ADD AUDIO is offered with no `audio` option.
@@ -102,10 +102,14 @@ const RUN = await (async () => {
     L.ck((await S(() => window.__AU.au.playback.state())).live.length === 0, 'paused: the source is stopped (and it is leased: it falls silent by itself)');
 
     // ---- 5. SAVE AS ZIP… then OPEN ZIP ---------------------------------------------------------------------------------------------------
-    await S(() => window.__AU.folders.open()); await page.waitForTimeout(500);
-    const zipRow = await S(() => { const b = document.querySelector('.mir-folders [data-zip="save"]'); if (!b) return null; b.scrollIntoView({ block: 'center' }); const r = b.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
-      return { x, y, hit: !!document.elementFromPoint(x, y)?.closest('[data-zip="save"]'), openZip: !!document.querySelector('.mir-folders [data-zip="open"]'), cls: b.className }; });
-    L.ck(zipRow && zipRow.hit && zipRow.openZip, 'FOLDERS offers SAVE AS ZIP… and OPEN ZIP…, and SAVE AS ZIP… is what a person would press', zipRow);
+    await S(() => { window.__AU.folders.open(); window.__AU.folders.tab('render'); }); await page.waitForTimeout(500);
+    const files = await S(() => { const s = document.querySelector('.mir-folders .sr-files > summary'); if (!s) return null; s.scrollIntoView({ block: 'center' }); const r = s.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+      return { x, y, hit: !!document.elementFromPoint(x, y)?.closest('.sr-files > summary') }; });
+    L.ck(files && files.hit, 'RENDER has a FILES section, and its title is what a person would press', files);
+    await page.mouse.click(files.x, files.y); await page.waitForTimeout(200);
+    const zipRow = await S(() => { const b = document.querySelector('.mir-folders .sr-files [data-zip="save"]'); if (!b) return null; b.scrollIntoView({ block: 'center' }); const r = b.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+      return { x, y, hit: !!document.elementFromPoint(x, y)?.closest('[data-zip="save"]'), openZip: !!document.querySelector('.mir-folders .sr-files [data-zip="open"]'), cls: b.className }; });
+    L.ck(zipRow && zipRow.hit && zipRow.openZip, 'RENDER\'s FILES offers SAVE AS ZIP… and OPEN ZIP…, and SAVE AS ZIP… is what a person would press', zipRow);
     await page.mouse.click(zipRow.x, zipRow.y);
     for (let i = 0; i < 40 && !(await S(() => window.__AU.downloads.length)); i++) await page.waitForTimeout(100);
     const dl = await S(async () => { const d = window.__AU.downloads[0]; if (!d) return null; const bytes = new Uint8Array(await d.blob.arrayBuffer()), dec = new TextDecoder(), names = [];

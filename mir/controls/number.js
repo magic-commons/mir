@@ -13,11 +13,10 @@
  * the pair and a label.  `numberTravel` and `parseNumber` are the pure parts.
  *   numberTravel(start, p, { min, max, step, range, round }) → the value after a travel `p` (0..1 is the whole range), clamped and rounded
  *   parseNumber(text) → a finite number (a comma is a point) or null
- *   bindNumber({ button, input, model, parse, editFmt, enabled, drag, click, paint, chars, step, range, signal })   (click: false leaves the click to the host)
- *     editFmt(v) → the text the field opens on (default String(v)); with `parse` its inverse, a typed value can be in the unit shown
+ *   bindNumber({ button, input, model, parse, enabled, drag, click, paint, chars, step, range, signal })   (click: false leaves the click to the host)
  *     model  { get(), set(v), commit?(), min?, max?, round?(v) } — what createTempo hands the tempo field, as it is
  *     → { open(), close(take), editing, destroy() }
- *   number({ label, aria, min, max, value, step, digits, fmt, editFmt, parse, unit, chars, range, drag, onInput, onChange, cls })
+ *   number({ label, aria, min, max, value, step, digits, fmt, parse, unit, chars, range, drag, onInput, onChange, cls })
  *     → { root, face, input, get, set(x), setDisabled(on), open(), close(take), editing, destroy() }
  *     onInput(v) while a drag or a key moves it; onChange(v) when a gesture, a typed number or a key lands.  set(x) is silent. */
 import { el, label, ariaLabel, watchTouches, verticalDrag, setKnobLaw } from '../kit.js';
@@ -43,7 +42,7 @@ export function numberTravel(start, p, { min = -Infinity, max = Infinity, step =
 }
 
 /** bindNumber — see the header */
-export function bindNumber({ button, input, model, parse = parseNumber, editFmt = String, enabled = () => true, drag: dragToo = true, click = true, paint = () => {}, chars = NUMBER.chars, step = 0, range, signal } = {}) {
+export function bindNumber({ button, input, model, parse = parseNumber, enabled = () => true, drag: dragToo = true, click = true, paint = () => {}, chars = NUMBER.chars, step = 0, range, signal } = {}) {
   const ctl = new AbortController(); if (signal) signal.addEventListener('abort', () => ctl.abort(), { once: true });
   const on = { signal: ctl.signal };
   watchTouches();
@@ -56,7 +55,7 @@ export function bindNumber({ button, input, model, parse = parseNumber, editFmt 
     if (editing || !enabled()) return false;
     const seat = button.getBoundingClientRect();
     Object.assign(input.style, { width: seat.width + 'px', flex: '0 0 ' + seat.width + 'px', height: seat.height + 'px' });
-    button.hidden = true; input.hidden = false; input.value = editFmt(model.get()); editing = true;
+    button.hidden = true; input.hidden = false; input.value = String(model.get()); editing = true;
     input.focus({ preventScroll: true }); input.select();
     return true;
   }
@@ -101,7 +100,7 @@ export function number(o = {}) {
   const model = { get: () => v, min, max,
     set(x) { x = settle(x); if (x !== v) { v = x; paint(); if (o.onInput) o.onInput(v); } },
     commit() { if (o.onChange) o.onChange(v); } };
-  const binding = bindNumber({ button: face, input, model, parse: o.parse || parseNumber, editFmt: o.editFmt || String, enabled: () => !disabled, drag: o.drag !== false, paint, chars: o.chars || NUMBER.chars, step, range: o.range });
+  const binding = bindNumber({ button: face, input, model, parse: o.parse || parseNumber, enabled: () => !disabled, drag: o.drag !== false, paint, chars: o.chars || NUMBER.chars, step, range: o.range });
   /* the keys: ↑ → up and ↓ ← down by one step (one unit when there is none), Shift an eighth of it, Page ten */
   const unit = step || (Number.isFinite(min) && Number.isFinite(max) ? (max - min) / NUMBER.steps : 1);
   face.addEventListener('keydown', (e) => {
