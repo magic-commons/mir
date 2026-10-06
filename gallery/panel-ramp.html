@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>MIR · ramp panel</title>
+<!-- THE RAMP EDITOR (mir/panels/ramp.js; docs/PANEL-RAMP.md): λWAVES' palette editor made generic, two ways, on rack cards.
+       PHASE     a CYCLIC ramp with λWAVES' own words (−π … +π, "SEAM at ±π"), the kit's 23 presets, a ring beside the strip; the picture on the left is a
+                 phase wheel painted from the ramp's lookup table (what the app does with `toLUT`).
+       COLORMAP  a LINEAR ramp (it holds its end colours, no seam, no ring) with EARTH-like words (°C) and four colormaps of its own as presets; the bar on the
+                 left is the lookup table drawn out.
+     Click a strip to add a stop (it takes the ramp's colour there); drag a stop to move it, tap one to select it, drag it off the strip (or its × twice) to
+     remove it; the stepper walks the presets; ROTATE is a jog wheel; REVERSE and ADD are verbs.  ?theme=light · ?card=refractive · ?frost -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/css/tokens.css">
+<link rel="stylesheet" href="../mir/shell/shell.css">
+<link rel="stylesheet" href="../mir/shell/stage.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<link rel="stylesheet" href="../mir/window/window.css">
+<link rel="stylesheet" href="../mir/shell/rack.css">
+<link rel="stylesheet" href="../mir/controls/controls.css">
+<link rel="stylesheet" href="../mir/controls/colour-controls.css">
+<link rel="stylesheet" href="../mir/panels/ramp.css">
+<link rel="stylesheet" href="../mir/locales/locales.css">
+<style>
+  #pics { position: absolute; left: 24px; top: 24px; display: flex; flex-direction: column; gap: 14px; z-index: 5; }
+  #pics figure { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+  #pics figcaption { font: var(--w-bold) var(--fs-tiny) var(--font-ui); letter-spacing: var(--tr-wide); color: var(--fg-soft); }
+  #pics canvas { border-radius: var(--r-md); box-shadow: var(--glass-shadow); display: block; }
+  #bar { position: absolute; left: 50%; transform: translateX(-50%); top: 10px; z-index: 31; display: flex; gap: 8px; align-items: center; padding: 6px 10px; border-radius: var(--r-lg); }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted" class="disconnected">
+<div id="lab">
+  <div id="stage"><div id="pics">
+    <figure><canvas id="wheel" width="260" height="260"></canvas><figcaption>PHASE · arg ψ painted from the ramp's table</figcaption></figure>
+    <figure><canvas id="bars" width="260" height="46"></canvas><figcaption>COLORMAP · the table drawn out</figcaption></figure>
+  </div></div>
+  <div id="bar" class="glass"></div>
+</div>
+<script type="module">
+import { seg, sw } from '../mir/kit.js';
+import { createRack } from '../mir/shell/rack.js';
+import { createRampPanel } from '../mir/panels/ramp.js';
+import { createHistory } from '../mir/history/history.js';
+import { installHistoryGestures } from '../mir/history/gestures.js';
+import { hexToRgb, PRESET_BY_ID } from '../mir/palette.js';
+import { installPress } from '../mir/core/pointer.js';
+
+const q = new URLSearchParams(location.search);
+if (q.get('theme')) document.body.dataset.theme = q.get('theme');
+if (q.get('card')) document.body.dataset.card = q.get('card');
+if (q.has('frost')) document.body.classList.add('frost');
+const $ = (id) => document.getElementById(id);
+
+/* the pictures: what an app does with the table */
+const paintWheel = (lut) => {
+  const c = $('wheel'), g = c.getContext('2d'), W = c.width, img = g.createImageData(W, W), n = lut.length / 4;
+  for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) {
+    const dx = x - W / 2, dy = y - W / 2, r = Math.hypot(dx, dy), o = (y * W + x) * 4;
+    if (r > W / 2 - 2) { img.data[o + 3] = 0; continue; }
+    const u = (Math.atan2(dy, dx) / Math.PI + 1) / 2, i = Math.min(n - 1, Math.floor(u * n)) * 4, k = 0.35 + 0.65 * Math.min(1, r / (W / 2));
+    img.data[o] = lut[i] * 255 * k; img.data[o + 1] = lut[i + 1] * 255 * k; img.data[o + 2] = lut[i + 2] * 255 * k; img.data[o + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+};
+const paintBar = (lut) => {
+  const c = $('bars'), g = c.getContext('2d'), n = lut.length / 4;
+  for (let x = 0; x < c.width; x++) { const i = Math.min(n - 1, Math.floor(x / c.width * n)) * 4; g.fillStyle = `rgb(${lut[i] * 255},${lut[i + 1] * 255},${lut[i + 2] * 255})`; g.fillRect(x, 0, 1, c.height); }
+};
+
+/* two made-up apps' ports */
+const copy = (s) => s.map((x) => ({ at: x.at, rgb: x.rgb.slice() }));
+function makePort(stops, preset, lut) {
+  let cur = { stops: copy(stops), preset }; const subs = new Set();
+  return { get: () => ({ stops: copy(cur.stops), preset: cur.preset }), set: (s, meta) => { cur = { stops: copy(s), preset: meta && meta.preset !== undefined ? meta.preset : cur.preset }; },
+    lut, subscribe: (fn) => { subs.add(fn); return () => subs.delete(fn); }, external: (s) => { cur = { stops: copy(s), preset: null }; subs.forEach((f) => f()); } };
+}
+const phase = makePort(PRESET_BY_ID.get('prism').stops, 'prism', (lut) => paintWheel(lut));
+const ramp = (id, label, hexes) => ({ id, label, stops: hexes.map((h, i) => ({ at: i / (hexes.length - 1), rgb: hexToRgb(h) })) });
+const MAPS = [ramp('thermal', 'thermal', ['#0b0735', '#7a1f7a', '#e8505b', '#fbb13c', '#fdf6b2']), ramp('ocean', 'ocean', ['#03071e', '#12457a', '#1c8fa3', '#7fd6c2', '#f0fff4']),
+  ramp('verdant', 'verdant', ['#0a1f12', '#1e5c2c', '#6aa84f', '#d8e07a', '#fffbe0']), ramp('twilight', 'twilight', ['#10002b', '#5a189a', '#c77dff', '#ffb3c1', '#fff1f2'])];
+const cmap = makePort(MAPS[1].stops, 'ocean', (lut) => paintBar(lut));
+
+const rack = createRack({ host: $('lab'), key: 'mir.gallery.ramp.rack', handle: 'always' });
+const history = createHistory();
+installHistoryGestures(history, { stage: '#stage' });
+const PI = Math.PI;
+const common = { rack, history, project: false };
+const P = {
+  phase: createRampPanel({ ...common, id: 'phase', title: 'PHASE', side: 'right', open: true, ramp: phase, cyclic: true,
+    labels: { ticks: [[0, '−π'], [0.25, '−π/2'], [0.5, '0'], [0.75, '+π/2'], [1, '+π']], seam: 'SEAM at ±π', seamWarn: 'a visible seam at arg ψ = ±π', at: 'ARG ψ',
+      fmt: (u) => ((u * 2 - 1) * PI).toFixed(3) + ' rad', note: 'The strip runs from arg ψ = −π to +π and wraps at the seam. OKLab blending keeps transitions even.' } }),
+  cmap: createRampPanel({ ...common, id: 'cmap', title: 'COLORMAP', side: 'right', open: true, ramp: cmap, cyclic: false, presets: MAPS, ring: false,
+    labels: { ticks: [[0, '−2 °C'], [0.5, '14'], [1, '30 °C']], at: 'AT', fmt: (u) => (-2 + 32 * u).toFixed(1) + ' °C' } }),
+};
+rack.start();
+installPress({ selector: '.sw, .seg-b, .trig, .mir-rack-btn' });
+const bar = $('bar');
+bar.appendChild(seg({ value: document.body.dataset.theme, options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], onChange: (v) => { document.body.dataset.theme = v; } }).root);
+bar.appendChild(sw({ label: 'FROST', value: document.body.classList.contains('frost'), onChange: (v) => document.body.classList.toggle('frost', v) }).root);
+window.__R = { rack, history, ports: { phase, cmap }, panels: P, MAPS };
+requestAnimationFrame(() => requestAnimationFrame(() => { window.__ready = true; }));
+</script>
+</body>
+</html>

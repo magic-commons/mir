@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>MIR · lanes panel</title>
+<!-- THE LANES PANEL (mir/panels/lanes.js; docs/PANEL-LANES.md): one list that three apps' colour systems are built from.  Three made-up lane
+     sets on three rack cards, each described to the panel as data and nothing else:
+       COLOUR  (right rack, ROWS): a BASINS-like list of colours — a swatch, a FREQ pill, PHASE and OPACITY arcs, a blend stepper; the grip over
+               an armed × on the outer edge; + ADD at the foot, dimmed at 6;
+       AGE     (left rack, STRIPS): a NEBULA-like set of strata — a hue arc, the blend, a vertical gain, a mute dot, side by side; the chips mirror
+               to the left rack's side;
+       LAYERS  (right rack, ROWS): an EARTH-like list — a display swatch, a name, a mute dot and a SOLO (a click latches and restores exactly; a hold
+               of a quarter second is a peek), one OPACITY amount.
+     Every principal and every arc is a modulation target `colour.<lane>.<key>` / `age…` / `layers…`: ROUTE puts a macro on the first lane's FREQ and
+     the first stratum's GAIN.  The page keeps a history (EDIT · UNDO is Ctrl+Z): a gesture is one row named CONTROL · WINDOW.  FOLD toggles the touch
+     protection (a coarse pointer has it by itself): the arcs and the blend sit behind each lane's chevron.
+     ?theme=light · ?card=refractive · ?frost · ?fold -->
+<link rel="stylesheet" href="../mir/css/base.css">
+<link rel="stylesheet" href="../mir/css/skin.css">
+<link rel="stylesheet" href="../mir/css/tokens.css">
+<link rel="stylesheet" href="../mir/shell/shell.css">
+<link rel="stylesheet" href="../mir/shell/stage.css">
+<link rel="stylesheet" href="../mir/core/core.css">
+<link rel="stylesheet" href="../mir/window/window.css">
+<link rel="stylesheet" href="../mir/shell/rack.css">
+<link rel="stylesheet" href="../mir/modulation/modwindow/modwindow.css">
+<link rel="stylesheet" href="../mir/modulation/modhost.css">
+<link rel="stylesheet" href="../mir/controls/controls.css">
+<link rel="stylesheet" href="../mir/controls/colour-controls.css">
+<link rel="stylesheet" href="../mir/panels/lanes.css">
+<link rel="stylesheet" href="../mir/locales/locales.css">
+<style>
+  #ground { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #bar { position: absolute; left: 50%; transform: translateX(-50%); top: 10px; z-index: 31; display: flex; gap: 8px; align-items: center; padding: 6px 10px; border-radius: var(--r-lg); }
+  #hist { position: absolute; left: 50%; transform: translateX(-50%); bottom: 14px; z-index: 31; padding: 6px 12px; border-radius: var(--r-pill); font: var(--w-bold) var(--fs-tiny) var(--font-ui); letter-spacing: var(--tr-wide); color: var(--fg-soft); }
+  #hist b { color: var(--acc); }
+  .g-note { max-width: 36ch; font-size: var(--fs-small); color: var(--fg-soft); line-height: 1.5; margin: 0; }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted" class="disconnected">
+<div id="lab">
+  <div id="stage"><canvas id="ground" aria-hidden="true"></canvas></div>
+  <div id="bar" class="glass"></div>
+  <div id="hist" class="glass" aria-live="polite">HISTORY <b id="hn">0</b> · <span id="hl">—</span></div>
+</div>
+<script type="module">
+import { el, seg, trig, sw } from '../mir/kit.js';
+import { createRack } from '../mir/shell/rack.js';
+import { createLanesPanel } from '../mir/panels/lanes.js';
+import { installModulation } from '../mir/modulation/bind.js';
+import { createHistory } from '../mir/history/history.js';
+import { installHistoryGestures } from '../mir/history/gestures.js';
+import { installPress } from '../mir/core/pointer.js';
+
+const q = new URLSearchParams(location.search);
+if (q.get('theme')) document.body.dataset.theme = q.get('theme');
+if (q.get('card')) document.body.dataset.card = q.get('card');
+if (q.has('frost')) document.body.classList.add('frost');
+try { for (const k of Object.keys(localStorage)) if (k.startsWith('mir.gallery.lanes')) localStorage.removeItem(k); } catch (_) { /* no storage */ }
+const $ = (id) => document.getElementById(id);
+
+/* ── a busy ground ── */
+const ground = $('ground');
+function paint() {
+  const dpr = devicePixelRatio || 1, w = innerWidth, h = innerHeight;
+  ground.width = w * dpr; ground.height = h * dpr;
+  const g = ground.getContext('2d'); g.scale(dpr, dpr);
+  const light = document.body.dataset.theme === 'light';
+  g.fillStyle = light ? '#eef1f6' : '#070a0f'; g.fillRect(0, 0, w, h);
+  let s = 23; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  for (let i = 0; i < 70; i++) {
+    const x = rnd() * w, y = rnd() * h, r = 30 + rnd() * 180, hue = Math.round(rnd() * 360);
+    const grad = g.createRadialGradient(x, y, 0, x, y, r);
+    grad.addColorStop(0, `hsla(${hue} 80% ${light ? 60 : 55}% / .5)`); grad.addColorStop(1, `hsla(${hue} 80% 50% / 0)`);
+    g.fillStyle = grad; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+  }
+}
+paint(); addEventListener('resize', paint);
+
+/* ── a made-up app: a port is a list of records, four verbs and a way to be told ── */
+function makePort({ seed, describe, mint, cap, min }) {
+  let data = seed.map((d) => ({ ...d, v: { ...d.v } })), n = data.length + 1;
+  const subs = new Set(), notify = () => subs.forEach((fn) => fn());
+  const row = (id) => data.find((d) => d.id === id);
+  return {
+    cap, min, data: () => data,
+    list: () => data.map((d, i) => describe(d, i)),
+    get: (id, k) => { const d = row(id); return d ? d.v[k] : undefined; },
+    set: (id, k, v) => { const d = row(id); if (d) { d.v[k] = Array.isArray(v) ? v.slice() : v; notify(); } },
+    add: () => { const d = mint(n++); data.push(d); notify(); return d.id; },
+    remove: (id) => { if (!row(id)) return false; data = data.filter((d) => d.id !== id); notify(); return true; },
+    move: (id, to) => { const i = data.findIndex((d) => d.id === id); if (i < 0) return false; const [d] = data.splice(i, 1); data.splice(Math.max(0, Math.min(data.length, to)), 0, d); notify(); return true; },
+    subscribe: (fn) => { subs.add(fn); return () => subs.delete(fn); },
+  };
+}
+const deg = (v) => (((v % 1) + 1) % 1 * 360).toFixed(0) + '°';
+const hsv = (h) => [0.5 + 0.5 * Math.cos(h * Math.PI / 180), 0.5 + 0.5 * Math.cos((h - 120) * Math.PI / 180), 0.5 + 0.5 * Math.cos((h - 240) * Math.PI / 180)];
+
+/* 1 · a BASINS-like colour list */
+const BLENDS = ['ADD', 'SCREEN', 'MULTIPLY', 'OVERLAY', 'SOFT', 'HARD', 'DIFFERENCE', 'EXCLUSION', 'LIGHTEN', 'DARKEN', 'DODGE', 'BURN'];
+const FREQ = { key: 'freq', label: 'FREQ', min: 0.02, max: 50, log: true, home: 1, fmt: (v) => v.toFixed(3) + '×', hint: 'how tightly this colour’s bands pack' };
+const PHASE = { key: 'phase', label: 'PHASE', min: 0, max: 1, wrap: true, home: 0, fmt: deg, hint: 'this colour’s bands, rotated' };
+const OPACITY = { key: 'opacity', label: 'OPACITY', min: 0, max: 1, home: 1, fmt: (v) => (v * 100).toFixed(0) + '%', hint: 'how much of this colour reaches the fold' };
+let cn = 0;
+const colourSeed = (n) => ({ id: 'c' + n, v: { colour: hsv((n * 137.5) % 360), freq: 1, phase: 0, opacity: 1, blend: BLENDS[(n - 1) % BLENDS.length] } });
+const colours = makePort({ cap: 6, min: 1, seed: [colourSeed(1), colourSeed(2), colourSeed(3)],
+  describe: (d) => ({ id: d.id, colour: 'swatch', principal: FREQ, extras: [PHASE, OPACITY], blend: BLENDS }), mint: (n) => colourSeed(n) });
+
+/* 2 · a NEBULA-like AGE strip */
+const AGEBLEND = ['ADD', 'SCREEN', 'MULTIPLY', 'OVERLAY', 'MAX', 'MIN', 'DIFF'];
+const AGE_GAIN = { key: 'gain', label: 'GAIN', min: 0, max: 2, home: 1, fmt: (v) => v.toFixed(2), hint: 'how much of this stratum is in the picture' };
+const signed = (v) => Math.round((((v + 0.5) % 1 + 1) % 1 - 0.5) * 360) + '°';
+const ageSeed = (n) => ({ id: 'a' + n, v: { hue: ((n - 1) * 0.13) % 1, gain: 1 - (n - 1) * 0.1, blend: AGEBLEND[(n - 1) % AGEBLEND.length], mute: n === 4 } });
+const age = makePort({ cap: 8, min: 1, seed: [1, 2, 3, 4, 5, 6].map(ageSeed),
+  describe: (d, i) => ({ id: d.id, label: String(i + 1), colour: 'hue', hue: { min: 0, max: 1, home: 0, wrap: true, fmt: signed, hint: 'this stratum’s hue' }, principal: AGE_GAIN, blend: AGEBLEND, mute: true }), mint: ageSeed });
+
+/* 3 · an EARTH-like layer list */
+const LAYERS = [['SST', 'sea surface temperature', 205], ['CHL', 'chlorophyll', 135], ['WIND', 'surface wind', 28], ['ICE', 'sea ice', 190], ['CLOUD', 'cloud fraction', 250], ['LAND', 'land cover', 95]];
+const grad = (h) => `linear-gradient(90deg, hsl(${h} 70% 25%), hsl(${h + 30} 85% 55%), hsl(${h + 60} 90% 85%))`;
+const layerSeed = (n) => { const [label, , h] = LAYERS[(n - 1) % LAYERS.length]; return { id: 'l' + n, v: { opacity: 0.8 - (n % 3) * 0.15, blend: 'NORMAL', mute: false }, label, h }; };
+const OP = { key: 'opacity', label: 'OPACITY', min: 0, max: 1, home: 1, fmt: (v) => (v * 100).toFixed(0) + '%', hint: 'how much of this layer shows' };
+const layers = makePort({ cap: 6, min: 1, seed: [1, 2, 3, 4].map(layerSeed),
+  describe: (d) => ({ id: d.id, label: d.label, colour: 'chip', ink: `hsl(${d.h + 30} 85% 60%)`, fill: grad(d.h), principal: OP, blend: ['NORMAL', 'MULTIPLY', 'SCREEN', 'ADD', 'OVERLAY'], mute: true, solo: true }), mint: layerSeed });
+
+/* ── the page: a rack, a modulation window and a history ── */
+const rack = createRack({ host: $('lab'), key: 'mir.gallery.lanes.rack', handle: 'always' });
+const mod = installModulation({ mount: rack.el.floats, params: [], roots: ['colour', 'age', 'layers'], storageKey: 'mir.gallery.lanes.mod', presetKey: 'mir.gallery.lanes.presets' });
+const history = createHistory();
+installHistoryGestures(history, { stage: '#stage' });
+const hist = () => { const e = history.entries(); $('hn').textContent = String(history.length); $('hl').textContent = e[e.length - 1].label || '—'; };
+history.subscribe(hist);
+
+const common = { rack, mod, history, project: false, fold: q.has('fold') ? true : 'auto' };
+const P = {
+  colour: createLanesPanel({ ...common, id: 'colour', title: 'COLOUR', side: 'right', open: true, lanes: colours, layout: 'rows', noun: 'colour', idRoot: 'colour' }),
+  age: createLanesPanel({ ...common, id: 'age', title: 'AGE', side: 'left', open: true, lanes: age, layout: 'strips', noun: 'stratum', idRoot: 'age' }),
+  layers: createLanesPanel({ ...common, id: 'layers', title: 'LAYERS', side: 'right', open: true, lanes: layers, layout: 'rows', noun: 'layer', idRoot: 'layers' }),
+};
+rack.start();
+installPress({ selector: '.sw, .seg-b, .trig, .mir-rack-btn' });
+
+const bar = $('bar');
+bar.appendChild(trig({ label: 'MOD', onFire: () => mod.toggle() }).root);
+let route = null;
+const routeBtn = trig({ label: 'ROUTE', onFire: () => {
+  if (route) { route.forEach((r) => r && r.remove()); route = null; routeBtn.on = false; return; }
+  route = [mod.route('lfo', 'colour.c1.freq', 0.4), mod.route('lfo', 'age.a1.gain', 0.4)]; routeBtn.on = true; mod.setPower && mod.setPower(true); mod.play && mod.play(true);
+} }); bar.appendChild(routeBtn.root);
+bar.appendChild(trig({ label: 'UNDO', onFire: () => history.undo() }).root);
+bar.appendChild(seg({ value: document.body.dataset.theme, options: [{ id: 'dark', label: 'DARK' }, { id: 'light', label: 'LIGHT' }], onChange: (v) => { document.body.dataset.theme = v; paint(); } }).root);
+bar.appendChild(sw({ label: 'FROST', value: document.body.classList.contains('frost'), onChange: (v) => document.body.classList.toggle('frost', v) }).root);
+
+window.__L = { rack, mod, history, ports: { colour: colours, age, layers }, panels: P };
+requestAnimationFrame(() => requestAnimationFrame(() => { window.__ready = true; }));
+</script>
+</body>
+</html>
