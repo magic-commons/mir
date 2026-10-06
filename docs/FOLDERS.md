@@ -28,7 +28,7 @@ const folders = createFolders({
 menu.add('FOLDERS\tS', () => folders.toggle());
 ```
 
-With `createApp()` (`mir/app.js`) FOLDERS is made for you (`app.folders`, F and Ctrl/⌘+S in the key table, a latch on the bar), and every `app.param()` is already a project part.
+With `createApp()` (`mir/app.js`) FOLDERS is made for you (`app.folders`, S and Ctrl/⌘+S in the key table, a latch on the bar), and every `app.param()` is already a project part.
 
 An app that registers its parts gets saving, opening, NEW and import by drop with nothing else. FOLDERS never learns what a part is.
 
@@ -99,7 +99,7 @@ Read from BASINS (`save-window.js`, `mir-plugins/kwin/kwin.js`, `shell.js`; adop
 | `defaultName`, `capChars` | `'UNTITLED'`, 2.6 M | passed to the store |
 | `parts` | none | `[{ id, label, soon? }]`: component switches (BASINS: MODULATION, COLOUR & BRIGHTNESS, POSITION, CACHE soon) |
 | `sorts` | A–Z, Z–A, N↓, N↑ | sort ids; all six when `depthOf` is given |
-| `depthOf(entry)`, `factory()`, `freshLoses()`, `locked()`, `projection(presence)`, `capturePicture`, `savePicture`, `pictureStale`, `onInspect(entry, how)`, `onOpened`, `galleryCopy`, `emptyDragExcept` | — | BASINS' gallery hooks, passed through as its gallery reads them |
+| `depthOf(entry)`, `factory()`, `freshLoses()`, `locked()`, `projection(presence)`, `capturePicture`, `savePicture`, `pictureStale`, `onInspect(entry, how)`, `onOpened`, `onSaved(entry)` (after every save, SAVE AS and SAVE over the open project: createApp writes the modulation preset to CAPS there), `galleryCopy`, `emptyDragExcept` | — | BASINS' gallery hooks, passed through as its gallery reads them |
 
 Returns `{ win, files, gallery, adapter, seeded, intake, views, panels (id → body), tab(id) / tab(), activeTab(), mountGallery(el, { pageSize = 8, prefsKey = 'rackGallery', actions, factory, onInspect }), open(), close(), toggle(), isOpen(), save(), saveAs({ name, folder }), fresh(), openEntry(id, { force }), current(), dirty(), seed(list), exportProject('mir' | 'png'), importEnvelope(env), ingest(input), say(text, warn), state(), destroy() }`.
 
@@ -192,7 +192,7 @@ const folders = createFolders({
 | The rack card RENDER view (`rackRender`) | app code: `buildRender(rackRender.body, rackGallery, …)` as today |
 | The factory gallery and JOSH'S LIBRARY, seeded on the first open (`maybeSeed`, `restoreShipped`, `restoreLibrary`, `:281-321, :418-438`) | app code on the kit's API: they write through `folders.files.save(…)` and are counted by `facts.factoryId` / `facts.libraryId` as today; RESTORE FACTORY GALLERY is the `factory` option. Not `seeds`: BASINS' library is editable, not read-only, and its "seeded" flags hold a time |
 | The starters (`seedStarters`, `STARTER_PROJECTS`) | app code as today, or `seeds` after a one-time copy of `facts.starterId` into `facts.seedId` (and a `seededKey` other than `basins.library.factory-seeded`) |
-| The session keep (`saveCurrentSession` / `restoreCurrentSession`, `:121-147, :265-279`) | app code on the kit's API: `const keep = () => writeProjectSession(localStorage, folders.adapter.capture());` · `subscribeProject(debounce(keep)); addEventListener('pagehide', keep);` · `restoreCurrentSession = () => folders.adapter.restore(readProjectSession(localStorage))` (BASINS keeps its own session format; the adapter is the one capture) |
+| The session keep (`saveCurrentSession` / `restoreCurrentSession`, `:121-147, :265-279`) | `core/session.js`: `createSession({ key, lift })` (`lift` reads BASINS' v1/v2 record once); saved 300 ms after a change and at once on `pagehide`, RESUME through `hasResume()` ([SESSION.md](SESSION.md)) |
 | Presets on save (`presetOnSave`, `:323-337`) | app code: pass `files: projectFiles` (the wrapped store, as today) — `createFolders({ files })` takes a store |
 | The film estimate and everything else in RENDER (`buildRender`, `:440-…`) | the RENDER panel's own code (`panels`), unchanged |
 | The history window install (`installHistory`) | app code, unchanged |

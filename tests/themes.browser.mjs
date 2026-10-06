@@ -209,6 +209,12 @@ try {
     const c = getComputedStyle(document.querySelector('#hook-island')); const out = { image: c.backgroundImage, fill: c.backgroundColor };
     __T.P.set({ card: 'refractive', disconnected: false }); __T.P.apply({ now: true }); return JSON.stringify(out); })()`));
   check('an island under TINTED is the tinted fill with no 160° sheen (BASINS)', r.image === 'none' && r.fill !== 'rgba(0, 0, 0, 0)', JSON.stringify(r));
+  /* 1.5.0-alpha.12 · FROST's TINTED pane has no sheen (BASINS draws background-image: none); CLASSIC keeps 1.4's 160° highlight */
+  r = JSON.parse(await p.eval(`(async () => { const { themeValues } = await import('/mir/shell/themes.js'); const tick = () => new Promise((r) => setTimeout(r, 150));
+    const img = () => getComputedStyle(__T.d.root).backgroundImage; const out = {};
+    for (const id of ['frost', 'classic']) { __T.P.set({ ...themeValues(id), card: 'tinted', disconnected: false, glow: false, parallax: false }); __T.P.apply({ now: true }); await tick(); out[id] = { frost: document.body.classList.contains('frost'), image: img() }; }
+    return JSON.stringify(out); })()`));
+  check("FROST's TINTED pane computes background-image none (no sheen); CLASSIC keeps the 160° sheen", r.frost.frost && r.frost.image === 'none' && !r.classic.frost && /linear-gradient\(160deg/.test(r.classic.image), JSON.stringify(r));
   /* CLASSIC (INTENT O12): FROST off is its 1.4 default, the still tinted pane; FROST on thins it to .58 and blurs at 22 px; BLUR 0 is no filter */
   r = JSON.parse(await p.eval(`(async () => { const { themeValues } = await import('/mir/shell/themes.js'); const tick = () => new Promise((r) => setTimeout(r, 150));
     const read = () => { const c = getComputedStyle(__T.d.root); return { fill: c.backgroundColor, filter: c.backdropFilter }; };

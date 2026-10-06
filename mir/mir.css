@@ -29,6 +29,7 @@
 @import url("notes/notes.css");
 @import url("history/history.css");
 @import url("shell/parts.css");
+@import url("shell/banner.css");
 @import url("shell/gui.css");
 @import url("fx/fx.css");
 @import url("keyboard/keyboard.css");
@@ -39,3 +40,4 @@
 @import url("modulation/modhost.css");
 @import url("modulation/modwindow/modwindow.css");
 @import url("timeline/timeline.css");
+@import url("pattern/pattern.css");

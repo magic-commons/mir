@@ -47,7 +47,7 @@
  * 1.5.0-alpha.12 (BASINS' missing rows): STATUS TAGS, FORGET, TRANSPORT BAR, ACCENT BRIGHTNESS, SAMPLING (SCRUB ·
  * AUTOMATION), QUALITY · AUTO with the device tier, the first-run blur by device, body.touch-tablet. */
 import { el, knob, seg, sw, trig, readout, label, ariaLabel } from '../kit.js';
-import { phrase } from '../core/i18n.js';
+import { phrase, t } from '../core/i18n.js';
 import { createWindow } from '../window/window.js';
 import { createPrefs } from '../core/prefs.js';
 import { setMotionPolicy } from '../core/motion.js';
@@ -183,7 +183,7 @@ export function lookSchema({ tier = () => null } = {}) {
     { key: 'parallax', type: 'bool', default: true },                // fx/parallax.js
     { key: 'dropGuides', type: 'bool', default: true },              // read by createWindow({ dock: { guide } }) → gui.dropGuides()
     { key: 'hints', type: 'bool', default: true, apply: [{ on: 'body', cls: 'control-hints-off', when: (v) => !v }] },
-    { key: 'help', type: 'bool', default: true, apply: [{ on: 'body', cls: 'window-info-off', when: (v) => !v }] },
+    { key: 'help', type: 'bool', default: false, apply: [{ on: 'body', cls: 'window-info-off', when: (v) => !v }] },
     /* STATUS TAGS (BASINS Settings › DISPLAY, skin.js setBadges): off is body.no-badges; a new user starts with them off
        (BASINS NEW_USER: "Status Tags, Help: OFF") */
     { key: 'badges', type: 'bool', default: false, apply: [{ on: 'body', cls: 'no-badges', when: (v) => !v }] },
@@ -526,10 +526,10 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   const segAfter = (key, lbl, options, after) => bind(key, seg({ label: lbl, options: options.map(([id, l, title]) => ({ id, label: l, title })), value: P.get(key), onChange: (v) => { P.set(key, v); after(v); } }));
   line(g).append(segAfter('scrub', phrase('SCRUB'), [['live', phrase('LIVE', 'scrub'), phrase('Seek the picture on every scrub move. Smoothest when a frame is fast; can lag at a deep place.')],
     ['light', phrase('LIGHT', 'scrub'), phrase('Seek about once every three moves. The hand always stays smooth.')], ['release', phrase('RELEASE'), phrase('The picture waits until you let go. The playhead and readers move at once.')]],
-  (v) => { const ms = frameMs(); if (v === 'live' && ms > 16) notice('the last frame took ' + Math.round(ms) + ' ms — scrubbing will lag; LIGHT keeps the hand smooth'); }).root);
+  (v) => { const ms = frameMs(); if (v === 'live' && ms > 16) notice(t('the last frame took {ms} ms — scrubbing will lag; LIGHT keeps the hand smooth', { ms: Math.round(ms) })); }).root);
   line(g).append(segAfter('automation', phrase('AUTOMATION'), [['frame', phrase('FRAME', 'automation'), phrase('Sample the arrangement every rendered frame. The CLOCK tile sets how often modulation ticks at all.')],
     ['32', '1/32', phrase('Sample on a 1/32-beat grid. Values step on the grid.')], ['16', '1/16', phrase('Sample on a 1/16-beat grid. Values step on the grid.')], ['8', '1/8', phrase('Sample on a 1/8-beat grid. Values step on the grid.')]],
-  (v) => { const grid = AUTOMATION_GRID[v] || 0; toAutomation(grid); if (grid) notice('values step on the grid'); }).root);
+  (v) => { const grid = AUTOMATION_GRID[v] || 0; toAutomation(grid); if (grid) notice(t('values step on the grid')); }).root);
   label(el('div', 'gui-note gui-help', g), 'SCRUB is how the picture follows a ruler drag. AUTOMATION is how playback reads the Timeline into the engine; never during a recorded render.');
 
   /* ── ABOUT ── */

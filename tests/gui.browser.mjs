@@ -137,7 +137,9 @@ try {
   const hintOff = await hintShown();
   r = await J(`return document.body.classList.contains('control-hints-off');`);
   check('option HINTS off: body.control-hints-off, and a hovered control\'s hint no longer shows', hHit && r && hintOn && !hintOff, `before ${hintOn} · after ${hintOff}`);
-  await option('HELP off', () => click(swB('text', 1), 'HELP'), `document.body.classList.contains('window-info-off')`, true, `cs('.native-info', 'display')`);
+  /* HELP is off for a new user (BASINS NEW_USER): the click turns the ⓘ panels ON (the hook says false), the next puts them away again */
+  await option('HELP on', () => click(swB('text', 1), 'HELP'), `document.body.classList.contains('window-info-off')`, false, `cs('.native-info', 'display')`);
+  await click(swB('text', 1), 'HELP off again');
   await option('INK dark (black text)', () => click(segB('text', 0, 2), 'INK DARK'), `document.body.dataset.text`, 'dark', `bv('--fg')`);
   await option('INK auto (under glass in dark: the white ladder)', () => click(segB('text', 0, 0), 'INK AUTO'), `document.body.dataset.text`, 'light', `bv('--fg')`);
   await option('QUALITY balanced', () => click(segB('quality', 0, 1), 'BALANCED'), `document.documentElement.dataset.uiTier`, 'lite', `cs('#pane', 'backdrop-filter')`);

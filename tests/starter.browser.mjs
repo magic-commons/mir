@@ -140,10 +140,10 @@ try {
 
   /* ── FOLDERS (F) opens clear of the rack and the bar ── */
   await ground();
-  await key('f', 'KeyF', 70);
+  await key('s', 'KeyS', 83);
   r = await ev(`const w = R(A.folders.win.root), bar = R(document.getElementById('transport')), racks = [...document.querySelectorAll('.mir-rack')].filter((k) => k.querySelector('.dev:not(.closed)')).map(R);
     return { open: A.folders.isOpen(), w, clearOfBar: !meets(w, bar), clearOfRacks: racks.every((k) => !meets(w, k)), racks: racks.length };`);
-  check('F opens FOLDERS, clear of both racks and the transport bar', r.open && r.clearOfBar && r.clearOfRacks && r.racks === 2, JSON.stringify(r));
+  check('S opens FOLDERS, clear of both racks and the transport bar', r.open && r.clearOfBar && r.clearOfRacks && r.racks === 2, JSON.stringify(r));
 
   /* ── SAVE while the LFO drives SIZE keeps its base; a knob change, then OPEN, brings the base back ── */
   const atSave = await ev(`return { base: A.mod.baseOf('app.size'), now: S.size, routed: A.mod.isModulated('app.size') };`);

@@ -93,7 +93,6 @@
   --abar-track: hsl(0 0% 100% / .07);
   --frost-veil-dark: hsl(0 0% 0% / .10);                          /* REFRACTIVE under FROST, dark theme: the thin veil over the blur */
   --frost-veil-light: hsl(0 0% 100% / .10);                       /* … and the disconnected body-card's, in every other theme */
-  --disc-chip-lift: brightness(1.03) saturate(1.03);              /* the 1.4 disconnected head's non-blur lift: unread since 1.5.0-alpha.12 (the head is a pane, as BASINS'); kept declared for the schema */
   --fx-v-scale: .92em;
   --font-help-glyph: Georgia, 'Times New Roman', serif;           /* the italic i of every help button */
   --help-glyph-size: 12px;
@@ -525,6 +524,16 @@ body:is([data-card="tinted"], [data-card="solid"]) .dev, body:is([data-card="tin
    flat tiers lift it again (tokens.css), since a fill thinned for a blur that is not drawn is only a fainter pane.
    BLUR 0 writes the filter as the whole value `none` (gui.js); the pane stays at .58, as BASINS' does. */
 body.frost:not(.frost-hold)[data-card="tinted"] { --card-opacity: var(--frost-opacity); }
+/* 1.5.0-alpha.12 · FROST'S TINTED PANE HAS NO SHEEN.  BASINS draws every TINTED surface (rack cards, disconnected heads and
+   bodies, COLOUR's islands, dark and light) with `background-image: none` (measured, PX1); FROST is Josh's BASINS recipe, so
+   with FROST on the sheen layer every tinted fill reads (--surface-sheen, then --glass-sheen) is none, whatever the tone.
+   CLASSIC states FROST off and keeps 1.4's 160° sheen.  STILL changes the blur, not the paint. */
+body.frost[data-card="tinted"] { --surface-sheen: none; }
+/* … and the fill alone, so the computed `background-image` is the single `none` BASINS has (a two-layer list of nothing is
+   `none, none`): the same seats as the tinted pane above and the disconnected body and head below */
+body.frost[data-card="tinted"] .dev, body.frost[data-card="tinted"] .glass, body.frost[data-card="tinted"] :where([data-mir-surface]:not([data-mir-surface="island"])),
+body.frost.disconnected[data-card="tinted"]:not(.phone) .dev > .dev-body, body.frost.disconnected[data-card="tinted"]:not(.phone) .dev > .dev-head
+  { background: var(--surface-fill, hsl(var(--glass-tint) / var(--card-opacity))); }
 body.frost:not(.frost-hold)[data-card="tinted"] :is(.native-info .native-info-content, .control-help) { --popover-fill: hsl(var(--glass-tint) / var(--card-opacity)); }
 body.frost:not([data-card="solid"]) .dev, body.frost:not([data-card="solid"]) .glass, body.frost:not([data-card="solid"]) :where([data-mir-surface]:not([data-mir-surface="island"])) { -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter)); backdrop-filter: var(--surface-filter, var(--frost-filter)); }
 body.frost[data-card="refractive"][data-theme="dark"] .dev, body.frost[data-card="refractive"][data-theme="dark"] .glass, body.frost[data-card="refractive"][data-theme="dark"] :where([data-mir-surface]:not([data-mir-surface="island"])) { background: var(--surface-veil, var(--frost-veil-dark)); }

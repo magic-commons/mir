@@ -1,13 +1,13 @@
 [
  {
   "file": "mir/app.js",
-  "line": 220,
+  "line": 294,
   "why": "fragment",
   "text": " · an MIR app"
  },
  {
   "file": "mir/core/describe.js",
-  "line": 226,
+  "line": 249,
   "why": "fragment",
   "text": "unhandled rejection: "
  },
@@ -28,6 +28,36 @@
   "line": 168,
   "why": "fragment",
   "text": "the checker could not read this: "
+ },
+ {
+  "file": "mir/core/wakelock.js",
+  "line": 142,
+  "why": "fragment",
+  "text": ", planted by "
+ },
+ {
+  "file": "mir/core/wakelock.js",
+  "line": 143,
+  "why": "fragment",
+  "text": ", released "
+ },
+ {
+  "file": "mir/core/wakelock.js",
+  "line": 143,
+  "why": "fragment",
+  "text": ", refused "
+ },
+ {
+  "file": "mir/core/wakelock.js",
+  "line": 144,
+  "why": "fragment",
+  "text": "   asked by context: gesture "
+ },
+ {
+  "file": "mir/core/wakelock.js",
+  "line": 146,
+  "why": "fragment",
+  "text": "   held for: "
  },
  {
   "file": "mir/glyph.js",
@@ -109,26 +139,56 @@
  },
  {
   "file": "mir/modulation/window.js",
-  "line": 1046,
+  "line": 1152,
   "why": "fragment",
   "text": "px,"
  },
  {
   "file": "mir/modulation/window.js",
-  "line": 1868,
+  "line": 1995,
   "why": "fragment",
   "text": " failed to build"
  },
  {
   "file": "mir/shell/boot.js",
-  "line": 56,
+  "line": 79,
   "why": "fragment",
   "text": " could not start · "
  },
  {
   "file": "mir/shell/boot.js",
-  "line": 60,
+  "line": 83,
   "why": "fragment",
   "text": "steps done: "
+ },
+ {
+  "file": "mir/shell/boot.js",
+  "line": 148,
+  "why": "fragment",
+  "text": "boot veil   "
+ },
+ {
+  "file": "mir/shell/boot.js",
+  "line": 149,
+  "why": "fragment",
+  "text": "down after "
+ },
+ {
+  "file": "mir/shell/boot.js",
+  "line": 150,
+  "why": "fragment",
+  "text": " ms via "
+ },
+ {
+  "file": "mir/shell/boot.js",
+  "line": 150,
+  "why": "fragment",
+  "text": " frames waited"
+ },
+ {
+  "file": "mir/shell/gui.js",
+  "line": 316,
+  "why": "fragment",
+  "text": "the bench threw: "
  }
 ]

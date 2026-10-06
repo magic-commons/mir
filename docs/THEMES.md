@@ -199,17 +199,17 @@ The light TINTED pane is .86 (it was .84: `--card-opacity` resolved at `:root`),
 
 ## TINTED can blur (1.5.0-alpha.11)
 
-Josh ruled INTENT O12 on 2026-10-02: *"tinted can blur, the blur knob can reach 0 no?"* Rule 4 now reads: TINTED is tint + sheen, and thins and blurs under FROST as REFRACTIVE does; BLUR 0 is no blur.
+Josh ruled INTENT O12 on 2026-10-02: *"tinted can blur, the blur knob can reach 0 no?"* Rule 4 read: TINTED is tint + sheen, and thins and blurs under FROST as REFRACTIVE does; BLUR 0 is no blur. Since 1.5.0-alpha.12 it reads: TINTED is the tint; a sheen only where the theme gives one (CLASSIC does, FROST does not).
 
 **How the kit draws it.** One token, `--frost-opacity` (.58, `skin.css`'s values). Under `body.frost:not(.frost-hold)[data-card="tinted"]` the body's `--card-opacity` becomes it, and every tinted fill in the kit reads `--card-opacity` where it is used, so the rack cards, `.glass` panes and hooked surfaces, the islands, the disconnected heads and bodies, the menus, the hint and the ⓘ panel (`--popover-fill`), the rail discs (`.mir-chip`, kwin `.crail-chip`), the modulation work bar and the work-bar transport all thin together. The frost filter (`--surface-filter`, else `--frost-filter`) reaches TINTED wherever it reached REFRACTIVE; SOLID never blurs, except the rail discs, which take the chip filter under FROST for every card style (BASINS' rails). The modulation window's chassis keeps its full tint, as BASINS'.
 
 **What lifts it.** FROST · STILL (`frost-hold`): no filter, the full tinted fill. The lite and flat tiers and reduced transparency: no filter, and `tokens.css` sets `--card-opacity` back to the glass opacity, so the pane is the legible .84 / .86 again rather than a .58 pane with nothing behind it.
 
-**BLUR 0.** Both filter names are written as the whole value `none` (`gui.js`); the pane stays at .58, as BASINS' does. So a TINTED pane at BLUR 0 is the .58 tint + sheen over the picture, sharp, with no backdrop pass at all. (BASINS at BLUR 0 writes `blur(0px) saturate(1.3)`: the picture behind is still saturated by 1.3. That is the one measured difference at BLUR 0, and it is the ruled one.)
+**BLUR 0.** Both filter names are written as the whole value `none` (`gui.js`); the pane stays at .58, as BASINS' does. So a TINTED pane at BLUR 0 is the .58 tint over the picture, sharp, with no backdrop pass at all. (BASINS at BLUR 0 writes `blur(0px) saturate(1.3)`: the picture behind is still saturated by 1.3. That is the one measured difference at BLUR 0, and it is the ruled one.)
 
 **CLASSIC.** FROST off is its 1.4 default: the still .84 / .86 tinted pane, no filter (the gallery's BLUR readout is 0). With FROST on, CLASSIC is 1.4's frosted card exactly: .58 and `blur(22px)` (WebKit draws 20). SWIFT stays blur-free by its own settings (SOLID, the flat tier).
 
-**Against BASINS** (`.tmp/W11/V/basins-o12.mjs` · `kit-o12.mjs`; BASINS read-only; TINTED + FROST, dark and light, BLUR 11 and 0): rack cards, rack buttons, the bar, the menus, the hint and the ⓘ panel, the disconnected heads and bodies, the modulation rail's discs, the kit rail's discs and the work bar all compute BASINS' fill (`hsl(tint / .58)`) and filter. What stays different is ruled: the tinted pane's 160° sheen (rule 4: tint + sheen; BASINS' ONE MATERIAL drew none), `none` against `blur(0px) saturate(1.3)` at BLUR 0, and the toast, which blurs with the panes in the kit (BASINS leaves its toast unblurred under TINTED).
+**Against BASINS** (`.tmp/W11/V/basins-o12.mjs` · `kit-o12.mjs`; BASINS read-only; TINTED + FROST, dark and light, BLUR 11 and 0): rack cards, rack buttons, the bar, the menus, the hint and the ⓘ panel, the disconnected heads and bodies, the modulation rail's discs, the kit rail's discs and the work bar all compute BASINS' fill (`hsl(tint / .58)`) and filter. What stays different is ruled: `none` against `blur(0px) saturate(1.3)` at BLUR 0, and the toast, which blurs with the panes in the kit (BASINS leaves its toast unblurred under TINTED).
 
 ## BASINS' missing rows (1.5.0-alpha.12)
 

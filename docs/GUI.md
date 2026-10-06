@@ -110,7 +110,7 @@ Every control on MIR OPTIONS changes what is drawn through a hook a kit sheet or
 | | DROP GUIDES | switch | `gui.dropGuides()`, handed to `createWindow({ dock: { guide } })` | on |
 | TEXT | INK auto · light · dark | seg | `<body data-text>`: white or black, the pure ladder, no emboss (BASINS' TEXT). AUTO: under glass the ladder in the mode's polarity (BASINS' unsampled seat), on a SOLID pane its lightness, on a TINTED pane the house ladder. **With an ink sampler** (`createGui({ inkSampler })`, `docs/INK.md`) AUTO is BASINS' AUTO: each label white or black from the picture beneath it, and LIGHT · DARK stop the sampler | auto |
 | | HINTS | switch | `body.control-hints-off` (`control-help.js`) | on |
-| | HELP | switch | `body.window-info-off` (skin.css hides every ⓘ; the GUI's own help prose goes with it) | on |
+| | HELP | switch | `body.window-info-off` (skin.css hides every ⓘ; the GUI's own help prose goes with it) | off (BASINS' new user: "Status Tags, Help: OFF · CONTROL HINTS: ON", 1.5.0-alpha.12) |
 | | STATUS TAGS | switch | off: `body.no-badges` hides `#badges` or an app's `[data-mir-badges]` strip (BASINS' badges and stats bar) | off (BASINS' new user) |
 | QUALITY | FULL · BALANCED · LIGHT · AUTO | seg | `<html data-ui-tier>`: none · `lite` · `flat` (`docs/TIERS.md`). AUTO is the device's tier (below): A and B are FULL, C is BALANCED | AUTO |
 | | BLUR · SHADOW · FRAME | readouts | the cost of the look (below); SHADOW counts shine layers too | |

@@ -42,18 +42,13 @@ if (!M.macroList().length) { M.addMacro && M.addMacro(); }
 mod.view && mod.view.rebuild && mod.view.rebuild();
 
 let tr = null, tl = null, ws = null;
-/* the timeline, without its own transport: the page hands it THE one bar (the join hunk does this inside createTimeline) */
-const seat = () => tr && tl && tr.mountIn(tl.isOpen() && tl.editor.workLane() !== 'hidden' ? tl.editor.transportHost : null);
-tl = installTimeline({ mount: $('floats'), mod, transport: false, storageKey: 'mir.fx.tp',
-  initial: { open: false, x: 220, y: 360, w: 900, h: 420, chipSide: 'left' },
-  onWindow: () => { seat(); if (ws) ws.sync(); },
-  moved: (r) => { if (ws) ws.moved('lower', r); } });
-tl.root.addEventListener('timeline-work-lane', seat);
-/* alpha.11's createTimeline reads `port.transport || {}`, so `transport: false` still builds its own work-bar transport:
-   the page removes it until the join's hunk (.tmp/W12/T/ASKS.md) makes the timeline take the app's one bar */
-if (tl.transport) { tl.transport.destroy(); tl.transport.root.remove(); }
+/* THE ONE BAR: the page's transport is handed to the timeline, which moves it into its work lane and back */
 tr = createTransport({ root: $('transport'), clock: { play() { return { ok: true }; }, pause() { return { ok: true }; }, isPlaying: () => false },
   mod, key: 'mir.fx.tp.transport', onSwitch: () => ws.show('upper') });
+tl = installTimeline({ mount: $('floats'), mod, transport: { shared: tr }, storageKey: 'mir.fx.tp',
+  initial: { open: false, x: 220, y: 360, w: 900, h: 420, chipSide: 'left' },
+  onWindow: () => { if (ws) ws.sync(); },
+  moved: (r) => { if (ws) ws.moved('lower', r); } });
 tr.start();
 
 /* UPPER: a kit window in MODULATION's seat; its MIR switch swaps to the timeline */
@@ -63,7 +58,7 @@ const upper = createWindow({ id: 'upper', title: 'UPPER', host: $('floats'), siz
   onMoved: (r) => { if (ws) ws.moved('upper', r); } });
 ws = createWorkspaces({ upper, lower: tl.win });
 
-window.__T = { tr, tl, upper, ws, sw, mod, M, motion, frame, seat };
+window.__T = { tr, tl, upper, ws, sw, mod, M, motion, frame };
 window.__ready = true;
 </script>
 </body>

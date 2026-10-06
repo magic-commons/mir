@@ -37,6 +37,7 @@
   "A soft light follows the pointer over lit surfaces (never on touch)": "A soft light follows the pointer over lit surfaces (never on touch)",
   "ABOUT": "ABOUT",
   "ACCENT": "ACCENT",
+  "ACCENT BRIGHTNESS": "ACCENT BRIGHTNESS",
   "ACTIVE (toolbar)": "ACTIVE (toolbar)",
   "ADD AUDIO": "ADD AUDIO",
   "ADD DEVICE": "ADD DEVICE",
@@ -56,12 +57,17 @@
   "AUDIO IN": "AUDIO IN",
   "AUDIO ON": "AUDIO ON",
   "AUTO": "AUTO",
+  "AUTO: measuring this device": "AUTO: measuring this device",
+  "AUTO: not measured": "AUTO: not measured",
+  "AUTO: tier {tier} → {quality}": "AUTO: tier {tier} → {quality}",
+  "AUTOMATION": "AUTOMATION",
   "Active": "Active",
   "Add a macro": "Add a macro",
   "Add a macro in the modulation window to begin routing.": "Add a macro in the modulation window to begin routing.",
   "Add a point that preserves its current value": "Add a point that preserves its current value",
   "Add an LFO, envelope, or audio follower": "Add an LFO, envelope, or audio follower",
   "Add an audio follower; {:AUDIO IN} uses the microphone": "Add an audio follower; {:AUDIO IN} uses the microphone",
+  "Add an envelope to the rack": "Add an envelope to the rack",
   "Add and place a point": "Add and place a point",
   "Add automation lane": "Add automation lane",
   "Add the theme tint behind window content: no blur, no compositor cost": "Add the theme tint behind window content: no blur, no compositor cost",
@@ -100,7 +106,10 @@
   "BOTTOM": "BOTTOM",
   "BPM": "BPM",
   "BRIGHT": "BRIGHT",
+  "BRIGHTNESS": "BRIGHTNESS",
+  "BRIGHTNESS — shifts both accents toward white. Saved with the project, like the accents.": "BRIGHTNESS — shifts both accents toward white. Saved with the project, like the accents.",
   "Black text on every label": "Black text on every label",
+  "Bundled starter modulation · Save keeps an editable user preset": "Bundled starter modulation · Save keeps an editable user preset",
   "Bypass Snap for the gesture in progress": "Bypass Snap for the gesture in progress",
   "Bypass this device and keep its settings": "Bypass this device and keep its settings",
   "CALCULATING": "CALCULATING",
@@ -111,6 +120,9 @@
   "CLOSED": "CLOSED",
   "CMP": "CMP",
   "COMPACT": "COMPACT",
+  "COMPACT · COMPACT": "COMPACT · COMPACT",
+  "COMPACT · FULL": "COMPACT · FULL",
+  "COMPACT · MINIMIZED": "COMPACT · MINIMIZED",
   "CONDITIONING": "CONDITIONING",
   "CONTROLS": "CONTROLS",
   "COPIED": "COPIED",
@@ -137,6 +149,7 @@
   "Choose an action in the list first, then press {:RECORD INPUT}": "Choose an action in the list first, then press {:RECORD INPUT}",
   "Choose at least one project component before saving.": "Choose at least one project component before saving.",
   "Choose where the transport sits": "Choose where the transport sits",
+  "Clear saved interface settings and reload": "Clear saved interface settings and reload",
   "Clip color": "Clip color",
   "Clip options": "Clip options",
   "Clip title": "Clip title",
@@ -191,6 +204,7 @@
   "DISCONNECTED": "DISCONNECTED",
   "DIST": "DIST",
   "DISTANCE": "DISTANCE",
+  "DOCK / UNDOCK the transport": "DOCK / UNDOCK the transport",
   "DOTTED": "DOTTED",
   "DOWN": "DOWN",
   "DOWNLOAD": "DOWNLOAD",
@@ -207,6 +221,9 @@
   "Delete {name}": "Delete {name}",
   "Deleted — {name}": "Deleted — {name}",
   "Deselect": "Deselect",
+  "Devices: Compact. Tap for Minimized": "Devices: Compact. Tap for Minimized",
+  "Devices: Full. Tap for Compact": "Devices: Full. Tap for Compact",
+  "Devices: Minimized. Tap for Full": "Devices: Minimized. Tap for Full",
   "Disable backdrop filtering": "Disable backdrop filtering",
   "Disconnect the source from this macro": "Disconnect the source from this macro",
   "Dock the transport into the rack": "Dock the transport into the rack",
@@ -234,11 +251,13 @@
   "EDGE": "EDGE",
   "EDIT TOOL": "EDIT TOOL",
   "ENV": "ENV",
+  "ENV {n}": "ENV {n}",
   "ERROR": "ERROR",
   "EVT": "EVT",
   "EXPORT": "EXPORT",
   "EXPORT .MD": "EXPORT .MD",
   "EXPOSURE": "EXPOSURE",
+  "Each label turns white or black from the picture beneath it": "Each label turns white or black from the picture beneath it",
   "Each label’s ink from the picture under it (this app’s sampler)": "Each label’s ink from the picture under it (this app’s sampler)",
   "Edit or preview the notebook": "Edit or preview the notebook",
   "Edit tool": "Edit tool",
@@ -254,6 +273,7 @@
   "Exported {name} as a picture that carries it": "Exported {name} as a picture that carries it",
   "FACES": "FACES",
   "FACTORY": "FACTORY",
+  "FILL EACH {n} STEPS": "FILL EACH {n} STEPS",
   "FIT": "FIT",
   "FL — Alt temporarily sets snap to none": "FL — Alt temporarily sets snap to none",
   "FL — Copy selection": "FL — Copy selection",
@@ -291,10 +311,13 @@
   "FLAT": "FLAT",
   "FLIP": "FLIP",
   "FOLDERS": "FOLDERS",
+  "FORGET": "FORGET",
   "FOV": "FOV",
   "FRAME": "FRAME",
   "FREE": "FREE",
   "FROST": "FROST",
+  "FULL": "FULL",
+  "FULL SCREEN": "FULL SCREEN",
   "Fades only: nothing travels": "Fades only: nothing travels",
   "Find a keyboard action": "Find a keyboard action",
   "Find an action or key…": "Find an action or key…",
@@ -332,6 +355,8 @@
   "H": "H",
   "HAND": "HAND",
   "HELP": "HELP",
+  "HIDE / SHOW the rack": "HIDE / SHOW the rack",
+  "HIDE the interface": "HIDE the interface",
   "HIGH": "HIGH",
   "HINTS": "HINTS",
   "HIT": "HIT",
@@ -375,6 +400,10 @@
   "LANE DOWN": "LANE DOWN",
   "LANE UP": "LANE UP",
   "LAP": "LAP",
+  "LENGTH {len} · {n} BARS": {
+   "one": "LENGTH {len} · {n} BAR",
+   "other": "LENGTH {len} · {n} BARS"
+  },
   "LEVEL": "LEVEL",
   "LFO": "LFO",
   "LIGHT ANGLE": "LIGHT ANGLE",
@@ -467,6 +496,9 @@
   "No clips pasted: the selected lanes or source budget cannot fit this group.": "No clips pasted: the selected lanes or source budget cannot fit this group.",
   "No copies made: select clips with room in the arrangement.": "No copies made: select clips with room in the arrangement.",
   "No copies made: source budget reached.": "No copies made: source budget reached.",
+  "No envelopes on the rack — add one with +": "No envelopes on the rack — add one with +",
+  "No macros yet — add one in the modulation window.": "No macros yet — add one in the modulation window.",
+  "No room on the timeline for {what} — add a lane or move the playhead": "No room on the timeline for {what} — add a lane or move the playhead",
   "No such action.": "No such action.",
   "Nothing animates": "Nothing animates",
   "Nothing is saved at {:ROOT} yet.  Open a folder, or save what is on screen here.": "Nothing is saved at {:ROOT} yet.  Open a folder, or save what is on screen here.",
@@ -502,6 +534,8 @@
   "PANE": "PANE",
   "PARALLAX": "PARALLAX",
   "PASTE": "PASTE",
+  "PATT": "PATT",
+  "PATTERN": "PATTERN",
   "PHASE": "PHASE",
   "PHOTOSENSITIVITY WARNING": "PHOTOSENSITIVITY WARNING",
   "PITCH": "PITCH",
@@ -520,6 +554,7 @@
   "Pane shadows ({:SHADOW} sets their strength)": "Pane shadows ({:SHADOW} sets their strength)",
   "Paste a compatible device patch": "Paste a compatible device patch",
   "Paste at the playhead, into the active lane": "Paste at the playhead, into the active lane",
+  "Pattern: drive this envelope from its step row in the PATTERN window": "Pattern: drive this envelope from its step row in the PATTERN window",
   "Picture made — {w}×{h}. Tap the download icon to keep it.": "Picture made — {w}×{h}. Tap the download icon to keep it.",
   "Play / pause, exact resume": "Play / pause, exact resume",
   "Play or pause": "Play or pause",
@@ -558,6 +593,7 @@
   "REMOVE ALL": "REMOVE ALL",
   "RES": "RES",
   "RESET": "RESET",
+  "RESET LAYOUT": "RESET LAYOUT",
   "RESET LOOK": "RESET LOOK",
   "RESET TO DEFAULT": "RESET TO DEFAULT",
   "RESTORE FACTORY GALLERY": "RESTORE FACTORY GALLERY",
@@ -575,8 +611,10 @@
   "Redo": "Redo",
   "Redo (Ctrl+Shift+Z, Ctrl+Y)": "Redo (Ctrl+Shift+Z, Ctrl+Y)",
   "Release any open menu or gesture before the shell hides the UI": "Release any open menu or gesture before the shell hides the UI",
+  "Reload the page": "Reload the page",
   "Reload the page: on a cold start the adapter is sometimes late. If it happens again, turn on hardware acceleration in the browser's settings or update the graphics driver.": "Reload the page: on a cold start the adapter is sometimes late. If it happens again, turn on hardware acceleration in the browser's settings or update the graphics driver.",
   "Reload to start again. Your saved work in this browser is kept.": "Reload to start again. Your saved work in this browser is kept.",
+  "Reload {name} to release the current session’s memory. Saved projects and settings are kept; unsaved renders are discarded.": "Reload {name} to release the current session’s memory. Saved projects and settings are kept; unsaved renders are discarded.",
   "Reload. If it happens again, press {:COPY DETAILS} and send them to the author.": "Reload. If it happens again, press {:COPY DETAILS} and send them to the author.",
   "Remove bottom automation lane": "Remove bottom automation lane",
   "Remove clips?": "Remove clips?",
@@ -594,23 +632,29 @@
   "Resize window": "Resize window",
   "Response curve, zero is linear": "Response curve, zero is linear",
   "Restart phase on triggers and playback": "Restart phase on triggers and playback",
+  "Restore the default window layout": "Restore the default window layout",
   "Restore this window layout": "Restore this window layout",
   "Restored {added} of {total}.": "Restored {added} of {total}.",
   "Return this window to its rack": "Return this window to its rack",
   "Reveal or trim curve end": "Reveal or trim curve end",
   "Reverse the curve in time": "Reverse the curve in time",
   "Right-click a tension handle": "Right-click a tension handle",
+  "Right-click or tap: FILL · CLEAR · LENGTH · PATTERN ON/OFF": "Right-click or tap: FILL · CLEAR · LENGTH · PATTERN ON/OFF",
   "Right-drag empty clip space": "Right-drag empty clip space",
   "Rotate phase colour once per bar without moving the state.": "Rotate phase colour once per bar without moving the state.",
   "Route {band} to a macro": "Route {band} to a macro",
+  "Route {name} to a control first — its clip needs a target": "Route {name} to a control first — its clip needs a target",
   "S&H": "S&H",
+  "SAMPLING": "SAMPLING",
   "SATURATION": "SATURATION",
   "SAVE": "SAVE",
   "SAVE AS": "SAVE AS",
   "SAVE TO": "SAVE TO",
   "SAW↑": "SAW↑",
   "SAW↓": "SAW↓",
+  "SCRUB": "SCRUB",
   "SCRUB TOOL": "SCRUB TOOL",
+  "SCRUB is how the picture follows a ruler drag. AUTOMATION is how playback reads the Timeline into the engine; never during a recorded render.": "SCRUB is how the picture follows a ruler drag. AUTOMATION is how playback reads the Timeline into the engine; never during a recorded render.",
   "SELECT ALL": "SELECT ALL",
   "SELECT TOOL": "SELECT TOOL",
   "SENSE": "SENSE",
@@ -637,6 +681,8 @@
   "SPECIAL THANKS": "SPECIAL THANKS",
   "SPRITES": "SPRITES",
   "SQR": "SQR",
+  "STARTER": "STARTER",
+  "STATUS TAGS": "STATUS TAGS",
   "STEP: draw; Shift for pulses": "STEP: draw; Shift for pulses",
   "STEPS": "STEPS",
   "STILL": "STILL",
@@ -646,6 +692,10 @@
   "SUSTAIN": "SUSTAIN",
   "SYSTEM": "SYSTEM",
   "SYSTEM DEFAULT": "SYSTEM DEFAULT",
+  "Sample on a 1/16-beat grid. Values step on the grid.": "Sample on a 1/16-beat grid. Values step on the grid.",
+  "Sample on a 1/32-beat grid. Values step on the grid.": "Sample on a 1/32-beat grid. Values step on the grid.",
+  "Sample on a 1/8-beat grid. Values step on the grid.": "Sample on a 1/8-beat grid. Values step on the grid.",
+  "Sample the arrangement every rendered frame. The CLOCK tile sets how often modulation ticks at all.": "Sample the arrangement every rendered frame. The CLOCK tile sets how often modulation ticks at all.",
   "Save as — store what is on screen as a new project, with the name and folder below.": "Save as — store what is on screen as a new project, with the name and folder below.",
   "Save the current window arrangement": "Save the current window arrangement",
   "Save this first?": "Save this first?",
@@ -660,6 +710,8 @@
   },
   "Scrub the timeline playhead": "Scrub the timeline playhead",
   "Scrub tool": "Scrub tool",
+  "Seek about once every three moves. The hand always stays smooth.": "Seek about once every three moves. The hand always stays smooth.",
+  "Seek the picture on every scrub move. Smoothest when a frame is fast; can lag at a deep place.": "Seek the picture on every scrub move. Smoothest when a frame is fast; can lag at a deep place.",
   "Seek to the beginning": "Seek to the beginning",
   "Seek to the next measure": "Seek to the next measure",
   "Seek to the previous measure": "Seek to the previous measure",
@@ -682,6 +734,7 @@
   "Selected macro range; the large dial sets the base": "Selected macro range; the large dial sets the base",
   "Selection actions": "Selection actions",
   "Selection scope": "Selection scope",
+  "Send to the timeline: one cycle of the LFO, the ENV's stages, or its live pattern row": "Send to the timeline: one cycle of the LFO, the ENV's stages, or its live pattern row",
   "Sends that are dead until their controls come back": "Sends that are dead until their controls come back",
   "Separate window headers from their bodies": "Separate window headers from their bodies",
   "Set free rate or a loop-clock division": "Set free rate or a loop-clock division",
@@ -696,8 +749,10 @@
   "Shift / Ctrl while moving a point": "Shift / Ctrl while moving a point",
   "Show Mac and iPad key names": "Show Mac and iPad key names",
   "Show Windows and Linux key names": "Show Windows and Linux key names",
+  "Show status tags at the top": "Show status tags at the top",
   "Show the data for {name}": "Show the data for {name}",
   "Show the interface": "Show the interface",
+  "Show the main transport bar, floating or docked": "Show the main transport bar, floating or docked",
   "Signed route amount percent": "Signed route amount percent",
   "Slice every selected clip at the playhead (one undo)": "Slice every selected clip at the playhead (one undo)",
   "Slice sphere and plane. Drag or use arrow keys to rotate; Home resets.": "Slice sphere and plane. Drag or use arrow keys to rotate; Home resets.",
@@ -723,6 +778,7 @@
   "Surfaces that blur what is behind them: one compositor pass each": "Surfaces that blur what is behind them: one compositor pass each",
   "Surfaces that draw a shadow, and shine layers": "Surfaces that draw a shadow, and shine layers",
   "Switch between two saved patches for this device": "Switch between two saved patches for this device",
+  "Switch to Timeline": "Switch to Timeline",
   "Sync the modulation clock to the wall clock or run it free": "Sync the modulation clock to the wall clock or run it free",
   "TAP": "TAP",
   "TEXT": "TEXT",
@@ -732,6 +788,7 @@
   "TIGHT": "TIGHT",
   "TIME": "TIME",
   "TIME · BEATS FROM 0": "TIME · BEATS FROM 0",
+  "TIMELINE": "TIMELINE",
   "TIMELINE CLIP": "TIMELINE CLIP",
   "TINT": "TINT",
   "TINTED": "TINTED",
@@ -740,6 +797,7 @@
   "TONE": "TONE",
   "TOP": "TOP",
   "TRANSPORT": "TRANSPORT",
+  "TRANSPORT BAR": "TRANSPORT BAR",
   "TRI": "TRI",
   "TRIG": "TRIG",
   "TRIG IN": "TRIG IN",
@@ -761,6 +819,7 @@
   "The library is full: {count} saved, {need} needed of {cap}.  This save was NOT stored.  Delete projects yourself, or make room — the oldest go first.": "The library is full: {count} saved, {need} needed of {cap}.  This save was NOT stored.  Delete projects yourself, or make room — the oldest go first.",
   "The mean frame time over 30 frames after the last change": "The mean frame time over 30 frames after the last change",
   "The pane’s hairline rim": "The pane’s hairline rim",
+  "The picture waits until you let go. The playhead and readers move at once.": "The picture waits until you let go. The playhead and readers move at once.",
   "The renderer currently owns the clock.": "The renderer currently owns the clock.",
   "The shadow’s blur": "The shadow’s blur",
   "The shine’s blur": "The shine’s blur",
@@ -769,6 +828,8 @@
   "The ⓘ panels on windows": "The ⓘ panels on windows",
   "Theme-coloured glass fill. Zero is clear.": "Theme-coloured glass fill. Zero is clear.",
   "This browser has no WebGPU, which this app draws with.": "This browser has no WebGPU, which this app draws with.",
+  "This device has no shape to send": "This device has no shape to send",
+  "This device’s tier, measured once: A and B are {:FULL}, C is {:BALANCED}": "This device’s tier, measured once: A and B are {:FULL}, C is {:BALANCED}",
   "This folder is empty.  Move a project here, or save what is on screen into it.": "This folder is empty.  Move a project here, or save what is on screen into it.",
   "This time is before the source begins.": "This time is before the source begins.",
   "This time range is occupied in every lane. Add a lane or choose another range.": "This time range is occupied in every lane. Add a lane or choose another range.",
@@ -858,8 +919,10 @@
   "adapted — FL’s manual names Right-Alt+click specifically": "adapted — FL’s manual names Right-Alt+click specifically",
   "add a page": "add a page",
   "add a page to the project": "add a page to the project",
+  "add an envelope (ENV) to the rack first — the pattern rows are its": "add an envelope (ENV) to the rack first — the pattern rows are its",
   "add an {:AUDIO} device and its {:HIT} can fire this envelope": "add an {:AUDIO} device and its {:HIT} can fire this envelope",
   "add markdown files as pages of the project": "add markdown files as pages of the project",
+  "add the timeline first — a device is sent to it": "add the timeline first — a device is sent to it",
   "added the page {title}": "added the page {title}",
   "added {n} pages": {
    "one": "added {n} page",
@@ -869,6 +932,7 @@
   "asking for the microphone…": "asking for the microphone…",
   "audio input is closed — press {:AUDIO IN}": "audio input is closed — press {:AUDIO IN}",
   "aurora": "aurora",
+  "automation::FRAME": "FRAME",
   "balmer": "balmer",
   "beacon": "beacon",
   "biolum": "biolum",
@@ -900,6 +964,7 @@
   "deleted “{name}”": "deleted “{name}”",
   "device view::FULL": "FULL",
   "dismiss": "dismiss",
+  "dismiss this message": "dismiss this message",
   "dock this window back into the rack": "dock this window back into the rack",
   "edit or preview the notes": "edit or preview the notes",
   "eight macros is the model’s ceiling": "eight macros is the model’s ceiling",
@@ -944,6 +1009,7 @@
   "history::MOVE POINTS": "MOVE POINTS",
   "history::NEW CLIP": "NEW CLIP",
   "history::PASTE": "PASTE",
+  "history::PATTERN": "PATTERN",
   "history::REMOVE LANE": "REMOVE LANE",
   "history::SEGMENT": "SEGMENT",
   "history::TENSION": "TENSION",
@@ -960,11 +1026,13 @@
   "input gain, ±24 dB before the band response ranges": "input gain, ±24 dB before the band response ranges",
   "keep tapping — two taps make an interval": "keep tapping — two taps make an interval",
   "lasers": "lasers",
+  "left rack scroll": "left rack scroll",
   "light source::LIGHT": "LIGHT",
   "listening": "listening",
   "listening at {k} kHz": "listening at {k} kHz",
   "loaded “{name}”": "loaded “{name}”",
   "macro reset — value 0, depth 100 %": "macro reset — value 0, depth 100 %",
+  "macros": "macros",
   "make image": "make image",
   "measured when applied": "measured when applied",
   "microphone closed": "microphone closed",
@@ -992,6 +1060,7 @@
   "nothing saved yet": "nothing saved yet",
   "nothing to export — save first": "nothing to export — save first",
   "nothing to read": "nothing to read",
+  "one cycle": "one cycle",
   "opal": "opal",
   "open a window": "open a window",
   "open {path} in your notes tab": "open {path} in your notes tab",
@@ -1001,6 +1070,9 @@
   "pages": "pages",
   "patch copied — {:PASTE} onto any {kind}": "patch copied — {:PASTE} onto any {kind}",
   "patina": "patina",
+  "pattern clips arrive with the timeline lane": "pattern clips arrive with the timeline lane",
+  "pattern off — the row is kept": "pattern off — the row is kept",
+  "pattern on — its row drives this envelope": "pattern on — its row drives this envelope",
   "peak hold::HOLD": "HOLD",
   "phosphor": "phosphor",
   "pinwheel": "pinwheel",
@@ -1012,6 +1084,7 @@
   "prism": "prism",
   "puts back what this app shipped with — adds only what is missing, and never touches anything you saved": "puts back what this app shipped with — adds only what is missing, and never touches anything you saved",
   "quadrant": "quadrant",
+  "quality tier::AUTO": "AUTO",
   "quality tier::FULL": "FULL",
   "quality tier::LIGHT": "LIGHT",
   "remove every route into this control": "remove every route into this control",
@@ -1022,6 +1095,7 @@
   "renamed to {name}": "renamed to {name}",
   "reorder or rename {macro}": "reorder or rename {macro}",
   "replace yours?": "replace yours?",
+  "right rack scroll": "right rack scroll",
   "rose window": "rose window",
   "route removed — {target} is the hand’s again": "route removed — {target} is the hand’s again",
   "route {macro} — drag onto a control, or tap to arm": "route {macro} — drag onto a control, or tap to arm",
@@ -1032,6 +1106,8 @@
   "save this tab as a markdown file": "save this tab as a markdown file",
   "saved {name}": "saved {name}",
   "saved “{name}”": "saved “{name}”",
+  "scrub::LIGHT": "LIGHT",
+  "scrub::LIVE": "LIVE",
   "sea": "sea",
   "selected project": "selected project",
   "shared with a visiting model — hide it": "shared with a visiting model — hide it",
@@ -1039,8 +1115,10 @@
   "shelf": "shelf",
   "show this greeting when the project opens": "show this greeting when the project opens",
   "signal flag": "signal flag",
+  "skip to the device rack": "skip to the device rack",
   "standard — not an FL Playlist binding": "standard — not an FL Playlist binding",
   "start over": "start over",
+  "step {n}": "step {n}",
   "subtitle": "subtitle",
   "supernova": "supernova",
   "sure?": "sure?",
@@ -1064,9 +1142,12 @@
   "the bar at the top centre": "the bar at the top centre",
   "the browser refused the write: {why}": "the browser refused the write: {why}",
   "the conditioning sheet is not available in this build": "the conditioning sheet is not available in this build",
+  "the debug dump, to the clipboard": "the debug dump, to the clipboard",
   "the empty project": "the empty project",
+  "the envelope": "the envelope",
   "the file is larger than 32 MB": "the file is larger than 32 MB",
   "the gate opens here and stays open until hysteresis below it": "the gate opens here and stays open until hysteresis below it",
+  "the last frame took {ms} ms — scrubbing will lag; LIGHT keeps the hand smooth": "the last frame took {ms} ms — scrubbing will lag; LIGHT keeps the hand smooth",
   "the left rack": "the left rack",
   "the library is full: {need} k needed of {cap} k": "the library is full: {need} k needed of {cap} k",
   "the loop clock claims the resume: the beat jumped back {moved} of a beat to the {grid}-beat note boundary just passed": "the loop clock claims the resume: the beat jumped back {moved} of a beat to the {grid}-beat note boundary just passed",
@@ -1079,6 +1160,7 @@
    "one": "the part {names} could not take it",
    "other": "the parts {names} could not take it"
   },
+  "the pattern": "the pattern",
   "the phase offset": "the phase offset",
   "the rack": "the rack",
   "the shelf cannot be read — {why}": "the shelf cannot be read — {why}",
@@ -1105,6 +1187,7 @@
   "type a name first — the field beside {:SAVE}": "type a name first — the field beside {:SAVE}",
   "ukiyo": "ukiyo",
   "ultraviolet": "ultraviolet",
+  "values step on the grid": "values step on the grid",
   "window {s} s": "window {s} s",
   "yes": "yes",
   "your notes: save, open, folders, recent": "your notes: save, open, folders, recent",
@@ -1230,6 +1313,7 @@
   "{wave} · waveform, four cycles shown": "{wave} · waveform, four cycles shown",
   "{what} {i} name — type your own": "{what} {i} name — type your own",
   "{what} · TIMELINE": "{what} · TIMELINE",
+  "{what} → timeline · {beats} beats at beat {start}": "{what} → timeline · {beats} beats at beat {start}",
   "{why} — what was open before is back": "{why} — what was open before is back",
   "{why}, and putting back what was open before failed too ({back})": "{why}, and putting back what was open before failed too ({back})",
   "{word} — the {menus} menus": "{word} — the {menus} menus",
@@ -1237,14 +1321,17 @@
   "λWAVES": "λWAVES",
   "“{action}” already has {chord}": "“{action}” already has {chord}",
   "“{action}” is now bound to {chord}": "“{action}” is now bound to {chord}",
-  "… preview truncated at 200 000 characters; the notes are kept whole": "… preview truncated at 200 000 characters; the notes are kept whole"
+  "… preview truncated at 200 000 characters; the notes are kept whole": "… preview truncated at 200 000 characters; the notes are kept whole",
+  "→TL": "→TL"
  },
  "notes": {
   "(root)": "the top of the shelf: the notes in no folder",
   "ANCHOR": "ANCHOR: on resume, the LFO continues from the phase where the pause caught it, holding the beat",
   "ARMED: {macro} — tap a lit control to route it, tap the grip again to cancel": "ARMED: the macro waits for a tap on a control to route itself there (as a record button is armed)",
   "BIPOLAR": "UNIPOLAR: the route only adds (0 to +); BIPOLAR: it swings both ways around the base",
+  "BRIGHTNESS": "how far both accent colours are mixed toward white (not the glass's BRIGHT)",
   "CMP": "short for COMPACT: the device shows only its performance bank",
+  "COPIED": "the flash on a window's status after COPY put its readouts on the clipboard",
   "Capture image": "the button that takes a still picture of the current view",
   "DEAD SENDS": "routes (sends) whose target control is missing from this build: they wait, keeping their range, until it comes back",
   "DRIFT": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
@@ -1277,6 +1364,7 @@
   "MULTI-SAW": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
   "MULTI-TRI": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
   "Making image": "the capture button's spoken name while it makes a still picture of the view (in progress)",
+  "PATT": "PATT: pattern — the ENV's step row",
   "PRESET": "the head of a device's left column: the shape PRESETs, the envelope TIME, the audio SOURCE",
   "RECORD INPUT": "start listening for the new KEY (or chord) of the chosen shortcut: it records a keypress, not audio",
   "RELIEF": "the controls' relief (their raised and sunken look), here the angle of its light",
@@ -1292,6 +1380,8 @@
   "SKIN": "the look the kit wears: one of the built-in THEMES (FROST, MORPH …, whose names stay as written)",
   "SOURCE": "the head of a device's left column: the shape PRESETs, the envelope TIME, the audio SOURCE",
   "SQR": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
+  "STARTER": "a preset the app ships (a starter project's modulation), not one the user saved",
+  "STATUS TAGS": "the small status labels over the picture (BASINS' badges and stats bar)",
   "STUTTER {note} latched — applies to BPM-synced LFOs; press again to release": "STUTTER: the clock holds the current beat and repeats it at the note value {note} (1/4 or 1)",
   "Selection scope": "what a selection picks: whole clips or curve points",
   "Step through twelve density levels to reveal shells.": "shells: the nested surfaces of equal density in the picture (like the layers of an onion)",
@@ -1305,6 +1395,7 @@
   "TURN": "a demo LFO's name: it turns the picture once per bar (the user can rename it)",
   "The controls take the panes’ light: one {:ANGLE} for everything": "the relief follows the pane light's ANGLE: one light for the whole interface",
   "The {panel} panel could not be built: {why}": "an error notice: {panel} is a panel's name (RENDER …), {why} the program's reason, left as it is",
+  "This device’s tier, measured once: A and B are {:FULL}, C is {:BALANCED}": "a short benchmark sorts this device into tier A, B or C",
   "UNIPOLAR": "UNIPOLAR: the route only adds (0 to +); BIPOLAR: it swings both ways around the base",
   "WALL": "the clock follows wall-clock time (real elapsed seconds), as opposed to FREE, which counts frame time and slows with the picture",
   "clock state::HOLD": "— the modulation clock is held (paused in place), as opposed to RUN",
@@ -1332,11 +1423,13 @@
   "history::REMOVE LANE": "a history row: a timeline edit's name",
   "history::SEGMENT": "a history row: a timeline edit's name",
   "history::TENSION": "a history row: a timeline edit's name",
+  "left rack scroll": "the scrollbar beside the cards of the left / right RACK (the column of docked windows)",
   "notes — markdown, {inline} and {display} maths; ctrl+enter previews — kept in this browser": "{inline} and {display} are the maths syntax, $inline$ and $$display$$, shown exactly as typed",
   "notes — markdown, {inline} and {display} maths; ctrl+enter previews — kept in this browser and in the project": "{inline} and {display} are the maths syntax, $inline$ and $$display$$, shown exactly as typed",
   "open {path} in your notes tab": "your notes tab is the notebook’s first tab: the note you are writing, kept in this browser",
   "patch copied — {:PASTE} onto any {kind}": "a patch: all of one device’s settings together, as a synth patch; {kind} is the device kind (LFO, ENV, AUDIO)",
   "peak hold::HOLD": "the audio follower's PEAK HOLD: how long a band's peak is held before it falls (a time), not the envelope stage",
+  "right rack scroll": "the scrollbar beside the cards of the left / right RACK (the column of docked windows)",
   "text ink::SAMPLED": "TEXT (the label ink) set by the app itself, from the picture under each label: \"measured\", not \"a sample\"",
   "the gate opens here and stays open until hysteresis below it": "hysteresis: a small margin below the opening level, so the gate does not flicker open and shut",
   "the left rack": "the RACK: the column of docked windows at the screen’s edge (not the SHELF, where notes are kept)",
@@ -1353,7 +1446,8 @@
   "{verb} — {what}": "a button's name: its label, then what it acts on (SAVE — this project)",
   "{what} {i} name — type your own": "the name field of a macro or a trigger: {what} is Macro or Trigger, {i} its number",
   "{what} · TIMELINE": "a history row: what was done, then the window it was done in",
-  "λWAVES": "the app's name: keep it exactly as written"
+  "λWAVES": "the app's name: keep it exactly as written",
+  "→TL": "→ TL: send to the timeline"
  },
  "names": [
   "AURORA",
@@ -1435,6 +1529,9 @@
   "ACCENT": [
    "mir/shell/gui.js"
   ],
+  "ACCENT BRIGHTNESS": [
+   "mir/shell/gui.js"
+  ],
   "ACTIVE (toolbar)": [
    "mir/timeline/shortcuts.js"
   ],
@@ -1496,6 +1593,18 @@
   "AUTO": [
    "mir/shell/gui.js"
   ],
+  "AUTO: measuring this device": [
+   "mir/shell/gui.js"
+  ],
+  "AUTO: not measured": [
+   "mir/shell/gui.js"
+  ],
+  "AUTO: tier {tier} → {quality}": [
+   "mir/shell/gui.js"
+  ],
+  "AUTOMATION": [
+   "mir/shell/gui.js"
+  ],
   "Active": [
    "mir/keyboard/keyboard.js"
   ],
@@ -1513,6 +1622,9 @@
   ],
   "Add an audio follower; {:AUDIO IN} uses the microphone": [
    "mir/modulation/window.js"
+  ],
+  "Add an envelope to the rack": [
+   "mir/pattern/window.js"
   ],
   "Add and place a point": [
    "mir/timeline/shortcuts.js"
@@ -1630,8 +1742,17 @@
   "BRIGHT": [
    "mir/shell/gui.js"
   ],
+  "BRIGHTNESS": [
+   "mir/shell/gui.js"
+  ],
+  "BRIGHTNESS — shifts both accents toward white. Saved with the project, like the accents.": [
+   "mir/shell/gui.js"
+  ],
   "Black text on every label": [
    "mir/shell/gui.js"
+  ],
+  "Bundled starter modulation · Save keeps an editable user preset": [
+   "mir/modulation/window.js"
   ],
   "Bypass Snap for the gesture in progress": [
    "mir/timeline/shortcuts.js"
@@ -1666,6 +1787,15 @@
    "mir/modulation/window.js",
    "mir/shell/transport.js"
   ],
+  "COMPACT · COMPACT": [
+   "mir/modulation/window.js"
+  ],
+  "COMPACT · FULL": [
+   "mir/modulation/window.js"
+  ],
+  "COMPACT · MINIMIZED": [
+   "mir/modulation/window.js"
+  ],
   "CONDITIONING": [
    "mir/modulation/modwindow/modwindow.js"
   ],
@@ -1673,7 +1803,8 @@
    "mir/shell/gui.js"
   ],
   "COPIED": [
-   "mir/kit.js"
+   "mir/kit.js",
+   "mir/shell/rack.js"
   ],
   "COPY": [
    "mir/modulation/modwindow/modwindow.js",
@@ -1746,6 +1877,9 @@
   ],
   "Choose where the transport sits": [
    "mir/shell/transport.js"
+  ],
+  "Clear saved interface settings and reload": [
+   "mir/shell/gui.js"
   ],
   "Clip color": [
    "mir/timeline/editor.js"
@@ -1913,6 +2047,9 @@
   "DISTANCE": [
    "mir/shell/gui.js"
   ],
+  "DOCK / UNDOCK the transport": [
+   "mir/app.js"
+  ],
   "DOTTED": [
    "mir/modulation/modwindow/modwindow.js"
   ],
@@ -1962,6 +2099,15 @@
   "Deselect": [
    "mir/timeline/shortcuts.js"
   ],
+  "Devices: Compact. Tap for Minimized": [
+   "mir/modulation/window.js"
+  ],
+  "Devices: Full. Tap for Compact": [
+   "mir/modulation/window.js"
+  ],
+  "Devices: Minimized. Tap for Full": [
+   "mir/modulation/window.js"
+  ],
   "Disable backdrop filtering": [
    "mir/shell/gui.js"
   ],
@@ -1990,7 +2136,8 @@
    "mir/modulation/window.js"
   ],
   "Drag to reorder": [
-   "mir/modulation/window.js"
+   "mir/modulation/window.js",
+   "mir/shell/transport.js"
   ],
   "Drag to reorder; double-tap to rename": [
    "mir/modulation/window.js"
@@ -1999,7 +2146,8 @@
    "mir/shell/notebook.js"
   ],
   "Drag to route; tap to arm; double-tap to reset": [
-   "mir/modulation/window.js"
+   "mir/modulation/window.js",
+   "mir/shell/transport.js"
   ],
   "Drag window": [
    "mir/modulation/modwindow/modwindow.js",
@@ -2036,6 +2184,9 @@
    "mir/modulation/modwindow/modwindow.js",
    "mir/modulation/window.js"
   ],
+  "ENV {n}": [
+   "mir/pattern/window.js"
+  ],
   "ERROR": [
    "mir/modulation/window.js"
   ],
@@ -2050,6 +2201,9 @@
   ],
   "EXPOSURE": [
    "mir/modulation/host.js"
+  ],
+  "Each label turns white or black from the picture beneath it": [
+   "mir/shell/gui.js"
   ],
   "Each label’s ink from the picture under it (this app’s sampler)": [
    "mir/shell/gui.js"
@@ -2097,6 +2251,9 @@
   "FACTORY": [
    "mir/modulation/modwindow/modwindow.js",
    "mir/modulation/window.js"
+  ],
+  "FILL EACH {n} STEPS": [
+   "mir/pattern/window.js"
   ],
   "FIT": [
    "mir/modulation/modwindow/modwindow.js",
@@ -2210,6 +2367,9 @@
   "FOLDERS": [
    "mir/app.js"
   ],
+  "FORGET": [
+   "mir/shell/gui.js"
+  ],
   "FOV": [
    "mir/modulation/host.js"
   ],
@@ -2222,6 +2382,12 @@
   ],
   "FROST": [
    "mir/shell/gui.js"
+  ],
+  "FULL": [
+   "mir/shell/gui.js"
+  ],
+  "FULL SCREEN": [
+   "mir/app.js"
   ],
   "Fades only: nothing travels": [
    "mir/shell/gui.js"
@@ -2318,6 +2484,12 @@
   ],
   "HELP": [
    "mir/shell/gui.js"
+  ],
+  "HIDE / SHOW the rack": [
+   "mir/app.js"
+  ],
+  "HIDE the interface": [
+   "mir/app.js"
   ],
   "HIGH": [
    "mir/modulation/modwindow/modwindow.js",
@@ -2456,6 +2628,9 @@
   ],
   "LAP": [
    "mir/modulation/host.js"
+  ],
+  "LENGTH {len} · {n} BARS": [
+   "mir/pattern/window.js"
   ],
   "LEVEL": [
    "mir/modulation/host.js",
@@ -2745,6 +2920,15 @@
   "No copies made: source budget reached.": [
    "mir/timeline/editor.js"
   ],
+  "No envelopes on the rack — add one with +": [
+   "mir/pattern/window.js"
+  ],
+  "No macros yet — add one in the modulation window.": [
+   "mir/shell/transport.js"
+  ],
+  "No room on the timeline for {what} — add a lane or move the playhead": [
+   "mir/modulation/window.js"
+  ],
   "No such action.": [
    "mir/shell/keys.js"
   ],
@@ -2855,6 +3039,13 @@
    "mir/modulation/window.js",
    "mir/timeline/shortcuts.js"
   ],
+  "PATT": [
+   "mir/modulation/window.js"
+  ],
+  "PATTERN": [
+   "mir/app.js",
+   "mir/pattern/window.js"
+  ],
   "PHASE": [
    "mir/modulation/modwindow/modwindow.js"
   ],
@@ -2908,6 +3099,9 @@
   ],
   "Paste at the playhead, into the active lane": [
    "mir/timeline/shortcuts.js"
+  ],
+  "Pattern: drive this envelope from its step row in the PATTERN window": [
+   "mir/modulation/window.js"
   ],
   "Picture made — {w}×{h}. Tap the download icon to keep it.": [
    "mir/folders/gallery.js"
@@ -3003,7 +3197,8 @@
   ],
   "RELEASE": [
    "mir/modulation/modwindow/modwindow.js",
-   "mir/modulation/window.js"
+   "mir/modulation/window.js",
+   "mir/shell/gui.js"
   ],
   "RELIEF": [
    "mir/shell/gui.js"
@@ -3026,6 +3221,9 @@
   ],
   "RESET": [
    "mir/modulation/window.js"
+  ],
+  "RESET LAYOUT": [
+   "mir/shell/gui.js"
   ],
   "RESET LOOK": [
    "mir/shell/gui.js"
@@ -3079,11 +3277,17 @@
   "Release any open menu or gesture before the shell hides the UI": [
    "mir/timeline/shortcuts.js"
   ],
+  "Reload the page": [
+   "mir/shell/banner.js"
+  ],
   "Reload the page: on a cold start the adapter is sometimes late. If it happens again, turn on hardware acceleration in the browser's settings or update the graphics driver.": [
    "mir/shell/boot.js"
   ],
   "Reload to start again. Your saved work in this browser is kept.": [
    "mir/shell/boot.js"
+  ],
+  "Reload {name} to release the current session’s memory. Saved projects and settings are kept; unsaved renders are discarded.": [
+   "mir/shell/menubar.js"
   ],
   "Reload. If it happens again, press {:COPY DETAILS} and send them to the author.": [
    "mir/shell/boot.js"
@@ -3136,6 +3340,9 @@
   "Restart phase on triggers and playback": [
    "mir/modulation/window.js"
   ],
+  "Restore the default window layout": [
+   "mir/shell/gui.js"
+  ],
   "Restore this window layout": [
    "mir/shell/rack.js"
   ],
@@ -3154,6 +3361,9 @@
   "Right-click a tension handle": [
    "mir/timeline/shortcuts.js"
   ],
+  "Right-click or tap: FILL · CLEAR · LENGTH · PATTERN ON/OFF": [
+   "mir/pattern/window.js"
+  ],
   "Right-drag empty clip space": [
    "mir/timeline/shortcuts.js"
   ],
@@ -3163,8 +3373,14 @@
   "Route {band} to a macro": [
    "mir/modulation/window.js"
   ],
+  "Route {name} to a control first — its clip needs a target": [
+   "mir/modulation/window.js"
+  ],
   "S&H": [
    "mir/modulation/window.js"
+  ],
+  "SAMPLING": [
+   "mir/shell/gui.js"
   ],
   "SATURATION": [
    "mir/shell/gui.js"
@@ -3190,8 +3406,14 @@
   "SAW↓": [
    "mir/modulation/window.js"
   ],
+  "SCRUB": [
+   "mir/shell/gui.js"
+  ],
   "SCRUB TOOL": [
    "mir/timeline/shortcuts.js"
+  ],
+  "SCRUB is how the picture follows a ruler drag. AUTOMATION is how playback reads the Timeline into the engine; never during a recorded render.": [
+   "mir/shell/gui.js"
   ],
   "SELECT ALL": [
    "mir/timeline/shortcuts.js"
@@ -3275,6 +3497,12 @@
    "mir/modulation/modwindow/modwindow.js",
    "mir/modulation/window.js"
   ],
+  "STARTER": [
+   "mir/modulation/window.js"
+  ],
+  "STATUS TAGS": [
+   "mir/shell/gui.js"
+  ],
   "STEP: draw; Shift for pulses": [
    "mir/timeline/editor.js"
   ],
@@ -3303,6 +3531,18 @@
   "SYSTEM DEFAULT": [
    "mir/modulation/modwindow/modwindow.js",
    "mir/modulation/window.js"
+  ],
+  "Sample on a 1/16-beat grid. Values step on the grid.": [
+   "mir/shell/gui.js"
+  ],
+  "Sample on a 1/32-beat grid. Values step on the grid.": [
+   "mir/shell/gui.js"
+  ],
+  "Sample on a 1/8-beat grid. Values step on the grid.": [
+   "mir/shell/gui.js"
+  ],
+  "Sample the arrangement every rendered frame. The CLOCK tile sets how often modulation ticks at all.": [
+   "mir/shell/gui.js"
   ],
   "Save as — store what is on screen as a new project, with the name and folder below.": [
    "mir/folders/folders.js"
@@ -3337,6 +3577,12 @@
   ],
   "Scrub tool": [
    "mir/timeline/shortcuts.js"
+  ],
+  "Seek about once every three moves. The hand always stays smooth.": [
+   "mir/shell/gui.js"
+  ],
+  "Seek the picture on every scrub move. Smoothest when a frame is fast; can lag at a deep place.": [
+   "mir/shell/gui.js"
   ],
   "Seek to the beginning": [
    "mir/shell/transport.js",
@@ -3405,6 +3651,9 @@
   "Selection scope": [
    "mir/timeline/editor.js"
   ],
+  "Send to the timeline: one cycle of the LFO, the ENV's stages, or its live pattern row": [
+   "mir/modulation/window.js"
+  ],
   "Sends that are dead until their controls come back": [
    "mir/modulation/modwindow/modwindow.js"
   ],
@@ -3447,12 +3696,18 @@
   "Show Windows and Linux key names": [
    "mir/keyboard/keyboard.js"
   ],
+  "Show status tags at the top": [
+   "mir/shell/gui.js"
+  ],
   "Show the data for {name}": [
    "mir/folders/gallery.js"
   ],
   "Show the interface": [
    "mir/shell/rack.js",
    "mir/shell/transport.js"
+  ],
+  "Show the main transport bar, floating or docked": [
+   "mir/shell/gui.js"
   ],
   "Signed route amount percent": [
    "mir/modulation/window.js"
@@ -3529,6 +3784,10 @@
   "Switch between two saved patches for this device": [
    "mir/modulation/window.js"
   ],
+  "Switch to Timeline": [
+   "mir/modulation/window.js",
+   "mir/window/workspaces.js"
+  ],
   "Sync the modulation clock to the wall clock or run it free": [
    "mir/shell/transport.js"
   ],
@@ -3557,6 +3816,9 @@
   "TIME · BEATS FROM 0": [
    "mir/timeline/editor.js"
   ],
+  "TIMELINE": [
+   "mir/app.js"
+  ],
   "TIMELINE CLIP": [
    "mir/timeline/knobs.js"
   ],
@@ -3581,6 +3843,9 @@
   ],
   "TRANSPORT": [
    "mir/shell/transport.js"
+  ],
+  "TRANSPORT BAR": [
+   "mir/shell/gui.js"
   ],
   "TRI": [
    "mir/modulation/modwindow/modwindow.js",
@@ -3647,6 +3912,9 @@
   "The pane’s hairline rim": [
    "mir/shell/gui.js"
   ],
+  "The picture waits until you let go. The playhead and readers move at once.": [
+   "mir/shell/gui.js"
+  ],
   "The renderer currently owns the clock.": [
    "mir/timeline/editor.js"
   ],
@@ -3670,6 +3938,12 @@
   ],
   "This browser has no WebGPU, which this app draws with.": [
    "mir/shell/boot.js"
+  ],
+  "This device has no shape to send": [
+   "mir/modulation/window.js"
+  ],
+  "This device’s tier, measured once: A and B are {:FULL}, C is {:BALANCED}": [
+   "mir/shell/gui.js"
   ],
   "This folder is empty.  Move a project here, or save what is on screen into it.": [
    "mir/folders/gallery.js"
@@ -3942,11 +4216,17 @@
   "add a page to the project": [
    "mir/shell/notebook.js"
   ],
+  "add an envelope (ENV) to the rack first — the pattern rows are its": [
+   "mir/pattern/window.js"
+  ],
   "add an {:AUDIO} device and its {:HIT} can fire this envelope": [
    "mir/modulation/window.js"
   ],
   "add markdown files as pages of the project": [
    "mir/shell/notebook.js"
+  ],
+  "add the timeline first — a device is sent to it": [
+   "mir/modulation/window.js"
   ],
   "added the page {title}": [
    "mir/shell/notebook.js"
@@ -3965,6 +4245,9 @@
   ],
   "aurora": [
    "mir/palette.js"
+  ],
+  "automation::FRAME": [
+   "mir/shell/gui.js"
   ],
   "balmer": [
    "mir/palette.js"
@@ -4058,7 +4341,11 @@
    "mir/modulation/modwindow/modwindow.js"
   ],
   "dismiss": [
+   "mir/shell/banner.js",
    "mir/shell/notice.js"
+  ],
+  "dismiss this message": [
+   "mir/shell/banner.js"
   ],
   "dock this window back into the rack": [
    "mir/shell/rack.js"
@@ -4192,6 +4479,9 @@
   "history::PASTE": [
    "mir/timeline/history.js"
   ],
+  "history::PATTERN": [
+   "mir/pattern/window.js"
+  ],
   "history::REMOVE LANE": [
    "mir/timeline/history.js"
   ],
@@ -4231,6 +4521,9 @@
   "lasers": [
    "mir/palette.js"
   ],
+  "left rack scroll": [
+   "mir/shell/rack-scrollbar.js"
+  ],
   "light source::LIGHT": [
    "mir/shell/gui.js"
   ],
@@ -4245,6 +4538,9 @@
   ],
   "macro reset — value 0, depth 100 %": [
    "mir/modulation/window.js"
+  ],
+  "macros": [
+   "mir/shell/transport.js"
   ],
   "make image": [
    "mir/folders/gallery.js"
@@ -4408,6 +4704,9 @@
   "nothing to read": [
    "mir/core/intake.js"
   ],
+  "one cycle": [
+   "mir/modulation/window.js"
+  ],
   "opal": [
    "mir/palette.js"
   ],
@@ -4434,6 +4733,15 @@
   ],
   "patina": [
    "mir/palette.js"
+  ],
+  "pattern clips arrive with the timeline lane": [
+   "mir/modulation/window.js"
+  ],
+  "pattern off — the row is kept": [
+   "mir/modulation/window.js"
+  ],
+  "pattern on — its row drives this envelope": [
+   "mir/modulation/window.js"
   ],
   "peak hold::HOLD": [
    "mir/modulation/modwindow/modwindow.js",
@@ -4469,6 +4777,9 @@
   "quadrant": [
    "mir/palette.js"
   ],
+  "quality tier::AUTO": [
+   "mir/shell/gui.js"
+  ],
   "quality tier::FULL": [
    "mir/shell/gui.js"
   ],
@@ -4498,6 +4809,9 @@
   ],
   "replace yours?": [
    "mir/notes/face.js"
+  ],
+  "right rack scroll": [
+   "mir/shell/rack-scrollbar.js"
   ],
   "rose window": [
    "mir/palette.js"
@@ -4530,6 +4844,12 @@
   "saved “{name}”": [
    "mir/modulation/window.js"
   ],
+  "scrub::LIGHT": [
+   "mir/shell/gui.js"
+  ],
+  "scrub::LIVE": [
+   "mir/shell/gui.js"
+  ],
   "sea": [
    "mir/palette.js"
   ],
@@ -4551,11 +4871,17 @@
   "signal flag": [
    "mir/palette.js"
   ],
+  "skip to the device rack": [
+   "mir/app.js"
+  ],
   "standard — not an FL Playlist binding": [
    "mir/timeline/shortcuts.js"
   ],
   "start over": [
    "mir/folders/gallery.js"
+  ],
+  "step {n}": [
+   "mir/pattern/window.js"
   ],
   "subtitle": [
    "mir/shell/notebook.js"
@@ -4627,14 +4953,23 @@
   "the conditioning sheet is not available in this build": [
    "mir/modulation/window.js"
   ],
+  "the debug dump, to the clipboard": [
+   "mir/shell/menubar.js"
+  ],
   "the empty project": [
    "mir/folders/folders.js"
+  ],
+  "the envelope": [
+   "mir/modulation/window.js"
   ],
   "the file is larger than 32 MB": [
    "mir/core/intake.js"
   ],
   "the gate opens here and stays open until hysteresis below it": [
    "mir/modulation/window.js"
+  ],
+  "the last frame took {ms} ms — scrubbing will lag; LIGHT keeps the hand smooth": [
+   "mir/shell/gui.js"
   ],
   "the left rack": [
    "mir/shell/rack.js"
@@ -4662,6 +4997,9 @@
   ],
   "the parts {names} could not take it": [
    "mir/folders/project.js"
+  ],
+  "the pattern": [
+   "mir/modulation/window.js"
   ],
   "the phase offset": [
    "mir/modulation/window.js"
@@ -4740,6 +5078,9 @@
   ],
   "ultraviolet": [
    "mir/palette.js"
+  ],
+  "values step on the grid": [
+   "mir/shell/gui.js"
   ],
   "window {s} s": [
    "mir/modulation/window.js"
@@ -5036,6 +5377,9 @@
   "{what} · TIMELINE": [
    "mir/timeline/history.js"
   ],
+  "{what} → timeline · {beats} beats at beat {start}": [
+   "mir/modulation/window.js"
+  ],
   "{why} — what was open before is back": [
    "mir/folders/project.js"
   ],
@@ -5059,6 +5403,9 @@
   ],
   "… preview truncated at 200 000 characters; the notes are kept whole": [
    "mir/shell/notebook.js"
+  ],
+  "→TL": [
+   "mir/modulation/window.js"
   ]
  }
 }

@@ -9,7 +9,7 @@
  *              them; a component never reads one directly once the semantic tier covers it.
  *   semantic   what a thing is FOR — the names a skin sets and a component reads: the ink ladder (--fg, --fg-soft,
  *              --ink-key, --dim, --ink-faint), the accents (--acc, --acc2 …), and the 1.5 names landed here:
- *                --surface-fill --surface-sheen --surface-veil --surface-filter --surface-lift --surface-edge
+ *                --surface-fill --surface-sheen --surface-veil --surface-filter --surface-edge
  *                --surface-edge-width --surface-radius --surface-shadow --surface-shadow-float --surface-shadow-menu
  *                --relief-raise --relief-well
  *                --state-hover --state-press --state-press-scale --state-on --state-on-rim --state-on-light
@@ -58,7 +58,6 @@
 /* ── LITE, and FLAT, which is lite and more ── */
 :where(html[data-ui-tier="lite"], html[data-ui-tier="flat"]) {
   --surface-filter: none;            /* every blur the house draws: frost panes, the disconnected islands, the tip, the notebook, the menubar list */
-  --surface-lift: none;              /* the disconnected bar-chip's non-blur brightness/saturate backdrop */
   --frost-filter: none;              /* bridge: the plugin sheets read the 1.4 name */
   --glass-filter: none;              /* bridge: the TINTED filter, none already unless a skin set it */
 }
@@ -80,7 +79,7 @@
 
 /* ── REDUCED TRANSPARENCY takes the lite surface values, whatever the tier (flat, below, still wins its own) ── */
 @media (prefers-reduced-transparency: reduce) {
-  :where(html) { --surface-filter: none; --surface-lift: none; --frost-filter: none; --glass-filter: none; }
+  :where(html) { --surface-filter: none; --frost-filter: none; --glass-filter: none; }
   :where(body) {
     --surface-fill: hsl(var(--glass-tint) / var(--card-opacity));
     --surface-veil: hsl(var(--glass-tint) / var(--card-opacity));

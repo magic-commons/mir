@@ -9,7 +9,7 @@ Plan §5.2 and §6.6–6.7. Audit: F1 §4.3 and §5.
 | Tier | `data-ui-tier` | What changes |
 |---|---|---|
 | **full** | absent or `full` | nothing |
-| **lite** | `lite` | **No backdrop filter anywhere.** `--surface-filter` and `--surface-lift` are `none`, and so are the bridges `--frost-filter` and `--glass-filter` (sheets that still read a 1.4 name: `.glass` and the plugin read `--glass-filter`).<br>**A legible pane.** `--surface-fill` and `--surface-veil` get the TINTED fill `hsl(var(--glass-tint) / var(--card-opacity))`. A refractive pane, the frost-thinned .58 pane, the notebook and the menus then sit on a tint, not on the bare picture.<br>**One shadow layer.** Every pane height (`--surface-shadow`, `-float`, `-menu`) is one layer falling down: `0 1px 2px`, black .16 on dark and navy .09 on light |
+| **lite** | `lite` | **No backdrop filter anywhere.** `--surface-filter` is `none`, and so are the bridges `--frost-filter` and `--glass-filter` (sheets that still read a 1.4 name: `.glass` and the plugin read `--glass-filter`).<br>**A legible pane.** `--surface-fill` and `--surface-veil` get the TINTED fill `hsl(var(--glass-tint) / var(--card-opacity))`. A refractive pane, the frost-thinned .58 pane, the notebook and the menus then sit on a tint, not on the bare picture.<br>**One shadow layer.** Every pane height (`--surface-shadow`, `-float`, `-menu`) is one layer falling down: `0 1px 2px`, black .16 on dark and navy .09 on light |
 | **flat** | `flat` | Everything lite does, plus:<br>**Control relief off:** `--relief-raise` and `--relief-well` become `0 0 0 0 transparent`.<br>**Pane shadows off:** all three heights become `0 0 0 0 transparent`.<br>**Sheen off:** `--surface-sheen: none`.<br>**Motion 0s:** `--t-fast`, `--t-soft`, `--t-linger`, and core.css's `--motion-micro`, `-ui`, `-structural` |
 | *(media)* | `prefers-reduced-transparency: reduce` | The lite **surface** values (filter, lift, fill, veil, shadows), whatever the tier. Flat still wins its own values |
 
@@ -43,7 +43,7 @@ A skin sets the **semantic** names. Each one is read at the place of use with th
 
 | Group | Names |
 |---|---|
-| Pane | `--surface-fill`, `--surface-sheen`, `--surface-veil`, `--surface-filter`, `--surface-lift`, `--surface-edge`, `--surface-edge-width`, `--surface-radius`, `--surface-shadow`, `--surface-shadow-float`, `--surface-shadow-menu` |
+| Pane | `--surface-fill`, `--surface-sheen`, `--surface-veil`, `--surface-filter`, `--surface-edge`, `--surface-edge-width`, `--surface-radius`, `--surface-shadow`, `--surface-shadow-float`, `--surface-shadow-menu` |
 | Control relief | `--relief-raise`, `--relief-well` |
 | State | `--state-hover`, `--state-press`, `--state-on`, `--state-disabled` |
 | Type | `--label-tracking`, `--label-case`, `--font-display` |

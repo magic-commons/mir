@@ -15,7 +15,8 @@ const mk = (storage) => createPrefs({ key: 'mir.gui', schema, presets: LOOK_PRES
 {
   const P = mk(memory());
   assert.deepEqual(P.all(), defaults(schema));
-  assert.equal(P.get('card'), 'refractive'); assert.equal(P.get('quality'), 'full'); assert.equal(P.get('glow'), true); assert.equal(P.get('theme'), 'dark');
+  assert.equal(P.get('card'), 'refractive'); assert.equal(P.get('quality'), 'auto'); assert.equal(P.get('glow'), true); assert.equal(P.get('theme'), 'dark');
+  assert.equal(P.get('help'), false, "HELP is off for a new user (BASINS: Status Tags, Help OFF; Control Hints ON)"); assert.equal(P.get('hints'), true); assert.equal(P.get('badges'), false);
   assert.equal(P.preset(), 'frost', 'a fresh store is the FROST look');
   const F = LOOK_PRESETS.frost;
   assert.deepEqual([F.card, F.frost, F.blur, F.veil, F.saturation, F.corners, F.faces, F.text, F.shadow, F.disconnected], ['refractive', 'always', 11, 0, 1.3, 24, 'glass', 'theme', 2, false], "FROST is Josh's recipe (its white text is dark mode's AUTO)");
@@ -78,7 +79,7 @@ const mk = (storage) => createPrefs({ key: 'mir.gui', schema, presets: LOOK_PRES
   const home = at(LOOK_PRESETS.classic);
   assert.equal(home['html prop --glass-blur'], '22px', 'BLUR is always written: CLASSIC is the kit\'s own 22'); assert.equal(home['body prop --surface-veil'], null); assert.equal(home['body prop --glass-tint'], null); assert.equal(home['body prop --surface-filter'], null);
   assert.equal(home['html attr data-cast'], '', 'the engine always draws BASINS\' material shadow, at 100 % too'); assert.equal(home['body attr data-text'], null); assert.equal(home['body attr data-faces'], null); assert.equal(home['body prop --pane-edge'], null);
-  assert.equal(home['html prop --rack-gap'], '6px', 'CLASSIC\'s SPACING is DEFAULT'); assert.equal(home['html prop --pane-pad'], undefined, 'DEFAULT leaves the pane padding to the sheets (BASINS: 7 · 7 · 10)'); assert.equal(home['html prop --rail-gap'], '4px');
+  assert.equal(home['html prop --rack-gap'], '6px', 'CLASSIC\'s SPACING is DEFAULT'); assert.equal(home['html prop --pane-pad'], null, 'DEFAULT leaves the pane padding to the sheets (BASINS: 7 · 7 · 10)'); assert.equal(home['html prop --rail-gap'], '4px');
   assert.equal(home['body prop --surface-radius'], null); assert.equal(home['html prop --relief-raise'], null); assert.equal(home['body prop --surface-shadow'], null);
   assert.equal(home['html attr data-ui-tier'], null); assert.equal(home['body class frost'], false); assert.equal(home['body attr data-card'], 'tinted');
   const g = at(themeValues('frost'));

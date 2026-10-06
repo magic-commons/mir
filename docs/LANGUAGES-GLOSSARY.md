@@ -55,7 +55,7 @@ Palette names (lowercase in English): translated when ordinary words (aurora →
 
 ## 3. Terms
 
-One table, ten language columns. The alpha.5 top-up added the terms the translators met on the new strings (Group: alpha.5 additions) and corrected some earlier cells. Where the field keeps the English word, the cell says so by repeating it; **bold** = a real choice, explained in the last column. A dash means that language's lane did not list the term (its pack still translates every catalogue string). The Latin-script columns came first; the CJK and Cyrillic columns and the Devanagari, Bengali and Arabic columns were matched to them by the English cell.
+One table, ten language columns. The alpha.12 join added the timeline's and the pattern's terms (Group: Timeline and pattern (alpha.12): the words the packs already use, plus the new ones). The alpha.5 top-up added the terms the translators met on the new strings (Group: alpha.5 additions) and corrected some earlier cells. Where the field keeps the English word, the cell says so by repeating it; **bold** = a real choice, explained in the last column. A dash means that language's lane did not list the term (its pack still translates every catalogue string). The Latin-script columns came first; the CJK and Cyrillic columns and the Devanagari, Bengali and Arabic columns were matched to them by the English cell.
 
 | English | es | fr | pt-BR | id | 简体中文 zh-Hans | 日本語 ja | Русский ru | हिन्दी hi | বাংলা bn | العربية ar | Group | Why |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -346,6 +346,23 @@ One table, ten language columns. The alpha.5 top-up added the terms the translat
 | waveform names SAW↑ SAW↓ SQR TRI S&H DRIFT MULTI-* | — | — | — | — | — | — | — | Latin | Latin | Latin | alpha.5 additions | hi/bn/ar: as the catalogue note suggests |
 | DOTTED / TRIPLET / HOLD 1/4 | — | — | — | — | — | — | — | Latin | Latin | Latin | alpha.5 additions | hi/bn/ar: note values |
 | dead-send inspector | — | — | — | — | — | — | — | डेड-सेंड निरीक्षक | ডেড-সেন্ড পরিদর্শক | مفتش الإرسال الميت | alpha.5 additions |  |
+| TIMELINE | LÍNEA DE TIEMPO | TIMELINE | LINHA DO TEMPO | LINIMASA | 时间线 | タイムライン | ТАЙМЛАЙН | टाइमलाइन | টাইমলাইন | الخط الزمني | Timeline and pattern (alpha.12) | the second plugin's window and its name in "{what} · TIMELINE"; from the alpha.11 pack |
+| lane | carril | couloir | pista | lajur | 轨道 | レーン | дорожка | लेन | লেন | مسار | Timeline and pattern (alpha.12) | a row of the arrangement that holds clips; from the alpha.11 pack |
+| clip | clip | clip | clipe | klip | 片段 | クリップ | клип | क्लिप | ক্লিপ | مقطع | Timeline and pattern (alpha.12) | a block on a lane; from the alpha.11 pack |
+| playhead | cabezal | tête de lecture | cursor de reprodução | playhead | 播放头 | 再生ヘッド | курсор воспроизведения | प्लेहेड | প্লেহেড | مؤشر التشغيل | Timeline and pattern (alpha.12) | the moving line on the ruler; from the alpha.11 pack |
+| ruler | regla | règle | régua | penggaris | 标尺 | ルーラー | линейка | रूलर | রুলার | مسطرة | Timeline and pattern (alpha.12) | the beat scale above the lanes; from the alpha.11 pack |
+| scrub | scrub | scrub | scrub | scrub | 拖播 | スクラブ | СКРАБ | स्क्रब | স্ক্রাব | التمرير | Timeline and pattern (alpha.12) | dragging along the ruler; SCRUB is the SAMPLING row, `scrub::LIVE / LIGHT` its levels |
+| automation | automatización | automation | automação | otomasi | 自动化 | オートメーション | АВТОМАТИЗАЦИЯ | ऑटोमेशन | অটোমেশন | أتمتة | Timeline and pattern (alpha.12) | a curve that moves a parameter; `automation::FRAME` is a grid level of SAMPLING |
+| PATTERN | PATRÓN | PATTERN | PADRÃO | PATTERN | 样式 | パターン | ПАТТЕРН | पैटर्न | প্যাটার্ন | نمط | Timeline and pattern (alpha.12) | the step sequencer window; `history::PATTERN` is the undo domain |
+| step | paso | pas | passo | langkah | 步 | ステップ | шаг | स्टेप | স্টেপ | خطوة | Timeline and pattern (alpha.12) |  |
+| SAMPLING | MUESTREO | ÉCHANTILLONNAGE | AMOSTRAGEM | SAMPLING | 采样 | サンプリング | ДИСКРЕТИЗАЦИЯ | सैंपलिंग | স্যাম্পলিং | أخذ العينات | Timeline and pattern (alpha.12) | the GUI group: how a scrub and the automation read the engine |
+| STARTER | INICIAL | DE DÉPART | INICIAL | AWAL | 内置 | スターター | СТАРТОВЫЙ | स्टार्टर | স্টার্টার | مبدئي | Timeline and pattern (alpha.12) | a bundled starter preset (alpha.12) |
+| FORGET | OLVIDAR | OUBLIER | ESQUECER | LUPAKAN | 忘记 | 消去 | ЗАБЫТЬ | भूलें | ভুলুন | نسيان | Timeline and pattern (alpha.12) | wipes this browser's saved settings and reloads |
+| BRIGHTNESS | LUMINOSIDAD | LUMINOSITÉ | LUMINOSIDADE | KECERAHAN | 亮度 | 明るさ | ЯРКОСТЬ | ब्राइटनेस | ব্রাইটনেস | الإشراق | Timeline and pattern (alpha.12) | ACCENT BRIGHTNESS (toward white): kept apart from the glass BRIGHT |
+| STATUS TAGS | ETIQUETAS DE ESTADO | ÉTIQUETTES D’ÉTAT | ETIQUETAS DE STATUS | LABEL STATUS | 状态标签 | ステータスタグ | МЕТКИ СОСТОЯНИЯ | स्टेटस टैग | স্ট্যাটাস ট্যাগ | علامات الحالة | Timeline and pattern (alpha.12) | the small status labels over the picture |
+| TRANSPORT BAR | BARRA DE TRANSPORTE | BARRE DE TRANSPORT | BARRA DE TRANSPORTE | BAR TRANSPORT | 传输栏 | トランスポートバー | ПАНЕЛЬ ТРАНСПОРТА | ट्रांसपोर्ट बार | ট্রান্সপোর্ট বার | شريط الناقل | Timeline and pattern (alpha.12) | show the main transport bar |
+| RESET LAYOUT | RESTABLECER DISPOSICIÓN | RÉINITIALISER LA DISPOSITION | REDEFINIR LAYOUT | ATUR ULANG TATA LETAK | 重置布局 | レイアウトをリセット | СБРОС РАСКЛАДКИ | लेआउट रीसेट | লেআউট রিসেট | إعادة ضبط التخطيط | Timeline and pattern (alpha.12) | restore the default window layout |
+| envelope (ENV) | envolvente (ENV) | enveloppe (ENV) | envelope (ENV) | envelope (ENV) | 包络 | エンベロープ | огибающая | एन्वेलप (label ENV) | এনভেলপ (label ENV) | إنفلوب (label ENV) | Timeline and pattern (alpha.12) | the ADSR-style source; ENV stays Latin where the glossary says so |
 
 ## 4. Abbreviations used for length
 

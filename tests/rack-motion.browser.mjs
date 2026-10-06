@@ -86,7 +86,7 @@ try {
   for (let i = 1; i <= 10; i++) { await mouse('mouseMoved', g.x, g.y + i * 40); await sleep(16); }
   const mid = await ev(`return snap();`);
   for (let i = 1; i <= 5; i++) { await mouse('mouseMoved', g.x, g.y + 400 - i * 40); await sleep(16); }
-  await p.shot('docs/plates/rack/rack-motion-mid-drag.png');
+  if (process.env.MIR_PLATES) await p.shot('docs/plates/rack/rack-motion-mid-drag.png');   // a test run never writes into docs/
   await key('Escape', 'Escape', 27); await sleep(80);
   let after = await ev(`await settle(); return { s: snap(), anims: [...document.querySelectorAll('.dev')].reduce((n, d) => n + d.getAnimations().length, 0), tr: [...document.querySelectorAll('.dev')].map((d) => d.style.translate).join('') };`);
   check('gallery: a header drag that moved the others, reversed halfway, then Escape: every window exactly where it began, clean', g.ok && mid !== before && after.s === before && after.anims === 0 && !after.tr, JSON.stringify({ before, mid, after }));

@@ -2,7 +2,7 @@
 
 This is **MIR**, Magic Commons' interface kit: glass, controls, windows, menus, pages and a modulation system, as plain ES modules and CSS with no build step. This page is the starter app's greeting and its manual. You are reading it on the picture; a model reads the same page through the app.
 
-The bar at the bottom opens everything: **Space** (or ▶) plays, the ring beside it is modulation's power, the latches open the windows, the MIR mark opens modulation. **J** the notebook, **?** the keys. Escape or a press on the picture puts these words away.
+The bar at the bottom opens everything: **Space** (or ▶) plays, the ring beside it is modulation's power, the latches open the windows, the MIR mark opens modulation. **S** FOLDERS, **M** modulation, **J** the notebook, **B** the rack, **T** dock the transport, **H** hide the interface, **F** full screen, **?** the keys (BASINS' table, the kit's default). Escape or a press on the picture puts these words away.
 
 ---
 
@@ -42,7 +42,7 @@ myapp/
 | **THE NAME** | `KEY` names every store in the browser (`KEY + '.rack'` …) | both names, first |
 | **THE NUMBERS** | `S`: every number the picture is drawn from | your game's numbers |
 | **THE PICTURE** | a 2D canvas drawn from `S` inside `app.safeRect()`; the loop runs through `frame.coalesce`, only while the app's one clock plays | `draw()`: this is where Tetris goes |
-| **THE APP** | `createApp({ name, key, stage, state: S, present, subject, pages, keys, menus, … })` (`../mir/app.js`): the look, the language, the key table, the transport bar, the rack, modulation, the pages, the notebook, FOLDERS, the words on the picture, the menus and describe, wired in the kit's order. `name` is also the page title and the wordmark. `present` is your redraw: it is called when a number changes, **when the theme or the look changes**, and when a window opens or closes. `subject()` is where your picture's subject is (the board, the ring), in stage px: the words on the picture rest beside it | the words, `subject`, `pages`, `keys`, `menus` |
+| **THE APP** | `createApp({ name, key, stage, state: S, present, subject, pages, keys, menus, … })` (`../mir/app.js`): the look, the language, the key table, the transport bar, the rack, modulation, the pages, the notebook, FOLDERS, the words on the picture, the menus and describe, the banner, the scene guard and the wake lock, wired in the kit's order. Opt in with `timeline: true` (the TIMELINE and the lego stack under the modulation window), `session: true` (the live project: RESUME on a cold start), `pattern: false` (the PATTERN step sequencer is on with the modulation). `name` is also the page title and the wordmark. `present` is your redraw: it is called when a number changes, **when the theme or the look changes**, and when a window opens or closes. `subject()` is where your picture's subject is (the board, the ring), in stage px: the words on the picture rest beside it | the words, `subject`, `pages`, `keys`, `menus` |
 | **THE PARAMETERS** | `app.param(key, label, min, max, more?)`: one call makes `S[key]` a kit control, a modulation target **and** a saved value | one call per number a player may turn |
 | **THE RACK** | `app.rack.register({ id, title, side, open: !app.first, build })`; each window gets a latch on the bar; `build` runs on first open | your windows |
 | **MODULATION** | `app.mod.route('lfo', 'app.size', 0.35)` on a first run: an LFO drives SIZE | which number the first route drives |
@@ -61,7 +61,7 @@ A route writes its target as a base plus a swing, $x(t) = b + d\,\sin(2\pi f t)$
 
 **The bar is the opener.** On a first run (nothing saved) `app.first` is true and every window stays closed: only the bar is on screen, and each window opens from its latch.
 
-Any piece `createApp` wires can be left out (`folders: false`), given more options (`rack: { favourites: 4 }`), or built by hand with the builders below: each is returned (`app.rack`, `app.mod`, `app.keys`, `app.folders`, `app.info`, `app.pages`, `app.notebook`, `app.gui`, `app.transport`, `app.describe`).
+Any piece `createApp` wires can be left out (`folders: false`), given more options (`rack: { favourites: 4 }`), or built by hand with the builders below: each is returned (`app.rack`, `app.mod`, `app.keys`, `app.folders`, `app.info`, `app.pages`, `app.notebook`, `app.gui`, `app.transport`, `app.describe`, `app.pattern`, `app.timeline`, `app.session`, `app.banner`, `app.sceneGuard`, `app.wakeLock`).
 
 ## 4. The builders
 
@@ -87,6 +87,10 @@ One line each. Paths are from `app/`.
 | `notice`, `openDialog`, `confirmDialog`, `bootCard`, `busyMark`, `settingsRows` | `../mir/shell/notice.js`, `dialog.js`, `boot.js`, `busy.js`, `settings-rows.js` | a toast, a dialog, the boot card, the loading mark, a settings panel |
 | `installModulation` | `../mir/modulation/bind.js` | the modulation window; `mod.add(param)`, `mod.route(source, id, depth)`, `mod.play(on)`, `mod.setPower(on)` |
 | `installTimeline` | `../mir/timeline/bind.js` | the timeline, the kit's second plugin: lanes of automation clips on any parameter, in the modulation clock (`installTimeline({ mount, mod, keys, history })`; `docs/TIMELINE.md`) |
+| `installPattern` | `../mir/pattern/window.js` | PATTERN, the step sequencer for the modulation window's ENVs: 16/32/64 steps a row, one window on its device (`installPattern({ mount, mod })`; `docs/PATTERN.md`) |
+| `createSession`, `openerSwitches` | `../mir/core/session.js` | the live project beside the view: saved 300 ms after a change, RESUME on a cold start (`docs/SESSION.md`) |
+| `createSceneGuard`, `installBanner`, `bootVeil`, `installWakeLock`, `copyText` | `../mir/shell/scene-guard.js`, `banner.js`, `boot.js`, `../mir/core/wakelock.js`, `../mir/shell/clipboard.js` | the UI's space never reaches the picture; the banner of problems; the boot veil; the screen kept awake while it plays; copy (`docs/SCENE-GUARD.md`, `docs/SHELL-PARTS.md`) |
+| `createInkSampler` | `../mir/core/ink.js` | each label white or black from the picture beneath it (`docs/INK.md`) |
 | `createFolders` | `../mir/folders/folders.js` | the project window |
 | `createInfoLayer`, `infoActions`, `showPage`, `greet` | `../mir/info/layer.js`, `../mir/info/page.js` | words on the picture; `greet(…, { first: true })` shows page 0 up to its first `---` |
 

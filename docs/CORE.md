@@ -50,7 +50,9 @@ Five small modules in `mir/core/` and one sheet. No dependency between them exce
 
 Five more modules live in `mir/core/`. They are not part of the frame law above; each has its own doc.
 
-**`core/prefs.js`** — one store for browser preferences. A schema row says how each option is applied (an attribute, a class, a property, or a call); a bad stored value is repaired, never thrown; applying is one coalesced frame job. The GUI window is built on it. API: [API.md](API.md#mircoreprefsjs-browser-preferences); doc: [GUI.md](GUI.md).
+**`core/prefs.js`** — one store for browser preferences. A schema row says how each option is applied (an attribute, a class, a property, or a call); a bad stored value is repaired, never thrown; applying is one coalesced frame job. The GUI window is built on it. A versioned migration moves the project's keys out once; FORGET and DOWNLOAD SETTINGS: [SESSION.md](SESSION.md). API: [API.md](API.md#mircoreprefsjs-browser-preferences); doc: [GUI.md](GUI.md).
+
+**`core/session.js`** — the live project: every registered part kept beside the view, saved 300 ms after a change and at once on leaving, RESUME on a cold start. [SESSION.md](SESSION.md).
 
 **`core/i18n.js`** — `t('English')`: English is the key and the fallback; packs load on demand; `setLanguage(tag)` writes `<html lang dir>` and every kit label changes live through `kit.js`'s `label()` / `ariaLabel()`. Doc: [LANGUAGES.md](LANGUAGES.md).
 

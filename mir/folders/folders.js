@@ -256,7 +256,7 @@ export function createFolders(options = {}) {
       if (!e.thumb) { const c = await capture().catch(() => null); if (c && c.thumb) files.overwrite(e.id, { payload: e.payload, thumb: c.thumb, facts: e.facts, at: e.at }); }
       if (typeof o.onOpened === 'function') o.onOpened(e);
     },
-    onSaved: (e) => { current = e.id; settled(self()); paintMark(); },
+    onSaved: (e) => { current = e.id; settled(self()); paintMark(); if (typeof o.onSaved === 'function') { try { o.onSaved(e); } catch (err) { console.warn('folders: onSaved', err); } } },
     onFresh: () => { current = null; settled(self()); paintMark(); },
     onRemoved: (e) => { if (current === e.id) { current = null; paintMark(); } },
     onInspect: o.onInspect,
@@ -309,7 +309,7 @@ export function createFolders(options = {}) {
     }
     let r;
     try { const c = await capture(); r = files.overwrite(e.id, c); } catch (err) { r = { ok: false, why: String((err && err.message) || err) }; }
-    if (r.ok) { gallery.markClean(); say(t('Saved — {name}', { name: r.entry.name })); gallery.paint(); paintMark(); }
+    if (r.ok) { gallery.markClean(); say(t('Saved — {name}', { name: r.entry.name })); gallery.paint(); paintMark(); if (typeof o.onSaved === 'function') { try { o.onSaved(r.entry); } catch (err) { console.warn('folders: onSaved', err); } } }
     else say(t('Could not save: {why}', { why: r.why || 'unknown' }), true);
     return r;
   }

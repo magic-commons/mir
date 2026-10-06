@@ -84,6 +84,8 @@ try {
   await sleep(300);
   r = await ev(`const e = F.current(); return { name: e && e.name, ro: !!(e && e.facts.readOnly), n: F.files.entries().length, dirty: ${T('.fo-head')}.dataset.dirty || null };`);
   check('SAVE on a read-only starter saves the user\'s own copy (TIDE stays as shipped)', r.name === 'TIDE 2' && !r.ro && r.n === 7 && !r.dirty, JSON.stringify(r));
+  r = await ev(`return __F.saved.slice();`);
+  check('a save calls the host\'s onSaved with the entry (createApp writes the modulation preset there)', r.join() === 'TIDE 2', JSON.stringify(r));
   const knobAt = await at(`__F.rings.root.querySelector('.k-dial')`);
   await dragBy(knobAt.x, knobAt.y, 0, -60);
   await sleep(120);
@@ -94,6 +96,8 @@ try {
   await sleep(300);
   r = await ev(`const e = F.current(); return { name: e.name, rings: e.payload.parts.knobs.rings, n: F.files.entries().length, dirty: ${T('.fo-head')}.dataset.dirty || null };`);
   check('SAVE writes over the open project in place: same entry, new knobs, the mark goes out', r.name === 'TIDE 2' && r.rings === ringsSaved && r.n === 7 && !r.dirty, JSON.stringify(r));
+  r = await ev(`return __F.saved.slice();`);
+  check('and so does a SAVE over the open project (onSaved twice, the same entry)', r.join() === 'TIDE 2,TIDE 2', JSON.stringify(r));
 
   /* ── another project: EMBER; then NEW = the empty project ── */
   await click(`tile('EMBER').querySelector('.sv-shot')`, 'EMBER select');

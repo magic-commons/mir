@@ -24,7 +24,7 @@ ok(/\.dataset\.mirChip\s*=/.test(builder), 'buildChipRail sets data-mir-chip on 
 ok(/setAttribute\('aria-label',\s*\(title \|\| windowRoot\.id\) \+ ' window controls'\)/.test(builder), 'the aria-label is unchanged');
 
 /* 3. no kit file sets or reads data-ink on a chip; the glyph name lives in data-glyph */
-for (const f of kit) {
+for (const f of kit.filter((f) => !/core[\/]ink\.js$|css[\/]skin\.css$/.test(f))) {   // the adaptive-ink contract (data-ink="w|k") is the kit's own since 1.5.0-alpha.12
   const s = fs.readFileSync(f, 'utf8');
   ok(!/dataset\.ink\b|data-ink/.test(s), `${path.relative(ROOT, f)} still uses the chips' data-ink`);
 }

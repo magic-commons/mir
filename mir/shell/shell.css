@@ -173,6 +173,14 @@ body.ui-hidden #notebook { display: none !important; }
 #title .mark { margin-left: .05em; }
 #title .ms { margin-left: 10px; }
 body[data-theme="light"] #title .word { color: var(--wordmark-ink-light); }
+/* 1.5.0-alpha.12 · THE WORDMARK'S OWN ART (wordmark({ svg }), BASINS about.css §2): an app's lettering seated as one SVG or as a
+   dark and a light image; `.mark` stays in the DOM, unseen, so `#title .mark` still feeds the loading seats */
+#title .word[data-art] { display: inline-flex; align-items: center; position: relative; height: var(--title-art-h, 26px); letter-spacing: normal; line-height: 0; }
+#title .word[data-art] > .wordmark { display: block; width: auto; height: 100%; max-width: none; }
+#title .word[data-art] > .wordmark-light { display: none; }
+body[data-theme="light"] #title .word[data-art] > .wordmark-dark { display: none; }
+body[data-theme="light"] #title .word[data-art] > .wordmark-light { display: block; }
+#title .word[data-art] > .mark { position: absolute; width: 0; height: 0; overflow: hidden; opacity: 0; pointer-events: none; }
 #title { pointer-events: auto; align-items: baseline; background: none; border: none; box-shadow: none; padding: 6px 10px; gap: 0; opacity: 1; }
 #title .mark { align-self: center; }
 @media (hover: none) and (max-width: 700px),

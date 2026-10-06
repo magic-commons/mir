@@ -20,7 +20,7 @@ MIR is a kit of plain ES modules and CSS with no build step and no dependencies.
 3. **Change the starter, section by section** (each section of `app.js` starts with a `// ──` line saying what to change):
    - THE NAME first: `KEY` (a unique id; it names every store) and `NAME`.
    - THE NUMBERS and THE PICTURE: replace `S` and `draw()` with the game. Keep the loop on `frame.coalesce`; it runs while the app's one clock plays (`app.playing()`).
-   - THE APP: `createApp({ … })` wires everything; change its words, `pages`, `menus` and `keys` (one row per action: `{ id, label, group, keys, run }`; menus show `app.keys.menuItem(id)`). Space is already the one play.
+   - THE APP: `createApp({ … })` wires everything; change its words, `pages`, `menus` and `keys` (one row per action: `{ id, label, group, keys, run }`; menus show `app.keys.menuItem(id)`). Space is already the one play; the kit's key table is BASINS' (S FOLDERS, M modulation, J notebook, B the rack, T dock the transport, H hide the interface, F full screen, ? the keys). `createApp({ timeline: true })` adds the TIMELINE with the lego stack, `session: true` the live project (RESUME), and the PATTERN step sequencer comes with the modulation (`pattern: false` leaves it out).
    - THE PARAMETERS: one `app.param(key, label, min, max)` per number a player may turn. Each becomes a kit knob (or fader), a target the modulation window can drive, **and** part of a saved game.
    - THE RACK: one `app.rack.register({ id, title, side, open: !app.first, build })` per window; each gets a latch on the transport bar, which is the main opener (a first run shows only the bar).
    - Anything else a saved game holds: `registerProjectPart(name, { capture, restore })`.
@@ -47,6 +47,6 @@ MIR is **GPL-3.0-only** (`LICENSE`). An app made by copying the kit is a work ba
 | the starter | `SKILL_DIR/starter/` (`index.html`, `app.js`, `README.md`) |
 | every export | `SKILL_DIR/docs/API.md` |
 | what every shadow, bevel and light means | `SKILL_DIR/docs/INTENT.md` |
-| one page per part | `docs/RACK.md`, `MODULATION.md`, `TIMELINE.md`, `FOLDERS.md`, `KEYS.md`, `NOTEBOOK.md`, `INFORMATIONAL.md`, `GUI.md`, `SHELL-PARTS.md`, `LANGUAGES.md`, `FORMAT.md` |
+| one page per part | `docs/RACK.md`, `MODULATION.md`, `TIMELINE.md`, `PATTERN.md`, `SESSION.md`, `SCENE-GUARD.md`, `INK.md`, `FOLDERS.md`, `KEYS.md`, `NOTEBOOK.md`, `INFORMATIONAL.md`, `GUI.md`, `SHELL-PARTS.md`, `LANGUAGES.md`, `FORMAT.md` |
 | the tokens a skin may set | `SKILL_DIR/mir/tokens.json` (`skin: true`), `docs/TOKENS.md` |
 | the kit's version | `SKILL_DIR/BUILD.json`, `mir/version.js` |

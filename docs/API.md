@@ -19,6 +19,8 @@ Import paths below are from an adopted app's `lab/` folder: `./mir/…`.
 | `makeParam({ state, key, label, min, max, map, mod, onChange, id, make, …widget })` | One number as a kit control (`make`, default `knob`), a modulation target (`mod.add`; id `app.<key>`) and a saved value. → `{ id, key, label, unit, min, max, map, widget, root, home, get(), value(), set(v), remove() }`; `value()` is the base, never the modulated reading. With no `id`, a `key` that does not match `/^[a-z][a-z0-9]*$/` throws a `TypeError` naming it and the fix. |
 | `PRESSABLE` | the selector `installPress` is given (`.sw, .seg-b, .trig, .tbtn, .mir-rack-btn`) |
 
+**`createApp` (1.5.0-alpha.12).** More options: `banner`, `sceneGuard`, `wakeLock` (each `false` or options), `canvas` (the picture's canvas, for the scene guard), `coming: [[NAME, hint]]` (menu rows for what is not built yet), `session` (off by default: `true` or `{ key, … }` keeps the live project in one key, [SESSION.md](SESSION.md)), `pattern` (the PATTERN with the modulation; `false` leaves it out; WINDOW › PATTERN), `factory` (bundled starter presets, `{ presets, folder, apply }`, handed to `installModulation`), `timeline` (`true` or options: the TIMELINE, the lego stack under the modulation window and the MIR switch between the two). The rack gets `scrollbar: true, name, notebook`; the GUI window gets the rack; the accent's angles go to the modulation window's `setAccent`, and the GUI's saved SAMPLING · AUTOMATION grid goes to `installModulation({ automationGrid })`. More members: `hideInterface()`, `dump()`, `banner`, `sceneGuard`, `wakeLock`, `session`, `pattern`, `timeline`, `workspaces`. Key actions `rack` (B), `dock` (T), `hide` (H), `fullscreen` (F); `folders` moved to S. `window.__MIR.app`.
+
 **`mir/mir.css`**: every kit sheet, by `@import`, in the kit's order: `<link rel="stylesheet" href="mir/mir.css">`. Its header says which order still matters under the cascade layers. `tests/mir-css.node.mjs` fails if a sheet under `mir/` is missing from it or imported twice.
 
 ---
@@ -162,9 +164,15 @@ A pack: `{ tag, name, dir, reviewed, fonts, type, strings: { English: "…" | { 
 
 ## `mir/core/prefs.js`: browser preferences
 
-- `createPrefs({ key, schema, presets, storage, doc, context })` → `{ get(k), set(k, v) | set(patch) → changedKeys, reset(), all(), subscribe(fn(state, changed)) → off, apply({ now }), preset(), applyPreset(id), presets, resolve(), env(), destroy() }`
+- `createPrefs({ key, schema, presets, storage, doc, context, version?, migrate?, projectKeys?, project? })` → `{ get(k), set(k, v) | set(patch) → changedKeys, reset(), forget(), all(), subscribe(fn(state, changed)) → off, apply({ now }), preset(), applyPreset(id), presets, resolve(), env(), migration, settings({ app, name }) → envelope, download({ app, name }) → bool, load(textOrEnvelope) → { ok, changed, errors, warnings }, destroy() }` — preferences against project: [SESSION.md](SESSION.md)
+- `migratePrefs(storage, key, { version, migrate, projectKeys, project })` → `{ ok, migrated, moved? }` · `forgetPrefs(key, storage?)` · `settingsFileName(app, date?)`
 - A schema row: `{ key, type: 'enum' | 'bool' | 'number', values?, min?, max?, step?, wrap?, default, apply: [{ on, attr, map? } | { on, cls, when? } | { on, prop, map? } | { run(v, state, env, context) }] }`
-- Pure: `valid`, `defaults`, `repair`, `coerce`, `resolve(state, schema, env)`, `matchPreset(state, presets)`
+- Pure: `valid`, `defaults`, `repair`, `coerce`, `resolve(state, schema, env)`, `matchPreset(state, presets)`, `migratePrefs`, `settingsFileName`
+
+## `mir/core/session.js`: the live project ([SESSION.md](SESSION.md))
+
+- `createSession({ key, storage?, parts?, also?, delay = 300, hold?, lift?, onSeed?, win?, doc? })` → `{ hasResume(), resume(ctx?) → { ok, failed, seeded }, discard(), arm(), armed(), changed(), save() → bool, flush() → bool, read() → { parts, seed? } | null, adopt(moved) → bool, destroy() }`
+- `readSession(storage, key, lift?)` → `{ parts, seed? } | null` · `adoptInto(storage, key, moved)` → bool · `openerSwitches(search, { ids, direct, webdriver })` → `{ warning, choice }` · `SESSION_V` (1)
 
 ## The portable format: `mir/core/envelope.js`, `png.js`, `intake.js` ([FORMAT.md](FORMAT.md))
 
@@ -293,12 +301,18 @@ Storage: `{ items: { [path]: { path, folder, name, saved, opened, title, md } },
   - `saveLayout(slot?)`, `loadLayout(slot)`, `forgetLayout(slot)`, `layouts()`.
 - **Reading the state.** `windows()` → `[{ id, title, side, open, built, floating, folded }]`, `keepClear()` → the rects of the racks showing a window and the transport bar (`[{ left, top, right, bottom }]`), `built`, `registered`, `isBuilt(id)`, `window(id)`, `order(side)`, `floating()`, `floatOf(id)`, `phone`, `dragging`, `cancelDrag()`, `activity`, `el`, `sync()`, `destroy()`.
 - **The rack's motion (1.5.0-alpha.11, BASINS' `rack-motion.js`):** `createRackMotion(hosts, view)` → `{ refresh(), hold(card), follow(card, x, y), release(card, settle), holding, destroy() }`; any card change animates the card's height and every moved card's travel at `--rack-motion` / `--rack-ease`; a card enters 6 px up over `--rack-enter` / `--rack-enter-ease` (BASINS' 220 ms). `reorderIndex(boxes, at, bar)` and `insertionIndex(boxes, bar)` take the title bar's middle (the title bar decides above or below); `RACK.hyst` is removed. Racks carry `data-mir-rack`. The rack's height motion joins the core's one-writer registry through `core/motion.js` `own(el, anim)` → Promise<boolean> (`docs/CORE.md`).
+- **createRack options (1.5.0-alpha.12)**: `scrollbar` (false; true seats BASINS' scrollbar at the card column), `tabletClamp` (true), `retired` (`{ oldId: heirId }`), `notebook` (the notebook or `() => it`; layouts keep `nb: [w, h]`), `name` (COPY's head line), `persist` (`'all'` | `'closed'`: `'closed'` keeps only which windows are closed and the phone rack shown across a reload; `closedLayout(windows, { phoneShown, at })` is that record).
+- **Rack verbs (1.5.0-alpha.12)**: `rack.resetLayout()` → true (RESET LAYOUT: every float docked home, every window opened, powered on, unfolded and in its home rack; the rack shown; app cards keep their place and state) · `rack.digest(id)` → string (`name · TITLE · ISO time`, `status\t…`, then one `label\tvalue\tsub` line per readout) · `rack.copyDigest(id)` → Promise&lt;string&gt; (the digest to the clipboard and a 900-ms `· COPIED` flash on the status) · `rack.scrollbar` → `{ paint(), tracks, destroy() }` | null.
+- **Pure helpers (1.5.0-alpha.12)**: `readLayout(raw, known, retired)` (resolves retired ids, keeps `nb`), `clampFloatTablet(x, y, w, h, vv, edge)`, `digestText({ name, title, status, rows, at })`. **`mir/shell/rack-scrollbar.js`**: `createRackScrollbars({ host, racks, span, view })` → `{ paint(), tracks, destroy() }`; pure `scrollbarSeat({ side, rect, gutter, view, overflow, uiHidden, hidden })`, `thumbOf({ height, client, scrollHeight, scrollTop })`, `SCROLLBAR`.
 - **Pure helpers.** `reorderIndex`, `insertionIndex`, `slotRect`, `moveId`, `clampFloat`, `detached`, `peekSide`, `dodgeSeat`, `queueToggle`, `openOrder`, `favSlot`, `readLayout`, `layoutLabel`, `localStore`, `RACK`, `SIDES`.
 - **`mir/shell/rack.css`** loads after the kit's sheets and core.css, in `mir.kit.house`.
 
 ### The GUI window: `mir/shell/gui.js` ([GUI.md](GUI.md), [THEMES.md](THEMES.md))
 
-- `createGui({ host, prefs, app, about, accent, defaults, storageKey, inkSampler })` (`inkSampler: true` offers TEXT · SAMPLED, the `text` option `'sampled'`: no `data-text` is written, so the app's own per-label ink sampler decides; 1.5.0-alpha.7) → `{ root, window, prefs, open(page), close(), toggle(page), page, turn(dir), moving(bool), dropGuides(), census(), applyTheme(id), applyTone(id), themeCost(id?), light, parallax, destroy() }`; `open('options' | 'options:2' | 'about')`.
+- `createGui({ host, prefs, app, about, accent, defaults, storageKey, inkSampler, tierBench, sampling, projectAccent, rack })` → `{ root, window, prefs, open(page), close(), toggle(page), page, turn(dir), moving(bool), dropGuides(), census(), applyTheme(id), applyTone(id), themeCost(id?), tier(), measureTier(force?), sampling(), light, parallax, destroy() }` (1.5.0-alpha.12). `inkSampler`: a `createInkSampler` sampler (TEXT · AUTO samples; LIGHT · DARK stop it) or `true` (the app's own sampler; TEXT offers TEXT · SAMPLED, the `text` option `'sampled'`, no `data-text` written). `tierBench: async ({ win, doc, budgetMs }) → { periodMs, passMs }`. `sampling: { automation(grid), frameMs() }`. `projectAccent` (default true) registers the project part `accent`. `rack` shows RESET LAYOUT. `tier()` → `{ tier, hz, periodMs, passMs, headroom, ms, at, version, why }` or null; `sampling()` → `{ scrub, grid }`.
+- `shell/gui.js` also exports (alpha.12): `measureTier({ bench, storage, key, force, win })`, `storedTier(storage, key)`, `uiBench({ win, doc, budgetMs })`, `TIER_KEY`, `AUTOMATION_GRID`, `effectiveQuality(quality, tier)`, `touchTablet(doc, signal)`; `lookSchema({ tier })` takes the tier reader. New rows: STATUS TAGS, TRANSPORT BAR, SAMPLING (SCRUB · AUTOMATION), ACCENT BRIGHTNESS, FORGET, RESET LAYOUT. A new user's defaults: HELP off, CONTROL HINTS on, STATUS TAGS off, QUALITY AUTO.
+- `shell/accent.js` (alpha.12): `createAccent({ …, bright })` and `set({ bright })`, `.bright`; `towardWhite(rgb, k)`; `accentPart({ get, set, subscribe })` → a project part. `core/look.js` (alpha.12): `isMobile(nav, matchMedia)`, `isIPad(nav)`, `TOUCH_TABLET_MQ`, `BLUR_DESKTOP` (11), `BLUR_TOUCH` (20), `firstRunBlur(mobile)`, `DEVICE_BLUR`, `TIER_LAW`, `classifyTier(hz, headroom)`, `qualityOfTier(tier)`.
+- **`mir/core/ink.js`** ([INK.md](INK.md), alpha.12): `createInkSampler({ sample, doc, stage, skip, hz, law, frame })` → `{ update(), poke(), mode(m?), tick(), explain(el), state(), stat, destroy() }`; `sample()` → `{ luma, w, h, rect? }` (or a Promise); `canvasSample(source, { w, h })`; pure: `INK`, `INK_SKIP`, `parseFill`, `over`, `paintOf`, `summedArea`, `meanUnder`, `groundOf`, `decide`, `walkCells`, `domIO`.
 - `lookSchema()` → the schema rows (35 options) · `LOOK_PRESETS` → `{ [themeId]: theme options }` · `THEMES`.
 - `glassTint(bright, hue, tint, theme, saturation = 1)` → `'H S% L%'` | null · `census(doc)` → `{ blur, shadow, shine }` · `stepper(o)` · `migrateShadow(key, win)` · `SKINS`, `MIR_VERSION`, `MIR_WORDS`.
 - Sheet: `mir/shell/gui.css`.
@@ -347,6 +361,14 @@ The kit gives the parts and the look; the layout is the app's (BASINS' design, �
 
 ---
 
+**Additions (1.5.0-alpha.12).**
+- `createTransport({ …, door: 'palette' | 'mark', onSwitch, macros })` → adds `mountIn(host | null)` → placement, `placement` (`'stage' | 'work' | 'rack'`), `closed`, `tempoPanel(show)`. Event `transport-placement` (`detail.placement`) on the bar. The timeline takes the app's one bar as `transport: { shared: tr }`.
+- `bindTempoField({ button, input, tempo, enabled, drag, paint, signal })` → `{ open(), close(take), editing, destroy() }` · `tempoPill({ tempo, panel, work })` (`work()` true: a click types, a drag is the travel law) · `tempoPanel({ tempo, mod, macros })` → adds `rail` · `macroRail({ M, api, signal })` → `{ root, rail, tiles, sync(), rebuild(), destroy() }` · `modDoor({ mod, mark, onSwitch, work })`.
+- Pure: `placementOf({ docked, host })`, `tempoDirection(rect, panelHeight, viewHeight)`, `travelBpm(start, rise, { shift, touch, min, max })`, `reorderTo(key, at, count)`; `PLACEMENTS`; `TRANSPORT.fieldChars / travel / travelTouch / travelFine / panelGap`.
+- `shell/wordmark.js`: `wordmark(parent, { lead, word, sub, id, svg, mark })`: `svg` = SVG markup or an element, or `{ dark, light }` image URLs (wordmark-dark carries white ink); `mark` = the app's symbol in place of the nine squares (kept unseen in `.word` so `#title .mark` still feeds loading seats); `.word` becomes `role="img"` with `aria-label` = `word`, `data-art`; its height is `--title-art-h`. `createMirDiamond(target, { colors })` → `{ diamond, tiles, destroy() }`; `installPaletteCycle(target, tiles, colors)` → destroy; `MIR_PALETTE`, `PALETTE_STEP` (240), `paletteAt(i, offset, colors)`.
+
+---
+
 ## `mir/shell/keys.js` and `mir/keyboard/`: one key table, the keyboard window, the help view
 
 The keyboard is data: one table of actions, from which the kit makes the listener, the menu key column, the hints, the
@@ -373,6 +395,10 @@ Notes:
 - **One spelling:** `Mod+Ctrl+Alt+Shift+Meta+<code>`, ASCII, so `saved()` is a spec envelope's `keys` member as it is.
 - **Menus:** `keys.menuItem(id)` is a whole menubar entry; the key after the TAB is never translated.
 - **Hints:** give a control `data-key-action="<id>"` and call `keys.hints(document)` (again on `onChange`).
+
+---
+
+**BASINS' table is the kit's default (1.5.0-alpha.12).** `KIT_KEYS` → the kit's default chords by action id (`transport.play` Space, `save` Mod+S, `folders` S, `modulation` M, `notebook` J, `rack` B, `dock` T, `hide` H, `fullscreen` F, `help` ?); `toggleFullscreen(doc?)` → the document full screen, or out.
 
 ---
 
@@ -434,13 +460,52 @@ Load `mir/shell/parts.css` after the kit's sheets.
 
 ---
 
+### The scene guard, the banner, copy, the menus' rows, the dump lines, the wake lock (1.5.0-alpha.12)
+
+**`mir/shell/scene-guard.js`** ([SCENE-GUARD.md](SCENE-GUARD.md))
+| Export | What it does |
+|---|---|
+| `createSceneGuard({ canvas, rects, hover = false, install = true })` → `{ hit(e), wheel(e, region), destroy() }` | the guard. `rects()` → `[{ left, top, right, bottom } \| { left, top, width, height }, …]`, each optionally with `scroll` (an element or `(e) → element`). `install: true` stops events aimed at `canvas` in UI space in the window's capture phase; `false` leaves the calls to the app's gesture engine |
+| `uiSpace({ rack, layer, extra })` → `rects()` | the kit's UI space: the rack's columns (gutter out, the rack as scroller), everything visible in the float layer by its whole rect, and `extra()` |
+| `box(r)`, `regionAt(list, e)`, `wheelStep(mode, page)` | pure helpers |
+
+**`mir/shell/banner.js`** (+ `banner.css`)
+| Export | What it does |
+|---|---|
+| `installBanner({ host, errors = true })` → `{ root, report, fail, warn, offerReload, hide(), problems, destroy() }` | seat the pane; `errors` reports every uncaught error and rejection |
+| `report(severity, title, detail?)`, `fail(title, detail?)`, `warn(title, detail?)` | one funnel: de-duplicated by title with a count, at most 30 drawn, an error makes it an error pane |
+| `offerReload(on = true)` | the "Reload the page" button under the problems |
+| `problems()` → `[string]` | the dump's lines; `describeDetail(x)` the detail's text |
+
+**`mir/shell/boot.js` (added)**
+| Export | What it does |
+|---|---|
+| `bootVeil({ ready, el, host, timeout = 8000 })` → `{ el, stat, dismiss(via), done }` | the veil until the first real frame (+1), a 160 ms fade; `ready` a function asked once a frame, or a Promise; `stat` measured; a `boot veil` dump line |
+| `veilLine(stat)` | that line |
+| `watchDevice(device, { recover })` → `off()` | a GPU device lost after boot: `recover(info)` first, else the banner and RELOAD |
+
+**`mir/shell/clipboard.js`**: `copyText(text)` → `Promise<boolean>`: the clipboard, then a hidden textarea and `execCommand('copy')`; never throws.
+
+**`mir/shell/menubar.js` (added)**: `comingRow(name, hint)` · `purgeRow({ name })` · `copyDumpRow(dump, hint?)`: one menu entry each ([SHELL-PARTS.md](SHELL-PARTS.md) §10). **`mir/folders/files.js` (added)**: `recentRows(files, n = 5, open)`: the last `n` projects as `↺  NAME` rows, newest first, the folder in the hint, raw names.
+
+**`mir/core/describe.js` (added)**: `registerDumpLines(name, fn)` → `off()` · `dumpLines()` → `[string]`: a module's own lines in every dump; a throwing producer is one line.
+
+**`mir/core/wakelock.js`**
+| Export | What it does |
+|---|---|
+| `createWakeLock(env)` → `{ acquire(opts), release(), disarm(), armIfNeeded(ctx), state() }` | BASINS' state machine, every platform dependency injected |
+| `installWakeLock({ clock, nav, target, doc })` → `{ hold(reason) → release(), sync(), state(), line(), destroy() }` | held while the clock plays and while held; a `wakeLock` dump line |
+| `wakeLine(state, stat)` | that line |
+
+---
+
 ## FOLDERS: `mir/folders/`, the project window ([FOLDERS.md](FOLDERS.md))
 
 **`folders/folders.js`**
 - `createFolders({ host, id = 'folders', domId, title = 'FOLDERS', store = 'mir.folders', storage, prefs, app, adapter, actions = DEFAULT_ACTIONS,
   panels, galleryPanel, onTab, head = false, status = false, chipSide = 'right', seeds, seededKey, size, min, dock, onMoved, rack, firstSeat,
   anchor = 'right', top = 162, say, download, picture, defaultName, capChars, parts, sorts, depthOf, factory, freshLoses, locked, projection,
-  capturePicture, savePicture, pictureStale, onInspect, onOpened, galleryCopy, files, emptyDragExcept })` → `{ win, files, gallery, adapter,
+  capturePicture, savePicture, pictureStale, onInspect, onOpened, onSaved, galleryCopy, files, emptyDragExcept })` → `{ win, files, gallery, adapter,
   seeded, intake, views, panels, tab(id?), activeTab(), mountGallery(el, { pageSize, prefsKey, actions, factory, onInspect }), open(), close(),
   toggle(), isOpen(), save(), saveAs(), fresh(), openEntry(), current(), dirty(), seed(), exportProject(), importEnvelope(), ingest(), say(),
   state(), destroy() }` (1.5.0-alpha.7: BASINS' toolbar and panels by default). 1.5.0-alpha.8 adds `dragToFolder` (off; drag-to-folder and MOVE TO), `folderGlyph` (BASINS' `mandelbrotSmall` by default), `onOpen` (a persisted open included), `material` (default `'modulation'`: the window wears the modulation window's material; `null` for the house glass) and `railGap`
@@ -612,6 +677,52 @@ The window loads two sheets, `mir/modulation/modhost.css` and then `mir/modulati
 
 ---
 
+### The rest of BASINS' fork (1.5.0-alpha.12)
+
+```
+mir/modulation/bind.js (added)
+  setAutomationGrid(value) → grid | null · automationGrid() → grid | null · upsertProjectPreset(name, rack?) → presetSave result
+  installModulation options: automationGrid, factory, switchWorkspace, toast, onWindow, moved;  result: setTimeline(tl), timeline(),
+    setAutomationGrid(g), automationGrid()
+mir/modulation/window.js (added)
+  wireGrip(grip, macroId) · wireDepth(seat, macroId, n) · paintDepth(seat, arc, macroId) · moveMacro(macroId, to) — the live
+    window's macro gestures (→ false with no window)
+  createModulation(…) result: seatBox(), onGeometry(fn) → off, setPattern(p), setTimeline(tl), stackAbove(anchor), isStacked,
+    stackHeight();  api.sendToTimeline(id), api.selectForTarget(id), api.placement().content (the content box, now);
+    port: toast, timeline, switchWorkspace, starterPresets, applyStarterPreset;  the rail's default seat is 'auto'
+mir/modulation/host.js (added)
+  AUTOMATION_GRIDS · clock.setAutomationGrid(g) / automationGrid() · clock.onAdvance(fn(kind)) → off ('tick' | 'step' | 'seek')
+    · clock.isStepping()
+mir/modulation/mod.js (added)
+  presetCaps(name) · presetUpsertCaps(name, rack) · bundledPresets(list, folder?) · rackApply(rack, fromV?)
+mir/modulation/layout-motion.js
+  createLayoutMotion(nodes, { skipOwn? }) → { change(fn, sizing), hold(node), follow(node, x, y), layoutRect(node), release(node),
+    holding, destroy() }
+mir/modulation/mod-cursor.js
+  createModCursor({ rec, timeTextAt, inkOf }) → { resolve(ev), gesture() }
+mir/timeline/bind.js (added)
+  installTimeline attaches itself to the modulation (mod.setTimeline(tl)); dispose() takes it back
+mir/timeline/window.js (added)
+  port.transport: { layout, nodes, rack } | { shared: tr } (the app's one transport: it moves into the work lane while it shows) | false (none)
+```
+
+## `mir/pattern/`: the step sequencer for the modulation window's envelopes ([PATTERN.md](PATTERN.md), 1.5.0-alpha.12)
+
+```
+mir/pattern/window.js
+  installPattern({ mount, mod, model?, history?, project?, dock?, store?, storageKey?, say?, moved?, onWindow? })
+    → { win, root, rail, model, sequencer, open(), close(), toggle(), isOpen(), show(envId), rows(), seat(), docked(), height(),
+        menu(), sync(), paintMarkers(force), closeMenu(), destroy() }
+mir/pattern/model.js
+  createPatternModel() → { row, rowsLive, rowOf, steps, lengthOf, isLive, lit, setStep, setSteps, fill, clear, setLength, setLive,
+    capture, signature, restore, subscribe, rackChanged, bindRack, rackVersion }
+  patternProjectPart(model) → { capture, restore, signature, subscribe }
+  PATTERN_LENGTHS [16, 32, 64] · PATTERN_MAX 64 · STEP_BEATS 0.25 · VEL_MAX 127
+mir/pattern/sequencer.js
+  stepCrossings(p, b, step?) → [k]
+  createPatternSequencer({ M, clock, pattern, timeline?, step? }) → { tick(), reset(beat?), position(envId, beat?), scale(), stats() }
+```
+
 ## `mir/timeline/`: the timeline, the kit's second plugin ([TIMELINE.md](TIMELINE.md), 1.5.0-alpha.11)
 
 ### `bind.js`: the app seam
@@ -688,6 +799,9 @@ The window loads two sheets, `mir/modulation/modhost.css` and then `mir/modulati
 - `window/rail.js`: `RAIL.gap`, `gapOf(gap, side)`; `chipPosition(side, box, w, h, view, pad, gap)`, `seatOn(…, pad, gap)`, `seatRail({ …, gap })`, `roomFor(…, pad, gap)` (gap default 0, so the modulation window seats as BASINS' `positionChips` does).
 - `window/dock.js`: `anchorTarget(box, seat, { reach })`, `anchorBox(seat, height)`; `createDockGuide({ layer, enabled, window, cls })` (one guide drawing; its overlays carry `data-mir-guide="dock"`, `data-window`, `data-edge` and the app's class), whose `track(box, o, seat?)` takes the seat as a third argument.
 - `core/pointer.js` `drag()`: a non-primary press is refused only when it is trusted (a real second finger); a scripted `PointerEvent` (isPrimary unset) is a press (1.5.0-alpha.8).
+
+- `window/window.js` (1.5.0-alpha.12): `win.resize({ w, h })` → the window's own size, keeping its dock (an edge or an anchor), one layout, saved; `reserveTop(px)`, `reserved`, `stackAbove(anchor | null)`, `isStacked`, `stackHeight()` (the lego stack). Pure: `stackedAt(box, anchor, view, gap)`, `withReserve(span, px)`; `windowLayout`'s env takes `top` (a floating floor). Docked-resize rules: [WINDOWS.md](WINDOWS.md) law 12.
+- `window/workspaces.js` (new, 1.5.0-alpha.12): `createWorkspaces({ upper, lower, gap })` → `{ sync(), moved(which, rect | null), show(which), stacked, destroy() }` (MODULATION 8 px above TIMELINE when both are open) · `workspaceSwitch({ run, title })` → `{ root, destroy() }` (the MIR switch chip) · `stackPlan(u, l)`, `stackedAt`, `WORKSPACE` (`{ gap: 8 }`), `WHICH`.
 
 - `window/dock.js` `observeSpan({ left, right, edge, view, occupied, narrow, active })` → `{ read() → { left, right, width, top, bottom }, subscribe(fn), setActive(on), active, destroy() }` (1.5.0-alpha.7, BASINS' rack-bounds): the rack's shadow gutter is subtracted; a rack with no open window (`occupied`, default `.dev:not(.closed):not([hidden])`; `false` counts any rack), a hidden one, `phone`, `ui-hidden` or a viewport of at most `narrow` (860) px counts as absent.
 

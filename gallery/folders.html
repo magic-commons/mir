@@ -140,7 +140,7 @@ rack.start();
 installPress({ selector: '.sw, .seg-b, .trig, .mir-rack-btn' });
 
 /* ── FOLDERS ── */
-const downloads = [];
+const downloads = [], saved = [];
 const folders = createFolders({
   host: $('winlayer'), app: 'mir-folders-demo', store: 'mir.gallery.folders',
   seeds, defaultName: 'STUDY', size: { w: 380, h: 560 },
@@ -148,6 +148,7 @@ const folders = createFolders({
   adapter: { thumbnail: () => ground },
   firstSeat: () => ({ x: Math.max(16, innerWidth - 380 - 300), y: 64 }),      // clear of the right rack
   onMoved: (r) => rack.dodge(r),
+  onSaved: (e) => saved.push(e.name),      // after every save (SAVE AS and SAVE over the open project): createApp writes the modulation preset here
   download: q.has('test') ? (blob, name) => downloads.push({ blob, name }) : undefined,
 });
 folders.open();
@@ -155,7 +156,7 @@ addEventListener('keydown', (e) => {
   if (e.ctrlKey || e.metaKey || e.altKey || e.target.closest('input, textarea, [contenteditable="true"]')) return;
   if (e.code === 'KeyS') folders.toggle();
 });
-window.__F = { folders, rack, pages, S, downloads, told, get rings() { return rings; }, get twist() { return twist; }, get hueSeg() { return hueSeg; } };
+window.__F = { folders, rack, pages, S, downloads, saved, told, get rings() { return rings; }, get twist() { return twist; }, get hueSeg() { return hueSeg; } };
 window.__ready = true;
 </script>
 </body>
