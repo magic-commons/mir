@@ -126,6 +126,14 @@ try {
   check('list: Escape closes it and gives the focus back to the name', !(await J(`return !!document.querySelector('.mir-pick');`)) && (await J(`return document.activeElement === W.stepper.name;`)));
   { const s = await need(SN, 'stepper name'); await mouse('mouseMoved', s.x, s.y); await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(120); await mouse('mouseMoved', 5, 5); await mouse('mousePressed', 5, 5); await mouse('mouseReleased', 5, 5); await sleep(80); }
   check('list: a press outside closes it', !(await J(`return !!document.querySelector('.mir-pick');`)));
+  /* one law for ↑ ↓ on a closed list (wave 19): the stepper's name does what the closed select does */
+  await J(`W.stepper.set('c'); W.stepper.name.focus(); return 1;`); await p.key('ArrowDown'); await sleep(40);
+  check('stepper: ↓ on the closed name steps to the next, as a closed select does (no list opens)', (await val('W.stepper')) === 'd' && !(await J(`return !!document.querySelector('.mir-pick');`)));
+  await p.key('ArrowUp'); await sleep(40);
+  check('stepper: ↑ on the closed name steps back', (await val('W.stepper')) === 'c');
+  await p.key('Alt+ArrowDown'); await sleep(100);
+  check('stepper: Alt+↓ opens the list, as on the select', await J(`return !!document.querySelector('.mir-pick');`));
+  await p.key('Escape'); await sleep(80);
   { const r = await J(`const t = W.pager.root; return { list: W.pager.name.tagName, count: t.querySelector('.mir-step-count').textContent, form: t.classList.contains('mir-step-pager') };`);
     check('the page turner form: no list (the name is a label), the count says where it is', r.list === 'DIV' && r.count.trim() === '1 / 3' && r.form, JSON.stringify(r)); }
 

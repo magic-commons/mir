@@ -3,7 +3,8 @@
  * THE LAW IT KEEPS: ONE BUILD OF "STEP THROUGH A LIST".  The census found five (the GUI's, BASINS' blend picker and SAVE pager,
  * λWAVES' palette and transport step); this is the GUI's, generalised, and the others use it.  Two round 44 px buttons around a
  * live name (`aria-live`); the arrows wrap; an item marked `coming` is listed and never chosen (the arrows skip it and stand down
- * when nothing else can be reached); the keys are ← and → on the row.  A TAP ON THE NAME OPENS THE FULL LIST in the kit's menu pane
+ * when nothing else can be reached); the keys are ← and → on the row, and on the name ↑ ↓ step as a closed select's do (Alt+↓
+ * opens the list: one law for ↑ ↓ on a closed list, wave 19).  A TAP ON THE NAME OPENS THE FULL LIST in the kit's menu pane
  * (controls/select.js `listPane`), so a long ordered list (twelve blend modes) is one tap from any entry, not eleven.  By the rules of
  * docs/INTENT.md: no relief at rest, hover a lighter face, press a sink and a small scale, focus an accent ring outside.
  *   stepper({ label, aria, items, value, onChange, wrap, list, pager, count, compact, cls })
@@ -67,7 +68,13 @@ export function stepper(o = {}) {
   prev.addEventListener('click', () => step(-1)); next.addEventListener('click', () => step(1));
   if (canList) {
     name.addEventListener('click', () => (pane ? close(false) : openIt()));
-    name.addEventListener('keydown', (e) => { if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.code === 'ArrowDown' || e.code === 'ArrowUp')) { e.preventDefault(); openIt(); } });
+    /* ONE LAW FOR ↑ ↓ ON A CLOSED LIST, the select's (docs/CONTROLS.md: "on the closed button ↑ ↓ step like a platform
+       select, Alt+↓ opens"): ↑ the previous, ↓ the next (the stepper's own wrap); Alt+↓ opens the list */
+    name.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.metaKey || (e.code !== 'ArrowDown' && e.code !== 'ArrowUp')) return;
+      if (e.altKey) { if (e.code === 'ArrowDown') { e.preventDefault(); openIt(); } return; }
+      e.preventDefault(); step(e.code === 'ArrowDown' ? 1 : -1);
+    });
   }
   row.addEventListener('keydown', (e) => {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
