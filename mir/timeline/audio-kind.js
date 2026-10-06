@@ -6,13 +6,16 @@
  * WHAT CAME IN: the source shape and its check (audioSource, validAudioSource), the lookup (envelopeAt), the tempo law
  * (audioRate, readjustAudioTempo), Shift+T (stretchAudioClip), the in-place source edit (patchAudioClip), the budget
  * (audioBudget), the paint (the envelope line, and the peaks when the app hands them: setAudioPeaks), the kind itself.
- * WHAT STAYS THE APP'S (it needs engines the kit does not have): decoding a file (WebAudio decodeAudioData), the
- * analysis that makes the envelope and the peaks (BASINS analyseAudio over its audio.js band edges), the content-hash
- * asset store (IndexedDB), playback with the transport (KEEP AUDIO), the drop popup that asks for a target, the asset
- * manifest project part, and the ENVELOPE · band menu rows (they reload the asset).  An app that has them registers
- * them on top: registerClipKind('audio', { ...AUDIO_KIND, menu }) and setAudioPeaks((assetId) => meta | null). */
+ * WHAT CAME IN AT 1.5.0-alpha.13 (lane AU): the content-hash asset store (core/assets.js: the paint reads the peaks from it,
+ * and loads them when the clip is restored before its asset), the clip menu (ENVELOPE · LEVEL / LOW / MID / HIGH, KEEP AUDIO ↔
+ * SIGNAL ONLY, STRETCH TO CLIP · SHIFT+T), the budget for EVERY way a clip is made (audioBudgetAdding: the model asks it in
+ * create, paste, duplicate and so slice).  The rest of the audio clip is beside this file: audio-analysis.js (decode, the
+ * envelope, the peaks), audio-playback.js (KEEP AUDIO), audio-drop.js (the drop popup, the asset manifest part, the tempo law's
+ * watcher); see docs/AUDIO.md.  An app that wants other peaks says so: setAudioPeaks((assetId) => meta | null). */
 import { registerClipKind } from './kinds.js';
 import { AUDIO_FOLLOWED, BPM_MIN, BPM_MAX } from '../modulation/mod.js';
+import { assets, toBase64, fromBase64 } from '../core/assets.js';
+export { toBase64, fromBase64 };
 
 export const AUDIO_ENV_HZ = 100, AUDIO_BANDS = AUDIO_FOLLOWED, AUDIO_CLIP_MAX = 64, AUDIO_SECONDS_MAX = 20 * 60;
 export const AUDIO_TINT = '#7bbfc8', AUDIO_CANVAS_MAX = 8192;
@@ -20,12 +23,6 @@ export const envelopeFrames = (seconds) => Math.max(1, Math.ceil(seconds * AUDIO
 // The source's own beat length at the tempo it was measured at (curve.length is the model's, set from the drop's duration).
 export const sourceBeats = (curve) => curve.seconds * curve.bpm / 60;
 const b64Length = (n) => 4 * Math.ceil(n / 3);
-export function toBase64(bytes) {
-  let s = '';
-  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
-  return btoa(s);
-}
-export function fromBase64(text) { const s = atob(text), out = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i); return out; }
 
 // THE SOURCE: what JSON, the recorder and the signature see. `bpm` is the tempo its source beats were measured at.
 // meta = { id (32 hex), seconds, envelopes: { level, low, mid, high } } — the app's analysis.
@@ -56,8 +53,13 @@ export function readjustAudioTempo(model, from, to) {
   const doc = model.state(), curves = new Map(doc.curves.map((c) => [c.id, c]));
   const moves = doc.clips.flatMap((c) => { const s = curves.get(c.curveId); return s?.kind === 'audio' && Math.abs(audioRate(c, s, from) - 1) < 1e-9 ? [[c.id, { scale: s.bpm / to, duration: c.duration * to / from }]] : []; });
   if (!moves.length) return 0;
-  model.begin(); for (const [id, patch] of moves) model.updateClip(id, patch); model.commit();
-  return moves.length;
+  /* NOT A USER EDIT (1.5.0-alpha.13; BASINS added one undo row per re-derive, its own open item): the clips' scale and beat length
+     are DERIVED from the tempo, which is the transport's.  The model's rederive() changes them with no snapshot; when the one
+     history wraps the model (history.js), the unwrapped method is used so no history row is made either.  A gesture open in
+     the model defers it: null, and the caller asks again at the next tick. */
+  const apply = (model.__history?.raw || model).rederive;
+  if (typeof apply !== 'function') { model.begin(); for (const [id, patch] of moves) model.updateClip(id, patch); model.commit(); return moves.length; }
+  return apply(moves) ? moves.length : null;
 }
 // SHIFT+T: the audio from the clip's offset to the source's end is fitted into the clip's current beat length (varispeed).
 export function stretchAudioClip(model, clipId) {
@@ -80,21 +82,29 @@ export function patchAudioClip(model, clipId, patch) {
   } catch (e) { model.cancel(); throw e; }
 }
 
-// BUDGET: 64 audio clips and 20 minutes of distinct decoded audio across the arrangement.  `why` is English: the caller
-// translates it where it says it (t()).
-export function audioBudget(doc, { seconds = 0, assetId = null } = {}) {
+// BUDGET: 64 audio clips and 20 minutes of distinct decoded audio across the arrangement, counted for EVERY audio clip however it
+// was made.  `why` is an English key with its `vars`: the caller translates it where it says it (t(why, vars)).
+// audioBudgetAdding(doc, [{ assetId, seconds }]) — would these clips, added together, pass?  A clip of an asset already in the
+// arrangement costs no seconds; the clips are counted one by one, and the answer is whole (all or none).
+export function audioBudgetAdding(doc, adds) {
   const curves = new Map(doc.curves.map((c) => [c.id, c])), clips = doc.clips.filter((c) => curves.get(c.curveId)?.kind === 'audio').length;
-  if (clips >= AUDIO_CLIP_MAX) return { ok: false, clips, why: 'No room: {n} audio clips is the budget.', vars: { n: AUDIO_CLIP_MAX } };
-  const assets = new Map(doc.curves.filter((c) => c.kind === 'audio').map((c) => [c.assetId, c.seconds]));
-  const total = [...assets.values()].reduce((a, b) => a + b, 0) + (assets.has(assetId) ? 0 : seconds);
+  if (clips + adds.length > AUDIO_CLIP_MAX) return { ok: false, clips, why: 'No room: {n} audio clips is the budget.', vars: { n: AUDIO_CLIP_MAX } };
+  const known = new Map(doc.curves.filter((c) => c.kind === 'audio').map((c) => [c.assetId, c.seconds]));
+  for (const a of adds) if (!known.has(a.assetId)) known.set(a.assetId, a.seconds || 0);
+  const total = [...known.values()].reduce((a, b) => a + b, 0);
   if (total > AUDIO_SECONDS_MAX + 1e-9) return { ok: false, clips, seconds: total, why: 'No room: {max} minutes of audio is the budget (this would be {now}).', vars: { max: AUDIO_SECONDS_MAX / 60, now: (total / 60).toFixed(1) } };
   return { ok: true, clips, seconds: total };
 }
+// audioBudget(doc, { seconds, assetId }) — room for one more clip (of this asset)?  The add's pre-check.
+export const audioBudget = (doc, { seconds = 0, assetId = null } = {}) => audioBudgetAdding(doc, [{ assetId, seconds }]);
 
-/* THE PEAKS: the app's analysis, by asset id (BASINS audioAssetMeta), or nothing — then the envelope line alone is drawn,
-   exactly as BASINS draws a clip whose asset has not loaded */
-let peaksOf = () => null;
-export function setAudioPeaks(fn) { peaksOf = typeof fn === 'function' ? fn : () => null; }
+/* THE PEAKS: the asset's analysis by id, from the shared store (core/assets.js: BASINS audioAssetMeta), or nothing — then the
+   envelope line alone is drawn, exactly as BASINS draws a clip whose asset has not loaded; the store is asked, and the clips
+   waiting on that asset are drawn again when it answers.  An app with its own peaks: setAudioPeaks((assetId) => meta | null). */
+const defaultPeaks = (id) => assets.meta(id);
+let peaksOf = defaultPeaks;
+export function setAudioPeaks(fn) { peaksOf = typeof fn === 'function' ? fn : defaultPeaks; }
+const pending = new Map();
 
 // THE PAINT: a canvas beside the clip's svg, drawn once per render.
 function drawWave(canvas, curve, clip, w, h, tint, meta) {
@@ -123,13 +133,35 @@ function paint(svg, curve, clip, ctx = {}) {
   const w = ctx.geometry?.width ?? clip.duration * (ctx.px || 20), h = ctx.height || svg.viewBox?.baseVal?.height || 48, tint = ctx.tint || curve.color || AUDIO_TINT;
   canvas.className = 'tl-audio-wave'; canvas.dataset.asset = curve.assetId; canvas.setAttribute('aria-hidden', 'true');
   if (host) host.insertBefore(canvas, svg.parentElement === host ? svg : null);
-  drawWave(canvas, curve, clip, w, h, tint, peaksOf(curve.assetId));
+  const meta = peaksOf(curve.assetId);
+  drawWave(canvas, curve, clip, w, h, tint, meta);
+  if (!meta && peaksOf === defaultPeaks) {
+    if (!pending.has(curve.assetId)) pending.set(curve.assetId, new Set());
+    pending.get(curve.assetId).add(() => { if (canvas.isConnected) drawWave(canvas, curve, clip, w, h, tint, peaksOf(curve.assetId)); });
+    assets.load(curve.assetId).then((m) => { const jobs = pending.get(curve.assetId); pending.delete(curve.assetId); if (m) for (const job of jobs || []) job(); });
+  }
   return canvas;
+}
+
+// A source edit that needs the asset: the band reloads the envelope the analysis kept for it.
+export async function setAudioBand(model, clipId, band) {
+  const doc = model.state(), clip = doc.clips.find((c) => c.id === clipId), curve = clip && doc.curves.find((c) => c.id === clip.curveId), meta = curve && await assets.load(curve.assetId);
+  return meta?.envelopes?.[band] ? patchAudioClip(model, clipId, { band, envelope: meta.envelopes[band] }) : null;
+}
+// THE CLIP MENU rows (the editor adds them to the instance actions): the four envelopes with the chosen one ticked, KEEP AUDIO ↔
+// SIGNAL ONLY, and Shift+T.  Labels are English keys, translated where they are shown.
+function menu(curve, clip, { model }) {
+  const ROWS = { level: ['ENVELOPE · LEVEL', 'ENVELOPE · LEVEL ✓'], low: ['ENVELOPE · LOW', 'ENVELOPE · LOW ✓'], mid: ['ENVELOPE · MID', 'ENVELOPE · MID ✓'], high: ['ENVELOPE · HIGH', 'ENVELOPE · HIGH ✓'] };   // tr: a clip's menu: the envelope band to follow, the one in use ticked
+  return [
+    ...AUDIO_BANDS.map((band) => [ROWS[band][curve.band === band ? 1 : 0], () => { if (curve.band !== band) setAudioBand(model, clip.id, band); }, 'band-' + band]),
+    [curve.keep ? 'SIGNAL ONLY (MUTE THE FILE)' : 'KEEP AUDIO (PLAY THE FILE)', () => patchAudioClip(model, clip.id, { keep: !curve.keep }), 'keep'],   // tr: a clip's menu: switch between the file playing and the envelope alone
+    ['STRETCH TO CLIP · SHIFT+T', () => stretchAudioClip(model, clip.id), 'stretch-to-clip'],   // tr: a clip's menu: fit the audio into the clip's length (varispeed)
+  ];
 }
 export const AUDIO_KIND = registerClipKind('audio', {
   validate: validAudioSource,
   value: (curve, clip, sourceBeat) => envelopeAt(curve, sourceBeat * 60 / curve.bpm),
   duration: (curve, bpm) => curve.seconds * bpm / 60,
   slice: (curve) => ({ before: curve, after: curve }),
-  paint
+  paint, menu
 });

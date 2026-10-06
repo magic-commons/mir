@@ -42,6 +42,7 @@ import { createModHost } from './host.js';
 import * as M from './mod.js';
 import { createModulation, ROUTABLE } from './window.js';
 import { frame } from '../core/frame.js';
+import { createAudioCapture } from './audio-capture.js';
 
 const TICK = 'mir:modulation:tick', PAINT = 'mir:modulation:paint', APP_PLAY = 'app.play';
 const IDLE = { state: 'idle', reason: '', live: false, deviceId: '', sampleRate: 0, frames: 0, inputLatencyMs: null,
@@ -93,7 +94,8 @@ export function rootsOf(params) { return [...new Set(params.map((p) => String(p.
  *   store        { read() → record, write(patch) } (default localStore(storageKey))
  *   storageKey   default 'mir.modulation'
  *   presetKey    the preset store's key (default mod.js PRESET_LS) — two apps on one origin must not share one
- *   audio        the app's audio capture factory, createAudioCapture({ onState }) (lab/audio.js); absent: no AUDIO
+ *   audio        the audio capture factory, createAudioCapture({ onState }); absent: the kit's own (audio-capture.js, the microphone
+ *                on a press of MIC); `false`: no AUDIO device; an app's own factory wins
  *   dock, copy, targets, routeGlow, toast   passed to the window (window.js createModulation's port; toast(msg): where a
  *                refusal is said — absent, the window's own status line)
  *   enabled      modulation's power at first boot, when the store has none (default true)
@@ -170,7 +172,8 @@ export function installModulation(o) {
   }
 
   /* ── the microphone edge (optional): the app's own capture, fed at the modulation cadence ── */
-  const capture = () => (audioCap || (audioCap = o.audio({ onState: () => { if (view && view.isOpen) view.paint(true); if (present) present(); requestLoop(); } })));
+  const audioFactory = o.audio === false ? null : typeof o.audio === 'function' ? o.audio : createAudioCapture;   // the kit's capture is the default (1.5.0-alpha.13)
+  const capture = () => (audioCap || (audioCap = audioFactory({ onState: () => { if (view && view.isOpen) view.paint(true); if (present) present(); requestLoop(); } })));
   function audioState() {
     return audioCap ? { state: audioCap.state, reason: audioCap.reason, live: audioCap.live, deviceId: audioCap.deviceId, sampleRate: audioCap.sampleRate, frames: audioCap.frames,
       inputLatencyMs: audioCap.inputLatencyMs, analysisLatencyMs: audioCap.analysisLatencyMs, visualLatencyMs: audioCap.visualLatencyMs, latencyMs: audioCap.latencyMs,
@@ -276,7 +279,7 @@ export function installModulation(o) {
     closed: () => { host.clock.setPresentationActive(false); if (onWindow) onWindow(false); },
     persist: persistNow,
     presetKey: o.presetKey, copy: o.copy, dock: o.dock, targets: o.targets || ROUTABLE, routeGlow: o.routeGlow, toast: o.toast,
-    audio: typeof o.audio === 'function' ? {
+    audio: audioFactory ? {
       state: audioState, support: () => capture().support(),
       start: (id) => capture().start(id === undefined ? (store.read().audioDevice || '') : id)
         .then((state) => { if (audioCap && audioCap.live) store.write({ audioDevice: audioCap.deviceId }); requestLoop(); return state; }),

@@ -11,9 +11,10 @@
  *                   core/project.js parts.  NEW is the empty project; a failed open rolls back and says so.
  *   3. THE STORE    folders/files.js — BASINS' library model as it stands, the key an option (BASINS: basins.library).
  *   4. THE GALLERY  folders/gallery.js — BASINS' explorer as it stands, plus drag-to-folder with the proximity glow.
- * And: SEEDING (folders/seed.js, starters added once), EXPORT (a `.mir` project envelope, or a PNG that carries it:
- * core/envelope.js + core/png.js) and IMPORT (core/intake.js: drop on the window, or OPEN FILE; another app's project
- * is refused with the reason).
+ * And: SEEDING (folders/seed.js, starters added once, a changed bundled starter refreshed in place), EXPORT (a `.mir` project
+ * envelope, a PNG that carries it: core/envelope.js + core/png.js, or the project ZIP: SAVE AS ZIP… with its audio, folders/zip.js)
+ * and IMPORT (core/intake.js: drop on the window, or OPEN FILE; OPEN ZIP… and a dropped .zip open a project ZIP; another app's
+ * project is refused with the reason).  Files go out through the one saveBlob (folders/save-blob.js).
  *
  * THE LAWS IT KEEPS
  *   · WHAT THE USER READS CHANGES; WHAT A BROWSER STORED DOES NOT.  `id` (the window id, the prefs it persists under),
@@ -29,7 +30,7 @@
  * createFolders(options) → api        (options and api: docs/FOLDERS.md) */
 import { createWindow } from '../window/window.js';
 import { ariaLabel } from '../kit.js';
-import { t, phrase, onLanguage } from '../core/i18n.js';
+import { t, tn, phrase, onLanguage } from '../core/i18n.js';
 import { frame } from '../core/frame.js';
 import { setText, setAttr } from '../core/perf.js';
 import { wrap, stringify } from '../core/envelope.js';
@@ -40,6 +41,9 @@ import { buildGallery, SORT_MODES, DEFAULT_ACTIONS } from './gallery.js';
 import { notice } from '../shell/notice.js';
 import { createProjectAdapter, openWithRollback, emptyProject } from './project.js';
 import { seed as seedLibrary } from './seed.js';
+import { saveBlob } from './save-blob.js';
+import { projectZip, readProjectZip, restoreAssets, rollbackAssets } from './zip.js';
+import { assets } from '../core/assets.js';
 
 export const FOLDERS_COPY = {
   save: [phrase('SAVE'), phrase('this project'), phrase('Save — store what is on screen over the open project (a new one the first time).')],
@@ -117,11 +121,8 @@ async function pngBytes(src) {
   } catch (_) { return null; }
 }
 const fileName = (s) => (String(s || 'project').replace(/[\\/:*?"<>|\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').trim() || 'project');
-function saveBlob(blob, name) {
-  const a = document.createElement('a'), url = URL.createObjectURL(blob);
-  a.href = url; a.download = name; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 4000);
-}
+const fmtBytes = (b) => (b >= 1e6 ? (b / 1e6).toFixed(1) + ' MB' : b >= 1e3 ? Math.round(b / 1e3) + ' kB' : Math.round(b) + ' B');
+const isZipFile = (f) => !!f && (/\.zip$/i.test(f.name || '') || /^application\/(x-)?zip(-compressed)?$/.test(f.type || ''));
 
 export function createFolders(options = {}) {
   const o = options;
@@ -133,6 +134,14 @@ export function createFolders(options = {}) {
   const copy = { ...FOLDERS_COPY, ...(o.copy || {}) };
   const readPrefs = () => prefs.read() || {};
   const writePrefs = (patch) => prefs.write({ ...readPrefs(), ...patch });
+
+  /* the project ZIP's options: `zip: false` leaves it out; `zip: { store, validate(project) }` the asset store (default core/assets.js)
+     and what a project must be to be taken (default: an object).  Nothing is written until the project has been read and checked. */
+  const zipOpt = o.zip === false ? null : (o.zip && typeof o.zip === 'object' ? o.zip : {});
+  const zipStore = (zipOpt && zipOpt.store) || assets;
+  const zipValid = zipOpt && typeof zipOpt.validate === 'function' ? zipOpt.validate : (p) => !!p && typeof p === 'object' && !Array.isArray(p);
+  const zipApp = String(o.app || 'mir').toLowerCase().replace(/[^a-z0-9]+/g, '') || 'mir';
+  const zipWhy = (e) => String((e && e.message) || e || 'unknown');
 
   /* ── 3. the store, and 5. the seeds ── */
   const files = o.files || createFiles({ key: store, storage, defaultName: o.defaultName || 'UNTITLED', capChars: o.capChars });
@@ -159,6 +168,7 @@ export function createFolders(options = {}) {
     freshLoses: typeof o.freshLoses === 'function' ? o.freshLoses : () => true,
     locked: o.locked, projection: o.projection,
     factory: o.factory,
+    zip: zipOpt ? { save: () => exportZip(), open: () => pickFile(true) } : null,
     depthOf: o.depthOf,
     picture: o.capturePicture, savePicture: o.savePicture, pictureStale: o.pictureStale,
   };
@@ -238,7 +248,7 @@ export function createFolders(options = {}) {
   const extraActions = {
     save: { copy: copy.save, icon: 'save', fire: () => saveNow() },
     saveAs: { copy: copy.saveAs, icon: 'duplicate', fire: () => gallery.save() },
-    open: { copy: copy.open, icon: 'folder', fire: () => intake.pick() },
+    open: { copy: copy.open, icon: 'folder', fire: () => pickFile() },
     export: { copy: copy.export, icon: 'download', fire: () => exportMenu() },
   };
   /* EVERY VIEW OF THE LIBRARY IS ONE GALLERY OVER ONE STORE AND ONE ADAPTER (survey B §2b, item 6).  The window's is the
@@ -274,7 +284,7 @@ export function createFolders(options = {}) {
     let v = null;
     v = buildGallery(el, viewOptions(() => v, {
       pageSize: mo.pageSize ?? 8, actions: mo.actions || o.actions || DEFAULT_ACTIONS,
-      adapter: { ...galleryAdapter, factory: mo.factory },
+      adapter: { ...galleryAdapter, factory: mo.factory, zip: mo.zip && zipOpt ? galleryAdapter.zip : null },   // a rack card has no ZIP buttons unless asked
       prefs: readPrefs()[key] || gp, persist: (g) => writePrefs({ [key]: g }),
       onInspect: mo.onInspect || o.onInspect,
     }));
@@ -351,6 +361,50 @@ export function createFolders(options = {}) {
     gallery.action(b, 'CLOSE', () => gallery.closeContext());
     const first = row.querySelector('.trig'); if (first) first.focus({ preventScroll: true });
   }
+
+  /* ── 6b. the project ZIP: the live project (with the audio it names) in one .zip, and back (the options are above) ── */
+  async function exportZip() {
+    if (!zipOpt) return null;
+    try {
+      const s = await subject(), c = await capture();
+      const blob = await projectZip({ ...(c.payload && typeof c.payload === 'object' ? c.payload : {}), name: s.name }, { store: zipStore }), file = fileName(s.name) + '.' + zipApp + '.zip';
+      download(blob, file);
+      say(t('Saved {file} · {size}', { file, size: fmtBytes(blob.size) }));
+      return blob;
+    } catch (e) { say(t('Could not save the zip: {why}', { why: zipWhy(e) }), true); return null; }
+  }
+  /** openZip(file) — read it, check it, write its assets, save the project under its name (a clash is numbered, never an
+   *  overwrite) and open it.  A zip that is not one, fails its CRC or holds no valid project changes nothing; a project that
+   *  cannot be saved gives back the assets this open wrote. */
+  async function openZip(file) {
+    if (!zipOpt) return { ok: false, why: 'zip is off' };
+    let read;
+    try { read = await readProjectZip(file); }
+    catch (e) { say(t('That is not a project zip: {why}', { why: zipWhy(e) }), true); return { ok: false, why: zipWhy(e) }; }
+    const project = read.project;
+    if (!project || !zipValid(project)) { say(t('That is not a project zip — nothing changed'), true); return { ok: false, why: 'invalid' }; }
+    let put;
+    try { put = await restoreAssets(read, { store: zipStore }); }
+    catch (e) { say(t('Could not keep the zip’s files: {why}', { why: zipWhy(e) }), true); return { ok: false, why: zipWhy(e) }; }
+    const name = String(project.name || '').trim() || t('UNTITLED');
+    const r = files.save({ name, folder: gallery.folder(), payload: project });
+    if (!r.ok) { await rollbackAssets(put.written, { store: zipStore }); say(t('Could not add the project: {why}', { why: r.why || 'unknown' }), true); return r; }
+    gallery.go(r.entry.folder);
+    const opened = await gallery.openEntry(r.entry.id, { force: true }), n = put.restored.length, good = !!(opened && opened.ok);
+    say([t(good ? 'Opened {name}' : 'Added {name}', { name: r.entry.name }), r.entry.name !== name ? t('renamed beside a project already there') : '',
+      n ? tn(n, '{n} audio asset', '{n} audio assets', { n }) : '', good ? '' : (opened && opened.why) || t('could not open it')].filter(Boolean).join(' · '), !good);
+    gallery.paint();
+    return { ok: good, entry: r.entry, assets: put };
+  }
+  /* the file pickers: OPEN FILE takes the intake's kinds and a .zip; OPEN ZIP… takes only the zip */
+  function takeFiles(list, source) { for (const f of list) { if (zipOpt && isZipFile(f)) openZip(f); else intake.ingest(f, { source }); } }
+  function pickFile(zipOnly) {
+    if (!zipOpt) { intake.pick(); return; }
+    const input = doc.createElement('input'); input.type = 'file'; input.multiple = !zipOnly;
+    input.accept = zipOnly ? '.zip,application/zip' : '.mir,.json,.md,.markdown,.txt,.png,image/png,.zip,application/zip';
+    input.addEventListener('change', () => takeFiles([...(input.files || [])], 'picker'), { once: true, signal: life.signal });
+    input.click();
+  }
   async function importEnvelope(env) {
     const r = files.save({ name: env.name || t('IMPORTED'), folder: gallery.folder(), payload: env.data, thumb: '', facts: {} });
     if (!r.ok) { say(t('Could not keep {name}: {why}', { name: env.name || '', why: r.why || 'unknown' }), true); return r; }
@@ -361,6 +415,13 @@ export function createFolders(options = {}) {
   const intake = createIntake({ target: intakeTarget, accept: ['project'], check: { app: o.app }, paste: false,
     onEnvelope: (env) => { importEnvelope(env); },
     onReject: (r) => say(t('Could not open that file: {why}', { why: (r.errors && r.errors[0] && r.errors[0].why) || 'unknown' }), true) });
+
+  /* a dropped .zip is a project ZIP (before the intake sees it: it takes envelopes, pictures and text); other files in the same
+     drop go to the intake as always */
+  if (zipOpt) intakeTarget.addEventListener('drop', (e) => {
+    const list = [...((e.dataTransfer && e.dataTransfer.files) || [])]; if (!list.some(isZipFile)) return;
+    e.preventDefault(); e.stopImmediatePropagation(); takeFiles(list, 'drop');
+  }, { capture: true, signal: life.signal });
 
   const firstSeat = typeof o.firstSeat === 'function' ? o.firstSeat : () => {
     const st = win.state(), rack = typeof o.rack === 'function' ? o.rack() : o.rack;
@@ -384,7 +445,7 @@ export function createFolders(options = {}) {
     openEntry: (eid, oo) => gallery.openEntry(eid, oo),
     current: () => currentEntry(), dirty: () => gallery.dirty(),
     seed: (list) => { const r = seedLibrary(files, list, { storage, seededKey: o.seededKey }); gallery.paint(); return r; },
-    exportProject, importEnvelope, ingest: (input, io) => intake.ingest(input, io), say,
+    exportProject, exportZip, openZip, importEnvelope, ingest: (input, io) => intake.ingest(input, io), say,
     state: () => ({ window: win.state(), gallery: gallery.state(), library: files.state(), current, dirty: gallery.dirty() }),
     destroy() { life.abort(); offLang(); if (unsub) unsub(); frame.cancel(MARK); intake.destroy(); for (const v of [...views]) v.destroy(); win.destroy(); },
   };

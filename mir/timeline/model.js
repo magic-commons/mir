@@ -4,13 +4,14 @@
  *   createTimelineModel() → { state, serialize, subscribe, beforeReplace, begin, commit, cancel, undo, redo, restore,
  *     addLane, removeLane, create, updateClip, updateCurve, addPoint, movePoint, movePoints, removePoints, drawPoints,
  *     removePoint, setTension, setSegment, deleteClip, deleteClips, copyClips, pasteClips, duplicateClips, moveClips,
- *     duplicate, makeUnique, value(targetId, beat), setActive, activeClips(beat, kind?), needsClock(has), signature }
+ *     duplicate, makeUnique, value(targetId, beat), setActive, activeClips(beat, kind?), needsClock(has), signature,
+ *     rederive(patches), lastRefusal }
  *   value(targetId, beat) is the automation the modulation clock samples (host.clock.setAutomation({ value })): the
  *   latest-starting unmuted clip under the beat wins, as a 0..1 value scaled into the curve's OUTPUT RANGE.
  *   Its own 64-row snapshot undo stays (an app with the kit's one history routes it there: timeline/history.js). */
 import { clipKind, isKindCurve } from './kinds.js';
 import './pattern-kind.js';                 // the kit's two kinds are registered before any model restores a project
-import './audio-kind.js';
+import { audioBudgetAdding } from './audio-kind.js';   // registers the audio kind, and holds the one budget every way of making an audio clip answers to
 import { normalizeTimelinePoints, evaluateTimelineSource, addTimelinePoint, moveTimelinePoint, slideTimelinePoint, moveTimelinePoints, removeTimelinePoints, drawTimelinePoints, removeTimelinePoint, setTimelineTension, setTimelineSegment, TIMELINE_MAX_TOTAL_POINTS } from './source.js';
 const clone = v => JSON.parse(JSON.stringify(v));
 const finite = (n, d = 0) => Number.isFinite(n) ? n : d;
@@ -21,7 +22,7 @@ export const TIMELINE_HISTORY_LIMIT = 64;
 const color = value => typeof value === 'string' && /^#[\da-f]{6}$/i.test(value) ? value.toLowerCase() : DEFAULT_TIMELINE_COLOR;
 const empty = () => ({ v: 1, seq: 4, meter: 4, lanes: [1,2,3,4].map(i => ({ id: 'lane'+i, name: 'LANE '+i })), curves: [], clips: [] });
 export function createTimelineModel() {
-  let data = empty(), before = null;
+  let data = empty(), before = null, refusal = null;
   const listeners = new Set(), resetListeners = new Set(), undo = [], redo = [];
   const encoder = new TextEncoder();
   let historyBytes = 0;
@@ -58,6 +59,10 @@ export function createTimelineModel() {
     return result;
   }
   const id = kind => kind + (++data.seq);
+  /* THE AUDIO BUDGET, however the clip is made (64 clips, 20 minutes of distinct audio): create, paste, duplicate and so slice all ask
+     it BEFORE their one edit, so a refusal is whole (nothing half-applied) and says why in `lastRefusal` (the caller toasts it). */
+  const refuseAudio = (curves) => { refusal = null; const adds = curves.filter(c => c && c.kind === 'audio').map(c => ({ assetId: c.assetId, seconds: c.seconds })); if (!adds.length) return false;
+    const b = audioBudgetAdding(data, adds); if (b.ok) return false; refusal = { why: b.why, vars: b.vars }; return true; };
   function cleanCurves() { const used = new Set(data.clips.map(c => c.curveId)); data.curves = data.curves.filter(c => used.has(c.id)); }
   function fitsPoints(curveId, points) { return data.curves.reduce((count, c) => count + (c.id === curveId ? points.length : c.points.length), 0) <= TIMELINE_MAX_TOTAL_POINTS; }
   function applySource(curve, points, length) {
@@ -117,7 +122,9 @@ export function createTimelineModel() {
       return edit(d => { d.clips = d.clips.filter(c => c.laneId !== laneId); d.lanes = d.lanes.filter(l => l.id !== laneId); cleanCurves(); return { ok: true, count }; });
     },
     create({ targetId, name, value, start = 0, duration = data.meter, laneId, source = null }) {
+      refusal = null;
       if (source && source.kind && source.kind !== 'curve' && !(clipKind(source)?.validate?.({ ...source, targetId, length: duration }) ?? false)) return null;
+      if (source && refuseAudio([source])) return null;
       if (!targetId || !Number.isFinite(value) || !Number.isFinite(start) || !Number.isFinite(duration) || duration <= 0) return null;
       start = Math.max(0,start);
       const free = lane => !data.clips.some(c=>c.laneId===lane.id && c.start < start+duration && c.start+c.duration > start);
@@ -178,6 +185,7 @@ export function createTimelineModel() {
           ![curve.length,c.start,c.duration,c.offset,c.scale].every(Number.isFinite)||curve.length<=0||c.duration<=0||c.offset<0||c.scale<=0||!Number.isFinite(start+c.start-bundle.start)||start+c.start-bundle.start<0)return null;
         prepared.push({clip:{...clone(c),start:start+c.start-bundle.start,laneId:data.lanes[index].id},curve:{...clone(curve),points}});
       }
+      if(refuseAudio(prepared.map(e=>e.curve)))return null;
       if(data.clips.length+prepared.length>4096||data.curves.length+prepared.length>1024||data.curves.reduce((n,c)=>n+c.points.length,0)+prepared.reduce((n,e)=>n+e.curve.points.length,0)>TIMELINE_MAX_TOTAL_POINTS)return null;
       return edit(d=>prepared.map(e=>{e.curve.id=id('curve');e.clip.id=id('clip');e.clip.curveId=e.curve.id;d.curves.push(e.curve);d.clips.push(e.clip);return e.clip.id;}));
     },
@@ -194,7 +202,7 @@ export function createTimelineModel() {
       if(clips.some(c=>!Number.isFinite(c.start+dt)))return false;
       return edit(d=>{clips.forEach((c,i)=>{const live=d.clips.find(x=>x.id===c.id);live.start=c.start+dt;live.laneId=d.lanes[lanes[i]+dl].id;});return {beatDelta:dt,laneDelta:dl};},false);
     },
-    duplicate(clipId, unique=false) { return edit(d=>{const c=d.clips.find(c=>c.id===clipId);if(!c || d.clips.length>=4096)return null;
+    duplicate(clipId, unique=false) { { const c=data.clips.find(c=>c.id===clipId); if(c&&refuseAudio([data.curves.find(x=>x.id===c.curveId)]))return null; } return edit(d=>{const c=d.clips.find(c=>c.id===clipId);if(!c || d.clips.length>=4096)return null;
       const original=d.curves.find(x=>x.id===c.curveId);
       if(unique && (d.curves.length>=1024 || d.curves.reduce((n,x)=>n+x.points.length,0)+original.points.length>TIMELINE_MAX_TOTAL_POINTS))return null;
       const copy={...c,id:id('clip'),start:c.start+c.duration};
@@ -219,6 +227,14 @@ export function createTimelineModel() {
     setActive(r) { return edit(d => { if (r && Number.isFinite(r.start) && Number.isFinite(r.end) && r.end > r.start) d.active = { start: Math.max(0, r.start), end: r.end }; else delete d.active; return !!d.active; }); },
     activeClips(beat, kind = null) { const out=[]; const curves=new Map(data.curves.map(c=>[c.id,c])); for(const clip of data.clips){ if(clip.mute||beat<clip.start||beat>=clip.start+clip.duration)continue; const curve=curves.get(clip.curveId); if(!curve||(kind&&(curve.kind||'curve')!==kind))continue; out.push({clip,curve}); } return out; },
     needsClock(has = () => true) { for (const [target,list] of byTarget) if (has(target) && list.some(({clip})=>!clip.mute)) return true; return false; },
+    /** rederive([[clipId, { scale, duration, … }]]) — DERIVED fields, not an edit: the audio clips' scale and beat length after a tempo change
+     *  (audio-drop.js).  It adds no undo row (it is not the person's act) and refuses while a gesture is open (false: ask again). */
+    rederive(patches) { if (before) return false; let n = 0; for (const [clipId, patch] of patches) { const c = data.clips.find(c => c.id === clipId); if (!c) continue;
+      const p = { ...c, ...patch }; if (![p.start, p.duration, p.offset, p.scale].every(Number.isFinite) || p.start < 0 || p.duration <= 0 || p.offset < 0 || p.scale <= 0) continue;
+      for (const k of ['duration', 'offset', 'scale']) c[k] = p[k]; c.followSourceEnd = false; n++; }
+      if (n) notify(false); return n > 0; },
+    /** why the last create / paste / duplicate was refused for the audio budget: { why, vars } (English key and its values), or null */
+    get lastRefusal() { return refusal; },
     signature: () => JSON.stringify(data)
   };
   return api;

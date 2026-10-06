@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MIR · audio fixture</title>
+<!-- tests/audio.browser.mjs: the TIMELINE with audio clips (mir/timeline/audio-drop.js), the modulation seam with its DEFAULT audio
+     capture, and FOLDERS with SAVE AS ZIP / OPEN ZIP, over one parameter.  A 2D page, no GPU.  The asset store is a fresh
+     database each load (a test never meets another run's files); FOLDERS' downloads are caught, not saved. -->
+<link rel="stylesheet" href="../../mir/mir.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0e14; }
+  #card { position: fixed; left: 8px; top: 8px; width: 120px; padding: 10px; }
+  #floats { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  #floats > * { pointer-events: auto; }
+</style>
+</head>
+<body data-theme="dark">
+<div id="card" class="glass"></div>
+<div id="floats"></div>
+<script type="module">
+import { knob } from '../../mir/kit.js';
+import { installModulation } from '../../mir/modulation/bind.js';
+import { installTimeline } from '../../mir/timeline/bind.js';
+import { installAudioDrop } from '../../mir/timeline/audio-drop.js';
+import { createFolders } from '../../mir/folders/folders.js';
+import { useAssets, createAssetStore, assets } from '../../mir/core/assets.js';
+try { for (const k of Object.keys(localStorage)) if (k.startsWith('mir.test.audio')) localStorage.removeItem(k); } catch (_) { /* private mode */ }
+useAssets(createAssetStore({ name: 'mir-test-audio-' + Date.now() + '-' + Math.random().toString(36).slice(2) }));
+const says = [], downloads = [];
+const S = { size: 0.5 };
+const w = knob({ label: 'SIZE', min: 0, max: 1, value: S.size, onInput: (v) => { S.size = v; } });
+document.getElementById('card').appendChild(w.root);
+const params = [{ id: 'palette.phase', label: 'PHASE', min: 0, max: 1, map: 'linear', get: () => S.size, set: (v) => { S.size = v; }, widget: w }];
+const floats = document.getElementById('floats');
+const mod = installModulation({ mount: floats, params, storageKey: 'mir.test.audio.mod', presetKey: 'mir.test.audio.presets' });   // no `audio` option: the kit's capture is the default
+let au = null;
+const tl = installTimeline({ mount: floats, mod, say: (t) => says.push(t), storageKey: 'mir.test.audio.tl', audio: { pick: (at) => au && au.pick(at) },
+  initial: { dock: 'bottom', open: true, h: 440, chipSide: 'left' } });
+au = installAudioDrop(tl.editor, { mod, controller: tl.controller, say: (t) => says.push(t) });
+const folders = createFolders({ host: floats, store: 'mir.test.audio.library', app: 'mirtest', download: (blob, name) => downloads.push({ blob, name }), say: (t, bad) => says.push((bad ? '! ' : '') + t) });
+window.__AU = { mod, tl, au, folders, assets, says, downloads, S };
+window.__ready = true;
+</script>
+</body>
+</html>

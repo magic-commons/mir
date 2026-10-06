@@ -39,8 +39,8 @@ assert.equal(readjustAudioTempo(m, 120, 60), 1);
 let c = m.state().clips[0], s = m.state().curves[0];
 assert.equal(c.duration, 2); assert.equal(audioRate(c, s, 60), 1);
 [0.3, 1.1, 1.8].map((t) => at(m, t, 60)).forEach((v, i) => assert.ok(Math.abs(v - before[i]) < 1e-12, 'the envelope sits at the same seconds'));   // to an ulp: the synthetic ramp interpolates where BASINS' tone landed on samples
-assert.ok(m.undo() && m.state().clips[0].duration === 4, 'one undo restores the beat length');
-m.redo();
+// 1.5.0-alpha.13: the re-derive is derived state, not an edit (BASINS' open item): no undo row; the one undo is the clip's creation
+assert.ok(m.undo() && m.state().clips.length === 0, 'a tempo re-derive adds no undo row'); assert.ok(m.redo() && m.state().clips[0].duration === 2);
 
 // SHIFT+T: trim to 1.5 beats at 60 BPM, stretch → the remaining 2 s of audio fit 1.5 s; ratio = seconds / clip seconds.
 m.updateClip(clipId, { duration: 1.5 });

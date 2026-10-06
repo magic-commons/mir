@@ -221,7 +221,16 @@ export function buildGallery(panel, opts) {
       } finally { fac.root.disabled = false; paint(); }
     } });
     foot.appendChild(fac.root);
-  } else foot.hidden = true;
+  }
+  /* SAVE AS ZIP… and OPEN ZIP… (BASINS' SETTINGS & FILES, FL's "Save project as zip"): the host's `adapter.zip = { save(), open() }`;
+     FOLDERS gives the window's gallery both (a rack card has none unless mountGallery({ zip: true })) */
+  if (adapter.zip && typeof adapter.zip.save === 'function') {
+    const zipSave = kit.trig({ label: 'SAVE AS ZIP…', cls: 'sv-act sv-wide sv-zip', title: 'Save the current project, with the audio files it uses, as one .zip.', onFire: () => adapter.zip.save() });
+    const zipOpen = kit.trig({ label: 'OPEN ZIP…', cls: 'sv-act sv-wide sv-zip', title: 'Open a project saved as one .zip (SAVE AS ZIP): its audio comes back with it and it becomes the current project.', onFire: () => adapter.zip.open() });
+    zipSave.root.dataset.zip = 'save'; zipOpen.root.dataset.zip = 'open';
+    foot.append(zipSave.root, zipOpen.root);
+  }
+  if (!foot.children.length) foot.hidden = true;
   const pager = pageSize ? mk('nav', 'sv-pages', explorer) : null;
   let prevPage, nextPage, pageLabel;
   if (pager) {

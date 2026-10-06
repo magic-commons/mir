@@ -347,6 +347,26 @@ export function createFiles(opts) {
       if (r.ok) stat.saves++;
       return r;
     },
+    /** refresh([{ id, at?, thumb?, payload, facts? }]) — REPLACE bundled entries IN PLACE (1.5.0-alpha.13; BASINS starter-gallery.js):
+     *  each keeps its id, name and folder; its picture, payload, facts and time are the new ones.  ALL OR NONE, in one write: a full
+     *  library, a quota or another tab's write refuses the lot and leaves the old gallery exactly as it was (seed.js retries it at
+     *  the next load).  An id that is not in the library is skipped.  → { ok, updated } */
+    refresh(updates) {
+      const list = (Array.isArray(updates) ? updates : []).filter((u) => u && u.payload && typeof u.payload === 'object' && api.entry(u.id));
+      if (!list.length) return { ok: true, updated: 0 };
+      return commit((L) => {
+        let updated = 0;
+        for (const u of list) {
+          const e = L.entries.find((x) => x.id === String(u.id)); if (!e) continue;
+          e.payload = clone(u.payload);
+          if (typeof u.thumb === 'string') e.thumb = u.thumb;
+          if (u.facts && typeof u.facts === 'object') e.facts = clone(u.facts);
+          if (Number.isFinite(u.at) && u.at > 0) e.at = Math.floor(u.at);
+          reprice(e); updated++;
+        }
+        return { updated };
+      }, 'refresh');
+    },
     /** Move one item.  A path that does not exist yet is created by the move. */
     move(id, folder) {
       return commit((L) => {
