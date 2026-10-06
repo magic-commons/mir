@@ -16,6 +16,7 @@
  *   fmtBytes · fmtMs · fmtClock */
 
 import { t } from '../core/i18n.js';
+import { formatSeconds } from '../timeline/time-format.js';
 
 /** the frame rates the panel offers (BASINS: Josh's spec) */
 export const RECORD_FPS = Object.freeze([24, 30, 48, 60]);
@@ -31,7 +32,8 @@ export const CAP_MS_DEFAULT = 84;
 
 export const fmtBytes = (b) => (b >= 1e6 ? (b / 1e6).toFixed(1) + ' MB' : b >= 1e3 ? Math.round(b / 1e3) + ' kB' : Math.round(b) + ' B');
 export const fmtMs = (ms) => (ms >= 3600e3 ? (ms / 3600e3).toFixed(1) + ' h' : ms >= 60e3 ? Math.round(ms / 60e3) + ' min' : ms >= 1e3 ? (ms / 1e3).toFixed(1) + ' s' : Math.round(ms) + ' ms');
-export const fmtClock = (s) => { const m = Math.floor(s / 60), r = Math.round(s - m * 60); return m + ':' + String(r).padStart(2, '0'); };
+/** a duration as m:ss, whole seconds TRUNCATED (the timeline's formatSeconds): 59.6 s is 0:59, never 0:60 */
+export const fmtClock = (s) => formatSeconds(s);
 
 /** A recording's high-quality master: 0.5 bit per pixel per frame, between 40 and 200 Mbps.  The final bitrate is checked with
  *  VideoEncoder.isConfigSupported before any frame is captured. */
