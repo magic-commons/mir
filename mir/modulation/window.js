@@ -2957,6 +2957,11 @@ export function createModulation(host, port) {
     if (document.body.classList.contains('ui-hidden')) return false;   // H: the interface is hidden, the paint costs nothing (BASINS)
     const t0 = performance.now();
     paintCalls++;
+    /* CLOSED, THE BODY IS NOT PAINTED.  Everything below writes into the window (its work bar, macro rail and device
+       cards), which nobody sees while it is closed; open() rebuilds and force-paints it all.  What shows outside it is
+       the routing rings on the app's own controls, and a forced paint still redraws those (wave 18: an app ticking
+       paint(true) 17 times a second paid the whole body, 11.6 ms/s, with the window shut) */
+    if (!P.open) { if (force) paintRings(routeIndex()); return false; }
     if (!force && t0 - lastPaint < 33) return false;      // 30 Hz is plenty for a number to be read at
     lastPaint = t0;
     const T = M.transport;
