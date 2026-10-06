@@ -47,8 +47,12 @@ const dial = (g, i) => `${grp(g)}.querySelectorAll('.k-dial')[${i}]`;
 async function option(name, act, hookExpr, want, specExpr) {
   const before = await J(`return ${specExpr};`);
   const hit = await act();
-  await sleep(60);
-  const after = await J(`return { hook: ${hookExpr}, spec: ${specExpr} };`);
+  /* the condition, not a fixed 60 ms: read each frame until the hook says `want` (the look store's frame job has run), 3 s at most */
+  let after;
+  for (const end = Date.now() + 3000; ;) {
+    after = await J(`await new Promise((r) => requestAnimationFrame(r)); return { hook: ${hookExpr}, spec: ${specExpr} };`);
+    if (JSON.stringify(after.hook) === JSON.stringify(want) || Date.now() > end) break;
+  }
   const ok = hit && JSON.stringify(after.hook) === JSON.stringify(want) && JSON.stringify(after.spec) !== JSON.stringify(before);
   check(`option ${name}: the hook says ${JSON.stringify(want)} and the specimen's computed style moved`, ok, `hook ${JSON.stringify(after.hook)} · ${JSON.stringify(before)} → ${JSON.stringify(after.spec)}`);
 }
