@@ -40,6 +40,7 @@ import { frame } from '../core/frame.js';
 import { setVar, setText } from '../core/perf.js';
 import { t } from '../core/i18n.js';
 import { registerProjectPart } from '../core/project.js';
+import { handWrite } from '../modulation/registry.js';
 import { createMorph, kindOf, snapshot, recallValues, loadBank, saveBank, CORNERS, BANK_MAX, NAME_MAX } from './morph.js';
 
 export const MODES = Object.freeze(['pair', 'route', 'morph']);
@@ -118,7 +119,7 @@ export function createXYPanel(o = {}) {
   /* ── the hand law, and the app's roads ── */
   const has = (pid) => { try { return !!(mod && mod.registry && mod.registry.has(pid)); } catch (_) { return false; } };
   const routed = (pid) => { if (!mod || !has(pid)) return false; try { return !!mod.isModulated(pid); } catch (_) { return false; } };
-  const hand = (pid, v) => !!(mod && has(pid) && mod.hand(pid, v));
+  const hand = (pid, v) => has(pid) && handWrite(mod, pid, v);
   const baseOf = (rec) => (routed(rec.id) ? mod.baseOf(rec.id) : rec.get());
   const homeOf = (rec) => (finite(rec.def) ? rec.def : finite(rec.home) ? rec.home : rec.map === 'log' && rec.min > 0 ? Math.sqrt(rec.min * rec.max) : (rec.min + rec.max) / 2);
   /** a dial of the app: the base through the registry when routed (law 3), else the app's own number, and its widget shows it */

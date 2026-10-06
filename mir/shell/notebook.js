@@ -107,7 +107,25 @@ export function loadRenderer() {
 }
 
 const NOTES_DEF_W = 640, NOTES_DEF_H = 460, ABOUT_DEF_W = 520, ABOUT_DEF_H = 812, ABOUT_RISE = 32, NB_MIN_W = 320, NB_MIN_H = 240;
-const APP_KEY = (e) => (e.ctrlKey || e.metaKey) && !e.altKey && (e.code === 'KeyS' || e.code === 'Comma');
+/** the two keys a notebook field lets through to the app: Ctrl/⌘+S and Ctrl/⌘+, (the shelf's face keeps the same law) */
+export const APP_KEY = (e) => (e.ctrlKey || e.metaKey) && !e.altKey && (e.code === 'KeyS' || e.code === 'Comma');
+/** askInline(row, { cls, label, then, back }) → the NO button (for the caller to focus), or null if the row is already asking.
+ *  An inline "label yes / no" on a row (a notebook tab, a shelf row): YES runs `then`; NO and Escape put the row back and
+ *  call `back`; leaving it puts the row back.  `cls` is the class prefix: 'nb-tab' → .nb-tab-ask .nb-tab-q .nb-tab-yes .nb-tab-no */
+export function askInline(row, { cls, label: words, then, back }) {
+  if (row.dataset.asking !== undefined) return null;
+  row.dataset.asking = '';
+  const q = el('span', cls + '-ask', row); label(el('span', cls + '-q', q), words);
+  const yes = label(el('button', cls + '-yes', q), 'yes'); yes.type = 'button';
+  const no = label(el('button', cls + '-no', q), 'no'); no.type = 'button';
+  let shut = false;
+  const close = () => { if (shut) return; shut = true; delete row.dataset.asking; q.remove(); };   // removing the focused button fires focusout: once only
+  yes.addEventListener('click', () => { close(); then(); });
+  no.addEventListener('click', () => { close(); if (back) back(); });
+  q.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); close(); if (back) back(); } if (!APP_KEY(e)) e.stopPropagation(); });
+  q.addEventListener('focusout', (e) => { if (!q.contains(e.relatedTarget)) close(); });
+  return no;
+}
 
 export function createNotebook(options = {}) {
   const o = { name: 'this app', title: 'NOTEBOOK', storageKey: 'mir.notebook', render: renderNotebook, ...options };
@@ -418,18 +436,8 @@ export function createNotebook(options = {}) {
     }
     /* delete, after an inline "delete? yes / no" on the tab itself */
     function ask(t) {
-      if (t.w.dataset.asking !== undefined) return;
-      t.w.dataset.asking = '';
-      const q = el('span', 'nb-tab-ask', t.w); label(el('span', 'nb-tab-q', q), 'delete?');
-      const yes = label(el('button', 'nb-tab-yes', q), 'yes'); yes.type = 'button';
-      const no = label(el('button', 'nb-tab-no', q), 'no'); no.type = 'button';
-      let shut = false;
-      const close = () => { if (shut) return; shut = true; delete t.w.dataset.asking; q.remove(); };   // removing the focused button fires focusout: once only
-      yes.addEventListener('click', () => { close(); removePage(t.key); });
-      no.addEventListener('click', () => { close(); t.b.focus(); });
-      q.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); close(); t.b.focus(); } if (!APP_KEY(e)) e.stopPropagation(); });
-      q.addEventListener('focusout', (e) => { if (!q.contains(e.relatedTarget)) close(); });
-      inView(t.w); no.focus();
+      const no = askInline(t.w, { cls: 'nb-tab', label: 'delete?', then: () => removePage(t.key), back: () => t.b.focus() });
+      if (no) { inView(t.w); no.focus(); }
     }
     function removePage(id) {
       const rows = P.list(), i = rows.findIndex((r) => r.id === id); if (i < 0) return;

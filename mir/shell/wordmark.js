@@ -34,18 +34,25 @@ export const PALETTE_STEP = 240;
 export const paletteAt = (i, offset = 0, colors = MIR_PALETTE) => colors[(i + offset) % colors.length];
 const FIRST_PAINT = ['#5ee7d8', '#78e1f0', '#f5f7fa', '#d97ce8', '#2b3f7a', '#5ee7d8', '#ffbe5a', '#d97ce8', '#78e1f0'];
 
-/** the nine-square mark, as λWAVES and BASINS draw it (viewBox 0 0 10 10, squares 2.25 on a 2.25 pitch, rotated 45°) */
-export function markSvg() {
+/** the nine squares rotated 45° (viewBox 0 0 10 10, squares 2.25 on a 2.25 pitch), row by row → { svg, tiles };
+ *  `rx` rounds the squares.  The one builder both marks below use. */
+function nineSquares(cls, rx) {
   const svg = document.createElementNS(SVG, 'svg');
-  svg.setAttribute('class', 'mark'); svg.setAttribute('viewBox', '0 0 10 10'); svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('class', cls); svg.setAttribute('viewBox', '0 0 10 10'); svg.setAttribute('aria-hidden', 'true');
   const g = document.createElementNS(SVG, 'g'); g.setAttribute('transform', 'rotate(45 5 5)'); svg.appendChild(g);
   const at = [1.7, 3.95, 6.2];
-  for (let row = 0; row < 3; row++) for (let col = 0; col < 3; col++) {
+  const tiles = Array.from({ length: 9 }, (_, i) => {
     const r = document.createElementNS(SVG, 'rect');
-    r.setAttribute('x', String(at[col])); r.setAttribute('y', String(at[row]));
-    r.setAttribute('width', '2.25'); r.setAttribute('height', '2.25'); r.setAttribute('fill', FIRST_PAINT[row * 3 + col]);
-    g.appendChild(r);
-  }
+    r.setAttribute('x', String(at[i % 3])); r.setAttribute('y', String(at[Math.floor(i / 3)]));
+    r.setAttribute('width', '2.25'); r.setAttribute('height', '2.25'); if (rx) r.setAttribute('rx', rx);
+    g.appendChild(r); return r;
+  });
+  return { svg, tiles };
+}
+/** the nine-square mark, as λWAVES and BASINS draw it */
+export function markSvg() {
+  const { svg, tiles } = nineSquares('mark');
+  tiles.forEach((r, i) => r.setAttribute('fill', FIRST_PAINT[i]));
   return svg;
 }
 
@@ -74,16 +81,8 @@ export function installPaletteCycle(target, tiles, colors = MIR_PALETTE) {
 /** createMirDiamond(target, { colors }) — BASINS' palette diamond (`svg.mod-palette-mark`, the nine squares with
  *  rx .22) appended to `target`, its cycle installed on `target`.  → { diamond, tiles, destroy() } */
 export function createMirDiamond(target, { colors = MIR_PALETTE } = {}) {
-  const diamond = document.createElementNS(SVG, 'svg');
-  diamond.setAttribute('viewBox', '0 0 10 10'); diamond.setAttribute('class', 'mod-palette-mark');
-  diamond.setAttribute('aria-hidden', 'true'); diamond.setAttribute('focusable', 'false');
-  const g = document.createElementNS(SVG, 'g'); g.setAttribute('transform', 'rotate(45 5 5)'); diamond.appendChild(g);
-  const tiles = Array.from({ length: 9 }, (_, i) => {
-    const r = document.createElementNS(SVG, 'rect');
-    r.setAttribute('x', String(1.7 + (i % 3) * 2.25)); r.setAttribute('y', String(1.7 + Math.floor(i / 3) * 2.25));
-    r.setAttribute('width', '2.25'); r.setAttribute('height', '2.25'); r.setAttribute('rx', '.22');
-    g.appendChild(r); return r;
-  });
+  const { svg: diamond, tiles } = nineSquares('mod-palette-mark', '.22');
+  diamond.setAttribute('focusable', 'false');
   target.appendChild(diamond);
   return { diamond, tiles, destroy: installPaletteCycle(target, tiles, colors) };
 }

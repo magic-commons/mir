@@ -47,6 +47,7 @@
 import { el, label as writeLabel } from '../kit.js';
 import { t, onLanguage } from '../core/i18n.js';
 import { setVar } from '../core/perf.js';
+import { frame } from '../core/frame.js';
 import { copyText } from './clipboard.js';
 import { notice } from './notice.js';
 
@@ -173,10 +174,10 @@ export function createMenubar({ opener, host, menus, label, phone, keep } = {}) 
   /* THE PHONE CROSSING (λWAVES wave 106): entering the breakpoint shows and PLACES the bar on the next frame;
      leaving it lets the bar go unless a list is open */
   let wasPhone = isPhone();
-  const syncPhone = () => { const now = isPhone(); if (now === wasPhone) return; wasPhone = now; if (now) requestAnimationFrame(() => { if (isPhone()) showBar(false); }); else if (!openList) barShown(false); };
+  const syncPhone = () => { const now = isPhone(); if (now === wasPhone) return; wasPhone = now; if (now) frame.write(() => { if (isPhone()) showBar(false); }); else if (!openList) barShown(false); };
   window.addEventListener('resize', syncPhone, { passive: true, signal: life.signal });
   window.addEventListener('orientationchange', syncPhone, { passive: true, signal: life.signal });
-  if (wasPhone) requestAnimationFrame(() => { if (isPhone()) showBar(false); });
+  if (wasPhone) frame.write(() => { if (isPhone()) showBar(false); });
   /* a bar placed before the wordmark's face has loaded sits where the fallback font ended (measured: 3 px right on a
      phone), and one left up through a resize sits where the old layout put it — so a shown bar is placed again */
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!life.signal.aborted && !bar.hidden) place(); });

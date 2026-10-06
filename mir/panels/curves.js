@@ -26,22 +26,21 @@
  *   channel names: SOLEIL's twelve bands and its master) and no filter is installed.
  * PROJECT AND HISTORY  a part named `part` (default 'curves') unless `project: false`; with `history`, one domain: a gesture is one row.
  * IDLE  nothing runs at rest: the plot is painted on a change, coalesced on the frame. */
-import { el, ariaLabel, hint, trig } from '../kit.js';
+import { el, svgEl, ariaLabel, hint, trig } from '../kit.js';
 import { control } from '../controls/factory.js';
 import { frame } from '../core/frame.js';
 import { setAttr } from '../core/perf.js';
 import { registerProjectPart } from '../core/project.js';
+import { handWrite } from '../modulation/registry.js';
 import { evaluate, normalizePoints, addPoint, removePoint, movePoint, setTension } from '../modulation/curve.js';
 import { svgPoint, curveHit, pointDrag, tensionDelta } from '../modulation/curve-gesture.js';
 import { pictureFilter } from './picture-filter.js';
 
-const NS = 'http://www.w3.org/2000/svg';
 const W = 256;                                         // the plot's viewBox side: one unit per table entry
 const OUT_PX = 24;                                     // a point dragged this far outside the plot is removed on release (Photoshop)
 const DOUBLE_MS = 320;                                 // two presses this close are a double-tap (the kit's tapWatcher)
 let uid = 0;
 const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
-const svgEl = (tag, cls, parent) => { const n = document.createElementNS(NS, tag); if (cls) n.setAttribute('class', cls); if (parent) parent.appendChild(n); return n; };
 
 /* ── the pure part ─────────────────────────────────────────────────────────────────────────────────────────────────── */
 export const IDENTITY = () => [{ t: 0, v: 0, tension: 0 }, { t: 1, v: 1, tension: 0 }];
@@ -312,7 +311,7 @@ export function createCurvesView(parent, o = {}) {
   const foot = el('div', 'curves-row curves-foot', root);
   const preset = control({ id: M.part + '.preset', label: 'PRESET', hint: 'PRESET — a curve to start from', options: PRESET_NAMES.map((n) => ({ id: n, label: n, hint: PRESET_HINT[n] })),
     value: presetOf(M.points()) || 'LINEAR', get: () => presetOf(M.points()) || 'LINEAR', set: (v) => M.preset(M.channel(), v) });
-  const writeAmount = (v) => { if (mod && typeof mod.hand === 'function') { let r = false; try { r = mod.isModulated(M.modId) && mod.hand(M.modId, v); } catch (_) { r = false; } if (r) return; } M.setAmount(v); };
+  const writeAmount = (v) => { if (!handWrite(mod, M.modId, v)) M.setAmount(v); };
   const amount = control({ id: M.modId, label: 'AMOUNT', hint: 'AMOUNT — how much of the curves apply: the diagonal at 0, the whole curve at 100 %', min: 0, max: 1, home: 1,
     fmt: (v) => Math.round(v * 100) + ' %', value: M.amount(), get: () => M.amount(), set: writeAmount });
   amount.widget.setDefault(1);

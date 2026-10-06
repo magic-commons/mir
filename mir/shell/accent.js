@@ -37,8 +37,8 @@
  *   options.gamut        (rgb) => CSS colour string                      (default: sRGB hex)
  *   options.onAccent     (hueSatA, hueSatB) => void — hand the angles to a window that derives its own tints
  *                        (the modulation window's `setAccent`) */
-import { PRESET_BY_ID, toLUT, rgbToOklab, oklabToRgb, rgbToHex, visibleInk, contrastRatio } from '../palette.js';
-import { setAccentRGB } from '../kit.js';
+import { PRESET_BY_ID, toLUT, rgbToOklab, oklabToRgb, rgbToHex, visibleInk, contrastRatio, hslToRgb01, rgbToHsl } from '../palette.js';
+import { setAccentRGB, lightTheme } from '../kit.js';
 
 /* the two stage grounds λWAVES ships (rack.js THEMES.bg) — #070a0f and a hair under #eef1f6 */
 export const STAGE_GROUND = { dark: [0.028, 0.038, 0.058], light: [0.93, 0.95, 0.975] };
@@ -48,16 +48,12 @@ export const MARK_SELECTOR = '#title .mark rect, .nb-logo .mark rect, #busyMark 
 const MARK_N = 9, MARK_STEP = 40, MARK_FLOOR = 3, TURN_STOPS = 36;
 const wrapDeg = (d) => ((d % 360) + 360) % 360;
 const unit = (v) => Math.max(0, Math.min(1, +v || 0));
-const themeOf = () => (document.body.dataset.theme === 'light' ? 'light' : 'dark');
+const themeOf = () => (lightTheme() ? 'light' : 'dark');
 
 /** an accent as a window that derives tints wants it: [hue°, saturation %] of the same rgb the house wears */
 export function hueSat(rgb) {
-  const r = rgb[0], g = rgb[1], b = rgb[2];
-  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
-  if (d < 1e-9) return [0, 0];
-  const sat = d / (1 - Math.abs(2 * l - 1));
-  let h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
-  h *= 60; if (h < 0) h += 360;
+  if (Math.max(rgb[0], rgb[1], rgb[2]) - Math.min(rgb[0], rgb[1], rgb[2]) < 1e-9) return [0, 0];
+  const [h, sat] = rgbToHsl(rgb);
   return [Math.round(h), Math.round(100 * Math.min(1, sat))];
 }
 
@@ -72,11 +68,7 @@ export function towardWhite(rgb, k) {
 /** hslVivid(v) → { sat, lum } in percent: BASINS' VIVID scale for the 'hsl' model (vividSat 20 + 80·v, vividLum 28 + 36·v) */
 export const hslVivid = (v) => { const u = unit(v); return { sat: +(20 + 80 * u).toFixed(1), lum: +(28 + 36 * u).toFixed(1) }; };
 /** hslToRgb(deg, sat%, lum%) → [r, g, b] 0…1 */
-export function hslToRgb(deg, sat, lum) {
-  const h = ((deg % 360) + 360) % 360, s = sat / 100, l = lum / 100, k = (n) => (n + h / 30) % 12, a = s * Math.min(l, 1 - l);
-  const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
-  return [f(0), f(8), f(4)];
-}
+export const hslToRgb = (deg, sat, lum) => hslToRgb01(((deg % 360) + 360) % 360, sat / 100, lum / 100);
 /* the light theme re-derives --acc inside a card (skin.css); with BRIGHTNESS up the same law, mixed (BASINS skin.js) */
 const BRIGHT_LAW = 'body[data-theme="light"].acc-bright .dev { --acc: color-mix(in oklch, hsl(var(--hue-acc) calc(var(--sat-acc) - 10%) var(--lum-acc)), white var(--acc-white)); }';
 

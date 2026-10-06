@@ -50,6 +50,7 @@ import { glyphEl, setGlyph } from '../glyph.js';
 import { t } from '../core/i18n.js';
 import { RECORD_FPS, fmtBytes, fmtMs, fmtClock } from './plan.js';
 import { saveBlob as defaultSave, prefersVideoDownload } from '../folders/save-blob.js';
+import { copyText } from '../shell/clipboard.js';
 
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (_) { return null; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (_) { /* storage refused */ } };
@@ -91,9 +92,7 @@ export function createRenderView(parent, o = {}) {
     turn(); details.addEventListener('toggle', turn, { signal: life.signal });
     for (const [k, v] of rows.slice(2)) { const r = el('div', 'sr-row', details); label(el('span', 'sr-label', r), k); el('b', 'sr-value', r, String(v)); }
     const copyBtn = trig({ label: 'COPY', cls: 'sv-act', title: 'Copy the exact centre, zoom and rotation as text', onFire: async () => {
-      let ok = false; const text = o.subject.text(o.gallery ? o.gallery.selected() : null, o.gallery || null);
-      try { await navigator.clipboard.writeText(text); ok = true; } catch (_) { /* the textarea fallback */ }
-      if (!ok) { const ta = el('textarea', '', document.body); ta.value = text; ta.style.cssText = 'position:fixed;opacity:0'; ta.select(); try { ok = document.execCommand('copy'); } catch (_) { /* refused */ } ta.remove(); }
+      const ok = await copyText(o.subject.text(o.gallery ? o.gallery.selected() : null, o.gallery || null));
       copyBtn.setLabel(ok ? 'COPIED' : 'FAILED'); setTimeout(() => copyBtn.setLabel('COPY'), 1400);
     } });
     const fileBtn = trig({ label: 'JSON', cls: 'sv-act', title: 'Download the same numbers as a .json file', onFire: () => {

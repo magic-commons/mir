@@ -44,6 +44,7 @@ import { seed as seedLibrary } from './seed.js';
 import { saveBlob } from './save-blob.js';
 import { projectZip, readProjectZip, restoreAssets, rollbackAssets, zipProject } from './zip.js';
 import { assets } from '../core/assets.js';
+import { fmtBytes } from '../render/plan.js';
 
 export const FOLDERS_COPY = {
   save: [phrase('SAVE'), phrase('this project'), phrase('Save — store what is on screen over the open project (a new one the first time).')],
@@ -121,7 +122,6 @@ async function pngBytes(src) {
   } catch (_) { return null; }
 }
 const fileName = (s) => (String(s || 'project').replace(/[\\/:*?"<>|\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').trim() || 'project');
-const fmtBytes = (b) => (b >= 1e6 ? (b / 1e6).toFixed(1) + ' MB' : b >= 1e3 ? Math.round(b / 1e3) + ' kB' : Math.round(b) + ' B');
 const isZipFile = (f) => !!f && (/\.zip$/i.test(f.name || '') || /^application\/(x-)?zip(-compressed)?$/.test(f.type || ''));
 
 export function createFolders(options = {}) {

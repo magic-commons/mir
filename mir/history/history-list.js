@@ -19,6 +19,7 @@
  */
 import { el, trig, label, ariaLabel } from '../kit.js';
 import { setText } from '../core/perf.js';
+import { frame } from '../core/frame.js';
 
 const TEXT_TYPES = /^(text|search|email|url|password|tel|number)$/i;
 export const editableTarget = (t) => !!t && (t.isContentEditable || t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && TEXT_TYPES.test(t.type || 'text')));
@@ -42,9 +43,9 @@ export function historyList(history, host, o = {}) {
   const count = o.count === false || o.limitLine === false ? null : el('div', 'hist-count', root);
   list.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('.hist-row'); if (b) history.goto(+b.dataset.i); });
 
-  let raf = 0, dead = false;
+  let dead = false;
+  const job = Symbol('history list');   // the kit's one frame: one paint per frame, however many rows changed
   function paint() {
-    raf = 0;
     if (dead || !root.isConnected || root.offsetParent === null) return;   // hidden or gone: nothing to draw, the next show repaints
     const rows = history.entries(), out = [];
     for (let j = rows.length - 1; j >= 0; j--) {
@@ -63,12 +64,12 @@ export function historyList(history, host, o = {}) {
     const here = list.querySelector('[aria-current]');   // the row you stand on stays in view
     if (here && list.clientHeight) { const b = list.getBoundingClientRect(), a = here.getBoundingClientRect(); if (a.top < b.top || a.bottom > b.bottom) list.scrollTop += a.top < b.top ? a.top - b.top : a.bottom - b.bottom; }
   }
-  const off = history.subscribe(() => { if (!raf && !dead) raf = requestAnimationFrame(paint); });
+  const off = history.subscribe(() => { if (!dead) frame.coalesce(job, paint); });
   paint();
   const watchers = new Set();
   const offWatch = history.subscribe(() => { if (dead) return; const st = historyState(history); for (const fn of watchers) { try { fn(st); } catch (err) { console.warn('history list: a listener threw', err); } } });
   return { root, paint, state: () => historyState(history), onChange(fn) { watchers.add(fn); return () => watchers.delete(fn); },
-    destroy() { dead = true; off(); offWatch(); watchers.clear(); if (raf) cancelAnimationFrame(raf); root.remove(); } };
+    destroy() { dead = true; off(); offWatch(); watchers.clear(); frame.cancel(job); root.remove(); } };
 }
 
 export function installHistoryKeys(history, { target = window, canAct = () => true, onEmpty } = {}) {

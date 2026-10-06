@@ -33,7 +33,7 @@
 
 /* ── THE NAMESPACE ──────────────────────────────────────────────────────── */
 
-import { setGlyph as setHouseGlyph, glyphEl, glyphSvg, hasGlyph } from '../../glyph.js';
+import { setGlyph, glyphEl, glyphSvg, hasGlyph } from '../../glyph.js';
 import { label as kitLabel, ariaLabel as kitAria, hint as kitHint, placeholder as kitPlaceholder } from '../../kit.js';
 import { t, phrase, onLanguage } from '../../core/i18n.js';
 
@@ -244,19 +244,7 @@ export function m2svg(tag, cls, parent, attrs) {
 }
 
 /* ── THE GLYPHS: the house's one library (glyph.js, docs/ICONS.md); `glyphEl` stays exported for old imports ── */
-export { glyphEl };
-
-/** glyph.js:414 setGlyph, exactly. */
-export function setGlyph(el, name, opts) {
-  const o = opts || {};
-  const s = glyphEl(name, o.cls, o.size);
-  if (!s) return null;
-  el.textContent = '';
-  el.appendChild(s);
-  el.setAttribute('data-gly', name);
-  if (o.label) kitAria(el, o.label, o.vars);
-  return s;
-}
+export { glyphEl, setGlyph };
 
 /* ── THE KNOB ARC (window.js:4175 knobArc) ──────────────────────────────── */
 
@@ -559,7 +547,7 @@ function buildPresetStrip(panel, copy) {
   kitHint(open, 'PRESETS');
 
   const save = navBtn('m2presave', null, 20, 'Save this rack as a preset');
-  setHouseGlyph(save, 'save', { size: 20 });
+  setGlyph(save, 'save', { size: 20 });
   kitAria(save, 'Save this rack as a preset');
   kitHint(save, 'SAVE');
 

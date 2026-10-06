@@ -33,7 +33,7 @@
  * Kept as they were: every law in modwindow/ACCEPTANCE.md and host-contract.md, the FL curve gestures
  * (curve-gesture.js), Sol's automation / exact resume / runtime capture in host.js and mod.js.
  */
-import { el, seg, trig, knob, tapWatcher, gripDots, label, ariaLabel, hint as hintTo, gearOf, watchTouches, select as kitSelect, number as kitNumber } from '../kit.js';
+import { el, svgEl, seg, trig, knob, tapWatcher, gripDots, label, ariaLabel, hint as hintTo, gearOf, watchTouches, select as kitSelect, number as kitNumber } from '../kit.js';
 import { bindSliderKeys } from '../slider-keys.js';
 import { createModWindow, setDeviceMode, setWorkLane, sizeLaw, GEOM,
          buildGhost, buildAudioSheet, COPY } from './modwindow/modwindow.js';
@@ -61,12 +61,6 @@ import { createLayoutMotion } from './layout-motion.js';
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const pct = (u) => (100 * clamp01(u)).toFixed(2) + '%';
 const SVGNS = 'http://www.w3.org/2000/svg';
-const svgEl = (tag, cls, parent) => {
-  const e = document.createElementNS(SVGNS, tag);
-  if (cls) e.setAttribute('class', cls);
-  if (parent) parent.appendChild(e);
-  return e;
-};
 /* the house drag ladder, from kit.js's own knob: 220 px is a full scale, 900 with Shift, 320
    under a finger.  Reused rather than re-chosen so the artifact's dials feel like the lab's.  Shift is 1/8 (1760), as BASINS
    has it (Josh 09-12: "currently holding shift gives a 1/4 fine tuning, can we make this 1/8?"). */

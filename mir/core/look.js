@@ -17,6 +17,7 @@
  *          LIGHT_HOME, autoInk; the device (alpha.12): isMobile, isIPad, TOUCH_TABLET_MQ, BLUR_DESKTOP, BLUR_TOUCH,
  *          firstRunBlur, DEVICE_BLUR, TIER_LAW, classifyTier, qualityOfTier.  The device tests read `navigator` and
  *          `matchMedia` only when they are not handed them. */
+import { hslToRgb01 } from '../palette.js';
 
 /** the theme's own glass, as the kit ships it (skin.css :root and body[data-theme="light"]): the tinted pane's H S L
  *  and the refractive frost's veil as a signed whiteness (+ white, − black) — BASINS skin.js THEME_GLASS, verbatim */
@@ -28,10 +29,7 @@ const T = (theme) => THEME_GLASS[theme] || THEME_GLASS.dark;
 const num = (v, d) => (Number.isFinite(+v) ? +v : d);
 
 /** hslRgb(h°, s 0…1, l 0…1) → [r, g, b] 0…255 (BASINS skin.js hslRgb) */
-export function hslRgb(h, s, l) {
-  const k = (n) => (n + h / 30) % 12, a = s * Math.min(l, 1 - l);
-  return [0, 8, 4].map((n) => 255 * (l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1))));
-}
+export function hslRgb(h, s, l) { return hslToRgb01(h, s, l).map((v) => 255 * v); }
 
 /** glassTint({ bright, hue, tint, saturation }, theme) → the `H S% L%` triple the kit reads as --glass-tint, or null at
  *  home (BRIGHT 0, TINT 0, SATURATION 100 %).  BASINS applyGlass: h = TINT > 0 ? HUE : the theme's;

@@ -28,10 +28,10 @@
  * page END IT AND PUT THE VALUE BACK (BASINS' arc committed on cancel; the kit's core/pointer.js law rolls back).
  * Writes go through core/frame.js (the latest sample wins, one per display frame; the release flushes the last).
  * Harvested from BASINS app/colour-controls.js arcKnob and app/arc-ring.js. */
-import { knob, el } from '../kit.js';
+import { knob, el, watchTouches, gearOf } from '../kit.js';
 import { frame } from '../core/frame.js';
 import { setVar, setAttr } from '../core/perf.js';
-import { clamp01, frac, fineGain, tapHome, forward, wireTouches, lawNow } from './gesture.js';
+import { clamp01, frac, tapHome, forward, lawNow } from './gesture.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 const TAU = Math.PI * 2;
@@ -78,7 +78,7 @@ export function arcRing(parent, { from = 0, span = 360 } = {}) {
  * → the kit knob, with set / show / paint wrapped to repaint the arc, plus { law, home, paintArc, arc(), gesture() }
  */
 export function arcKnob(o) {
-  wireTouches();
+  watchTouches();
   const angular = o.law === 'angular';
   const wrap = !!o.wrap;
   const home = Number.isFinite(o.home) ? o.home : o.value;
@@ -131,7 +131,7 @@ export function arcKnob(o) {
   const pump = (v) => frame.coalesce(key, () => write(v));
   function onMove(ev) {
     if (!g || ev.pointerId !== g.id) return;
-    const gain = fineGain(ev, g.id, o.fine);
+    const gain = gearOf(ev, g.id, o.fine);
     if (!angular) {
       g.vy += gain * (ev.clientY - g.ly); g.ly = ev.clientY;               // the virtual point: a gear change moves nothing; dx is ignored
       g.gear = gain;

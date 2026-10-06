@@ -28,6 +28,8 @@ import { t, tn, phrase, onLanguage } from '../core/i18n.js';
 import { drag, pointerField } from '../core/pointer.js';
 import { createProximity } from '../core/proximity.js';
 import { setVar, rect } from '../core/perf.js';
+import { fmtBytes } from '../render/plan.js';
+import { ARM_MS } from '../controls/list.js';
 
 export const SORT_MODES = [
   { id: 'az', ink: 'A–Z', label: 'Sort A to Z' },
@@ -53,10 +55,9 @@ export const GALLERY_COPY = {
   emptyFolder: phrase('This folder is empty.  Move a project here, or save what is on screen into it.')
 };
 
-const ARM_MS = 2600, LONG_MS = 560;
+const LONG_MS = 560;
 /** BASINS' SAVE toolbar, in its order: the default `actions` */
 export const DEFAULT_ACTIONS = Object.freeze(['project', 'capture', 'download', 'duplicate', 'fresh', 'options']);
-const fmtBytes = (b) => (b >= 1e6 ? (b / 1e6).toFixed(1) + ' MB' : b >= 1e3 ? Math.round(b / 1e3) + ' kB' : Math.round(b) + ' B');
 
 /**
  * buildGallery(panel, opts) → api

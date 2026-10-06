@@ -36,6 +36,7 @@ import { installBanner } from './shell/banner.js';
 import { createSceneGuard, uiSpace } from './shell/scene-guard.js';
 import { recentRows } from './folders/files.js';
 import * as modBind from './modulation/bind.js';
+import { handWrite } from './modulation/registry.js';
 import { installPattern } from './pattern/window.js';
 import { createWorkspaces } from './window/workspaces.js';
 import { createAccent } from './shell/accent.js';
@@ -78,7 +79,7 @@ export function makeParam({ state, key, label = String(key).toUpperCase(), min =
   const put = (v) => { state[key] = v; if (onChange) onChange(key, v); };
   const shaped = { ...(map === 'log' ? { log: true } : {}), ...(map === 'wrap' ? { wrap: true } : {}), ...(map === 'integer' ? { fmt: (v) => String(Math.round(v)) } : {}) };
   const widget = make({ label, min, max, value: get(), unit, ...shaped, ...more,
-    onInput: (v) => { if (!(mod && mod.hand(id, v))) put(v); if (more.onInput) more.onInput(v); } });
+    onInput: (v) => { if (!handWrite(mod, id, v)) put(v); if (more.onInput) more.onInput(v); } });
   widget.root.dataset.info = key;                                   // a page's `ui:<key>` label points here
   const home = get();
   const off = mod ? mod.add({ id, label, unit, hint, min, max, map, get, set: put, widget }) : null;
@@ -86,7 +87,7 @@ export function makeParam({ state, key, label = String(key).toUpperCase(), min =
   return {
     id, key, label, unit, min, max, map, widget, root: widget.root, home, get,
     value: () => (routed() ? mod.baseOf(id) : get()),
-    set(v) { widget.set(v); if (!(mod && mod.hand(id, v))) put(v); },
+    set(v) { widget.set(v); if (!handWrite(mod, id, v)) put(v); },
     remove: () => { if (off) off(); },
   };
 }

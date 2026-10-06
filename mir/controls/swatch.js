@@ -14,13 +14,13 @@
  * virtual point.  The press is the platform's, so the gesture follows the kit's endings: pointercancel, lost capture and
  * Escape end it and put the colour back.  A drag's own click opens nothing (the chooser is for a TAP).
  * Harvested from BASINS app/colour-controls.js hueSwatch (flagship colors.js:850). */
-import { el, ariaLabel, hint } from '../kit.js';
+import { el, ariaLabel, hint, watchTouches, gearOf } from '../kit.js';
 import { frame } from '../core/frame.js';
 import { setVar } from '../core/perf.js';
 import { phrase } from '../core/i18n.js';
 import { hexToRgb, rgbToHex } from '../palette.js';
 import { arcRing } from './arc.js';
-import { clamp01, frac, fineGain, wireTouches } from './gesture.js';
+import { clamp01, frac } from './gesture.js';
 
 /** the swatch's numbers: px of travel before a press becomes a hue turn, and px for one full turn of hue (BASINS') */
 export const SWATCH = Object.freeze({ ARM: 8, TRAVEL: 220 });
@@ -42,7 +42,7 @@ export function hsvToRgb(h, s, v) {
 export const rgbCss = (rgb) => 'rgb(' + rgb.map((c) => +(clamp01(c) * 255).toFixed(2)).join(' ') + ')';
 
 export function hueSwatch(o) {
-  wireTouches();
+  watchTouches();
   const root = el('span', 'mir-swatch-seat');
   const button = el('button', 'mir-swatch', root); button.type = 'button'; button.tabIndex = -1; button.setAttribute('aria-hidden', 'true');
   const arc = arcRing(root);
@@ -65,7 +65,7 @@ export function hueSwatch(o) {
   const apply = (next) => { set(next); if (o.onInput) o.onInput(next); };
   const move = (e) => {
     if (!d || e.pointerId !== d.id) return;
-    d.vy += fineGain(e, d.id, o.fine) * (e.clientY - d.ly); d.ly = e.clientY;
+    d.vy += gearOf(e, d.id, o.fine) * (e.clientY - d.ly); d.ly = e.clientY;
     if (!d.armed) {
       if (Math.abs(e.clientY - d.y0) < SWATCH.ARM) return;
       d.armed = true; root.classList.add('drag');

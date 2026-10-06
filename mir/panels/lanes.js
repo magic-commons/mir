@@ -44,6 +44,7 @@ import { glyphEl } from '../glyph.js';
 import { frame } from '../core/frame.js';
 import { setVar, setAttr } from '../core/perf.js';
 import { registerProjectPart } from '../core/project.js';
+import { handWrite } from '../modulation/registry.js';
 import { ARM_MS } from '../controls/list.js';
 
 export const HOLD_MS = 250;                       // a hold this long is a peek, not a click (SOLEIL atlas.js HOLD_MS)
@@ -147,10 +148,7 @@ export function createLanesView(parent, o = {}) {
   const nameOf = (rec, i) => rec.label || (noun + ' ' + (i + 1));
 
   /** a hand on a routed control writes the registry's base (mod.hand); on an unrouted one, the app */
-  function write(id, k, v) {
-    if (mod && typeof mod.hand === 'function') { let routed = false; try { routed = mod.hand(tid(id, k), v); } catch (_) { routed = false; } if (routed) return; }
-    port.set(id, k, v);
-  }
+  function write(id, k, v) { if (!handWrite(mod, tid(id, k), v)) port.set(id, k, v); }
   const routed = (id, k) => !!(mod && mod.isModulated && (() => { try { return mod.isModulated(tid(id, k)); } catch (_) { return false; } })());
   const liveOf = (id, k) => () => (routed(id, k) && mod.currentOf ? mod.currentOf(tid(id, k)) : null);
   /** the commit of a gesture: the port may persist (BASINS' persistPalette) */

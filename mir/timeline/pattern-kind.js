@@ -2,10 +2,10 @@
 // across the clip, lit steps in the device's colour, each repeat boundary marked. It fires, it never drives: value is
 // null (the hits are the sequencer's, through activeClips(beat,'pattern')), and it slices as two instances of one row.
 import { registerClipKind } from './kinds.js';
+import { svgNode } from '../kit.js';
 
 export const PATTERN_LENGTHS = [16, 32, 64];
 export const PATTERN_STEP_BEATS = .25; // one step = a sixteenth note: 16 steps = one 4/4 bar
-const ns = 'http://www.w3.org/2000/svg';
 
 // Steps are Uint8 values (0 off, 1–127 velocity) as a plain array or base64; a typed array is refused (JSON would mangle it).
 export function patternSteps(steps) {
@@ -22,7 +22,6 @@ export function patternSource({ envId, steps, name, color } = {}) {
   return s && envId != null ? { kind: 'pattern', envId: String(envId), steps: [...s], length: s.length, ...(name ? { name } : {}), ...(color ? { color } : {}) } : null;
 }
 
-const node = (tag, attrs, parent) => { const n = document.createElementNS(ns, tag); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); parent.append(n); return n; };
 
 // The grid in source beats, so a slice's right half (offset = the cut) continues the phase and a resize extends the repeats.
 export function paintPattern(svg, curve, clip, { geometry, height, tint }) {
@@ -33,11 +32,11 @@ export function paintPattern(svg, curve, clip, { geometry, height, tint }) {
   for (let k = first; k < last; k++) {
     const i = k % n, x = geometry.xAtSourceBeat(k * PATTERN_STEP_BEATS), v = steps[i];
     // FL's alternating light/dark groups of four steps, only while a step is wide enough to read.
-    if (fine && (i % 4 === 0 || k === first)) node('rect', { class: 'tl-pattern-group' + (Math.floor(i / 4) % 2 ? ' alt' : ''), x: geometry.xAtSourceBeat((k - i % 4) * PATTERN_STEP_BEATS), y: 0, width: cell * 4, height }, svg);
-    if (v > 0) { const h = room * (.4 + .6 * v / 127); node('rect', { class: 'tl-pattern-step lit', x: x + gap, y: pad + room - h, width: Math.max(1, cell - 2 * gap), height: h, rx: Math.min(2, cell / 4), fill: tint, 'data-step': i, 'data-velocity': v }, svg); }
-    else if (fine) node('rect', { class: 'tl-pattern-step', x: x + gap, y: pad + room * .6, width: Math.max(1, cell - 2 * gap), height: room * .4, rx: Math.min(2, cell / 4), 'data-step': i }, svg);
+    if (fine && (i % 4 === 0 || k === first)) svgNode('rect', { class: 'tl-pattern-group' + (Math.floor(i / 4) % 2 ? ' alt' : ''), x: geometry.xAtSourceBeat((k - i % 4) * PATTERN_STEP_BEATS), y: 0, width: cell * 4, height }, svg);
+    if (v > 0) { const h = room * (.4 + .6 * v / 127); svgNode('rect', { class: 'tl-pattern-step lit', x: x + gap, y: pad + room - h, width: Math.max(1, cell - 2 * gap), height: h, rx: Math.min(2, cell / 4), fill: tint, 'data-step': i, 'data-velocity': v }, svg); }
+    else if (fine) svgNode('rect', { class: 'tl-pattern-step', x: x + gap, y: pad + room * .6, width: Math.max(1, cell - 2 * gap), height: room * .4, rx: Math.min(2, cell / 4), 'data-step': i }, svg);
     // The repeat boundary: where the row starts over inside the clip.
-    if (i === 0 && x > .5 && x < geometry.width - .5) node('line', { class: 'tl-pattern-repeat', x1: x, x2: x, y1: 0, y2: height, 'vector-effect': 'non-scaling-stroke', 'data-repeat': Math.floor(k / n) }, svg);
+    if (i === 0 && x > .5 && x < geometry.width - .5) svgNode('line', { class: 'tl-pattern-repeat', x1: x, x2: x, y1: 0, y2: height, 'vector-effect': 'non-scaling-stroke', 'data-repeat': Math.floor(k / n) }, svg);
   }
 }
 

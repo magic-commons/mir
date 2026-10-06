@@ -31,6 +31,7 @@ import { el, label, sw } from '../kit.js';
 import { control } from '../controls/factory.js';
 import { frame } from '../core/frame.js';
 import { registerProjectPart } from '../core/project.js';
+import { handWrite } from '../modulation/registry.js';
 import { pictureFilter, GRADE_HOME, BLEND_MODES } from './picture-filter.js';
 
 let uid = 0;
@@ -97,7 +98,7 @@ export function createGradeModel(o = {}) {
   const routed = (id) => { if (!mod || !targetable(id)) return false; try { return !!mod.isModulated(modId(id)); } catch (_) { return false; } };   // the registry throws for an id it was not given yet
   const base = (id) => (routed(id) ? mod.baseOf(modId(id)) : read(id));
   /** the hand: a routed control's base through the registry (the law), else the value itself */
-  const write = (id, v) => { if (routed(id)) { let r = false; try { r = mod.hand(modId(id), v); } catch (_) { r = false; } if (r) { emit(id); return; } } put(id, v); };
+  const write = (id, v) => { if (routed(id) && handWrite(mod, modId(id), v)) { emit(id); return; } put(id, v); };
   if (filter) filter.setGrade(Object.fromEntries(Object.entries(own).filter(([k]) => k in GRADE_HOME)));
   /** the app changed a value itself (its notice): take it */
   const offPort = port && typeof port.subscribe === 'function' ? port.subscribe(() => { for (const id of Object.keys(own)) { const v = fromPort(id); if (v !== undefined) own[id] = v; } emit(null); }) : null;
@@ -106,9 +107,7 @@ export function createGradeModel(o = {}) {
   const restore = (saved) => {
     for (const [id, v] of Object.entries(saved || {})) {
       if (!(id in own) || v === undefined) continue;
-      let r = false;
-      if (routed(id)) { try { r = mod.hand(modId(id), v); } catch (_) { r = false; } }
-      if (!r) put(id, v);
+      if (!(routed(id) && handWrite(mod, modId(id), v))) put(id, v);
     }
     emit(null);
   };

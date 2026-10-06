@@ -22,8 +22,8 @@
 import { el, label as writeLabel, ariaLabel, hint } from '../kit.js';
 import { t as tx, tn } from '../core/i18n.js';
 import { createShelf } from './shelf.js';
+import { APP_KEY, askInline } from '../shell/notebook.js';
 
-const APP_KEY = (e) => (e.ctrlKey || e.metaKey) && !e.altKey && (e.code === 'KeyS' || e.code === 'Comma');
 const keep = (e) => { if (!APP_KEY(e)) e.stopPropagation(); };
 
 export function notesFace({ store = createShelf(), glyph = '▤', label = 'shelf' } = {}) {
@@ -76,21 +76,7 @@ export function notesFace({ store = createShelf(), glyph = '▤', label = 'shelf
   }
   function open(p, row) {
     const go = () => { const page = store.open(p); if (!page) return; cur = p; base = sig(page); nbApi.openNote(page); say(tx('opened {name}', { name: p })); };
-    if (row && dirty() && p !== cur) askOn(row, tx('replace yours?'), go); else go();
-  }
-  /* an inline question on a row: yes runs `then`, no or leaving it puts the row back */
-  function askOn(row, words, then) {
-    if (row.dataset.asking !== undefined) return;
-    row.dataset.asking = '';
-    const q = el('span', 'nt-ask', row); el('span', 'nt-q', q, words);
-    const yes = writeLabel(btn('nt-yes', q, ''), 'yes'), no = writeLabel(btn('nt-no', q, ''), 'no');
-    let shut = false;
-    const close = () => { if (shut) return; shut = true; delete row.dataset.asking; q.remove(); };   // removing the focused button fires focusout: once only
-    yes.addEventListener('click', () => { close(); then(); });
-    no.addEventListener('click', close);
-    q.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); close(); } keep(e); });
-    q.addEventListener('focusout', (e) => { if (!q.contains(e.relatedTarget)) close(); });
-    no.focus();
+    if (row && dirty() && p !== cur) askInline(row, { cls: 'nt', label: 'replace yours?', then: go })?.focus(); else go();
   }
   function rename(row, it) {
     if (row.dataset.renaming !== undefined) return;
@@ -143,7 +129,7 @@ export function notesFace({ store = createShelf(), glyph = '▤', label = 'shelf
           cp.addEventListener('click', () => { const page = store.get(it.path); if (!page) return; const p = nbApi.pages.add(page); nbApi.select(p.id); say(tx('copied {name} into the project', { name: it.path })); });
         }
         const x = btn('nt-act nt-del', row, '×', 'delete'); ariaLabel(x, 'delete {name}', { name: it.path });
-        x.addEventListener('click', () => askOn(row, tx('delete?'), () => { if (store.remove(it.path)) { if (cur === it.path) cur = null; say(tx('deleted {name}', { name: it.path })); } }));
+        x.addEventListener('click', () => askInline(row, { cls: 'nt', label: 'delete?', then: () => { if (store.remove(it.path)) { if (cur === it.path) cur = null; say(tx('deleted {name}', { name: it.path })); } } })?.focus());
       }
     }
   }

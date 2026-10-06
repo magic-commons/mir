@@ -9,8 +9,8 @@
  *   · the DOUBLE-TAP is two presses within 300 ms and 14 px, taken on the press itself;
  *   · a press a control stops is FORWARDED, so the menus, the rack's + list and the float layer's raise still hear
  *     "a press happened outside you".
- * (Harvested from BASINS app/colour-controls.js wireTouches, fineHeld, forward.)  `fineHeld`, the second-finger tracker and
- * `fineGain` are re-exports of kit.js's one law. */
+ * (Harvested from BASINS app/colour-controls.js wireTouches, fineHeld, forward.)  `fineHeld` and `fineGain` are re-exports
+ * of kit.js's one law (watchTouches, fineHeld, gearOf). */
 import { setKnobLaw } from '../kit.js';
 
 /** the double-tap: two presses this close in time (ms) and place (px) are a home gesture (BASINS' numbers) */
@@ -20,8 +20,8 @@ export const TAP = Object.freeze({ ms: 300, px: 14 });
 export const lawNow = () => setKnobLaw();
 
 /* THE SECOND FINGER and the fine gear's one decision are the kit's own (kit.js watchTouches, fineHeld, gearOf): one law, one tracker.
-   `fineGain(ev, id, fine)` is `gearOf`: 1, or 1 / the control's divisor (default the kit's ⅛) while any modifier or a second finger is held. */
-export { watchTouches as wireTouches, fineHeld, gearOf as fineGain } from '../kit.js';
+   The controls import them from kit.js by those names; `fineGain` is `gearOf` under the name the colour-controls test reads. */
+export { fineHeld, gearOf as fineGain } from '../kit.js';
 
 /** tapHome(onHome) → (e) → true when this press is the second of a double-tap (and home has been taken) */
 export function tapHome(onHome) {

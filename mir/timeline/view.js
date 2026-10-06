@@ -6,10 +6,7 @@
 import { TIMELINE_TAB_HEIGHT, TIMELINE_POINT_RADIUS, TIMELINE_TENSION_RADIUS, timelineLaneHeight, timelineTabPath, createClipCoordinates } from './geometry.js';
 import { createTimelinePlot } from './curve-view.js';
 import { clipKind } from './kinds.js';
-import { el as kitEl, label, ariaLabel } from '../kit.js';
-const ns='http://www.w3.org/2000/svg';
-const el=(tag,cls,parent,text)=>kitEl(tag,cls,parent,text);
-const svg=(tag,attrs,parent)=>{const n=document.createElementNS(ns,tag);for(const[k,v]of Object.entries(attrs))n.setAttribute(k,v);parent.append(n);return n;};
+import { el, svgNode as svg, label, ariaLabel } from '../kit.js';
 const clamp=(n,lo,hi)=>Math.min(hi,Math.max(lo,n));
 // Beat ticks never hide: alpha ramps with zoom (full at 12px, half at 8px) instead of cutting off
 // below a px threshold. Exported so tools/test-timeline-ticks.mjs proves the same law paint() paints.

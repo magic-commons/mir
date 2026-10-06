@@ -31,21 +31,20 @@
  * PROJECT AND HISTORY  the values ride in the project as a part named `part` (default 'camera') unless `project: false` (the app's own part
  *   carries them); with `history` they are one snapshot domain, so a gesture is one row named CONTROL · WINDOW by the kit's own gesture names.
  * IDLE  The panel subscribes; one coalesced frame reads the port after a notice, and nothing runs at rest. */
-import { el, label, hint, trig, watchTouches, gearOf, tapWatcher } from '../kit.js';
+import { el, svgEl, label, hint, trig, watchTouches, gearOf, tapWatcher } from '../kit.js';
 import { control } from '../controls/factory.js';
 import { arcKnob } from '../controls/arc.js';
 import { frame } from '../core/frame.js';
 import { setAttr } from '../core/perf.js';
 import { registerProjectPart } from '../core/project.js';
+import { handWrite } from '../modulation/registry.js';
 import {
   HAND_IDS, ANGLE_UNIT, createCameraRig, setCameraValue, atNorth, northStep, wrapDegrees, fmtDeg,
   describe, present, SPHERE, lookDir, project, sphereDrag, transform2d, transform3d,
 } from './camera-rig.js';
 
-const NS = 'http://www.w3.org/2000/svg';
 const DEG = Math.PI / 180;
 let uid = 0;
-const svgEl = (tag, cls, parent) => { const n = document.createElementNS(NS, tag); if (cls) n.setAttribute('class', cls); if (parent) parent.appendChild(n); return n; };
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 const f2 = (n) => (+n).toFixed(2);
 
@@ -198,7 +197,7 @@ export function createCameraView(parent, o = {}) {
   const routed = (id) => { if (!mod || !tgt.has(id)) return false; try { return !!mod.isModulated(modId(id)); } catch (_) { return false; } };   // the registry throws for an id it has not been given yet
   const base = (id) => (routed(id) ? mod.baseOf(modId(id)) : port.get(id));
   /** the hand: a routed dial's base through the registry (the law), else the app's own number */
-  const write = (id, v) => { if (mod && mod.hand(modId(id), v)) return; port.set(id, v); };
+  const write = (id, v) => { if (!handWrite(mod, modId(id), v)) port.set(id, v); };
   const D = (id) => describe(id, port);
 
   const root = el('div', 'mir-camera' + (o.cls ? ' ' + o.cls : ''), parent);

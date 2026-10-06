@@ -24,10 +24,10 @@
  * hidden page end the drag and put the value back.  A vertical slider has its top at the maximum.
  * Harvested from BASINS app/colour-controls.js laneFader and colour.css (.colour-lane .fd).  The fader's own RANGE bar
  * and dot of BASINS (.fd-range, .fd-range-dot) are the modulation window's (.m2fdrange) since alpha.12: not built twice. */
-import { fader } from '../kit.js';
+import { fader, watchTouches, gearOf } from '../kit.js';
 import { frame } from '../core/frame.js';
 import { setVar } from '../core/perf.js';
-import { clamp01, fineGain, tapHome, forward, wireTouches } from './gesture.js';
+import { clamp01, tapHome, forward } from './gesture.js';
 
 let uid = 0;
 
@@ -35,7 +35,7 @@ let uid = 0;
 export function laneInk(node, css) { setVar(node, '--lane-ink', css === undefined ? null : css); return node; }
 
 export function laneSlider(o) {
-  wireTouches();
+  watchTouches();
   const vertical = o.orient === 'v';
   const home = Number.isFinite(o.home) ? o.home : o.value;
   const f = fader(Object.assign({}, o, { value: home, cls: 'mir-lane-slider' + (o.cls ? ' ' + o.cls : '') }));
@@ -67,7 +67,7 @@ export function laneSlider(o) {
   function move(ev) {
     if (!g || ev.pointerId !== g.id) return;
     const c = along(ev);
-    g.vp += fineGain(ev, g.id, o.fine) * (c - g.last); g.last = c;
+    g.vp += gearOf(ev, g.id, o.fine) * (c - g.last); g.last = c;
     const v = denorm(g.vp / g.len);
     frame.coalesce(key, () => write(v));
   }
@@ -104,7 +104,7 @@ export function laneSlider(o) {
     const c = along(e);
     /* a press jumps the value to the pointer, unless the fine gear is already engaged: then it only holds the value
        (the kit fader's Shift-press) and the first move is relative */
-    g.vp = fineGain(e, e.pointerId, o.fine) < 1 ? norm(g.v0) * len : c;
+    g.vp = gearOf(e, e.pointerId, o.fine) < 1 ? norm(g.v0) * len : c;
     g.last = c;
     try { root.setPointerCapture(e.pointerId); } catch (_) { /* a pointer already gone (or a synthetic one) must not abort */ }
     root.classList.add('drag');

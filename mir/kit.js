@@ -46,6 +46,7 @@
 import { setGlyph, glyphEl } from './glyph.js';
 import { setText, setVar } from './core/perf.js';   // paint writes only what changed, and the meter counts both
 import { t as tx, onLanguage } from './core/i18n.js';
+import { srgbToLinear, linearToSrgb, contrastRatio, hslToRgb01, rgbToHsl, hexToRgb } from './palette.js';
 
 
 export const chip = (btn, name, label) => setGlyph(btn, name, { label });
@@ -79,6 +80,21 @@ export function el(tag, cls, parent, text) {
   if (text !== undefined && text !== null) mathText(e, text);
   if (parent) parent.appendChild(e);
   return e;
+}
+const SVG_NS = 'http://www.w3.org/2000/svg';
+/** svgEl(tag, cls?, parent?) — the SVG twin of el(): an element in the SVG namespace, its class, appended */
+export function svgEl(tag, cls, parent) {
+  const e = document.createElementNS(SVG_NS, tag);
+  if (cls) e.setAttribute('class', cls);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+/** svgNode(tag, attrs, parent) — an SVG element with every attribute of `attrs` set, appended to `parent` */
+export function svgNode(tag, attrs, parent) {
+  const n = document.createElementNS(SVG_NS, tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  parent.append(n);
+  return n;
 }
 /* ── 1.5.4 · THE LANGUAGE CHOKE POINT ────────────────────────────────────────────────────────────
  * Every label a builder in this file writes goes through `label()`, every accessible name it writes through
@@ -742,18 +758,11 @@ export const lightTheme = () => document.body.dataset.theme === 'light';
 /** the shell colour of level n as it must be drawn on THIS theme's ground */
 export const nRGB = (n) => ((lightTheme() ? N_RGB_LIGHT : N_RGB)[n] || [255, 255, 255]);
 
-const LIN = (c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
-const LUM = (c) => 0.2126 * LIN(c[0]) + 0.7152 * LIN(c[1]) + 0.0722 * LIN(c[2]);
-const RATIO = (a, b) => { const x = LUM(a), y = LUM(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+/* the colour maths is palette.js's (0…1); these adapt it to the 0…255 triples this file works in */
+const U = (c) => [c[0] / 255, c[1] / 255, c[2] / 255];
+const RATIO = (a, b) => contrastRatio(U(a), U(b));
 const CARD_LIGHT = [236, 239, 243], WELL_LIGHT = [220, 225, 232];   // measured in the page, not derived from the tokens
-function hsl2rgb(h, s, l) { const k = (n) => (n + h / 30) % 12, a = s * Math.min(l, 1 - l);
-  const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-  return [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)]; }
-function rgb2hsl(r, g, b) { r /= 255; g /= 255; b /= 255;
-  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2; let h = 0, s = 0;
-  if (mx !== mn) { const d = mx - mn; s = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
-    h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; }
-  return [h, s, l]; }
+const hsl2rgb = (h, s, l) => hslToRgb01(h, s, l).map((v) => Math.round(v * 255));
 const inkCache = new Map();
 /** vividInk(rgb) — the same walk for any other graph colour: identity on the dark theme, and on the
  *  light one the same hue at higher chroma and lower lightness until it clears 3 : 1 on the well. */
@@ -761,7 +770,7 @@ export function vividInk(rgb) {
   if (!lightTheme() || !rgb) return rgb;
   const key = rgb[0] + ',' + rgb[1] + ',' + rgb[2];
   const got = inkCache.get(key); if (got) return got;
-  const [h, s0, l0] = rgb2hsl(rgb[0], rgb[1], rgb[2]);
+  const [h, s0, l0] = rgbToHsl(U(rgb));
   const s = Math.min(1, s0 + 0.12);
   let out = rgb;
   for (let l = l0; l >= 0.06; l -= 0.005) { const c = hsl2rgb(h, s, l);
@@ -1001,19 +1010,14 @@ export function fitText(g, txt, x, y, rect, align = 'left', clip = false) {
  * curve); the rows sum to 1, so D65 white stays white, and out-of-sRGB colours clamp per channel — the
  * same thing the browser does when it paints one on an sRGB canvas. */
 const M_P3_SRGB = [[1.224940, -0.224940, 0], [-0.042057, 1.042057, 0], [-0.019638, -0.078635, 1.098274]];
-const C_LIN = (u) => (u <= 0.04045 ? u / 12.92 : Math.pow((u + 0.055) / 1.055, 2.4));
-const C_ENC = (u) => (u <= 0.0031308 ? 12.92 * u : 1.055 * Math.pow(u, 1 / 2.4) - 0.055);
 const c255 = (u) => Math.max(0, Math.min(255, Math.round(u * 255)));
 /** parseCssColor(str) → [r, g, b] 0…255, or null — the four forms a canvas can hand back */
 export function parseCssColor(t) {
   if (!t) return null;
   const s = String(t).trim();
-  let m = /^#([0-9a-f]{6})$/i.exec(s);
-  if (m) { const k = parseInt(m[1], 16); return [k >> 16 & 255, k >> 8 & 255, k & 255]; }
-  m = /^#([0-9a-f]{8})$/i.exec(s);
-  if (m) { const k = parseInt(m[1].slice(0, 6), 16); return [k >> 16 & 255, k >> 8 & 255, k & 255]; }
-  m = /^#([0-9a-f]{3,4})$/i.exec(s);
-  if (m) return [0, 1, 2].map((i) => parseInt(m[1][i] + m[1][i], 16));
+  let m = /^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.exec(s);
+  if (m) { const h = m[1].length < 6 ? [0, 1, 2].map((i) => m[1][i] + m[1][i]).join('') : m[1].slice(0, 6);
+    return hexToRgb(h).map((v) => Math.round(v * 255)); }
   m = /^rgba?\(([^)]+)\)$/i.exec(s);
   if (m) { const tok = m[1].split(/[,\s/]+/).filter((x) => x !== '');
     if (tok.length < 3) return null;
@@ -1025,9 +1029,9 @@ export function parseCssColor(t) {
       .map((x) => (/%$/.test(x) ? parseFloat(x) / 100 : parseFloat(x)));
     if (p.length < 3 || p.some((x) => !isFinite(x))) return null;
     if (space === 'srgb') return [c255(p[0]), c255(p[1]), c255(p[2])];
-    if (space === 'srgb-linear') return [c255(C_ENC(p[0])), c255(C_ENC(p[1])), c255(C_ENC(p[2]))];
-    if (space === 'display-p3') { const l = [C_LIN(p[0]), C_LIN(p[1]), C_LIN(p[2])];
-      return M_P3_SRGB.map((r) => c255(C_ENC(Math.max(0, Math.min(1, r[0] * l[0] + r[1] * l[1] + r[2] * l[2]))))); }
+    if (space === 'srgb-linear') return [c255(linearToSrgb(p[0])), c255(linearToSrgb(p[1])), c255(linearToSrgb(p[2]))];
+    if (space === 'display-p3') { const l = [srgbToLinear(p[0]), srgbToLinear(p[1]), srgbToLinear(p[2])];
+      return M_P3_SRGB.map((r) => c255(linearToSrgb(Math.max(0, Math.min(1, r[0] * l[0] + r[1] * l[1] + r[2] * l[2]))))); }
     return null;                                     // a space we do not write: say so rather than guess
   }
   return null;
