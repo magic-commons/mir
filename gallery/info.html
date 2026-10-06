@@ -26,6 +26,11 @@
     padding: 8px 10px; border-radius: 14px; display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; justify-content: center; }
   .g-strip .segw { min-width: 0; }
   .g-page { align-self: center; min-width: 9em; max-width: 16em; padding: 0 4px; font-size: var(--fs-small); color: var(--fg-soft); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* THE HAND: the page name's seat is its longest page (every name, unseen, in one cell), so › never moves as the pages turn */
+  .g-page { display: grid; grid-template-columns: minmax(0, auto); }
+  .g-page > * { grid-area: 1 / 1; overflow: hidden; text-overflow: ellipsis; }
+  .g-page > .g-page-size { visibility: hidden; }
+  .g-page > .g-page-size::before { content: attr(data-w); }
   .g-hint { position: fixed; left: 50%; bottom: calc(14px + var(--strip-h, 64px) + 6px); translate: -50% 0; z-index: 5; width: max-content; max-width: calc(100vw - 32px);
     font-size: var(--fs-small); color: var(--ink-faint); text-align: center; pointer-events: none; text-shadow: 0 0 6px var(--g-hint-halo, #000); }
   body[data-theme="light"] .g-hint { --g-hint-halo: #fff; }
@@ -199,6 +204,10 @@ const strip = document.getElementById('strip');
 const prev = trig({ label: '‹', title: 'the previous page', onFire: () => turn(-1) }).root, next = trig({ label: '›', title: 'the next page', onFire: () => turn(1) }).root;
 prev.dataset.info = 'page-prev'; next.dataset.info = 'page-next';
 const pageName = document.createElement('div'); pageName.className = 'g-page'; pageName.setAttribute('aria-live', 'polite');
+const pageText = document.createElement('span'); pageName.appendChild(pageText);
+const pageWord = (i, list) => `${i + 1} / ${list.length} · ${list[i].title}`;
+/* the seat: every page's name, drawn unseen by CSS (not the name's text), once the pages are in */
+const seatPages = () => { const list = pages.list(); for (let i = 0; i < list.length; i++) { const s = document.createElement('span'); s.className = 'g-page-size'; s.setAttribute('aria-hidden', 'true'); s.dataset.w = pageWord(i, list); pageName.appendChild(s); } };
 const float = sw({ label: 'FLOAT', value: !STILL, title: 'a slow drift, so nothing ever sits quite still', onChange: (v) => layer.setDrift(v) }).root;
 float.dataset.info = 'float';
 const paneSeg = seg({ label: 'WORDS', value: 'bare', options: [{ id: 'bare', label: 'BARE', title: 'ink on a soft darkness, no window' }, { id: 'pane', label: 'PANE', title: 'the same words on a glass pane' }], onChange: (v) => layer.setPane(v === 'pane') }).root;
@@ -224,15 +233,16 @@ function show(i) {
   at = (i + list.length) % list.length;
   showPage(layer, list[at], { place: placeAt });                     // the page on show (the greeting too) leaves first
   if (greeting) { const g = greeting; greeting = null; g.dismiss(); } // and the greeting stops listening
-  pageName.textContent = `${at + 1} / ${list.length} · ${list[at].title}`;
+  pageText.textContent = pageWord(at, list);
 }
 const turn = (d) => show(at + d);
 window.__PAGES = pages;
 (async () => {
   const texts = await Promise.all(FILES.map((f) => fetch('pages/' + encodeURIComponent(f)).then((r) => (r.ok ? r.text() : '')).catch(() => '')));
   FILES.forEach((f, i) => pages.add(pageFromFile(f, texts[i])));
+  seatPages();
   greeting = greet(layer, pages, { place: placeAt, onDismiss: () => { if (greeting) { greeting = null; show(1); } } });
-  if (greeting.shown) pageName.textContent = `1 / ${FILES.length} · ${pages.list()[0].title}`; else { greeting = null; show(1); }
+  if (greeting.shown) pageText.textContent = pageWord(0, pages.list()); else { greeting = null; show(1); }
 })();
 new ResizeObserver(() => { document.documentElement.style.setProperty("--strip-h", strip.offsetHeight + "px"); }).observe(strip);
 

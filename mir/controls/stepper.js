@@ -17,8 +17,14 @@
  *     compact true: no arrows in the DOM (a strip a finger wide): the name opens the list, ← → still step it from the keys
  *   → { root, prev, next, name, get, set(id), setItems(items, id), step(d), open(), close(), destroy() }
  * Styled by controls.css; the buttons are `.mir-step-b[data-step="-1|1"]`, the name `.mir-step-name`. */
-import { el, label, ariaLabel } from '../kit.js';
+import { el, label, ariaLabel, mathPlain } from '../kit.js';
+import { t as tx, onLanguage } from '../core/i18n.js';
 import { listPane, liveItems } from './select.js';
+
+/* the seat's unseen words are drawn by CSS (`content: attr(data-w)`), so they are not the name's text; a language change
+   writes them again — one listener for the page, not one per stepper */
+const sizeWord = (s) => { let vars; try { vars = s.dataset.vars ? JSON.parse(s.dataset.vars) : undefined; } catch (_) { /* none */ } s.dataset.w = mathPlain(tx(s.dataset.en, vars)); };
+if (typeof document !== 'undefined') onLanguage(() => { for (const s of document.querySelectorAll('.mir-step-size')) sizeWord(s); });
 
 /** next(items, id, d, wrap) → the id `d` live steps from `id` (null: nowhere to go) — pure, for tests */
 export function stepTo(items, id, d, wrap = true) {
@@ -38,13 +44,22 @@ export function stepper(o = {}) {
   const prev = el('button', 'mir-step-b', compact ? null : row, '‹'); prev.type = 'button'; prev.dataset.step = '-1';
   const name = el(canList ? 'button' : 'div', 'mir-step-name', row);
   if (canList) { name.type = 'button'; name.setAttribute('aria-haspopup', 'listbox'); name.setAttribute('aria-expanded', 'false'); }
-  const text = el('span', 'mir-step-text', name); text.setAttribute('aria-live', 'polite');
+  /* THE HAND (1.5.0-alpha.19): the name's seat is as wide as its LONGEST option — every option's word sits unseen in the
+     same grid cell (controls.css .mir-step-seat), so the arrows never move when the name changes, in any language */
+  const seat = el('span', 'mir-step-seat', name);
+  const text = el('span', 'mir-step-text', seat); text.setAttribute('aria-live', 'polite');
   const count = o.count ? el('span', 'mir-step-count', name) : null;
   const next = el('button', 'mir-step-b', compact ? null : row, '›'); next.type = 'button'; next.dataset.step = '1';
   ariaLabel(prev, 'previous'); ariaLabel(next, 'next');
   if (o.aria || o.label) ariaLabel(row, o.aria || o.label);
   row.setAttribute('role', 'group');
   let items = o.items || [], v = o.value, pane = null;
+  const sizeSeat = () => {                           // once when built, and again when the options change
+    for (const s of seat.querySelectorAll('.mir-step-size')) s.remove();
+    for (const it of items) { if (typeof it.label !== 'string' || !it.label) continue;
+      const s = el('span', 'mir-step-size', seat); s.setAttribute('aria-hidden', 'true'); s.dataset.en = it.label; if (it.vars) s.dataset.vars = JSON.stringify(it.vars); sizeWord(s); }
+  };
+  sizeSeat();
   const paint = () => {
     const it = items.find((i) => i.id === v) || liveItems(items)[0];
     label(text, it ? it.label : '—', it && it.vars);
@@ -83,6 +98,6 @@ export function stepper(o = {}) {
     if (e.code === back) { e.preventDefault(); step(-1); } else if (e.code === fwd) { e.preventDefault(); step(1); }
   });
   paint();
-  return { root, prev, next, name, get: () => v, set(id) { v = id; paint(); }, setItems(list, id) { items = list; if (id !== undefined) v = id; paint(); },
+  return { root, prev, next, name, get: () => v, set(id) { v = id; paint(); }, setItems(list, id) { items = list; if (id !== undefined) v = id; sizeSeat(); paint(); },
     step, open: openIt, close, get isOpen() { return !!pane; }, destroy() { close(false); root.remove(); } };
 }

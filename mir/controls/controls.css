@@ -40,6 +40,12 @@
 .mir-step-row { display: inline-flex; align-items: center; gap: var(--sp-1); }
 .mir-step-name { min-width: 6em; min-height: var(--step-b); padding: 0 var(--sp-3); border: 0; border-radius: var(--r-md); background: transparent; text-align: center; font: inherit; font-size: var(--fs-small);
   letter-spacing: var(--label-tracking, var(--tr-wide)); color: var(--fg); font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); }
+/* THE HAND (1.5.0-alpha.19): the name's seat is its longest option — every option's word, unseen, in one grid cell — so
+   the ‹ › never move with the name (6em stays the floor) */
+.mir-step-seat { display: inline-grid; grid-template-columns: minmax(0, auto); min-width: 0; max-width: 100%; }   /* a name that fills its row (lanes, ramp, the list pane) still shrinks and ellipsises */
+.mir-step-seat > * { grid-area: 1 / 1; }
+.mir-step-size { visibility: hidden; white-space: nowrap; overflow: hidden; pointer-events: none; }
+.mir-step-size::before { content: attr(data-w); }
 button.mir-step-name { cursor: pointer; transition: background-color var(--motion-micro) var(--ease-out); }
 button.mir-step-name:hover:not(:disabled) { background: var(--state-hover, var(--glass-raise)); }
 button.mir-step-name:is(:active, .press) { background: var(--state-press, var(--glass-press)); scale: var(--state-press-scale, .96); }
