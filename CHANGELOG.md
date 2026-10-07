@@ -1,5 +1,89 @@
 # MIR — changelog
 
+## 1.5.0-alpha.19 — 2026-10-06 · the hand
+
+Not released: built on branch `worktree-mir-1.5`. One principle, from Josh's first iPad pass of BASINS on 1.5: **a control's place never depends on state, and every key is consistent and shown.** Changing a page, a mode, a fold or a value must not move the head, the bar or the other controls, so what the hand learned stays true; every key is a row of the one table, shown beside its action and rebindable.
+
+### Fixed
+- **The dock no longer squashes a window.** `tweenRect` rests first, then travels: the layout is written before the first frame, the box travels by `translate`, and a side that grew is revealed by `clip-path`. Nothing is scaled (Josh on the iPad: it "squashes it horizontally, before readjusting"; after: "Docking feels smooth now").
+- **The resize corner points where it resizes.** Docked at the bottom, the timeline's corner pointed bottom right. The cause: `window.css` turned the handle with `scaleY(-1)`, and the timeline turns its own drawn corner as well, so it was turned twice. The handle is never transformed now; the hairlines turn by `--win-corner-angle` (135° floating, 45° docked at the bottom).
+- **The rack scrolls by touch on the iPad, with one 2-px bar.** Safari does not touch-scroll a scroller whose own `pointer-events` is none, even from a child that takes the pointer (Chromium and Firefox do). On a touch tablet and under a coarse pointer the rack's column now takes the pointer itself; the cost is that a finger on the rack's blank gaps scrolls the rack instead of reaching the picture (the scene guard already counted them as interface). The native bar stays hidden (`scrollbar-width: none`) and the kit's thumb is 2 px (was 3) in a 12-px track that paints nothing. The second bar Josh saw is BASINS' own (`app/lab.css:164-167`): it goes at BASINS' re-adoption.
+- **The transport bar no longer grows when the tempo panel opens.** The bar read its width after the panel was in and grew from 304 to 742 px, carrying PLAY 219 px left and 118 px up. The width is now read with the panel hidden and kept; the panel opens above the row on a bottom seat and below it on a top seat, MACROS over CLOCK at the row's width (a bar 640 px wide or more keeps them side by side). Every control of the row moves 0 px.
+- **Undo has one owner.** HISTORY's keys were a capture listener that beat every row of the key table, so rebinding undo did nothing, and the timeline had its own Ctrl+Z as well. Undo and redo are now the rows `undo` and `redo` of the one table (Ctrl/⌘+Z; Ctrl/⌘+Shift+Z and Ctrl/⌘+Y); with a history the timeline's pair is left out. One Ctrl+Z undoes once wherever the focus is; a text field keeps its own undo; a rebind moves it.
+- **No key text typed by hand.** The ⋯ rows, the timeline's tools, the notebook's ×, HISTORY's ↶ ↷, the transport's door, dock chip and way back, the rack's edge handle and the WINDOW menu's rack rows all show the chord from the table (ZOOM TO SELECTION no longer says SHIFT+Z by hand; the notebook's × is ⌘-correct on a Mac or an iPad).
+- **No hard-coded H in the timeline.** Hiding the interface, on whatever key `hide` has, ends a gesture or closes a menu (the CLIP menu closes when the focus leaves it).
+- **A panel's key is the table's.** XY, CURVES, GRADE, RAMP, LANES and CAMERA take `action` (a row of the table), not a bare `key` that was shown in WINDOW and bound to nothing.
+- **↑ ↓ on a closed list is one law.** The stepper's name steps on ↑ ↓ as a closed select does (↓ the next, ↑ the previous), and Alt+↓ opens its list; ↑ ↓ used to open it.
+- **Delete goes home wherever a control has one**: the XY pad, the CAMERA sphere and the host sliders (Backspace too: an iPad has no forward Delete). Their Shift step, and CURVES' and RAMP's, read the kit's one fine gear (`setKnobLaw().keyFine`) instead of a typed eighth.
+- **HOLD THE WORDS STILL is in VIEW**, as `docs/KEYS.md` said it was; a held action's menu row latches (press on, press off), since a menu has no key release.
+- **The notebook's head stays.** ⓘ ABOUT re-centred the glass at the other face's size, so ✎, ⓘ and × jumped (+60, −88 px). A face change now keeps the head's top-right corner; a taller face scrolls rather than run off the screen.
+- **FOLDERS' NEW question no longer pushes the explorer.** Its ask row sits over the explorer (BASINS' solid pane) instead of above it, so the FOLDERS ROOT breadcrumb stays (it moved 108 px).
+- **RENDER's buttons never move.** The progress row is always there (CANCEL disabled while idle), the status line sits below it and keeps its line when empty, and RUN SELF-TEST's report opens below its button (RENDER, PREVIEW and CANCEL moved 16–90 px before).
+- **The KEYBOARD window's status keeps its line**, so a key pressed on the drawn board no longer pushes the search and every row 20 px.
+- **The stepper's name is as wide as its longest option**, in any language, so ‹ and › never move as the name changes (they moved 5–13 px; the INFO gallery's page turner 5.7 px).
+- **A label whose word changes keeps its widest word's width**: the modulation work bar's cadence chip (60 → 120 HZ pushed HOLD ¼ and HOLD 1 5 px) and the transport's BPM reading (×4 pushed everything after it 5.2 px).
+- **The banner's × stays put.** Its top and its width are fixed (520 px, less a gutter on a narrow screen), and a longer or a second message grows it down; centred and as wide as its words, its × moved 16 px a line and up to 148 px across. `--banner-rise` (23 px) keeps a one-line message where BASINS' was.
+- **The transport's macro-reorder arrows are the modulation window's law**: every arrow moves a tile one place (it was two on some arrows), Home and End the ends.
+- **`createApp` installs the KEYBOARD window** behind WINDOW › KEYBOARD, so a kit app rebinds from the UI.
+
+### The GUI window
+MIR OPTIONS is three tabs, **LOOK · LIGHT · WINDOWS**, a segment in one fixed row under the title bar. The tabs share one grid cell, so the window is sized once for the biggest and a tab changes only the body, which scrolls; the head, the (i), the × and the tab row keep one rect across every tab. **MIR ABOUT is its own window**, opened by the circled (i) beside the ×. Both are the new `createWindow({ chrome: 'close' })`: a title bar inside the pane that drags the window from anywhere on it, a plain × (the `close` glyph), Escape closes, no chip rail; on a touch tablet the bar and its buttons are a finger tall (44 px). The tab is remembered (`mir.gui.tab`). On a phone it is the same three tabs in one column, the screen's height under the menubar. HELP's prose keeps its seat while HELP is off.
+- `gui.open('options' | 'look' | 'light' | 'windows' | 'about')`, `gui.about`, `gui.tab`, `GUI_TABS`; `turn(±1)` steps the tabs.
+- **BREAKING**: the page turner is gone (`'options:1'` still opens LOOK and `'options:2'` LIGHT), and the GUI window has no `W.rail` (`rail.el` and `pair.rail` are null). Strings: + LOOK, MIR OPTIONS; − MIR OPTIONS 1, MIR OPTIONS 2, MIR OPTIONS {page}/{of}, GUI — MIR OPTIONS and MIR ABOUT, GUI.
+- `createWindow({ chrome })`: `'rail'` (default, every other window unchanged) or `'close'`; the result gains `head` and `tools`. Tokens `--win-head-h` 38px, `--win-head-btn` 32px, `--win-head-glyph` 18px, `--win-head-press` .92. `docs/WINDOWS.md` law 14.
+
+### The timeline's tool bar
+**One line, always.** The work bar never wraps: the tools that do not fit fold from its end (ACTIVE first, then SLIDE, STEP, SNAP, scope, SLICE, SCRUB, SELECT, EDIT) behind ⋯, which is always on the bar so it never moves. A folded tool is a row of ⋯'s list, with its icon, its word and its pressed state (SNAP and scope open their choices), and keeps its key. One `ResizeObserver`, no timer; a tool comes back only with 6 px to spare. ⋯ is the new `more` glyph. `editor.folded()` says how many tools are folded.
+
+### The remote probe
+`tools/probe.mjs serve <port> <folder>` serves an app over TLS on the network with one script line added to every page, so a page on the iPad (or any device) reports to this machine: its details, console, errors, WebGPU, touches and frame times, and it runs the scripts this machine sends; `autorun` re-runs a script on every load, so an experiment survives Safari's background reloads. A development tool only: nothing in `mir/**` or an app changes. `docs/PROBE.md`; `tests/probe.browser.mjs`.
+
+### For adopters
+- **An app must not set `scrollbar-width` or `::-webkit-scrollbar` on its rack.** Unlayered, the rule beats the kit's and brings the native bar back beside the kit's thumb. BASINS deletes `app/lab.css:164-167` at re-adoption; its `material.css` touch rule is now the kit's and can go too.
+- The GUI window's page turner and `W.rail` are removed (above). `createRack` is unchanged.
+- **BREAKING (keys)**: the timeline's `timeline.undo` / `timeline.redo` are `undo` / `redo` (a saved rebind of the old ids is dropped quietly); a panel's `key` is `action`; `installHistoryKeys(history, { keys })` adds rows to the app's table and returns `remove` with `remove.keys` (the capture listener is gone); `historyActions`, `EDIT_KEYS`. Every kit window is a row: `history`, `render`, `gui`, `gui-about`, `keyboard`, with no key. `createApp` hands `keys` to the notebook and to HISTORY; `keyboard: false` leaves the KEYBOARD window out; `app.keyboard`.
+- `docs/ADOPTING-1.5.md` §11.
+
+### Tokens, strings, tests
+- 1,361 token rows (7 added: `--win-head-h`, `--win-head-btn`, `--win-head-glyph`, `--win-head-press`, `--win-corner-angle`, `--banner-rise`, `--tl-pop-row-gap`); `--rack-scrollbar-thumb-w` 3 → 2 px and `--rack-scrollbar-thumb-x` 4 → 5 px corrected in the schema. The timeline's ⋯ row gap was declared as `--tl-row-gap`, the name the lane rows' 2 px already had (written by `editor.js`): the join renamed it `--tl-pop-row-gap` (two lines of `timeline.css`). `docs/TOKENS.md` regenerated.
+- 1,494 catalogue keys (1,497 − 9 + 6). Added, as drafts in the ten packs: HISTORY, LOOK, MIR OPTIONS, More tools and actions, SCOPE · {value}, SNAP · {value}. Removed from the catalogue and the packs: GUI, GUI — MIR OPTIONS and MIR ABOUT, MIR OPTIONS 1, MIR OPTIONS 2, MIR OPTIONS {page}/{of}, Undo (Ctrl+Z), Redo (Ctrl+Shift+Z, Ctrl+Y), Release any open menu or gesture before the shell hides the UI, Selection actions.
+- `npm test`: 140/140 (was 136). New files: `tests/timeline-fold.browser.mjs` (the one-line bar, 26), `tests/keys-undo.browser.mjs` (one undo owner, 17, on `tests/fixtures/keys-undo.html`), `tests/keys-table.browser.mjs` (every key from the table, 27), `tests/probe.browser.mjs` (the remote probe, 14). No file removed. New rows in `gui` (the hand law across the tabs, the title-bar drag, Escape, the remembered tab, the phone head), `window` (the corner's direction), `rack-leftovers` (the 2-px thumb, pointer-events by pointer type), `controls` (↑ ↓ on the stepper's name, Delete on the XY pad and the sliders), `camera` (Delete), `keys.node` (the latch; one pair of undo ids), and one law row each in `transport-placement`, `notebook`, `folders`, `render`, `keyboard` and `scene-guard`. `ink.browser` opened `'options:2'` for TRANSPORT BAR and SAMPLING, which are on the WINDOWS tab now: the join changed it to `'windows'`.
+- The GUI plates in `docs/plates/gui/` are retaken (the tabs, MIR ABOUT, the phone at 390 × 844; `phone-5` and `phone-6` are gone with the five phone sheets, `windows-dark-frost` is new).
+
+### Choices to overrule
+- **⋯ is always on the timeline's bar**, even when nothing is folded, so it never appears or moves (lane T).
+- **Tabs as a segment** in a fixed row (Josh offered tabs as chip options or a scroll; three tabs is a segment by the control language); MIR ABOUT a window of its own rather than a fourth tab (lane G).
+- **The stepper's seat is its longest option** (P6), and a changing label's seat its widest word (P7): a short name now sits in a wider seat.
+- **The banner is always 520 px wide** (P8): a one-word message sits in the full pane.
+- **The tempo panel is narrow and taller** (MACROS over CLOCK) rather than wider than the bar (P1).
+- **A disabled CANCEL always sits under PREVIEW** with one blank status line (P4).
+- **No key invented** for HISTORY, RENDER, MIR OPTIONS, MIR ABOUT or KEYBOARD: rows with no chord, for you to give (K4).
+- **A macro's value keeps Delete off** (its double-click is rename, it has no default); the tempo pill's Shift stays 0.1 BPM, the tempo's own resolution, not the fine gear (K8).
+- **A held action's menu row latches** (K9).
+- **The reorder arrows move one place** on the transport too (P9).
+- **Left, by the lanes**: FOLDERS' tile menu and the full-library refusal still push the explorer (they sit in translucent wells: glass); a finished render's SAVE / DISCARD rows appear below CANCEL (a result below its cause); the harmless ResizeObserver loop notice (four candidates that write what they observe are named in the lane's notes).
+
+### For Josh's eye
+What you will see:
+- MIR OPTIONS: a title bar with (i) and ×, no chips; drag it anywhere on the bar; LOOK · LIGHT · WINDOWS stay put; MIR ABOUT opens as its own window.
+- The timeline docked at the bottom: its corner points top right.
+- On the iPad the rack scrolls by finger, with one 2-px bar once BASINS deletes its own `lab.css` rule; on the desktop the thumb is 2 px instead of 3.
+- The timeline's work bar stays one line; what does not fit is behind ⋯.
+- The tempo panel opens narrow and taller and the bar never widens; the notebook's head stays; RENDER shows a disabled CANCEL under PREVIEW with one blank status line; the banner is always 520 wide and grows down.
+- Ctrl/⌘+Z undoes once anywhere and can be rebound; EDIT starts with UNDO / REDO; VIEW gains HOLD THE WORDS STILL; WINDOW gains KEYBOARD; HISTORY, MIR OPTIONS, MIR ABOUT and RENDER can be bound; every ⋯ row shows its key; the timeline's tool tooltips show E / P / Y / C; the stepper's name steps on ↑ ↓; Delete homes the XY pad, the camera and the sliders; timeline redo also takes Ctrl+Y.
+
+**Ten questions** for you (the orchestrator puts them in the vault note):
+1. The MODULATION window sizes itself to its devices: folding or compacting one moves its rail, its work bar and PATTERN's rail, and a folded device's ⏻ and × move 258–302 px (census rows 2–4, 8). A design call.
+2. The timeline's bar hugs the right in row mode (wider than 760 px, beside the transport), so folding shifts the first tools right; the fix is a fixed-width glass pane, and glass is yours. In column mode (the iPad upright) the first tools never move.
+3. Keys for TIMELINE, PATTERN, HISTORY, RENDER, GUI and KEYBOARD (the gallery's precedent is K for KEYBOARD).
+4. The arrows on a window's handle: two laws today. On a rack card's head the plain arrows move the window (a floating one by a nudge, a docked one up or down its rack, or to the other rack); on a kit window's grip they move its rail to another side, and Shift+arrows nudge the window. Which law for both?
+5. iPad chords for Numpad ×, Numpad ÷ and Insert (an iPad keyboard has none).
+6. Space on a focused ÷2 / ×2 / ×4 latches the bend; should it play instead?
+7. Should Escape close MODULATION and TIMELINE too, as it now closes the GUI's windows?
+8. Ctrl/⌘+Y (redo) takes Safari's and Mac Chrome's History shortcut, as before. Keep it?
+9. FOLDERS: a tile's menu and the full-library refusal still push the explorer, because they sit in translucent wells; a solid pane over them would be glass.
+10. A window with a title bar (MIR OPTIONS, MIR ABOUT) sits under every other window's chip rail, since alpha.17 put every rail above every window; the retaken plates show the gallery's sample rail over MIR OPTIONS. Should a title-bar window rise above the rails when pressed?
+
 ## 1.5.0-alpha.18 — 2026-10-06 · the consolidation
 
 Not released: built on branch `worktree-mir-1.5`. Nothing new: the kit is smaller. This release removes what was said twice and what nothing uses, fixes the defects that turned up while looking, and reports what BASINS' adoption of alpha.17 cost and saved at run time. No feature was added, and no option, store or file format changed except the removals named below.

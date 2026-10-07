@@ -156,6 +156,15 @@ alpha.18 adds nothing; it removes what no app used. An app that used one of thes
 
 Nothing else changes for an adopter: every other name, option and stored shape is as it was in alpha.17. What does behave differently is listed under "Fixed" in the alpha.18 changelog entry (one raise stack, `createApp` handing its history on, the three downloads through `saveBlob`).
 
+## 11. 1.5.0-alpha.19 (the hand)
+
+A control's place never depends on state, and every key comes from the one table. What an adopter changes:
+- **Delete the app's own scrollbar rules on its rack.** An app sheet must not set `scrollbar-width` or `::-webkit-scrollbar` on its rack (`#rack`, `#rackL`, `[data-mir-rack]`): unlayered, it beats the kit's rule and the native bar comes back beside the kit's 2-px thumb (two bars on the iPad). BASINS: `app/lab.css:164-167`. An app rule that gives the rack `pointer-events: auto` on touch is now the kit's own (`rack.css`) and can go too (BASINS: the uncommitted `material.css` rule).
+- **`gui.open` takes tab ids**: `'options'` (the tab last shown), `'look'`, `'light'`, `'windows'`, `'about'`. The old `'options:1'` and `'options:2'` still land on LOOK and LIGHT. `gui.turn(±1)` steps the tabs. The GUI window has no rail (`W.rail`, the page turner): an app that reached into either drops it; `gui.about` is the MIR ABOUT window.
+- **`createWindow({ chrome: 'close' })`** is there for a small window with nothing to dock: a title bar, a ×, Escape closes, no rail (`head`, `tools`; `rail.el` and `pair.rail` null). Every window that does not ask for it keeps its rail.
+- **The key table's rows.** Every kit window is now a row: `history`, `render`, `gui`, `gui-about` and `keyboard` (no key; bind one in the KEYBOARD window, which `createApp` now installs), beside `modulation`, `timeline`, `pattern`, `folders`, `notebook`, `help`, `rack`, `dock`. Undo and redo are the rows `undo` and `redo` (EDIT): the timeline's `timeline.undo` / `timeline.redo` are gone (a saved rebind of them is dropped), and `installTimeline({ keys, history })` leaves the timeline's pair out when a history owns them. A panel takes `action: '<row id>'`, not `key: 'X'`; a rack card registered with `key` shows no key now, give it `action`. An app that typed key text into a tooltip or a menu row gives the element `data-key-action` instead and lets `keys.hints()` write it.
+- `createRack` is unchanged. The stored shapes are unchanged (the GUI's tab is a new key, `mir.gui.tab`).
+
 ## Check
 
 `npm test` in the kit; in your app, load once and confirm the chips keep their material (the stylehash neutrality

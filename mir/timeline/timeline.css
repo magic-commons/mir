@@ -91,7 +91,7 @@
   --tl-pop-title-track: .08em;
   --tl-pop-trig-h: 32px;
   --tl-pop-trig-size: 10px;
-  --tl-row-gap: 8px;                                           /* a folded tool's row in ⋯'s list: icon, then word */
+  --tl-pop-row-gap: 8px;                                        /* a folded tool's row in ⋯'s list: icon, then word */
   --tl-field-size: 9px;
   --tl-field-gap: 6px;
   --tl-input-r: 6px;
@@ -342,7 +342,7 @@
 .tl-pop-title { font-size: var(--tl-pop-title-size); padding: 4px; letter-spacing: var(--tl-pop-title-track); }
 .tl-pop .trig { min-height: var(--tl-pop-trig-h); font-size: var(--tl-pop-trig-size); }
 /* a folded tool's row in ⋯'s list: its icon (when it has one), then its word */
-.tl-pop .trig.tl-row { display: flex; align-items: center; gap: var(--tl-row-gap); }
+.tl-pop .trig.tl-row { display: flex; align-items: center; gap: var(--tl-pop-row-gap); }
 .tl-pop .trig.tl-row svg { width: var(--tl-icon); height: var(--tl-icon); display: block; flex: none; }
 .tl-confirm { position: fixed; z-index: calc(var(--z-veil) + 21); max-width: var(--tl-confirm-max); padding: var(--tl-confirm-pad); font-size: var(--tl-confirm-size); animation: lw-warn-in var(--tl-pop-t) var(--tl-ease-spring); }
 .tl-confirm .trig { margin: 8px 4px 0 0; }

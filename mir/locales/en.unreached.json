@@ -1,7 +1,7 @@
 [
  {
   "file": "mir/app.js",
-  "line": 327,
+  "line": 339,
   "why": "fragment",
   "text": " · an MIR app"
  },
@@ -61,7 +61,7 @@
  },
  {
   "file": "mir/glyph.js",
-  "line": 596,
+  "line": 601,
   "why": "fragment",
   "text": " — known: "
  },
@@ -133,13 +133,13 @@
  },
  {
   "file": "mir/modulation/window.js",
-  "line": 1116,
+  "line": 1117,
   "why": "fragment",
   "text": "px,"
  },
  {
   "file": "mir/modulation/window.js",
-  "line": 1901,
+  "line": 1902,
   "why": "fragment",
   "text": " failed to build"
  },
@@ -421,7 +421,7 @@
  },
  {
   "file": "mir/shell/gui.js",
-  "line": 286,
+  "line": 290,
   "why": "fragment",
   "text": "the bench threw: "
  }

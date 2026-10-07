@@ -78,10 +78,12 @@ The window's `api` is `{ id, dev, root, body, setStatus, canPresent(), open(), c
 - `setHidden(on)`: **the** hide path for the key, the menu, a touch and a test alike. Also `toggleHidden()` and the `hidden` property.
 - `setInterface(shown)`: H. The whole interface leaves paint, and the edge handle is the way back.
 
+**A finger scrolls the rack** (1.5.0-alpha.19, proven on Josh's iPad). The rack's column has `pointer-events: none` so the picture behind its gaps stays reachable, and its windows take the pointer. Safari does not touch-scroll a scroller whose own `pointer-events` is none, even from a child that takes the pointer (Chromium and Firefox do). So on `body.touch-tablet`, and under `@media (pointer: coarse)`, the column takes the pointer itself (`rack.css`). The cost: on touch, a finger on the rack's blank areas (the gaps, the gutter, the column below the last window) scrolls the rack instead of reaching the picture. The scene guard already counts those areas as interface, so nothing else changes. A mouse is unchanged. An app needs no rule of its own for this (BASINS' `material.css` rule of the same kind becomes redundant at its re-adoption).
+
 **The transport.** `dodge(rect | null)` takes the rect a floating window reports. The transport moves to whichever seat that rect does not cover. `seat` says which seat it is in. `setHome('bottom' | 'top')` sets the seat the transport rests in (the user's choice on the bar, `docs/TRANSPORT.md`); the dodge then prefers it. `spec(id)` returns a registered window's description (its title, glyph, key, hint) for the bar's openers.
 
 **Menus.**
-- `windowMenu({ rack, rackKey })` returns the WINDOW menu's rows in the data shape `createMenubar({ menus })` takes: `[label, run, disabled, hint]`. There is one row per registered window: `↑ NAME` raises an open window and `⊕ NAME` opens a closed one. `rack: true` adds a separator and HIDE / SHOW the rack.
+- `windowMenu({ rack, rackKey, keyOf })` returns the WINDOW menu's rows in the data shape `createMenubar({ menus })` takes: `[label, run, disabled, hint]`. There is one row per registered window: `↑ NAME` raises an open window and `⊕ NAME` opens a closed one. `rack: true` adds a separator and HIDE / SHOW the rack. `keyOf(action) → text` (1.5.0-alpha.19; `createApp` passes `keys.menuKey`) shows each window's chord from the key table beside its row; a window with no `action`, or no `keyOf`, shows none.
 - `addMenu` is `{ open(), close(), shown, queued, commit() }` and `favMenu` is `{ open(), close(), shown }`.
 
 **The layout.**
@@ -92,12 +94,13 @@ The window's `api` is `{ id, dev, root, body, setStatus, canPresent(), open(), c
 
 **COPY a window's readouts** (`digest`, `copyDigest`, `digestText`, the `name` option and the `· COPIED` flash) is removed in 1.5.0-alpha.18: no app pressed it.
 
-**The scrollbar at the card column** (`scrollbar: true`, `mir/shell/rack-scrollbar.js`). A rack keeps its native scrolling and its 48-px shadow gutter, so the native bar would sit at the far edge of the gutter, away from the cards (Josh: "scrollers seems to be way too far out from the rack"). This turns the native bar off on a wide screen (`body.rack-scrollbars`) and stands a transparent 12-px track beside the cards instead, at the gutter's inner edge (left rack: its right − gutter − 8; right rack: its left + gutter − 4), 8 px in from the top and bottom, with a 3-px accent thumb (never shorter than 32 px).
+**The scrollbar at the card column** (`scrollbar: true`, `mir/shell/rack-scrollbar.js`). A rack keeps its native scrolling and its 48-px shadow gutter, so the native bar would sit at the far edge of the gutter, away from the cards (Josh: "scrollers seems to be way too far out from the rack"). This turns the native bar off on a wide screen (`body.rack-scrollbars`) and stands a transparent 12-px track beside the cards instead, at the gutter's inner edge (left rack: its right − gutter − 8; right rack: its left + gutter − 4), 8 px in from the top and bottom, with a 2-px accent thumb centred in it (never shorter than 32 px; 3 px before 1.5.0-alpha.19, Josh on the iPad: "a simple 2PX scroll bar is visible only"). The track is the touch target and paints nothing. The native bar is hidden with `scrollbar-width: none` (the standard property; Safari since 18.2) and `::-webkit-scrollbar { display: none }` (the older engines).
+- **An app must not set `scrollbar-width` or `::-webkit-scrollbar` on its rack.** An app sheet is unlayered, so its rule beats the kit's and brings the native bar back beside the kit's thumb: two bars (BASINS' `app/lab.css:164-167` did exactly this on the iPad). Leave the rack's bar to the kit.
 - A hand drags the thumb, or presses the track to jump there; a wheel turns it; ↑ ↓ step 40 px, PageUp / PageDown 90 %, Home / End the ends.
 - It is gone when there is no gutter (a narrow screen, the phone), no overflow, under H, or while the rack is hidden.
 - It paints only when the rack scrolls, resizes or changes, the body's classes change, the window resizes, or the dock span (`span()`) moves during a slide: one paint per frame, nothing at rest.
 - `rack.scrollbar` is `{ paint(), tracks, destroy() }`, or null.
-- Its tokens (on `.rack-scrollbar`): `--rack-scrollbar-w` 12px, `--rack-scrollbar-thumb-w` 3px, `--rack-scrollbar-thumb-x` 4px, `--rack-scrollbar-rest` .65 (the thumb's opacity at rest; 1 on hover and in a drag), `--rack-scrollbar-fade` 150ms, `--rack-scrollbar-ease` ease, `--rack-scrollbar-focus-r` 6px.
+- Its tokens (on `.rack-scrollbar`): `--rack-scrollbar-w` 12px, `--rack-scrollbar-thumb-w` 2px, `--rack-scrollbar-thumb-x` 5px, `--rack-scrollbar-rest` .65 (the thumb's opacity at rest; 1 on hover and in a drag), `--rack-scrollbar-fade` 150ms, `--rack-scrollbar-ease` ease, `--rack-scrollbar-focus-r` 6px.
 
 **Reading the state.**
 - `built`: how many windows exist. `registered`, `isBuilt(id)`, `window(id)` (the window's `api`).

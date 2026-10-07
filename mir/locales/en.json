@@ -419,8 +419,6 @@
   "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license}": "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license}",
   "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license} and {notice}": "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license} and {notice}",
   "GRAIN": "GRAIN",
-  "GUI": "GUI",
-  "GUI — MIR OPTIONS and MIR ABOUT": "GUI — MIR OPTIONS and MIR ABOUT",
   "Gallery — browse saved projects": "Gallery — browse saved projects",
   "H": "H",
   "HAND": "HAND",
@@ -429,6 +427,7 @@
   "HIDE the interface": "HIDE the interface",
   "HIGH": "HIGH",
   "HINTS": "HINTS",
+  "HISTORY": "HISTORY",
   "HIT": "HIT",
   "HIT SENSE": "HIT SENSE",
   "HOLD": "HOLD",
@@ -493,6 +492,7 @@
   "LOAD LAYOUT": "LOAD LAYOUT",
   "LOCATE CLIPS": "LOCATE CLIPS",
   "LONGER than {limit}: keep this page open and visible (the screen is held awake), or shorten it; a failed render keeps its completed frames to recover": "LONGER than {limit}: keep this page open and visible (the screen is held awake), or shorten it; a failed render keeps its completed frames to recover",
+  "LOOK": "LOOK",
   "LOW": "LOW",
   "LOWER": "LOWER",
   "LW Title": "LW Title",
@@ -516,9 +516,7 @@
   "MID": "MID",
   "MIN": "MIN",
   "MIR ABOUT": "MIR ABOUT",
-  "MIR OPTIONS 1": "MIR OPTIONS 1",
-  "MIR OPTIONS 2": "MIR OPTIONS 2",
-  "MIR OPTIONS {page}/{of}": "MIR OPTIONS {page}/{of}",
+  "MIR OPTIONS": "MIR OPTIONS",
   "MIR is free software under the GNU GPL v3.0 only (GPL-3.0-only) — no warranty.": "MIR is free software under the GNU GPL v3.0 only (GPL-3.0-only) — no warranty.",
   "MIR is the shared Magic Commons interface kit behind its controls, window system, gestures, and modulation. MIR is an open source platform and will continuously be updated, allowing for ‘LLM Mods’ support and customizable skins.": "MIR is the shared Magic Commons interface kit behind its controls, window system, gestures, and modulation. MIR is an open source platform and will continuously be updated, allowing for ‘LLM Mods’ support and customizable skins.",
   "MIR {version} · SKIN {theme}": "MIR {version} · SKIN {theme}",
@@ -548,6 +546,7 @@
   "Modulation ON replays the rack from its first Space edge. Timeline ON replays clips from beat zero. Both skip to “start at”. With both OFF, the current look is frozen. Escape cancels.": "Modulation ON replays the rack from its first Space edge. Timeline ON replays clips from beat zero. Both skip to “start at”. With both OFF, the current look is frozen. Escape cancels.",
   "Modulation cadence": "Modulation cadence",
   "Modulation on or off": "Modulation on or off",
+  "More tools and actions": "More tools and actions",
   "Move it": "Move it",
   "Move it (Shift copies, right-button deletes); it has no points": "Move it (Shift copies, right-button deletes); it has no points",
   "Move macros to either side": "Move macros to either side",
@@ -746,8 +745,6 @@
   "Recording cancelled": "Recording cancelled",
   "Rectangle-select clips or points": "Rectangle-select clips or points",
   "Redo": "Redo",
-  "Redo (Ctrl+Shift+Z, Ctrl+Y)": "Redo (Ctrl+Shift+Z, Ctrl+Y)",
-  "Release any open menu or gesture before the shell hides the UI": "Release any open menu or gesture before the shell hides the UI",
   "Reload the chosen preset": "Reload the chosen preset",
   "Reload the page": "Reload the page",
   "Reload the page: on a cold start the adapter is sometimes late. If it happens again, turn on hardware acceleration in the browser's settings or update the graphics driver.": "Reload the page: on a cold start the adapter is sometimes late. If it happens again, turn on hardware acceleration in the browser's settings or update the graphics driver.",
@@ -805,6 +802,7 @@
   "SAVE {name} · {size}": "SAVE {name} · {size}",
   "SAW↑": "SAW↑",
   "SAW↓": "SAW↓",
+  "SCOPE · {value}": "SCOPE · {value}",
   "SCRUB": "SCRUB",
   "SCRUB TOOL": "SCRUB TOOL",
   "SCRUB is how the picture follows a ruler drag. AUTOMATION is how playback reads the Timeline into the engine; never during a recorded render.": "SCRUB is how the picture follows a ruler drag. AUTOMATION is how playback reads the Timeline into the engine; never during a recorded render.",
@@ -829,6 +827,7 @@
   "SLICE: click a clip to cut it; Insert cuts the selection at the playhead": "SLICE: click a clip to cut it; Insert cuts the selection at the playhead",
   "SMOOTH": "SMOOTH",
   "SNAP": "SNAP",
+  "SNAP · {value}": "SNAP · {value}",
   "SOFTNESS": "SOFTNESS",
   "SOLID": "SOLID",
   "SOLO: this one alone; again, the others come back. Hold to peek": "SOLO: this one alone; again, the others come back. Hold to peek",
@@ -899,7 +898,6 @@
   "Selected audio band peak hold; choose {:LEVEL}, {:LOW}, {:MID} or {:HIGH} on its meter": "Selected audio band peak hold; choose {:LEVEL}, {:LOW}, {:MID} or {:HIGH} on its meter",
   "Selected audio band release time constant; choose {:LEVEL}, {:LOW}, {:MID} or {:HIGH} on its meter": "Selected audio band release time constant; choose {:LEVEL}, {:LOW}, {:MID} or {:HIGH} on its meter",
   "Selected macro range; the large dial sets the base": "Selected macro range; the large dial sets the base",
-  "Selection actions": "Selection actions",
   "Selection scope": "Selection scope",
   "Send to the timeline: one cycle of the LFO, the ENV's stages, or its live pattern row": "Send to the timeline: one cycle of the LFO, the ENV's stages, or its live pattern row",
   "Sends that are dead until their controls come back": "Sends that are dead until their controls come back",
@@ -1056,7 +1054,6 @@
   "Unbound": "Unbound",
   "Under refractive or frost the knobs, buttons and fields are clear glass": "Under refractive or frost the knobs, buttons and fields are clear glass",
   "Undo": "Undo",
-  "Undo (Ctrl+Z)": "Undo (Ctrl+Z)",
   "Undock the transport": "Undock the transport",
   "Unrestricted rotation, with roll": "Unrestricted rotation, with roll",
   "Untitled": "Untitled",
@@ -1613,6 +1610,7 @@
   "LAP": "a demo LFO's name: it moves the camera one lap round per bar (the user can rename it)",
   "LINK": "a switch that joins the controls' light to the panes' light (link = tie together, not a web link)",
   "LIVE": "the microphone is open and being listened to right now",
+  "LOOK": "the tab of the look options (theme, accent, text, quality, material, controls, motion)",
   "MOD off": "MOD: modulation as a whole, switched on or off by its power button",
   "MOD on": "MOD: modulation as a whole, switched on or off by its power button",
   "MULTI-SAW": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
@@ -1629,10 +1627,12 @@
   "S&H": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
   "SAW↑": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
   "SAW↓": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
+  "SCOPE · {value}": "a folded setting's row in the ⋯ list: its name · the choice in force",
   "SHELF": "the SHELF: where your notes are kept in this browser (not the RACK, the column of windows)",
   "SIGNAL ONLY (MUTE THE FILE)": "a clip's menu: the file plays / the envelope alone / fit the audio into the clip's length (varispeed)",
   "SINE": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
   "SKIN": "the look the kit wears: one of the built-in THEMES (FROST, MORPH …, whose names stay as written)",
+  "SNAP · {value}": "a folded setting's row in the ⋯ list: its name · the choice in force",
   "SOURCE": "the head of a device's left column: the shape PRESETs, the envelope TIME, the audio SOURCE",
   "SQR": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
   "STARTER": "a preset the app ships (a starter project's modulation), not one the user saved",
@@ -2256,7 +2256,8 @@
   "Close window": [
    "mir/modulation/modwindow/modwindow.js",
    "mir/modulation/window.js",
-   "mir/window/rail.js"
+   "mir/window/rail.js",
+   "mir/window/window.js"
   ],
   "Close {name}": [
    "mir/modulation/modwindow/modwindow.js"
@@ -2951,18 +2952,11 @@
   "GRAIN": [
    "mir/modulation/host.js"
   ],
-  "GUI": [
-   "mir/shell/gui.js"
-  ],
-  "GUI — MIR OPTIONS and MIR ABOUT": [
-   "mir/shell/gui.js"
-  ],
   "Gallery — browse saved projects": [
    "mir/folders/folders.js"
   ],
   "H": [
-   "mir/modulation/window.js",
-   "mir/timeline/shortcuts.js"
+   "mir/modulation/window.js"
   ],
   "HAND": [
    "mir/modulation/window.js",
@@ -2983,6 +2977,9 @@
   ],
   "HINTS": [
    "mir/shell/gui.js"
+  ],
+  "HISTORY": [
+   "mir/app.js"
   ],
   "HIT": [
    "mir/modulation/modwindow/modwindow.js",
@@ -3118,6 +3115,7 @@
    "mir/timeline/audio-kind.js"
   ],
   "KEYBOARD": [
+   "mir/app.js",
    "mir/keyboard/keyboard.js",
    "mir/timeline/shortcuts.js"
   ],
@@ -3181,6 +3179,9 @@
   ],
   "LONGER than {limit}: keep this page open and visible (the screen is held awake), or shorten it; a failed render keeps its completed frames to recover": [
    "mir/render/plan.js"
+  ],
+  "LOOK": [
+   "mir/shell/gui.js"
   ],
   "LOW": [
    "mir/modulation/modwindow/modwindow.js",
@@ -3251,15 +3252,11 @@
    "mir/modulation/modwindow/modwindow.js"
   ],
   "MIR ABOUT": [
+   "mir/app.js",
    "mir/shell/gui.js"
   ],
-  "MIR OPTIONS 1": [
-   "mir/shell/gui.js"
-  ],
-  "MIR OPTIONS 2": [
-   "mir/shell/gui.js"
-  ],
-  "MIR OPTIONS {page}/{of}": [
+  "MIR OPTIONS": [
+   "mir/app.js",
    "mir/shell/gui.js"
   ],
   "MIR is free software under the GNU GPL v3.0 only (GPL-3.0-only) — no warranty.": [
@@ -3352,6 +3349,9 @@
   "Modulation on or off": [
    "mir/modulation/modwindow/modwindow.js",
    "mir/shell/transport.js"
+  ],
+  "More tools and actions": [
+   "mir/timeline/editor.js"
   ],
   "Move it": [
    "mir/timeline/shortcuts.js"
@@ -3966,12 +3966,7 @@
    "mir/timeline/shortcuts.js"
   ],
   "Redo": [
-   "mir/timeline/shortcuts.js"
-  ],
-  "Redo (Ctrl+Shift+Z, Ctrl+Y)": [
-   "mir/history/history-list.js"
-  ],
-  "Release any open menu or gesture before the shell hides the UI": [
+   "mir/history/history-list.js",
    "mir/timeline/shortcuts.js"
   ],
   "Reload the chosen preset": [
@@ -4152,6 +4147,9 @@
   "SAW↓": [
    "mir/modulation/window.js"
   ],
+  "SCOPE · {value}": [
+   "mir/timeline/editor.js"
+  ],
   "SCRUB": [
    "mir/shell/gui.js"
   ],
@@ -4224,6 +4222,9 @@
    "mir/panels/camera-rig.js"
   ],
   "SNAP": [
+   "mir/timeline/editor.js"
+  ],
+  "SNAP · {value}": [
    "mir/timeline/editor.js"
   ],
   "SOFTNESS": [
@@ -4434,9 +4435,6 @@
   ],
   "Selected macro range; the large dial sets the base": [
    "mir/modulation/window.js"
-  ],
-  "Selection actions": [
-   "mir/timeline/editor.js"
   ],
   "Selection scope": [
    "mir/timeline/editor.js"
@@ -4911,10 +4909,8 @@
    "mir/shell/gui.js"
   ],
   "Undo": [
+   "mir/history/history-list.js",
    "mir/timeline/shortcuts.js"
-  ],
-  "Undo (Ctrl+Z)": [
-   "mir/history/history-list.js"
   ],
   "Undock the transport": [
    "mir/shell/transport.js"

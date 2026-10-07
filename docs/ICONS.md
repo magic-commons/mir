@@ -40,6 +40,7 @@ An unknown name draws nothing, warns once and never throws. An icon button has n
 | `compact`, `expand` | a bar narrows to its middle / opens out | two faces of one chip |
 | `barsTop`, `barsBottom` | the work-bar lane: two bars at the top or the bottom edge | |
 | `lanes` | timeline lanes: clips staggered on rows | |
+| `more` | three dots in a row: MORE, the tools that do not fit and the actions with no seat of their own | the timeline work bar's ⋯ (a trigger, no lamp; always on the bar, so it never moves) |
 | **transport** | | |
 | `play`, `pause` | solid, same visual mass so the button does not change weight when it toggles | |
 | `stop`, `record` | solid square, solid disc | |
