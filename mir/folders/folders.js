@@ -143,7 +143,7 @@ export function createFolders(options = {}) {
   const zipValid = zipOpt && typeof zipOpt.validate === 'function' ? zipOpt.validate : (p) => !!p && typeof p === 'object' && !Array.isArray(p);
   const zipApp = String(o.app || 'mir').toLowerCase().replace(/[^a-z0-9]+/g, '') || 'mir';
   const zipWhy = (e) => String((e && e.message) || e || 'unknown');
-  const zipVerbs = zipOpt ? { save: () => exportZip(), open: () => pickFile(true) } : null;   // SAVE AS ZIP… · OPEN ZIP… (api.zip)
+  const zipVerbs = zipOpt ? { save: () => exportZip(), open: (zo) => pickFile(true, zo && zo.seat) } : null;   // SAVE AS ZIP… · OPEN ZIP… (api.zip); open({ seat }): where its "save this first?" opens
 
   /* ── 3. the store, and 5. the seeds ── */
   const files = o.files || createFiles({ key: store, storage, defaultName: o.defaultName || 'UNTITLED', capChars: o.capChars });
@@ -374,20 +374,32 @@ export function createFolders(options = {}) {
       return blob;
     } catch (e) { say(t('Could not save the zip: {why}', { why: zipWhy(e) }), true); return null; }
   }
-  /** openZip(file) — read it, check it, write its assets, save the project under its name (a clash is numbered, never an
-   *  overwrite) and open it.  A zip that is not one, fails its CRC or holds no valid project changes nothing; a project that
-   *  cannot be saved gives back the assets this open wrote. */
-  async function openZip(file) {
+  /** openZip(file, { force, seat }) — read it, check it, write its assets, save the project under its name (a clash is
+   *  numbered, never an overwrite) and open it.  A zip that is not one, fails its CRC or holds no valid project changes
+   *  nothing; a project that cannot be saved gives back the assets this open wrote.
+   *  IT ASKS FIRST (Josh, 2026-10-07, call 10: "Should OPEN ZIP replace the open project without asking 'save this first?'
+   *  — N"): when what is on screen is unsaved, or not known to be saved (the gallery's dirty(), the one signal the library
+   *  open and NEW read), the library open's own question — SAVE & OPEN · OPEN WITHOUT SAVING · × — opens in `seat` (an
+   *  element below the OPEN ZIP… the hand pressed: RENDER's FILES) or in NEW's box over the explorer, before anything is
+   *  written; × leaves the zip unopened and the library as it was.  `force` skips the question. */
+  async function openZip(file, oo = {}) {
     if (!zipOpt) return { ok: false, why: 'zip is off' };
     let read;
     try { read = await readProjectZip(file); }
     catch (e) { say(t('That is not a project zip: {why}', { why: zipWhy(e) }), true); return { ok: false, why: zipWhy(e) }; }
     const project = read.project;
     if (!project || !zipValid(project)) { say(t('That is not a project zip — nothing changed'), true); return { ok: false, why: 'invalid' }; }
+    const name = String(project.name || '').trim() || t('UNTITLED');
+    const d = gallery.dirty();
+    if (!oo.force && (d.dirty || !d.known)) {
+      const seat = oo.seat && oo.seat.isConnected ? oo.seat : null;
+      if (!seat && active !== 'gallery') { showTab('gallery'); if (win.rail.chip('gallery')) win.setChip('gallery', true); }   // a drop on another panel: the question is asked where NEW asks it
+      gallery.askBeforeOpen({ name }, d, () => openZip(file, { force: true }), seat);
+      return { ok: false, asked: true };
+    }
     let put;
     try { put = await restoreAssets(read, { store: zipStore }); }
     catch (e) { say(t('Could not keep the zip’s files: {why}', { why: zipWhy(e) }), true); return { ok: false, why: zipWhy(e) }; }
-    const name = String(project.name || '').trim() || t('UNTITLED');
     const r = files.save({ name, folder: gallery.folder(), payload: project });
     if (!r.ok) { await rollbackAssets(put.written, { store: zipStore }); say(t('Could not add the project: {why}', { why: r.why || 'unknown' }), true); return r; }
     gallery.go(r.entry.folder);
@@ -398,12 +410,12 @@ export function createFolders(options = {}) {
     return { ok: good, entry: r.entry, assets: put };
   }
   /* the file pickers: OPEN FILE takes the intake's kinds and a .zip; OPEN ZIP… takes only the zip */
-  function takeFiles(list, source) { for (const f of list) { if (zipOpt && isZipFile(f)) openZip(f); else intake.ingest(f, { source }); } }
-  function pickFile(zipOnly) {
+  function takeFiles(list, source, seat) { for (const f of list) { if (zipOpt && isZipFile(f)) openZip(f, { seat }); else intake.ingest(f, { source }); } }
+  function pickFile(zipOnly, seat) {
     if (!zipOpt) { intake.pick(); return; }
     const input = doc.createElement('input'); input.type = 'file'; input.multiple = !zipOnly;
     input.accept = zipOnly ? '.zip,application/zip' : '.mir,.json,.md,.markdown,.txt,.png,image/png,.zip,application/zip';
-    input.addEventListener('change', () => takeFiles([...(input.files || [])], 'picker'), { once: true, signal: life.signal });
+    input.addEventListener('change', () => takeFiles([...(input.files || [])], 'picker', seat), { once: true, signal: life.signal });
     input.click();
   }
   async function importEnvelope(env) {

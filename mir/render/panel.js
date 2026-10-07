@@ -348,9 +348,12 @@ export function createRenderView(parent, o = {}) {
     label(el('summary', 'sv-title sr-title sr-files-toggle', det), 'FILES');
     const body = el('div', 'sr-files-body', det);
     const zipSave = trig({ label: 'SAVE AS ZIP…', cls: 'sv-act sv-wide sr-zip', title: 'Save the current project, with the audio files it uses, as one .zip.', onFire: () => zipVerbs.save() });
-    const zipOpen = trig({ label: 'OPEN ZIP…', cls: 'sv-act sv-wide sr-zip', title: 'Open a project saved as one .zip (SAVE AS ZIP): its audio comes back with it and it becomes the current project.', onFire: () => zipVerbs.open() });
+    /* OPEN ZIP… asks "save this first?" when what is on screen is unsaved (Josh, 2026-10-07, call 10): FOLDERS' own ask,
+       opened in `ask`, below the button (folders.js openZip) */
+    const ask = el('div', 'sr-zip-ask mir-folders');
+    const zipOpen = trig({ label: 'OPEN ZIP…', cls: 'sv-act sv-wide sr-zip', title: 'Open a project saved as one .zip (SAVE AS ZIP): its audio comes back with it and it becomes the current project.', onFire: () => zipVerbs.open({ seat: ask }) });
     zipSave.root.dataset.zip = 'save'; zipOpen.root.dataset.zip = 'open';
-    body.append(zipSave.root, zipOpen.root);
+    body.append(zipSave.root, zipOpen.root, ask);
   }
   if (typeof o.sections === 'function') o.sections(wrap, o.gallery || null);
 

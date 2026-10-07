@@ -83,6 +83,10 @@
 .mir-render .sr-files-toggle::-webkit-details-marker { display: none; }
 .mir-render .sr-files-toggle:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
 .mir-render .sr-files-body { display: flex; flex-direction: column; gap: var(--render-files-gap); padding-top: var(--render-files-gap); }
+/* OPEN ZIP…'s "save this first?" (FOLDERS' ask, folders.js openZip) opens here, below the button, in the flow: FILES is the
+   panel's foot, so it moves nothing above it (the hand law) */
+.mir-render .sr-zip-ask:empty { display: none; }
+.mir-render .sr-zip-ask > .sv-context.sv-ask { position: relative; }
 .mir-render .sr-detail-toggle:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
 .mir-render .sr-view-details[open] { border-top: 1px solid var(--glass-hairline); padding-top: 3px; }
 .mir-render .sr-view-details .sr-row { min-height: 25px; }

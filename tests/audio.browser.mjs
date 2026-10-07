@@ -126,6 +126,17 @@ const RUN = await (async () => {
     const droppedZip = await S(async () => { const d = window.__AU.downloads[0], file = new File([d.blob], 'UNTITLED.mirtest.zip', { type: 'application/zip' }), dt = new DataTransfer(); dt.items.add(file);
       const t = window.__AU.folders.win.root, r = t.getBoundingClientRect(), ev = (type) => new DragEvent(type, { bubbles: true, cancelable: true, clientX: r.left + 40, clientY: r.top + 200, dataTransfer: dt });
       t.dispatchEvent(ev('dragover')); t.dispatchEvent(ev('drop')); return true; });
+    /* OPEN ZIP ASKS FIRST (Josh, 2026-10-07, call 10): what is on screen is not known to be saved, so the drop asks NEW's
+       question in NEW's box — the window brings its gallery forward — and nothing is written until OPEN WITHOUT SAVING */
+    const askOf = () => S(() => { const b = document.querySelector('.mir-folders .sv-context.sv-ask:not([hidden])'); if (!b || !b.getClientRects().length) return null;
+      const go = [...b.querySelectorAll('.trig')].find((x) => x.textContent.trim() === 'OPEN WITHOUT SAVING'), r = go.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+      return { tab: window.__AU.folders.tab(), title: b.querySelector('.sv-context-title').textContent, words: [...b.querySelectorAll('.trig')].map((n) => n.textContent.trim()), x, y, hit: !!document.elementFromPoint(x, y)?.closest('.trig') && document.elementFromPoint(x, y).closest('.trig') === go,
+        entries: window.__AU.folders.files.entries().length, current: window.__AU.folders.current()?.name || null }; });
+    for (let i = 0; i < 30 && !(await askOf()); i++) await page.waitForTimeout(100);
+    const dropAsk = await askOf();
+    L.ck(dropAsk && dropAsk.tab === 'gallery' && dropAsk.title === 'Save this first?' && dropAsk.words.join() === 'SAVE & OPEN,OPEN WITHOUT SAVING' && dropAsk.hit && dropAsk.entries === 0 && dropAsk.current === null,
+      'a .zip dropped over unsaved work asks "Save this first?" (SAVE & OPEN · OPEN WITHOUT SAVING · ×) in NEW\'s box, and nothing is written yet', dropAsk);
+    await page.mouse.click(dropAsk.x, dropAsk.y);
     for (let i = 0; i < 50 && !(await S(() => window.__AU.folders.current())); i++) await page.waitForTimeout(100);
     await page.waitForTimeout(400);
     doc = await state();
@@ -141,7 +152,26 @@ const RUN = await (async () => {
     // a second open numbers the clash; never an overwrite
     await S(() => window.__AU.folders.openZip(new File([window.__AU.downloads[0].blob], 'x.zip')));
     const names = await S(() => window.__AU.folders.files.entries().map((e) => e.name).sort());
-    L.ck(names.length === 2 && names[1] === 'UNTITLED 2', 'a second open of the same zip is numbered, never an overwrite', names);
+    L.ck(names.length === 2 && names[1] === 'UNTITLED 2', 'a second open of the same zip is numbered, never an overwrite (what was on screen had just been opened: clean, so no question)', names);
+    // OPEN ZIP… in RENDER's FILES over unsaved work: the ask opens BELOW the button (its seat), × leaves everything as it was
+    await S(() => { window.__AU.tl.editor.model.restore(null); window.__AU.folders.tab('render'); }); await page.waitForTimeout(300);
+    const seatAsk = await S(async () => { const F = window.__AU.folders, open = document.querySelector('.mir-folders .sr-files [data-zip="open"]'), seat = document.querySelector('.mir-folders .sr-files .sr-zip-ask');
+      open.scrollIntoView({ block: 'center' }); const before = { top: open.offsetTop, left: open.offsetLeft };   // its place in the panel (the panel may scroll to show the ask)
+      const r = await F.openZip(new File([window.__AU.downloads[0].blob], 'x.zip'), { seat });
+      const b = seat.querySelector('.sv-ask'), after = open.getBoundingClientRect(), box = b && b.getBoundingClientRect(), x = b && b.querySelector('.sv-ask-close'), xr = x && x.getBoundingClientRect();
+      return { asked: r.asked === true, tab: F.tab(), inSeat: !!b, below: !!box && box.top >= after.bottom, still: before.top === open.offsetTop && before.left === open.offsetLeft, entries: F.files.entries().length,
+        words: b ? [...b.querySelectorAll('.trig')].map((n) => n.textContent.trim()) : [], cx: xr && xr.left + xr.width / 2, cy: xr && xr.top + xr.height / 2,
+        xHit: !!xr && document.elementFromPoint(xr.left + xr.width / 2, xr.top + xr.height / 2)?.closest('.sv-ask-close') === x }; });
+    L.ck(seatAsk.asked && seatAsk.tab === 'render' && seatAsk.inSeat && seatAsk.below && seatAsk.still && seatAsk.entries === 2 && seatAsk.words.join() === 'SAVE & OPEN,OPEN WITHOUT SAVING' && seatAsk.xHit,
+      'OPEN ZIP… over unsaved work asks in RENDER\'s FILES, below the button (which does not move), before anything is written', seatAsk);
+    await page.mouse.click(seatAsk.cx, seatAsk.cy); await page.waitForTimeout(150);
+    const cancelled = await S(() => ({ seat: document.querySelector('.mir-folders .sr-files .sr-zip-ask').childElementCount, entries: window.__AU.folders.files.entries().length, current: window.__AU.folders.current()?.name }));
+    L.ck(cancelled.seat === 0 && cancelled.entries === 2 && cancelled.current === 'UNTITLED 2', '× closes the question: the zip is not opened and the library is as it was', cancelled);
+    // clean (just opened): OPEN ZIP opens at once, no question
+    await S(() => window.__AU.folders.openEntry(window.__AU.folders.files.entries().find((e) => e.name === 'UNTITLED').id, { force: true })); await page.waitForTimeout(200);
+    const clean = await S(async () => { const F = window.__AU.folders, seat = document.querySelector('.mir-folders .sr-files .sr-zip-ask'), r = await F.openZip(new File([window.__AU.downloads[0].blob], 'x.zip'), { seat });
+      return { ok: r.ok, asked: !!r.asked, seat: seat.childElementCount, ask: !!document.querySelector('.mir-folders .sv-ask:not([hidden])'), current: F.current()?.name }; });
+    L.ck(clean.ok && !clean.asked && clean.seat === 0 && !clean.ask && clean.current === 'UNTITLED 3', 'over a clean project OPEN ZIP opens at once: no question', clean);
     // a damaged zip changes nothing
     const sigBefore = await S(() => JSON.stringify(window.__AU.folders.files.entries().map((e) => e.id)));
     const bad = await S(async () => { const bytes = new Uint8Array(await window.__AU.downloads[0].blob.arrayBuffer()); bytes[42] ^= 0xff; const r = await window.__AU.folders.openZip(new File([bytes], 'bad.zip')); return { ok: r.ok, says: window.__AU.says.at(-1) }; });

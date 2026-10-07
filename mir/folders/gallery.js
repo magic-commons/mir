@@ -389,22 +389,27 @@ export function buildGallery(panel, opts) {
   function closeContext() { context.hidden = true; context.textContent = ''; context.className = 'sv-context'; context.style.removeProperty('top'); }
   function box(title, cls) { closeContext(); context.className = 'sv-context' + (cls ? ' ' + cls : ''); context.hidden = false; if (title) mk('div', 'sv-context-title', context, title); return context; }
   function action(parent, label, fn, cls) { const tr = kit.trig({ label, cls: 'sv-act' + (cls ? ' ' + cls : ''), onFire: fn }); parent.appendChild(tr.root); return tr; }
-  function askBox() {
-    const b = box(t('Save this first?'), 'sv-ask');
-    b.style.top = explorer.offsetTop + 'px';   // THE HAND: the ask floats in its own place over the explorer (folders.css), so ROOT and the tiles under it do not move
-    ink(btn('sv-ask-close', b, null, t('Cancel')), 'close', 16).addEventListener('click', closeContext);
-    return b;
+  /* the ask's pane: in the one box over the explorer, or — `seat`, an element the caller keeps below its own button (RENDER's
+     FILES under OPEN ZIP…) — in that seat, so it opens where the hand is and nothing above it moves (the hand law) */
+  function askBox(seat) {
+    let b, close = closeContext;
+    if (seat) { seat.textContent = ''; b = mk('div', 'sv-context sv-ask', seat); mk('div', 'sv-context-title', b, t('Save this first?')); close = () => { seat.textContent = ''; }; }
+    else { b = box(t('Save this first?'), 'sv-ask'); b.style.top = explorer.offsetTop + 'px'; }   // THE HAND: the ask floats in its own place over the explorer (folders.css), so ROOT and the tiles under it do not move
+    ink(btn('sv-ask-close', b, null, t('Cancel')), 'close', 16).addEventListener('click', close);
+    return { b, close };
   }
-  function askBeforeOpen(e, d) {
-    const b = askBox();
+  /** askBeforeOpen({ name }, d, go, seat) — "Save this first?" before what is on screen is replaced: SAVE & OPEN (save,
+   *  then go), OPEN WITHOUT SAVING (go), × (nothing).  A library open and OPEN ZIP… (folders.js openZip) both ask it. */
+  function askBeforeOpen(e, d, go = () => openEntry(e.id, { force: true }), seat = null) {
+    const { b, close } = askBox(seat);
     mk('div', 'sv-context-text', b, t(d.known ? 'Opening "{name}" replaces what is on screen.' : 'Opening "{name}" replaces what is on screen, which may be unsaved.', { name: e.name }));
     const row = mk('div', 'sv-context-row', b);
-    action(row, 'SAVE & OPEN', async () => { const r = await save(); if (r.ok) { closeContext(); openEntry(e.id, { force: true }); } else if (!r.full) say(t('Could not save: {why} — nothing was opened.', { why: r.why || 'unknown' }), true); }, 'sv-primary');
-    action(row, 'OPEN WITHOUT SAVING', () => { closeContext(); openEntry(e.id, { force: true }); });
-    scrollIn();
+    action(row, 'SAVE & OPEN', async () => { const r = await save(); if (r.ok) { close(); go(); } else if (!r.full) say(t('Could not save: {why} — nothing was opened.', { why: r.why || 'unknown' }), true); }, 'sv-primary');
+    action(row, 'OPEN WITHOUT SAVING', () => { close(); go(); });
+    if (seat) { b.scrollIntoView({ block: 'nearest' }); const first = row.querySelector('.trig'); if (first) first.focus({ preventScroll: true }); } else scrollIn();
   }
   function askBeforeFresh(d) {
-    const b = askBox();
+    const { b } = askBox();
     mk('div', 'sv-context-text', b, t(d.known ? '{:NEW} starts the empty project.' : '{:NEW} starts the empty project. What is on screen may be unsaved.'));
     const row = mk('div', 'sv-context-row', b);
     action(row, 'SAVE & NEW', async () => { const r = await save(); if (r.ok) { closeContext(); fresh({ force: true }); } else if (!r.full) say(t('Could not save: {why} — nothing was cleared.', { why: r.why || 'unknown' }), true); }, 'sv-primary');
@@ -737,7 +742,7 @@ export function buildGallery(panel, opts) {
   paint();
   const offLang = onLanguage(() => { if (panel.isConnected && !carry) paint(); });   // the words paint() writes come back in the new language
   const api = {
-    root: wrap, toolbar: verbs, actions: actionEls, paint, save, fresh, openEntry, markClean, closeContext, box, action, say,
+    root: wrap, toolbar: verbs, actions: actionEls, paint, save, fresh, openEntry, askBeforeOpen, markClean, closeContext, box, action, say,
     go, folder: () => S.folder, selected: () => (S.selected ? files.entry(S.selected) : null),
     select(id) { revealEntry(files.entry(id)); paintExplorer(); selectCard(id); return this.selected(); },
     sort: () => SORTS[S.sort], sorts: () => SORTS.slice(),
