@@ -146,7 +146,7 @@ try {
   check('S opens FOLDERS, clear of both racks and the transport bar', r.open && r.clearOfBar && r.clearOfRacks && r.racks === 2, JSON.stringify(r));
 
   /* ── SAVE while the LFO drives SIZE keeps its base; a knob change, then OPEN, brings the base back ── */
-  const atSave = await ev(`return { base: A.mod.baseOf('app.size'), now: S.size, routed: A.mod.isModulated('app.size') };`);
+  const atSave = await ev(`const bpm0 = A.mod.bpm(); A.mod.host.clock.setBpm(93); A.mod.persist(); return { bpm0, base: A.mod.baseOf('app.size'), now: S.size, routed: A.mod.isModulated('app.size'), bpm: A.mod.bpm(), routes: A.mod.M.routeList().map((q) => q.targetId) };`);
   await click(`A.folders.win.root.querySelector('[data-action="project"]')`, 'FOLDERS › PROJECT');   // BASINS' toolbar (1.5.0-alpha.7): PROJECT stores what is on screen
   await sleep(300);
   r = await ev(`const e = A.folders.current(); return { name: e && e.name, n: A.folders.files.entries().length, notice: document.querySelectorAll('.mir-notice').length };`);
@@ -160,6 +160,9 @@ try {
   check('Ctrl+S (FILE › SAVE) saves over the open project and says so', r.name === name && r.n === 1 && r.notice > 0, JSON.stringify(r));
   await dragUp(knob('size'), 'SIZE knob (after save)', -50);
   const changed = await ev(`return A.mod.baseOf('app.size');`);
+  /* THE RACK AND THE TEMPO ARE THE PROJECT'S (wave 22, Josh's call 23): after the save, a new tempo and every route gone */
+  const away = await ev(`A.mod.host.clock.setBpm(140); for (const q of A.mod.M.routeList()) A.mod.M.removeRoute(q.id); A.mod.host.targets.sync(); A.mod.host.clock.recomputeRunning(); A.mod.persist();
+    return { bpm: A.mod.bpm(), routes: A.mod.M.routeList().length };`);
   const tile = `[...A.folders.win.root.querySelectorAll('.sv-card')].find((c) => c.dataset.name === ${JSON.stringify(name)}).querySelector('.sv-shot')`;
   await click(tile, 'saved tile (select)');
   await click(tile, 'saved tile (open)');
@@ -169,7 +172,12 @@ try {
   const back = await ev(`return { base: A.mod.baseOf('app.size'), routed: A.mod.isModulated('app.size') };`);
   check('the project keeps SIZE\'s base, not the LFO\'s reading: a knob change then OPEN restores the base', atSave.routed && Math.abs(atSave.now - atSave.base) > 1e-4 && Math.abs(changed - atSave.base) > 0.05 && Math.abs(back.base - atSave.base) < 1e-6 && back.routed && asked,
     JSON.stringify({ atSave, changed, back, asked }));
-  await ev(`A.folders.close(); return 0;`);
+  r = await ev(`const rec = JSON.parse(localStorage.getItem('starter.modulation') || '{}'), st = rec.modulationState || {};   // starter/app.js KEY
+    return { bpm: A.mod.bpm(), routes: A.mod.M.routeList().map((q) => q.targetId), record: { bpm: st.transport && st.transport.bpm, routes: (st.routes || []).map((q) => q.targetId) } };`);
+  check('the project carries the modulation rack and the tempo: a new tempo and no routes after the save, then OPEN brings back the saved tempo and routes, and the device record follows',
+    atSave.bpm === 93 && atSave.routes.length > 0 && away.bpm === 140 && away.routes === 0 && r.bpm === 93 && JSON.stringify(r.routes) === JSON.stringify(atSave.routes)
+      && r.record.bpm === 93 && JSON.stringify(r.record.routes) === JSON.stringify(atSave.routes), JSON.stringify({ atSave, away, r }));
+  await ev(`A.mod.host.clock.setBpm(${JSON.stringify(atSave.bpm0)}); A.mod.persist(); A.folders.close(); return 0;`);   // the boot tempo again, for the describe() row below
 
   /* ── GUI opens MIR OPTIONS from the menubar, and it takes the pointer ── */
   await menu('GUI', 0);

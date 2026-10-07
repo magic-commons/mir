@@ -28,7 +28,7 @@ const folders = createFolders({
 menu.add('FOLDERS\tS', () => folders.toggle());
 ```
 
-With `createApp()` (`mir/app.js`) FOLDERS is made for you (`app.folders`, S and Ctrl/⌘+S in the key table, a latch on the bar), and every `app.param()` is already a project part.
+With `createApp()` (`mir/app.js`) FOLDERS is made for you (`app.folders`, S and Ctrl/⌘+S in the key table, a latch on the bar), and every `app.param()` is already a project part. So are the modulation rack and the tempo (the parts `rack` and `bpm`, registered by `installModulation`; wave 22): a project opened on another device brings its routes and its tempo, and an older project without them keeps the device's own ([MODULATION.md](MODULATION.md)).
 
 An app that registers its parts gets saving, opening, NEW and import by drop with nothing else. FOLDERS never learns what a part is.
 

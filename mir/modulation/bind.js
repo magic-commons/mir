@@ -37,6 +37,11 @@
  *      app.
  *   5. ONE RECORD IN THE APP'S SETTINGS: { modulationState, modwin, modArm, modCadence, audioDevice } through
  *      `store` (default: localStorage under `storageKey`), written 180 ms after the last change and on pagehide.
+ *   6. THE RACK AND THE TEMPO ARE THE PROJECT'S TOO (wave 22, Josh's call 23).  The install registers the project parts
+ *      'rack' and 'bpm' (modulation/project.js): a project saves them, and opening one writes them back through the same
+ *      door a preset and an undo use, then persists the record of law 5 — one writer.  A project without them (older
+ *      files) and NEW leave them as they are: the record stays the fallback, and a fresh page's.  `project: false`
+ *      keeps them out; `project: { save, load }` translates the saved rack (modulation/project.js rackPart).
  */
 import { createModHost } from './host.js';
 import * as M from './mod.js';
@@ -45,6 +50,7 @@ import { frame } from '../core/frame.js';
 import { createAudioCapture } from './audio-capture.js';
 import { registerWindow } from '../window/window.js';
 import { jsonStore } from '../core/prefs.js';
+import { registerModulationParts } from './project.js';
 
 const TICK = 'mir:modulation:tick', PAINT = 'mir:modulation:paint', APP_PLAY = 'app.play';
 const IDLE = { state: 'idle', reason: '', live: false, deviceId: '', sampleRate: 0, frames: 0, inputLatencyMs: null,
@@ -109,6 +115,8 @@ export function rootsOf(params) { return [...new Set(params.map((p) => String(p.
  *                — listed apart from the user's, named in CAPS, in their own folder (default STARTERS); apply(preset)
  *                → a rack to load (an app remaps its routes there), default the preset's own rack
  *   showWidgets  paint routed widgets from the registry each tick (default true; law 4b)
+ *   project      the project parts 'rack' and 'bpm' (law 6): default on; false leaves them out; { save(rack) → json,
+ *                load(json) → rack } translates the rack an app's files keep
  */
 export function installModulation(o) {
   const { mount, present, onWindow } = o;
@@ -411,6 +419,7 @@ export function installModulation(o) {
     automationGrid: () => host.clock.automationGrid(),
     dispose() {
       if (live === self) live = null;
+      if (offParts) offParts();
       disposed = true; frame.cancel(TICK); frame.cancel(PAINT);
       if (doc) doc.removeEventListener('visibilitychange', onVisibility); if (win) win.removeEventListener('pagehide', persistNow);
       if (stacked) stacked.leave();
@@ -418,5 +427,8 @@ export function installModulation(o) {
     },
   });
   live = self;
+  /* law 6: the rack and the tempo ride in the project; restoring them writes through the preset's door and persists */
+  const offParts = o.project === false ? null
+    : registerModulationParts(self, { ...(o.project && typeof o.project === 'object' ? o.project : {}), present: () => { if (present) present(); requestLoop(); paintSoon(); } });
   return self;
 }
