@@ -134,22 +134,20 @@ export function forgetFlashNotice({ key = KEY, storage } = {}) { try { store(sto
 let showing = null;
 /** photosensitivityNotice(opts) → Promise<true>, resolved once the notice has been read (at once if it was before).
  *  Call it before the first use of a route that can flash; a second call while it shows joins the first. */
+/* THE WORDS AND THE LOOK ARE BASINS' (Josh, 2026-10-07: "return the design of the warning to the original design (font,
+   text, spacing, button dimensions …)"): basins-ui-fixes app/startup.js `warning()` and startup.css .mandel-warn-*, on
+   the kit's pane, tokens and trigger (parts.css: the notice) — the picture first, then the title, the words, CONTINUE */
 export function photosensitivityNotice({ key = KEY, storage, title = 'PHOTOSENSITIVITY WARNING',
-  body = 'This app can show rapid flashing and changing colours. If you have a history of photosensitive epilepsy or seizures, do not continue. The flash guard holds anything that would flash more than three times a second; leave it on if flashing light affects you.',
+  body = 'This app displays rapid strobing effects and changing colors. If you have a history of photosensitive epilepsy or seizures, do not continue.',
   accept = 'CONTINUE', driver, force = false, every = false, art, alt = '' } = {}) {
   if (!every && flashNoticeSeen({ key, storage }) && !force) return Promise.resolve(true);
   const webdriver = driver !== undefined ? driver : !!(globalThis.navigator && navigator.webdriver === true);
   if (webdriver && !force) return Promise.resolve(true);             // λWAVES wave 59: a test driver is never trapped by it
   if (showing) return showing;
-  showing = Promise.all([import('./dialog.js'), import('../kit.js')]).then(([{ openDialog }, { label }]) => {
-    let words = body;                                                   // the app's picture above its words
-    if (art) {
-      words = document.createElement('div'); words.className = 'mir-dialog-art';
-      const img = document.createElement('img'); img.src = art; img.alt = alt; img.draggable = false;
-      const p = label(document.createElement('p'), body);          // through the language seam, like a plain body
-      words.append(img, p);
-    }
-    const d = openDialog({ title, body: words, kind: 'notice', dismiss: false, mark: art ? undefined : 'caution', actions: [{ label: accept, kind: 'primary', run: () => true }] });
+  showing = import('./dialog.js').then(({ openDialog }) => {
+    let mark = 'caution';                                               // the app's picture, else the kit's sign, above the title
+    if (art) { mark = document.createElement('img'); mark.className = 'mir-notice-art'; mark.src = art; mark.alt = alt; mark.draggable = false; }
+    const d = openDialog({ title, body, kind: 'notice', dismiss: false, mark, actions: [{ label: accept, kind: 'primary', run: () => true }] });
     return d.result;
   }).then(() => { if (!every) { try { store(storage)?.setItem(key, '1'); } catch (_) {} } showing = null; return true; });
   return showing;

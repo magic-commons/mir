@@ -140,11 +140,6 @@ html .mir-opener .mir-opener-option[data-active] .mir-opener-cover[data-light]::
   .mir-opener-option { flex: 0 0 min(74vw, calc(52dvh * 9 / 16), 280px); scroll-snap-align: center; }
   .mir-opener-actions { gap: 10px; }
 }
-/* the notice's own picture (flash-guard.js `art`: BASINS' caution triangle) */
-.mir-dialog-art { display: flex; flex-direction: column; align-items: center; gap: var(--sp-3, 12px); }
-.mir-dialog-art img { display: block; width: clamp(160px, 30vmin, 320px); height: auto; max-width: 100%; object-fit: contain; user-select: none; -webkit-user-select: none; pointer-events: none; }
-.mir-dialog-art p { margin: 0; }
-
 /* reduced or no motion (the policy on <html>): the screen stays, nothing moves */
 :root:is([data-motion="reduced"], [data-motion="off"]) .mir-opener { animation: none; transition: none; opacity: 1; --opener-zoom: 1; --opener-spill: 0; }
 :root:is([data-motion="reduced"], [data-motion="off"]) .mir-opener[data-fading] { opacity: 0; }

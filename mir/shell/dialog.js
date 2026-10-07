@@ -19,6 +19,7 @@
  *
  * openDialog({ title, body, actions: [{ label, run, kind, value }], dismiss = true, kind, mark }) → { close(value), result, root }
  *   body     a string (English, translated) or a Node
+ *   mark     'caution' (the kit's sign) or an element (an app's picture), seated above the title
  *   actions  each a kit trigger; kind 'primary' (its label in accent A, and it takes the focus) or 'danger';
  *            pressing one resolves `result` with run()'s return (awaited) or else its `value`
  *   result   Promise: the action's value, or null when dismissed
@@ -66,7 +67,7 @@ function show(job) {
   root.setAttribute('aria-modal', 'true');
   root.dataset.kind = o.kind || 'dialog';
   root.tabIndex = -1;
-  if (o.mark === 'caution') root.appendChild(caution());
+  if (o.mark === 'caution') root.appendChild(caution()); else if (o.mark && o.mark.nodeType === 1) root.appendChild(o.mark);   // the picture above the title (the notice's art)
   const id = 'mir-dlg-' + Math.random().toString(36).slice(2, 8);
   if (o.title) { const h = label(el('h2', 'mir-dialog-title', root), o.title); h.id = id + '-t'; root.setAttribute('aria-labelledby', h.id); }
   if (o.body !== undefined && o.body !== null) {

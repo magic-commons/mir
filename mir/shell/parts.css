@@ -62,8 +62,27 @@ body[data-theme="light"] .mir-toast { --toast-fill: hsl(0 0% 100% / .86); --toas
 .mir-dialog-actions .trig { min-width: 6em; }
 .mir-dialog-actions .trig[data-kind="primary"] .trig-l { color: var(--acc); }
 .mir-dialog-actions .trig[data-kind="danger"] .trig-l { color: var(--bad); }
-.mir-dialog[data-kind="notice"] { --dialog-w: 30em; text-align: center; align-items: center; }
+/* THE NOTICE IS BASINS' COLD-START WARNING (Josh, 2026-10-07: "return the design of the warning to the original design (font,
+   text, spacing, button dimensions …)"): basins-ui-fixes app/startup.css .mandel-warn-* — the system face, one column 34em
+   wide, the picture (2rem below it), the title (1rem), the words (2.25rem), CONTINUE at .8rem × 2.5rem — kept on the kit's
+   pane, its colour tokens, its trigger and its focus ring.  The values are BASINS', as BASINS wrote them. */
+.mir-dialog[data-kind="notice"] {
+  --warn-w: 34em;                                        /* the column (.mandel-warn-card) */
+  --warn-art: clamp(200px, 44vmin, 420px);               /* the picture's square (.mandel-warn-image) */
+  --warn-title-size: clamp(1.1rem, 2.8vmin, 1.45rem);    /* the title (.mandel-warn-heading) … */
+  --warn-title-track: .18em;                             /* … and its tracking */
+  --warn-body-size: clamp(.95rem, 2vmin, 1.05rem);       /* the words (.mandel-warn-body) */
+  --warn-btn-size: .95rem;                               /* CONTINUE (.mandel-warn-button): its size … */
+  --warn-btn-track: .14em;                               /* … its tracking … */
+  --warn-btn-r: 4px;                                     /* … and its corner */
+  --dialog-w: calc(var(--warn-w) + 40px + 2 * var(--glass-border)); --dialog-gap: 0; --dialog-max-h: calc(100dvh - 3rem); text-align: center; align-items: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }   /* BASINS' stack as written: --font-sans puts system-ui before Roboto, which is another face on Linux */
+.mir-dialog[data-kind="notice"] > :is(.mir-caution, .mir-notice-art) { margin: 0 auto 2rem; }
+.mir-notice-art { display: block; width: var(--warn-art); height: var(--warn-art); max-width: 100%; object-fit: contain; user-select: none; -webkit-user-select: none; pointer-events: none; }
+.mir-dialog[data-kind="notice"] .mir-dialog-title { margin: 0 0 1rem; font-size: var(--warn-title-size); font-weight: 700; letter-spacing: var(--warn-title-track); line-height: 1.3; text-transform: uppercase; color: var(--fg); }
+.mir-dialog[data-kind="notice"] .mir-dialog-body { margin: 0 0 2.25rem; font-size: var(--warn-body-size); font-weight: 400; line-height: 1.65; color: var(--fg); }
 .mir-dialog[data-kind="notice"] .mir-dialog-actions { justify-content: center; }
+.mir-dialog[data-kind="notice"] .mir-dialog-actions .trig { min-height: 44px; padding: .8rem 2.5rem; border-radius: var(--warn-btn-r); font-family: inherit; font-size: var(--warn-btn-size); font-weight: 600; letter-spacing: var(--warn-btn-track); line-height: 1.45; }
 
 /* the caution sign: a triangle in accent A with the "!" knocked out of it (λWAVES' sign, without its picture) */
 .mir-caution { --caution-size: 72px; width: var(--caution-size); height: auto; display: block; color: var(--acc); }

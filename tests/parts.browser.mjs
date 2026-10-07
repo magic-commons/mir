@@ -134,6 +134,23 @@ try {
   check('boot: the card walks its steps, then fails into a readable message (what happened, what to do, COPY DETAILS, RETRY)',
     r.walking === 'Asking for an adapter' && r.role === 'alert' && r.code === 'noadapter' && r.title === 'NEBULA could not start' && /no graphics adapter/.test(r.what) && /Reload/.test(r.todo) && r.buttons === 2 && r.hit && r.noMark, JSON.stringify(r));
 
+  /* ── THE PHOTOSENSITIVITY NOTICE IS BASINS' ORIGINAL (Josh, 2026-10-07): measured on basins-ui-fixes at 1280 × 800
+     (startup.css .mandel-warn-*): the picture 352 px square, then 32 px; the title 22.4 px / 700 / 4.032 px tracking,
+     then 16 px; the words 16 px / 26.4 px leading, 374 px wide, then 36 px; CONTINUE 172.95 × 49.625 px, 15.2 px / 600,
+     padding 12.8 × 40 px, radius 4 px; the picture leads, the title follows ── */
+  r = await run(`const art = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="720" height="720"><path d="M360 40 700 680H20Z" fill="#c33"/></svg>');
+    const done = T.photosensitivityNotice({ force: true, every: true, art, alt: 'caution' }); await wait(450);
+    const d = document.querySelector('.mir-dialog[data-kind="notice"]'), cs = (n) => getComputedStyle(n), box = (n) => n.getBoundingClientRect();
+    const img = d.querySelector('.mir-notice-art'), h = d.querySelector('.mir-dialog-title'), b = d.querySelector('.mir-dialog-body'), btn = d.querySelector('.mir-dialog-actions .trig');
+    const out = { order: [...d.children].map((n) => n.className.baseVal ?? n.className).join(' > '), img: [box(img).width, box(img).height, cs(img).marginBottom],
+      title: [cs(h).fontSize, cs(h).fontWeight, cs(h).letterSpacing, cs(h).marginBottom], body: [cs(b).fontSize, cs(b).lineHeight, box(b).width, cs(b).marginBottom, b.textContent],
+      btn: [+box(btn).width.toFixed(2), +box(btn).height.toFixed(3), cs(btn).fontSize, cs(btn).fontWeight, cs(btn).padding, cs(btn).borderRadius] };
+    btn.click(); await done; await wait(400); out.gone = !document.querySelector('.mir-dialog'); return out;`);
+  check('notice: BASINS\' original — the picture first, its font, words, spacing and CONTINUE\'s size as measured on basins-ui-fixes',
+    /^mir-notice-art > mir-dialog-title > mir-dialog-body/.test(r.order) && r.img.join() === '352,352,32px' && r.title.join() === '22.4px,700,4.032px,16px'
+      && r.body.slice(0, 4).join() === '16px,26.4px,374,36px' && /^This app displays rapid strobing effects and changing colors\./.test(r.body[4])
+      && r.btn.join() === '172.95,49.625,15.2px,600,12.8px 40px,4px' && r.gone, JSON.stringify(r));
+
   /* ── LANGUAGE ── */
   r = await run(`await T.setLanguage('qps'); await wait(100); const d = T.openDialog({ title: 'RENDER SETTINGS', actions: [{ label: 'APPLY' }] }); const n = T.notice('Saved.'); await wait(250);
     const title = document.querySelector('.mir-dialog-title').textContent, act = document.querySelector('.mir-dialog .trig-l').textContent, note = n.root.querySelector('.mir-notice-text').textContent;

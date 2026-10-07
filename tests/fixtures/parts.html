@@ -29,12 +29,13 @@ import { openDialog, confirmDialog } from '../../mir/shell/dialog.js';
 import { notice } from '../../mir/shell/notice.js';
 import { busyMark, busyCursor, busyLogo } from '../../mir/shell/busy.js';
 import { bootCard, explainBoot } from '../../mir/shell/boot.js';
+import { photosensitivityNotice } from '../../mir/shell/flash-guard.js';
 
 const g = document.getElementById('stage').getContext('2d');
 g.fillStyle = '#2a4a7a'; g.fillRect(0, 0, 640, 400); g.fillStyle = '#e0a040'; g.fillRect(200, 100, 240, 200);
 wordmark(document.body, { word: 'MIR' });
 const stageClicks = { n: 0 }; document.getElementById('stage').addEventListener('click', () => stageClicks.n++);
-window.__T = { openDialog, confirmDialog, notice, busyMark, busyCursor, busyLogo, bootCard, explainBoot, stageClicks, setLanguage, unpseudo };
+window.__T = { openDialog, confirmDialog, notice, busyMark, busyCursor, busyLogo, bootCard, explainBoot, stageClicks, setLanguage, unpseudo, photosensitivityNotice };
 window.__ready = true;
 </script>
 </body>

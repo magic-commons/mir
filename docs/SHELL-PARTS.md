@@ -54,7 +54,7 @@ if (await confirmDialog('Delete this project? It cannot be undone.', { yes: 'DEL
 | Keys stay inside | a key pressed in the dialog does not reach the app's shortcuts |
 | One at a time | a second dialog waits and opens when the first closes |
 
-`kind: 'primary'` draws the action's label in accent A and gives it the focus; `kind: 'danger'` draws it in `--bad`. `kind: 'notice'` and `mark: 'caution'` are what the photosensitivity notice uses.
+`kind: 'primary'` draws the action's label in accent A and gives it the focus; `kind: 'danger'` draws it in `--bad`. `kind: 'notice'` and `mark` are what the photosensitivity notice uses: `mark: 'caution'` is the kit's sign, `mark: <element>` an app's picture, either seated above the title.
 
 **An app deletes:** its `<dialog>` element and `dialog { … }` / `dialog::backdrop` rules (NEBULA nebula.css:95-101, SOLEIL sol.css:97-105, AUTOMATA automata.css:44-50, EARTH earth.css:36-44), every `showModal()`, and every `window.confirm` (λWAVES rack.js:3913).
 
@@ -173,7 +173,7 @@ Each route counts its own swings. A swing that would make that route change dire
 
 **The field judge** (`areaEvent`, `flashRate`, `createFlashModel`) is POLAR's and EARTH's arithmetic for an app that measures the presented picture (a 64² luminance readback): samples in frame order → `'trip'` / `'release'`. The GPU readback stays the app's.
 
-**The photosensitivity notice** is shown once per browser (`localStorage` `mir.flashNotice`) and resolves when read. It is λWAVES' trap — no Escape, no press outside; the way past is CONTINUE — drawn as a floating pane with a caution sign in accent A, where λWAVES drew a black full-screen page. Under a test driver (`navigator.webdriver`) it is not shown unless `force: true`. `flashNoticeSeen()`, `forgetFlashNotice()`.
+**The photosensitivity notice** is shown once per browser (`localStorage` `mir.flashNotice`) and resolves when read. It is λWAVES' trap — no Escape, no press outside; the way past is CONTINUE — drawn as a floating pane, where λWAVES drew a black full-screen page. **Its design is BASINS' cold-start warning** (Josh, 2026-10-07: "return the design of the warning to the original design"; basins-ui-fixes `app/startup.css` `.mandel-warn-*`): BASINS' words by default, the system face (`-apple-system … Roboto`), one column 34em wide; the app's `art` (or else the caution sign in accent A) first and 2rem above the title (`clamp(1.1rem, 2.8vmin, 1.45rem)`, 700, `.18em`, 1rem below), the words (`clamp(.95rem, 2vmin, 1.05rem)`, line 1.65, 2.25rem below), and CONTINUE at `.95rem` / 600 / `.14em`, padded `.8rem 2.5rem`, radius 4px. What stays the kit's: the pane (no scrim), the colour tokens, the trigger and its focus ring, the primary label in accent A. The art is `openDialog`'s `mark` (an element, seated above the title). Under a test driver (`navigator.webdriver`) it is not shown unless `force: true`. `flashNoticeSeen()`, `forgetFlashNotice()`.
 
 **An app deletes:** POLAR's and EARTH's `engine/flash.js` and the page half of the guard (`flashSuspects`, `suspectText`, LAST TRIP's sentence), AUTOMATA's `notice.js` (the copy of λWAVES' warning) and the `#warnPane` markup and CSS. The veil the apps draw over a tripped stage stays theirs (`#flashveil`); the limiter makes it unnecessary for a modulated route.
 
