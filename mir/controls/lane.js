@@ -1,7 +1,7 @@
 /* controls/lane.js — THE LANE SLIDER and the lane's ink.
  *
  * THE LAW IT KEEPS: A THING'S ONE PRINCIPAL PARAMETER IS A SLIDER IN THAT THING'S INK (docs/CONTROLS-COLOUR.md).  A colour's
- * FREQUENCY, a lane's gain, a layer's opacity: a long pill with a glowing thumb, in the colour of the thing it belongs to,
+ * FREQUENCY, a lane's gain, a layer's opacity: a long pill with a disc thumb (no glow), in the colour of the thing it belongs to,
  * horizontal or vertical.  Josh: "Arcs that show color can primarily be used for color and knobs are for all parameters,
  * and things with a unique parameter; (Like Basins color frequency) those are sliders."
  *

@@ -2,7 +2,7 @@
  *
  * A TAP reaches a transparent <input type=color> laid over the circle (the platform's own chooser, opened by the
  * platform, inside the gesture); a press-drag of ≥ 8 px up or down TURNS ITS HUE, h = h0 + (−dy / 220)·360, saturation and
- * value kept; a hue ring of the colour's own ink rides round it and the circle glows in it.  Josh: "Color sliders for
+ * value kept; a hue ring of the colour's own ink rides round it (no glow: Josh, 2026-10-07).  Josh: "Color sliders for
  * color related things" · "A colour the user picks" is a swatch (docs/CONTROLS-COLOUR.md).
  *
  *   hueSwatch({ rgb, label, title, onInput(rgb), onChange() }) → { root, button, input, arc, set(rgb), get(), dragging() }

@@ -30,8 +30,8 @@ body[data-theme="light"] :is(.k-arcknob, .mir-swatch-seat) { --arc-groove: hsl(0
 .mir-swatch-seat {
   --swatch-size: 30px;
   --swatch-pick: 44px;                                           /* the transparent chooser the tap lands on: a full finger */
-  --swatch-shadow: inset 0 0 0 1px hsl(0 0% 100% / .16), 0 0 7px color-mix(in srgb, var(--swatch, var(--lane-ink, var(--acc))) 48%, transparent);   /* a rim and a glow in its own colour */
-  --swatch-shadow-drag: inset 0 0 0 1px hsl(0 0% 100% / .22), 0 0 10px color-mix(in srgb, var(--swatch, var(--lane-ink, var(--acc))) 75%, transparent);
+  --swatch-shadow: inset 0 0 0 1px hsl(0 0% 100% / .16);         /* a 1 px rim; no glow in its own colour (Josh, 2026-10-07) */
+  --swatch-shadow-drag: inset 0 0 0 1px hsl(0 0% 100% / .22);    /* the rim a little brighter under a hue drag */
   --arc-pad: 4px;                                                /* the hue ring rides 4 px outside the circle, 2 units wide */
   --arc-stroke: 2;
 }
@@ -40,9 +40,7 @@ body[data-theme="light"] :is(.k-arcknob, .mir-swatch-seat) { --arc-groove: hsl(0
   --lane-slider-len: 96px;                                       /* a vertical pill's length */
   --lane-track-h: 6px;
   --lane-track-rim: inset 0 0 0 1px var(--glass-hairline);
-  --lane-thumb: 15px;
-  --lane-thumb-glow: 0 0 7px color-mix(in srgb, var(--lane-ink, var(--acc)) 48%, transparent);        /* the thumb glows in the lane's ink */
-  --lane-thumb-glow-drag: 0 0 10px color-mix(in srgb, var(--lane-ink, var(--acc)) 75%, transparent);
+  --lane-thumb: 15px;                                            /* the thumb is the lane's ink, with no glow in it (Josh, 2026-10-07) */
   --lane-routed-fill: .85;                                       /* a routed lane's fill: a little less certain */
 }
 .mir-chipstrip {
@@ -107,16 +105,16 @@ body[data-theme="light"] :is(.k-arcknob, .mir-swatch-seat) { --arc-groove: hsl(0
   width: var(--swatch-pick); height: var(--swatch-pick); margin: 0; padding: 0; border: 0; opacity: 0; cursor: ns-resize; touch-action: none; }
 .mir-swatch-seat:focus-within .mir-swatch { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 5px; }   /* focus: the accent ring OUTSIDE (INTENT) */
 
-/* ── THE LANE SLIDER: a long pill in the thing's ink with a glowing thumb ────────────────────────────────────── */
+/* ── THE LANE SLIDER: a long pill in the thing's ink, its thumb a disc of the same ink ───────────────────────── */
 .mir-lane-slider { height: var(--lane-slider-h); min-width: 0; border: 0; background: transparent; box-shadow: none; border-radius: 0; overflow: visible; cursor: ew-resize; }
 .mir-lane-slider::before { content: ''; position: absolute; left: 0; right: 0; top: calc((var(--lane-slider-h) - var(--lane-track-h)) / 2); height: var(--lane-track-h);
   border-radius: var(--r-pill); box-shadow: var(--lane-track-rim); background: var(--glass-well); }
 .mir-lane-slider > .fd-fill { top: calc((var(--lane-slider-h) - var(--lane-track-h)) / 2); bottom: auto; height: var(--lane-track-h); border-radius: var(--r-pill); background: var(--lane-ink, var(--acc)); }
 .mir-lane-slider > .fd-edge { top: calc((var(--lane-slider-h) - var(--lane-thumb)) / 2); bottom: auto; width: var(--lane-thumb); height: var(--lane-thumb); margin-left: calc(var(--lane-thumb) / -2);
   border-radius: 50%; box-sizing: border-box; background: var(--lane-ink, var(--acc)); border: 1px solid var(--lane-ink, var(--acc));
-  box-shadow: var(--lane-thumb-glow); }
+  box-shadow: none; }
 .mir-lane-slider.drag > .fd-edge, .mir-lane-slider.active > .fd-edge {
-  background: var(--lane-ink, var(--acc)); box-shadow: var(--lane-thumb-glow-drag); }
+  background: var(--lane-ink, var(--acc)); box-shadow: none; }
 /* a routed lane keeps its own ink (the range bar and the dot say "routed"); the host's accent needle does not recolour the thumb */
 .mir-lane-slider.has-ring > .fd-edge, .mir-lane-slider.has-ring.mod-selected > .fd-edge { background: var(--lane-ink, var(--acc)); }
 .mir-lane-slider > .fd-lbl { display: none; }

@@ -113,6 +113,9 @@ try {
   const h2 = await hue('__C.W.sw_rgb.get()');
   await press(sw.x, sw.y); await page.mouse.move(sw.x, sw.y - 44, { steps: 4 }); await page.keyboard.press('Escape'); await release(); await sleep(60);
   L.ck(near(await hue('__C.W.sw_rgb.get()'), h2, 0.01), 'Escape puts the swatch colour back', { h2 });
+  /* no glow in its own colour (Josh, 2026-10-07): the swatch keeps its 1 px rim only, and the lane thumb wears none */
+  const glow = await get(`(() => { const s = __C.W.sw_rgb.root.querySelector('.mir-swatch'), t = __C.W.laneFreq.root.querySelector('.fd-edge'); return { swatch: getComputedStyle(s).boxShadow, thumb: getComputedStyle(t).boxShadow }; })()`);
+  L.ck(/inset/.test(glow.swatch) && !/\) -?\d+px -?\d+px [1-9]/.test(glow.swatch) && glow.thumb === 'none', 'no coloured glow: the swatch is its 1 px rim, the lane thumb has no shadow', glow);
 
   /* ── 4 · the lane slider ── */
   let f = await pt(`__C.W.laneFreq.root`);

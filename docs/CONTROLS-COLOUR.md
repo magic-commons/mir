@@ -23,7 +23,7 @@ Each of the arc knob and the lane slider is a **modulation target exactly as `kn
 
 ## The colour of a lane: `--lane-ink`
 
-A lane is any element that wears class `mir-lane` (the sortable list's panes do). Its colour is the custom property `--lane-ink`: set it with `laneInk(node, css)`, or an arc's `ink` option sets it on that arc. Everything in this folder that draws in a colour reads `--lane-ink`, then the swatch's own colour, then the accent: the arc's ring, the pill's fill and thumb, the swatch's ring and glow. A lane's ink is never `--ink`, so the adaptive ink never repaints it.
+A lane is any element that wears class `mir-lane` (the sortable list's panes do). Its colour is the custom property `--lane-ink`: set it with `laneInk(node, css)`, or an arc's `ink` option sets it on that arc. Everything in this folder that draws in a colour reads `--lane-ink`, then the swatch's own colour, then the accent: the arc's ring, the pill's fill and thumb, the swatch's ring (no control glows in it: Josh, 2026-10-07). A lane's ink is never `--ink`, so the adaptive ink never repaints it.
 
 ## The arc
 
@@ -43,11 +43,11 @@ A routed arc keeps the **base** the hand owns as its ring and rides the **live**
 
 ## The hue swatch
 
-`hueSwatch({ rgb, label, title, onInput(rgb), onChange(), fine })` → `{ root, button, input, arc, set(rgb), get(), dragging(), destroy() }`; `rgb` is `[r, g, b]` in 0 to 1. A circle of the colour with a glow in its colour and a hue ring round it. **Tap**: the platform's colour chooser (a transparent `<input type=color>` is laid over the circle, so the platform opens its own inside the gesture). **Press and drag 8 px or more up or down**: the hue turns, `h = h0 + (−dy / 220)·360`, saturation and value kept (a grey is given full saturation so the turn shows). The click a drag ends in opens nothing. `onInput` runs on every change (the chooser's and the drag's), `onChange` once per drag and once per chooser close. Pure helpers: `rgbToHsv`, `hsvToRgb`, `rgbCss`.
+`hueSwatch({ rgb, label, title, onInput(rgb), onChange(), fine })` → `{ root, button, input, arc, set(rgb), get(), dragging(), destroy() }`; `rgb` is `[r, g, b]` in 0 to 1. A circle of the colour with a 1 px rim and a hue ring round it (no glow in its colour: Josh, 2026-10-07). **Tap**: the platform's colour chooser (a transparent `<input type=color>` is laid over the circle, so the platform opens its own inside the gesture). **Press and drag 8 px or more up or down**: the hue turns, `h = h0 + (−dy / 220)·360`, saturation and value kept (a grey is given full saturation so the turn shows). The click a drag ends in opens nothing. `onInput` runs on every change (the chooser's and the drag's), `onChange` once per drag and once per chooser close. Pure helpers: `rgbToHsv`, `hsvToRgb`, `rgbCss`.
 
 ## The lane slider
 
-`laneSlider({ home, value, orient: 'h' | 'v', ink, …every fader() option })` → the kit's `fader()` plus `{ home, orient }`. A long pill (a 6 px track, a 15 px glowing thumb) in the lane's ink; `orient: 'v'` stands it up with the top as the maximum. `log: true` is a log scale. It is the kit's own fader with the lane's skin, so a route onto it moves the thumb and the modulation window draws its RANGE bar (the 2 px line and the live dot) along the pill, either way up.
+`laneSlider({ home, value, orient: 'h' | 'v', ink, …every fader() option })` → the kit's `fader()` plus `{ home, orient }`. A long pill (a 6 px track, a 15 px thumb of the same ink, no glow) in the lane's ink; `orient: 'v'` stands it up with the top as the maximum. `log: true` is a log scale. It is the kit's own fader with the lane's skin, so a route onto it moves the thumb and the modulation window draws its RANGE bar (the 2 px line and the live dot) along the pill, either way up.
 
 The hand is taken in capture, for both orientations, so there is one law: **a press jumps the value to where it came down**, then the drag follows on a *virtual point*; any modifier or a second finger gears it down by the kit's fine divisor and engaging the gear moves nothing; **two presses within 300 ms and 14 px come home** (the kit fader's own double-tap resets before the press's absolute map writes the press over the reset). The press is forwarded to the page, and `pointercancel`, lost capture, Escape and a hidden page end the drag and put the value back.
 

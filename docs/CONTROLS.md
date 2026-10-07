@@ -17,7 +17,7 @@ Source tags: **J** is Josh's own rule · **B** BASINS draws it so · **R** a rea
 | A colour amount in a global grade (exposure, saturation, brightness) | solid **KNOB** | J ("the ol' regular knobs") |
 | Any ordinary continuous parameter | **KNOB**: one drag law | J |
 | A plain scalar on a straight horizontal track, with no lane ink | **FADER** (`fader()`, `kit.js`): the lane slider's plain base, the same hand law, a modulation target | kit |
-| A thing's one principal parameter (a colour's FREQUENCY, a lane's gain, a layer's opacity) | **LANE SLIDER**: a long pill in the thing's ink, glowing thumb, a modulation target natively | J, B |
+| A thing's one principal parameter (a colour's FREQUENCY, a lane's gain, a layer's opacity) | **LANE SLIDER**: a long pill in the thing's ink, a thumb of the same ink with no glow, a modulation target natively | J, B |
 | A coupled pair (pan x/y, a point in a plane, az/el) | **XY PAD** for the hand + its two knobs, which stay the modulation targets | J (the control), AUTOMATA's contract |
 | A 3-D direction (a camera's yaw and pitch, a light's az/el) | **DIRECTION SPHERE** (`directionSphere`, `mir/panels/camera.js`): the plane model's sphere, the arrow's tip follows the finger, + its two arcs, which stay the modulation targets; the XY pad stays the control for a flat pair | R (1.5.0-alpha.14, the CAMERA panel: for Josh to rule) |
 | A lo/hi range | **RANGE SLIDER**: one track, two thumbs | R |
