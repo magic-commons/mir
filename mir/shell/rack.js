@@ -931,7 +931,8 @@ export function createRack({ host = globalThis.document && document.body, sides 
       const it = el('button', 'mb-item', addList); it.type = 'button'; it.dataset.win = w.spec.id; it.setAttribute('role', 'menuitem');
       if (w.spec.glyph && hasGlyph(w.spec.glyph)) it.appendChild(glyphEl(w.spec.glyph, 'mb-glyph', 14));
       el('span', 'mb-lbl', it, '⊕  ' + w.spec.title);
-      if (fav && fav.has(w.spec.id)) { const st = el('span', 'mb-fav', it, '★'); st.title = 'In the most recently saved layout'; st.setAttribute('aria-label', 'in the saved favourite layout'); }
+      /* the drawn solid star (glyph.js starFill: "is one"), never a typed ★ (Josh's call 18, 2026-10-07) */
+      if (fav && fav.has(w.spec.id)) { const st = el('span', 'mb-fav', it); st.appendChild(glyphEl('starFill', 'gly gly-starFill', 10)); st.title = 'In the most recently saved layout'; st.setAttribute('aria-label', 'in the saved favourite layout'); }
       it.title = (w.spec.hint ? w.spec.title + '  ·  ' + w.spec.hint : w.spec.title) + '  ·  SHIFT-click to queue several; they open in the order you picked them when you let SHIFT go';
       it.addEventListener('click', (ev) => {
         ev.stopPropagation();

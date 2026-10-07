@@ -96,6 +96,15 @@ try {
   r = await run(`T.nb.w = 500; T.nb.h = 380; const slot = R.saveLayout(); const kept = R.capture().nb; T.nb.w = 900; T.nb.h = 700; T.nb.resized.length = 0;
     R.loadLayout(slot); return { kept, resized: T.nb.resized, now: [T.nb.w, T.nb.h] };`);
   check('nb: a ☆ layout keeps the notebook\'s size and loading it resizes the notebook', JSON.stringify(r.kept) === '[500,380]' && JSON.stringify(r.now) === '[500,380]' && r.resized.length === 1, JSON.stringify(r));
+  /* THE DRAWN ★ (Josh's call 18, wave 22): a closed window that the last saved layout had open wears glyph.js starFill in
+     the + list, at the row's font size, never a typed character */
+  r = await run(`R.close('eq'); await settle(); document.getElementById('rackAdd').click(); await wait(60);
+    const row = document.querySelector('#rackAddList .mb-item[data-win="eq"]'), st = row && row.querySelector('.mb-fav'), svg = st && st.querySelector('svg'), b = svg && svg.getBoundingClientRect();
+    const out = { row: !!row, svg: svg ? svg.getAttribute('class') : null, text: st ? st.textContent : null, typed: row ? /[★☆]/.test(row.textContent) : null, w: b && b.width, h: b && b.height,
+      font: st ? getComputedStyle(st).fontSize : null, ink: st ? getComputedStyle(st).color : null };
+    document.getElementById('rackAdd').click(); R.open('eq'); await settle(); return out;`);
+  check('★: the + list marks a window of the last saved layout with the drawn starFill at the row\'s font size, no typed ★',
+    r.row && r.svg === 'gly gly-starFill' && r.text === '' && r.typed === false && r.w === parseFloat(r.font) && r.h === r.w, JSON.stringify(r));
 
   /* ── 5. the touch-tablet clamp ───────────────────────────────────────────────────────────────────────────── */
   await p.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });

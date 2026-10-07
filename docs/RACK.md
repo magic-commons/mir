@@ -196,7 +196,7 @@ The brief asked for survey C's 65-item rack list. Survey C has no numbered list 
 | 36 | ☆ row label: slot · windows · racks · floating · time | kept (`layoutLabel`) |
 | 37 | ☆ LOAD rows with × to forget | kept |
 | 38 | `+` lists closed windows A→Z with ⊕ | kept; it now also lists never-built windows |
-| 39 | `+` marks ★ those in the most recent saved layout | kept |
+| 39 | `+` marks ★ those in the most recent saved layout | kept; the mark is the drawn `starFill` glyph at the row's font size, not a typed ★ (Josh's call 18, wave 22) |
 | 40 | SHIFT-click queues with numbered badges | kept |
 | 41 | Releasing SHIFT opens the queue in reverse, so the rack reads in pick order | kept |
 | 42 | The `+` and ☆ lists close on a press outside | kept |

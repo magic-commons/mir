@@ -133,7 +133,8 @@ body.rack-hidden:not(.rack-peek-right) :is(.mir-rack-btn[data-rack-btn="add"], .
 .mir-rack-list .mb-glyph { flex: 0 0 auto; color: var(--dim); }
 .mir-rack-list .mb-item.queued { color: var(--fg); }
 .mir-rack-list .mb-num { margin-left: auto; color: var(--acc); font-variant-numeric: tabular-nums; }
-.mir-rack-list .mb-fav { margin-left: auto; color: var(--acc2); }
+.mir-rack-list .mb-fav { margin-left: auto; color: var(--acc2); display: inline-flex; align-self: center; }
+.mir-rack-list .mb-fav > svg { width: 1em; height: 1em; }   /* the drawn star at the size the typed ★ had: the row's own font */
 .mir-rack-list .fav-x { margin-left: auto; color: var(--dim); }
 .mir-rack-list .mb-item:hover .fav-x { color: var(--acc2); }
 
