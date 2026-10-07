@@ -39,9 +39,10 @@ body.disconnected:not(.phone) [data-mir-rack] > .dev.rack-sizing { overflow: vis
    own pointer-events is none, even from a child that takes the pointer (Chromium and Firefox do).  On a touch tablet, and
    on any coarse pointer, the column takes the pointer itself.  THE COST: a touch on the rack's blank areas (the gaps, the
    gutter, the column below the last window) scrolls the rack instead of reaching the picture; the scene guard already
-   counts those gaps as interface, so nothing else changes. */
-body.touch-tablet .mir-rack { pointer-events: auto; }
-@media (pointer: coarse) { .mir-rack { pointer-events: auto; } }
+   counts those gaps as interface, so nothing else changes.  It keys on the attribute too (alpha.20): an adopted app's
+   column can carry only [data-mir-rack], not the class (BASINS' #rack / #rackL), and the law never reached it. */
+body.touch-tablet :is(.mir-rack, [data-mir-rack]) { pointer-events: auto; }
+@media (pointer: coarse) { :is(.mir-rack, [data-mir-rack]) { pointer-events: auto; } }
 .mir-rack[data-side="left"] { right: auto; left: 0; padding-right: calc(var(--rack-inset, var(--card-gap, var(--sp-2))) + var(--rack-shadow-gutter)); }
 .mir-rack[data-side="right"] { padding-left: calc(var(--rack-inset, var(--card-gap, var(--sp-2))) + var(--rack-shadow-gutter)); direction: rtl; }   /* the scrollbar on the inner edge */
 /* SPACING (1.5.0-alpha.5): --rack-gap between the windows, --rack-inset from the screen's edge, --pane-pad inside a window

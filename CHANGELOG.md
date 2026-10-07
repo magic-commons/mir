@@ -1,5 +1,36 @@
 # MIR — changelog
 
+## 1.5.0-alpha.20 — 2026-10-06 · the lattice
+
+Not released: built on branch `worktree-mir-1.5`. A small release: the XY pad's glow becomes a dot matrix, the camera card loses a row, and a title-bar window rises above the rails.
+
+### Fixed
+- **The rack's touch law reaches a rack that carries only `data-mir-rack`.** alpha.19's rule that lets a finger scroll the rack on a touch tablet (`body.touch-tablet` and `pointer: coarse`: the column takes the pointer) selected `.mir-rack`, and an adopted app's columns can carry only the attribute (BASINS' `#rack` / `#rackL`), so it never reached them (found by BASINS' stage 9). Both rules now select `:is(.mir-rack, [data-mir-rack])` (`mir/shell/rack.css`).
+
+### The XY pad's lattice
+Josh: "for the XY grids, could they have a fancy dot matrix/lattice that grows in size the closer the XY is? And also have so cursor hoverover interaction" and "replace the tint on the current XY and replace it with a dot matrix". **The dot's glow is gone; a lattice says where the point is.** A square grid of dots sits on a transparent canvas under the dot and the ring: each dot swells toward the point the pad shows (the modulated value when routed) as a smooth bell, and its ink rises from the pad's ink, faint, to the accent (accent B when routed). With a mouse, a gentler swell sits under the cursor and eases in and out; it steps aside while the hand drags. The point's swell never eases: the point's own motion is the animation. It repaints only when the point, the cursor, the size or the theme changes (one `frame.write`, nothing booked at rest); a paint costs about 0.45 ms on a 240 px pad at 2× while dragging. `xyPad` gains `lattice(reset)`, the tests' probe; `paint()` repaints the lattice too. Every XY pad has it: the XY panel's, the CAMERA panel's PAN, and any app's `control({ pair })`.
+
+### The camera card is one row shorter
+Josh: "could the rotation knob sit underneath the Y knob? I think we can save a row that way". ROTATION now sits under Y in the PAN pad's knob column, so a 2-D camera with no ZOOM or FLIP (BASINS) has no view row at all; when the view row exists (ROLL · ZOOM · FOV · FLIP) it follows the pad. The rows, top down: the verbs · the pad with X, Y, ROTATION · the view row · the scales. `docs/PANEL-CAMERA.md`.
+
+### A title-bar window rises above the rails
+alpha.19's tenth question: MIR OPTIONS and MIR ABOUT sat under every other window's chip rail, since alpha.17 put every rail above every window; the alpha.19 GUI plates showed a real × click failing to close MIR OPTIONS under a rail. **A `chrome: 'close'` window pressed above every railed window now takes the z its rail would have** (n + 1 + its place in the stack), so it sits above every other rail and its title bar and × can be hit; pressed under a railed window it stays in the pane tier, below that window's rail. Railed windows keep alpha.17's law; it is the same one stack, no second counter. A window's `pair` gains `titled`. `docs/WINDOWS.md` laws 6 and 14.
+
+### Tokens, strings, tests
+- 1,368 token rows (8 added, 1 removed). Added, on `.mir-xy`, read by `controls/xy.js`: `--xy-lattice-n` `auto` (dots across; auto is the side over the pitch) · `--xy-lattice-pitch` 10px · `--xy-lattice-dot` .9px (a far dot's radius) · `--xy-lattice-swell` 3.1px (the radius added at the point) · `--xy-lattice-reach` .35 (the bell's radius, a share of the side) · `--xy-lattice-hover` .5 (the cursor's swell, a share of the point's) · `--xy-lattice-far` .22 · `--xy-lattice-near` .9 (the ink's alpha far and at the point). Removed: `--xy-glow-b` (the routed dot's glow). `docs/TOKENS.md` regenerated.
+- 1,494 catalogue keys, unchanged: no new strings.
+- `npm test`: 141/141 (was 140). New file: `tests/xy-lattice.browser.mjs` (the lattice, 22). New rows in `window.browser` (a title-bar window above and under the rails; 44 rows); `camera.browser` finds ROTATION in the pad's column (its layout row and two selectors changed).
+
+### Choices to overrule
+- **The lattice's eight defaults**: 24 dots across a 240 px pad, a .9 px far dot swelling by 3.1 px at the point over a bell a third of the pad wide, the cursor's swell half the point's, ink at .22 far and .9 near.
+- **No cursor swell under reduced motion** (or no motion, or on touch): then only the point swells.
+- **The camera's view row now sits below the pad** (it sat above it), and ROTATION is in the pad's knob column.
+
+### For Josh's eye
+- The XY pads: a dot matrix that swells and lights toward the dot, and gently under the mouse; no glow on the dot. Its whole look is the eight `--xy-lattice-*` tokens, so it can be tuned without code.
+- The CAMERA card is one row shorter: ROTATION under Y, beside the pad.
+- MIR OPTIONS and MIR ABOUT, pressed, sit above every other window's chips; their × always closes.
+
 ## 1.5.0-alpha.19 — 2026-10-06 · the hand
 
 Not released: built on branch `worktree-mir-1.5`. One principle, from Josh's first iPad pass of BASINS on 1.5: **a control's place never depends on state, and every key is consistent and shown.** Changing a page, a mode, a fold or a value must not move the head, the bar or the other controls, so what the hand learned stays true; every key is a row of the one table, shown beside its action and rebindable.

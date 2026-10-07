@@ -30,12 +30,12 @@ Each row exists only when the port has its ids.
 | **verbs** | the app's own verbs, then **PAN HOME** and **NORTH** (2-D) or **HOME** (3-D). The very top row: no heading, no divider, no route hint (Josh's second message about BASINS' window) | triggers; NORTH lights while the view is at north |
 | **mode** | TURNTABLE · FREE | segment |
 | **sphere** | the direction sphere for `yaw` and `pitch`, and the two arcs beside it | the sphere is the hand's, the two arcs are the targets (the XY pad's contract) |
-| **view** | ROTATION · ROLL · ZOOM · FOV · FLIP | an arc for an angle, a knob, a switch with a lamp |
-| **pan** | PAN: a pad and its two knobs X, Y | XY pad |
+| **pan** | PAN: a pad and its knob column X, Y and, under Y, **ROTATION** (1.5.0-alpha.20; Josh: "could the rotation knob sit underneath the Y knob? I think we can save a row that way") | XY pad; an arc for the angle |
+| **view** | ROLL · ZOOM · FOV · FLIP, and ROTATION when there is no pad. It follows the pad; a 2-D camera with no ZOOM or FLIP (BASINS) has no view row | an arc for an angle, a knob, a switch with a lamp |
 | **scales** | ROT SCALE · PAN SCALE · ORBIT · ORBIT ANGLE | knobs, an arc |
 | **HAND** | DRAG · FRICTION · INERTIA · FLING · AUTO-ROTATE · SPIN · WHEEL (SMOOTH · STEP): the feel of the drag. Only when the port has them | knobs, a switch, a segment |
 
-BASINS' MAGNET, GLIDE / CRUISE and STEER are not here: they stay BASINS' (its CONTROLS window keeps them). A port that has `yaw` but not `pitch` gets two plain arcs in the view row.
+BASINS' MAGNET, GLIDE / CRUISE and STEER are not here: they stay BASINS' (its CONTROLS window keeps them). A port that has `yaw` but not `pitch` gets two plain arcs in the view row; one that has only one of `panX`, `panY` gets plain knobs there too.
 
 ## The port
 
