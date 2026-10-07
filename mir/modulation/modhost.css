@@ -1344,13 +1344,13 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 
 
 #modwin.mir-modwindow .m2pow {
-  border: 0; background: var(--glass-well); border-radius: 50%; box-shadow: none;
-  color: var(--m2-ink-faint); filter: none; }                                                              /* off: the well's solid tint, no rim */
+  border: 0; background: transparent; border-radius: 0; box-shadow: none;
+  color: var(--acc); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--acc) 70%, transparent)); }      /* on: the glyph alone, in the accent, glowing (Josh 2026-10-07: "ONLY the icon … anything but a button") */
 #modwin.mir-modwindow .m2dev.m2off .m2pow,
 #modwin.mir-modwindow .m2pow[aria-pressed="false"] {
-  background: var(--glass-well); color: var(--m2-ink-faint); box-shadow: none; filter: none; }
+  background: transparent; color: var(--m2-ink-faint); box-shadow: none; filter: none; }                 /* off: the glyph in the faint ink */
 #modwin.mir-modwindow .m2dev:not(.m2off) .m2pow:not([aria-pressed="false"]) {
-  background: var(--acc); color: var(--acc-ink); box-shadow: none; border-radius: 50%; }   /* on: a solid accent disc, the glyph in the accent's ink (Josh 2026-10-06: no outlines, a solid colour per state; was INTENT L31's lit frost + rim) */   /* 61 */
+  background: transparent; color: var(--acc); box-shadow: none; }                                        /* (INTENT L31's lit frost face and rim are gone, 2026-10-06/07) */   /* 61 */
 
 
 #modwin.mir-modwindow .m2ab { border: 0; background: transparent; }                    /* 62 */

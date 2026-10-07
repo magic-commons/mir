@@ -673,7 +673,7 @@ body.disconnected:not(.phone) .dev.dragging > .dev-body {
   .dock-btn { padding: calc((var(--touch) - 22px) / 2); border: 0; border-radius: 50%;
     background-origin: content-box; background-clip: content-box;
     background-image: radial-gradient(closest-side, var(--glass-raise) calc(100% - 1.5px), var(--glass-hairline) calc(100% - 1.5px) 100%, transparent 100%); }
-  .dev-power { padding: calc((var(--touch) - 22px) / 2); border: 0; border-radius: 50%; background-origin: content-box; background-clip: content-box; }   /* the solid disc, 22 px inside the touch target; no ring */
+  .dev-power { padding: calc((var(--touch) - 22px) / 2); border: 0; border-radius: 50%; background: transparent; }   /* the icon alone, centred in the touch target; nothing painted */
   .dev-power::before { inset: calc((var(--touch) - 22px) / 2 + 6px); }      /* the ⏻ ring, where it always sat in the puck */
   .dev-power::after { top: calc((var(--touch) - 22px) / 2 + 4px); }         /* … and its tick */
 
