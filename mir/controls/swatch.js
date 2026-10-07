@@ -17,7 +17,6 @@
 import { el, ariaLabel, hint, watchTouches, gearOf } from '../kit.js';
 import { frame } from '../core/frame.js';
 import { setVar } from '../core/perf.js';
-import { phrase } from '../core/i18n.js';
 import { hexToRgb, rgbToHex } from '../palette.js';
 import { arcRing } from './arc.js';
 import { clamp01, frac, valueDrag } from './gesture.js';
@@ -48,7 +47,7 @@ export function hueSwatch(o) {
   const arc = arcRing(root);
   const input = el('input', 'mir-swatch-pick', root); input.type = 'color';
   if (o.label) ariaLabel(input, o.label);
-  hint(input, o.title || phrase('Tap for the colour chooser · drag up or down to turn its hue (Shift: finer)'));
+  if (o.title) hint(input, o.title);                 // no hint of its own (Josh, 2026-10-07, call 16): an app's title only
   const key = 'swatch:' + (++uid);
   let rgb = (o.rgb || [1, 1, 1]).slice(), d = null, swallow = 0;
   function set(next) {

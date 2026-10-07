@@ -115,6 +115,17 @@ try {
   L.ck(near(await hue('__C.W.sw_rgb.get()'), h2, 0.01), 'Escape puts the swatch colour back', { h2 });
   /* no glow in its own colour (Josh, 2026-10-07): the swatch keeps its 1 px rim only, and the lane thumb wears none */
   const glow = await get(`(() => { const s = __C.W.sw_rgb.root.querySelector('.mir-swatch'), t = __C.W.laneFreq.root.querySelector('.fd-edge'); return { swatch: getComputedStyle(s).boxShadow, thumb: getComputedStyle(t).boxShadow }; })()`);
+  /* call 16 (Josh, 2026-10-07): no hint of its own, no accent ring; a keyboard focus is BASINS' 1 px hairline in its own colour */
+  const ringOf = () => get(`(() => { const s = getComputedStyle(__C.W.sw_rgb.root.querySelector('.mir-swatch')); return { style: s.outlineStyle, width: s.outlineWidth, color: s.outlineColor, bg: s.backgroundColor, title: __C.W.sw_rgb.input.title, help: __C.W.sw_rgb.input.dataset.help || '' }; })()`);
+  await page.evaluate(() => { __C.W.sw_rgb.input.blur(); return 0; });
+  await press(sw.x, sw.y); await page.mouse.move(sw.x, sw.y - 20, { steps: 3 }); await release();   // a mouse press (a drag: no chooser)
+  const mouseRing = { ...(await ringOf()), focused: await get('document.activeElement === __C.W.sw_rgb.input') };
+  await page.evaluate(() => { __C.W.sw_rgb.input.blur(); return 0; }); await page.keyboard.press('Shift');
+  await page.evaluate(() => { __C.W.sw_rgb.input.focus(); return 0; }); await sleep(40);
+  const keyRing = await ringOf();
+  await page.evaluate(() => { __C.W.sw_rgb.input.blur(); return 0; });
+  L.ck(mouseRing.title === '' && mouseRing.help === '' && mouseRing.style === 'none' && keyRing.style === 'solid' && keyRing.width === '1px' && keyRing.color === keyRing.bg,
+    'the swatch has no hint and no accent ring: a keyboard focus is a 1 px hairline in its own colour', { mouseRing, keyRing });
   L.ck(/inset/.test(glow.swatch) && !/\) -?\d+px -?\d+px [1-9]/.test(glow.swatch) && glow.thumb === 'none', 'no coloured glow: the swatch is its 1 px rim, the lane thumb has no shadow', glow);
 
   /* ── 4 · the lane slider ── */

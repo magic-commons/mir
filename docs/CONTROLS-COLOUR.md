@@ -82,7 +82,7 @@ One pane per item (`data-mir-surface="island"`, so CARD STYLE and FROST paint it
 | **One frame**: writes go through `core/frame.js` (the latest sample wins, one per display frame, the release flushes) | all |
 | **Cascade layers**: one sheet in `mir.kit.plugin.host` (above the house, level with the modulation host whose has-ring rules the arc beats), no `!important`, no `:root` ladders | `colour-controls.css` |
 | **Tokens**: every look value is a token declared on its component's root; the rules read names | `colour-controls.css`, `docs/TOKENS.md` |
-| **Focus is an accent ring outside** (the swatch's, the arc's and the pill's are the kit's) | INTENT |
+| **Focus is an accent ring outside** (the arc's and the pill's are the kit's); the swatch's keyboard focus is BASINS' 1 px hairline in its own colour, 5 px out, and the swatch carries no hint of its own (Josh, 2026-10-07, call 16) | INTENT |
 
 ## What an app deletes
 

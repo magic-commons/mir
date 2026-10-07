@@ -103,7 +103,8 @@ body[data-theme="light"] :is(.k-arcknob, .mir-swatch-seat) { --arc-groove: hsl(0
 .mir-swatch-seat .k-arc-value { stroke: var(--swatch, var(--lane-ink, var(--acc))); }
 .mir-swatch-pick { position: absolute; left: calc((var(--swatch-size) - var(--swatch-pick)) / 2); top: calc((var(--swatch-size) - var(--swatch-pick)) / 2);
   width: var(--swatch-pick); height: var(--swatch-pick); margin: 0; padding: 0; border: 0; opacity: 0; cursor: ns-resize; touch-action: none; }
-.mir-swatch-seat:focus-within .mir-swatch { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 5px; }   /* focus: the accent ring OUTSIDE (INTENT) */
+/* keyboard focus: BASINS' hairline in the colour's own ink, outside the hue ring (BASINS colour.css:135); no accent ring (Josh, 2026-10-07, call 16) */
+.mir-swatch-seat:has(> .mir-swatch-pick:focus-visible) .mir-swatch { outline: 1px solid var(--swatch, var(--lane-ink, var(--acc))); outline-offset: 5px; }
 
 /* ── THE LANE SLIDER: a long pill in the thing's ink, its thumb a disc of the same ink ───────────────────────── */
 .mir-lane-slider { height: var(--lane-slider-h); min-width: 0; border: 0; background: transparent; box-shadow: none; border-radius: 0; overflow: visible; cursor: ew-resize; }
