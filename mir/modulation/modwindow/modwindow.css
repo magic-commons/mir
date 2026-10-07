@@ -1388,7 +1388,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   border: 0; border-radius: var(--r-sm); background: transparent;
   color: var(--dim); font-size: var(--fs-lead); line-height: 1; }
 .modwin.mir-modwindow .modxport.on { color: var(--acc); text-shadow: var(--m2-modxport-on-halo); }
-.modwin.mir-modwindow .modxport:active { background: var(--state-press, var(--glass-press)); }
+.modwin.mir-modwindow .modxport:active { background: transparent; }   /* no face, pressed either (2026-10-07) */
 /* The global tempo field. */
 /* The tempo field looks like a field at rest, always. */
 /* The tempo readout. */
@@ -1650,7 +1650,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
   outline: var(--m2-button-focus-ring); outline-offset: 2px;
   box-shadow: var(--m2-button-focus-shadow); }
 #modwin.mir-modwindow .m2chk.on, #modwin.mir-modwindow .m2swb.on, #modwin.mir-modwindow .m2mac.on,
-#modwin.mir-modwindow .m2bus.on, #modwin.mir-modwindow .modxport.on, #modwin.mir-modwindow .modsync.on,
+#modwin.mir-modwindow .m2bus.on, #modwin.mir-modwindow .modsync.on,
 #modwin.mir-modwindow .modcad.on, #modwin.mir-modwindow .m2audsrc.on {
   box-shadow: var(--m2-chk-on-line); }
 #modwin.mir-modwindow button:disabled, #modwin.mir-modwindow input:disabled {

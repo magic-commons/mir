@@ -1602,7 +1602,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
   border: 0; border-radius: var(--r-sm);
   filter: none; box-shadow: none; text-shadow: none; }
 #modwin.mir-modwindow .m2workbar .modxport.on {
-  color: var(--acc); background: var(--state-on, var(--m2-mat-frost)); box-shadow: var(--m2-on-rim); }   /* INTENT L29 */
+  color: var(--acc); background: transparent; box-shadow: none; }   /* INTENT L29's lit face and rim are gone (Josh 2026-10-07: the power is ONLY its icon; the halo in the drawing is its glow) */
 #modwin.mir-modwindow .m2workbar .modxport.mir-mod-power {
   width: var(--m2-power-seat); height: var(--m2-power-seat); min-height: var(--m2-power-seat); margin: 0; }    /* 1.5.0-alpha.5: BASINS' 44 px seat, in the 46 px bar */
 #modwin.mir-modwindow .m2workbar .modxport svg {
