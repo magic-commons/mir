@@ -228,11 +228,12 @@ export function buildGallery(panel, opts) {
   let prevPage, nextPage, pageLabel;
   if (pager) {
     pager.setAttribute('aria-label', t('Project pages'));
-    prevPage = btn('sv-page-prev', pager, '‹', t('Previous project page'));
+    const chev = (b, name) => { const g = glyphEl(name); if (g) b.appendChild(g); return b; };   // the kit's own chevrons, drawn, not typed (Josh, 2026-10-07, call 18)
+    prevPage = chev(btn('sv-page-prev', pager, null, t('Previous project page')), 'chevronLeft');
     pageLabel = mk('span', 'sv-page-label', pager);
     pageLabel.setAttribute('aria-live', 'polite');
     pageLabel.setAttribute('aria-atomic', 'true');
-    nextPage = btn('sv-page-next', pager, '›', t('Next project page'));
+    nextPage = chev(btn('sv-page-next', pager, null, t('Next project page')), 'chevronRight');
     prevPage.addEventListener('click', () => turnPage(S.page - 1), on);
     nextPage.addEventListener('click', () => turnPage(S.page + 1), on);
   }

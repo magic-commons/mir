@@ -68,6 +68,7 @@ button.mir-step-name:disabled { cursor: default; }
   background: transparent; color: var(--ink-key); font-size: var(--fs-lead); line-height: 1; cursor: pointer;
   transition: background-color var(--motion-micro) var(--ease-out), transform var(--motion-micro) var(--ease-out);
 }
+.mir-step-b > svg { display: block; width: 1em; height: 1em; margin: auto; pointer-events: none; }   /* the drawn chevron, as large as the typed ‹ › it replaced (its font size is still the knob) */
 .mir-step-b:hover { background: var(--state-hover, var(--glass-raise)); color: var(--fg); }
 .mir-step-b:is(:active, .press) { background: var(--state-press, var(--glass-press)); transform: scale(.92); }
 .mir-step-b:disabled { opacity: var(--state-disabled, .38); cursor: default; background: transparent; }

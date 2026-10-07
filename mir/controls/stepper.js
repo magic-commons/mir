@@ -20,6 +20,7 @@
 import { el, label, ariaLabel, mathPlain } from '../kit.js';
 import { t as tx, onLanguage } from '../core/i18n.js';
 import { listPane, liveItems } from './select.js';
+import { glyphEl } from '../glyph.js';
 
 /* the seat's unseen words are drawn by CSS (`content: attr(data-w)`), so they are not the name's text; a language change
    writes them again — one listener for the page, not one per stepper */
@@ -41,7 +42,9 @@ export function stepper(o = {}) {
   const row = el('div', 'mir-step-row', root);
   const compact = !!o.compact;                       // the arrows are made (the API keeps them) but never seated
   if (compact) root.dataset.compact = '';
-  const prev = el('button', 'mir-step-b', compact ? null : row, '‹'); prev.type = 'button'; prev.dataset.step = '-1';
+  /* the arrows are DRAWN (glyph.js chevrons; Josh, 2026-10-07, call 18), sized by the button's font (controls.css) */
+  const arrow = (name) => { const b = el('button', 'mir-step-b', compact ? null : row); b.type = 'button'; const g = glyphEl(name); if (g) b.appendChild(g); return b; };
+  const prev = arrow('chevronLeft'); prev.dataset.step = '-1';
   const name = el(canList ? 'button' : 'div', 'mir-step-name', row);
   if (canList) { name.type = 'button'; name.setAttribute('aria-haspopup', 'listbox'); name.setAttribute('aria-expanded', 'false'); }
   /* THE HAND (1.5.0-alpha.19): the name's seat is as wide as its LONGEST option — every option's word sits unseen in the
@@ -49,7 +52,7 @@ export function stepper(o = {}) {
   const seat = el('span', 'mir-step-seat', name);
   const text = el('span', 'mir-step-text', seat); text.setAttribute('aria-live', 'polite');
   const count = o.count ? el('span', 'mir-step-count', name) : null;
-  const next = el('button', 'mir-step-b', compact ? null : row, '›'); next.type = 'button'; next.dataset.step = '1';
+  const next = arrow('chevronRight'); next.dataset.step = '1';
   ariaLabel(prev, 'previous'); ariaLabel(next, 'next');
   if (o.aria || o.label) ariaLabel(row, o.aria || o.label);
   row.setAttribute('role', 'group');

@@ -211,6 +211,12 @@ try {
   results.push(`${combo.rootMat === 'modulation' && combo.railMat === 'modulation' && !combo.setByFixture ? 'PASS' : 'FAIL'}  [JOIN] the window and its rail wear data-mir-material="modulation" from createFolders' default, not the fixture  — ${JSON.stringify(combo)}`);
   results.push(`${combo.gap === 8 ? 'PASS' : 'FAIL'}  [JOIN] the rail sits 8 px off the window's right edge (kwin's gap)  — gap ${combo.gap}`);
   results.push(`${combo.dw === 40 && combo.dh === 30 ? 'PASS' : 'FAIL'}  [JOIN] a scripted corner drag (isPrimary unset) resizes the window by exactly (+40, +30)  — (${combo.dw}, ${combo.dh})`);
+  /* call 18 (Josh, 2026-10-07): the rack card's pager draws its ‹ › — glyph.js chevrons, 1em of the button's font, centred, and a press
+     lands on the button */
+  const pg = JSON.parse(await p.eval(`JSON.stringify([...document.querySelectorAll('#rack .sv-pages button')].map((b) => { const s = b.querySelector('svg'), br = b.getBoundingClientRect(), sr = s ? s.getBoundingClientRect() : null;
+    const h = br.width ? document.elementFromPoint(br.left + br.width / 2, br.top + br.height / 2) : null;
+    return { text: b.textContent, cls: s ? s.getAttribute('class') : null, w: sr && sr.width, font: parseFloat(getComputedStyle(b).fontSize), dx: sr && Math.abs(sr.left + sr.width / 2 - br.left - br.width / 2), dy: sr && Math.abs(sr.top + sr.height / 2 - br.top - br.height / 2), seat: [br.width, br.height], hit: !h || h === b }; }))`));
+  results.push(`${pg.length === 2 && pg.every((x) => x.text === '' && x.w && Math.abs(x.w - x.font) < 0.5 && x.dx < 0.6 && x.dy < 0.6 && x.seat[0] === 44 && x.seat[1] === 44 && x.hit) && /gly-chevronLeft/.test(pg[0].cls) && /gly-chevronRight/.test(pg[1].cls) ? 'PASS' : 'FAIL'}  [RAN] the FOLDERS pager's ‹ › are drawn chevrons (1em, centred in the 44 px wells), and a press lands on the button  — ${JSON.stringify(pg)}`);
   const errs = p.logs.filter((l) => /EXCEPTION|error/.test(l));
   results.push(`${errs.length ? 'FAIL' : 'PASS'}  no page exceptions or console errors${errs.length ? '  — ' + errs.slice(0, 3).join(' | ') : ''}`);
   /* the plate: a fresh device, S, as BASINS opens it (the gate above leaves the window moved and resized) */

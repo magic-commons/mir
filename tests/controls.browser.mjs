@@ -98,6 +98,13 @@ try {
   { const s = await need(SB(1), 'stepper ›'); await mouse('mouseMoved', s.x, s.y); await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(80); }
   check('stepper: › steps to the next mode, the name says it (aria-live)', (await val('W.stepper')) === 'soft light' && (await J(`return [W.stepper.name.textContent, W.stepper.name.querySelector('[aria-live]').getAttribute('aria-live')];`))[0] === 'SOFT LIGHT');
   { const sz = await J(`const b = ${SB(0)}.getBoundingClientRect(); return [b.width, b.height];`); check('stepper: the buttons are the full 44 px touch seat', sz[0] >= 44 && sz[1] >= 44, JSON.stringify(sz)); }
+  /* call 18 (Josh, 2026-10-07): the arrows are DRAWN — glyph.js chevrons, no typed ‹ ›, 1em of the button's font, centred, and the
+     press lands on the button (the drawing takes no pointer) */
+  { const g = await J(`return [0, 1].map((i) => { const b = W.stepper.root.querySelectorAll('.mir-step-b')[i], s = b.querySelector('svg'), br = b.getBoundingClientRect(), sr = s ? s.getBoundingClientRect() : null;
+      const hit = document.elementFromPoint(br.left + br.width / 2, br.top + br.height / 2);
+      return { text: b.textContent, cls: s ? s.getAttribute('class') : null, w: sr && sr.width, font: parseFloat(getComputedStyle(b).fontSize), dx: sr && Math.abs((sr.left + sr.width / 2) - (br.left + br.width / 2)), dy: sr && Math.abs((sr.top + sr.height / 2) - (br.top + br.height / 2)), hit: hit === b }; });`);
+    check('stepper: ‹ › are drawn chevrons (chevronLeft / chevronRight), 1em, centred in the seat, and a press lands on the button',
+      g[0].text === '' && g[1].text === '' && /gly-chevronLeft/.test(g[0].cls) && /gly-chevronRight/.test(g[1].cls) && g.every((x) => Math.abs(x.w - x.font) < 0.5 && x.dx < 0.6 && x.dy < 0.6 && x.hit), JSON.stringify(g)); }
   await J(`W.stepper.set('darken'); return 1;`);
   { const s = await need(SB(1), 'stepper › (wrap)'); await mouse('mouseMoved', s.x, s.y); await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(80); }
   check('stepper: it wraps (DARKEN › NORMAL)', (await val('W.stepper')) === 'normal');
