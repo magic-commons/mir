@@ -18,7 +18,8 @@
  *      gesture machinery moves the window from either.
  *   5. WINDOW AND RAIL RISE TOGETHER, by one stack shared by every window: a press anywhere on either puts the pair on
  *      top; z is the pair's place in the stack, so it stays small and nothing reads a sibling's style.  EVERY RAIL IS
- *      ABOVE EVERY WINDOW (1.5.0-alpha.17): the panes take 1 … n, the rails n + 1 … 2n, so no window covers chips.
+ *      ABOVE EVERY WINDOW (1.5.0-alpha.17): the panes take 1 … n, the rails n + 1 … 2n, so no window covers chips.  A
+ *      window with no rail (chrome: 'close') pressed above every rail window takes its rail's z and sits above them all.
  *   6. IT SAYS WHERE IT IS: onMoved(rect) after every layout (null when it closes), so a host can dodge it.
  *      A window the app built itself joins that one stack by registerWindow({ root, rail }) (1.5.0-alpha.15).
  *   7. THE LEGO STACK (1.5.0-alpha.12, BASINS shell.js syncWorkspaceStack / modwindow.js stackAbove / timeline-window.js
@@ -104,13 +105,17 @@ export function windowLayout(P, env) {
 /* panes at 1 … n in press order, rails at n + 1 … 2n in the same order (1.5.0-alpha.17, BASINS' window law: "the chips
    keep dissapearing underneath other windows" — Josh 2026-09-26): a window opened over another never covers its chips,
    the pressed window's rail is the top rail, and a registered window's rail is in the same tier as the kit's.  2n stays
-   below the guide's --z-prox, as before. */
+   below the guide's --z-prox, as before.
+   A TITLE-BAR WINDOW ON TOP IS ITS OWN RAIL (chrome: 'close', 1.5.0 wave 20): the tier law is for windows that have a
+   rail; a pane that is its own chrome, pressed above every rail window, takes the z its rail would take (n + 1 + k), so
+   it sits above every other rail and its title bar and × are never under one.  Below a rail window it is a pane in the
+   pane tier, as before.  The same one stack, no second counter. */
 const STACK = [];
 function raisePair(w) {
   const i = STACK.indexOf(w); if (i >= 0) STACK.splice(i, 1);
   STACK.push(w);
-  const n = STACK.length;
-  STACK.forEach((x, k) => { setVar(x.root, 'z-index', String(1 + k)); if (x.rail) setVar(x.rail, 'z-index', String(n + 1 + k)); });
+  const n = STACK.length, lead = STACK.findLastIndex((x) => !x.titled);   // the top window that is not its own chrome
+  STACK.forEach((x, k) => { setVar(x.root, 'z-index', String(x.titled && k > lead ? n + 1 + k : 1 + k)); if (x.rail) setVar(x.rail, 'z-index', String(n + 1 + k)); });
 }
 /* a window's pair, found from either of its two elements (an app's own window law holds elements, not the api) */
 const OWNER = new WeakMap();
@@ -314,7 +319,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
   });
   if (rail.el) host.appendChild(rail.el);
   if (mat && rail.el) rail.el.dataset.mirMaterial = String(mat);
-  const pair = { root, rail: rail.el };
+  const pair = { root, rail: rail.el, titled: !!head };              // titled: its pane is its own chrome (the raise above)
   const shown = (on) => { root.hidden = !on; if (rail.el) rail.el.hidden = !on; };   // a title-bar window has no rail element
   const guide = dock ? createDockGuide({ layer: host, enabled: dock.guide || (() => true), window: id, cls: dock.guideClass || '' }) : null;
 

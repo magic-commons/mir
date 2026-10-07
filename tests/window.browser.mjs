@@ -243,6 +243,47 @@ try {
       set.rails[1] === Math.max(...set.rails) && after.rails[2] === Math.max(...after.rails) && after.panes[2] === Math.max(...after.panes) && tier(after) && after.hit === 'chip', JSON.stringify(after));
   }
 
+  /* ── A TITLE-BAR WINDOW ON TOP IS ITS OWN RAIL (chrome: 'close', 1.5.0 wave 20; the alpha.19 join: "MIR OPTIONS and MIR
+     ABOUT sit under every other window's chip rail"): pressed, it sits above B's rail, its × and title bar its own where
+     the rail overlaps them; B pressed again, B's rail is back on top of it ─────────────────────────────────────────── */
+  {
+    const set = await run(`const { createWindow } = await import('/mir/window/window.js'); window.__Bwas = B.state();
+      B.place({ x: 300, y: 300 }); await rest(B);
+      const host = A.root.parentElement, G = createWindow({ id: 'titled', title: 'TITLED', host, chrome: 'close', size: { w: 320, h: 360 }, emptyDrag: true, body: (b) => { b.textContent = 'TITLED'; } });
+      window.__G = G; G.open(); for (let i = 0; i < 4; i++) { await M.settled(G.root); await wait(20); }
+      const rr = B.rail.el.getBoundingClientRect(), x0 = G.root.querySelector('.mir-win-x').getBoundingClientRect(), g0 = G.root.getBoundingClientRect();
+      /* the × onto the rail's centre column, near its foot: the rail lies across the × and the title bar */
+      G.place({ x: Math.round(g0.left + rr.left + rr.width / 2 - (x0.left + x0.width / 2)), y: Math.round(g0.top + rr.bottom - 16 - (x0.top + x0.height / 2)) });
+      B.raise(); await wait(30);
+      const x1 = G.root.querySelector('.mir-win-x').getBoundingClientRect(), h1 = G.head.getBoundingClientRect(), r1 = B.rail.el.getBoundingClientRect();
+      const inR = (x, y) => x > r1.left && x < r1.right && y > r1.top && y < r1.bottom;
+      const X = { x: Math.round(x1.left + x1.width / 2), y: Math.round(x1.top + x1.height / 2) }, H = { x: Math.round(x1.left - 4), y: X.y };
+      const own = (el, root) => { for (let y = el.top + 6; y < el.bottom - 4; y += 9) for (let x = el.left + 6; x < el.right - 4; x += 9) { const n = document.elementFromPoint(x, y); if (n && n.closest('.mir-win') === root) return { x: Math.round(x), y: Math.round(y) }; } return null; };
+      return { X, H, under: inR(X.x, X.y) && inR(H.x, H.y) && H.x > h1.left, gOnly: own(G.root.getBoundingClientRect(), G.root), bOnly: null };`);
+    const probe = (label) => run(`const G = window.__G, z = (el) => +getComputedStyle(el).zIndex;
+      const who = (x, y) => { const n = document.elementFromPoint(x, y); return !n ? 'nothing' : n.closest('.mir-win-x') && G.root.contains(n) ? 'x' : n.closest('.mir-win-head') && G.root.contains(n) ? 'head' : B.rail.el.contains(n) ? 'B-rail' : n.closest('.mir-win') ? n.closest('.mir-win').dataset.mirWindow : String(n.className || n.tagName); };
+      const panes = [A.root, B.root].map(z), rails = [A.rail.el, B.rail.el].map(z);
+      return { at: '${label}', x: who(${set.X.x}, ${set.X.y}), head: who(${set.H.x}, ${set.H.y}), g: z(G.root), panes, rails };`);
+    const press = async (pt) => { await mouse('mouseMoved', pt.x, pt.y); await mouse('mousePressed', pt.x, pt.y); await mouse('mouseReleased', pt.x, pt.y); await sleep(40); };
+    const first = await probe('B on top');
+    if (set.gOnly) await press(set.gOnly);
+    const raised = await probe('titled pressed');
+    const bOnly = await run(`const r = B.root.getBoundingClientRect(); for (let y = r.top + 6; y < r.bottom - 4; y += 9) for (let x = r.left + 6; x < r.right - 4; x += 9) { const n = document.elementFromPoint(x, y); if (n && n.closest('.mir-win') === B.root) return { x: Math.round(x), y: Math.round(y) }; } return null;`);
+    if (bOnly) await press(bOnly);
+    const back = await probe('B pressed');
+    if (set.gOnly) await press(set.gOnly);
+    await press(set.X); await sleep(400);
+    const closed = await run(`return { closed: !window.__G.isOpen() };`);
+    await run(`window.__G.destroy(); delete window.__G; B.restore(window.__Bwas); await rest(B); A.raise(); return 0;`);
+    const railsOverPanes = (s) => Math.min(...s.rails) > Math.max(...s.panes);
+    check("a title-bar window (chrome: 'close') under a rail window's rail is a pane in the pane tier (alpha.17): the rail is what elementFromPoint finds at its × and its title bar",
+      set.under && first.x === 'B-rail' && first.head === 'B-rail' && first.g < Math.min(...first.rails) && railsOverPanes(first), JSON.stringify({ set, first }));
+    check("pressed, a title-bar window is its own rail: it sits above every rail, and its × and title bar are its own under B's rail (elementFromPoint)",
+      !!set.gOnly && raised.x === 'x' && raised.head === 'head' && raised.g > Math.max(...raised.rails) && railsOverPanes(raised), JSON.stringify(raised));
+    check("the rail window pressed again: its rail is back on top of the title-bar pane, and every rail above every pane; a real click on the × then closes the titled window",
+      !!bOnly && back.x === 'B-rail' && back.head === 'B-rail' && back.g < Math.min(...back.rails) && railsOverPanes(back) && closed.closed, JSON.stringify({ bOnly, back, closed }));
+  }
+
   /* ── the chip material: follows its pane, and against the modulation window's rail ─────────────────────── */
   const PROPS = ['width', 'height', 'border-top-width', 'border-radius', 'border-top-color', 'box-shadow', 'background-color', 'backdrop-filter'];
   const GEOM = ['width', 'height', 'border-top-width', 'border-radius'];
