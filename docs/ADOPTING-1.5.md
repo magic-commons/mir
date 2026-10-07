@@ -165,6 +165,13 @@ A control's place never depends on state, and every key comes from the one table
 - **The key table's rows.** Every kit window is now a row: `history`, `render`, `gui`, `gui-about` and `keyboard` (no key; bind one in the KEYBOARD window, which `createApp` now installs), beside `modulation`, `timeline`, `pattern`, `folders`, `notebook`, `help`, `rack`, `dock`. Undo and redo are the rows `undo` and `redo` (EDIT): the timeline's `timeline.undo` / `timeline.redo` are gone (a saved rebind of them is dropped), and `installTimeline({ keys, history })` leaves the timeline's pair out when a history owns them. A panel takes `action: '<row id>'`, not `key: 'X'`; a rack card registered with `key` shows no key now, give it `action`. An app that typed key text into a tooltip or a menu row gives the element `data-key-action` instead and lets `keys.hints()` write it.
 - `createRack` is unchanged. The stored shapes are unchanged (the GUI's tab is a new key, `mir.gui.tab`).
 
+## 12. 1.5.0-alpha.21 (the evening round)
+
+- **The docked transport seats the app's readout.** The docked card is two rows (play, power, to-start, dock, door · the BPM pill left, the app's readout right); the bar marks each `app:<name>` node `data-tr-app="<name>"` and the kit gives it row 2's right cell. An app's own docked-transport rules must not set a `grid-area` (or a `grid-row` / `grid-column`) on its readout: unlayered, it beats the kit's seat and the readout leaves row 2's right cell. BASINS: `basins.css:26`.
+- **A `moved` rect is whole.** `createWindow`'s `onMoved` and the modulation window's `port.moved` now carry `right` and `bottom` beside `left, top, width, height`. An app that filters `moved` reports (BASINS' shell kept one only when it had `right`) should derive `right` / `bottom` from `left + width` / `top + height` when they are missing, so a rect from an older or app-built window is not dropped. BASINS: `shell.js:76`.
+- **The XY pad has no well.** `.xy-pad` has no fill or inset; the lattice's far dots are `--xy-lattice-ink` (`var(--glass-well)`). An app that painted its own pad background puts the tint back under the dots; set `--xy-lattice-ink` instead.
+- Nothing else changes for an adopter: names, options and stored shapes are as in alpha.20.
+
 ## Check
 
 `npm test` in the kit; in your app, load once and confirm the chips keep their material (the stylehash neutrality

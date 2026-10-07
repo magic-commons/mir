@@ -1,5 +1,5 @@
 /* plugin-intent.browser.mjs — the modulation plugin keeps docs/INTENT.md's plugin rows (1.5.0-alpha.3), read from computed style.
- *   ON       an ON switch in a device wears a neutral frost face and a thin rim — never an accent fill (L27/L29)
+ *   ON       an ON switch in a device wears a neutral frost face and no rim (1.5.0-alpha.21: the lamp switches wear no outline) — never an accent fill (L27/L29)
  *   PANE     a device card floats at the house's one pane height: its shadow IS the house's --glass-shadow (L03/L04/L06)
  *   RELIEF   the dial wears the one raised relief, the house's --neu-raise (L16/L17); no bevel token is left (L61/L62)
  *   PRESSED  a held add button is the press wash and ONE scale (--state-press-scale .96), with no translate (L21, S1)
@@ -23,13 +23,13 @@ try {
       const probe = document.createElement('div'); probe.style.boxShadow = 'var(--glass-shadow)'; probe.style.position = 'absolute'; document.body.appendChild(probe);
       const house = getComputedStyle(probe).boxShadow; probe.style.boxShadow = 'var(--neu-raise)'; const raise = getComputedStyle(probe).boxShadow; probe.remove();
       const sw = cs('.m2dev.lfo .m2swb.on');
-      return JSON.stringify({ swBg: sw.backgroundColor, swSh: sw.boxShadow, dev: cs('.m2dev.lfo').boxShadow, house, raise, dial: cs('.m2dev .m2dialink', '::before').boxShadow,
+      return JSON.stringify({ swBg: sw.backgroundColor, swSh: sw.boxShadow, swBw: sw.borderTopWidth, swBc: sw.borderTopColor, dev: cs('.m2dev.lfo').boxShadow, house, raise, dial: cs('.m2dev .m2dialink', '::before').boxShadow,
         bevel: getComputedStyle(document.querySelector('.mir-modwindow')).getPropertyValue('--glass-bevel') });
     })()`));
     const rgba = (s) => (s.match(/[\d.]+/g) || []).map(Number);
     const [R, G, B, A = 1] = rgba(r.swBg);
     check(`${theme} · an ON switch has a frost face, not an accent fill (${r.swBg})`, A > 0 && Math.max(R, G, B) - Math.min(R, G, B) <= 8, r.swBg);
-    check(`${theme} · an ON switch has a thin rim`, /inset/.test(r.swSh) && /0px 0px 0px 1px/.test(r.swSh), r.swSh);
+    check(`${theme} · an ON switch wears no rim (alpha.21: the lamp switches have no outline)`, !/0px 0px 0px 1px/.test(r.swSh) && (r.swBw === '0px' || r.swBc === 'rgba(0, 0, 0, 0)'), `${r.swSh} · border ${r.swBw} ${r.swBc}`);   // borders go by colour, never by width (modhost.css W20 block)
     check(`${theme} · a device card's shadow is the house's pane height`, r.dev === r.house, `${r.dev} vs ${r.house}`);
     check(`${theme} · the dial wears the house's one raised relief`, r.dial === r.raise, `${r.dial} vs ${r.raise}`);
     check(`${theme} · no bevel token is left on the window`, r.bevel.trim() === '', r.bevel);

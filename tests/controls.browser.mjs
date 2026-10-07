@@ -234,8 +234,8 @@ try {
   /* ── light: the same page, the other theme, still drawn ── */
   await J(`document.body.dataset.theme = 'light'; return 1;`); await sleep(200);
   const light = await J(`const cs = (n, pr) => getComputedStyle(n)[pr]; const rt = W.range.hi.root, pad = W.xy.pad, face = W.number.face, sel = W.select.button;
-    return { thumb: cs(rt, 'backgroundColor'), pad: cs(pad, 'backgroundColor'), face: cs(face, 'color'), sel: cs(sel, 'color'), bg: cs(document.body, 'backgroundColor') };`);
-  check('light theme: the controls take the light theme\'s tokens (the thumb, the pad and the field are not the dark ones, the ink is dark)', light.face !== 'rgb(255, 255, 255)' && light.thumb !== 'rgba(0, 0, 0, 0)' && light.pad !== 'rgba(0, 0, 0, 0)' && /^rgb\((\d+), (\d+), (\d+)\)$/.test(light.face) && +light.face.match(/\d+/g)[0] < 120, JSON.stringify(light));
+    return { thumb: cs(rt, 'backgroundColor'), pad: cs(pad, 'backgroundColor'), ink: getComputedStyle(pad).getPropertyValue('--xy-lattice-ink').trim(), face: cs(face, 'color'), sel: cs(sel, 'color'), bg: cs(document.body, 'backgroundColor') };`);
+  check('light theme: the controls take the light theme\'s tokens (the thumb and the field are not the dark ones, the ink is dark; the pad has no well since alpha.21, its lattice ink is the light well)', light.face !== 'rgb(255, 255, 255)' && light.thumb !== 'rgba(0, 0, 0, 0)' && light.pad === 'rgba(0, 0, 0, 0)' && light.ink !== '' && !/var\(/.test(light.ink) && /^rgb\((\d+), (\d+), (\d+)\)$/.test(light.face) && +light.face.match(/\d+/g)[0] < 120, JSON.stringify(light));
 } catch (e) { check('the test ran to the end', false, String(e && e.stack || e)); }
 
 const logs = p.logs.filter((l) => !/favicon|Failed to load resource/.test(l));

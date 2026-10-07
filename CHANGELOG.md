@@ -1,5 +1,41 @@
 # MIR — changelog
 
+## 1.5.0-alpha.21 — 2026-10-06 · the evening round
+
+Not released: built on branch `worktree-mir-1.5`. A small release from Josh's evening look at BASINS on the iPad: the power buttons become solid discs, the XY pad's dark tint becomes its dots, the docked transport becomes two rows, the modulation window's lamp switches lose their outlines, and the transport dodges MODULATION again.
+
+### Fixed
+- **The transport dodges the modulation window again.** Josh: "the transport when undocked is supposed to do this thing where it avoids the modulation window; it moves up and then moves down depending on if the mod window puts it at risk of being covered." The cause: a window reported its rect as `{ left, top, width, height }` with no `right` or `bottom` (`window.js` `onMoved`, the modulation window's `port.moved`), and BASINS' shell kept a report only when it had `right`, so every report became `null` and the bar went straight back down. Both now report a whole rect, a DOMRect's six fields (`mir/window/window.js:366`, `mir/modulation/window.js:455`). The rack also keeps the bar's size only when it read it on the stage at rest (not docked, not in a work bar, its tempo panel shut), so a size measured in the rack's TRANSPORT window no longer stands for the stage seat (`mir/shell/rack.js:861-868`).
+
+### The power button is a solid disc
+Josh: "There seems to be a button outline over power buttons. Can you delete all the power button outlines? I just want a deativated vs activated solid color on the power button." **Every power button (the rack cards' heads and the modulation window's) is a solid disc with no outline:** the accent when on, its ⏻ in the accent's ink; the well's tint when off, its ⏻ dim. It keeps that fill under the glass and blend faces (`skin.css` no longer clears it) and inside the 44 px touch target (`mir/css/base.css`, `mir/css/skin.css`; the modulation window's `.m2pow`: `modhost.css:1346-1353`, `modwindow.css`).
+
+### The XY pad's dots are the tint
+Josh: "Also I still see the dark tint of the XY space. Make the dots the same color as the tint and it'll solve the problem of readability. For color let it color like a gradient out like it does now. On light mode, do the opposite ofc". **The pad has no well of its own** (no fill, no inset); the lattice is the tint. A far dot's ink is the new `--xy-lattice-ink` (`var(--glass-well)`, its own alpha included), so the dots are dark on the dark theme and light on the light theme, and they still grade out to the accent toward the point. `--xy-lattice-far` is now a share of the ink's alpha (1 = exactly the tint). `mir/controls/controls.css`, `mir/controls/xy.js`.
+
+### The docked transport is two rows
+Josh: "We can definitely make that transport 2 rows in the rack window. Move the dock and MIR logo button to the right of the back button, then have the BPM to the bottom left, and depth reader the right." **Docked in the rack's TRANSPORT window, the card is one five-column grid:** row 1 play, power, to-start (the back button), the dock chip, the MIR door; row 2 the BPM pill at the left and the app's readout at the right (BASINS' 10ⁿ depth reader); the tempo panel opens under row 2. The bar marks each `app:` node `data-tr-app`, and the kit seats it; with no app node the pill takes the whole row. Every part keeps a fixed cell, so nothing moves with state (`mir/shell/transport.css:264-286`, `mir/shell/transport.js`). `docs/TRANSPORT.md`.
+
+### The modulation window's lamp switches wear no outline
+Josh: "Remove more button outlines for: Rack window power buttons, modulation window light switches like 'OFF' and 'BPM'." The device's switches (INVERT, BPM, ANCHOR, TRIPLET, DOTTED, GATE, TRIG, OFF, the flip and AUDIO IN's source) and the work bar's WALL / FREE and 60 / 120 HZ have no border, rim or ring in either state: OFF is a clear face with its recess lamp, ON the lit frost with the lit lamp. WALL and the cadence keep their accent bar (`mir/modulation/modhost.css:2419-2434`). `docs/MODULATION.md`.
+
+### Tokens, strings, tests
+- 1,369 token rows (1 added): `--xy-lattice-ink` (color, `var(--glass-well)`, on `.mir-xy`, read by `controls/xy.js`). Changed: `--xy-lattice-far` defaults to `1` (was `.22`) and is a share of the ink's alpha. `docs/TOKENS.md` regenerated.
+- 1,494 catalogue keys, unchanged: no new strings.
+- `npm test`: 141/141. New rows in `transport.browser` (the MODULATION dodge with whole rects; the docked two rows at 300 and 372 px; 35 rows) and `modwindow.browser` (no outlines on the lamp switches; 32 rows). Two rows follow the new law: `plugin-intent.browser` (an ON switch wears no rim, was "a thin rim") and `controls.browser` (in the light theme the pad has no fill and its lattice ink resolves; it asked for a pad fill).
+- `docs/ADOPTING-1.5.md` §12: what an adopter changes.
+
+### Choices to overrule
+- **OFF lamps in the dark theme read as faint recess dots** now that their ring is gone.
+- **The HOLD chips and the macro seats keep their hairline**: they are not lamp switches.
+- **`--xy-lattice-far` is 1**: a far dot is exactly the tint, no fainter.
+- **"The back button" was read as ⏮ (to-start)**, since the way back is hidden in the rack; the dock chip and the MIR door sit to its right.
+
+### For Josh's eye
+- Is "no outlines" universal? The card switches (`sw`, the rack cards' lamp switches) keep their thin rim until you say so; only the modulation window's lost theirs.
+- The far dots at exactly the tint are subtle on a dark pane; `--xy-lattice-far` and `--xy-lattice-ink` tune them without code.
+- BASINS needs two lines of its own for this release: `basins.css:26` (no `grid-area` on its docked depth reader) and `shell.js:76` (derive `right` / `bottom` for a `moved` rect). Both are done in its worktree, uncommitted.
+
 ## 1.5.0-alpha.20 — 2026-10-06 · the lattice
 
 Not released: built on branch `worktree-mir-1.5`. A small release: the XY pad's glow becomes a dot matrix, the camera card loses a row, and a title-bar window rises above the rails.
