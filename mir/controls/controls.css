@@ -16,7 +16,17 @@
 .mir-range { --rng-thumb: 18px; --rng-rail: 6px; }                        /* the thumb's disc and the track's groove */
 .rng-t { --rng-face: hsl(var(--glass-tint) / 1); --rng-hair: 0 0 0 1px var(--glass-hairline); --rng-mod: 0 0 0 2px var(--acc2);   /* the puck: the opaque tint (the knob's face), a hairline, accent B's ring when routed */
   --state-hover-wash: inset 0 0 0 99px var(--state-hover, var(--glass-raise)); }
-.mir-xy { --xy-size: 240px; --xy-dot: 14px; --xy-glow-b: 0 0 8px color-mix(in srgb, var(--acc2) 55%, transparent); }   /* AUTOMATA's pad: square, 240 px at most, a 14 px dot, accent B's glow */
+.mir-xy { --xy-size: 240px; --xy-dot: 14px;                              /* AUTOMATA's pad: square, 240 px at most, a 14 px dot */
+  /* the lattice (wave 20): a dot grid that swells toward the point; it replaced the dot's glow (Josh 2026-10-06) */
+  --xy-lattice-n: auto;                              /* dots across: a number, or auto (the pad's side over the pitch) */
+  --xy-lattice-pitch: 10px;                          /* the spacing auto aims at (24 across a 240 px pad) */
+  --xy-lattice-dot: .9px;                            /* a far dot's radius */
+  --xy-lattice-swell: 3.1px;                         /* the radius added at the point (capped just under half the pitch) */
+  --xy-lattice-reach: .35;                           /* the bell's radius, as a fraction of the pad's side */
+  --xy-lattice-hover: .5;                            /* the cursor's swell, as a fraction of the point's (a hover device only) */
+  --xy-lattice-far: .22;                             /* a far dot's ink alpha */
+  --xy-lattice-near: .9;                             /* the alpha at the point, where the ink has become the accent */
+}
 /* ── end of the values ── */
 
 /* ── a switch without a lamp: its label is ON's light, as a trigger's is ── */
@@ -129,13 +139,14 @@ button.mir-step-name:disabled { cursor: default; }
 .xy-pad::before { left: 50%; top: 0; bottom: 0; width: 1px; }
 .xy-pad::after { top: 50%; left: 0; right: 0; height: 1px; }
 .xy-pad:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
+.xy-lattice { position: absolute; inset: 0; display: block; width: 100%; height: 100%; pointer-events: none; }   /* transparent: it draws only dots; the well is the pad's */
 .xy-tag { position: absolute; font-size: var(--fs-micro); letter-spacing: var(--tr-wide); color: var(--ink-faint); pointer-events: none; }
 .xy-tag-bl { left: 6px; bottom: 4px; } .xy-tag-br { right: 6px; bottom: 4px; } .xy-tag-tl { left: 6px; top: 4px; } .xy-tag-tr { right: 6px; top: 4px; }
 .xy-dot, .xy-base { position: absolute; left: calc(var(--x, .5) * 100%); bottom: calc(var(--y, .5) * 100%); width: var(--xy-dot); height: var(--xy-dot); margin: 0 0 calc(var(--xy-dot) / -2) calc(var(--xy-dot) / -2);
   border-radius: 50%; box-sizing: border-box; pointer-events: none; }
 .xy-dot { background: var(--fg-soft); }
-.xy-pad:is(.drag, :focus-visible) .xy-dot { background: var(--acc); box-shadow: var(--acc-glow); }
-.xy-pad.mod .xy-dot { background: var(--acc2); box-shadow: var(--xy-glow-b); }   /* a routed pair: the dot is the modulated value (accent B), the ring is the hand's base */
+.xy-pad:is(.drag, :focus-visible) .xy-dot { background: var(--acc); }
+.xy-pad.mod .xy-dot { background: var(--acc2); }   /* a routed pair: the dot is the modulated value (accent B), the ring is the hand's base; no glow: the lattice's swell shows where it is */
 .xy-base { border: 2px solid var(--acc); }
 .xy-base[hidden] { display: none; }
 .mir-xy-side { display: flex; flex-direction: column; gap: var(--sp-2); align-items: center; }

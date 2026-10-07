@@ -138,6 +138,7 @@ bar.append(seg({ value: document.body.dataset.theme, options: [{ id: 'dark', lab
   W.range = rangeSlider({ label: 'RANGE', min: 0, max: 1, lo: 0.25, hi: 0.75, step: 0.01, fmt: (v) => v.toFixed(2) });
   c.append(W.xy.root, W.range.root);
   rules(c, [['a coupled pair (pan x/y, a point in a plane, az/el)', 'XY PAD + its two knobs', 'J', 'the pad is for the hand; the two knobs stay the modulation targets (AUTOMATA\'s contract); Home or a double-tap centres'],
+    ['where the point is', 'the LATTICE', 'J', '"a dot matrix that grows in size the closer the XY is": the dots swell and take the accent toward the point (it replaced the dot\'s glow); a gentler swell under a hovering cursor'],
     ['a lo/hi range', 'RANGE SLIDER', 'R', 'one track, two thumbs that never cross; each thumb a target']]);
 }
 
