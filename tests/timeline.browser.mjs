@@ -165,7 +165,7 @@ const RUN = await (async () => {
     await E(() => window.__TL.setLanguage('qps')); await page.waitForTimeout(200);
     const qps = await E(() => ({ step: document.querySelector('.tl-toolbar [data-mode="step"]').textContent, snap: document.querySelector('.tl-setting-word').textContent,
       tool: document.querySelector('.tl-tool[data-tool="edit"]').getAttribute('aria-label'), chip: document.querySelector('.mir-rail[data-mir-rail="timeline"] [data-mir-chip="addLane"]').getAttribute('aria-label'),
-      option: document.querySelector('.tl-setting select option').textContent }));
+      option: document.querySelector('.tl-setting .mir-step-text').textContent }));   // SNAP's choice: the kit's stepper (call 19)
     await E(() => window.__TL.setLanguage('en')); await page.waitForTimeout(100);
     L.ck(Object.values(qps).every((s) => s && !/^[A-Za-z ]+$/.test(s)), 'under qps the timeline\'s words translate (tools, settings, options, chips)', qps);
 

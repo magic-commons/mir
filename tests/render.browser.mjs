@@ -58,12 +58,26 @@ try {
   const seated = await page.evaluate(() => { const f = window.__R.folders; return { tab: f.activeTab(), panel: !!f.win.root.querySelector('.mir-render'), chip: !!document.querySelector('[data-mir-chip="render"]'), view: !!window.__R.panel.view() }; });
   L.ck(seated.tab === 'render' && seated.panel && seated.chip && seated.view, 'FOLDERS seats the RENDER panel with its chip on the rail', seated);
   const W = '.mir-folders .mir-render ';
-  await setSelect(W + 'select[data-t-aria="Recording motion"]', 'timeline-active');
-  await setSelect(W + 'select[data-t-aria="Recording format"]', 'png');
-  await setSelect(W + 'select[data-t-aria="Recording resolution"]', 'current');
+  await setSelect(W + '[data-field="motion"]', 'timeline-active');
+  await setSelect(W + '[data-field="format"]', 'png');
+  await setSelect(W + '[data-field="size"]', 'current');
   await page.waitForTimeout(150);
   const est = await page.evaluate((w) => document.querySelector(w + '.sr-record-estimate').textContent, W);
   L.ck(/128 × 72/.test(est) && new RegExp('\\b' + FRAMES + ' frames').test(est) && /beats 1 → 1\.8 at 120 BPM/.test(est) && /numbered lossless PNG frames/.test(est), 'the estimate reads the active range: size, 12 frames, the beats and the tempo', est);
+  /* THE KIT'S OWN CONTROLS (Josh, 2026-10-07, call 19): no native select or number input among the panel's own rows (an app's
+     motion rows, .sr-motion-ui, are the app's); each choice is the kit's SELECT in one row, FPS a SEGMENT; a real press on
+     60 FPS changes the estimate and stores the choice under the select's key, and a real press back restores both */
+  const own = await page.evaluate((w) => { const v = document.querySelector(w.trim()), mine = (n) => !n.closest('.sr-motion-ui');
+    return { natives: [...v.querySelectorAll('select, input[type="number"]')].filter(mine).length, selects: [...v.querySelectorAll('.sr-film .mir-select[data-field]')].map((n) => n.dataset.field).join(),
+      seg: !!v.querySelector('.sr-film .segw[data-field="fps"] .seg'), nums: [...v.querySelectorAll('.sr-film .mir-num[data-field]')].map((n) => n.dataset.field).join(),
+      rows: [...v.querySelectorAll('.sr-film > .sr-row')].map((r) => Math.round(r.getBoundingClientRect().height)).filter((h) => h > 0) }; }, W);
+  await page.locator(W + '[data-field="fps"] .seg-b:nth-child(4)').click(); await page.waitForTimeout(120);
+  const at60 = await page.evaluate((w) => ({ fps: document.querySelector(w + '[data-field="fps"]').value, est: document.querySelector(w + '.sr-record-estimate').textContent, kept: Object.keys(localStorage).filter((k) => /\.fps$/.test(k)).map((k) => localStorage.getItem(k)).join() }), W);
+  await page.locator(W + '[data-field="fps"] .seg-b:nth-child(2)').click(); await page.waitForTimeout(120);
+  const back30 = await page.evaluate((w) => ({ fps: document.querySelector(w + '[data-field="fps"]').value, est: document.querySelector(w + '.sr-record-estimate').textContent }), W);
+  L.ck(own.natives === 0 && own.selects === 'motion,format,size,modulation,timeline' && own.seg && own.nums === 'duration,offset' && own.rows.every((h) => h <= 46)
+      && at60.fps === '60' && at60.kept === '60' && at60.est !== est && back30.fps === '30' && back30.est === est,
+    'RENDER\'s rows are the kit\'s controls, one row each (no native select or number input); a real press on FPS changes the estimate and is stored, and back', { own, at60, back30, est });
   const rowOrder = await page.evaluate((w) => [...document.querySelectorAll(w + '.sr-film .sr-row:not([hidden]) > .sr-label')].filter((n) => !n.closest('.sr-motion-ui[hidden]')).map((n) => n.textContent.trim()), W);
   L.ck(rowOrder.join('|') === 'motion|format|size|fps|modulation|timeline', 'the film rows are BASINS\' (a timeline motion has no length or start: the range is both)', rowOrder);
 
@@ -130,13 +144,13 @@ try {
   await page.evaluate(() => { window.__R.folders.open(); window.__R.folders.tab('render'); });
   await page.waitForTimeout(400);
   const hiddenUi = await page.evaluate((w) => document.querySelector(w + '.sr-motion-ui').hidden, W);
-  await setSelect(W + 'select[data-t-aria="Recording motion"]', 'sweep');
+  await setSelect(W + '[data-field="motion"]', 'sweep');
   await page.waitForTimeout(100);
-  const shownUi = await page.evaluate((w) => ({ hidden: document.querySelector(w + '.sr-motion-ui').hidden, length: !document.querySelector(w + '.sr-record-time[type="number"]:not(.sweep-amount)').closest('.sr-row').hidden, est: document.querySelector(w + '.sr-record-estimate').textContent }), W);
+  const shownUi = await page.evaluate((w) => ({ hidden: document.querySelector(w + '.sr-motion-ui').hidden, length: !document.querySelector(w + '[data-field="duration"]').closest('.sr-row').hidden, est: document.querySelector(w + '.sr-record-estimate').textContent }), W);
   L.ck(hiddenUi === true && shownUi.hidden === false && shownUi.length && /sweep 0\.5/.test(shownUi.est), 'the app motion\'s rows appear when it is chosen (and the length and start rows with them), and add to the estimate', { hiddenUi, shownUi });
   await page.evaluate(() => { const r = window.__R; r.slow.frames.length = 0; window.__saved.length = 0; });
-  await setSelect(W + 'select[data-t-aria="Recording format"]', 'png');
-  await setSelect(W + 'select[data-t-aria="Recording resolution"]', 'current');
+  await setSelect(W + '[data-field="format"]', 'png');
+  await setSelect(W + '[data-field="size"]', 'current');
   await page.evaluate(() => { const d = [...document.querySelectorAll('.mir-folders .sr-record-time:not(.sweep-amount)')]; d[0].value = '0.2'; d[0].dispatchEvent(new Event('change', { bubbles: true })); });   // length: 0.2 s = 6 frames
   L.ck(await press(W + '.sr-film > .sv-primary.trig', 'RENDER (SWEEP)'), 'RENDER was pressed for SWEEP');
   await waitFor((w) => !document.querySelector(w + '.sr-done').hidden, 30000, W);
@@ -157,7 +171,7 @@ try {
   const wantX = Array.from({ length: sweep.frames }, (_, i) => 1 + Math.round(i / Math.max(1, sweep.frames - 1) * 0.5 * 126));
   L.ck(sweep.motion === 'sweep' && sweep.frames === 6 && sweep.xs.every((x, i) => Math.abs(x - wantX[i]) <= 1) && sweep.options.amount === 0.5 && sweep.motionSpec.amount === 0.5,
     'the app motion\'s view reaches the frame: the marker sweeps 0 → 0.5 of the width over 6 frames, and the manifest keeps its options', sweep);
-  await setSelect(W + 'select[data-t-aria="Recording motion"]', 'timeline-active');
+  await setSelect(W + '[data-field="motion"]', 'timeline-active');
 
   /* ── 5 · the preflight and the self-test report; MP4 when this browser can ── */
   const pre = await page.evaluate(async () => { const p = await window.__R.rec.encoderPath({ motion: 'timeline-active', format: 'mp4', size: { w: 128, h: 72 }, fps: 30 }); return { kind: p.kind, codec: p.codec || null, why: p.why }; });
@@ -237,7 +251,7 @@ try {
   /* a changed project refuses a resume: cut a PNG run short (PNG has no checkpoint but the part), so use the store directly */
   /* ── 6 · the run owns the page's input; Escape cancels; CANCEL works; the live rack comes back ── */
   await page.evaluate(() => { const R = window.__R; R.slow.ms = 60; R.slow.frames.length = 0; window.__probe = 0; });
-  await setSelect(W + 'select[data-t-aria="Recording format"]', 'png');
+  await setSelect(W + '[data-field="format"]', 'png');
   const filmSeats = () => page.evaluate((w) => { const f = document.querySelector(w + '.sr-film').getBoundingClientRect();   // in the film section's frame: the panel's scroll is not the hand's
     return [...document.querySelectorAll(w + '.sr-film > .trig, ' + w + '[data-render-cancel]')].map((b) => { const r = b.getBoundingClientRect(); return [r.left - f.left, r.top - f.top, r.width].map(Math.round).join(','); }).join(' '); }, W);
   const seatsIdle = await filmSeats();
@@ -287,7 +301,7 @@ try {
   const C2 = '#rackcard .dev[data-id="rackRender2"] .mir-render ';
   const opened = await page.evaluate((c) => { const v = document.querySelector(c), d = v.closest('.dev');
     const rows = [...v.querySelectorAll('.sr-film .sr-row:not(.sr-prog) > .sr-label')].filter((n) => !n.closest('[hidden]')).map((n) => n.textContent.trim());
-    return { motion: v.querySelector('select[data-t-aria="Recording motion"]').value, rows, mark: !!d.querySelector('.dev-loading .mark'), markCard1: !!document.querySelector('#rackcard .dev[data-id="rackRender"] .dev-loading .mark'),
+    return { motion: v.querySelector('[data-field="motion"]').value, rows, mark: !!d.querySelector('.dev-loading .mark'), markCard1: !!document.querySelector('#rackcard .dev[data-id="rackRender"] .dev-loading .mark'),
       fact: v.querySelector('.sr-keyfact .sr-value').textContent, section: (v.querySelector('.p7-section') || {}).textContent }; }, C2);
   L.ck(opened.motion === 'sweep', 'defaults.motion: the card opens on the app\'s motion (BASINS: ZOOM), nothing stored', opened.motion);
   L.ck(opened.rows.join('|') === 'motion|amount|format|size|fps|length|speed|start at|modulation|timeline', 'row(…, \'length\') seats a motion\'s row under LENGTH (BASINS\' SPEED), the rest under MOTION', opened.rows);
@@ -301,7 +315,7 @@ try {
   await page.mouse.click(sp.x, sp.y);
   for (const k of ['End', 'Backspace', 'Backspace', 'Backspace', '4', 'Tab']) await page.keyboard.press(k);
   await page.waitForTimeout(150);
-  const len = await page.evaluate((c) => ({ length: document.querySelector(c + 'input[data-t-aria="Recording duration in seconds"]').value, est: document.querySelector(c + '.sr-record-estimate').textContent, seen: window.__p7 }), C2);
+  const len = await page.evaluate((c) => ({ length: document.querySelector(c + '[data-field="duration"]').value, est: document.querySelector(c + '.sr-record-estimate').textContent, seen: window.__p7 }), C2);
   L.ck(len.length === '0.250' && /\b8 frames\b/.test(len.est) && len.seen && len.seen.fps === '30', 'the motion\'s row writes LENGTH through fields.length (4 per second → 0.250 s, 8 frames) and reads fields.fps', len);
   /* a paint that throws refuses the run with its sentence */
   await page.evaluate(() => { window.__breakPaint = true; });

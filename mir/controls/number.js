@@ -16,9 +16,11 @@
  *   bindNumber({ button, input, model, parse, enabled, drag, click, paint, chars, step, range, signal })   (click: false leaves the click to the host)
  *     model  { get(), set(v), commit?(), min?, max?, round?(v) } — what createTempo hands the tempo field, as it is
  *     → { open(), close(take), editing, destroy() }
- *   number({ label, aria, min, max, value, step, digits, fmt, parse, unit, chars, range, drag, onInput, onChange, cls })
+ *   number({ label, aria, min, max, value, step, snap, digits, fmt, parse, unit, chars, range, drag, onInput, onChange, cls })
  *     → { root, face, input, get, set(x), setDisabled(on), open(), close(take), editing, destroy() }
- *     onInput(v) while a drag or a key moves it; onChange(v) when a gesture, a typed number or a key lands.  set(x) is silent. */
+ *     onInput(v) while a drag or a key moves it; onChange(v) when a gesture, a typed number or a key lands.  set(x) is silent.
+ *     snap: false keeps a typed or set number as it is (clamped, not rounded to `step`), as a native number input's value is:
+ *     the keys and the drag still move by `step` (the RENDER panel's LENGTH, which an app writes to the millisecond). */
 import { el, label, ariaLabel, watchTouches, verticalDrag, setKnobLaw } from '../kit.js';
 import { drag as pointerDrag } from '../core/pointer.js';
 import { setText, setAttr } from '../core/perf.js';
@@ -95,7 +97,7 @@ export function number(o = {}) {
   face.setAttribute('role', 'spinbutton');
   if (Number.isFinite(min)) face.setAttribute('aria-valuemin', String(min)); if (Number.isFinite(max)) face.setAttribute('aria-valuemax', String(max));
   let v = Number.isFinite(o.value) ? o.value : (Number.isFinite(min) ? min : 0), def = v, disabled = false;
-  const settle = (x) => numberTravel(x, 0, { min, max, step });
+  const settle = (x) => numberTravel(x, 0, { min, max, step: o.snap === false ? 0 : step });
   const paint = () => { setText(face, fmt(v)); setAttr(face, 'aria-valuenow', String(v)); setAttr(face, 'aria-valuetext', fmt(v)); };
   const model = { get: () => v, min, max,
     set(x) { x = settle(x); if (x !== v) { v = x; paint(); if (o.onInput) o.onInput(v); } },

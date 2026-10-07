@@ -192,8 +192,12 @@
 .mir-win.mir-timeline .tl-toolbar > .tl-folded { display: none; }   /* folded behind ⋯ (after the icon rule: it wins the tie) */
 .mir-timeline .tl-setting { display: flex; align-items: center; gap: var(--tl-bar-gap); padding: var(--tl-action-pad); height: var(--tl-setting-h); box-sizing: border-box; border-radius: var(--tl-action-r); white-space: nowrap; }
 .mir-timeline .tl-select-wrap { position: relative; display: inline-flex; align-items: center; flex: none; }
-.mir-timeline .tl-select-wrap select.sel { -webkit-appearance: none; appearance: none; font: inherit; font-size: var(--tl-action-size); color: inherit; padding: var(--tl-select-pad); border-radius: var(--tl-select-r); }
-.mir-timeline .tl-select-wrap select.sel.tl-action { padding: var(--tl-scope-pad); border-radius: var(--tl-action-r); height: var(--tl-setting-h); min-height: var(--tl-setting-h); letter-spacing: normal; }
+/* THE KIT'S OWN CHOOSERS, never a native select (Josh, 2026-10-07, call 19): the scope is a SEGMENT at the tools' height (its
+   track 34 px: 28 px segments in the well's 2 px), and SNAP a compact STEPPER whose name wears the select's well and chevron —
+   its seat is its longest word (the stepper's own), so a choice moves nothing */
+.mir-win.mir-timeline .tl-toolbar .tl-scope-seg .seg-b { min-height: var(--tl-setting-h); height: var(--tl-setting-h); font-size: var(--tl-action-size); letter-spacing: var(--tl-action-track); }
+.mir-timeline .tl-select-wrap .mir-step-name { min-width: 0; min-height: var(--tl-setting-h); height: var(--tl-setting-h); padding: var(--tl-select-pad); border-radius: var(--tl-select-r);
+  font-size: var(--tl-action-size); color: inherit; background: var(--glass-well); box-shadow: var(--relief-well, var(--neu-inset)); }
 .mir-timeline .tl-select-wrap::after { content: ''; position: absolute; right: 9px; top: 50%; width: var(--tl-chevron); height: var(--tl-chevron); border-right: var(--tl-chevron-w) solid currentColor; border-bottom: var(--tl-chevron-w) solid currentColor;
   transform: translateY(-70%) rotate(45deg); pointer-events: none; opacity: var(--tl-chevron-fade); }
 @media (pointer: coarse) { .mir-win.mir-timeline .tl-toolbar :is(.tl-action, .tl-setting) { height: var(--touch); min-height: var(--touch); } }

@@ -44,8 +44,8 @@
  * view.state() → { motion, motions: [[id, label]], format, size, fps, estimate, status, progress, running,
  *                  plan: { frames, startFrame, fps, range } | null (null while the rows refuse), held: { w, h, bytes } | null,
  *                  done: { name, bytes } | null (the finished film's first file, until DISCARD) }
- * Every row is a kit control or a native select, hit-testable; touch targets are 44 px. */
-import { el, label, ariaLabel, hint, trig, seg, device } from '../kit.js';
+ * Every row is a kit control (never a native select or number input: call 19, 2026-10-07), hit-testable; touch targets are 44 px. */
+import { el, label, hint, trig, seg, select, number, device } from '../kit.js';
 import { glyphEl, setGlyph } from '../glyph.js';
 import { t } from '../core/i18n.js';
 import { RECORD_FPS, fmtBytes, fmtMs, fmtClock } from './plan.js';
@@ -151,30 +151,46 @@ export function createRenderView(parent, o = {}) {
   /* ── the FILM: one deterministic pipeline for stationary recordings, timeline ranges and the app's own motions ── */
   const film = section('sr-record sr-film', 'DETERMINISTIC RENDER');
   label(el('div', 'sv-note', film), 'Exact video time, fixed resolution, complete frames. The active project supplies the colours and rack.');
-  const select = (text, aria, choices, current) => {
-    const line = row(film, text, aria), input = el('select', 'sel sr-sel', line);
-    ariaLabel(input, aria);
-    for (const [id, name] of choices) { const op = el('option', '', input); op.value = id; label(op, name); }
-    input.value = choices.some(([id]) => id === current) ? current : choices[0][0];
-    return input;
+  /* THE KIT'S OWN CONTROLS, never a native <select> or type=number (Josh, 2026-10-07, call 19; docs/CONTROLS.md): each choice
+     is the kit's SELECT in the native one's seat (one row: BASINS' rows, whose long words a segment would wrap onto two to
+     four lines), FPS — four short modes, all visible — a SEGMENT on its one row; a number is the NUMBER FIELD.  Each one's
+     root is a FIELD — `value` (a string), `disabled`, and a 'change' event when the hand changes it — the surface the rows
+     below and an app's motion rows (BASINS' SPEED writes LENGTH, then dispatches 'change') already speak, so the values,
+     the events and the stored keys are the selects' and inputs'. */
+  const asField = (root, key, read, write, disable) => {
+    let off = false; root.dataset.field = key;
+    Object.defineProperty(root, 'value', { get: () => String(read()), set: (v) => write(String(v)), configurable: true });
+    Object.defineProperty(root, 'disabled', { get: () => off, set: (on) => { off = !!on; disable(off); }, configurable: true });
+    return root;
   };
-  const number = (text, aria, val, min, max, step, unit) => {
-    const line = row(film, text, aria), x = el('input', 'sel sr-sel sr-record-time', line);
-    x.type = 'number'; x.min = min; x.max = max; x.step = step; x.value = val; ariaLabel(x, aria);
-    label(el('span', 'sr-unit', line), unit); return x;
+  const choice = (key, text, aria, choices, current, kind = 'select') => {
+    const line = row(film, text, aria), items = choices.map(([id, name]) => ({ id, label: name })), value = choices.some(([id]) => id === current) ? current : choices[0][0];
+    const changed = () => ctl.root.dispatchEvent(new Event('change'));
+    const ctl = kind === 'segment' ? seg({ aria, options: items, value, onChange: changed }) : select({ aria, items, value, onChange: changed });
+    if (kind === 'segment') line.classList.add('sr-' + key + '-row');   // the rack card lays a segment's row out (render.css .sr-fps-row)
+    ctl.root.classList.add('sr-sel'); line.appendChild(ctl.root);
+    return asField(ctl.root, key, () => ctl.get(), (v) => ctl.set(v),
+      (on) => { if (ctl.setDisabled) ctl.setDisabled(on); else for (const b of ctl.root.querySelectorAll('button')) b.disabled = on; });
+  };
+  const num = (key, text, aria, val, min, max, step, unit) => {
+    const line = row(film, text, aria), v = Number.parseFloat(val);
+    const n = number({ aria, min, max, step, snap: false, fmt: (x) => String(+x.toFixed(3)), value: Number.isFinite(v) ? v : min, onChange: () => n.root.dispatchEvent(new Event('change')) });   // snap: false — a written 0.25 s stays 0.25 (the input's value never rounded to its step)
+    n.root.classList.add('sr-record-time'); line.appendChild(n.root); label(el('span', 'sr-unit', line), unit);
+    let raw = String(val);                                   // the value as it was written ("0.250"), while the number is still that
+    return asField(n.root, key, () => (Number.parseFloat(raw) === n.get() ? raw : String(n.get())), (s) => { const x = Number.parseFloat(s); if (Number.isFinite(x)) { raw = s; n.set(x); } }, (on) => n.setDisabled(on));
   };
   const motionChoices = Object.entries(rec.motions()).map(([id, m]) => [id, m.label]);
-  const motion = select('motion', 'Recording motion', motionChoices, get('motion', (o.defaults && o.defaults.motion) || 'still'));
+  const motion = choice('motion', 'motion', 'Recording motion', motionChoices, get('motion', (o.defaults && o.defaults.motion) || 'still'));
   const isTimeline = () => motion.value === 'timeline-active' || motion.value === 'timeline-selection';
-  const recFormat = select('format', 'Recording format', [['mp4', 'MP4 · HIGH BITRATE'], ['png', 'PNG FRAMES · LOSSLESS']], get('format', 'mp4'));
+  const recFormat = choice('format', 'format', 'Recording format', [['mp4', 'MP4 · HIGH BITRATE'], ['png', 'PNG FRAMES · LOSSLESS']], get('format', 'mp4'));
   const sizes = [['1080p', '1920 × 1080'], ['1440p', '2560 × 1440'], ['2160p', '3840 × 2160']];
   if (rec.hasCurrentSize()) sizes.push(['current', 'CURRENT DEVICE WINDOW']);
-  const recSize = select('size', 'Recording resolution', sizes, get('size', '1080p'));
-  const recFps = select('fps', 'Recording frame rate', RECORD_FPS.map((v) => [String(v), v + ' FPS']), get('fps', String((o.defaults && o.defaults.fps) || 30)));
-  const recDuration = number('length', 'Recording duration in seconds', get('duration', '60'), 0.1, 3600, 0.1, 'SECONDS');
-  const recOffset = number('start at', 'Recording start offset in seconds', get('offset', '0'), 0, 3600, 0.1, 'SECONDS');
-  const modSelect = select('modulation', 'Recording modulation', [['off', 'OFF · FREEZE THIS LOOK'], ['on', 'ON · FROM FIRST SPACE']], get('modulation', 'off'));
-  const timelineSelect = select('timeline', 'Recording Timeline automation', [['on', 'ON · FROM BEAT ZERO'], ['off', 'OFF · BYPASS AUTOMATION']], get('timeline', 'on'));
+  const recSize = choice('size', 'size', 'Recording resolution', sizes, get('size', '1080p'));
+  const recFps = choice('fps', 'fps', 'Recording frame rate', RECORD_FPS.map((v) => [String(v), v + ' FPS']), get('fps', String((o.defaults && o.defaults.fps) || 30)), 'segment');
+  const recDuration = num('duration', 'length', 'Recording duration in seconds', get('duration', '60'), 0.1, 3600, 0.1, 'SECONDS');
+  const recOffset = num('offset', 'start at', 'Recording start offset in seconds', get('offset', '0'), 0, 3600, 0.1, 'SECONDS');
+  const modSelect = choice('modulation', 'modulation', 'Recording modulation', [['off', 'OFF · FREEZE THIS LOOK'], ['on', 'ON · FROM FIRST SPACE']], get('modulation', 'off'));
+  const timelineSelect = choice('timeline', 'timeline', 'Recording Timeline automation', [['on', 'ON · FROM BEAT ZERO'], ['off', 'OFF · BYPASS AUTOMATION']], get('timeline', 'on'));
   label(el('div', 'sv-note', film), 'Modulation ON replays the rack from its first Space edge. Timeline ON replays clips from beat zero. Both skip to “start at”. With both OFF, the current look is frozen. Escape cancels.');
   /* the app's motions: their rows are seated under MOTION, or under the panel row a row names (BASINS: SPEED under LENGTH); one
      holder per motion and seat, shown only while that motion is chosen */
@@ -359,7 +375,7 @@ export function createRenderView(parent, o = {}) {
 
   const paint = () => { paintSubject(); paintPicture(); if (!rec.running() && !starting) paintEstimate(); void paintPath(); void paintRecoveries(); };
   paint();
-  const state = () => ({ motion: motion.value, motions: [...motion.options].map((op) => [op.value, op.textContent]), format: recFormat.value, size: recSize.value, fps: recFps.value,
+  const state = () => ({ motion: motion.value, motions: motionChoices.map(([id, name]) => [id, t(name)]), format: recFormat.value, size: recSize.value, fps: recFps.value,
     estimate: estimate.textContent, status: renderStatus.textContent, progress: prog.textContent, running: rec.running(),
     plan: ready ? { frames: ready.plan.frames, startFrame: ready.plan.startFrame, fps: ready.plan.fps, range: ready.range || null } : null,
     held: held ? { w: held.w, h: held.h, bytes: held.bytes } : null,

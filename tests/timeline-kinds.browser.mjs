@@ -113,7 +113,7 @@ const RUN = await (async () => {
     await page.keyboard.press('p');
 
     // ---- 7. the toolbar: no UNDO · REDO · − · +, the keys still work; ACTIVE is there; the icons when lane I lands --
-    const bar = await S(() => { const bs = [...document.querySelectorAll('.tl-toolbar button')];
+    const bar = await S(() => { const bs = [...document.querySelectorAll('.tl-toolbar > button')];   // the bar's own buttons (the scope segment and the SNAP stepper hold theirs)
       return { hooks: bs.map(b => b.dataset.tool || b.dataset.mode || ''), svg: ['edit', 'select', 'scrub'].map(n => !!document.querySelector(`.tl-toolbar .tl-tool[data-tool="${n}"] svg`)), help: ['edit', 'select', 'scrub'].map(n => document.querySelector(`.tl-toolbar .tl-tool[data-tool="${n}"]`)?.dataset.help) }; });
     L.ck(bar.hooks.join() === 'edit,select,scrub,slice,step,slide,active,more', 'the toolbar has no UNDO/REDO/−/+; it has ACTIVE and SLICE', bar.hooks);
     L.ck(bar.svg.every(Boolean), 'lane I\'s icons are in the three tool buttons', bar);

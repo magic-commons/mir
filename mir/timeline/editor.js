@@ -28,7 +28,7 @@
  * key table (keys.js timelineActions: this file only exposes the verbs); toasts through `say`; the frame coalescer is
  * core/frame.js; the popups are the house's menu pane; BASINS' CURVE_VIEW numbers live in geometry.js. */
 import { svgPoint, curveHit, curveAction, pointDrag, pointAddValue, tensionDelta } from '../modulation/curve-gesture.js';
-import { el, label, ariaLabel } from '../kit.js';
+import { el, label, ariaLabel, seg, stepper, number } from '../kit.js';
 import { glyphSvg } from '../glyph.js';
 import { frame } from '../core/frame.js';
 import { isField } from '../core/pointer.js';
@@ -73,10 +73,15 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   // The tools keep their word as the accessible name and the hint (data-help) when the icon takes the face.
   const toolButtons=new Map();for(const[name,text]of TOOLS){const b=button(toolbar,text,()=>setTool(name),'tl-tool');b.dataset.tool=name;b.dataset.keyAction='timeline.tool-'+name;b.setAttribute('aria-pressed',String(name===tool));ariaLabel(b,text);b.dataset.help=text;
     if(TIMELINE_ICONS[name]){b.textContent='';delete b.dataset.t;b.insertAdjacentHTML('beforeend',TIMELINE_ICONS[name]);b.querySelector('svg')?.setAttribute('aria-hidden','true');b.classList.add('tl-icon');}toolButtons.set(name,b);}
-  const scopeWrap=el('span','tl-select-wrap',toolbar),ss=el('select','sel tl-scope tl-action',scopeWrap);ariaLabel(ss,'Selection scope');for(const[value,name]of SCOPES){const o=el('option','',ss);label(o,name);o.value=value;}   // tr: what a selection picks: whole clips or curve points
-  ss.onchange=()=>{finish(null,true);scope=ss.value;setTool('select');};
-  const snapLabel=el('label','tl-setting',toolbar),snapWord=el('span','tl-setting-word',snapLabel),snapWrap=el('span','tl-select-wrap',snapLabel),sn=el('select','sel',snapWrap);label(snapWord,'SNAP');ariaLabel(sn,'Timeline snap');
-  for(const[value,name]of SNAPS){const o=el('option','',sn);label(o,name);o.value=value;if(value===1)o.selected=true;}sn.onchange=()=>{finish(null,true);snap=Number(sn.value);};
+  /* THE KIT'S OWN CHOOSERS, NEVER A NATIVE <select> (Josh, 2026-10-07, call 19; docs/CONTROLS.md): the scope is one of two
+     modes, all visible — a SEGMENT; SNAP is one of five in order — a STEPPER, compact (its name opens the list, ← → ↑ ↓ step
+     it), whose seat is its longest word, so a choice moves nothing (the hand law).  Same values, same effects as the selects. */
+  const scopeCtl={get:()=>scope,set(v){finish(null,true);scope=v;scopeSeg.set(v);setTool('select');}};
+  const scopeSeg=seg({aria:'Selection scope',options:SCOPES.map(([id,name])=>({id,label:name})),value:scope,cls:'tl-scope-seg',onChange:v=>scopeCtl.set(v)});   // tr: what a selection picks: whole clips or curve points
+  scopeSeg.root.querySelector('.seg').classList.add('tl-scope');toolbar.appendChild(scopeSeg.root);const scopeWrap=scopeSeg.root;
+  const snapLabel=el('div','tl-setting',toolbar),snapWord=el('span','tl-setting-word',snapLabel);label(snapWord,'SNAP');
+  const snapStep=stepper({aria:'Timeline snap',items:SNAPS.map(([id,name])=>({id,label:name})),value:snap,compact:true,cls:'tl-snap',onChange:v=>{finish(null,true);snap=v;}});el('span','tl-select-wrap',snapLabel).appendChild(snapStep.root);
+  const snapCtl={get:()=>snap,set(v){finish(null,true);snap=v;snapStep.set(v);}};
   const modeButton=(name,read,write,title,id)=>{const b=button(toolbar,name,()=>{write(!read());b.setAttribute('aria-pressed',String(read()));b.classList.toggle('on',read());surface.classList.toggle('tl-step-mode',stepMode&&tool==='edit');paintSelection();});b.dataset.mode=id;b.setAttribute('aria-pressed','false');b.title=title;return b;};
   const stepButton=modeButton('STEP',()=>stepMode,v=>stepMode=v,'Draw on Snap. Shift draws pulses. Snap OFF uses 1/16 beat.','step');
   const slideButton=modeButton('SLIDE',()=>slideMode,v=>slideMode=v,'Move following point times together.','slide');
@@ -94,10 +99,10 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   const mirrorRow=(src,text)=>()=>{const row=button(menu,{raw:''},()=>{closeMenu();src.click();},'tl-row');row.dataset.fold=src.dataset.tool||src.dataset.mode;
     const icon=src.querySelector('svg');if(icon)row.appendChild(icon.cloneNode(true));word(el('span','tl-row-word',row),text);withKey(row,src.dataset.tool&&'tool-'+src.dataset.tool);
     const on=src.getAttribute('aria-pressed');if(on){row.setAttribute('aria-pressed',on);row.classList.toggle('on',on==='true');}return row;};
-  const choiceRow=(id,select,rows,title,text)=>r=>{const now=rows.find(([v])=>String(v)===select.value)||rows[0];
-    const row=button(menu,{raw:text(t(now[1]))},()=>pop(r.left,r.bottom,title,rows.map(([v,w])=>[w,()=>{select.value=String(v);select.onchange();},id+'-'+v,String(v)===select.value]),id),'tl-row');row.dataset.fold=id;return row;};
+  const choiceRow=(id,ctl,rows,title,text)=>r=>{const now=rows.find(([v])=>v===ctl.get())||rows[0];
+    const row=button(menu,{raw:text(t(now[1]))},()=>pop(r.left,r.bottom,title,rows.map(([v,w])=>[w,()=>ctl.set(v),id+'-'+v,v===ctl.get()]),id),'tl-row');row.dataset.fold=id;return row;};
   const fold=[...[...toolButtons].map(([name,b])=>({node:b,row:mirrorRow(b,TOOLS.find(x=>x[0]===name)[1])})),
-    {node:scopeWrap,row:choiceRow('scope',ss,SCOPES,'Selection scope',value=>t('SCOPE · {value}',{value}))},{node:snapLabel,row:choiceRow('snap',sn,SNAPS,'SNAP',value=>t('SNAP · {value}',{value}))},   // tr: a folded setting's row in the ⋯ list: its name · the choice in force
+    {node:scopeWrap,row:choiceRow('scope',scopeCtl,SCOPES,'Selection scope',value=>t('SCOPE · {value}',{value}))},{node:snapLabel,row:choiceRow('snap',snapCtl,SNAPS,'SNAP',value=>t('SNAP · {value}',{value}))},   // tr: a folded setting's row in the ⋯ list: its name · the choice in force
     {node:stepButton,row:mirrorRow(stepButton,'STEP')},{node:slideButton,row:mirrorRow(slideButton,'SLIDE')},{node:activeButton,row:mirrorRow(activeButton,'ACTIVE')}];
   let shown=fold.length,fitBooked=false;const widths=new Map();
   function fit(){
@@ -171,17 +176,16 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   function editPointValues(x,y,clip,curve,index) {
     const p=curve.points[index],sourceBeat=p.t*curve.length;
     pop(x,y,'POINT TIME / VALUE',[],'point-values');menu.setAttribute('role','dialog');ariaLabel(menu,'Point time and value');
-    const form=el('form','tl-point-form',menu);
-    const timeLabel=el('label','tl-field',form),time=el('input','tl-value-input',timeLabel);timeLabel.prepend(label(el('span','tl-field-word'),'TIME · BEATS FROM 0'));
-    const valueLabel=el('label','tl-field',form),value=el('input','tl-value-input',valueLabel);valueLabel.prepend(label(el('span','tl-field-word'),'VALUE · 0 TO 1'));
-    for(const input of [time,value]){input.type='number';input.step='any';input.required=true;input.min=0;}
-    time.value=clip.start+(sourceBeat-clip.offset)/clip.scale;ariaLabel(time,'Point time in beats');
-    value.value=p.v;value.max=1;ariaLabel(value,'Point value');
-    const apply=()=>{if(!form.reportValidity())return;const beat=clip.offset+(time.valueAsNumber-clip.start)*clip.scale;if(beat<0){time.setCustomValidity(t('This time is before the source begins.'));time.reportValidity();return;}
-      const edited=model.movePoint(curve.id,index,beat,value.valueAsNumber,{slide:slideMode});if(edited?.index>=0)closeMenu();};
-    time.addEventListener('input',()=>time.setCustomValidity(''));
-    form.addEventListener('submit',e=>{e.preventDefault();apply();});
-    button(form,'APPLY',apply).dataset.tlAction='apply';button(form,'CANCEL',closeMenu).dataset.tlAction='cancel';placeMenu(x,y);time.focus();time.select();
+    /* the kit's NUMBER FIELD, never a native type=number (Josh, 2026-10-07, call 19): drag, type, keys; it opens on the time,
+       its number selected, as the input did; Enter in either takes the number and applies, as the form's submit did */
+    const form=el('div','tl-point-form',menu);
+    const field=(text,aria,o)=>{const f=el('div','tl-field',form);label(el('span','tl-field-word',f),text);const n=number({aria,digits:3,...o});n.root.classList.add('tl-value-num');f.appendChild(n.root);return n;};
+    const time=field('TIME · BEATS FROM 0','Point time in beats',{min:0,value:clip.start+(sourceBeat-clip.offset)/clip.scale});
+    const value=field('VALUE · 0 TO 1','Point value',{min:0,max:1,value:p.v});
+    const apply=()=>{for(const n of [time,value])if(n.editing)n.close(true);const beat=clip.offset+(time.get()-clip.start)*clip.scale;if(beat<0){say(t('This time is before the source begins.'));return;}
+      const edited=model.movePoint(curve.id,index,beat,value.get(),{slide:slideMode});if(edited?.index>=0)closeMenu();};
+    for(const n of [time,value])n.input.addEventListener('keydown',e=>{if(e.key==='Enter')apply();});   // after the field's own Enter has taken the number
+    button(form,'APPLY',apply).dataset.tlAction='apply';button(form,'CANCEL',closeMenu).dataset.tlAction='cancel';placeMenu(x,y);time.open();
   }
   function fieldMenu(x,y,curve,index,clip) {
     const p=curve.points[index],hold=index>0&&curve.points[index-1].segment==='hold';
@@ -203,7 +207,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
       ['TITLE / COLOR',()=>editIdentity(x,y,curve),'identity'],
       [c.mute?'UNMUTE':'MUTE',()=>model.updateClip(c.id,{mute:!c.mute}),'mute'],
       ['DUPLICATE',()=>{selectOnly(c.id);duplicateSelection();},'duplicate'],
-      ...(drives?[['OUTPUT RANGE',()=>{pop(x,y,'NORMALIZED MIN / MAX',[],'range');const lo=el('input','tl-value-input',menu),hi=el('input','tl-value-input',menu);ariaLabel(lo,'Output minimum');ariaLabel(hi,'Output maximum');for(const i of [lo,hi]){i.type='number';i.min=0;i.max=1;i.step=.01;}lo.value=curve.min;hi.value=curve.max;button(menu,'APPLY',()=>{if(!Number.isFinite(lo.valueAsNumber)||!Number.isFinite(hi.valueAsNumber))return;model.updateCurve(curve.id,{min:lo.valueAsNumber,max:hi.valueAsNumber});closeMenu();}).dataset.tlAction='apply';},'output-range']]:[]),
+      ...(drives?[['OUTPUT RANGE',()=>{pop(x,y,'NORMALIZED MIN / MAX',[],'range');const num=(aria,v)=>{const n=number({aria,min:0,max:1,step:.01,value:v});n.root.classList.add('tl-value-num');menu.appendChild(n.root);return n;};const lo=num('Output minimum',curve.min),hi=num('Output maximum',curve.max);button(menu,'APPLY',()=>{for(const n of [lo,hi])if(n.editing)n.close(true);model.updateCurve(curve.id,{min:lo.get(),max:hi.get()});closeMenu();}).dataset.tlAction='apply';},'output-range']]:[]),   // the kit's number fields (call 19)
       ...(kind?[]:[['ADD MIDPOINT',()=>{const beat=c.offset+c.duration*c.scale/2;model.addPoint(curve.id,beat,evaluateTimelineSource(curve,beat));},'add-midpoint']]),
       ['STRETCH ×2',()=>model.updateClip(c.id,{duration:c.duration*2,scale:c.scale/2}),'stretch'],
       ...(kind?.menu?.(curve,c,{model,editor:api})||[]),
@@ -299,7 +303,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
     const p=curve.points[index];begin(e,{kind:'points',clip:c,curve,index,indices:[...pointSelection.indices],pointBeat:p.t*curve.length,pointValue:p.v},true);paintSelection();
   }
   listen(surface,'pointerdown',e=>{
-    if(drag)return;const target=e.target;if(target.closest('select,input,.tl-action,.tl-clip-more,.tl-transport-host'))return;
+    if(drag)return;const target=e.target;if(target.closest('select,input,.tl-action,.tl-scope-seg,.tl-setting,.tl-clip-more,.tl-transport-host'))return;
     if(surface.contains(target)){surface.focus({preventScroll:true});}
     closeMenu();cancelConfirm();
     if(e.button===1){begin(e,{kind:'pan',scrollX:viewport.scrollLeft,scrollY:viewport.scrollTop});return;}
@@ -393,7 +397,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   const api={surface,transportHost,toolbar,createClip,addClip,at,model,paint,px:()=>px,view,act,onShortcuts:null,
     range:()=>range?{...range}:null,activeRange,setActiveRange,onDrop(fn){dropHandlers.add(fn);return()=>dropHandlers.delete(fn);},
     slice:(ids,beat)=>sliceAt(ids,beat,true),tool:()=>tool,setTool(name){finish(null,true);if(toolButtons.has(name))setTool(name);},gesture:()=>drag?{kind:drag.kind,clip:drag.clip?.id??null,curve:drag.curve?.id??null,index:drag.index??null,edge:drag.edge??null}:null,paintHead:()=>headPaint.paint(),selected:()=>selected,selection:()=>({clips:[...selection],points:pointSelection?[...pointSelection.indices]:[]}),workLane:()=>workLane,setWorkLane,
-    snap:()=>snap,setSnap(v){snap=Number(v)||0;sn.value=String(snap);},scope:()=>scope,
+    snap:()=>snap,setSnap(v){snap=Number(v)||0;snapStep.set(snap);},scope:()=>scope,
     /** how many of the bar's tools are folded behind MORE (the bar keeps one line; they fold from its end) */
     folded:()=>fold.length-shown,
     /** the timeline's keys are live: the window is open and the focus is in the surface, not in a field or the transport */

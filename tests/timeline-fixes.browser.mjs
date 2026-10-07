@@ -167,6 +167,16 @@ const RUN = await (async () => {
     const more = page.locator(`.tl-clip-title[data-clip="${ids.a}"] .tl-clip-more`);
     await more.click();
     L.ck(await page.locator('.tl-pop').count() === 1, 'the ⋯ button still opens the clip menu', await page.locator('.tl-pop').count());
+    // OUTPUT RANGE is the kit's number fields, never a native type=number (Josh, 2026-10-07, call 19): ↑ on MIN, APPLY → +0.01
+    const minBefore = await page.evaluate(id => { const m = window.__TL.tl.editor.model, c = m.state().clips.find(x => x.id === id); return m.state().curves.find(cc => cc.id === c.curveId).min; }, ids.a);
+    await page.locator('.tl-pop [data-row="output-range"]').click(); await page.waitForTimeout(40);
+    const range = await page.evaluate(() => { const p = document.querySelector('.tl-pop[data-pop="range"]'); return p && { nums: p.querySelectorAll('.mir-num [role="spinbutton"]').length,
+      natives: document.querySelectorAll('.mir-timeline select, .mir-timeline input[type="number"], .tl-pop select, .tl-pop input[type="number"]').length, faces: [...p.querySelectorAll('.mir-num-face')].map((f) => f.textContent) }; });
+    L.ck(range && range.nums === 2 && range.natives === 0, 'OUTPUT RANGE: two kit number fields; no native select or number input in the timeline or its popups', range);
+    await page.locator('.tl-pop[data-pop="range"] .mir-num-face').first().focus(); await page.keyboard.press('ArrowUp'); await page.waitForTimeout(30);
+    await page.locator('.tl-pop[data-pop="range"] [data-tl-action="apply"]').click(); await page.waitForTimeout(40);
+    const minAfter = await page.evaluate(id => { const m = window.__TL.tl.editor.model, c = m.state().clips.find(x => x.id === id); return m.state().curves.find(cc => cc.id === c.curveId).min; }, ids.a);
+    L.ck(Math.abs(minAfter - minBefore - .01) < 1e-9 && await page.locator('.tl-pop').count() === 0, 'its keys move it by its step and APPLY sets the curve\'s output minimum', { minBefore, minAfter });
     await page.keyboard.press('Escape'); await page.waitForTimeout(30);
 
     // elementFromPoint still resolves a point circle (an interior one: t=0/t=1 sit under the edge

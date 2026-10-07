@@ -112,9 +112,14 @@
 .mir-render .sr-record .sr-row, .mir-render .sr-route { min-height: var(--render-touch-h); }
 .mir-render[data-seat="card"] .sr-record .sr-row { min-height: var(--render-row-h); }
 .mir-render .sr-sel { flex: 1 1 0; min-width: 0; max-width: 100%; min-height: var(--render-touch-h); }
+.mir-render .mir-select.sr-sel .mir-sel-b { width: 100%; min-width: 0; min-height: var(--render-touch-h); }   /* the kit's SELECT fills the native one's seat (call 19), so its words never resize it */
 .mir-render .sr-record-time { box-sizing: border-box; width: var(--render-time-w); flex: 0 1 var(--render-time-w); padding: 0 8px;
   border: 1px solid var(--glass-hairline); border-radius: var(--r-sm); background: var(--glass-well); box-shadow: var(--relief-well, var(--neu-inset));
   color: var(--fg); font: var(--w-semi) var(--fs-base)/1 var(--font-mono); }
+/* LENGTH and START AT are the kit's NUMBER FIELD (call 19): its face is the well, in the input's seat, size and face */
+.mir-render .mir-num.sr-record-time { --num-w: 100%; padding: 0; border: 0; background: none; box-shadow: none; }
+.mir-render .mir-num.sr-record-time :is(.mir-num-box, .mir-num-face, .mir-num-in) { width: 100%; }
+.mir-render .mir-num.sr-record-time :is(.mir-num-face, .mir-num-in) { padding: 0 8px; border-color: var(--glass-hairline); border-radius: var(--r-sm); font: var(--w-semi) var(--fs-base)/1 var(--font-mono); }
 .mir-render .sr-record .sr-unit { color: var(--ink-faint); font: var(--w-semi) var(--fs-micro)/1 var(--font-ui); letter-spacing: var(--render-unit-track); }
 .mir-render .sr-arrow { color: var(--dim); }
 .mir-render .sr-record-estimate { color: var(--fg-soft); font-family: var(--font-mono); }
