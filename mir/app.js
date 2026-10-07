@@ -28,6 +28,7 @@ import { registerProjectPart } from './core/project.js';
 import { createDescribe, dumpLines } from './core/describe.js';
 import { frame } from './core/frame.js';
 import { installWakeLock } from './core/wakelock.js';
+import { installKbm, kbm } from './core/kbm.js';
 import { createSession } from './core/session.js';
 import { installControlHelp } from './control-help.js';
 import { wordmark } from './shell/wordmark.js';
@@ -133,7 +134,7 @@ export function makeParam({ state, key, label = String(key).toUpperCase(), min =
  *                  board, the ring); the greeting rests beside it, never under the bar or a rack (default: none)
  *   → { first, param, params, playing(), play(), pause(), safeRect(), hideInterface(), dump(), rack, keys, gui, accent,
  *       transport, mod, pattern, timeline, workspaces, pages, notebook, folders, info, greeting, help, menubar, describe, floats, banner, sceneGuard,
- *       wakeLock, session, history, recorder, keyboard }   (also window.__MIR.app, the live shell object for a rig or the console: BASINS' __BASINS)
+ *       wakeLock, session, history, recorder, keyboard, kbm }   (kbm: core/kbm.js, the live pointer; also window.__MIR.app, the live shell object for a rig or the console: BASINS' __BASINS)
  *   The app's `present()` is also called when the theme or the look changes and when a window opens or closes.
  */
 export async function createApp(o = {}) {
@@ -145,6 +146,10 @@ export async function createApp(o = {}) {
 
   /* 0. THE BANNER first, so a problem anywhere below is on the screen (BASINS: "the only debugger on an iPad") */
   const banner = want('banner') ? installBanner({ host: stage, ...opt(o.banner) }) : null;
+
+  /* 0. THE LIVE POINTER (core/kbm.js): touch or precision by the pointer in use, not the device class — before any
+        piece asks it, so a trackpad on an iPad hovers like the desktop from the first move */
+  installKbm();
 
   /* 0. A FIRST RUN?  Asked before anything is saved: nothing stored → every window stays closed (the opener law) */
   const first = firstRun(key + '.transport', key + '.rack', key + '.modulation');
@@ -390,7 +395,7 @@ export async function createApp(o = {}) {
     play: () => (tr ? tr.play() : clock && !clock.isPlaying() ? clock.play() : null),
     pause: () => (tr ? tr.pause() : clock && clock.isPlaying() ? clock.pause() : null),
     accent, gui, keys, transport: tr, rack, mod, pattern, timeline, workspaces: ws, pages, notebook, folders, info, greeting, help, menubar, describe, floats,
-    banner, sceneGuard, wakeLock, session, history: hist, recorder, keyboard: kb };
+    banner, sceneGuard, wakeLock, session, history: hist, recorder, keyboard: kb, kbm };
   (globalThis.__MIR = globalThis.__MIR || {}).app = app;     // the live shell object for a rig or the console (BASINS' window.__BASINS)
   return app;
 }

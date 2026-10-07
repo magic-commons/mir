@@ -1184,11 +1184,13 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 #modwin.mir-modwindow .m2dev .m2swb:active,
 #modwin.mir-modwindow .m2dev .m2chk:active,
 #modwin.mir-modwindow .m2dev .m2flipb:active { color: var(--m2-ink-soft); }
-@media (hover: hover) {
-  #modwin.mir-modwindow .m2dev .m2swb:hover,
-  #modwin.mir-modwindow .m2dev .m2chk:hover,
-  #modwin.mir-modwindow .m2dev .m2flipb:hover { color: var(--fg); }
-}                                                                                                      /* 38 */
+/* 1.5.0 wave 21: every hover in this sheet follows the LIVE pointer (core/kbm.js), not `(hover: hover)` — a trackpad on
+   an iPad hovers, a finger leaves no sticky hover.  `:where(:root:not(.kbm-touch))` adds no weight, so every ladder below
+   keeps the specificity it was measured at; a page without the layer keeps its hover. */
+:where(:root:not(.kbm-touch)) #modwin.mir-modwindow .m2dev .m2swb:hover,
+:where(:root:not(.kbm-touch)) #modwin.mir-modwindow .m2dev .m2chk:hover,
+:where(:root:not(.kbm-touch)) #modwin.mir-modwindow .m2dev .m2flipb:hover { color: var(--fg); }
+                                                                                                    /* 38 */
 
 
 #modwin.mir-modwindow .m2workbar { background: var(--m2-mat-chassis); }                /* 39 */
@@ -1238,9 +1240,8 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 #modwin.mir-modwindow .m2preset .m2gl {
   stroke: var(--ink-key); }
 #modwin.mir-modwindow .m2preset.on .m2gl { stroke: var(--acc); filter: none; }
-@media (hover: hover) {
-  #modwin.mir-modwindow .m2preset:hover .m2gl { stroke: var(--fg); }
-}                                                                                                      /* 46 */
+:where(:root:not(.kbm-touch)) #modwin.mir-modwindow .m2preset:hover .m2gl { stroke: var(--fg); }
+                                                                                                    /* 46 */
 
 /* 47 · THE REORDER ARROWS GO — the switch is reach-list 18 itself, turned off at source (see there).
    18b STAYS: the head's middle track still needs the bank told not to shrink. */
@@ -1253,11 +1254,9 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 #modwin.mir-modwindow .m2maccap {
   border-color: transparent; background: transparent; color: var(--ink-key);
   filter: var(--m2-chip-ink-drop); }
-@media (hover: hover) {
-  #modwin.mir-modwindow .m2mac:hover {
+:where(:root:not(.kbm-touch)) #modwin.mir-modwindow .m2mac:hover {
     filter: var(--m2-mac-hover-drop);
     color: var(--fg); }
-}
 #modwin.mir-modwindow .m2mac.on { border-color: transparent; }      /* 49 */
 
 
@@ -1516,9 +1515,8 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin.mir-modwindow .m2railhead .m2chev { flex: 0 0 auto; }
 /* RETIRED wave 105 — 81: entry 88 sets 40px on this exact selector, later. */
 #modwin.mir-modwindow .m2rail.m2railmin .m2railhead .m2chev { transform: rotate(-90deg); }
-@media (hover: hover) {
-  #modwin.mir-modwindow .m2railhead:hover { color: var(--m2-ink-hi); background-color: var(--state-hover, var(--m2-hover)); }   /* L41 */
-}                                                                                                      /* 81 */
+:where(:root:not(.kbm-touch)) #modwin.mir-modwindow .m2railhead:hover { color: var(--m2-ink-hi); background-color: var(--state-hover, var(--m2-hover)); }   /* L41 */
+                                                                                                    /* 81 */
 
 
 #modwin.mir-modwindow .m2gridline,
@@ -1528,14 +1526,13 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 
 #modwin.mir-modwindow .m2dev.lfo .m2mid,
 #modwin.mir-modwindow .m2dev.env .m2mid { opacity: 0; transition: opacity var(--t-fast); }
-@media (hover: hover) {
-  #modwin.mir-modwindow .m2dev.lfo .m2edit:hover .m2mid,
-  #modwin.mir-modwindow .m2dev.env .m2edit:hover .m2mid { opacity: 1; }
-}
+:where(:root:not(.kbm-touch)) #modwin.mir-modwindow .m2dev.lfo .m2edit:hover .m2mid,
+:where(:root:not(.kbm-touch)) #modwin.mir-modwindow .m2dev.env .m2edit:hover .m2mid { opacity: 1; }
+/* the touch reveal: on a device without hover, unless the pointer in use is a cursor (then it is the desktop's hover) */
 @media (hover: none) {
-  #modwin.mir-modwindow .m2dev.lfo .m2mid,
-  #modwin.mir-modwindow .m2dev.env .m2mid { opacity: 1; }
-}                                                                                                      /* 83 */
+  :where(:root:not(.kbm-precision)) #modwin.mir-modwindow .m2dev.lfo .m2mid,
+  :where(:root:not(.kbm-precision)) #modwin.mir-modwindow .m2dev.env .m2mid { opacity: 1; }
+}                                                                                                    /* 83 */
 
 
 #modwin.mir-modwindow .m2pt { fill: var(--acc); stroke: none; }
@@ -1627,7 +1624,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin.mir-modwindow .m2pow svg.mir-power-icon .mir-power-stem[stroke] { stroke-width: var(--m2-pow-stem-sw); }
 #modwin.mir-modwindow .m2pow .mir-power-halo { display: none; }
 #modwin.mir-modwindow svg.mir-power-icon :is(.mir-power-ring, .mir-power-stem)[stroke] { stroke-width: var(--m2-power-sw); }   /* the glyph's strokes are attributes: the window's weight is a token (the [stroke] outranks the glyph-weight rule in modwindow.css) */
-@media (hover: hover) { #modwin.mir-modwindow .modxport:hover .mir-power-icon { transform: scale(var(--m2-power-hover-scale)); } }
+:where(:root:not(.kbm-touch)) #modwin.mir-modwindow .modxport:hover .mir-power-icon { transform: scale(var(--m2-power-hover-scale)); }
 #modwin.mir-modwindow .modxport:active .mir-power-icon { transform: scale(var(--m2-power-press-scale)); }
 @media (prefers-reduced-motion: reduce) {
   #modwin.mir-modwindow .modxport :is(.mir-power-icon, .mir-power-halo, .mir-power-ring) { transition: none; transform: none; } }
@@ -1690,11 +1687,10 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle:active,
 #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle .m2lfocmplabel {
   color: var(--m2-ink-soft); }
-@media (hover: hover) {
-  #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle:hover,
-  #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle:hover .m2lfocmplabel {
+:where(:root:not(.kbm-touch)) #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle:hover,
+:where(:root:not(.kbm-touch)) #modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle:hover .m2lfocmplabel {
     color: var(--fg); }
-}                                                                                                     /* 102 */
+                                                                                                    /* 102 */
 
 
 #modwin.mir-modwindow .m2dev.m2cmp.env .m2body {
@@ -1794,9 +1790,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
   overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: center;
   cursor: pointer; color: var(--m2-ink-soft);
   font: var(--m2-lfowave-font); letter-spacing: var(--label-tracking, var(--m2-tr-06)); }
-@media (hover: hover) {
-  #modwin.mir-modwindow .m2dev.lfo .m2presets .m2lfowave:hover { color: var(--fg); }
-}
+:where(:root:not(.kbm-touch)) #modwin.mir-modwindow .m2dev.lfo .m2presets .m2lfowave:hover { color: var(--fg); }
 /* a DRAWN curve is not one of the six analytic waves, and the cycler says so by standing down to the
    faint rung rather than naming a wave the engine is not running */
 #modwin.mir-modwindow .m2dev.lfo .m2presets .m2lfowave:active { color: var(--acc); }  /* 104 */
@@ -1836,15 +1830,13 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 .kwin-chiprail[data-mir-rail] .crail-chip .crail-ink,
 .kwin-chiprail[data-mir-rail] .kwin-grip-dots {
   filter: var(--m2-chip-ink-drop); }
-@media (hover: hover) {
-  #modwin.mir-modwindow .m2workbar button:not(.modtempo):hover,
-  .kwin-chiprail[data-mir-rail] .crail-chip:hover,
+:where(:root:not(.kbm-touch)) #modwin.mir-modwindow .m2workbar button:not(.modtempo):hover,
+:where(:root:not(.kbm-touch)) .kwin-chiprail[data-mir-rail] .crail-chip:hover,
   /* ⟡ WAVE 105 · THE GLYPH HAD TO BE NAMED, not left to inherit.  `.crail-ink` carries its own
      `color: var(--ink-key)` from entry 32 at (0,7,0); the chip's hover above is (0,6,1) and sets the
      colour on the PARENT, so the chip's own text lit and the drawing inside it did not.  A descendant
      with its own colour never inherits one.  Named here, the whole chip moves as one object. */
-  .kwin-chiprail[data-mir-rail] .crail-chip:hover .crail-ink { color: var(--fg); }
-}
+:where(:root:not(.kbm-touch)) .kwin-chiprail[data-mir-rail] .crail-chip:hover .crail-ink { color: var(--fg); }
 #modwin.mir-modwindow .m2workbar button:not(.modtempo):active {
   background-color: var(--state-press, var(--glass-press)); }
 
@@ -2292,10 +2284,8 @@ body[data-theme="light"] #modwin.mir-modwindow .m2devadd {
 #modwin.mir-modwindow .m2dev.lfo .m2preset.on {
   background: var(--state-on, var(--m2-mat-frost)); border-color: var(--m2-mat-edge); }
 /* L41 · HOVER is a lighter face on every plugin button, not ink alone and not a ring */
-@media (hover: hover) {
-  #modwin.mir-modwindow button:not(:disabled):not(.on):not(:active):hover,
-  #modwin.mir-modwindow .kctl:not(.ctl-frozen):not(.on):not(:active):hover { background-color: var(--state-hover, var(--m2-hover)); }
-}
+:where(:root:not(.kbm-touch)) #modwin.mir-modwindow button:not(:disabled):not(.on):not(:active):hover,
+:where(:root:not(.kbm-touch)) #modwin.mir-modwindow .kctl:not(.ctl-frozen):not(.on):not(:active):hover { background-color: var(--state-hover, var(--m2-hover)); }
 
 
 /* ══ 1.5.0 · RE-ASSERTED: modwindow.css rules that out-ranked this sheet in 1.4 ══ */

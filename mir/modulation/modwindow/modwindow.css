@@ -2243,11 +2243,10 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 
 /* M4/M5 interaction depth. Hover is a neutral lift; pressing moves inward.
    No rule here changes the semantic state colours established in MOD-UI-008. */
-@media (hover: hover) {
-  #modwin.mir-modwindow button:not(:disabled):hover,
-  #modwin.mir-modwindow .kctl:not(.ctl-frozen):hover {
+/* hover follows the live pointer (core/kbm.js), not `(hover: hover)`; :where() adds no weight */
+:where(:root:not(.kbm-touch)) #modwin.mir-modwindow button:not(:disabled):hover,
+:where(:root:not(.kbm-touch)) #modwin.mir-modwindow .kctl:not(.ctl-frozen):hover {
     box-shadow: var(--m2-button-hover-shadow); }   /* 1.5.0-alpha.3: the ring went (INTENT: hover is a lighter face, never a ring); the face is modhost.css's */
-}
 #modwin.mir-modwindow button:active:not(:disabled), #modwin.mir-modwindow [role="slider"].drag {
   background-color: var(--m2-face-k10);
   box-shadow: var(--m2-button-press-shadow); }

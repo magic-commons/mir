@@ -102,7 +102,8 @@ function createLattice(pad) {
   const ro = new ResizeObserver(() => { W = pad.clientWidth; H = pad.clientHeight; box = null; want(); });
   ro.observe(pad);
   const offTheme = onThemeChange(want);
-  /* the cursor: a hover device under the full motion policy only (the kit's pointer-effect rule); the box is read on entering */
+  /* the cursor: a pointer in precision use (core/kbm.js: a trackpad on an iPad counts) under the full motion policy only
+     (the kit's pointer-effect rule, fxEnv); the box is read on entering */
   const at = (e) => { if (!box) { box = pad.getBoundingClientRect(); bl = pad.clientLeft; bt = pad.clientTop; } cx = e.clientX - box.left - bl; cy = e.clientY - box.top - bt; };
   pad.addEventListener('pointerenter', (e) => {
     if (e.pointerType === 'touch' || !fxAllowed(fxEnv(pad.ownerDocument))) return;

@@ -119,7 +119,9 @@ body.frost.frost-hold[data-card="refractive"] .mir-rail { --chip-fill: var(--sur
   transition: background-color var(--motion-micro) var(--ease-out), transform var(--motion-micro) var(--ease-out);
 }
 .mir-win-btn > svg { width: var(--win-head-glyph); height: var(--win-head-glyph); pointer-events: none; }
-@media (hover: hover) { .mir-win-btn:hover { background: var(--state-hover, var(--glass-raise)); color: var(--fg); } }
+/* hover follows the LIVE pointer (core/kbm.js, 1.5.0 wave 21), not `(hover: hover)`: a trackpad on an iPad hovers, a
+   finger never leaves a sticky hover; :where() adds no weight, and a page without the layer keeps its hover */
+:where(:root:not(.kbm-touch)) .mir-win-btn:hover { background: var(--state-hover, var(--glass-raise)); color: var(--fg); }
 .mir-win-btn:is(:active, .press) { background: var(--state-press, var(--glass-press)); color: var(--fg); transform: scale(var(--win-head-press)); }
 .mir-win-btn:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
 /* a finger: the bar and its buttons a touch target tall */
@@ -182,11 +184,9 @@ body.touch-tablet .mir-win { --win-head-h: var(--touch); --win-head-btn: var(--t
 .mir-chip:is(.on, .drag, .armed)::before {
   background-image: linear-gradient(var(--chip-on), var(--chip-on)); box-shadow: var(--surface-shadow, var(--glass-shadow)), var(--chip-on-rim);   /* the pane shadow (the cast, under the engine) and the rim, as BASINS' chip */
 }
-/* HOVER — a lighter face and a small lift, only where there is a hover */
-@media (hover: hover) {
-  .mir-chip:hover { color: var(--fg); }
-  .mir-chip:hover::before { background-image: linear-gradient(var(--chip-lift), var(--chip-lift)); transform: translate(-50%, -50%) scale(var(--chip-hover-scale)); }
-}
+/* HOVER — a lighter face and a small lift, only while the pointer in use hovers (core/kbm.js: not under a finger) */
+:where(:root:not(.kbm-touch)) .mir-chip:hover { color: var(--fg); }
+:where(:root:not(.kbm-touch)) .mir-chip:hover::before { background-image: linear-gradient(var(--chip-lift), var(--chip-lift)); transform: translate(-50%, -50%) scale(var(--chip-hover-scale)); }
 /* PRESS — it sinks, for a mouse (:active) and for a finger (.press, core/pointer.js installPress) */
 .mir-chip:is(:active, .press) { color: var(--fg); }
 .mir-chip:is(:active, .press)::before {

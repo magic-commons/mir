@@ -23,7 +23,9 @@
  *   · THE COST IS SHOWN.  QUALITY carries a reading of what the look costs (the panes that blur, the shadows and shine
  *     layers drawn, the frame time over 30 frames), taken only while the window is open on OPTIONS and only after a
  *     change; and each theme shows the reading taken when it was applied, beside its name.
- *   · The pointer glow and the parallax (mir/fx/) are installed here, because their two switches live here.
+ *   · The pointer glow and the parallax (mir/fx/) are installed here, because their two switches live here; and so is
+ *     the live input layer (core/kbm.js), whose override is MOTION › POINTER · AUTO / TOUCH / PRECISION (a device
+ *     setting kept by core/kbm.js under its own key, never in the look store or a project).
  *
  * createGui({ host, prefs, app: { name, version }, about, accent, defaults, storageKey, inkSampler, tierBench, sampling,
  *             projectAccent, rack, forget }) →
@@ -69,6 +71,7 @@ import { richText, safeHref } from './about.js';
 import { THEMES, themeById, themeValues, toneValues, matchTone } from './themes.js';
 import { createPointerLight } from '../fx/pointer-light.js';
 import { createParallax } from '../fx/parallax.js';
+import { installKbm, kbm, hoverable } from '../core/kbm.js';
 
 /** the kit's version, as package.json says it (the release step keeps the two in step) */
 import { MIR_VERSION } from '../version.js'; export { MIR_VERSION };   // one constant: mir/version.js
@@ -300,7 +303,10 @@ export async function measureTier({ bench = uiBench, storage = globalThis.localS
 }
 
 /** touchTablet(doc, signal) — body.touch-tablet on an iPad (one that says it is a Mac included) or a coarse pointer on a
- *  screen wider than a phone, followed live (BASINS skin.js syncTablet).  The GUI window installs it. */
+ *  screen wider than a phone, followed live (BASINS skin.js syncTablet).  The GUI window installs it.
+ *  GEOMETRY ONLY (1.5.0 wave 21): it means "a tablet-class screen" — 44 px heads, the rack takes the touch, the float
+ *  clamp.  Every BEHAVIOUR (hover, the menubar's hover, the cursor effects, the hold before a card lifts) follows the
+ *  live pointer instead (core/kbm.js: html.kbm-precision / html.kbm-touch), so a trackpad on an iPad is a desktop. */
 export function touchTablet(doc = globalThis.document, signal) {
   const win = doc.defaultView, mq = win.matchMedia ? win.matchMedia(TOUCH_TABLET_MQ) : null;
   const sync = () => doc.body.classList.toggle('touch-tablet', isIPad(win.navigator) || !!(mq && mq.matches));
@@ -337,7 +343,8 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   const schema = lookSchema({ tier: () => (tierReading ? tierReading.tier : null) }).map((r) => (r.key in defaults ? { ...r, default: defaults[r.key] } : r));
   if (!prefs) migrateShadow(storageKey, win);
   const P = prefs || createPrefs({ key: storageKey, schema, presets: LOOK_PRESETS, context: ctx });
-  const light = createPointerLight({ doc, enabled: () => P.get('glow') });
+  installKbm({ doc });                                               // the live pointer (touch vs precision), before the pointer effects ask it; once per page
+  const light =createPointerLight({ doc, enabled: () => P.get('glow') });
   const plx = createParallax({ doc, enabled: () => P.get('parallax') });
   ctx.fx = () => { light.refresh(); plx.refresh(); };
   touchTablet(doc, life.signal);
@@ -464,6 +471,15 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   /* MOTION */
   g = groupEl('motion', phrase('MOTION'));
   line(g).append(segOf('motion', phrase('MOTION'), [['auto', phrase('AUTO'), phrase('Follow the system')], ['full', phrase('FULL', 'motion')], ['reduced', phrase('REDUCED'), phrase('Fades only: nothing travels')], ['off', phrase('OFF'), phrase('Nothing animates')]]).root);
+  /* POINTER (1.5.0 wave 21, BASINS' "Input" row): AUTO follows the pointer in use — a trackpad on an iPad hovers like a
+     desktop, a finger does not; the two pins are for judging it on the device.  A device setting core/kbm.js keeps. */
+  const ptrSeg = seg({ label: phrase('POINTER'), value: kbm.pref(), onChange: (v) => kbm.setPref(v),
+    options: [{ id: 'auto', label: phrase('AUTO'), title: phrase('Follow the pointer in use: a mouse or trackpad hovers, a finger does not') },
+      { id: 'touch', label: phrase('TOUCH', 'pointer'), title: phrase('Always behave as under a finger: no hover') },
+      { id: 'precision', label: phrase('PRECISION', 'pointer'), title: phrase('Always behave as under a mouse: hover, menus on hover, the cursor effects') }] });
+  line(g).append(ptrSeg.root);
+  const offKbm = kbm.onChange((s, why) => { if (why === 'pref') ptrSeg.set(s.pref); });
+  life.signal.addEventListener('abort', offKbm);
   line(g, 'gui-sws').append(swOf('glow', phrase('POINTER GLOW'), phrase('A soft light follows the pointer over lit surfaces (never on touch)')).root,
     swOf('parallax', phrase('PARALLAX'), phrase('Marked layers drift against the pointer (never on touch)')).root);
   line(g, 'gui-sws').append(swOf('dropGuides', phrase('DROP GUIDES'), phrase('The dotted guide where a dragged window will land')).root,
@@ -547,7 +563,7 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   let turning = [];
   const STEP_MS = 240;
   logo.addEventListener('pointerenter', (e) => {
-    if (e.pointerType === 'touch' || doc.documentElement.dataset.motion !== 'full') return;
+    if (!hoverable(e) || doc.documentElement.dataset.motion !== 'full') return;
     const tiles = [...logoArt.querySelectorAll('rect')]; if (tiles.length !== 9) return;
     const cols = tiles.map((t) => t.getAttribute('fill'));
     turning = tiles.map((t, i) => t.animate(cols.map((_, k) => ({ fill: cols[(i + k) % 9] })).concat([{ fill: cols[i] }]),

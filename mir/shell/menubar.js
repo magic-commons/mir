@@ -6,6 +6,8 @@
  *
  * THE LAWS IT CARRIES (λWAVES' own words where they exist)
  *   · Hovering the wordmark shows the bar; leaving both for 400 ms hides it.  A touch never opens it by hover.
+ *     THE LIVE POINTER DECIDES (core/kbm.js, 1.5.0 wave 21): a mouse, a pen or an iPad's trackpad hovers exactly as on
+ *     the desktop, whatever the device class; a finger — or a person who pinned POINTER · TOUCH — never hovers.
  *   · It is a DISCLOSURE, not an ARIA menubar: the wordmark is a role=button with aria-expanded, a keyboard open
  *     moves focus to the first group, and Tab walks the rest (λWAVES wave 62 says why the full menubar contract
  *     earns nothing for a duplicate surface).
@@ -50,6 +52,7 @@ import { setVar } from '../core/perf.js';
 import { frame } from '../core/frame.js';
 import { copyText } from './clipboard.js';
 import { notice } from './notice.js';
+import { hoverable } from '../core/kbm.js';
 
 /** comingRow(name, hint) — a disabled row for a window that is not built yet (BASINS: '○  JULIA  (coming)') */
 export const comingRow = (name, hint = '') => ['○  ' + name + '  (coming)', () => {}, () => true, hint];
@@ -121,7 +124,7 @@ export function createMenubar({ opener, host, menus, label, phone, keep } = {}) 
     };
     fills.set(list, fill);
     btn.addEventListener('click', (e) => { e.stopPropagation(); const was = openList === list; closeLists(); if (!was) { fill(); list.hidden = false; fitList(list); btn.setAttribute('aria-expanded', 'true'); openList = list; } });
-    btn.addEventListener('pointerenter', (e) => { if (e.pointerType === 'touch' || !openList || openList === list) return; closeLists(); fill(); list.hidden = false; fitList(list); btn.setAttribute('aria-expanded', 'true'); openList = list; });
+    btn.addEventListener('pointerenter', (e) => { if (!hoverable(e) || !openList || openList === list) return; closeLists(); fill(); list.hidden = false; fitList(list); btn.setAttribute('aria-expanded', 'true'); openList = list; });
   }
   let barTimer = 0;
   /* ON A PHONE the bar may not run off the screen: it gets the width from the wordmark to the edge and wraps onto a
@@ -153,7 +156,7 @@ export function createMenubar({ opener, host, menus, label, phone, keep } = {}) 
   };
   const hide = () => { closeLists(); barShown(false); };
   const hideBarSoon = () => { clearTimeout(barTimer); barTimer = setTimeout(() => { if (!openList) barShown(false); }, 400); };
-  opener.addEventListener('pointerenter', (e) => { if (e.pointerType !== 'touch') showBar(); }, on);
+  opener.addEventListener('pointerenter', (e) => { if (hoverable(e)) showBar(); }, on);
   opener.addEventListener('click', () => { if (bar.hidden) showBar(); else hide(); }, on);
   opener.addEventListener('keydown', (e) => {
     if (e.ctrlKey || e.metaKey || e.altKey) return;

@@ -12,8 +12,9 @@
  *   · STILL COSTS NOTHING.  No move, no event, no frame: there is no timer and no rAF of its own.
  *   · OFF COSTS NOTHING.  While it is off there is no listener at all.  It is off on a coarse pointer (touch), under a
  *     motion policy that is not 'full' (core/motion.js), in the flat tier (`data-ui-tier="flat"`), and when the app's
- *     switch says so (`enabled()`, the GUI's POINTER GLOW).  `refresh()` re-asks all four; the coarse-pointer query
- *     and the motion media query re-ask by themselves.
+ *     switch says so (`enabled()`, the GUI's POINTER GLOW).  `refresh()` re-asks all four; the live input mode
+ *     (core/kbm.js: touch vs precision, by the pointer in use, not the device) and the motion media query re-ask by
+ *     themselves.
  *   · `<html data-pointer-light>` is present exactly while it is live, so the CSS draws nothing when it is not.
  *
  * createPointerLight({ doc, enabled }) → { refresh(), destroy(), get live() }
@@ -22,21 +23,23 @@
 import { frame } from '../core/frame.js';
 import { rect, setVar, setAttr } from '../core/perf.js';
 import { motionPolicy } from '../core/motion.js';
+import { kbm, pointerCoarse } from '../core/kbm.js';
 
 /** fxAllowed({ coarse, motion, tier }) — may a pointer effect run?  Not on touch, not under reduced or no motion, not flat */
 export const fxAllowed = ({ coarse, motion, tier }) => !coarse && motion === 'full' && tier !== 'flat';
 
-/** what the page says right now, for fxAllowed */
+/** what the page says right now, for fxAllowed.  `coarse` is the LIVE pointer (core/kbm.js, 1.5.0 wave 21): a trackpad
+ *  on an iPad is a cursor although its primary pointer reports coarse; with no input layer, the media query as before */
 export function fxEnv(doc = document) {
-  const win = doc.defaultView;
-  return { coarse: !!(win.matchMedia && win.matchMedia('(pointer: coarse)').matches), motion: motionPolicy(), tier: doc.documentElement.dataset.uiTier || 'full' };
+  return { coarse: pointerCoarse(doc), motion: motionPolicy(), tier: doc.documentElement.dataset.uiTier || 'full' };
 }
 
-/** watch the two media queries an effect's off rules hang on; → unwatch */
+/** watch what an effect's off rules hang on — the live input mode and the two media queries; → unwatch */
 export function watchFxMedia(doc, fn) {
   const win = doc.defaultView, qs = win.matchMedia ? ['(pointer: coarse)', '(prefers-reduced-motion: reduce)'].map((q) => win.matchMedia(q)) : [];
   for (const q of qs) q.addEventListener && q.addEventListener('change', fn);
-  return () => { for (const q of qs) q.removeEventListener && q.removeEventListener('change', fn); };
+  const offMode = kbm.onChange((s, why) => { if (why === 'mode' || why === 'pref') fn(); });
+  return () => { offMode(); for (const q of qs) q.removeEventListener && q.removeEventListener('change', fn); };
 }
 
 export function createPointerLight({ doc = document, enabled = () => true } = {}) {

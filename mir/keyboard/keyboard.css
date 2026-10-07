@@ -88,7 +88,7 @@
 .km-key.km-key-conflict { box-shadow: var(--state-on-rim, var(--neu-flat)), var(--km-conflict); }
 /* HOVER: a lighter face over whatever face it has; PRESSED: the wash and the small scale; FOCUS: the ring outside */
 .km-key.km-key-hovered { background-image: linear-gradient(var(--state-hover, var(--glass-raise)), var(--state-hover, var(--glass-raise))); }
-@media (hover: hover) { .km-key:hover { background-image: linear-gradient(var(--state-hover, var(--glass-raise)), var(--state-hover, var(--glass-raise))); } }
+:where(:root:not(.kbm-touch)) .km-key:hover { background-image: linear-gradient(var(--state-hover, var(--glass-raise)), var(--state-hover, var(--glass-raise))); }   /* the live pointer hovers (core/kbm.js) */
 .km-key:active { background-color: var(--state-press, var(--glass-press)); scale: var(--state-press-scale, .96); }
 .km-key:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; z-index: 1; overflow: visible; }
 
@@ -118,7 +118,7 @@
   display: grid; grid-template-columns: minmax(0, 1fr) 118px; align-items: center; gap: 5px;
   background-color: transparent; color: var(--fg-soft); cursor: pointer; text-align: start; transition: background-color var(--t-fast), scale var(--t-fast); }
 .km-action-row.km-action-row-hovered { background-image: linear-gradient(var(--state-hover, var(--glass-raise)), var(--state-hover, var(--glass-raise))); }
-@media (hover: hover) { .km-action-row:hover { background-image: linear-gradient(var(--state-hover, var(--glass-raise)), var(--state-hover, var(--glass-raise))); } }
+:where(:root:not(.kbm-touch)) .km-action-row:hover { background-image: linear-gradient(var(--state-hover, var(--glass-raise)), var(--state-hover, var(--glass-raise))); }
 .km-action-row:active { background-color: var(--state-press, var(--glass-press)); scale: var(--state-press-scale, .96); }
 .km-action-row:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
 .km-action-row.km-action-row-selected { background-color: var(--state-on, var(--glass-raise)); box-shadow: var(--state-on-rim, var(--neu-flat)); }

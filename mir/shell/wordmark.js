@@ -25,6 +25,7 @@
  *
  * wordmark(parent, { lead, word, sub, id, svg, mark }) → the #title element */
 import { motionPolicy } from '../core/motion.js';
+import { hoverable } from '../core/kbm.js';
 const SVG = 'http://www.w3.org/2000/svg';
 /** MIR's nine swatches, in JL-LOGOS/light/mir-light.svg's rainbow-diamond row order (BASINS brand-motion.js) */
 export const MIR_PALETTE = Object.freeze(['#f15b66', '#f5bf5e', '#5bcfc2', '#f58b53', '#68cb83', '#767fd3', '#bad969', '#5ca9e4', '#b979d0']);
@@ -66,7 +67,7 @@ export function installPaletteCycle(target, tiles, colors = MIR_PALETTE) {
   const stop = () => { if (timer) view.clearTimeout(timer); timer = 0; offset = 0; paint(); };
   const step = () => { timer = 0; if (!hovered) return; offset = (offset + 1) % colors.length; paint(); timer = view.setTimeout(step, PALETTE_STEP); };
   const start = () => { if (!hovered || timer || motionPolicy() !== 'full' || doc.hidden) return; timer = view.setTimeout(step, PALETTE_STEP); };
-  const enter = (e) => { if (e.pointerType !== 'mouse') return; hovered = true; start(); };
+  const enter = (e) => { if (e.pointerType !== 'mouse' || !hoverable(e)) return; hovered = true; start(); };   // the live pointer (core/kbm.js): an iPad's trackpad is a mouse; a pinned TOUCH never hovers
   const leave = () => { hovered = false; stop(); };
   const visibility = () => { if (doc.hidden) leave(); };
   const life = new AbortController(), on = { signal: life.signal };
