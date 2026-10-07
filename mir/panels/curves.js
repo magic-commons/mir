@@ -35,10 +35,10 @@ import { handWrite } from '../modulation/registry.js';
 import { evaluate, normalizePoints, addPoint, removePoint, movePoint, setTension } from '../modulation/curve.js';
 import { svgPoint, curveHit, pointDrag, tensionDelta } from '../modulation/curve-gesture.js';
 import { pictureFilter } from './picture-filter.js';
+import { TAP } from '../controls/gesture.js';           // the kit's one double-tap: 300 ms and 14 px (Josh, 2026-10-07, call 20)
 
 const W = 256;                                         // the plot's viewBox side: one unit per table entry
 const OUT_PX = 24;                                     // a point dragged this far outside the plot is removed on release (Photoshop)
-const DOUBLE_MS = 320;                                 // two presses this close are a double-tap (the kit's tapWatcher)
 let uid = 0;
 const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
 
@@ -105,7 +105,7 @@ export function curveEditor(o = {}) {
   const path = svgEl('path', 'cv-path', svg);
   const tens = svgEl('g', 'cv-tens', svg), dots = svgEl('g', 'cv-dots', svg);
   const X = (t) => t * W, Y = (v) => (1 - v) * W;
-  let sel = -1, drag = null, last = { at: 0, kind: null, i: -1 }, histBins = null;
+  let sel = -1, drag = null, last = { at: 0, x: 0, y: 0, kind: null, i: -1 }, histBins = null;
   const pointsNow = () => (drag && drag.pts ? (drag.out ? removePoint(drag.pts, drag.i).points : drag.pts) : o.get());
 
   function paint() {
@@ -146,8 +146,8 @@ export function curveEditor(o = {}) {
       return;
     }
     if (e.button !== 0) return;
-    const now = performance.now(), twice = now - last.at < DOUBLE_MS && last.kind === hit.kind && last.i === hit.i && hit.kind !== null;
-    last = { at: twice ? 0 : now, kind: hit.kind, i: hit.i };
+    const now = performance.now(), twice = now - last.at < TAP.ms && Math.hypot(e.clientX - last.x, e.clientY - last.y) <= TAP.px && last.kind === hit.kind && last.i === hit.i && hit.kind !== null;
+    last = { at: twice ? 0 : now, x: e.clientX, y: e.clientY, kind: hit.kind, i: hit.i };
     if (hit.kind === 'point' && (twice || e.altKey)) {                      // a double-tap (or Alt) removes a point; never an end
       if (!isEnd(pts, hit.i)) { const r = removePoint(pts, hit.i); if (r.removed) { sel = -1; commit(r.points); } }
       return;

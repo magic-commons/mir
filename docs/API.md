@@ -69,7 +69,7 @@ Notes on the builders:
 |---|---|
 | `setKnobLaw({ travel, fine, keyFine, faderFine, touchTravel })` | Retunes the law and returns the law in force. Defaults (1.5.0-alpha.13): `travel 220`, `fine 8`, `keyFine .125`, `faderFine 8`, `touchTravel 320`. |
 | `dragTravel(event, { touch, travel, fine })` | Pixels for a full scale under the law (1760 with any modifier). It's for drag surfaces the kit did not build. |
-| `tapWatcher(fn)` | The shared double-tap detector (320 ms). |
+| `tapWatcher(fn)`, `TAP` | The kit's one double-tap law: two presses within `TAP.ms` 300 and `TAP.px` 14 (Josh, 2026-10-07). `tapWatcher(fn)` → `(e?) → true` when this press is the second (fn(e) ran); without an event only the time decides. `controls/gesture.js` re-exports both (`tapHome` is this). |
 
 About `setKnobLaw`:
 - `fine` alone retunes every fine gear at once; ⅛ (`fine: 8`) is the default since 1.5.0-alpha.13, on Shift, Alt, Ctrl, Meta or a second finger, for knobs, faders, arrow keys and `bindSliderKeys`.
@@ -905,7 +905,7 @@ The kit prescribes one control per kind of value. Every control below is re-expo
 | `chipStrip({ id, title, chips, onChip, onGrip, onKey, glyphSize, flow, material })` → `{ el, grip, chip(name), setChip(name, state), state(name), setDisabled(name, on), destroy() }` | a static strip of the rail's `.mir-chip` discs; the rail's chip specs plus `confirm: { text, ms, label }` (an armed-to-fire chip) |
 | `sortableList({ items, build, onMove, onRemove, onAdd, cap, min, noun, addLabel, side, armMs, material, axis })` → `{ root, rows, add(), items(), setItems(items), rebuild(), move(id, to), remove(id), nodeOf(id), stripOf(id), count(), destroy() }` · `ARM_MS` (2600) | a stack of island panes with a grip over an armed × beside each, and a + ADD pill that dims at `cap`; reordered by drag or arrows. `axis: 'x'` (alpha.14): strips side by side in one island pane, the chips under each, the drag along x, ← → (mirrored under rtl). 1.5.0-alpha.16: the rack is read by `[data-mir-rack][data-side]` (an adopted rack seats the chips on its outer edge); a stepper in an item's pane is BASINS' blend; + ADD is in the look's corner, in the panes' material, 5 + 7 px below the rows (`--list-foot-gap`, `--list-step-glyph`) |
 | `valueDrag(el, { key, move, release, end, abort })` → `{ start(g), abort() }` | The value-drag lifecycle the arc knob, the lane slider and the hue swatch share (1.5.0-alpha.18): `start(g)` follows the pointer `g.id`; `move(ev)` for its moves; on the lift the frame job `key` is flushed, the listeners and the capture let go, `release(g)`, then `end(g, ev)`; on any cancel (pointercancel, the capture lost, Escape, the page hidden) the job is dropped, `release(g)`, then `abort(g, ev)` puts the value back. `abort()` with no event cancels from outside |
-| `fineHeld`, `fineGain` (re-exports of `kit.js`), `tapHome(onHome)`, `forward(root, ev)`, `lawNow()`, `TAP`, `clamp01`, `frac` | the pieces the colour hands share |
+| `fineHeld`, `fineGain`, `tapHome(onHome)` (= `tapWatcher`), `TAP` (re-exports of `kit.js`), `forward(root, ev)`, `lawNow()`, `clamp01`, `frac` | the pieces the colour hands share |
 
 ### `mir/kit.js` additions
 

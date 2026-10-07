@@ -64,6 +64,14 @@ try {
   { const s = await need(K, 'knob (double-tap)'); mods = 0; await mouse('mouseMoved', s.x, s.y);
     await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(60); await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(100); }
   v = await val('W.knob'); check('knob: a double-tap is home', near(v, 0.4, 1e-6), String(v));
+  /* ONE double-tap law (Josh, 2026-10-07, call 20): 300 ms and 14 px — two presses 330 ms apart, or 20 px apart, are not home */
+  { await J(`W.knob.set(0.9); return 1;`); await sleep(350);
+    const s = await need(K, 'knob (slow taps)'); mods = 0; await mouse('mouseMoved', s.x, s.y);
+    await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(330); await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(350);
+    const slow = await val('W.knob');
+    await mouse('mousePressed', s.x - 10, s.y); await mouse('mouseReleased', s.x - 10, s.y); await sleep(40); await mouse('mousePressed', s.x + 10, s.y); await mouse('mouseReleased', s.x + 10, s.y); await sleep(350);
+    const apart = await val('W.knob');
+    check('knob: two taps 330 ms apart, or 20 px apart, are not home (300 ms within 14 px)', near(slow, 0.9, 1e-6) && near(apart, 0.9, 1e-6), JSON.stringify({ slow, apart })); }
 
   /* a second finger is the gear: real touch events */
   await p.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });

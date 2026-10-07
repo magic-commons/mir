@@ -72,7 +72,7 @@ Every control that is turned or dragged answers the same hand (`kit.js`; `setKno
 |---|---|
 | **The drag is vertical** | a full scale is 220 px of rise (320 under a finger); sideways motion is ignored. `knob({ dragAxis: 'sum' })` keeps the 1.4 law for an app that has not moved |
 | **The fine gear is ⅛** | **any modifier** (Shift, Alt, Ctrl, Meta) **or a second finger put down while one drags**. It runs on a virtual point, so engaging or leaving it moves nothing. Josh: *"currently holding shift gives a 1/4 fine tuning, can we make this 1/8?"* (it was 900/220 on a knob and ⅕ on a fader) |
-| **Double-tap is home** | two presses within 320 ms; a double-click does the same. The arrow keys are 1/100 of travel, Shift an eighth of that, Page ten times, Home and End the ends, Delete home |
+| **Double-tap is home** | two presses within 300 ms and 14 px, the kit's one double-tap law (`TAP`, `tapWatcher` in `kit.js`, re-exported by `controls/gesture.js`; Josh, 2026-10-07, call 20); a double-click does the same. The arrow keys are 1/100 of travel, Shift an eighth of that, Page ten times, Home and End the ends, Delete home |
 | **The gesture belongs to the pointer that started it** | a second finger is the gear, not a second drag |
 
 Exports for a control the kit did not build: `fineHeld(event, pointerId)`, `gearOf(event, pointerId, fine?)`, `watchTouches()`, `verticalDrag(downEvent, { travel, fine, touchTravel, axis }) → { move(e) → travel so far, gear }` and `dragTravel(event)` (220 · 320 · 1760). The arc knob, the swatch, the lane slider, the number field and the XY pad all stand on these.

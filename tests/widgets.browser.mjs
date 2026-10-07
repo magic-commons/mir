@@ -23,7 +23,7 @@ try {
     await p.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: x0, y: y0, button: 'left', clickCount: 1, modifiers: mods });
     const steps = 8; for (let i = 1; i <= steps; i++) await p.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: x0 + (x1 - x0) * i / steps, y: y0 + (y1 - y0) * i / steps, button: 'left', buttons: 1, modifiers: mods });
     await p.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: x1, y: y1, button: 'left', clickCount: 1, modifiers: mods });
-    await sleep(400);   // past the 320 ms double-tap window, so the next press is not a reset
+    await sleep(400);   // past the 300 ms double-tap window, so the next press is not a reset
   };
   const kSel = '.k:nth-of-type(1)';
 

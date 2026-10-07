@@ -150,13 +150,21 @@ if (typeof document !== 'undefined') onLanguage(() => relabel(document));
 const ltr = (node) => { node.dir = 'ltr'; return node; };
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 
-/** double-tap detector shared by knobs and faders — and, since wave 61, by the modulation
- *  ARC on a routed knob, so the 320 ms that separates a tap from a double-tap is ONE number
- *  in ONE file and the arc's "double-tap to remove the route" feels like the dial's own
- *  "double-tap to default". */
+/** THE ONE DOUBLE-TAP LAW (Josh, 2026-10-07, call 20: "300ms"): two presses within 300 ms and 14 px.  It was two laws
+ *  (320 ms anywhere here, 300 ms within 14 px in the colour controls); this is the one, and controls/gesture.js re-exports
+ *  it (TAP, tapHome) so the colour controls read the same numbers. */
+export const TAP = Object.freeze({ ms: 300, px: 14 });
+/** tapWatcher(fn) → (e?) → true when this press is the second of a double-tap (fn(e) has run).  Shared by knobs, faders,
+ *  the modulation arc and the colour controls.  Hand it the press event and the 14 px half of the law holds; a caller
+ *  that gives none is timed only. */
 export function tapWatcher(fn) {
-  let last = 0;
-  return () => { const now = performance.now(); if (now - last < 320) { last = 0; fn(); } else last = now; };
+  let last = null;
+  return (e) => {
+    const now = performance.now(), x = e && e.clientX, y = e && e.clientY, placed = Number.isFinite(x) && Number.isFinite(y);
+    if (last && now - last.t < TAP.ms && (!placed || !last.placed || Math.hypot(x - last.x, y - last.y) <= TAP.px)) { last = null; fn(e); return true; }
+    last = { t: now, x, y, placed };
+    return false;
+  };
 }
 
 /* ── 1.5.0-alpha.13 · THE ONE KNOB LAW (docs/CONTROLS.md) ─────────────────────────────────────────────────────────────
@@ -165,7 +173,7 @@ export function tapWatcher(fn) {
  *   · THE DRAG IS VERTICAL.  A full scale is `travel` px of rise (220; a finger 320); sideways motion is ignored.
  *   · THE FINE GEAR IS ⅛, and ANY modifier engages it (Shift, Alt, Ctrl, Meta), and so does a SECOND FINGER put down while
  *     one drags.  It runs on a VIRTUAL POINT (p += gear · Δy / travel), so engaging or leaving the gear moves nothing.
- *   · DOUBLE-TAP (320 ms) or double-click = home.
+ *   · DOUBLE-TAP (300 ms, 14 px: TAP) or double-click = home.
  * `verticalDrag(e)` is that law as one small object, so the arc knob, the lane slider, the swatch, the number field and the
  * XY pad stand on the same arithmetic instead of copying it.  `setKnobLaw()` retunes it (`fine` alone moves every gear). */
 /** setKnobLaw's defaults: travel = px for a full scale, fine = the gear's divisor on a drag, keyFine = the Shift factor on an
@@ -319,7 +327,7 @@ export function knob(o) {
     e.preventDefault(); try { dial.setPointerCapture(e.pointerId); } catch (_) {}   // a pointer already gone (or a synthetic one) must not abort the drag
     dragging = true; root.classList.add('drag'); root.classList.add('active'); p0 = norm(v); acc = 0;   // p0 is the BASE: a routed knob's drag moves the range, never teleports it to where the modulator was
     vd = verticalDrag(e, { travel: o.travel, fine: o.fine, axis: o.dragAxis === 'sum' ? 'sum' : 'y' });
-    tap();
+    tap(e);
   });
   dial.addEventListener('pointermove', (e) => {
     if (!dragging || e.pointerId !== vd.id) return;
@@ -332,7 +340,7 @@ export function knob(o) {
     dragging = false; vd = null; root.classList.remove('drag'); setTimeout(() => root.classList.remove('active'), 700); if (o.onChange && !o.onDelta) o.onChange(v); };
   dial.addEventListener('pointerup', end); dial.addEventListener('pointercancel', end); dial.addEventListener('lostpointercapture', end);
   const reset = () => { if (o.onDelta) { if (o.onReset) o.onReset(); return; } v = def; paint(); if (o.onInput) o.onInput(v); if (o.onChange) o.onChange(v); };
-  const tap = tapWatcher(reset);                       // two taps within 320 ms reset the control to its default …
+  const tap = tapWatcher(reset);                       // two taps within 300 ms and 14 px reset the control to its default …
   dial.addEventListener('dblclick', (e) => { e.preventDefault(); reset(); });   // … and so does a double-click
   dial.addEventListener('wheel', (e) => e.stopPropagation(), { passive: true });
   /* THE KEY MAP.  Δp = 1/100 of TRAVEL · Shift ×⅛ (the one gear) · Page ×10 · Home/End the ends · Delete resets.
@@ -561,7 +569,7 @@ export function fader(o) {
   const fromEvent = (e) => { const r = root.getBoundingClientRect(); return denorm((e.clientX - r.left) / Math.max(1, r.width)); };
   watchTouches();
   let gid = null;   // the pointer that owns the gesture: a second finger is the fine gear, not a second drag
-  root.addEventListener('pointerdown', (e) => { if (disabled || dragging) return; e.preventDefault(); try { root.setPointerCapture(e.pointerId); } catch (_) {} dragging = true; gid = e.pointerId; root.classList.add('drag'); tap(); lastX = e.clientX; if (!fineHeld(e, gid)) v = fromEvent(e); paint(); if (o.onInput) o.onInput(v); });
+  root.addEventListener('pointerdown', (e) => { if (disabled || dragging) return; e.preventDefault(); try { root.setPointerCapture(e.pointerId); } catch (_) {} dragging = true; gid = e.pointerId; root.classList.add('drag'); tap(e); lastX = e.clientX; if (!fineHeld(e, gid)) v = fromEvent(e); paint(); if (o.onInput) o.onInput(v); });
   let dragRect = null;   // 2026-09-11: the rect is read once per drag, not once per move
   root.addEventListener('pointermove', (e) => { if (!dragging || e.pointerId !== gid) return; if (fineHeld(e, gid)) { const r = dragRect || (dragRect = root.getBoundingClientRect()); v = denorm(norm(v) + (e.clientX - lastX) / Math.max(1, r.width * fine)); } else v = fromEvent(e); lastX = e.clientX; paint(); if (o.onInput) o.onInput(v); });
   const end = (e) => { if (!dragging || (e && e.isTrusted && e.pointerId !== gid)) return; dragging = false; gid = null; dragRect = null; root.classList.remove('drag'); if (o.onChange) o.onChange(v); };

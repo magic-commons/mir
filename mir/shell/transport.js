@@ -38,7 +38,7 @@
  *
  * The pure helpers are exported for node tests. */
 import { bindNumber } from '../controls/number.js';
-import { el, label, ariaLabel, trig, gripDots } from '../kit.js';
+import { el, label, ariaLabel, trig, gripDots, tapWatcher } from '../kit.js';
 import { onLanguage, phrase } from '../core/i18n.js';
 import { drag } from '../core/pointer.js';
 import { frame } from '../core/frame.js';
@@ -57,7 +57,6 @@ export const TRANSPORT = Object.freeze({
   touchPxPerStep: 14,  // a finger: one step per 14 px, always in ones (BASINS transport.js:69)
   slop: 4,             // the hand travels this far before a press on the pill is a drag (BASINS: |dy| ≥ 4)
   longPress: 500,      // a finger held on the bar opens the seat menu
-  doubleTap: 320,      // the kit's one double-tap interval (kit.js tapWatcher)
   latchTap: 240,       // a bend tapped quicker than this latches (BASINS transport.js:126)
   bpmMin: 20, bpmMax: 300,
   fieldChars: 8,       // the inline tempo field takes eight characters (BASINS tempo-editor.js)
@@ -331,7 +330,8 @@ export function tempoPill({ tempo, panel = null, work = () => false, signal } = 
     for (let i = 0; i < s.length; i++) { r.setStart(n, i); r.setEnd(n, i + 1); const b = r.getBoundingClientRect(); boxes.push({ left: b.left, right: b.right }); }
     return digitStep(s, charAt(boxes, x));
   }
-  let dragged = false, g0 = null, lastClick = 0, shownBpm = '';
+  let dragged = false, g0 = null, shownBpm = '';
+  const twice = tapWatcher(() => { if (panel && panel.isOpen()) panel.close(); edit(); });   // the kit's one double-tap (300 ms, 14 px) types the tempo
   /* one gesture, two laws: on the stage the digit under the pointer is the step (BASINS transport.js); in a work bar
      the travel law of the one tempo field (BASINS tempo-editor.js) */
   const g = drag(root, { slop: TRANSPORT.slop,
@@ -343,10 +343,8 @@ export function tempoPill({ tempo, panel = null, work = () => false, signal } = 
   root.addEventListener('pointerdown', () => { dragged = false; }, on);
   root.addEventListener('click', (e) => {
     if (dragged) { dragged = false; return; }
-    if (work()) { lastClick = 0; if (panel && panel.isOpen()) panel.close(); edit(); return; }   // the work bar's pill types the tempo (BASINS)
-    const now = e.timeStamp;
-    if (now - lastClick < TRANSPORT.doubleTap) { lastClick = 0; if (panel && panel.isOpen()) panel.close(); edit(); return; }
-    lastClick = now;
+    if (work()) { if (panel && panel.isOpen()) panel.close(); edit(); return; }   // the work bar's pill types the tempo (BASINS)
+    if (twice(e)) return;
     if (panel) panel.toggle();
   }, on);
   root.addEventListener('wheel', (e) => {

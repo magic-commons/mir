@@ -34,6 +34,25 @@ assert.equal(tap({ clientX: 18, clientY: 12 }), true); assert.equal(homes, 1);
 assert.equal(tap({ clientX: 18, clientY: 12 }), false, 'the press after a home is a first press again');
 assert.equal(tap({ clientX: 100, clientY: 100 }), false, 'a second press 80 px away is not a double-tap');
 
+/* ONE LAW (Josh, 2026-10-07, call 20: "300ms"): kit.js tapWatcher IS tapHome, on the one TAP; on a clock: 290 ms is a home,
+   330 ms is not; 20 px apart is not; a caller that hands no event is timed only */
+{
+  const { tapWatcher, TAP: KT } = await import('../mir/kit.js');
+  assert.equal(tapWatcher, tapHome, 'tapHome is the kit\'s tapWatcher, not a second law');
+  assert.equal(KT, TAP, 'one TAP object');
+  const realNow = performance.now; let T = 1000, n = 0;
+  performance.now = () => T;
+  try {
+    const w = tapWatcher(() => { n++; });
+    const at = (dt, x = 50, y = 50) => { T += dt; return w({ clientX: x, clientY: y }); };
+    assert.equal(at(0), false); assert.equal(at(290), true, '290 ms in place is a double-tap'); assert.equal(n, 1);
+    assert.equal(at(1000), false); assert.equal(at(330), false, '330 ms is not a double-tap');
+    assert.equal(at(1000), false); assert.equal(at(310), false, '310 ms is not a double-tap any more (it was under 320)');
+    assert.equal(at(1000), false); assert.equal(at(200, 70, 50), false, '20 px away is not a double-tap');
+    T += 1000; w(); T += 290; assert.equal(w(), true, 'no event: the time alone decides'); assert.equal(n, 2);
+  } finally { performance.now = realNow; }
+}
+
 /* the arc's geometry: a 60° gap at the bottom of a bounded arc */
 assert.equal(ARC.SWEEP, 300); assert.equal(ARC.DEAD, 7); assert.equal(ARC.NEAR, 34); assert.equal(ARC.FLOOR, 0.15);
 console.log('PASS controls-colour (node): hsv round trip, the fine gear, the double-tap, the arc numbers');

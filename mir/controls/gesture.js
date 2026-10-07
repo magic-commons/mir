@@ -14,8 +14,10 @@
 import { setKnobLaw } from '../kit.js';
 import { frame } from '../core/frame.js';
 
-/** the double-tap: two presses this close in time (ms) and place (px) are a home gesture (BASINS' numbers) */
-export const TAP = Object.freeze({ ms: 300, px: 14 });
+/** THE DOUBLE-TAP is the kit's one law (kit.js TAP, tapWatcher: 300 ms and 14 px, BASINS' numbers; Josh, 2026-10-07, call 20):
+ *  TAP is read here, and tapHome(onHome) → (e) → true when this press is the second of a double-tap (and home has been taken)
+ *  is tapWatcher under the name the colour controls use. */
+export { TAP, tapWatcher as tapHome } from '../kit.js';
 
 /** the kit's drag law as it stands now: { travel, fine, keyFine, faderFine, touchTravel } (setKnobLaw() with no argument only reads) */
 export const lawNow = () => setKnobLaw();
@@ -23,17 +25,6 @@ export const lawNow = () => setKnobLaw();
 /* THE SECOND FINGER and the fine gear's one decision are the kit's own (kit.js watchTouches, fineHeld, gearOf): one law, one tracker.
    The controls import them from kit.js by those names; `fineGain` is `gearOf` under the name the colour-controls test reads. */
 export { fineHeld, gearOf as fineGain } from '../kit.js';
-
-/** tapHome(onHome) → (e) → true when this press is the second of a double-tap (and home has been taken) */
-export function tapHome(onHome) {
-  let last = null;
-  return (e) => {
-    const now = performance.now();
-    if (last && now - last.t < TAP.ms && Math.hypot(e.clientX - last.x, e.clientY - last.y) <= TAP.px) { last = null; onHome(e); return true; }
-    last = { t: now, x: e.clientX, y: e.clientY };
-    return false;
-  };
-}
 
 /** forward(root, e) — a press the control stopped, handed on to the page: a copy dispatched on the control root's
  *  PARENT (so the root's own capture listener never meets it again), bubbling to the document's outside-press
