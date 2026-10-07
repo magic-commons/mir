@@ -363,7 +363,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
       setVar(root, 'width', `${box.width}px`); setVar(root, 'height', `${box.height}px`);
     }
     rail.seat(L.seat, { animate });
-    if (onMoved) onMoved({ ...box });
+    if (onMoved) onMoved({ ...box, right: box.left + box.width, bottom: box.top + box.height });   // a whole rect, as a DOMRect reads (W20 TR: BASINS' shell read `right` and dropped every report)
     return box;
   }
   /** stop the window's own travel where it is seen, so a hand can take it */

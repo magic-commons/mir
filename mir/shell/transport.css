@@ -261,15 +261,29 @@ body.no-transport-bar .mir-transport, body.no-transport-bar .dev[data-id="transp
 .mir-transport.docked { position: static; transform: none; min-width: 0; max-width: none; width: auto; height: auto; flex-wrap: wrap; padding: 6px; gap: 6px;
   border: 0; box-shadow: var(--xport-flat); background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none;
   --surface-fill: transparent; --surface-veil: transparent; --surface-sheen: none; }   /* the card is the pane: the bar is clear in every CARD STYLE (skin.css paints .glass from these at the place of use, so a TINTED fill never sits inside the card) */
-/* BASINS' docked card (skin.css 477–500, basins.css): a five-column grid — play, power, to-start; an app's own node (BASINS'
-   depth) on the second row by its own rule; the BPM pill across the third; the round seats 34 px with the --r-md corner */
-.mir-transport.docked:not([data-layout="lambdawaves"]) > .native-play-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; width: 100%; }
+/* THE DOCKED CARD IS TWO ROWS (W20 TR; Josh, 2026-10-06: "make that transport 2 rows in the rack window.  Move the dock and
+   MIR logo button to the right of the back button, then have the BPM to the bottom left, and depth reader the right").
+   One five-column grid on the bar itself (the play row is `display: contents`, so its parts are the grid's):
+     row 1 · play, power, to-start (the back button), then the dock chip and the MIR door to its right;
+     row 2 · the BPM pill at the LEFT (columns 1–3), the app's readout seat at the RIGHT (columns 4–5: the layout's
+             `app:` node, data-tr-app — BASINS' 10ⁿ depth reader); with no app node the pill takes the whole row;
+     below · the tempo panel when the pill opens it, then the latches and the seat button when the layout has them.
+   Every part has a fixed cell, so nothing moves with state: a part a layout leaves out leaves its cell empty (the hand law). */
+.mir-transport.docked:not([data-layout="lambdawaves"]) { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; gap: 6px 5px; }
+.mir-transport.docked:not([data-layout="lambdawaves"]) > .native-play-row { display: contents; }
 .mir-transport.docked:not([data-layout="lambdawaves"]) > .native-play-row > .tbtn:not(.mir-mod-power) { min-width: 0; width: 100%; height: var(--xport-seat); min-height: var(--xport-seat); border-radius: var(--r-md); }
 .mir-transport.docked:not([data-layout="lambdawaves"]) .play { grid-area: 1 / 1; }
-.mir-transport.docked:not([data-layout="lambdawaves"]) .modb { grid-area: 1 / 2; }
+.mir-transport.docked:not([data-layout="lambdawaves"]) .modb { grid-area: 1 / 2; justify-self: center; }
 .mir-transport.docked:not([data-layout="lambdawaves"]) .transport-home { grid-area: 1 / 3; border-color: var(--glass-hairline); }   /* its ring is the hairline docked (BASINS .08) */
-.mir-transport.docked:not([data-layout="lambdawaves"]) .tempo-expand { grid-area: 3 / 1 / 4 / 6; width: 100%; }
+.mir-transport.docked:not([data-layout="lambdawaves"]) .dock-btn { grid-area: 1 / 4; justify-self: center; }
+.mir-transport.docked:not([data-layout="lambdawaves"]) .mod-exp { grid-area: 1 / 5; justify-self: center; }
+.mir-transport.docked:not([data-layout="lambdawaves"]) :is(.tempo-expand, .transport-tempo-input) { grid-area: 2 / 1 / 3 / 4; width: 100%; min-width: 0; }
+.mir-transport.docked:not([data-layout="lambdawaves"]):not(:has([data-tr-app])) :is(.tempo-expand, .transport-tempo-input) { grid-column: 1 / -1; }
+.mir-transport.docked:not([data-layout="lambdawaves"]) [data-tr-app] { grid-area: 2 / 4 / 3 / 6; justify-self: end; min-width: 0; max-width: 100%; }
+.mir-transport.docked:not([data-layout="lambdawaves"]) .native-tempo { grid-area: 3 / 1 / 4 / -1; order: 0; }
 .mir-transport.docked:not([data-layout="lambdawaves"]) .native-tempo:not([hidden]) { width: 100%; grid-template-columns: minmax(0, 1fr); }
+.mir-transport.docked:not([data-layout="lambdawaves"]) > .tr-openers { grid-area: 4 / 1 / 5 / 5; flex-wrap: wrap; }
+.mir-transport.docked:not([data-layout="lambdawaves"]) > .tr-seat { grid-area: 4 / 5; justify-self: center; }
 
 /* ── λWAVES' OWN LAYOUT (LAMBDAWAVES_LAYOUT writes data-layout="lambdawaves"): its 640 px bar, the pill last in the row,
    the docked row wrapping, its 13 px glyphs and its pill ink — the arrangement it had before BASINS' became the default ── */

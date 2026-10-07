@@ -1126,7 +1126,7 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 #modwin.mir-modwindow .m2dev .m2sw .m2trig:active {
   background: var(--state-press, var(--glass-press)); box-shadow: none; }   /* S1: pressed is the press wash, not nothing */
 #modwin.mir-modwindow .m2dev .m2swb.on,
-#modwin.mir-modwindow .m2dev .m2chk.on { background: var(--state-on, var(--m2-mat-frost)); box-shadow: var(--m2-on-rim); }   /* INTENT L29: the LED is the light */
+#modwin.mir-modwindow .m2dev .m2chk.on { background: var(--state-on, var(--m2-mat-frost)); box-shadow: var(--m2-on-rim); }   /* INTENT L29: the LED is the light (2026-10-06, W20 TR: the rim is taken off at the sheet's foot — Josh: no outlines on the lamp switches) */
 /* THE LAMP.  Off is the window's own recess; on is Accent A and it glows, which is the one place in
    this row a colour is allowed to mean something. */
 #modwin.mir-modwindow .m2dev .m2dot {
@@ -2276,7 +2276,10 @@ body[data-theme="light"] #modwin.mir-modwindow .m2devadd {
    exception: modwindow.css is edited only where a row cannot be overridden cleanly).  ON = a frost face + a thin rim +
    an accent light; CHOSEN = the ON face with its label in the accent; HOVER = a lighter face; PRESSED = the press wash +
    one scale (S1, above); every pane one height, the house's; no dark scrim. ══ */
-/* L29 · eight controls whose ON was an accent UNDERLINE alone: they get the face and the rim; the bar stays as the light */
+/* L29 · eight controls whose ON was an accent UNDERLINE alone: they get the face and the rim; the bar stays as the light
+   (2026-10-06, W20 TR: for the lamp switches of this list — .m2chk, .m2swb, .m2audsrc, .modsync, .modcad — the rim is
+   taken off again at the sheet's foot, Josh: "Remove more button outlines … modulation window light switches like 'OFF'
+   and 'BPM'"; .m2mac and .m2bus keep it) */
 #modwin.mir-modwindow .m2chk.on, #modwin.mir-modwindow .m2swb.on, #modwin.mir-modwindow .m2mac.on,
 #modwin.mir-modwindow .m2bus.on, #modwin.mir-modwindow .modsync.on, #modwin.mir-modwindow .modcad.on,
 #modwin.mir-modwindow .m2audsrc.on {
@@ -2413,4 +2416,20 @@ body.mod-arming :is(.sw, .seg, .trig, .k:not([data-param]), .fd:not([data-param]
    data-w lies unseen, 0 px tall, under the shown one — so 60 HZ ⇄ 120 HZ moves nothing after it (HOLD ¼, HOLD 1) */
 .modwin.mir-modwindow .modcad[data-w] { flex-direction: column; }
 .modwin.mir-modwindow .modcad[data-w]::after { content: attr(data-w); height: 0; overflow: hidden; visibility: hidden; }
+
+/* ══ W20 TR · THE LAMP SWITCHES WEAR NO OUTLINE (Josh, 2026-10-06: "Remove more button outlines for: … modulation window
+   light switches like 'OFF' and 'BPM'"), as the power disc wears none since b4b93c3.  The LAMP is the state (docs/CONTROLS.md:
+   a SWITCH shows its state by its lamp), so the face stays plain — OFF clear, ON the lit frost (--state-on) — and what goes
+   is every edge, in both states: ON's rim (--m2-on-rim, from INTENT L29 at the ladder above and #1129 in WAVE 77), the
+   OFF lamp's 1 px ring (--m2-dot-shadow, modwindow.css "the status lamps under frost": an OFF lamp is a recess dot, as
+   TRIG's and FLIP's always were) and the cadence chip's hairline.  WALL / FREE and the cadence have no lamp: their accent
+   bar is the light (L29 "the bar stays as the light"), kept, without the rim.  Borders go by colour, never by width, so
+   nothing moves.  The macro seats (.m2mac, .m2bus) and the stutter's HOLD keep their faces: they are not lamp switches. ══ */
+#modwin.mir-modwindow :is(.m2chk, .m2swb, .m2flipb, .m2audsrc, .modsync, .modcad),
+#modwin.mir-modwindow .m2dev :is(.m2chk, .m2swb, .m2flipb).on,
+#modwin.mir-modwindow :is(.m2chk, .m2swb, .m2flipb, .m2audsrc, .modsync, .modcad).on { border-color: transparent; }
+#modwin.mir-modwindow .m2dev :is(.m2chk, .m2swb).on,
+#modwin.mir-modwindow :is(.m2chk, .m2swb, .m2audsrc).on { box-shadow: none; }
+#modwin.mir-modwindow :is(.modsync, .modcad).on { box-shadow: var(--m2-chk-on-line); }   /* the bar alone (modwindow.css's own token): --m2-chk-on-shadow without its rim */
+#modwin.mir-modwindow .m2chk:not(.on) .m2dot { box-shadow: none; }
 }   /* end @layer mir.kit.plugin.host */

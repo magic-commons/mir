@@ -626,7 +626,9 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
   const place = (list, parent) => {
     for (const item of list) {
       if (item && typeof item === 'object' && item.nodeType !== 1 && Array.isArray(item.items)) { const g = el('div', item.group || 'tr-group', parent); place(item.items, g); continue; }
-      const n = build(item); if (n) parent.appendChild(n);
+      const n = build(item); if (!n) continue;
+      if (typeof item === 'string' && item.startsWith('app:')) n.dataset.trApp = item.slice(4);   // the readout seat: the docked card seats an app's node at row 2's right (transport.css)
+      parent.appendChild(n);
     }
   };
   bar.textContent = '';

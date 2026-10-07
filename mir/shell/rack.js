@@ -858,7 +858,14 @@ export function createRack({ host = globalThis.document && document.body, sides 
 
   /* ── the transport's dodge: two seats, a sequence that waits on each animation (no timers) ── */
   let seat = 'bottom', home = 'bottom', run = null, lastRect = null, trBox = null;
-  const trSize = () => { if (!trBox && transport) { trBox = { w: transport.offsetWidth || 560, h: transport.offsetHeight || 46 }; } return trBox; };
+  /* the bar's size, kept only when it was read on the stage at rest (not docked, not in a work bar, its tempo panel shut): a bar measured in the
+     rack's TRANSPORT window, a work lane or with its panel open is not the size of the seat it will take (W20 TR) */
+  const trSize = () => {
+    if (trBox || !transport) return trBox;
+    const b = { w: transport.offsetWidth || 560, h: transport.offsetHeight || 46 };
+    if (!transport.matches('.docked, .tempo-open, [data-bar="work"]')) trBox = b;
+    return b;
+  };
   function seatRects() {
     const { w, h } = trSize(), vw = view.innerWidth, vh = view.innerHeight, left = (vw - w) / 2;
     return { bottom: { left, right: left + w, top: vh - seats.bottom - h, bottom: vh - seats.bottom }, top: { left, right: left + w, top: seats.top, bottom: seats.top + h } };

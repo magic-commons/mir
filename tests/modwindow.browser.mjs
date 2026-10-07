@@ -264,6 +264,28 @@ try {
     await run(`for (const s of M.sourceList().filter((x) => x.kind === 'lfo').slice(1)) M.removeSource(s.id); view.restore({ ...view.presentation(), dock: null, x: 340, y: 132, open: true }); await rest(); return 1;`);
   }
 
+  /* ── 9c · W20 · the lamp switches wear no outline (Josh 2026-10-06: "Remove more button outlines for: … modulation window
+     light switches like 'OFF' and 'BPM'"): the device's switches and the work bar's WALL / cadence, OFF and ON, have no
+     visible border, no rim and no lamp ring; ON keeps its lit frost face and its lit lamp; WALL keeps its accent bar ── */
+  {
+    r = await run(`const st = document.createElement('style'); st.textContent = '#modwin *, #modwin *::before { transition: none !important; }'; document.head.appendChild(st);
+      const edge = (cs) => { const w = parseFloat(cs.borderTopWidth) > 0 && cs.borderTopStyle !== 'none' && !/rgba\\([^)]*, 0\\)$|transparent/.test(cs.borderTopColor);
+        const ring = cs.boxShadow !== 'none' && cs.boxShadow.split(/,(?![^(]*\\))/).some((t) => / 0px 0px 0px [1-9][\\d.]*px/.test(t) && !/rgba\\([^)]*, 0\\)/.test(t)); return w || ring; };
+      const out = [], sw = [...win.querySelectorAll('.m2dev .m2chk, .m2dev .m2swb, .modsync, .modcad')].filter((b) => b.getClientRects().length);
+      for (const b of sw) {
+        const was = b.classList.contains('on'), dot = b.querySelector('.m2dot');
+        for (const on of [false, true]) { b.classList.toggle('on', on); const cs = getComputedStyle(b), d = dot && getComputedStyle(dot);
+          out.push({ name: b.textContent.trim().slice(0, 10), on, edge: edge(cs), dotRing: !!d && edge(d), face: cs.backgroundColor, lit: d ? d.backgroundColor : getComputedStyle(b, '::before').backgroundColor, bar: /-2px/.test(cs.boxShadow) }); }
+        b.classList.toggle('on', was);
+      }
+      st.remove();
+      const names = new Set(out.map((o) => o.name));
+      return { n: sw.length, names: [...names], edged: out.filter((o) => o.edge || o.dotRing), onFaces: out.filter((o) => o.on && !/^(WALL|FREE|\\d)/.test(o.name)).every((o) => o.face !== 'rgba(0, 0, 0, 0)'),
+        wallBar: out.filter((o) => o.on && /^(WALL|FREE)/.test(o.name)).every((o) => o.bar) };`);
+    check('W20 · the lamp switches (OFF, BPM, INVERT, TRIG …, WALL, the cadence) have no border, rim or lamp ring OFF or ON; ON keeps the lit frost face; WALL keeps its accent bar',
+      r.n >= 6 && r.names.includes('OFF') && r.names.includes('BPM') && r.edged.length === 0 && r.onFaces && r.wallBar, JSON.stringify(r));
+  }
+
   /* ── 10 · a reload keeps the power state ── */
   {
     const pow = await at(`document.querySelector('#modwin .modxport')`);

@@ -452,7 +452,7 @@ export function createModulation(host, port) {
     rail.seat(animate ? seat : layoutOf(P).seat, { animate });
     /* WAVE 81 · AND THE HOST IS TOLD WHERE THIS WINDOW NOW IS.  The plugin does not reach out and restyle the
        host's transport; it REPORTS its rect, and the host decides whether its own playhead is in the way. */
-    if (port.moved) { try { port.moved({ ...box }); } catch (_) {} }
+    if (port.moved) { try { port.moved({ ...box, right: box.left + box.width, bottom: box.top + box.height }); } catch (_) {} }   // a whole rect, as a DOMRect reads: BASINS' shell keeps a report only when it has `right` (W20 TR, the dodge)
     if (P.open) geometryChanged();
   }
   /* THE SEAT ABOVE THE DEVICES (BASINS modwindow.js §391; the PATTERN window docks there): every place, landing, open and

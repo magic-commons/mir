@@ -181,6 +181,20 @@ try {
     T.drift.place({ x: 40, y: 80 }); await wait(700);
     return { up, down: { seat: R.seat, top: Math.round(bar.getBoundingClientRect().top), anims: bar.getAnimations().length } };`);
   check('dodge: DRIFT over the bar sends it to the top seat; moved away, it comes back; no animation left behind', h.ok && r.up.seat === 'top' && r.up.top < 120 && r.up.anims === 0 && r.down.seat === 'bottom' && r.down.top > 600 && r.down.anims === 0, JSON.stringify(r));
+  await run(`T.drift.close(); await wait(500); return 0;`);
+  /* W20 · THE DODGE OF MODULATION (Josh 2026-10-06: "it moves up and then moves down depending on if the mod window puts it at
+     risk of being covered").  Every report is a whole rect (BASINS' shell kept one only when it had `right`); docked at the
+     bottom over the bar it sends the bar up, closed it brings it back; floated over the bar and dragged away, the same */
+  r = await run(`const seen = []; const m0 = tr.moved; tr.moved = (x) => { seen.push(x ? ['left', 'top', 'right', 'bottom', 'width', 'height'].every((k) => Number.isFinite(x[k])) : null); return m0(x); };
+    const v = T.mod.view, at = () => ({ seat: R.seat, top: Math.round(bar.getBoundingClientRect().top), anims: bar.getAnimations().length });
+    v.restore({ ...v.presentation(), dock: 'bottom', open: true }); await wait(900); const docked = at();
+    T.mod.close(); await wait(900); const closed = at();
+    const b = bar.getBoundingClientRect(); v.restore({ ...v.presentation(), dock: null, x: Math.round(b.left), y: Math.round(b.top - 80), open: true }); await wait(900); const over = at();
+    v.restore({ ...v.presentation(), dock: null, x: 60, y: 90, open: true }); await wait(900); const away = at();
+    T.mod.close(); await wait(600); tr.moved = m0;
+    return { docked, closed, over, away, whole: seen.filter((s) => s !== null).every(Boolean) && seen.some(Boolean) };`);
+  check('dodge · MODULATION docked at the bottom over the bar sends it to the top seat; closed, the bar comes back; floated over the bar, up; dragged away, back; every report a whole rect (right and bottom too)',
+    r.docked.seat === 'top' && r.docked.top < 120 && r.closed.seat === 'bottom' && r.closed.top > 600 && r.over.seat === 'top' && r.away.seat === 'bottom' && r.away.top > 600 && r.away.anims === 0 && r.whole, JSON.stringify(r));
 
   /* ── the dock chip: into the rack's TRANSPORT window and back (BASINS) ───────────────────────────────────── */
   h = await click(`__T.tr.el.dock`);
@@ -188,6 +202,31 @@ try {
   const hd = await click(`__T.tr.el.dock`);
   r2 = await run(`await wait(500); return { docked: tr.docked, in: !!bar.closest('.dev'), pos: getComputedStyle(bar).position, top: Math.round(bar.getBoundingClientRect().top) };`);
   check('the dock chip docks the bar into the rack\'s TRANSPORT window, and from there back onto the stage', h.ok && r.docked && r.in === 'transport' && r.cls && r.pos === 'static' && hd.ok && !r2.docked && !r2.in && r2.pos === 'fixed' && r2.top > 600, JSON.stringify({ h, r, hd, r2 }));
+  /* W20 · THE DOCKED CARD IS TWO ROWS (Josh 2026-10-06): play, power, to-start, then the dock chip and the MIR door to its right;
+     the BPM pill at the left of row 2 and the app's readout seat (an `app:` node, data-tr-app) at its right; measured at BASINS'
+     300 px rack and the kit's 372; nothing overflows; the tempo panel opens under row 2 and moves nothing in rows 1 and 2 */
+  r = await run(`tr.dock(true); await wait(600);
+    const row = bar.querySelector('.native-play-row'); const ro = document.createElement('div'); ro.className = 'g-readout'; ro.dataset.trApp = 'readout'; ro.textContent = '10^243.5'; ro.style.cssText = 'font: 400 22px/1 serif; white-space: nowrap'; row.appendChild(ro);
+    const box = (n) => { const b = n.getBoundingClientRect(); return { l: Math.round(b.left), r: Math.round(b.right), t: Math.round(b.top), b: Math.round(b.bottom), cy: Math.round(b.top + b.height / 2) }; };
+    const out = {};
+    for (const w of [300, 372]) {
+      document.body.style.setProperty('--rack-w', w + 'px'); await wait(400);
+      const B = box(bar), parts = { play: tr.el.play, power: tr.el.power, home: bar.querySelector('.transport-home'), dock: tr.el.dock, door: tr.el.door, pill: tr.el.pill, ro };
+      const P = Object.fromEntries(Object.entries(parts).map(([k, n]) => [k, box(n)]));
+      const r1 = ['play', 'power', 'home', 'dock', 'door'], inside = Object.values(P).every((q) => q.l >= B.l - 0.5 && q.r <= B.r + 0.5);
+      const rowOne = r1.every((k) => Math.abs(P[k].cy - P.play.cy) <= 6) && r1.every((k, i) => !i || P[k].l > P[r1[i - 1]].l);
+      const rowTwo = Math.abs(P.pill.cy - P.ro.cy) <= 6 && P.pill.t > P.play.b && P.pill.r < P.ro.l && P.ro.r <= B.r + 0.5 && P.pill.l <= B.l + 8;
+      tr.tempoPanel(true); await wait(200);
+      const still = r1.concat(['pill', 'ro']).every((k) => { const q = box(parts[k]); return q.l === P[k].l && q.t === P[k].t; }) && Math.round(bar.getBoundingClientRect().width) === B.r - B.l;
+      const panelUnder = box(tr.el.panel).t >= P.pill.b;
+      tr.tempoPanel(false); await wait(100);
+      out[w] = { rowOne, rowTwo, inside, overflow: bar.scrollWidth > bar.clientWidth + 0.5, still, panelUnder, rows: [P.play.cy, P.pill.cy] };
+    }
+    ro.remove(); await wait(60); const alone = box(tr.el.pill), B2 = box(bar); out.alone = alone.r >= B2.r - 8;   // no app node: the pill takes the row
+    document.body.style.removeProperty('--rack-w'); tr.dock(false); await wait(600);
+    return out;`);
+  check('docked · two rows at the 300 px and the 372 px rack: play, power, to-start, dock, door in row 1 (in that order); the pill left and the readout seat right in row 2; nothing overflows; the open tempo panel sits under row 2 and moves nothing; with no app node the pill takes the row',
+    [300, 372].every((w) => r[w].rowOne && r[w].rowTwo && r[w].inside && !r[w].overflow && r[w].still && r[w].panelUnder) && r.alone, JSON.stringify(r));
   if (PLATES) { await run(`R.open('mix'); T.drift.place({ x: 60, y: 170 }); T.clock.play(); await wait(900); T.clock.pause(); await wait(300); return 0;`); await p.shot(plate('transport-basins-dark.png')); }
 
   /* ── the look settings restyle the bar, in both layouts ──────────────────────────────────────────────────── */
