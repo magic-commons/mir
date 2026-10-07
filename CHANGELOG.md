@@ -1,5 +1,23 @@
 # MIR — changelog
 
+## 1.5.0-alpha.22 — 2026-10-07 · the power is its icon
+
+Not released: built on branch `worktree-mir-1.5`. The smallest release: every power control becomes its ⏻ icon and nothing else.
+
+### Fixed
+- **The power is only its icon.** Josh: "I asked to remove the button outline on the power button icons… meaning make it ONLY the icon and no button background; no button outline, no button shading, no button background, no button solid color… ONLY the icon changing colors, greying, beveling when off… glowing when on… anything but a button", and then "One more button to fix. It's the power button on the modulation window's work bar next to BPM". **Every power control (the rack cards' heads `.dev-power`, the modulation window's device power `.m2pow` and its work bar's power beside BPM `.modxport.mir-mod-power`) has no face, outline, shading, fill or press fill in any state or face:** on, the ⏻ is the accent and glows; off, it is the dim ink with no glow. The 22 px box (44 px on a touch tablet) is the hit target and paints nothing. This supersedes alpha.21's solid disc (`mir/css/base.css`, `mir/css/skin.css`'s touch-tablet rule, `mir/modulation/modhost.css` `.m2pow` and `.m2workbar .modxport.on`, `mir/modulation/modwindow/modwindow.css` `.modxport:active` and the work bar's on-line list). `docs/CONTROLS.md`, `docs/MODULATION.md`, `docs/INTENT.md` L29 and L31 (dated notes).
+
+### Tokens, strings, tests
+- 1,370 token rows (1 added): `--power-glow` (filter, `drop-shadow(0 0 3px color-mix(in srgb, var(--acc) 70%, transparent))`), declared on the control itself (`.dev-power` in `base.css`, `.m2pow` in `modhost.css`) so the accent resolves where the icon is drawn; the intent lint asked for it (a literal glow is a value a skin cannot reach). `docs/TOKENS.md` regenerated.
+- 1,494 catalogue keys, unchanged: no new strings.
+- `npm test`: 141/141.
+
+### Choices to overrule
+- **The glow is a 3 px drop-shadow of the accent at 70 %** (`--power-glow` tunes it without code); off is the dim ink (the modulation window's faint ink), with no glow.
+
+### For Josh's eye
+- The rack cards' `sw` lamp switches still wear their thin rim: is "no outlines" universal for them too? Your call, open since alpha.21.
+
 ## 1.5.0-alpha.21 — 2026-10-06 · the evening round
 
 Not released: built on branch `worktree-mir-1.5`. A small release from Josh's evening look at BASINS on the iPad: the power buttons become solid discs, the XY pad's dark tint becomes its dots, the docked transport becomes two rows, the modulation window's lamp switches lose their outlines, and the transport dodges MODULATION again.
@@ -9,6 +27,8 @@ Not released: built on branch `worktree-mir-1.5`. A small release from Josh's ev
 
 ### The power button is a solid disc
 Josh: "There seems to be a button outline over power buttons. Can you delete all the power button outlines? I just want a deativated vs activated solid color on the power button." **Every power button (the rack cards' heads and the modulation window's) is a solid disc with no outline:** the accent when on, its ⏻ in the accent's ink; the well's tint when off, its ⏻ dim. It keeps that fill under the glass and blend faces (`skin.css` no longer clears it) and inside the 44 px touch target (`mir/css/base.css`, `mir/css/skin.css`; the modulation window's `.m2pow`: `modhost.css:1346-1353`, `modwindow.css`).
+
+*2026-10-07: superseded by 1.5.0-alpha.22 — the power is only its icon, no disc (see 1.5.0-alpha.22 above).*
 
 ### The XY pad's dots are the tint
 Josh: "Also I still see the dark tint of the XY space. Make the dots the same color as the tint and it'll solve the problem of readability. For color let it color like a gradient out like it does now. On light mode, do the opposite ofc". **The pad has no well of its own** (no fill, no inset); the lattice is the tint. A far dot's ink is the new `--xy-lattice-ink` (`var(--glass-well)`, its own alpha included), so the dots are dark on the dark theme and light on the light theme, and they still grade out to the accent toward the point. `--xy-lattice-far` is now a share of the ink's alpha (1 = exactly the tint). `mir/controls/controls.css`, `mir/controls/xy.js`.

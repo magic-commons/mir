@@ -1345,7 +1345,8 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 
 #modwin.mir-modwindow .m2pow {
   border: 0; background: transparent; border-radius: 0; box-shadow: none;
-  color: var(--acc); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--acc) 70%, transparent)); }      /* on: the glyph alone, in the accent, glowing (Josh 2026-10-07: "ONLY the icon … anything but a button") */
+  --power-glow: drop-shadow(0 0 3px color-mix(in srgb, var(--acc) 70%, transparent));
+  color: var(--acc); filter: var(--power-glow); }      /* on: the glyph alone, in the accent, glowing (Josh 2026-10-07: "ONLY the icon … anything but a button") */
 #modwin.mir-modwindow .m2dev.m2off .m2pow,
 #modwin.mir-modwindow .m2pow[aria-pressed="false"] {
   background: transparent; color: var(--m2-ink-faint); box-shadow: none; filter: none; }                 /* off: the glyph in the faint ink */

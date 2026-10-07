@@ -118,7 +118,7 @@ h1, h2 { margin: 0; font-weight: var(--w-bold); }
    icon and no button background … ONLY the icon changing colors, greying, beveling when off… glowing when on"); on = the
    accent with its glow, off = the dim ink; the 22 px box is the hit target and paints nothing */
 .dev-power { width: 22px; height: 22px; border-radius: 50%; border: 0; background: transparent; box-shadow: none; cursor: pointer; position: relative; margin-inline-end: 4px;
-  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--acc) 70%, transparent)); }
+  --power-glow: drop-shadow(0 0 3px color-mix(in srgb, var(--acc) 70%, transparent)); filter: var(--power-glow); }
 .dev-power::before { content: ''; position: absolute; inset: 6px; border-radius: 50%; border: 1.5px solid var(--acc); border-top-color: transparent; }
 .dev-power::after { content: ''; position: absolute; left: 50%; top: 4px; width: 1.5px; height: 6px; background: var(--acc); transform: translateX(-50%); }
 .dev-power[aria-pressed="false"] { filter: none; }
