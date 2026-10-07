@@ -46,6 +46,8 @@ import { setText, setAttr } from '../core/perf.js';
 import { setGlyph, glyphEl, glyphSvg, hasGlyph } from '../glyph.js';
 import { markSvg, createMirDiamond } from './wordmark.js';
 import { buildMacroSlot } from '../modulation/modwindow/modwindow.js';
+import { createLayoutMotion, wireReorder as reorderEngine } from '../modulation/layout-motion.js';
+import { settled } from '../core/motion.js';
 import * as MOD from '../modulation/mod.js';
 import { jsonStore } from '../core/prefs.js';
 
@@ -374,7 +376,9 @@ export function tempoPill({ tempo, panel = null, work = () => false, signal } = 
  *  (modwindow.js buildMacroSlot) as tiles with their faces hidden — the routing grip (drag to route, tap to arm,
  *  double-tap to reset), the numbered depth seat with its arc, and the reorder grip (drag among the tiles; ← → one
  *  place, ↑ ↓ one place too, as the window's rows, Home, End).  The gestures are the window's, never copies: `mod.view.api` (wireGrip, wireDepth,
- *  paintDepth, moveMacro).  No macros: one line says where to add one.  `macros: false` leaves the rail out.
+ *  paintDepth, moveMacro), and the drag among the tiles is the window's reorder engine (modulation/layout-motion.js
+ *  wireReorder, axis 'grid': the neighbours glide, the held tile follows the hand and never moves in the DOM; Josh's
+ *  call 21, wave 22).  No macros: one line says where to add one.  `macros: false` leaves the rail out.
  *  THE CLOCK TILES: TAP, WALL / FREE, the cadence (when the seam has one), ÷2 ×2 ×4 (hold to bend, tap to latch) and
  *  HOLD ¼ / HOLD 1 (the stutter).  Opened by a click on the pill. */
 export function tempoPanel({ tempo, mod = null, macros = true, signal } = {}) {
@@ -436,11 +440,18 @@ export function macroRail({ M, api, signal } = {}) {
   const life = lifeOf(signal), on = { signal: life.signal };
   const root = el('div', 'tempo-pane tempo-macros'); ariaLabel(root, 'macros');
   const rail = el('div', 'tempo-rail', root);
-  const tiles = new Map(); let sig = '';
+  const tiles = new Map(); let sig = '', cancelReorder = null;
+  const sigOf = (list, A) => list.map((m) => m.id + ':' + m.kind).join('|') + (A ? '+' : '-');
+  /* THE REORDER IS THE MODULATION WINDOW'S ENGINE (layout-motion.js wireReorder; Josh's call 21, wave 22): the
+     neighbours glide, the held tile follows by `translate` and is never moved in the DOM, so a finger keeps it */
+  const motion = createLayoutMotion(() => rail.querySelectorAll(':scope > .tempo-tile'));
+  life.signal.addEventListener('abort', () => { if (cancelReorder) cancelReorder(); motion.destroy(); }, { once: true });
   function build() {
     const A = api(), list = M.macroList();
-    const s = list.map((m) => m.id + ':' + m.kind).join('|') + (A ? '+' : '-');
-    if (s === sig) return false; sig = s; rail.textContent = ''; tiles.clear();
+    const s = sigOf(list, A);
+    if (s === sig) return false;
+    if (cancelReorder) cancelReorder();
+    sig = s; rail.textContent = ''; tiles.clear();
     list.forEach((m, i) => {
       const rec = buildMacroSlot(rail, m, i + 1); rec.root.classList.add('tempo-tile');
       for (const x of [rec.val, rec.pad, rec.del, rec.erow]) if (x) x.hidden = true;
@@ -454,18 +465,13 @@ export function macroRail({ M, api, signal } = {}) {
   function paint() { const A = api(); if (!A) return; for (const [id, rec] of tiles) A.paintDepth(rec.numSeat, rec.depthArc, id); }
   const rebuild = () => { sig = ''; build(); paint(); };
   function wireReorder(rec, macroId, A) {
-    let d = null;
-    const at = (list, x, y) => { for (let i = 0; i < list.length; i++) { const b = list[i].getBoundingClientRect(); if (y < b.top || y > b.bottom) continue; if (x < b.left + b.width / 2) return i; if (x <= b.right) return i + 1; } return -1; };
-    drag(rec.reorder, { slop: TRANSPORT.slop,
-      onStart: () => { d = true; rec.root.classList.add('m2reorder'); },
-      onMove: (s) => {
-        if (!d) return;
-        const list = [...rail.querySelectorAll('.tempo-tile')].filter((t) => t !== rec.root), i = at(list, s.x, s.y); if (i < 0) return;
-        const before = list[Math.min(i, list.length)] || null;
-        if (before && before !== rec.root.nextSibling) rail.insertBefore(rec.root, before); else if (!before && rail.lastElementChild !== rec.root) rail.appendChild(rec.root);
-      },
-      onEnd: () => { if (!d) return; d = null; rec.root.classList.remove('m2reorder'); A.moveMacro(macroId, [...rail.querySelectorAll('.tempo-tile')].indexOf(rec.root)); rebuild(); },
-      onCancel: () => { if (!d) return; d = null; rec.root.classList.remove('m2reorder'); rebuild(); } });
+    reorderEngine(rec.reorder, rec.root, { host: rail, selector: ':scope > .tempo-tile', axis: 'grid', motion, slop: TRANSPORT.slop,
+      began: (cancel) => { if (cancelReorder) cancelReorder(); cancelReorder = cancel; },
+      ended: () => { cancelReorder = null; },
+      /* the model takes the order now; the tiles keep their nodes while the held one settles, then are built again once
+         (their numbers and names follow the new order) — unless another reorder has begun meanwhile */
+      commit: (to) => { A.moveMacro(macroId, to); sig = sigOf(M.macroList(), A); },
+      settle: () => { settled(rec.root).then(() => { if (!cancelReorder && !life.signal.aborted && rec.root.isConnected) rebuild(); }); } });
     rec.reorder.addEventListener('keydown', (e) => {
       const list = M.macroList(), to = reorderTo(e.key, list.findIndex((m) => m.id === macroId), list.length); if (to < 0) return;
       e.preventDefault(); e.stopPropagation(); A.moveMacro(macroId, to); rebuild();

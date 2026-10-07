@@ -46,7 +46,6 @@ import { createDockGuide } from '../window/dock.js';
 import { windowLayout, dockInput, stackedAt, windowOf, gripGesture } from '../window/window.js';
 import { workspaceSwitch } from '../window/workspaces.js';
 import { bindTempoField } from '../shell/transport.js';
-import { drag as pointerDrag } from '../core/pointer.js';
 import { tweenRect, presence, owns, settled } from '../core/motion.js';
 import { createProximity } from '../core/proximity.js';
 import { rect as rectOf } from '../core/perf.js';
@@ -56,7 +55,7 @@ import { normalizeTimelinePoints } from '../timeline/source.js';
 import { STEP_BEATS } from '../pattern/model.js';
 import { createReadoutLayer } from '../timeline/readout.js';
 import { createModCursor } from './mod-cursor.js';
-import { createLayoutMotion } from './layout-motion.js';
+import { createLayoutMotion, wireReorder as reorderEngine } from './layout-motion.js';
 
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const pct = (u) => (100 * clamp01(u)).toFixed(2) + '%';
@@ -1417,53 +1416,14 @@ export function createModulation(host, port) {
      neighbour's middle (8 px past it) moves the neighbours past it in the DOM inside a layout transaction, so they glide;
      nothing is rebuilt during the drag.  Release commits the order to the model and the node settles into its slot; a
      cancel puts it back where it was.  A press that never travels is a tap (`tap`). */
+  /* the engine is layout-motion.js wireReorder (lifted out in wave 22 so the transport's macro tiles share it, Josh's
+     call 21): the NEIGHBOURS move, never the held node — re-inserting the node that holds the pointer would release its
+     capture (BASINS moved the node and listened on the document; core/pointer.js keeps the gesture on the grip) */
   function wireReorder(grip, node, host, selector, axis, commit, tap = () => {}) {
-    let d = null, dragged = false;
-    grip.addEventListener('pointerdown', (e) => { if (!e.button) { e.stopPropagation(); dragged = false; } });   // the grip's press is not the device's nor the window's
-    const gd = pointerDrag(grip, { slop: 3,
-      onStart(st) {
-        if (cancelReorder) cancelReorder();
-        dragged = true;
-        const r = node.getBoundingClientRect();
-        d = { dx: st.x0 - r.left, dy: st.y0 - r.top, left: r.left, top: r.top, next: node.nextSibling };
-        node.classList.add(axis === 'x' ? 'm2drag' : 'm2reorder');
-        layoutMotion.hold(node);
-        cancelReorder = () => gd.cancel();
-      },
-      onMove(st) {
-        if (!d) return;
-        const r = layoutMotion.layoutRect(node), rows = [...host.querySelectorAll(selector)], at = rows.indexOf(node);
-        const center = axis === 'x' ? st.x - d.dx + r.width / 2 : st.y - d.dy + r.height / 2;
-        const natural = axis === 'x' ? r.left + r.width / 2 : r.top + r.height / 2;
-        const backward = center < natural;
-        const candidates = backward ? rows.slice(0, at).reverse() : rows.slice(at + 1);
-        let crossed = null;
-        for (const other of candidates) {
-          const q = layoutMotion.layoutRect(other), mid = axis === 'x' ? q.left + q.width / 2 : q.top + q.height / 2;
-          if (backward ? center < mid - 8 : center > mid + 8) crossed = other;
-          else break;
-        }
-        /* the NEIGHBOURS move, never the held node: re-inserting the node that holds the pointer would release its capture
-           (BASINS moved the node and listened on the document; core/pointer.js keeps the gesture on the grip) */
-        if (crossed) layoutMotion.change(() => {
-          const ci = rows.indexOf(crossed);
-          if (backward) { const ref = node.nextSibling; for (const n of rows.slice(ci, at)) host.insertBefore(n, ref); }
-          else for (const n of rows.slice(at + 1, ci + 1)) host.insertBefore(n, node);
-        }, false);
-        layoutMotion.follow(node, axis === 'x' ? st.x - d.dx : d.left, axis === 'y' ? st.y - d.dy : d.top);
-      },
-      onEnd() { finish(false); },
-      onCancel() { finish(true); },
-    });
-    function finish(cancel) {
-      if (!d) return;
-      const old = d; d = null; cancelReorder = null;
-      node.classList.remove('m2drag', 'm2reorder');
-      if (cancel) layoutMotion.change(() => host.insertBefore(node, old.next && old.next.parentElement === host ? old.next : null), false);
-      else commit([...host.querySelectorAll(selector)].indexOf(node));
-      layoutMotion.release(node); apply(); paint(true); persist();
-    }
-    grip.addEventListener('pointerup', (e) => { if (!e.button && !dragged) tap(); });
+    reorderEngine(grip, node, { host, selector, axis, motion: layoutMotion, commit, tap,
+      began: (cancel) => { if (cancelReorder) cancelReorder(); cancelReorder = cancel; },
+      ended: () => { cancelReorder = null; },
+      settle: () => { apply(); paint(true); persist(); } });
   }
   function wireMacroReorder(rec, macroId, rename) {
     wireReorder(rec.reorder, rec.root, rackEl.slots, ':scope > .m2slot', 'y', (to) => M.moveMacro(macroId, to), tapWatcher(rename));

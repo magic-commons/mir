@@ -17,8 +17,84 @@
  * --ease-out); reduced motion, `off` and the flat tier (duration 0) jump; every animation joins core/motion.js's
  * registry (own) except the window's own box, whose placement waits on it otherwise; no loop: idle costs nothing.
  *   createLayoutMotion(nodes, { skipOwn? }) → { change(fn, sizing = true), hold(node), follow(node, x, y), layoutRect(node),
- *                                              release(node), holding, destroy() } */
+ *                                              release(node), holding, destroy() }
+ *   wireReorder(grip, node, { host, selector, axis, motion, commit, … }) → the drag — THE REORDER ENGINE, below */
 import { motionPolicy, motionToken, own } from '../core/motion.js';
+import { drag as pointerDrag } from '../core/pointer.js';
+
+/** wireReorder(grip, node, o) — THE REORDER ENGINE (BASINS modwindow.js wireReorder + rack-motion.js; the modulation
+ *  window's devices and macro rows since 1.5.0-alpha.9, the transport's macro tiles since wave 22 — Josh's call 21).
+ *  The grip's drag is core/pointer.js (the last sample flushed before the commit; Escape, a lost capture, a blur or a
+ *  hidden page cancel it).  The held node follows the hand by `translate` (motion.hold / follow / release) and is NEVER
+ *  moved in the DOM while it is held: re-inserting the node that holds the pointer releases its capture, and on touch
+ *  the finger is lost.  Crossing a neighbour moves the NEIGHBOURS past it inside motion.change, so they glide; nothing is
+ *  rebuilt during the drag.  Release commits the order and the node settles into its slot; a cancel puts it back.  A
+ *  press that never travels is a tap.
+ *    host, selector  the list and its items (`:scope > .m2slot`)
+ *    axis       'x' or 'y': a row or a column, a neighbour crossed 8 px past its middle; 'grid': a wrapping grid in
+ *               reading order (the transport's two columns), a neighbour crossed when the held node's centre is inside it
+ *               by 8 px (a quarter of a small tile)
+ *    motion     a createLayoutMotion over the items
+ *    commit(index)  the node's place on release · tap()  a press that never travelled · slop  px before a drag (3)
+ *    began(cancel)  a drag starts, with its cancel (one reorder at a time is the caller's) · ended()  it is over
+ *    settle()   after either end (the window applies, paints and persists) */
+export function wireReorder(grip, node, { host, selector, axis = 'y', motion, commit, tap = () => {}, began = () => {}, ended = () => {}, settle = () => {}, slop = 3 } = {}) {
+  let d = null, dragged = false;
+  grip.addEventListener('pointerdown', (e) => { if (!e.button) { e.stopPropagation(); dragged = false; } });   // the grip's press is not the device's nor the window's
+  const gd = pointerDrag(grip, { slop,
+    onStart(st) {
+      began(() => gd.cancel());
+      dragged = true;
+      const r = node.getBoundingClientRect();
+      d = { dx: st.x0 - r.left, dy: st.y0 - r.top, left: r.left, top: r.top, next: node.nextSibling };
+      node.classList.add(axis === 'x' ? 'm2drag' : 'm2reorder');
+      motion.hold(node);
+    },
+    onMove(st) {
+      if (!d) return;
+      const r = motion.layoutRect(node), rows = [...host.querySelectorAll(selector)], at = rows.indexOf(node);
+      let crossed = null, backward = false;
+      if (axis === 'grid') {
+        const cx = st.x - d.dx + r.width / 2, cy = st.y - d.dy + r.height / 2;
+        for (const other of rows) {
+          if (other === node) continue;
+          const q = motion.layoutRect(other), ix = Math.min(8, q.width / 4), iy = Math.min(8, q.height / 4);
+          if (cx > q.left + ix && cx < q.left + q.width - ix && cy > q.top + iy && cy < q.top + q.height - iy) { crossed = other; break; }
+        }
+        backward = !!crossed && rows.indexOf(crossed) < at;
+      } else {
+        const center = axis === 'x' ? st.x - d.dx + r.width / 2 : st.y - d.dy + r.height / 2;
+        const natural = axis === 'x' ? r.left + r.width / 2 : r.top + r.height / 2;
+        backward = center < natural;
+        const candidates = backward ? rows.slice(0, at).reverse() : rows.slice(at + 1);
+        for (const other of candidates) {
+          const q = motion.layoutRect(other), mid = axis === 'x' ? q.left + q.width / 2 : q.top + q.height / 2;
+          if (backward ? center < mid - 8 : center > mid + 8) crossed = other;
+          else break;
+        }
+      }
+      /* the NEIGHBOURS move, never the held node */
+      if (crossed) motion.change(() => {
+        const ci = rows.indexOf(crossed);
+        if (backward) { const ref = node.nextSibling; for (const n of rows.slice(ci, at)) host.insertBefore(n, ref); }
+        else for (const n of rows.slice(at + 1, ci + 1)) host.insertBefore(n, node);
+      }, false);
+      motion.follow(node, axis === 'y' ? d.left : st.x - d.dx, axis === 'x' ? d.top : st.y - d.dy);
+    },
+    onEnd() { finish(false); },
+    onCancel() { finish(true); },
+  });
+  function finish(cancel) {
+    if (!d) return;
+    const old = d; d = null; ended();
+    node.classList.remove('m2drag', 'm2reorder');
+    if (cancel) motion.change(() => host.insertBefore(node, old.next && old.next.parentElement === host ? old.next : null), false);
+    else commit([...host.querySelectorAll(selector)].indexOf(node));
+    motion.release(node); settle();
+  }
+  grip.addEventListener('pointerup', (e) => { if (!e.button && !dragged) tap(); });
+  return gd;
+}
 
 export function createLayoutMotion(nodes, { skipOwn = () => false } = {}) {
   const animations = new Map();

@@ -18,10 +18,11 @@
  * nine squares with the app's own symbol; it is kept in `.word`, unseen, because a loading seat clones `#title .mark`
  * (BASINS keeps its half-continent there).  The art is always the app's: the kit only seats it.
  *
- * THE PALETTE DIAMOND (BASINS brand-motion.js createMirDiamond / installPaletteCycle): the same nine squares in MIR's
- * nine colours (JL-LOGOS mir-light.svg's rainbow diamond, in its row order).  While a MOUSE hovers its seat the colours
- * step one square every 240 ms, exact swatches, never interpolated; leaving, a blur or a hidden page puts them back.
- * Nothing runs unless a mouse is on it, and nothing runs under reduced or no motion (core/motion.js policy).
+ * THE PALETTE DIAMOND (BASINS brand-motion.js createMirDiamond / installPaletteCycle): MIR's OFFICIAL diamond (JL-LOGOS
+ * dark/mir-dark.svg #rainbow-diamond: square tiles, its gaps, its nine colours in its row order; Josh, 2026-10-07, call 6).
+ * While a MOUSE hovers its seat the colours move on one square every 240 ms and each tile glides there (a linear fill
+ * transition one step long), so the palette flows; leaving, a blur or a hidden page glides them back.  Nothing runs
+ * unless a mouse is on it, and nothing runs under reduced or no motion (core/motion.js policy).
  *
  * wordmark(parent, { lead, word, sub, id, svg, mark }) → the #title element */
 import { motionPolicy } from '../core/motion.js';
@@ -31,13 +32,12 @@ const SVG = 'http://www.w3.org/2000/svg';
 export const MIR_PALETTE = Object.freeze(['#f15b66', '#f5bf5e', '#5bcfc2', '#f58b53', '#68cb83', '#767fd3', '#bad969', '#5ca9e4', '#b979d0']);
 /** the cycle's step (BASINS: setInterval 240) */
 export const PALETTE_STEP = 240;
-/** paletteAt(i, offset, colors) — the swatch square i wears after `offset` steps (pure; never a blend) */
+/** paletteAt(i, offset, colors) — the swatch square i wears after `offset` steps (pure; the glide between two is the tile's CSS transition) */
 export const paletteAt = (i, offset = 0, colors = MIR_PALETTE) => colors[(i + offset) % colors.length];
 const FIRST_PAINT = ['#5ee7d8', '#78e1f0', '#f5f7fa', '#d97ce8', '#2b3f7a', '#5ee7d8', '#ffbe5a', '#d97ce8', '#78e1f0'];
 
-/** the nine squares rotated 45° (viewBox 0 0 10 10, squares 2.25 on a 2.25 pitch), row by row → { svg, tiles };
- *  `rx` rounds the squares.  The one builder both marks below use. */
-function nineSquares(cls, rx) {
+/** the nine squares rotated 45° (viewBox 0 0 10 10, squares 2.25 on a 2.25 pitch), row by row → { svg, tiles } */
+function nineSquares(cls) {
   const svg = document.createElementNS(SVG, 'svg');
   svg.setAttribute('class', cls); svg.setAttribute('viewBox', '0 0 10 10'); svg.setAttribute('aria-hidden', 'true');
   const g = document.createElementNS(SVG, 'g'); g.setAttribute('transform', 'rotate(45 5 5)'); svg.appendChild(g);
@@ -45,7 +45,7 @@ function nineSquares(cls, rx) {
   const tiles = Array.from({ length: 9 }, (_, i) => {
     const r = document.createElementNS(SVG, 'rect');
     r.setAttribute('x', String(at[i % 3])); r.setAttribute('y', String(at[Math.floor(i / 3)]));
-    r.setAttribute('width', '2.25'); r.setAttribute('height', '2.25'); if (rx) r.setAttribute('rx', rx);
+    r.setAttribute('width', '2.25'); r.setAttribute('height', '2.25');
     g.appendChild(r); return r;
   });
   return { svg, tiles };
@@ -57,9 +57,11 @@ export function markSvg() {
   return svg;
 }
 
-/** installPaletteCycle(target, tiles, colors) — BASINS' hover cycle: a mouse on `target` steps the tiles' fills by one
- *  swatch every PALETTE_STEP ms; leave, cancel, a window blur or a hidden page stops it and repaints the rest order.
- *  A timer runs only while a mouse hovers (it is the animation, not a poller).  → destroy() */
+/** installPaletteCycle(target, tiles, colors) — BASINS' hover cycle: a mouse on `target` moves the tiles' fills on by one
+ *  swatch every PALETTE_STEP ms, and each tile GLIDES there (a linear `fill` transition as long as the step, so the colours
+ *  flow without a hard step: Josh, 2026-10-07, call 6); leave, cancel, a window blur or a hidden page stops it and the
+ *  tiles glide back to the rest order.  A timer runs only while a mouse hovers (it is the animation, not a poller), and
+ *  none starts under reduced or no motion.  → destroy() */
 export function installPaletteCycle(target, tiles, colors = MIR_PALETTE) {
   const view = target.ownerDocument.defaultView, doc = target.ownerDocument;
   let timer = 0, offset = 0, hovered = false;
@@ -72,6 +74,7 @@ export function installPaletteCycle(target, tiles, colors = MIR_PALETTE) {
   const visibility = () => { if (doc.hidden) leave(); };
   const life = new AbortController(), on = { signal: life.signal };
   paint();
+  for (const tile of tiles) tile.style.transition = `fill ${PALETTE_STEP}ms linear`;   // the glide: one step long, so the flow never stops between steps
   target.addEventListener('pointerenter', enter, on);
   target.addEventListener('pointerleave', leave, on);
   target.addEventListener('pointercancel', leave, on);
@@ -79,10 +82,26 @@ export function installPaletteCycle(target, tiles, colors = MIR_PALETTE) {
   doc.addEventListener('visibilitychange', visibility, on);
   return () => { leave(); life.abort(); };
 }
-/** createMirDiamond(target, { colors }) — BASINS' palette diamond (`svg.mod-palette-mark`, the nine squares with
- *  rx .22) appended to `target`, its cycle installed on `target`.  → { diamond, tiles, destroy() } */
+/** MIR'S OFFICIAL DIAMOND (JL-LOGOS dark/mir-dark.svg `#rainbow-diamond`, as drawn there): nine square-cornered tiles 25
+ *  on a 27 pitch, rotated 45° about the block's middle, in the logo's own swatches and row order (MIR_PALETTE).  The
+ *  viewBox frames it as the nine squares above fill theirs (the diagonal 95.5 % of the box), so the door's seat and size
+ *  do not change (the hand law). */
+function officialDiamond(cls) {
+  const svg = document.createElementNS(SVG, 'svg'), half = 79 * Math.SQRT2 / 0.9546 / 2;
+  svg.setAttribute('class', cls); svg.setAttribute('viewBox', `${(39.5 - half).toFixed(2)} ${(39.5 - half).toFixed(2)} ${(2 * half).toFixed(2)} ${(2 * half).toFixed(2)}`); svg.setAttribute('aria-hidden', 'true');
+  const g = document.createElementNS(SVG, 'g'); g.setAttribute('transform', 'rotate(45 39.5 39.5)'); svg.appendChild(g);
+  const tiles = Array.from({ length: 9 }, (_, i) => {
+    const r = document.createElementNS(SVG, 'rect');
+    r.setAttribute('x', String((i % 3) * 27)); r.setAttribute('y', String(Math.floor(i / 3) * 27)); r.setAttribute('width', '25'); r.setAttribute('height', '25');
+    g.appendChild(r); return r;
+  });
+  return { svg, tiles };
+}
+/** createMirDiamond(target, { colors }) — the door's mark: MIR's official diamond (`svg.mod-palette-mark`; Josh,
+ *  2026-10-07, call 6: "use MIR's official logo and make it smoothly change color when palette cycling") appended to
+ *  `target`, its gliding cycle installed on `target`.  → { diamond, tiles, destroy() } */
 export function createMirDiamond(target, { colors = MIR_PALETTE } = {}) {
-  const { svg: diamond, tiles } = nineSquares('mod-palette-mark', '.22');
+  const { svg: diamond, tiles } = officialDiamond('mod-palette-mark');
   diamond.setAttribute('focusable', 'false');
   target.appendChild(diamond);
   return { diamond, tiles, destroy: installPaletteCycle(target, tiles, colors) };

@@ -103,6 +103,34 @@ try {
     return { open: tr.root.classList.contains('tempo-open'), tiles: tiles.length, macros: T.M.macroList().length, grip: !!g && hit(g), depth: !!tiles[0] && hit(tiles[0].querySelector('.m2numseat')), clockTiles: tr.root.querySelectorAll('.tempo-clock .trig').length };`);
   check('on the stage a click on the pill opens the tempo panel: MACROS (one tile per macro, its routing grip and depth seat hit) | CLOCK',
     c.hit && r.open && r.tiles === r.macros && r.tiles > 0 && r.grip && r.depth && r.clockTiles >= 5, JSON.stringify(r));
+
+  /* ── THE TILE REORDER IS THE MODULATION WINDOW'S ENGINE (Josh's call 21, wave 22): four tiles in two columns; a real
+     drag of the first tile's reorder grip to the last seat.  The held tile is never put back into the DOM while it is held
+     (a finger keeps it): it follows the hand by `translate`, the neighbours move; release commits the order to the model
+     and, once the tile has settled, the rail is built again in that order, numbered 1–4 ── */
+  r = await run(`while (T.M.macroList().length < 4) T.M.addMacro(null); tr.sync(); await wait(80);
+    const tiles = [...tr.root.querySelectorAll('.tempo-rail .tempo-tile')];
+    window.__held = tiles[0]; window.__adds = 0;
+    window.__mo = new MutationObserver((recs) => { for (const x of recs) for (const n of x.addedNodes) if (n === window.__held) window.__adds++; });
+    window.__mo.observe(tiles[0].parentElement, { childList: true });
+    const C = (n) => { const b = n.getBoundingClientRect(); return [b.left + b.width / 2, b.top + b.height / 2]; };
+    return { n: tiles.length, ids: T.M.macroList().map((m) => m.id), cols: new Set(tiles.map((t) => Math.round(t.getBoundingClientRect().left))).size, from: C(tiles[0]), to: C(tiles[3]) };`);
+  const before = r;
+  const rg = await at(`__T.tr.root.querySelectorAll('.tempo-rail .tempo-tile')[0].querySelector('.m2rowgrip')`);
+  const ddx = before.to[0] - before.from[0], ddy = before.to[1] - before.from[1];
+  await mouse('mouseMoved', rg.x, rg.y); await mouse('mousePressed', rg.x, rg.y);
+  for (let i = 1; i <= 16; i++) { await mouse('mouseMoved', Math.round(rg.x + (ddx * i) / 16), Math.round(rg.y + (ddy * i) / 16)); await sleep(20); }
+  await sleep(60);
+  const during = await run(`const h = window.__held, rail = h.parentElement; return { at: [...rail.children].indexOf(h), translate: h.style.translate, cls: h.classList.contains('m2reorder'), adds: window.__adds, model: T.M.macroList().map((m) => m.id) };`);
+  await mouse('mouseReleased', Math.round(rg.x + ddx), Math.round(rg.y + ddy)); await sleep(120);
+  r = await run(`await M.settled(window.__held); await wait(120); window.__mo.disconnect();
+    const tiles = [...tr.root.querySelectorAll('.tempo-rail .tempo-tile')];
+    return { adds: window.__adds, model: T.M.macroList().map((m) => m.id), dom: tiles.map((t) => t.dataset.macro), nums: tiles.map((t) => t.querySelector('.m2num').textContent).join(''), rebuilt: !tiles.includes(window.__held), translate: tiles.map((t) => t.style.translate).join('') };`);
+  const wantOrder = [...before.ids.slice(1), before.ids[0]].join();
+  check('tile reorder (the window\'s engine): a real drag of tile 1\'s grip to the 4th seat — the held tile follows by translate and is never re-inserted, its neighbours move under it',
+    before.n === 4 && before.cols === 2 && rg.hit && during.at === 3 && during.cls && /px/.test(during.translate) && during.adds === 0 && during.model.join() === before.ids.join(), JSON.stringify({ before, rg, during }));
+  check('tile reorder: release commits the order to the model and the rail is built again in it, numbered 1–4, nothing left translated',
+    r.adds === 0 && r.model.join() === wantOrder && r.dom.join() === wantOrder && r.nums === '1234' && r.rebuilt && r.translate === '', JSON.stringify({ r, wantOrder }));
   await click(c.x, c.y);
 
   /* ── the lego stack: both open → UPPER 8 px above TIMELINE; a real drag of UPPER away → detached ── */
@@ -137,6 +165,20 @@ try {
   const PAL = ['#f15b66', '#f5bf5e', '#5bcfc2', '#f58b53', '#68cb83', '#767fd3', '#bad969', '#5ca9e4', '#b979d0'];
   check('the door\'s diamond: MIR\'s nine swatches at rest, stepped (exact swatches) while a mouse hovers, back at rest on leave',
     JSON.stringify(rest0) === JSON.stringify(PAL) && JSON.stringify(moved) !== JSON.stringify(rest0) && moved.every((f) => PAL.includes(f)) && JSON.stringify(back) === JSON.stringify(rest0), JSON.stringify({ rest0, moved, back }));
+  /* ── THE DOOR'S MARK IS MIR'S OFFICIAL DIAMOND AND IT GLIDES (Josh, 2026-10-07, call 6): JL-LOGOS mir-dark.svg's nine
+     square tiles (25 on a 27 pitch, rotated 45°), the same 19 px box as before; each tile's fill is a linear transition one
+     step (240 ms) long, so halfway through a step a tile wears a colour between two swatches, never a hard step ── */
+  await sleep(400);
+  const geo = await p.eval(`(() => { const s = __T.tr.el.door.querySelector('.mod-palette-mark'), r = [...s.querySelectorAll('rect')], b = s.getBoundingClientRect(), cs = getComputedStyle(r[0]);
+    return JSON.stringify({ n: r.length, w: r.map((x) => x.getAttribute('width')).join(), xs: r.slice(0, 3).map((x) => x.getAttribute('x')).join(), rx: r.some((x) => x.hasAttribute('rx')), rot: s.querySelector('g').getAttribute('transform'),
+      box: [b.width, b.height], prop: cs.transitionProperty, dur: cs.transitionDuration, ease: cs.transitionTimingFunction }); })()`).then(JSON.parse);
+  await mouse('mouseMoved', c.x, c.y); await sleep(360);   // one step, then half of the next glide
+  const glide = await p.eval(`JSON.stringify([...__T.tr.el.door.querySelectorAll('.mod-palette-mark rect')].map((t) => getComputedStyle(t).fill))`).then(JSON.parse);
+  await mouse('mouseMoved', 5, 5); await sleep(400);
+  const hex = (rgb) => '#' + (rgb.match(/\d+/g) || []).slice(0, 3).map((v) => (+v).toString(16).padStart(2, '0')).join('');
+  check('the door\'s mark is MIR\'s official diamond (9 square tiles, 25 on 27, rotated 45°) in the same 19 px box, and its colours GLIDE: fill transitions linearly over one 240 ms step, a tile mid-step wears an in-between colour',
+    geo.n === 9 && geo.w === '25,25,25,25,25,25,25,25,25' && geo.xs === '0,27,54' && !geo.rx && geo.rot === 'rotate(45 39.5 39.5)' && geo.box.join() === '19,19'
+      && /fill/.test(geo.prop) && geo.dur === '0.24s' && geo.ease === 'linear' && glide.some((f) => !PAL.includes(hex(f))), JSON.stringify({ geo, glide: glide.map(hex) }));
 
 } catch (e) {
   results.push('FAIL  the run threw — ' + (e && e.stack || e));
