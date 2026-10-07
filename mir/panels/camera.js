@@ -299,21 +299,9 @@ export function createCameraView(parent, o = {}) {
     entries.push({ vids: ['yaw', 'pitch'], c: { root: sphere.root, widget: sphere.svg, set: () => {}, kind: 'sphere' }, read: () => null, sphere });
   }
 
-  /* ── the view row ── */
-  const view = row('cam-view');
-  for (const id of ['rotation', 'roll', ...(sphereOn ? [] : ['yaw', 'pitch']), 'zoom', 'fov', 'flip']) {
-    if (!has_(id)) continue;
-    if (id === 'rotation') {
-      const c = single(id, view);
-      const d = D(id);
-      // BASINS: a double-tap (the arc's home) is a trip north, and remembers where it left
-      const set0 = c.desc.set; c.desc.set = (v) => { if (v === d.home) { const b = base('rotation'); if (!atNorth(b / unit)) memo = wrapDegrees(b / unit); } set0(v); paintNorth(); };
-    } else single(id, view);
-  }
-  if (!view.children.length) view.remove();
-
-  /* ── the pan: an XY pad and its two knobs ── */
-  let padEntry = null;
+  /* ── the pan: an XY pad and its two knobs — and, under Y, the ROTATION knob (Josh, 2026-10-06: "could the rotation knob sit
+     underneath the Y knob? I think we can save a row that way": BASINS' view row held ROTATION alone) ── */
+  let padEntry = null, rotSeat = null;
   if (has_('panX') && has_('panY')) {
     const dx = D('panX'), dy = D('panY');
     const axis = (id, d) => ({ id: modId(id), label: d.label, min: d.min, max: d.max, step: d.step, fmt: d.fmt, hint: d.hint, def: d.home, get: () => port.get(id), set: (v) => write(id, v) });
@@ -321,7 +309,22 @@ export function createCameraView(parent, o = {}) {
     c.widget.x.setDefault(dx.home); c.widget.y.setDefault(dy.home);
     add(row('cam-pan'), ['panX', 'panY'], c, () => [port.get('panX'), port.get('panY')]);
     padEntry = c;
-  } else for (const id of ['panX', 'panY']) if (has_(id)) { const r = root.querySelector('.cam-view') || row('cam-view'); single(id, r); }
+    rotSeat = c.root.querySelector('.mir-xy-side');                 // the pad's knob column: X, Y, then ROTATION
+  }
+
+  /* ── the view row (what the pad did not seat) ── */
+  const view = row('cam-view');
+  for (const id of ['rotation', 'roll', ...(sphereOn ? [] : ['yaw', 'pitch']), 'zoom', 'fov', 'flip']) {
+    if (!has_(id)) continue;
+    if (id === 'rotation') {
+      const c = single(id, rotSeat || view);
+      const d = D(id);
+      // BASINS: a double-tap (the arc's home) is a trip north, and remembers where it left
+      const set0 = c.desc.set; c.desc.set = (v) => { if (v === d.home) { const b = base('rotation'); if (!atNorth(b / unit)) memo = wrapDegrees(b / unit); } set0(v); paintNorth(); };
+    } else single(id, view);
+  }
+  if (!padEntry) for (const id of ['panX', 'panY']) if (has_(id)) single(id, view);
+  if (!view.children.length) view.remove();
 
   /* ── the scales and the orbit ── */
   const scales = row('cam-scales');

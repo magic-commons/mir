@@ -49,8 +49,8 @@ try {
   /* ── THE LAYOUT ── */
   const lay = await J(`const rows = (id) => [...document.querySelector('.dev[data-id="' + id + '"] .mir-camera').children].map((c) => c.className.replace('cam-row ', '')); const q = (id, s) => document.querySelectorAll('.dev[data-id="' + id + '"] ' + s).length;
     return { r2: rows('camera2d'), r3: rows('camera3d'), re: rows('cameraeng'), verbs2: [...document.querySelectorAll('.dev[data-id="camera2d"] .cam-verbs .trig')].map((b) => b.textContent.trim()), verbs3: [...document.querySelectorAll('.dev[data-id="camera3d"] .cam-verbs .trig')].map((b) => b.textContent.trim()),
-      verbsE: [...document.querySelectorAll('.dev[data-id="cameraeng"] .cam-verbs .trig')].map((b) => b.textContent.trim()), title2: q('camera2d', '.cam-title, hr, .grp-lbl'), hand3: q('camera3d', '.cam-hand'), handE: q('cameraeng', '.cam-hand') };`);
-  check('2-D: the verb row is the very top row (PAN HOME, NORTH), then the dials, the pad, the scales; no heading and no divider', lay.r2[0] === 'cam-verbs' && lay.verbs2.join() === 'PAN HOME,NORTH' && lay.r2.join() === 'cam-verbs,cam-view,cam-pan,cam-scales' && lay.title2 === 0, JSON.stringify(lay));
+      verbsE: [...document.querySelectorAll('.dev[data-id="cameraeng"] .cam-verbs .trig')].map((b) => b.textContent.trim()), title2: q('camera2d', '.cam-title, hr, .grp-lbl'), hand3: q('camera3d', '.cam-hand'), handE: q('cameraeng', '.cam-hand'), rotSeat: [...document.querySelectorAll('.dev[data-id="camera2d"] .cam-pan .mir-xy-side > *')].indexOf(document.querySelector('.dev[data-id="camera2d"] .cam-pan .mir-xy-side .k-arcknob')) + 1 };`);
+  check('2-D: the verb row is the very top row (PAN HOME, NORTH), then the pad (X, Y and ROTATION in its column), the dials, the scales; no heading and no divider', lay.r2[0] === 'cam-verbs' && lay.verbs2.join() === 'PAN HOME,NORTH' && lay.r2.join() === 'cam-verbs,cam-pan,cam-view,cam-scales' && lay.rotSeat === 3 && lay.title2 === 0, JSON.stringify(lay));
   check('3-D: HOME on the verb row, then CONTROL, the sphere, the view dials; no HAND (the CSS camera has none)', lay.r3[0] === 'cam-verbs' && lay.verbs3.join() === 'HOME' && lay.r3.includes('cam-sphere') && lay.hand3 === 0, JSON.stringify(lay.r3));
   check('the engine port: its own verb first, then HOME; a HAND section because the port has the hand\'s ids', lay.verbsE.join() === 'RESET ZOOM,HOME' && lay.handE === 1, JSON.stringify(lay.verbsE));
 
@@ -77,7 +77,7 @@ try {
   check('PAN HOME (a real press) brings pan home', (await click(D('camera2d') + '.querySelector(".cam-home")', 'PAN HOME'), near(await get('p2', 'panX'), 0, 1e-6) && near(await get('p2', 'panY'), 0, 1e-6)));
 
   /* ── NORTH, and back ── */
-  const ROT = D('camera2d') + '.querySelector(".cam-view .k .k-dial")';
+  const ROT = D('camera2d') + '.querySelector(".cam-pan .mir-xy-side .k-arcknob .k-dial")';
   await drag(ROT, 'rotation arc', [[0, -20], [0, -40], [0, -55]]);
   const r90 = await get('p2', 'rotation');
   check('ROTATION is an arc: 55 px up is a quarter of 360° (90°)', near(r90, 90, 4), String(r90));
@@ -100,7 +100,7 @@ try {
   /* ── a ROUTED macro turns ROTATION; the arc follows; the hand's base stays ── */
   const ROUTE = `document.querySelector('#bar .trig')`;
   await click(ROUTE, 'ROUTE');
-  const seen = []; for (let i = 0; i < 12; i++) { await sleep(150); seen.push(await J(`const k = ${D('camera2d')}.querySelector('.cam-view .k'); return { v: K.p2.port.get('rotation'), base: K.mod.baseOf('cam2d.rotation'), live: k.style.getPropertyValue('--live-turn'), modc: k.classList.contains('k-mod'), tf: K.pic2.style.transform };`)); }
+  const seen = []; for (let i = 0; i < 12; i++) { await sleep(150); seen.push(await J(`const k = ${D('camera2d')}.querySelector('.cam-pan .mir-xy-side .k-arcknob'); return { v: K.p2.port.get('rotation'), base: K.mod.baseOf('cam2d.rotation'), live: k.style.getPropertyValue('--live-turn'), modc: k.classList.contains('k-mod'), tf: K.pic2.style.transform };`)); }
   const vs = seen.map((s) => s.v), span = Math.max(...vs) - Math.min(...vs);
   check('routed: the LFO turns ROTATION (the port\'s number swings) and the picture turns with it', span > 8 && new Set(seen.map((s) => s.tf)).size > 4, JSON.stringify({ span, n: new Set(seen.map((s) => s.tf)).size }));
   check('routed: the arc follows (its live ring moves, accent B) and the hand\'s base stays where it was', new Set(seen.map((s) => s.live)).size > 4 && seen.some((s) => s.modc) && seen.every((s) => near(s.base, rb, 0.01)), JSON.stringify({ lives: new Set(seen.map((s) => s.live)).size, base: seen[0].base }));
