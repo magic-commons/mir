@@ -38,7 +38,7 @@ function rgbOf(css) {
   let v = rgbs.get(css); if (v) return v;
   if (!probe) { const c = document.createElement('canvas'); c.width = c.height = 1; probe = c.getContext('2d', { willReadFrequently: true }); }
   probe.clearRect(0, 0, 1, 1); probe.fillStyle = '#808080'; probe.fillStyle = css || '#808080'; probe.fillRect(0, 0, 1, 1);
-  const p = probe.getImageData(0, 0, 1, 1).data; v = p[3] ? [p[0], p[1], p[2]] : [128, 128, 128];
+  const p = probe.getImageData(0, 0, 1, 1).data; v = p[3] ? [p[0], p[1], p[2], p[3] / 255] : [128, 128, 128, 1];   // r, g, b and the colour's own alpha
   if (rgbs.size > 64) rgbs.clear(); rgbs.set(css, v); return v;
 }
 const BUCKETS = 8;                                                // tint levels: one path and one fill each
@@ -72,7 +72,7 @@ function createLattice(pad) {
     const sx = W / nx, sy = H / ny, r0 = num('--xy-lattice-dot', 0.9), sw = num('--xy-lattice-swell', 3.1), rMax = 0.48 * Math.min(sx, sy);
     const R = Math.max(1, num('--xy-lattice-reach', 0.35) * side), R2 = R * R, Rc2 = R2 * 0.49, hv = h * num('--xy-lattice-hover', 0.5);
     const far = num('--xy-lattice-far', 0.22), near = num('--xy-lattice-near', 0.9);
-    const ink = rgbOf(tok('--fg')), acc = rgbOf(tok(mod ? '--acc2' : '--acc'));
+    const ink = rgbOf(tok('--xy-lattice-ink') || tok('--fg')), acc = rgbOf(tok(mod ? '--acc2' : '--acc'));   // the far ink is the well's tint (its alpha included)
     const ppx = px * W, ppy = (1 - py) * H, count = nx * ny;
     if (radii.length !== count) { radii = new Float32Array(count); tint = new Uint8Array(count); }
     for (let j = 0, i = 0; j < ny; j++) {
@@ -93,7 +93,7 @@ function createLattice(pad) {
         const x = (k + 0.5) * sx, y = (j + 0.5) * sy, r = radii[i]; g.moveTo(x + r, y); g.arc(x, y, r, 0, 6.283185307179586); any = true;
       }
       if (!any) continue;
-      g.fillStyle = `rgba(${Math.round(ink[0] + (acc[0] - ink[0]) * t)},${Math.round(ink[1] + (acc[1] - ink[1]) * t)},${Math.round(ink[2] + (acc[2] - ink[2]) * t)},${(far + (near - far) * t).toFixed(3)})`;
+      g.fillStyle = `rgba(${Math.round(ink[0] + (acc[0] - ink[0]) * t)},${Math.round(ink[1] + (acc[1] - ink[1]) * t)},${Math.round(ink[2] + (acc[2] - ink[2]) * t)},${(ink[3] * far + (near - ink[3] * far) * t).toFixed(3)})`;
       g.fill();
     }
     const ms = performance.now() - t0; stat.paints++; stat.ms = ms; stat.sum += ms; if (ms > stat.max) stat.max = ms;

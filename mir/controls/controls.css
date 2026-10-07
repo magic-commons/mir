@@ -24,8 +24,10 @@
   --xy-lattice-swell: 3.1px;                         /* the radius added at the point (capped just under half the pitch) */
   --xy-lattice-reach: .35;                           /* the bell's radius, as a fraction of the pad's side */
   --xy-lattice-hover: .5;                            /* the cursor's swell, as a fraction of the point's (a hover device only) */
-  --xy-lattice-far: .22;                             /* a far dot's ink alpha */
+  --xy-lattice-far: 1;                               /* a far dot's alpha, as a share of its ink's own (1 = exactly the tint) */
   --xy-lattice-near: .9;                             /* the alpha at the point, where the ink has become the accent */
+  --xy-lattice-ink: var(--glass-well);               /* a far dot's ink: the well's tint, so the dots ARE the tint (Josh 2026-10-06: "make the dots the
+                                                        same color as the tint"); the pad's own fill is gone; the light theme's well gives the light dots */
 }
 /* ── end of the values ── */
 
@@ -134,7 +136,7 @@ button.mir-step-name:disabled { cursor: default; }
 .mir-xy { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
 .mir-xy-body { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--sp-4); align-items: start; width: 100%; }
 .xy-pad { position: relative; aspect-ratio: 1; width: 100%; max-width: var(--xy-size); box-sizing: border-box; overflow: hidden; border-radius: var(--r-md);
-  border: var(--glass-border) solid transparent; background: var(--glass-well); box-shadow: var(--relief-well, var(--neu-inset)); touch-action: none; cursor: crosshair; }
+  border: var(--glass-border) solid transparent; background: transparent; box-shadow: none; touch-action: none; cursor: crosshair; }   /* no well: the lattice is the tint (2026-10-06) */
 .xy-pad::before, .xy-pad::after { content: ""; position: absolute; background: var(--glass-hairline); pointer-events: none; }
 .xy-pad::before { left: 50%; top: 0; bottom: 0; width: 1px; }
 .xy-pad::after { top: 50%; left: 0; right: 0; height: 1px; }

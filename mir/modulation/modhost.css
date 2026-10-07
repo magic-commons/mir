@@ -1344,13 +1344,13 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 
 
 #modwin.mir-modwindow .m2pow {
-  border: 0; background: transparent; border-radius: 0;
-  color: var(--acc); filter: none; }
+  border: 0; background: var(--glass-well); border-radius: 50%; box-shadow: none;
+  color: var(--m2-ink-faint); filter: none; }                                                              /* off: the well's solid tint, no rim */
 #modwin.mir-modwindow .m2dev.m2off .m2pow,
 #modwin.mir-modwindow .m2pow[aria-pressed="false"] {
-  color: var(--m2-ink-faint); filter: none; }
+  background: var(--glass-well); color: var(--m2-ink-faint); box-shadow: none; filter: none; }
 #modwin.mir-modwindow .m2dev:not(.m2off) .m2pow:not([aria-pressed="false"]) {
-  background: var(--state-on, var(--m2-mat-frost)); box-shadow: var(--m2-on-rim); border-radius: var(--r-sm); }   /* INTENT L31: the glyph in accent is the light */                                                          /* 61 */
+  background: var(--acc); color: var(--acc-ink); box-shadow: none; border-radius: 50%; }   /* on: a solid accent disc, the glyph in the accent's ink (Josh 2026-10-06: no outlines, a solid colour per state; was INTENT L31's lit frost + rim) */   /* 61 */
 
 
 #modwin.mir-modwindow .m2ab { border: 0; background: transparent; }                    /* 62 */

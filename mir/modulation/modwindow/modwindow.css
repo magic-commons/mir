@@ -1152,13 +1152,12 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:active::bef
 /* TRIG lives in the ENV's switch column, 44 px wide. */
 .mir-modwindow .m2dev.env .m2sw .m2trig { min-width: 0; width: 100%; padding: 0 2px; }
 .mir-modwindow .m2pow { width: 40px; height: 40px; min-height: 40px; border-radius: 50%; padding: 0;
-  border: var(--m2-pow-edge); background: transparent; position: relative;
+  border: 0; background: transparent; position: relative;
   display: flex; align-items: center; justify-content: center; color: var(--m2-ink-w70); }
 .mir-modwindow .m2pow::before { content: ""; position: absolute; left: 50%; top: 50%; width: 44px; height: 44px;
   margin: -22px 0 0 -22px; border-radius: 50%; }
 .mir-modwindow .m2pow svg { width: 15px; height: 15px; pointer-events: none; }
-.mir-modwindow .m2pow.on { background: transparent; border-color: var(--acc); color: var(--acc);
-  box-shadow: none; }
+.mir-modwindow .m2pow.on { background: transparent; color: var(--acc); box-shadow: none; }
 .mir-modwindow .m2x { border: 0; background: transparent; color: var(--m2-ink-w55); padding: 0;
   width: 40px; height: 40px; min-height: 40px; font-size: var(--m2-fs-17); line-height: 1; position: relative;
   border-radius: var(--m2-r-6); }

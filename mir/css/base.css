@@ -114,11 +114,14 @@ h1, h2 { margin: 0; font-weight: var(--w-bold); }
   pointer-events: none; }
 @media (hover: none), (pointer: coarse) { .dev-loading:not([hidden]) { display: flex; }
 }
-.dev-power { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--glass-hairline); background: var(--glass-raise); cursor: pointer; position: relative; margin-inline-end: 4px; }
-.dev-power::before { content: ''; position: absolute; inset: 6px; border-radius: 50%; border: 1.5px solid var(--acc); border-top-color: transparent; }
-.dev-power::after { content: ''; position: absolute; left: 50%; top: 4px; width: 1.5px; height: 6px; background: var(--acc); transform: translateX(-50%); }
-.dev-power[aria-pressed="false"]::before, .dev-power[aria-pressed="false"]::after { border-color: var(--dim); border-top-color: transparent; background: var(--dim); }
-.dev-power[aria-pressed="false"]::before { background: transparent; }
+/* THE POWER BUTTON: a solid disc, no outline — accent when on, the well's tint when off (Josh 2026-10-06: "delete all the power
+   button outlines … just a deactivated vs activated solid color"); the ⏻ glyph sits on it in the accent's ink / the dim ink */
+.dev-power { width: 22px; height: 22px; border-radius: 50%; border: 0; background: var(--acc); cursor: pointer; position: relative; margin-inline-end: 4px; }
+.dev-power::before { content: ''; position: absolute; inset: 6px; border-radius: 50%; border: 1.5px solid var(--acc-ink); border-top-color: transparent; }
+.dev-power::after { content: ''; position: absolute; left: 50%; top: 4px; width: 1.5px; height: 6px; background: var(--acc-ink); transform: translateX(-50%); }
+.dev-power[aria-pressed="false"] { background: var(--glass-well); }
+.dev-power[aria-pressed="false"]::before { border-color: var(--dim); border-top-color: transparent; }
+.dev-power[aria-pressed="false"]::after { background: var(--dim); }
 .dev-close { width: 22px; height: 22px; border-radius: 50%; border: 0; background: transparent; color: var(--dim); font-size: var(--dev-close-glyph); line-height: 1; cursor: pointer; margin-inline-start: 2px; }
 .dev-close:hover { color: var(--fg); background: var(--state-hover, var(--glass-raise)); }
 .dev-copy { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--glass-hairline); background: var(--glass-raise); color: var(--dim); font-size: var(--dev-copy-glyph); cursor: copy; margin-right: 4px; }
