@@ -1,7 +1,7 @@
 [
  {
   "file": "mir/app.js",
-  "line": 339,
+  "line": 344,
   "why": "fragment",
   "text": " · an MIR app"
  },
@@ -28,6 +28,42 @@
   "line": 168,
   "why": "fragment",
   "text": "the checker could not read this: "
+ },
+ {
+  "file": "mir/core/kbm.js",
+  "line": 210,
+  "why": "fragment",
+  "text": "input mode  "
+ },
+ {
+  "file": "mir/core/kbm.js",
+  "line": 210,
+  "why": "fragment",
+  "text": "   decided by "
+ },
+ {
+  "file": "mir/core/kbm.js",
+  "line": 211,
+  "why": "fragment",
+  "text": "   last pointer "
+ },
+ {
+  "file": "mir/core/kbm.js",
+  "line": 212,
+  "why": "fragment",
+  "text": "   touch seen "
+ },
+ {
+  "file": "mir/core/kbm.js",
+  "line": 214,
+  "why": "fragment",
+  "text": "   density arms after "
+ },
+ {
+  "file": "mir/core/kbm.js",
+  "line": 214,
+  "why": "fragment",
+  "text": " ms of observed mouse, drops on the first touch"
  },
  {
   "file": "mir/core/wakelock.js",
@@ -133,13 +169,13 @@
  },
  {
   "file": "mir/modulation/window.js",
-  "line": 1117,
+  "line": 1116,
   "why": "fragment",
   "text": "px,"
  },
  {
   "file": "mir/modulation/window.js",
-  "line": 1902,
+  "line": 1862,
   "why": "fragment",
   "text": " failed to build"
  },
@@ -421,7 +457,7 @@
  },
  {
   "file": "mir/shell/gui.js",
-  "line": 290,
+  "line": 293,
   "why": "fragment",
   "text": "the bench threw: "
  }

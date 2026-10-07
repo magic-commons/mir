@@ -115,7 +115,7 @@ export function rangeSlider(o = {}) {
     T[which].root.focus({ preventScroll: true });
     drag = { id: e.pointerId, which, lastX: e.clientX, w: r.width || 1, u: norm(state[which]), tie: !!onThumb && state.hi - state.lo <= gap };   // two thumbs on one spot: the first move chooses which one goes
     rail.classList.add('drag'); T[which].root.classList.add('drag');
-    if (onThumb) tap[which]();
+    if (onThumb) tap[which](e);
     if (!onThumb && gearOf(e, e.pointerId) === 1) { drag.u = u; move(which, denorm(u)); }
   });
   rail.addEventListener('pointermove', (e) => {

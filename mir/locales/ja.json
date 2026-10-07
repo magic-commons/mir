@@ -192,7 +192,6 @@
   "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.": "最新の Chrome、Edge、Safari で開くか、このブラウザーの設定で WebGPU を有効にしてください。",
   "Open or close audio input. Audio is analysed locally and is not stored.": "オーディオ入力を開く／閉じる。オーディオはローカルで解析され、保存されません。",
   "Opened — {name}": "開きました：{name}",
-  "Orient the plane. Shift gives finer motion; Home resets.": "平面の向きを調整します。Shift で細かく動かせます。Home でリセットします。",
   "PAGE {page} / {of}": "ページ {page} / {of}",
   "PHOTOSENSITIVITY WARNING": "光過敏性発作に関する警告",
   "PITCH": "ピッチ",
@@ -1386,7 +1385,6 @@
   "THIS VIEW": "このビュー",
   "TIMELINE · ACTIVE": "タイムライン · アクティブ",
   "TIMELINE · SELECTION": "タイムライン · 選択範囲",
-  "Tap for the colour chooser · drag up or down to turn its hue (Shift: finer)": "タップで色の選択 · 上下にドラッグして色相を回転（Shift：細かく）",
   "Target the envelope drives": "エンベロープが制御するターゲット",
   "That is not a project zip — nothing changed": "これはプロジェクトのZIPではありません。何も変更されていません",
   "That is not a project zip: {why}": "これはプロジェクトのZIPではありません：{why}",
@@ -1569,7 +1567,12 @@
   "MIR OPTIONS": "MIR オプション",
   "More tools and actions": "その他のツールと操作",
   "SCOPE · {value}": "対象 · {value}",
-  "SNAP · {value}": "スナップ · {value}"
+  "SNAP · {value}": "スナップ · {value}",
+  "Always behave as under a finger: no hover": "常に指での操作として扱います。ホバーはありません",
+  "Always behave as under a mouse: hover, menus on hover, the cursor effects": "常にマウスでの操作として扱います。ホバー、ホバーで開くメニュー、カーソル効果が働きます",
+  "Follow the pointer in use: a mouse or trackpad hovers, a finger does not": "使用中のポインターに従います。マウスやトラックパッドはホバーし、指はホバーしません",
+  "pointer::PRECISION": "精密",
+  "pointer::TOUCH": "タッチ"
  },
  "review": {}
 }

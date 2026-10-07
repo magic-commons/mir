@@ -192,7 +192,6 @@
   "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.": "Abra-o em uma versão atual do Chrome, Edge ou Safari, ou ative o WebGPU nas configurações deste navegador.",
   "Open or close audio input. Audio is analysed locally and is not stored.": "Abrir ou fechar a entrada de áudio. O áudio é analisado localmente e não é armazenado.",
   "Opened — {name}": "Aberto — {name}",
-  "Orient the plane. Shift gives finer motion; Home resets.": "Oriente o plano. Shift dá um movimento mais fino; Home redefine.",
   "PAGE {page} / {of}": "PÁGINA {page} / {of}",
   "PHOTOSENSITIVITY WARNING": "AVISO DE FOTOSSENSIBILIDADE",
   "PITCH": "ARFAGEM",
@@ -1381,7 +1380,6 @@
   "THIS VIEW": "ESTA VISTA",
   "TIMELINE · ACTIVE": "LINHA DO TEMPO · ATIVA",
   "TIMELINE · SELECTION": "LINHA DO TEMPO · SELEÇÃO",
-  "Tap for the colour chooser · drag up or down to turn its hue (Shift: finer)": "Toque para o seletor de cor · arraste para cima ou para baixo para girar o matiz (Shift: mais fino)",
   "Target the envelope drives": "Destino controlado pelo envelope",
   "That is not a project zip — nothing changed": "Isso não é um ZIP de projeto — nada mudou",
   "That is not a project zip: {why}": "Isso não é um ZIP de projeto: {why}",
@@ -1566,7 +1564,12 @@
   "MIR OPTIONS": "OPÇÕES DO MIR",
   "More tools and actions": "Mais ferramentas e ações",
   "SCOPE · {value}": "ESCOPO · {value}",
-  "SNAP · {value}": "ENCAIXE · {value}"
+  "SNAP · {value}": "ENCAIXE · {value}",
+  "Always behave as under a finger: no hover": "Agir sempre como com um dedo: sem efeito ao passar o cursor",
+  "Always behave as under a mouse: hover, menus on hover, the cursor effects": "Agir sempre como com um mouse: efeito ao passar o cursor, menus ao passar o cursor, os efeitos do cursor",
+  "Follow the pointer in use: a mouse or trackpad hovers, a finger does not": "Seguir o ponteiro em uso: um mouse ou trackpad passa por cima, um dedo não",
+  "pointer::PRECISION": "PRECISÃO",
+  "pointer::TOUCH": "TOQUE"
  },
  "review": {}
 }

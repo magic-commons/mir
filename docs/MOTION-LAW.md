@@ -150,7 +150,8 @@ is dropped over one.
   the reorder happens *during* a 100+/day drag, and a preset's jarring change is in the FIELD, which is
   signal — bridging signal with a fade lies about the state.
 - `@media (hover: hover) and (pointer: fine)` gates every hover affordance, so a touch device never fires a false
-  hover. **Any information reachable only by hover must also be reachable by press on touch.** `graphHover` was
+  hover. *(1.5.0-alpha.23: the gate is the live pointer, `:where(:root:not(.kbm-touch))`, not the media query, which
+  is false on an iPad under a trackpad; CONTROLS.md › THE LIVE POINTER.)* **Any information reachable only by hover must also be reachable by press on touch.** `graphHover` was
   the standing violation and is now the worked example: a touch pointer pins the tip on `pointerdown` and a second
   tap of the same object dismisses it, because a touch pointer never "leaves" — the engine destroys it on lift and
   fires `pointerleave` about a millisecond later, which tore the pin straight back down. Prove it with a real

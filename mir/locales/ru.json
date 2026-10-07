@@ -192,7 +192,6 @@
   "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.": "Откройте в актуальном Chrome, Edge или Safari либо включите WebGPU в настройках этого браузера.",
   "Open or close audio input. Audio is analysed locally and is not stored.": "Открыть или закрыть аудиовход. Звук анализируется локально и не сохраняется.",
   "Opened — {name}": "Открыто — {name}",
-  "Orient the plane. Shift gives finer motion; Home resets.": "Ориентация плоскости. Shift — точнее; Home — сброс.",
   "PAGE {page} / {of}": "СТРАНИЦА {page} / {of}",
   "PHOTOSENSITIVITY WARNING": "ПРЕДУПРЕЖДЕНИЕ О ФОТОСЕНСИТИВНОСТИ",
   "PITCH": "ВЫСОТА",
@@ -1452,7 +1451,6 @@
   "THIS VIEW": "ЭТОТ ВИД",
   "TIMELINE · ACTIVE": "ТАЙМЛАЙН · АКТИВНЫЙ",
   "TIMELINE · SELECTION": "ТАЙМЛАЙН · ВЫБОР",
-  "Tap for the colour chooser · drag up or down to turn its hue (Shift: finer)": "Коснитесь, чтобы выбрать цвет · тяните вверх или вниз, чтобы повернуть оттенок (Shift — точнее)",
   "Target the envelope drives": "Цель, которой управляет огибающая",
   "That is not a project zip — nothing changed": "Это не ZIP проекта — ничего не изменено",
   "That is not a project zip: {why}": "Это не ZIP проекта: {why}",
@@ -1641,7 +1639,12 @@
   "MIR OPTIONS": "НАСТРОЙКИ MIR",
   "More tools and actions": "Другие инструменты и действия",
   "SCOPE · {value}": "ОБЛАСТЬ · {value}",
-  "SNAP · {value}": "ПРИВЯЗКА · {value}"
+  "SNAP · {value}": "ПРИВЯЗКА · {value}",
+  "Always behave as under a finger: no hover": "Всегда как под пальцем: без наведения",
+  "Always behave as under a mouse: hover, menus on hover, the cursor effects": "Всегда как под мышью: наведение, меню при наведении, эффекты курсора",
+  "Follow the pointer in use: a mouse or trackpad hovers, a finger does not": "Следовать указателю, который используется: мышь или трекпад наводят, палец нет",
+  "pointer::PRECISION": "ТОЧНОСТЬ",
+  "pointer::TOUCH": "КАСАНИЕ"
  },
  "review": {}
 }

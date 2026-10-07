@@ -154,4 +154,8 @@ Josh's rule: use Gemini for SVGs, it is free. Prompt → `agy` → render → lo
 - **`leave` and `minus`** are both a short horizontal bar. They mean different things (hide the window / remove one) and
   `leave` is drawn shorter so a chip does not change visual mass when the Leave-Chips setting flips.
 - **Text still standing for an icon** in the kit and the apps (`‹ ›`, `×`, `☆ ★`, `⠿`): the library now has the glyphs; the
-  call sites change one line at a time.
+  call sites change one line at a time. *1.5.0-alpha.23 (Josh's call 18: Y):* the kit's own three are drawn now — the
+  stepper's and the FOLDERS pager's `‹ ›` are `chevronLeft` / `chevronRight` at 1em of the button's font in the same seat
+  (`controls/stepper.js`, `folders/gallery.js`), and the rack's + list favourite mark is `starFill` at the row's font size
+  (`shell/rack.js`). Still typed in the kit: the rack's layout-favourites button `☆` (`shell/rack.js:387`), outside the
+  call's three seats; the rest is the apps'.

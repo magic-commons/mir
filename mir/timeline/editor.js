@@ -179,9 +179,9 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
     /* the kit's NUMBER FIELD, never a native type=number (Josh, 2026-10-07, call 19): drag, type, keys; it opens on the time,
        its number selected, as the input did; Enter in either takes the number and applies, as the form's submit did */
     const form=el('div','tl-point-form',menu);
-    const field=(text,aria,o)=>{const f=el('div','tl-field',form);label(el('span','tl-field-word',f),text);const n=number({aria,digits:3,...o});n.root.classList.add('tl-value-num');f.appendChild(n.root);return n;};
-    const time=field('TIME · BEATS FROM 0','Point time in beats',{min:0,value:clip.start+(sourceBeat-clip.offset)/clip.scale});
-    const value=field('VALUE · 0 TO 1','Point value',{min:0,max:1,value:p.v});
+    const field=({label:word,...o})=>{const f=el('div','tl-field',form);label(el('span','tl-field-word',f),word);const n=number({digits:3,...o});n.root.classList.add('tl-value-num');f.appendChild(n.root);return n;};   // label: / aria: keys, so the catalogue reaches the words
+    const time=field({label:'TIME · BEATS FROM 0',aria:'Point time in beats',min:0,value:clip.start+(sourceBeat-clip.offset)/clip.scale});
+    const value=field({label:'VALUE · 0 TO 1',aria:'Point value',min:0,max:1,value:p.v});
     const apply=()=>{for(const n of [time,value])if(n.editing)n.close(true);const beat=clip.offset+(time.get()-clip.start)*clip.scale;if(beat<0){say(t('This time is before the source begins.'));return;}
       const edited=model.movePoint(curve.id,index,beat,value.get(),{slide:slideMode});if(edited?.index>=0)closeMenu();};
     for(const n of [time,value])n.input.addEventListener('keydown',e=>{if(e.key==='Enter')apply();});   // after the field's own Enter has taken the number
@@ -207,7 +207,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
       ['TITLE / COLOR',()=>editIdentity(x,y,curve),'identity'],
       [c.mute?'UNMUTE':'MUTE',()=>model.updateClip(c.id,{mute:!c.mute}),'mute'],
       ['DUPLICATE',()=>{selectOnly(c.id);duplicateSelection();},'duplicate'],
-      ...(drives?[['OUTPUT RANGE',()=>{pop(x,y,'NORMALIZED MIN / MAX',[],'range');const num=(aria,v)=>{const n=number({aria,min:0,max:1,step:.01,value:v});n.root.classList.add('tl-value-num');menu.appendChild(n.root);return n;};const lo=num('Output minimum',curve.min),hi=num('Output maximum',curve.max);button(menu,'APPLY',()=>{for(const n of [lo,hi])if(n.editing)n.close(true);model.updateCurve(curve.id,{min:lo.get(),max:hi.get()});closeMenu();}).dataset.tlAction='apply';},'output-range']]:[]),   // the kit's number fields (call 19)
+      ...(drives?[['OUTPUT RANGE',()=>{pop(x,y,'NORMALIZED MIN / MAX',[],'range');const num=(o)=>{const n=number({min:0,max:1,step:.01,...o});n.root.classList.add('tl-value-num');menu.appendChild(n.root);return n;};const lo=num({aria:'Output minimum',value:curve.min}),hi=num({aria:'Output maximum',value:curve.max});button(menu,'APPLY',()=>{for(const n of [lo,hi])if(n.editing)n.close(true);model.updateCurve(curve.id,{min:lo.get(),max:hi.get()});closeMenu();}).dataset.tlAction='apply';},'output-range']]:[]),   // the kit's number fields (call 19)
       ...(kind?[]:[['ADD MIDPOINT',()=>{const beat=c.offset+c.duration*c.scale/2;model.addPoint(curve.id,beat,evaluateTimelineSource(curve,beat));},'add-midpoint']]),
       ['STRETCH ×2',()=>model.updateClip(c.id,{duration:c.duration*2,scale:c.scale/2}),'stretch'],
       ...(kind?.menu?.(curve,c,{model,editor:api})||[]),

@@ -1229,7 +1229,7 @@ export function createModulation(host, port) {
       /* EVERY lift is a tap for the watcher's purposes — the disarming one included.  A drag
          is not: it moved past the slop and meant something else. */
       const dragging = !!(armed && armed.grip === grip && armed.mode === 'drag');
-      if (!dragging) reset();
+      if (!dragging) reset(e);
       if (grip.dataset.disarmed) { delete grip.dataset.disarmed; return; }
       if (!armed || armed.grip !== grip) return;
       if (dragging) {
@@ -1299,7 +1299,7 @@ export function createModulation(host, port) {
       const reach = showReach(id);
       showGhost(reach.lo + ' … ' + reach.hi, e.clientX, e.clientY, drag.touch);
     });
-    const endDrag = () => {
+    const endDrag = (e) => {
       if (!drag) return;
       cancelHold();
       const wasMoved = moved;
@@ -1307,7 +1307,7 @@ export function createModulation(host, port) {
       rec.host.classList.remove('ring-drag');
       hideGhost(); restoreVal(id);
       if (wasMoved) { apply(); paint(true); }
-      else dtap();
+      else dtap(e);
     };
     hit.addEventListener('pointerup', endDrag);
     hit.addEventListener('pointercancel', () => { cancelHold(); if (drag) { drag = null; moved = false;
@@ -1567,7 +1567,7 @@ export function createModulation(host, port) {
       d.moved = true;
       o.set(d.v + d.p);
     });
-    const stop = () => { if (!d) return; const moved = d.moved; d = null; elm.classList.remove('drag'); if (!moved) dtap(); };
+    const stop = (e) => { if (!d) return; const moved = d.moved; d = null; elm.classList.remove('drag'); if (!moved) dtap(e); };
     elm.addEventListener('pointerup', stop);
     elm.addEventListener('pointercancel', () => { d = null; elm.classList.remove('drag'); });
     elm.addEventListener('dblclick', (e) => { e.preventDefault(); if (o.reset) o.reset(); });

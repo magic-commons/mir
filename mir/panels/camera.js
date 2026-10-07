@@ -149,7 +149,7 @@ export function directionSphere(o = {}) {
   svg.addEventListener('pointerdown', (e) => {
     if (g || e.button || svg.getAttribute('aria-disabled') === 'true') return;
     e.preventDefault(); svg.focus({ preventScroll: true });
-    homed = false; tap(); if (homed) return;                                       // the second tap is home, and starts no drag
+    homed = false; tap(e); if (homed) return;                                      // the second tap is home, and starts no drag
     try { svg.setPointerCapture(e.pointerId); } catch (_) { /* a pointer already gone */ }
     g = { id: e.pointerId, lx: e.clientX, ly: e.clientY, s: scale().s };
     svg.classList.add('drag');

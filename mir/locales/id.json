@@ -192,7 +192,6 @@
   "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.": "Buka di Chrome, Edge, atau Safari versi terbaru, atau aktifkan WebGPU di pengaturan peramban ini.",
   "Open or close audio input. Audio is analysed locally and is not stored.": "Buka atau tutup input audio. Audio dianalisis secara lokal dan tidak disimpan.",
   "Opened — {name}": "Dibuka — {name}",
-  "Orient the plane. Shift gives finer motion; Home resets.": "Arahkan bidang. Shift memberi gerakan lebih halus; Home mengatur ulang.",
   "PAGE {page} / {of}": "HALAMAN {page} / {of}",
   "PHOTOSENSITIVITY WARNING": "PERINGATAN FOTOSENSITIVITAS",
   "PITCH": "PITCH",
@@ -1368,7 +1367,6 @@
   "THIS VIEW": "TAMPILAN INI",
   "TIMELINE · ACTIVE": "LINIMASA · AKTIF",
   "TIMELINE · SELECTION": "LINIMASA · PILIHAN",
-  "Tap for the colour chooser · drag up or down to turn its hue (Shift: finer)": "Ketuk untuk pemilih warna · seret ke atas atau bawah untuk memutar hue-nya (Shift: lebih halus)",
   "Target the envelope drives": "Target yang digerakkan envelope",
   "That is not a project zip — nothing changed": "Itu bukan ZIP proyek — tidak ada yang berubah",
   "That is not a project zip: {why}": "Itu bukan ZIP proyek: {why}",
@@ -1551,7 +1549,12 @@
   "MIR OPTIONS": "OPSI MIR",
   "More tools and actions": "Alat dan aksi lainnya",
   "SCOPE · {value}": "CAKUPAN · {value}",
-  "SNAP · {value}": "SNAP · {value}"
+  "SNAP · {value}": "SNAP · {value}",
+  "Always behave as under a finger: no hover": "Selalu bertindak seperti dengan jari: tanpa hover",
+  "Always behave as under a mouse: hover, menus on hover, the cursor effects": "Selalu bertindak seperti dengan mouse: hover, menu saat hover, efek kursor",
+  "Follow the pointer in use: a mouse or trackpad hovers, a finger does not": "Ikuti penunjuk yang dipakai: mouse atau trackpad bisa hover, jari tidak",
+  "pointer::PRECISION": "PRESISI",
+  "pointer::TOUCH": "SENTUH"
  },
  "review": {}
 }

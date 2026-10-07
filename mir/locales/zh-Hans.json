@@ -192,7 +192,6 @@
   "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.": "请在最新版 Chrome、Edge 或 Safari 中打开，或在此浏览器的设置中启用 WebGPU。",
   "Open or close audio input. Audio is analysed locally and is not stored.": "打开或关闭音频输入。音频在本地分析，不会被存储。",
   "Opened — {name}": "已打开：{name}",
-  "Orient the plane. Shift gives finer motion; Home resets.": "调整平面的朝向。按住 Shift 可更精细；按 Home 重置。",
   "PAGE {page} / {of}": "第 {page} / {of} 页",
   "PHOTOSENSITIVITY WARNING": "光敏性癫痫警告",
   "PITCH": "音高",
@@ -1386,7 +1385,6 @@
   "THIS VIEW": "此视图",
   "TIMELINE · ACTIVE": "时间线 · 活动",
   "TIMELINE · SELECTION": "时间线 · 所选",
-  "Tap for the colour chooser · drag up or down to turn its hue (Shift: finer)": "点按打开颜色选择器 · 上下拖动可转动色相（Shift：更精细）",
   "Target the envelope drives": "包络驱动的目标",
   "That is not a project zip — nothing changed": "这不是项目ZIP：未做任何更改",
   "That is not a project zip: {why}": "这不是项目ZIP：{why}",
@@ -1569,7 +1567,12 @@
   "MIR OPTIONS": "MIR 选项",
   "More tools and actions": "更多工具和操作",
   "SCOPE · {value}": "范围 · {value}",
-  "SNAP · {value}": "吸附 · {value}"
+  "SNAP · {value}": "吸附 · {value}",
+  "Always behave as under a finger: no hover": "始终按手指操作：无悬停",
+  "Always behave as under a mouse: hover, menus on hover, the cursor effects": "始终按鼠标操作：悬停、悬停时打开菜单、光标效果",
+  "Follow the pointer in use: a mouse or trackpad hovers, a finger does not": "跟随正在使用的指针：鼠标或触控板可悬停，手指不会",
+  "pointer::PRECISION": "精确",
+  "pointer::TOUCH": "触控"
  },
  "review": {}
 }

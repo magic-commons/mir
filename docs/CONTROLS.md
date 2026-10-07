@@ -89,6 +89,20 @@ Exports for a control the kit did not build: `fineHeld(event, pointerId)`, `gear
 | `latch()` (`shell/transport.js`) | a window opener, lit while its window is open |
 | `sw({ …, glyph: 'invertColors' })` | the glyph is the state (power, an eye, invert): a 44 px round target with no face, no lamp and no word (the label is its accessible name); the owner shows ON in the glyph (GRADE turns INVERT's over). A window's own power and the transport's play stay chrome buttons. **The power control** (`.dev-power` in the card heads, the modulation window's `.m2pow` and its work bar's `.modxport.mir-mod-power`; 1.5.0-alpha.22, Josh: "make it ONLY the icon and no button background … anything but a button") is **only its ⏻ icon** in every face: no face, outline, shading, fill or press fill. On, the glyph is the accent with its glow (`--power-glow`: a 3 px drop-shadow of the accent at 70 %); off, it is the dim ink with no glow. The 22 px box (44 px on a touch tablet) is the hit target and paints nothing. alpha.21's solid disc is superseded |
 
+## THE LIVE POINTER
+
+**Behaviour follows the pointer in use, not the device class** (`mir/core/kbm.js`, 1.5.0-alpha.23; BASINS' WAVE-KBM layer, harvested; Josh, 2026-10-07: "I want it to behave exactly like my linux desktop is for the menu and logo via the iPad's magic mousepad"). On iPadOS with a trackpad the primary pointer still reports coarse (`hover: none`, `pointer: coarse`) while `any-hover: hover` and `any-pointer: fine` are true, and the trackpad's presses arrive as `pointerType: 'mouse'`; so the live event decides and the media queries only set the mode at boot.
+
+| | |
+|---|---|
+| **Precision or touch** | `html.kbm-precision` / `html.kbm-touch` flip **at once**, both ways, on the pointer event in use: a mouse or trackpad hovers, opens the menubar's menus on hover, opens the logo seat and gets the cursor effects (the glow, the parallax, the XY pad's cursor swell); a finger gets none of them and no sticky hover |
+| **Dense** | `html.kbm-dense` arms after **600 ms** (`KBM_DENSE_MS`) of continuous precision with no pointer down, **never mid-drag**, and drops on the first touch. The kit's geometry does not follow it yet |
+| **A hover rule** | is written `:where(:root:not(.kbm-touch)) X:hover` (no specificity added; a page without the layer keeps its hover), **never `@media (hover: hover)`** (false on an iPad under a trackpad) |
+| **A touch-only reveal** | is written `@media (hover: none) { :where(:root:not(.kbm-precision)) X }` |
+| **`body.touch-tablet`** | is **geometry only**: a tablet-class screen (44 px heads, the rack takes the touch, the float clamp). It never decides a behaviour |
+| **The override** | MIR OPTIONS › MOTION › POINTER: AUTO · TOUCH · PRECISION (a device setting, `localStorage` `mir.pointer`; AUTO removes the key) |
+| **One writer** | only `core/kbm.js` toggles the three classes; `createApp` and `createGui` install it, and an app with its own input layer hands over to `installKbm` (API.md) |
+
 ## The controls
 
 ### `stepper({ label, aria, items, value, onChange, wrap, list, pager, count, compact, cls })`

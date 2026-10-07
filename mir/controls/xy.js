@@ -177,7 +177,7 @@ export function xyPad(o = {}) {
     if (disabled || g || e.button) return;
     e.preventDefault();
     pad.focus({ preventScroll: true });
-    homed = false; tap();
+    homed = false; tap(e);
     if (homed) return;                                           // the second tap centres, and starts no drag
     try { pad.setPointerCapture(e.pointerId); } catch (_) {}
     const r = pad.getBoundingClientRect();
@@ -197,7 +197,7 @@ export function xyPad(o = {}) {
   });
   const end = (e) => { if (!g || (e && e.pointerId !== g.id)) return; g = null; pad.classList.remove('drag'); lat.hold(false); paintPad(); land(); };
   pad.addEventListener('pointerup', end); pad.addEventListener('pointercancel', end); pad.addEventListener('lostpointercapture', end);
-  pad.addEventListener('dblclick', (e) => { e.preventDefault(); });   // the double-tap is taken on the press (320 ms); a click would answer it a second time
+  pad.addEventListener('dblclick', (e) => { e.preventDefault(); });   // the double-tap is taken on the press (300 ms within 14 px); a click would answer it a second time
   pad.addEventListener('wheel', (e) => e.stopPropagation(), { passive: true });
   pad.addEventListener('keydown', (e) => {
     if (disabled || e.ctrlKey || e.metaKey || e.altKey) return;

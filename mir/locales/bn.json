@@ -192,7 +192,6 @@
   "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.": "এটি Chrome, Edge বা Safari-র সাম্প্রতিক সংস্করণে খুলুন, অথবা এই ব্রাউজারের সেটিংসে WebGPU চালু করুন।",
   "Open or close audio input. Audio is analysed locally and is not stored.": "অডিও ইনপুট খুলুন বা বন্ধ করুন। অডিও স্থানীয়ভাবে বিশ্লেষণ করা হয় এবং সংরক্ষিত হয় না।",
   "Opened — {name}": "খোলা হয়েছে — {name}",
-  "Orient the plane. Shift gives finer motion; Home resets.": "তলটি ঘোরান। Shift সূক্ষ্ম গতি দেয়; Home রিসেট করে।",
   "PAGE {page} / {of}": "পাতা {page} / {of}",
   "PHOTOSENSITIVITY WARNING": "আলোক-সংবেদনশীলতা সতর্কতা",
   "PITCH": "PITCH",
@@ -1381,7 +1380,6 @@
   "THIS VIEW": "এই ভিউ",
   "TIMELINE · ACTIVE": "টাইমলাইন · সক্রিয়",
   "TIMELINE · SELECTION": "টাইমলাইন · নির্বাচন",
-  "Tap for the colour chooser · drag up or down to turn its hue (Shift: finer)": "রং বাছতে ট্যাপ করুন · এর হিউ ঘোরাতে উপরে বা নিচে টানুন (Shift: সূক্ষ্ম)",
   "Target the envelope drives": "এনভেলপ যে লক্ষ্য চালায়",
   "That is not a project zip — nothing changed": "এটি প্রজেক্ট zip নয় — কিছু বদলায়নি",
   "That is not a project zip: {why}": "এটি প্রজেক্ট zip নয়: {why}",
@@ -1566,7 +1564,12 @@
   "MIR OPTIONS": "MIR বিকল্প",
   "More tools and actions": "আরও টুল ও কাজ",
   "SCOPE · {value}": "পরিসর · {value}",
-  "SNAP · {value}": "SNAP · {value}"
+  "SNAP · {value}": "SNAP · {value}",
+  "Always behave as under a finger: no hover": "সবসময় আঙুলের মতো আচরণ করুন: কোনো হোভার নেই",
+  "Always behave as under a mouse: hover, menus on hover, the cursor effects": "সবসময় মাউসের মতো আচরণ করুন: হোভার, হোভারে মেনু, কার্সর এফেক্ট",
+  "Follow the pointer in use: a mouse or trackpad hovers, a finger does not": "ব্যবহৃত পয়েন্টার অনুসরণ করুন: মাউস বা ট্র্যাকপ্যাড হোভার করে, আঙুল করে না",
+  "pointer::PRECISION": "নির্ভুল",
+  "pointer::TOUCH": "টাচ"
  },
  "review": {}
 }

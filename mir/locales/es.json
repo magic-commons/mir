@@ -192,7 +192,6 @@
   "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.": "Ábrela en una versión actual de Chrome, Edge o Safari, o activa WebGPU en los ajustes de este navegador.",
   "Open or close audio input. Audio is analysed locally and is not stored.": "Abrir o cerrar la entrada de audio. El audio se analiza localmente y no se almacena.",
   "Opened — {name}": "Abierto — {name}",
-  "Orient the plane. Shift gives finer motion; Home resets.": "Orienta el plano. Mayús da un movimiento más fino; Inicio restablece.",
   "PAGE {page} / {of}": "PÁGINA {page} / {of}",
   "PHOTOSENSITIVITY WARNING": "ADVERTENCIA DE FOTOSENSIBILIDAD",
   "PITCH": "CABECEO",
@@ -1381,7 +1380,6 @@
   "THIS VIEW": "ESTA VISTA",
   "TIMELINE · ACTIVE": "LÍNEA DE TIEMPO · ACTIVA",
   "TIMELINE · SELECTION": "LÍNEA DE TIEMPO · SELECCIÓN",
-  "Tap for the colour chooser · drag up or down to turn its hue (Shift: finer)": "Toca para el selector de color · arrastra hacia arriba o abajo para girar su tono (Mayús: más fino)",
   "Target the envelope drives": "Destino que controla la envolvente",
   "That is not a project zip — nothing changed": "Eso no es un ZIP de proyecto — no cambió nada",
   "That is not a project zip: {why}": "Eso no es un ZIP de proyecto: {why}",
@@ -1566,7 +1564,12 @@
   "MIR OPTIONS": "OPCIONES DE MIR",
   "More tools and actions": "Más herramientas y acciones",
   "SCOPE · {value}": "ALCANCE · {value}",
-  "SNAP · {value}": "AJUSTE · {value}"
+  "SNAP · {value}": "AJUSTE · {value}",
+  "Always behave as under a finger: no hover": "Actuar siempre como con un dedo: sin efecto al pasar por encima",
+  "Always behave as under a mouse: hover, menus on hover, the cursor effects": "Actuar siempre como con un ratón: efecto al pasar por encima, menús al pasar el cursor, los efectos del cursor",
+  "Follow the pointer in use: a mouse or trackpad hovers, a finger does not": "Seguir el puntero en uso: un ratón o un trackpad pasan por encima, un dedo no",
+  "pointer::PRECISION": "PRECISIÓN",
+  "pointer::TOUCH": "TÁCTIL"
  },
  "review": {}
 }

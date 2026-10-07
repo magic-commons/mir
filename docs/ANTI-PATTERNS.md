@@ -21,7 +21,8 @@ block wants. YES: every block wakes and opens what it measures first. WHY: a clo
 B61 failed for a reason that had nothing to do with what it tested.
 
 **4. Information reachable only by hover.** NO: a graph whose values exist only in a hover tooltip. YES: the same
-information on press for touch, and the hover affordance gated behind `(hover: hover) and (pointer: fine)`.
+information on press for touch, and the hover affordance gated behind `(hover: hover) and (pointer: fine)`
+(since 1.5.0-alpha.23 the live pointer, `:where(:root:not(.kbm-touch))`: CONTROLS.md › THE LIVE POINTER).
 WHY: the iPad is a first-class target and `graphHover` was unreachable there for several waves. It is FIXED —
 kit.js pins the tip on `pointerdown` for a touch pointer and dismisses it on a second tap of the same object,
 and B71 drives it with a real WebDriver finger. Two traps the fix had to survive, both still true: a touch

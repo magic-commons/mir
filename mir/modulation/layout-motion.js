@@ -35,7 +35,7 @@ import { drag as pointerDrag } from '../core/pointer.js';
  *               reading order (the transport's two columns), a neighbour crossed when the held node's centre is inside it
  *               by 8 px (a quarter of a small tile)
  *    motion     a createLayoutMotion over the items
- *    commit(index)  the node's place on release · tap()  a press that never travelled · slop  px before a drag (3)
+ *    commit(index)  the node's place on release · tap(e)  a press that never travelled (its lift) · slop  px before a drag (3)
  *    began(cancel)  a drag starts, with its cancel (one reorder at a time is the caller's) · ended()  it is over
  *    settle()   after either end (the window applies, paints and persists) */
 export function wireReorder(grip, node, { host, selector, axis = 'y', motion, commit, tap = () => {}, began = () => {}, ended = () => {}, settle = () => {}, slop = 3 } = {}) {
@@ -92,7 +92,7 @@ export function wireReorder(grip, node, { host, selector, axis = 'y', motion, co
     else commit([...host.querySelectorAll(selector)].indexOf(node));
     motion.release(node); settle();
   }
-  grip.addEventListener('pointerup', (e) => { if (!e.button && !dragged) tap(); });
+  grip.addEventListener('pointerup', (e) => { if (!e.button && !dragged) tap(e); });   // the event: a tapWatcher's 14 px half
   return gd;
 }
 

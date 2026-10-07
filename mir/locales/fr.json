@@ -192,7 +192,6 @@
   "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.": "Ouvrez-la dans une version récente de Chrome, Edge ou Safari, ou activez WebGPU dans les réglages de ce navigateur.",
   "Open or close audio input. Audio is analysed locally and is not stored.": "Ouvrir ou fermer l’entrée audio. L’audio est analysé localement et n’est pas stocké.",
   "Opened — {name}": "Ouvert — {name}",
-  "Orient the plane. Shift gives finer motion; Home resets.": "Orientez le plan. Maj donne un mouvement plus fin ; Origine réinitialise.",
   "PAGE {page} / {of}": "PAGE {page} / {of}",
   "PHOTOSENSITIVITY WARNING": "AVERTISSEMENT DE PHOTOSENSIBILITÉ",
   "PITCH": "TANGAGE",
@@ -1381,7 +1380,6 @@
   "THIS VIEW": "CETTE VUE",
   "TIMELINE · ACTIVE": "TIMELINE · ACTIVE",
   "TIMELINE · SELECTION": "TIMELINE · SÉLECTION",
-  "Tap for the colour chooser · drag up or down to turn its hue (Shift: finer)": "Touchez pour le sélecteur de couleur · glissez vers le haut ou le bas pour tourner sa teinte (Maj : plus fin)",
   "Target the envelope drives": "Cible pilotée par l’enveloppe",
   "That is not a project zip — nothing changed": "Ce n’est pas un ZIP de projet — rien n’a changé",
   "That is not a project zip: {why}": "Ce n’est pas un ZIP de projet : {why}",
@@ -1566,7 +1564,12 @@
   "MIR OPTIONS": "OPTIONS DE MIR",
   "More tools and actions": "Plus d’outils et d’actions",
   "SCOPE · {value}": "PORTÉE · {value}",
-  "SNAP · {value}": "MAGNÉTISME · {value}"
+  "SNAP · {value}": "MAGNÉTISME · {value}",
+  "Always behave as under a finger: no hover": "Toujours agir comme sous un doigt : pas de survol",
+  "Always behave as under a mouse: hover, menus on hover, the cursor effects": "Toujours agir comme sous une souris : survol, menus au survol, effets du curseur",
+  "Follow the pointer in use: a mouse or trackpad hovers, a finger does not": "Suivre le pointeur utilisé : une souris ou un pavé tactile survole, un doigt non",
+  "pointer::PRECISION": "PRÉCISION",
+  "pointer::TOUCH": "TACTILE"
  },
  "review": {}
 }

@@ -192,7 +192,6 @@
   "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.": "افتحه في إصدار حديث من Chrome أو Edge أو Safari، أو فعّل WebGPU من إعدادات هذا المتصفح.",
   "Open or close audio input. Audio is analysed locally and is not stored.": "فتح مدخل الصوت أو إغلاقه. يُحلَّل الصوت محليًا ولا يُخزَّن.",
   "Opened — {name}": "تم الفتح — {name}",
-  "Orient the plane. Shift gives finer motion; Home resets.": "وجّه المستوى. Shift يعطي حركة أدق؛ Home يعيد الضبط.",
   "PAGE {page} / {of}": "الصفحة {page} / {of}",
   "PHOTOSENSITIVITY WARNING": "تحذير من الحساسية الضوئية",
   "PITCH": "PITCH",
@@ -1433,7 +1432,6 @@
   "THIS VIEW": "هذا العرض",
   "TIMELINE · ACTIVE": "الخط الزمني · نشط",
   "TIMELINE · SELECTION": "الخط الزمني · التحديد",
-  "Tap for the colour chooser · drag up or down to turn its hue (Shift: finer)": "المس لاختيار اللون · اسحب لأعلى أو لأسفل لتدوير درجة اللون (Shift: أدق)",
   "Target the envelope drives": "الهدف الذي يقوده الإنفلوب",
   "That is not a project zip — nothing changed": "هذا ليس ملف zip لمشروع — لم يتغيّر شيء",
   "That is not a project zip: {why}": "هذا ليس ملف zip لمشروع: {why}",
@@ -1626,7 +1624,12 @@
   "MIR OPTIONS": "خيارات MIR",
   "More tools and actions": "مزيد من الأدوات والإجراءات",
   "SCOPE · {value}": "المجال · {value}",
-  "SNAP · {value}": "SNAP · {value}"
+  "SNAP · {value}": "SNAP · {value}",
+  "Always behave as under a finger: no hover": "تصرّف دائمًا كما مع الإصبع: بلا تمرير فوق العناصر",
+  "Always behave as under a mouse: hover, menus on hover, the cursor effects": "تصرّف دائمًا كما مع الفأرة: التمرير فوق العناصر، والقوائم عند التمرير، وتأثيرات المؤشر",
+  "Follow the pointer in use: a mouse or trackpad hovers, a finger does not": "اتبع المؤشر المستخدم: الفأرة أو لوحة اللمس تمرّر فوق العناصر، والإصبع لا",
+  "pointer::PRECISION": "دقة",
+  "pointer::TOUCH": "لمس"
  },
  "review": {}
 }

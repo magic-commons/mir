@@ -87,6 +87,8 @@
   "Alt (held)": "Alt (held)",
   "Alt + left-click a point": "Alt + left-click a point",
   "Alt-click deletes this point; drag it to move": "Alt-click deletes this point; drag it to move",
+  "Always behave as under a finger: no hover": "Always behave as under a finger: no hover",
+  "Always behave as under a mouse: hover, menus on hover, the cursor effects": "Always behave as under a mouse: hover, menus on hover, the cursor effects",
   "An opaque pane in the tint’s colour: {:HUE} picks it, {:TINT} is its strength, {:BRIGHT} its lightness": "An opaque pane in the tint’s colour: {:HUE} picks it, {:TINT} is its strength, {:BRIGHT} its lightness",
   "Apply frost continuously. This can reduce frame rate.": "Apply frost continuously. This can reduce frame rate.",
   "Apply frost while the picture is still": "Apply frost while the picture is still",
@@ -404,6 +406,7 @@
    "other": "Folder renamed to {to} · {n} projects renamed to avoid a clash"
   },
   "Folders": "Folders",
+  "Follow the pointer in use: a mouse or trackpad hovers, a finger does not": "Follow the pointer in use: a mouse or trackpad hovers, a finger does not",
   "Follow the system": "Follow the system",
   "Follow the theme (on a {:SOLID} pane, its lightness)": "Follow the theme (on a {:SOLID} pane, its lightness)",
   "Forget the rows; the picture stays as it is": "Forget the rows; the picture stays as it is",
@@ -986,7 +989,6 @@
   "Tab is kept for moving the focus.": "Tab is kept for moving the focus.",
   "Tap a corner (A · B · C · D) first, then a snapshot's number.": "Tap a corner (A · B · C · D) first, then a snapshot's number.",
   "Tap a corner first, then this number, to put this snapshot there": "Tap a corner first, then this number, to put this snapshot there",
-  "Tap for the colour chooser · drag up or down to turn its hue (Shift: finer)": "Tap for the colour chooser · drag up or down to turn its hue (Shift: finer)",
   "Tap repeatedly to set the modulation clock": "Tap repeatedly to set the modulation clock",
   "Tap the tempo": "Tap the tempo",
   "Tap the tempo: four taps set it": "Tap the tempo: four taps set it",
@@ -1293,6 +1295,8 @@
   "pinwheel": "pinwheel",
   "play or pause": "play or pause",
   "point removed": "point removed",
+  "pointer::PRECISION": "PRECISION",
+  "pointer::TOUCH": "TOUCH",
   "power": "power",
   "press a key…": "press a key…",
   "previous": "previous",
@@ -1947,6 +1951,12 @@
   ],
   "Alt-click deletes this point; drag it to move": [
    "mir/modulation/window.js"
+  ],
+  "Always behave as under a finger: no hover": [
+   "mir/shell/gui.js"
+  ],
+  "Always behave as under a mouse: hover, menus on hover, the cursor effects": [
+   "mir/shell/gui.js"
   ],
   "An opaque pane in the tint’s colour: {:HUE} picks it, {:TINT} is its strength, {:BRIGHT} its lightness": [
    "mir/shell/gui.js"
@@ -2905,6 +2915,9 @@
   "Folders": [
    "mir/folders/gallery.js"
   ],
+  "Follow the pointer in use: a mouse or trackpad hovers, a finger does not": [
+   "mir/shell/gui.js"
+  ],
   "Follow the system": [
    "mir/shell/gui.js"
   ],
@@ -3689,6 +3702,7 @@
    "mir/shell/transport.js"
   ],
   "POINTER": [
+   "mir/shell/gui.js",
    "mir/timeline/shortcuts.js"
   ],
   "POINTER GLOW": [
@@ -4706,9 +4720,6 @@
   "Tap a corner first, then this number, to put this snapshot there": [
    "mir/panels/xy.js"
   ],
-  "Tap for the colour chooser · drag up or down to turn its hue (Shift: finer)": [
-   "mir/controls/swatch.js"
-  ],
   "Tap repeatedly to set the modulation clock": [
    "mir/modulation/window.js"
   ],
@@ -5699,6 +5710,12 @@
   ],
   "point removed": [
    "mir/modulation/window.js"
+  ],
+  "pointer::PRECISION": [
+   "mir/shell/gui.js"
+  ],
+  "pointer::TOUCH": [
+   "mir/shell/gui.js"
   ],
   "power": [
    "mir/kit.js"

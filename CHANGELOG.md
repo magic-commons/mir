@@ -1,5 +1,71 @@
 # MIR — changelog
 
+## 1.5.0-alpha.23 — 2026-10-07 · Josh's calls
+
+Not released: built on branch `worktree-mir-1.5`. Josh answered the consolidation note's 23 calls; this release is the ones that changed something, plus the live pointer. (Calls 1–5, 7–9, 11, 13–15, 17 and 22 kept what was there: his "yes", "keep current", "whatever you think is best" (WALL / 60 Hz stay tiles), and 22 was done in alpha.19.)
+
+### The live pointer: a trackpad on the iPad is a desktop
+Josh: "It's quite frustrating to use cursor with the logo and menu in iPad, could you bugfix this? I want it to behave exactly like my linux desktop is for the menu and logo via the iPad's magic mousepad." The probe measured why: with the Magic Trackpad attached, iPadOS still reports the primary pointer as coarse (`hover: none`, `pointer: coarse`), while `any-hover: hover` and `any-pointer: fine` are true and the trackpad's presses arrive as `pointerType: 'mouse'`; the kit keyed desktop behaviour on the primary pointer, so the iPad stayed in finger mode under a cursor. **Behaviour now follows the pointer in use, not the device class** (`mir/core/kbm.js`, BASINS' WAVE-KBM layer harvested whole): `html.kbm-precision` / `kbm-touch` flip at once on the live pointer event, `kbm-dense` arms after 600 ms of continuous precision and never mid-drag, and a motionless mouse under a closing window is not a use. Under a trackpad the menubar's menus switch on hover, the logo seat opens on hover, the window chips, the keyboard and the modulation window hover, and the cursor effects (the glow, the parallax, the XY pad's swell) run; a finger lands and all of it stops at once, with no sticky hover. Every `@media (hover: hover)` gate in the kit (`window.css`, `keyboard.css`, `modwindow.css`, `modhost.css`) became `:where(:root:not(.kbm-touch))`; `body.touch-tablet` is geometry only. `createApp` and `createGui` install the layer; MIR OPTIONS › MOTION › POINTER (AUTO · TOUCH · PRECISION) pins it (a device setting, `mir.pointer`). `docs/CONTROLS.md` › THE LIVE POINTER, `docs/API.md` (`mir/core/kbm.js`, `app.kbm`). Lane KBM `32d7b88`.
+
+### 6 · The door is MIR's official diamond, and its colours glide
+Josh: "Use MIR's official logo and make it smoothly change color when palette cycling". The door to the modulation window is JL-LOGOS `mir-dark.svg`'s `#rainbow-diamond` as drawn there (nine tiles, 25 on a 27 pitch, 45°, the logo's swatches in row order; `wordmark.js officialDiamond()`), in the same 19 px box (26 in the workspace switch). While a mouse or trackpad hovers it each tile's `fill` transitions linearly over one 240 ms step, so the cycle glides with no hard step; nothing runs under reduced or no motion. `docs/TRANSPORT.md`. Lane B, inside `b193901`.
+
+### 10 · OPEN ZIP asks "save this first?"
+Josh: "Should OPEN ZIP replace the open project without asking 'save this first?' — N". Over unsaved work (`gallery.dirty()`, the signal a library open and NEW read) OPEN ZIP asks the library open's own question, "Save this first?" · SAVE & OPEN · OPEN WITHOUT SAVING · ×, before anything is written: below OPEN ZIP… in RENDER's FILES (its seat: nothing above moves), or in NEW's box for a dropped zip. × leaves the zip unopened. `folders.js openZip(file, { force, seat })`, `gallery.js askBeforeOpen`. `docs/FOLDERS.md`. Lane B `f4635db`.
+
+### 12 · The photosensitivity warning is BASINS' original again
+Josh: "Return the design of the warning to the original design (font, text, spacing, button dimensions while keeping whatever consistency you were trying to do)". BASINS' words, the system face, one 34em column, the picture first and 2rem above the title, and the title, words and CONTINUE at BASINS' sizes, spacing and button dimensions (measured against BASINS at 1280 px: column 374 px, title 23.2 px, CONTINUE 172.95 × 49.6 px), on the kit's pane, colour tokens, trigger and focus ring. `openDialog({ mark })` takes an element, seated above the title; the `.mir-dialog-art` wrapper is gone (`flash-guard.js`, `dialog.js`, `parts.css`). `docs/SHELL-PARTS.md`. Lane B `692426e`.
+
+### 16 · The hue swatch has no hint and no accent ring
+Josh: "Should the hue swatch keep the hint 'Shift: finer' and its accent focus ring? — N". The swatch writes no hint of its own (an app's `title` is still honoured), and a keyboard focus is BASINS' 1 px hairline in the swatch's own colour, 5 px out (`swatch.js`, `colour-controls.css`). Lane A `f95312b`.
+
+### The colour glow is gone
+Josh: "remove the colored glow on the colors where the hueshift per knob is". The hue swatch keeps only its 1 px rim (a little brighter under a drag) and the lane slider's thumb wears no shadow (`colour-controls.css`; `--swatch-shadow`, `--swatch-shadow-drag`). Lane A `b9a5567`.
+
+### 18 · The ‹ › and the ★ are drawn
+Josh: "Switch those three seats to the drawn glyphs? — Y". The stepper's and the FOLDERS pager's ‹ › are `glyph.js` `chevronLeft` / `chevronRight` at 1em of the button's font, centred in the same seat; the rack's + list favourite mark is `starFill` at the row's font size. Lanes A `7cb4949` and C `7d8cacc`; `docs/ICONS.md`, `docs/RACK.md`.
+
+### 19 · The kit's own choosers and number fields, never the browser's
+Josh: "Replace them with the kit's? — Y". The timeline's SCOPE is a segment (CLIPS | POINTS), SNAP a compact stepper, and the point's TIME / VALUE and OUTPUT RANGE are `number()`; "before the source begins" is a toast. RENDER's motion, format, size, modulation and timeline rows are the kit's `select()` in the native one's row, FPS a segment of four, LENGTH and START AT `number({ snap: false })`. Each RENDER root is a field (`value`, `disabled`, `'change'`, `data-field`), so an app's motion rows read and write them as before. **Kit addition:** `number({ snap: false })` keeps a typed or set number unrounded (clamped; the keys and the drag still step). `docs/CONTROLS.md`, `docs/RENDER.md`. Lane B `ca8284d`.
+
+### 20 · One double-tap law: 300 ms
+Josh: "300ms". Two presses within 300 ms and 14 px (`kit.js` `TAP`, `tapWatcher(fn)` → `(e?) → boolean`; `controls/gesture.js` re-exports both, `tapHome` is `tapWatcher`); the knob, the fader, CURVES and the tempo pill read it, and the private 320s are gone (`TRANSPORT.doubleTap` is removed). The join passed the press event at the callers lane A left timed only, so the 14 px half holds there too: the camera's pad (`panels/camera.js`), the range thumbs (`controls/range.js`), the XY pad (`controls/xy.js`), the modulation window's macro grip, route ring, sliders and the rename tap through the reorder engine (`modulation/window.js`, `layout-motion.js`). Lane A `0336fac`.
+
+### 21 · The transport's tile reorder is the modulation window's engine
+Josh: "Move the transport to the same engine (the feel changes slightly)? — Y". `modulation/layout-motion.js wireReorder` (lifted out of `window.js`; axis `'grid'` for the two columns): the neighbours glide, the held tile follows the hand by translate and is never moved in the DOM, so a finger is never lost. `docs/TRANSPORT.md`, `docs/API.md`. Lane C `b193901`.
+
+### 23 · The rack and the tempo are the project's
+Josh: "The rack's layout and the tempo are saved as device settings, not as parts of a project. Should a project carry them? — Y". `installModulation` registers the project parts `rack` (the modulation rack: sources, macros, routes) and `bpm`; opening a project writes them through the preset's door and the device record follows. `modulation/project.js` (`rackPart`, `tempoPart`, `registerModulationParts`); `installModulation({ project })`: `false` opts out, `{ save, load }` translates. `docs/API.md`, `docs/ADOPTING-1.5.md` §13. Lane C `ce5522d`.
+
+**SAVED FORMAT.** Every kit app with modulation now saves `parts.rack` and `parts.bpm` in a project, and `projectSignature` includes both (a rack edit makes the project unsaved). A file saved before alpha.23 has neither and opens with the device's rack and tempo, as before; NEW leaves them as they are. An unreadable part throws, so FOLDERS rolls the open back. An app with its own registry for the two (BASINS' `save-window.js`) calls `registerModulationParts` and drops its own (the hunk is in ADOPTING §13).
+
+### The power is its icon
+See 1.5.0-alpha.22, below.
+
+### Fixed at the join
+- **The timeline's point and OUTPUT RANGE words were back in the catalogue's reach.** Lane B's `number()` fields took their words through local helpers the extractor cannot read, so "TIME · BEATS FROM 0", "VALUE · 0 TO 1", "Point time in beats", "Point value", "Output minimum" and "Output maximum" left `en.json` while still shown (and would have lost their ten translations). The helpers take `label:` / `aria:` keys now (`timeline/editor.js`); the six keys stay.
+
+### Tokens, strings, tests
+- 1,375 token rows (8 added, 3 removed). Added on the notice (`mir/shell/parts.css`, `.mir-dialog[data-kind="notice"]`): `--warn-w` 34em · `--warn-art` clamp(200px, 44vmin, 420px) · `--warn-title-size` clamp(1.1rem, 2.8vmin, 1.45rem) · `--warn-title-track` .18em · `--warn-body-size` clamp(.95rem, 2vmin, 1.05rem) · `--warn-btn-size` .95rem · `--warn-btn-track` .14em · `--warn-btn-r` 4px. Removed: `--lane-thumb-glow`, `--lane-thumb-glow-drag` (the glow) and `--tl-scope-pad` (declared, never read; its declaration in `timeline.css` went too). Changed: `--swatch-shadow` / `--swatch-shadow-drag` are the rim only. `docs/TOKENS.md` regenerated. No intent count moved; no baseline changed.
+- 1,498 catalogue keys (1,494 + 5 − 1). Added, as drafts in the ten packs: "Follow the pointer in use: a mouse or trackpad hovers, a finger does not", "Always behave as under a finger: no hover", "Always behave as under a mouse: hover, menus on hover, the cursor effects", `pointer::TOUCH`, `pointer::PRECISION` (POINTER was already a key). Removed: "Tap for the colour chooser · drag up or down to turn its hue (Shift: finer)"; the packs also lost "Orient the plane. Shift gives finer motion; Home resets.", stale since an earlier release. Every pack covers 1,498 of 1,498.
+- `npm test`: 143/143 with the browser (was 141). New files: `tests/kbm.browser.mjs` (the live pointer: boot touch, a mouse move flips to precision at once, a hover rule applies and does not stick under a touch, dense after 600 ms and never mid-drag, the pref pins it, the menubar switches on hover; 32) and `tests/modulation-project.node.mjs` (the rack and tempo parts registered and captured; a round trip restores both and the device record follows; an older project and NEW keep the device fallback; an unreadable part fails alone; save / load translate; `project: false` and `dispose`). New rows: `controls-colour.browser` (65, +2), `controls.browser` (62, +2), `folders-basins.browser` (40, +1), `controls-colour.node` (a clocked row), `rack-leftovers.browser` (13, +1), `transport-placement.browser` (21, +2), `starter.browser` (25, +1), `parts.browser` (23, +1), `audio.browser` (40, +4), `render.browser` (65, +1), `timeline-fold.browser` (27, +1), `timeline-fixes.browser` (47, +1). No row checked an old look at the join: none needed updating.
+
+### Choices to overrule
+- **23 was read as the MODULATION rack and the tempo**, not the shell's window layout (lane C, kept by the orchestrator: it is exactly what BASINS' second registry already saved). The rack of windows stays a device setting.
+- **6 is the official diamond in its official colours**, not the whole 408 × 118 wordmark in one ink (its letters would be 5 px in a 19 px seat) (lane B).
+- **RENDER's choices stayed selects where segments would wrap**: with their labels the segments wrapped to 84–124 px rows, so motion, format, size, modulation and timeline are the kit's `select()`; only FPS is a segment (lane B).
+- **16 dropped the whole hint**, not only "(Shift: finer)" (lane A).
+- **The glow went from the lane thumb too**, not only the swatch (lane A).
+- **The LANES panel's mute dot keeps its glow**: it is a lamp, not a colour (lane A).
+- **`number({ snap: false })`** is a kit addition, for RENDER's LENGTH (an app writes it to the millisecond).
+- **One shared index**: `b193901` (lane C's transport reorder) also carries lane B's door work (`wordmark.js`, the API and TRANSPORT door hunks, a block of `transport-placement.browser`): the two lanes' `git add` raced; the commit was left as it is.
+
+### For Josh's eye
+- Did 23 also mean the window layout (the rack of windows)? It would be a part with another name.
+- The LANES panel's mute-dot glow: a lamp, kept; say if it goes too.
+- The rack cards' `sw` lamp switches still wear their thin rim (open since alpha.21).
+- BASINS needs its stage for this release: the KBM hunks (`shell.js:266-274` the title tap, `overlay.js` standing down to a shim over `installKbm`; until it lands two writers of `html.kbm-*` run with two pref keys), `save-window.js` onto `registerModulationParts`, and `recorder.js:251-255`'s native ZOOM rows onto `select()` / `number()`. All in ADOPTING §13.
+
 ## 1.5.0-alpha.22 — 2026-10-07 · the power is its icon
 
 Not released: built on branch `worktree-mir-1.5`. The smallest release: every power control becomes its ⏻ icon and nothing else.
