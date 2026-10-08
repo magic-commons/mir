@@ -28,10 +28,12 @@ export { fineHeld, gearOf as fineGain } from '../kit.js';
 
 /** forward(root, e) — a press the control stopped, handed on to the page: a copy dispatched on the control root's
  *  PARENT (so the root's own capture listener never meets it again), bubbling to the document's outside-press
- *  closers and the float layer's raise */
+ *  closers and the float layer's raise. This copy is informational, even when the control is disabled: a window
+ *  must not take it as a second drag on empty glass. */
 export function forward(root, e) {
   const up = root.parentElement; if (!up) return;
-  try { up.dispatchEvent(new PointerEvent(e.type, e)); } catch (_) { /* a press that cannot be copied is not forwarded */ }
+  try { const copy = new PointerEvent(e.type, e); copy.preventDefault(); up.dispatchEvent(copy); }
+  catch (_) { /* a press that cannot be copied is not forwarded */ }
 }
 
 /** valueDrag(el, { key, move, release, end, abort }) → { start(g), abort() } — THE VALUE-DRAG LIFECYCLE the arc knob, the

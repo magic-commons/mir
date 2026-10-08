@@ -14,7 +14,8 @@
  *   · The bar is placed from geometry the wordmark's transform cannot move: its left edge + untransformed width + 8,
  *     centred on its vertical middle.
  *   · Each list is FILLED WHEN IT OPENS, so every label says the live state (a recent file, a disabled UNDO).
- *   · Hovering another group while one is open switches to it; a press outside closes everything.
+ *   · Hovering any group opens its list immediately; a press outside closes the lists.
+ *   · MIR OPTIONS can keep the bar visible or hide the logo (which also keeps the bar visible).
  *   · Escape closes it and gives focus back to the wordmark.
  *   · On a phone the bar is always shown: crossing into the phone breakpoint shows and places it on the next frame.
  *     "Phone" is the kit's sentinel — skin.css raises `--phone` to 1 at its breakpoint — or `body.phone` where an
@@ -69,6 +70,8 @@ export const copyDumpRow = (dump, hint = 'the debug dump, to the clipboard') => 
 export function createMenubar({ opener, host, menus, label, phone, keep } = {}) {
   if (!opener || !menus) return null;
   const isPhone = phone || (() => document.body.classList.contains('phone') || (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--phone')) || 0) >= 1);
+  const logoHidden = () => document.documentElement.dataset.logo === 'hidden';
+  const pinned = () => isPhone() || logoHidden() || document.documentElement.dataset.menuBar === 'always';
   const life = new AbortController(), on = { signal: life.signal };
   const keepers = keep || (() => [document.getElementById('rackToggle')].filter(Boolean));
   const bar = el('nav', 'menubar', host || document.body); bar.id = 'menubar';
@@ -96,7 +99,7 @@ export function createMenubar({ opener, host, menus, label, phone, keep } = {}) 
 
   /* `bar.hidden` is written in exactly ONE place, so aria-expanded can never disagree with it */
   const barShown = (v) => {
-    const want = isPhone() ? true : !!v;
+    const want = pinned() || !!v;
     bar.hidden = !want; if (!want) publish();
     if (canPop) { try { if (want && !bar.matches(':popover-open')) bar.showPopover(); else if (!want && bar.matches(':popover-open')) bar.hidePopover(); } catch (_) {} }
     opener.classList.toggle('menu-open', want); opener.setAttribute('aria-expanded', String(want));
@@ -123,17 +126,20 @@ export function createMenubar({ opener, host, menus, label, phone, keep } = {}) 
       }
     };
     fills.set(list, fill);
-    btn.addEventListener('click', (e) => { e.stopPropagation(); const was = openList === list; closeLists(); if (!was) { fill(); list.hidden = false; fitList(list); btn.setAttribute('aria-expanded', 'true'); openList = list; } });
-    btn.addEventListener('pointerenter', (e) => { if (!hoverable(e) || !openList || openList === list) return; closeLists(); fill(); list.hidden = false; fitList(list); btn.setAttribute('aria-expanded', 'true'); openList = list; });
+    const open = () => { closeLists(); fill(); list.hidden = false; fitList(list); btn.setAttribute('aria-expanded', 'true'); openList = list; };
+    btn.addEventListener('click', (e) => { e.stopPropagation(); const was = openList === list;
+      if (was && e.detail > 0 && hoverable(e)) return;                // a cursor click keeps the list its hover just opened
+      if (was) closeLists(); else open(); });
+    btn.addEventListener('pointerenter', (e) => { if (!hoverable(e) || openList === list) return; open(); });
   }
   let barTimer = 0;
   /* ON A PHONE the bar may not run off the screen: it gets the width from the wordmark to the edge and wraps onto a
      second row there (shell.css), its first row level with the wordmark.  The desktop bar is one row, as it was. */
   const place = () => {
-    const r = opener.getBoundingClientRect(), phone = isPhone();
+    const r = opener.getBoundingClientRect(), phone = isPhone(), hidden = logoHidden(), width = hidden ? 0 : opener.offsetWidth;
     let rtl = false; try { rtl = bar.matches(':dir(rtl)'); } catch (_) {}
-    bar.style.maxWidth = phone ? Math.max(120, (rtl ? r.right - opener.offsetWidth : window.innerWidth - r.left - opener.offsetWidth) - 16) + 'px' : '';
-    bar.style.left = (rtl ? r.right - opener.offsetWidth - 8 - bar.offsetWidth : r.left + opener.offsetWidth + 8) + 'px';   // rtl: the wordmark's untransformed RIGHT edge stays put (locales.css turns its origin)
+    bar.style.maxWidth = phone ? Math.max(120, (rtl ? r.right - width : window.innerWidth - r.left - width) - 16) + 'px' : '';
+    bar.style.left = (rtl ? r.right - width - (hidden ? 0 : 8) - bar.offsetWidth : r.left + width + (hidden ? 0 : 8)) + 'px';   // a hidden logo gives its seat to the menus; RTL keeps the right edge
     const row = phone && bar.firstElementChild ? bar.firstElementChild.offsetHeight : bar.offsetHeight;
     bar.style.top = Math.max(0, r.top + r.height / 2 - row / 2) + 'px';
     publish();
@@ -173,14 +179,18 @@ export function createMenubar({ opener, host, menus, label, phone, keep } = {}) 
     hide();
   }, on);
   /* λWAVES wave 62: Escape closes the bar and the wordmark takes the focus back, so the keyboard is where it was */
-  window.addEventListener('keydown', (e) => { if (e.code === 'Escape' && !bar.hidden && !e.defaultPrevented) { e.preventDefault(); hide(); opener.focus(); } }, on);
+  window.addEventListener('keydown', (e) => { if (e.code === 'Escape' && !bar.hidden && !e.defaultPrevented) { e.preventDefault(); hide();
+    (logoHidden() ? bar.querySelector('.mb-btn') : opener).focus(); } }, on);
   /* THE PHONE CROSSING (λWAVES wave 106): entering the breakpoint shows and PLACES the bar on the next frame;
      leaving it lets the bar go unless a list is open */
   let wasPhone = isPhone();
   const syncPhone = () => { const now = isPhone(); if (now === wasPhone) return; wasPhone = now; if (now) frame.write(() => { if (isPhone()) showBar(false); }); else if (!openList) barShown(false); };
   window.addEventListener('resize', syncPhone, { passive: true, signal: life.signal });
   window.addEventListener('orientationchange', syncPhone, { passive: true, signal: life.signal });
-  if (wasPhone) frame.write(() => { if (isPhone()) showBar(false); });
+  if (pinned()) frame.write(() => { if (!life.signal.aborted && pinned()) showBar(false); });
+  const prefs = new MutationObserver(() => { if (pinned()) showBar(false); else hide(); });
+  prefs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-menu-bar', 'data-logo'] });
+  life.signal.addEventListener('abort', () => prefs.disconnect());
   /* a bar placed before the wordmark's face has loaded sits where the fallback font ended (measured: 3 px right on a
      phone), and one left up through a resize sits where the old layout put it — so a shown bar is placed again */
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!life.signal.aborted && !bar.hidden) place(); });

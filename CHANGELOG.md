@@ -1,5 +1,16 @@
 # MIR — changelog
 
+## 1.5.0-alpha.24 — 2026-10-07 · options gestures and menu access
+
+- Arc knobs and lane sliders no longer move their containing window, including when disabled. The control's forwarded pointer event is marked handled (`defaultPrevented`); the empty-glass window handler skips claimed presses. Outside-press closers and window raising still receive the forwarded event.
+- Every menu dropdown opens immediately on mouse or trackpad hover, including the first one. A cursor click keeps its hovered dropdown open; touch and keyboard presses still toggle it.
+- MIR OPTIONS › LOOK › MENUS adds MENU BAR (HOVER · ALWAYS) and SHOW LOGO, stored as `mir.gui.menuBar` / `mir.gui.logo`. Hiding the logo keeps the menus visible in its seat, including in HOVER mode, and Escape focuses the visible menu. A theme change preserves these choices.
+- `createApp` puts GUI in ABOUT's former position and ABOUT in GUI's former position. Apps supplying their own menu map keep their chosen order; BASINS adopts the same swap.
+- Regression coverage: real mouse and touch drags, initial menu hover, touch and keyboard activation, both visibility controls, hidden-logo placement and reload persistence (`tests/shell-interaction.browser.mjs`). The existing GUI proof also checks that its control drags keep the window stationary.
+- Seven new English catalogue entries; other languages fall back to English for those new labels and hints until their packs are updated.
+
+Adopt from this 1.5 kit with the existing `tools/adopt.mjs` command. No saved project format changed. BASINS' top-half logo fade is app artwork and stays outside MIR.
+
 ## 1.5.0-alpha.23 — 2026-10-07 · Josh's calls
 
 Not released: built on branch `worktree-mir-1.5`. Josh answered the consolidation note's 23 calls; this release is the ones that changed something, plus the live pointer. (Calls 1–5, 7–9, 11, 13–15, 17 and 22 kept what was there: his "yes", "keep current", "whatever you think is best" (WALL / 60 Hz stay tiles), and 22 was done in alpha.19.)

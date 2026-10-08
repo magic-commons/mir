@@ -440,6 +440,7 @@
   "HOLD ¼": "HOLD ¼",
   "HOME": "HOME",
   "HOME — restore the default view": "HOME — restore the default view",
+  "HOVER": "HOVER",
   "HSV wheel (the built-in)": "HSV wheel (the built-in)",
   "HUE": "HUE",
   "HUE — every colour turned together, all the way round": "HUE — every colour turned together, all the way round",
@@ -477,6 +478,7 @@
   "KNEE": "KNEE",
   "KNOB": "KNOB",
   "Keep at least two curve points.": "Keep at least two curve points.",
+  "Keep the menu bar visible": "Keep the menu bar visible",
   "Key names": "Key names",
   "Keyboard actions": "Keyboard actions",
   "LANE DOWN": "LANE DOWN",
@@ -515,6 +517,8 @@
   "MAKING…": "MAKING…",
   "MATERIAL": "MATERIAL",
   "MAX": "MAX",
+  "MENU BAR": "MENU BAR",
+  "MENUS": "MENUS",
   "METRO": "METRO",
   "MID": "MID",
   "MIN": "MIN",
@@ -820,6 +824,7 @@
   "SHINE SOFTNESS": "SHINE SOFTNESS",
   "SHORTCUTS": "SHORTCUTS",
   "SHOW": "SHOW",
+  "SHOW LOGO": "SHOW LOGO",
   "SHOW ON OPEN": "SHOW ON OPEN",
   "SIGNAL ONLY": "SIGNAL ONLY",
   "SIGNAL ONLY (MUTE THE FILE)": "SIGNAL ONLY (MUTE THE FILE)",
@@ -920,10 +925,12 @@
   "Show Windows and Linux key names": "Show Windows and Linux key names",
   "Show or hide this lane’s arcs and blend (so a thumb zooming the picture cannot turn them)": "Show or hide this lane’s arcs and blend (so a thumb zooming the picture cannot turn them)",
   "Show status tags at the top": "Show status tags at the top",
+  "Show the app logo; hiding it keeps the menu bar visible": "Show the app logo; hiding it keeps the menu bar visible",
   "Show the controls of {lane}": "Show the controls of {lane}",
   "Show the data for {name}": "Show the data for {name}",
   "Show the interface": "Show the interface",
   "Show the main transport bar, floating or docked": "Show the main transport bar, floating or docked",
+  "Show the menu bar when the pointer is over the logo": "Show the menu bar when the pointer is over the logo",
   "Slice every selected clip at the playhead (one undo)": "Slice every selected clip at the playhead (one undo)",
   "Slice sphere and plane. Drag or use arrow keys to rotate; Home resets.": "Slice sphere and plane. Drag or use arrow keys to rotate; Home resets.",
   "Slice tool": "Slice tool",
@@ -3023,6 +3030,9 @@
   "HOME — restore the default view": [
    "mir/panels/camera.js"
   ],
+  "HOVER": [
+   "mir/shell/gui.js"
+  ],
   "HSV wheel (the built-in)": [
    "mir/palette.js"
   ],
@@ -3145,6 +3155,9 @@
   "Keep at least two curve points.": [
    "mir/timeline/editor.js"
   ],
+  "Keep the menu bar visible": [
+   "mir/shell/gui.js"
+  ],
   "Key names": [
    "mir/keyboard/keyboard.js"
   ],
@@ -3253,6 +3266,12 @@
   ],
   "MAX": [
    "mir/modulation/modwindow/modwindow.js"
+  ],
+  "MENU BAR": [
+   "mir/shell/gui.js"
+  ],
+  "MENUS": [
+   "mir/shell/gui.js"
   ],
   "METRO": [
    "mir/shell/gui.js"
@@ -4206,6 +4225,9 @@
   "SHOW": [
    "mir/shell/gui.js"
   ],
+  "SHOW LOGO": [
+   "mir/shell/gui.js"
+  ],
   "SHOW ON OPEN": [
    "mir/shell/notebook.js"
   ],
@@ -4507,6 +4529,9 @@
   "Show status tags at the top": [
    "mir/shell/gui.js"
   ],
+  "Show the app logo; hiding it keeps the menu bar visible": [
+   "mir/shell/gui.js"
+  ],
   "Show the controls of {lane}": [
    "mir/panels/lanes.js"
   ],
@@ -4518,6 +4543,9 @@
    "mir/shell/transport.js"
   ],
   "Show the main transport bar, floating or docked": [
+   "mir/shell/gui.js"
+  ],
+  "Show the menu bar when the pointer is over the logo": [
    "mir/shell/gui.js"
   ],
   "Slice every selected clip at the playhead (one undo)": [

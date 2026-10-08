@@ -325,10 +325,10 @@ export async function createApp(o = {}) {
       hist ? k('history') : undefined, help ? k('help') : undefined, kb ? k('keyboard') : undefined, k('rack'), k('dock'), ...(rack ? [null, ...rack.windowMenu({ keyOf: (action) => keys.menuKey(action) })] : []),   // a card's `action` shows the table's chord
       ...((o.coming || []).length ? [null, ...o.coming.map(([n, h]) => comingRow(n, h))] : []))),
     ...Object.fromEntries(Object.entries(M).filter(([g]) => !['FILE', 'EDIT', 'VIEW', 'WINDOW', 'ABOUT', 'LANGUAGE', 'GUI'].includes(g))),
+    GUI: M.GUI || (() => rows(k('gui'), k('gui-about'))),
+    LANGUAGE: M.LANGUAGE || languageMenu(),
     ABOUT: M.ABOUT || (() => rows(['ABOUT ' + name, () => notebook && notebook.open('about')],
       gui ? ['SETTINGS…', () => gui.open('options')] : undefined, null, copyDumpRow(dump))),
-    LANGUAGE: M.LANGUAGE || languageMenu(),
-    GUI: M.GUI || (() => rows(k('gui'), k('gui-about'))),
   };
   const menubar = want('menubar') ? createMenubar({ opener: wordmark(stage, { word: name, sub: (o.about && o.about.sub) || 'AN MIR APP' }), host, menus, ...opt(o.menubar) }) : null;
 

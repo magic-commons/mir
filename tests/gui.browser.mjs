@@ -15,7 +15,7 @@ const URL_ = BASE.replace(/\/$/, '') + '/tests/fixtures/gui.html';
 const results = [];
 const check = (name, ok, detail = '') => results.push(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? '  — ' + detail : ''}`);
 
-let p = await launch({ width: 1280, height: 720 });
+let p = await launch({ width: 1280, height: 900 });                  // keep the specimen strip below the larger LOOK tab
 const ready = async () => { for (let i = 0; i < 50 && !(await p.eval('!!window.__ready')); i++) await sleep(100); await sleep(150); };
 const J = async (expr) => JSON.parse(await p.eval(`(async () => { const T = __T, G = T.gui, P = G.prefs; const cs = (s, pr, ps) => getComputedStyle(document.querySelector(s), ps || null).getPropertyValue(pr).trim();
   const hv = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim(), bv = (n) => getComputedStyle(document.body).getPropertyValue(n).trim();
@@ -36,9 +36,12 @@ async function click(sel, label) {
 async function dragUp(sel, label, dy = 70) {
   const s = await spot(sel); if (!s) { misses.push(label + ': not found'); return false; }
   if (!s.hit) misses.push(label + ': elementFromPoint missed');
+  const before = await J(`const r = G.root.getBoundingClientRect(); return [r.left, r.top];`);
   await mouse('mouseMoved', s.x, s.y); await mouse('mousePressed', s.x, s.y);
   for (let i = 1; i <= 8; i++) { await mouse('mouseMoved', s.x, s.y - Math.round((dy * i) / 8)); await sleep(16); }
   await mouse('mouseReleased', s.x, s.y - dy); await sleep(150);
+  const after = await J(`const r = G.root.getBoundingClientRect(); return [r.left, r.top];`);
+  if (before.some((v, i) => Math.abs(v - after[i]) > 0.5)) misses.push(label + ': control drag moved MIR OPTIONS');
   return s.hit;
 }
 const grp = (g) => `document.querySelector('.mir-gui .gui-grp[data-group="${g}"]')`;
@@ -65,11 +68,11 @@ try {
   /* ── GUI opens from the menubar ─────────────────────────────────────────────────────────────────────────── */
   let t = await spot(`document.getElementById('title')`);
   await mouse('mouseMoved', t.x, t.y); await sleep(250);
-  const gHit = await click(`[...document.querySelectorAll('#menubar .mb-btn')].pop()`, 'menubar GUI');
+  const gHit = await click(`document.querySelector('#menubar .mb-btn[data-menu="GUI"]')`, 'menubar GUI');
   const item = await click(`document.querySelector('#menubar .mb-list:not([hidden]) button')`, 'GUI › MIR OPTIONS');
   await sleep(500);
   let r = await J(`return { open: G.window.isOpen(), page: G.page, shown: !G.root.hidden };`);
-  check('GUI opens from the menubar: the last group, its first item, the window on MIR OPTIONS', gHit && item && r.open && r.shown && r.page === 'options', JSON.stringify(r));
+  check('GUI opens from the menubar: its first item opens MIR OPTIONS', gHit && item && r.open && r.shown && r.page === 'options', JSON.stringify(r));
 
   /* ── a new user is on FROST, Josh's recipe ── */
   r = await J(`return { preset: P.preset(), theme: document.body.dataset.theme, card: document.body.dataset.card, frost: document.body.classList.contains('frost'), blur: hv('--glass-blur'), radius: bv('--surface-radius'), filter: bv('--surface-filter') };`);

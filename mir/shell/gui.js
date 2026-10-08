@@ -200,6 +200,8 @@ export function lookSchema({ tier = () => null } = {}) {
     { key: 'badges', type: 'bool', default: false, apply: [{ on: 'body', cls: 'no-badges', when: (v) => !v }] },
     /* TRANSPORT BAR (BASINS skin.js setTransportBar): off is body.no-transport-bar, which the transport's sheet reads */
     { key: 'transportBar', type: 'bool', default: true, apply: [{ on: 'body', cls: 'no-transport-bar', when: (v) => !v }] },
+    { key: 'menuBar', type: 'enum', values: ['hover', 'always'], default: 'hover', apply: [{ on: 'html', attr: 'data-menu-bar', map: (v) => v === 'always' ? v : null }] },
+    { key: 'logo', type: 'bool', default: true, apply: [{ on: 'html', attr: 'data-logo', map: (v) => v ? null : 'hidden' }] },
     /* SAMPLING (BASINS docs/TIMELINE-SAMPLING-2026-10-01.md): SCRUB is read by the timeline's transport controller at each
        scrub's start (createTransportController({ scrubLevel })); AUTOMATION is pushed to the modulation host when it moves */
     { key: 'scrub', type: 'enum', values: ['live', 'light', 'release'], default: 'live' },
@@ -320,7 +322,7 @@ export function touchTablet(doc = globalThis.document, signal) {
    more a row of chips), in one fixed row under the title.  Every group lives in one tab at every width; the narrow
    layout is the same tabs, one column, the body scrolling. */
 export const GUI_TABS = Object.freeze([{ id: 'look', label: phrase('LOOK') }, { id: 'light', label: phrase('LIGHT', 'light source') }, { id: 'windows', label: phrase('WINDOWS') }]);   // tr[LOOK]: the tab of the look options (theme, accent, text, quality, material, controls, motion)
-const TAB_OF = { theme: 'look', accent: 'look', material: 'look', controls: 'look', text: 'look', quality: 'look', motion: 'look', light: 'light', windows: 'windows', sampling: 'windows' };
+const TAB_OF = { theme: 'look', accent: 'look', material: 'look', controls: 'look', text: 'look', quality: 'look', motion: 'look', menus: 'look', light: 'light', windows: 'windows', sampling: 'windows' };
 const NARROW = '(max-width: 720px)';
 const TAB_KEY = 'mir.gui.tab';                                       // the tab this device last showed (a device setting, never in a project)
 const ACCENT_KEYS = ['accentA', 'accentB', 'vivid', 'accentBright'];
@@ -486,6 +488,11 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
     Object.assign(el('div', 'sw'), { ariaHidden: 'true' }));         // an empty, invisible seat, so DROP GUIDES is as wide as the two above
   g.lastElementChild.lastElementChild.style.visibility = 'hidden';
 
+  g = groupEl('menus', phrase('MENUS'));
+  line(g).append(segOf('menuBar', phrase('MENU BAR'), [['hover', phrase('HOVER'), phrase('Show the menu bar when the pointer is over the logo')],
+    ['always', phrase('ALWAYS'), phrase('Keep the menu bar visible')]]).root);
+  line(g).append(swOf('logo', phrase('SHOW LOGO'), phrase('Show the app logo; hiding it keeps the menu bar visible')).root);
+
   /* ── the LIGHT and WINDOWS tabs ── */
   /* LIGHT — one light: where it is, the shadow it casts, the shine across from it */
   g = groupEl('light', phrase('LIGHT', 'light source'));
@@ -583,7 +590,7 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   tabs.root.classList.add('gui-tabs');
   const tabRow = el('div', 'gui-tabbar'); tabRow.append(tabs.root);
 
-  const W = createWindow({ id: 'gui', title: 'MIR OPTIONS', host, chrome: 'close', size: { w: 920, h: 520 }, min: { w: 280, h: 200 }, emptyDrag: true, body: opts });
+  const W = createWindow({ id: 'gui', title: 'MIR OPTIONS', host, chrome: 'close', size: { w: 920, h: 520 }, min: { w: 280, h: 200 }, emptyDrag: '.gui-options', body: opts }); // controls own this surface, including disabled ones
   W.root.classList.add('mir-gui');
   W.head.after(tabRow);                                             // under the title, above the scrolling body
   const aboutBtn = el('button', 'mir-win-btn gui-about-btn'); aboutBtn.type = 'button'; aboutBtn.dataset.glyph = 'info';

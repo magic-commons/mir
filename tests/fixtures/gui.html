@@ -61,8 +61,8 @@ D.open();
 const title = wordmark($('stage'), { word: 'MIR' });
 const menubar = createMenubar({ opener: title, host: $('lab'), menus: {
   FILE: () => [['NEW']], EDIT: () => [['UNDO']], VIEW: () => [['FULL SCREEN']], WINDOW: () => [['DOCK', () => D.toggle()]],
-  ABOUT: () => [['ABOUT MIR', () => gui.open('about')]], LANGUAGE: () => [['ENGLISH', null, () => true]],
-  GUI: () => [['MIR OPTIONS', () => gui.open('options')], ['MIR ABOUT', () => gui.open('about')]] } });
+  GUI: () => [['MIR OPTIONS', () => gui.open('options')], ['MIR ABOUT', () => gui.open('about')]], LANGUAGE: () => [['ENGLISH', null, () => true]],
+  ABOUT: () => [['ABOUT MIR', () => gui.open('about')]] } });
 installControlHelp(document);
 
 window.__T = { gui, D, menubar, motion, perf };

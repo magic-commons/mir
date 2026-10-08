@@ -3,7 +3,7 @@
 The **GUI window** is where a user chooses how an app on MIR looks. The menubar's **GUI** group opens it. Since wave 19 (Josh, 2026-10-06: the options window must "not change positions of the top bar when cycling through the different pages … a scroll/tab system"; "Let the about MIR not be a page but instead a circled 'i' symbol"; "a simple x in the corner instead of chips and make sure the window is easily draggable") it is two small floating kit windows, each with a title bar and a plain × (`createWindow({ chrome: 'close' })`, `docs/WINDOWS.md` law 14) and no chip rail:
 
 - **MIR OPTIONS** — three tabs in one fixed row under the title (three, so a SEGMENT, `docs/CONTROLS.md`):
-  - **LOOK** — the theme and its tone, the accents, the text, the quality, the material, the controls, the motion;
+  - **LOOK** — the theme and its tone, the accents, the text, the quality, the material, the controls, the motion, the menus;
   - **LIGHT** — the one light (angle, shadow, distance, softness, shine, the relief's angle and LINK);
   - **WINDOWS** — the windows (drop shadow, edge, disconnected, transport bar, spacing) and SAMPLING.
   A circled (i) (the `info` glyph) beside the × opens MIR ABOUT.
@@ -12,6 +12,10 @@ The **GUI window** is where a user chooses how an app on MIR looks. The menubar'
 **The hand law.** The title bar, the × and (i) and the tab row never move: a tab changes only the body, which scrolls on its own. The tabs share one grid cell (the one not shown is invisible), so the window is sized once for the biggest tab; after its first placement a re-fit keeps its top-left where the hand left it. A value never inserts a row above another (HELP's prose keeps its seat, invisible, while HELP is off). The tab is remembered on this device (`mir.gui.tab`). The whole title bar drags the window; Escape closes it (focus in it, or on nothing with it on top).
 
 Every control is a real kit control. A **vanilla theme** (FROST, MORPH, CLASSIC, SWIFT, AURORA, NEON) is a named set of these options and nothing else: `docs/THEMES.md`.
+
+**MENUS.** MENU BAR chooses **HOVER** (show the bar on logo hover) or **ALWAYS** (keep the bar visible). **SHOW LOGO** hides or shows the app's logo. Hiding it keeps the menus visible and moves them into the logo's seat, even in HOVER mode; Escape focuses the first visible menu. Both preferences live in `mir.gui` (`menuBar`, `logo`), separately from a theme's colours. A mouse or trackpad opens every dropdown on hover; touch presses and keyboard activation still work.
+
+Control drags belong to their controls. A forwarded pointer press is marked handled (`defaultPrevented`), including on disabled controls, and empty-glass dragging skips a claimed press, so arc knobs and lane sliders cannot drag their containing window.
 
 The look is a **browser preference**: it lives in one `localStorage` key (`mir.gui`), never in a project, a link or the history. An app's own Settings keeps only its engine's options (plan ruling 7).
 

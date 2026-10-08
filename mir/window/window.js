@@ -387,7 +387,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
   const gripDrag = grip.drag; gripping = grip.active;
   const onEmpty = (e) => {
     const t = e.target;
-    if (e.button !== 0 || (!e.isPrimary && e.isTrusted) || gripDrag.active || !(t instanceof view.Element)) return;
+    if (e.defaultPrevented || e.button !== 0 || (!e.isPrimary && e.isTrusted) || gripDrag.active || !(t instanceof view.Element)) return;
     if (t.closest(PRESSABLE + (typeof emptyDrag === 'string' ? ', ' + emptyDrag : ''))) return;
     if (t.scrollHeight > t.clientHeight || t.scrollWidth > t.clientWidth) {    // a scroller's own scrollbar is not glass
       const r = t.getBoundingClientRect();
