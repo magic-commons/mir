@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="../../mir/core/core.css">
 <link rel="stylesheet" href="../../mir/window/window.css">
 <link rel="stylesheet" href="../../mir/shell/rack.css">
+<link rel="stylesheet" href="../../mir/shell/window-picker.css">
 <style>
   #ground { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .fill { height: 120px; }
@@ -22,6 +23,7 @@
 <script type="module">
 import { el, readout } from '../../mir/kit.js';
 import { createRack } from '../../mir/shell/rack.js';
+import { createWindowPicker } from '../../mir/shell/window-picker.js';
 import * as motion from '../../mir/core/motion.js';
 
 if (new URLSearchParams(location.search).has('fresh')) localStorage.removeItem('mir.test.rack-leftovers');
@@ -37,7 +39,8 @@ const W = [['tone', 'TONE', 'right', true], ['mix', 'MIX', 'right', true], ['sco
 for (const [id, title, side, open] of W) rack.register({ id, title, side, open,
   build(b, api) { b.appendChild(readout({ label: id.toUpperCase(), value: '42', sub: 'units' }).root); el('div', 'fill', b); api.setStatus('LIVE'); } });
 rack.start();
-window.__T = { rack, motion, nb };
+const finder = createWindowPicker({ rack });   // THE FINDER (1.5.5) carries the ☆ mark the + list had
+window.__T = { rack, finder, motion, nb };
 window.__ready = true;
 </script>
 </body>

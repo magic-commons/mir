@@ -265,13 +265,18 @@ try {
   }
 
   /* ── 9c · W20 · the lamp switches wear no outline (Josh 2026-10-06: "Remove more button outlines for: … modulation window
-     light switches like 'OFF' and 'BPM'"): the device's switches and the work bar's WALL / cadence, OFF and ON, have no
-     visible border, no rim and no lamp ring; ON keeps its lit frost face and its lit lamp; WALL keeps its accent bar ── */
+     light switches like 'OFF' and 'BPM'"): the device's switches, OFF and ON, have no visible border, no rim and no lamp ring;
+     ON keeps its lit frost face and its lit lamp.  Since 1.5.5 (λWAVES 015 T2, Josh: "need updating to the new MIR standard")
+     the work bar's WALL | FREE and 60 | 120 HZ are no lamp switches: they are the transport's raised work-bar keys
+     (`.tbtn.trig`, the seat standard), and ON changes their face ── */
   {
     r = await run(`const st = document.createElement('style'); st.textContent = '#modwin *, #modwin *::before { transition: none !important; }'; document.head.appendChild(st);
       const edge = (cs) => { const w = parseFloat(cs.borderTopWidth) > 0 && cs.borderTopStyle !== 'none' && !/rgba\\([^)]*, 0\\)$|transparent/.test(cs.borderTopColor);
         const ring = cs.boxShadow !== 'none' && cs.boxShadow.split(/,(?![^(]*\\))/).some((t) => / 0px 0px 0px [1-9][\\d.]*px/.test(t) && !/rgba\\([^)]*, 0\\)/.test(t)); return w || ring; };
-      const out = [], sw = [...win.querySelectorAll('.m2dev .m2chk, .m2dev .m2swb, .modsync, .modcad')].filter((b) => b.getClientRects().length);
+      const out = [], sw = [...win.querySelectorAll('.m2dev .m2chk, .m2dev .m2swb')].filter((b) => b.getClientRects().length);
+      const keys = [...win.querySelectorAll('.modsync, .modcad')].filter((b) => b.getClientRects().length).map((b) => {
+        const was = b.classList.contains('on'), face = []; for (const on of [false, true]) { b.classList.toggle('on', on); face.push(getComputedStyle(b).backgroundColor + ' ' + getComputedStyle(b).color); }
+        b.classList.toggle('on', was); return { name: b.textContent.trim().slice(0, 10), key: b.classList.contains('tbtn') && b.classList.contains('trig'), lights: face[0] !== face[1] }; });
       for (const b of sw) {
         const was = b.classList.contains('on'), dot = b.querySelector('.m2dot');
         for (const on of [false, true]) { b.classList.toggle('on', on); const cs = getComputedStyle(b), d = dot && getComputedStyle(dot);
@@ -280,10 +285,9 @@ try {
       }
       st.remove();
       const names = new Set(out.map((o) => o.name));
-      return { n: sw.length, names: [...names], edged: out.filter((o) => o.edge || o.dotRing), onFaces: out.filter((o) => o.on && !/^(WALL|FREE|\\d)/.test(o.name)).every((o) => o.face !== 'rgba(0, 0, 0, 0)'),
-        wallBar: out.filter((o) => o.on && /^(WALL|FREE)/.test(o.name)).every((o) => o.bar) };`);
-    check('W20 · the lamp switches (OFF, BPM, INVERT, TRIG …, WALL, the cadence) have no border, rim or lamp ring OFF or ON; ON keeps the lit frost face; WALL keeps its accent bar',
-      r.n >= 6 && r.names.includes('OFF') && r.names.includes('BPM') && r.edged.length === 0 && r.onFaces && r.wallBar, JSON.stringify(r));
+      return { n: sw.length, names: [...names], edged: out.filter((o) => o.edge || o.dotRing), onFaces: out.filter((o) => o.on).every((o) => o.face !== 'rgba(0, 0, 0, 0)'), keys };`);
+    check('W20 · the lamp switches (OFF, BPM, INVERT, TRIG …) have no border, rim or lamp ring OFF or ON and ON keeps the lit frost face; WALL and the cadence are the work bar\'s keys (.tbtn.trig) and light when ON (1.5.5)',
+      r.n >= 6 && r.names.includes('OFF') && r.names.includes('BPM') && r.edged.length === 0 && r.onFaces && r.keys.length >= 1 && r.keys.every((k) => k.key && k.lights), JSON.stringify(r));
   }
 
   /* ── 10 · a reload keeps the power state ── */

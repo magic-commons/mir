@@ -1,6 +1,6 @@
 /* rack.browser.mjs — the rack under a real browser (tests/fixtures/rack.html), real input through CDP, every press
- * hit-tested with elementFromPoint first.  Lazy windows are not in the DOM until opened; + opens one; the SHIFT-queue
- * opens two in pick order; a header drag reorders with the landing slot drawn; dragged out it floats, dragged back
+ * hit-tested with elementFromPoint first.  Lazy windows are not in the DOM until opened; THE FINDER (1.5.5) opens one, and
+ * reveals an open one without reordering; the SHIFT-queue opens two in pick order; a header drag reorders with the landing slot drawn; dragged out it floats, dragged back
  * it docks into the lit slot; a drag reversed halfway and cancelled (Escape; a finger's pointercancel after a long
  * press) leaves everything where it began; hide and show by the one path, with no rack ancestor ever below opacity 1;
  * the edge peek; H and the edge handle; the keyboard; the transport's dodge; idle after a drag is zero frames; the
@@ -48,25 +48,33 @@ try {
   let r = await run(`return { built: R.built, devs: [...document.querySelectorAll('.dev')].map((d) => d.dataset.id), mix: !!dev('mix'), reg: R.registered.length };`);
   check('lazy: two of six windows built at boot; the four others are not in the DOM', r.built === 2 && r.devs.length === 2 && !r.mix && r.reg === 6, JSON.stringify(r));
 
-  /* ── + opens one ─────────────────────────────────────────────────────────────────────────────────────────── */
-  let h = await click(`document.getElementById('rackAdd')`);
-  r = await run(`return { shown: R.addMenu.shown, rows: [...document.querySelectorAll('#rackAddList .mb-item')].map((b) => b.dataset.win) };`);
-  check('+: the button answers the mouse and lists the closed windows A→Z', h.ok && r.shown && r.rows.join() === 'camera,mix,notes,scope', JSON.stringify({ h, r }));
-  h = await click(`document.querySelector('#rackAddList .mb-item[data-win="mix"]')`);
+  /* ── THE FINDER opens one ───────────────────────────────────────────────────────────────────────────────── */
+  const row = (id) => `document.querySelector('.mir-window-picker .wp-row[data-win="${id}"]')`;
+  const F = `__T.finder`;
+  await run(`${F}.open(); await wait(450); return 0;`);
+  r = await run(`return { shown: ${F}.shown, rows: [...document.querySelectorAll('.mir-window-picker .wp-row')].map((b) => b.dataset.win + (b.hasAttribute('data-open') ? '*' : '')), shim: R.addMenu === ${F} };`);
+  check('FINDER: every window A→Z, the open ones marked, and rack.addMenu answers as the FINDER (the 1.5.5 shim)', r.shown && r.rows.join() === 'camera,display*,mix,notes,scope,tone*' && r.shim, JSON.stringify(r));
+  let h = await click(row('mix'));
   await run(`await settle(); return 0;`);
-  r = await run(`return { built: R.built, open: R.isOpen('mix'), order: R.order('right'), shown: R.addMenu.shown };`);
-  check('+: a click on a row builds and opens that window at the top of its rack', h.ok && r.built === 3 && r.open && r.order[0] === 'mix' && !r.shown, JSON.stringify(r));
+  r = await run(`return { built: R.built, open: R.isOpen('mix'), order: R.order('right'), shown: ${F}.shown };`);
+  check('FINDER: a click on a closed row builds and opens that window at the top of its rack', h.ok && r.built === 3 && r.open && r.order[0] === 'mix' && !r.shown, JSON.stringify(r));
 
   /* ── the SHIFT-queue: two, in pick order ─────────────────────────────────────────────────────────────────── */
-  await click(`document.getElementById('rackAdd')`);
+  await run(`${F}.open(); await wait(450); return 0;`);
   await key('Shift', 'ShiftLeft', 16, 8, 'down');
-  h = await click(`document.querySelector('#rackAddList .mb-item[data-win="notes"]')`, 8);
-  const h2 = await click(`document.querySelector('#rackAddList .mb-item[data-win="camera"]')`, 8);
-  r = await run(`return { queued: R.addMenu.queued, nums: [...document.querySelectorAll('#rackAddList .mb-num')].map((n) => n.parentElement.dataset.win + n.textContent), built: R.built };`);
-  const queuedOk = h.ok && h2.ok && r.queued.join() === 'notes,camera' && r.built === 3;
+  h = await click(row('notes'), 8);
+  const h2 = await click(row('camera'), 8);
+  r = await run(`return { queued: ${F}.queued, nums: [...document.querySelectorAll('.mir-window-picker .wp-num')].map((n) => n.parentElement.dataset.win + n.textContent), built: R.built };`);
+  const queuedOk = h.ok && h2.ok && r.queued.join() === 'notes,camera' && r.nums.slice().sort().join() === 'camera2,notes1' && r.built === 3;
   await key('Shift', 'ShiftLeft', 16, 0, 'up'); await sleep(60);
-  r = { ...r, after: await run(`await settle(); return { built: R.built, left: R.order('left'), shown: R.addMenu.shown };`) };
+  r = { ...r, after: await run(`await settle(); return { built: R.built, left: R.order('left'), shown: ${F}.shown };`) };
   check('SHIFT-queue: two SHIFT-clicks queue (numbered), letting SHIFT go opens both, the rack reading in pick order', queuedOk && r.after.built === 5 && r.after.left.join() === 'notes,camera,display' && !r.after.shown, JSON.stringify(r));
+
+  /* ── reveal: a pick of an OPEN window scrolls to it and rings it, never reordering the rack ───────────────── */
+  await run(`${F}.open(); await wait(450); return 0;`);
+  h = await click(row('display'));
+  r = await run(`const ring = dev('display').classList.contains('mir-reveal'); await settle(); return { left: R.order('left'), ring, shown: ${F}.shown, built: R.built };`);
+  check('reveal: picking an open window leaves the rack in its order (notes, camera, display), rings the card and builds nothing', h.ok && r.left.join() === 'notes,camera,display' && r.ring && !r.shown && r.built === 5, JSON.stringify(r));
 
   /* ── reorder: the held window follows, the slot it will land in is drawn ─────────────────────────────────── */
   let a = await hit(headOf('tone'), 0.5, 0.5), b = await hit(headOf('mix'));

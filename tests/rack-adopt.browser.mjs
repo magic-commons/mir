@@ -5,7 +5,7 @@
  *      racks are absent; setActive(false) stands it down
  *   2. adoption: the app's containers are used as they are (one #rack, no kit look class, the app's own width), its
  *      windows are taken over, not rebuilt, and drag like the kit's; an eager window is built at once; the transport
- *      card is no window (not in + or WINDOW) yet keeps its place
+ *      card is no window (not in the FINDER or WINDOW) yet keeps its place; the app's own + button opens the FINDER (1.5.5)
  *   3. a ☆ layout written by BASINS' own rack.js (tests/fixtures/basins-layout.json) loads: order, sides, fold, close,
  *      float and the transport card's place.
  * Standalone: MIR_BASE=http://127.0.0.1:8795 node tests/rack-adopt.browser.mjs */
@@ -69,12 +69,14 @@ try {
   await sleep(60); await mouse('mouseReleased', a.x, b.y - 30); await sleep(100);
   r = await run(`await settle(); return { right: R.order('right'), tr: dev('settings').style.translate };`);
   check('adopt: an adopted window drags by its header like the kit\'s own (hit-tested; reorder lands clean)', a.ok && before[0] === 'history' && r.right[0] === 'settings' && !r.tr, JSON.stringify({ before, a, r }));
-  let h = await hit(`document.getElementById('rackAdd')`);
-  await mouse('mouseMoved', h.x, h.y); await mouse('mousePressed', h.x, h.y); await mouse('mouseReleased', h.x, h.y); await sleep(80);
-  r = await run(`const rows = [...document.querySelectorAll('#rackAddList .mb-item')].map((b) => b.dataset.win); R.addMenu.close();
+  let h = await hit(`document.getElementById('finderOpen')`);
+  await mouse('mouseMoved', h.x, h.y); await mouse('mousePressed', h.x, h.y); await mouse('mouseReleased', h.x, h.y); await sleep(450);
+  r = await run(`const rows = [...document.querySelectorAll('.mir-window-picker .wp-row')].map((b) => b.dataset.win), shown = T.finder.shown; T.finder.close();
+    const want = R.windows().filter((w) => !w.card).sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' })).map((w) => w.id);
     const menu = R.windowMenu().filter(Boolean).map((row) => row[0].replace(/^[↑⊕]\\s+/, '').split('\\t')[0]);
-    return { rows, menu, addKit: document.getElementById('rackAdd').classList.contains('mir-rack-btn') };`);
-  check('adopt: the app\'s own + button opens the kit\'s list; the transport card is in neither + nor WINDOW', h.ok && r.rows.join() === 'notes,rackSave' && !r.menu.includes('TRANSPORT') && r.menu.length === 7 && !r.addKit, JSON.stringify({ h, r }));
+    return { rows, want, shown, menu, kitAdd: !!document.getElementById('rackAdd') || !!document.getElementById('rackAddList') };`);
+  check('adopt: the app\'s own + button opens the FINDER (every window, A→Z); the transport card is in neither the FINDER nor WINDOW; the kit made no + list',
+    h.ok && r.shown && r.rows.join() === r.want.join() && r.rows.length === 7 && !r.rows.includes('transport') && !r.menu.includes('TRANSPORT') && r.menu.length === 7 && !r.kitAdd, JSON.stringify({ h, r }));
 
   /* ── 3. a layout BASINS' own rack.js saved ────────────────────────────────────────────────────────────────── */
   r = await run(`localStorage.setItem('basins.settings', JSON.stringify({ layouts: { 1: ${JSON.stringify(BASINS.layout)} } }));

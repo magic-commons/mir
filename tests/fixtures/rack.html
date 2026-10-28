@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="../../mir/core/core.css">
 <link rel="stylesheet" href="../../mir/window/window.css">
 <link rel="stylesheet" href="../../mir/shell/rack.css">
+<link rel="stylesheet" href="../../mir/shell/window-picker.css">
 <style>
   #ground { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   #transport { position: absolute; left: 50%; transform: translateX(-50%); bottom: 60px; z-index: 31; display: flex; gap: 6px; padding: 6px 10px; border-radius: 12px; }
@@ -32,6 +33,7 @@
 <script type="module">
 import { el, knob, readout } from '../../mir/kit.js';
 import { createRack } from '../../mir/shell/rack.js';
+import { createWindowPicker } from '../../mir/shell/window-picker.js';
 import { createWindow } from '../../mir/window/window.js';
 import { wordmark } from '../../mir/shell/wordmark.js';
 import { createMenubar } from '../../mir/shell/menubar.js';
@@ -53,6 +55,7 @@ for (const [id, title, side, open] of W) rack.register({ id, title, side, open,
   build(b) { b.appendChild(knob({ label: 'K', min: 0, max: 1, value: .5 }).root); b.appendChild(readout({ label: id.toUpperCase(), value: '1' }).root); el('div', 'fill', b); },
   onOpen: (api) => life.push('open:' + api.id), onClose: (api) => life.push('close:' + api.id), onPresent: (on, api) => life.push('present:' + api.id + ':' + on) });
 rack.start();
+const finder = createWindowPicker({ rack });   // THE FINDER (1.5.5): the rack's one window list
 const drift = createWindow({ id: 'drift', title: 'DRIFT', host: document.getElementById('winlayer'), size: { w: 300, h: 160 }, onMoved: (r) => rack.dodge(r) });
 drift.place({ x: 480, y: 120 }); drift.open();
 const title = wordmark(document.getElementById('stage'), { word: 'RACK' });
@@ -62,7 +65,7 @@ addEventListener('keydown', (e) => {
   if (e.code === 'KeyB') rack.toggleHidden();
   else if (e.code === 'KeyH') rack.setInterface(document.body.classList.contains('ui-hidden'));
 });
-window.__T = { rack, drift, bar, motion, perf, life };
+window.__T = { rack, finder, drift, bar, motion, perf, life };
 window.__ready = true;
 </script>
 </body>

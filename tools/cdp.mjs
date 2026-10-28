@@ -6,6 +6,7 @@
  *   MIR_TMP=/some/dir puts the throwaway browser profile there.  A SNAP Chromium has a private /tmp and cannot
  *            write hidden home directories, so by default its profile goes to ~/snap/chromium/common, which both
  *            the snap and this process can reach (and so delete); any other Chromium uses the system temp.
+ *   MIR_CDP_PORT=<n> pins the DevTools ports to <n> … <n>+9 (default: a random one in 9300–9899) — on a machine whose other servers own ports there.
  * Every browser this module starts is killed when the process exits, even if the caller throws. */
 import { spawn, execFileSync } from 'node:child_process';
 import fs from 'node:fs'; import os from 'node:os'; import path from 'node:path';
@@ -48,7 +49,8 @@ export function keyOf(spec) {
   return { key, code: n[3] || name, vk: n[1], mods, text: plain && n[2] ? (name === 'Slash' && shift ? '?' : n[2]) : '' };
 }
 
-export async function launch({ width = 1280, height = 900, scale = 1, gpu = false, port = 9300 + Math.floor(Math.random() * 600) } = {}) {
+let pinned = 0;   // MIR_CDP_PORT: the n-th browser of this process takes base + n % 10
+export async function launch({ width = 1280, height = 900, scale = 1, gpu = false, port = process.env.MIR_CDP_PORT ? +process.env.MIR_CDP_PORT + (pinned++ % 10) : 9300 + Math.floor(Math.random() * 600) } = {}) {
   const bin = findChromium();
   let snap = false; try { snap = fs.realpathSync(bin).startsWith('/snap/') || bin.startsWith('/snap/'); } catch { snap = bin.startsWith('/snap/'); }
   const base = process.env.MIR_TMP || (snap ? path.join(os.homedir(), 'snap', 'chromium', 'common') : os.tmpdir());

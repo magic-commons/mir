@@ -73,7 +73,7 @@ try {
     const open = [...document.querySelectorAll('.dev:not(.closed), .mir-win')].filter((n) => n.offsetWidth && getComputedStyle(n).visibility !== 'hidden' && !n.hidden);
     const bar = document.getElementById('transport'), c = C(bar), h = document.elementFromPoint(c.x, c.y);
     return { first: A.first, boot: !document.querySelector('.mir-boot:not([data-state="gone"])'), open: open.map((n) => n.className), bar: !!h && bar.contains(h),
-      chrome: !!document.getElementById('rackAdd'), h1: (document.querySelector('.mir-info-block h1') || {}).textContent, second: words.includes(${JSON.stringify(SECOND)}), page0: A.pages.list()[0].shared };`);
+      chrome: !!document.querySelector('#rackToggle, #rackFav, #rackAdd, .mir-window-picker:not([hidden])'), h1: (document.querySelector('.mir-info-block h1') || {}).textContent, second: words.includes(${JSON.stringify(SECOND)}), page0: A.pages.list()[0].shared };`);
   check('a first run shows only the transport bar: no window open, no rack chrome, the bar takes the pointer', r.first && r.boot && r.open.length === 0 && r.bar && !r.chrome, JSON.stringify(r));
   const greet0 = r;
   r = await ev(`const b = document.querySelector('.mir-info-block').getBoundingClientRect(), t = R(document.getElementById('transport')), st = R(document.getElementById('stage'));

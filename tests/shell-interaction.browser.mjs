@@ -58,7 +58,7 @@ try {
   }
   await read('__generic.C.destroy(); G.open("options"); return true;');
   await read(`const { laneSlider } = await import('/mir/controls/lane.js'); const lane = laneSlider({ label: 'TEST LANE', min: 0, max: 1, value: 0.2 });
-    lane.root.id = 'test-lane'; lane.root.style.width = '180px'; document.querySelector('.gui-grp[data-group="accent"] .gui-line:last-child').replaceChildren(lane.root);
+    lane.root.id = 'test-lane'; lane.root.style.width = '180px'; const ln = document.createElement('div'); ln.className = 'gui-line'; ln.append(lane.root); document.querySelector('.gui-grp[data-group="accent"]').append(ln);   // 1.5.5: ACCENT's four dials share one line; the lane gets its own
     window.__lane = lane; return true;`);
   let before = await read('return { box: box(), value: __lane.get() };');
   await drag('#test-lane', 50, 0);

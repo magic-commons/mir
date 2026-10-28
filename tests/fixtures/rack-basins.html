@@ -3,14 +3,16 @@
 <head>
 <meta charset="utf-8">
 <title>MIR · rack adoption fixture (BASINS' markup)</title>
-<!-- AN APP THAT ALREADY HAS A RACK, the way BASINS has one: #rackL / #rack / #floats / #rackToggle / #rackAdd / #rackFav in
+<!-- AN APP THAT ALREADY HAS A RACK, the way BASINS has one: #rackL / #rack / #floats / #rackToggle / #rackFav in
      its own index.html, styled by its own unlayered rules on those ids (BASINS lab.css §2 and material.css's 48-px shadow
      gutter, copied below), every window built EAGERLY by the app's own builder with device(), and the TRANSPORT card (a
-     .dev that is not a window) standing in the left rack.  The kit's rack.css is loaded too, as it would be after adoption. -->
+     .dev that is not a window) standing in the left rack.  The kit's rack.css is loaded too, as it would be after adoption.
+     1.5.5: the kit's + list is gone; the app keeps its own + button (#finderOpen) and it opens THE FINDER. -->
 <link rel="stylesheet" href="../../mir/css/base.css">
 <link rel="stylesheet" href="../../mir/css/skin.css">
 <link rel="stylesheet" href="../../mir/core/core.css">
 <link rel="stylesheet" href="../../mir/shell/rack.css">
+<link rel="stylesheet" href="../../mir/shell/window-picker.css">
 <style>
   /* the app's own sheet (BASINS lab.css:13-37, 360-368, 554-555; material.css:243-251), unlayered */
   #lab { position: fixed; inset: 0; } #ground { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -21,9 +23,9 @@
   body.rack-hidden #rackL { transform: translateX(calc(-100% - 12px)); }
   body.rack-hidden #rack { transform: translateX(calc(100% + 12px)); }
   body.rack-hidden #rack, body.rack-hidden #rackL { visibility: hidden; transition: transform .28s ease, visibility 0s linear .28s; }
-  #rackToggle, #rackAdd, #rackFav { position: absolute; right: calc(var(--rack-w) + 14px); top: 8px; z-index: calc(var(--z-chrome) + 1); width: 30px; height: 30px; border-radius: 50%; padding: 0; }
-  #rackAdd { top: 44px; } #rackFav { top: 80px; }
-  #rackAddList, #rackFavList { position: absolute; right: calc(var(--rack-w) + 14px); top: 116px; z-index: calc(var(--z-chrome) + 3); display: flex; flex-direction: column; min-width: 260px; padding: 4px; }
+  #rackToggle, #finderOpen, #rackFav { position: absolute; right: calc(var(--rack-w) + 14px); top: 8px; z-index: calc(var(--z-chrome) + 1); width: 30px; height: 30px; border-radius: 50%; padding: 0; }
+  #finderOpen { top: 44px; } #rackFav { top: 80px; }
+  #rackFavList { position: absolute; right: calc(var(--rack-w) + 14px); top: 116px; z-index: calc(var(--z-chrome) + 3); display: flex; flex-direction: column; min-width: 260px; padding: 4px; }
   #floats { position: absolute; inset: 0; z-index: calc(var(--z-chrome) + 2); pointer-events: none; }
   #floats > .dev { position: absolute; pointer-events: auto; width: var(--float-w, var(--rack-w)); }
   @media (min-width: 861px) {
@@ -41,14 +43,14 @@
   <div id="rack"></div>
   <div id="floats"></div>
   <button id="rackToggle" class="glass" type="button" aria-label="hide or show the rack">◧</button>
-  <button id="rackAdd" class="glass" type="button" title="reopen a closed window">+</button>
+  <button id="finderOpen" class="glass" type="button" title="FINDER — every window">+</button>
   <button id="rackFav" class="glass" type="button" aria-label="favourite layouts">☆</button>
-  <div id="rackAddList" class="glass" hidden></div>
   <div id="rackFavList" class="glass" hidden></div>
 </div>
 <script type="module">
 import { device, knob } from '../../mir/kit.js';
 import { createRack } from '../../mir/shell/rack.js';
+import { createWindowPicker } from '../../mir/shell/window-picker.js';
 import * as motion from '../../mir/core/motion.js';
 
 const $ = (id) => document.getElementById(id);
@@ -82,9 +84,11 @@ for (const id of ['colour', 'camera', 'controls', 'settings', 'history', 'rackSa
 let notesBuilt = 0;
 rack.register({ id: 'notes', title: 'NOTES', side: 'right', eager: true, build: () => { notesBuilt++; } });
 rack.start();
+const finder = createWindowPicker({ rack });   // the app's own + button opens THE FINDER (1.5.5)
+$('finderOpen').addEventListener('click', () => finder.toggle());
 const span = rack.span();
 const spans = []; span.subscribe((s) => spans.push(s));
-window.__T = { rack, built, wTr, span, spans, motion, get notesBuilt() { return notesBuilt; } };
+window.__T = { rack, finder, built, wTr, span, spans, motion, get notesBuilt() { return notesBuilt; } };
 window.__ready = true;
 </script>
 </body>
