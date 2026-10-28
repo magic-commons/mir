@@ -55,6 +55,18 @@ function counter(reg, name = 'colour') {
   pass('resume: every part restored with { session: true }, a missing part gets null; discard forgets');
 }
 {
+  /* 1.5.6 · a resume whose part failed keeps the record as <key>.failed and does not arm */
+  const rec = JSON.stringify({ v: 1, parts: { colour: { v: 5 } } }), S = memory({ 'app.session': rec }), reg = createProjectParts();
+  reg.register('colour', { capture: () => ({ v: 9 }), restore: () => { throw new Error('no'); }, signature: () => '9' });
+  const s = createSession({ key: 'app.session', storage: S, parts: reg, win: null, doc: null, delay: 5 });
+  const r = s.resume();
+  assert.equal(r.failed.length, 1); assert.equal(s.armed(), false, 'a failed resume leaves autosave unarmed');
+  assert.equal(S.m.get('app.session.failed'), rec, 'the record is kept as <key>.failed');
+  s.changed(); assert.equal(s.save(), false); assert.equal(S.m.get('app.session'), rec, 'nothing overwrites the saved work');
+  s.arm(); assert.equal(s.save(), true, 'an explicit arm() writes again');
+  pass('a failed resume: <key>.failed kept, autosave unarmed until arm()');
+}
+{
   const S = memory({ 'mandel.view': '{}' }), s = createSession({ key: 'app.session', storage: S, parts: createProjectParts(), also: ['mandel.view'], win: null, doc: null });
   assert.equal(s.hasResume(), true, 'the app\'s own view key also offers RESUME');
   assert.deepEqual(s.resume(), { ok: false, failed: [], seeded: false });

@@ -1,5 +1,10 @@
 # MIR — changelog
 
+## 1.5.6 (unreleased)
+
+Additive doors only (the 1.5 line); each from a λWAVES line (docs/FOR-MIR.md § FOR 1.5.6 in λWAVES).
+- **1.5.6-alpha.1 · a failed resume never arms** (`core/session.js`, λWAVES 021 R1): when saved parts throw or come back `failed`, `resume()` copies the record to `<key>.failed` and leaves autosave unarmed until a later resume takes, `discard()` or `arm()` — the next booked save can no longer write a half-restored state over the user's last work. The return shape is unchanged.
+
 ## 1.5.5 — 2026-10-27 · the λWAVES lift
 
 **1.5.5 is the first shipped 1.5.** 1.5.0 – 1.5.4 were never cut: every 1.5.0-alpha (alpha.1 – alpha.24 here, alpha.25 – alpha.33 built inside λWAVES under its trickle-down rule, iterations 014 – 019, 2026-10-22 – 10-27) folds into this release. λWAVES' `lab/mir` was lifted home byte for byte (fonts identical), so its bytes and this kit agree. The line is **1.5** (`docs/LINES.md`): from here a patch is drop-in — a later app need is an additive door, numbered `1.5.6-alpha.N`; a removal waits for the next line.
