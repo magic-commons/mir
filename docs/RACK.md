@@ -77,6 +77,7 @@ The window's `api` is `{ id, dev, root, body, setStatus, canPresent(), open(), c
 **Hiding.**
 - `setHidden(on)`: **the** hide path for the key, the menu, a touch and a test alike. Also `toggleHidden()` and the `hidden` property.
 - `setInterface(shown)`: H. The whole interface leaves paint, and the edge handle is the way back.
+- `showPills()` (1.5.6-alpha.10): every shown rack's scroll pills come and go as after one scroll — an app's EXPAND ALL shows where each window landed.
 
 **A finger scrolls the rack** (1.5.0-alpha.19, proven on Josh's iPad). The rack's column has `pointer-events: none` so the picture behind its gaps stays reachable, and its windows take the pointer. Safari does not touch-scroll a scroller whose own `pointer-events` is none, even from a child that takes the pointer (Chromium and Firefox do). So on `body.touch-tablet`, and under `@media (pointer: coarse)`, the column takes the pointer itself (`rack.css`; the rule selects `.mir-rack` and `[data-mir-rack]`, so an adopted column that carries only the attribute gets it too, 1.5.0-alpha.20). The cost: on touch, a finger on the rack's blank areas (the gaps, the gutter, the column below the last window) scrolls the rack instead of reaching the picture. The scene guard already counts those areas as interface, so nothing else changes. A mouse is unchanged. An app needs no rule of its own for this (BASINS' `material.css` rule of the same kind becomes redundant at its re-adoption).
 
