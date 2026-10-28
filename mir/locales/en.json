@@ -325,7 +325,7 @@
   "Escape": "Escape",
   "Escape is kept for closing and cancelling.": "Escape is kept for closing and cancelling.",
   "Every key is back to its default": "Every key is back to its default",
-  "Every look option back home: the {:name::FROST} theme": "Every look option back home: the {:name::FROST} theme",
+  "Every look option back home: the {skin} skin": "Every look option back home: the {skin} skin",
   "Everything": "Everything",
   "Exact video time, fixed resolution, complete frames. The active project supplies the colours and rack.": "Exact video time, fixed resolution, complete frames. The active project supplies the colours and rack.",
   "Export the selected project (or the open one) as a .mir file, or as a picture that carries it.": "Export the selected project (or the open one) as a .mir file, or as a picture that carries it.",
@@ -336,6 +336,7 @@
   "FAILED": "FAILED",
   "FILES": "FILES",
   "FILL EACH {n} STEPS": "FILL EACH {n} STEPS",
+  "FINDER": "FINDER",
   "FIT": "FIT",
   "FL — Alt temporarily sets snap to none": "FL — Alt temporarily sets snap to none",
   "FL — Copy selection": "FL — Copy selection",
@@ -593,6 +594,7 @@
   "No copies made: source budget reached.": "No copies made: source budget reached.",
   "No envelopes on the rack — add one with +": "No envelopes on the rack — add one with +",
   "No macros yet — add one in the modulation window.": "No macros yet — add one in the modulation window.",
+  "No name pill while a rack scrolls": "No name pill while a rack scrolls",
   "No room for this audio clip here: add a lane or choose another time.": "No room for this audio clip here: add a lane or choose another time.",
   "No room on the timeline for {what} — add a lane or move the playhead": "No room on the timeline for {what} — add a lane or move the playhead",
   "No room: {max} minutes of audio is the budget (this would be {now}).": "No room: {max} minutes of audio is the budget (this would be {now}).",
@@ -810,6 +812,7 @@
   "SAW↑": "SAW↑",
   "SAW↓": "SAW↓",
   "SCOPE · {value}": "SCOPE · {value}",
+  "SCROLL PILL": "SCROLL PILL",
   "SCRUB": "SCRUB",
   "SCRUB TOOL": "SCRUB TOOL",
   "SCRUB is how the picture follows a ruler drag. AUTOMATION is how playback reads the Timeline into the engine; never during a recorded render.": "SCRUB is how the picture follows a ruler drag. AUTOMATION is how playback reads the Timeline into the engine; never during a recorded render.",
@@ -1090,6 +1093,8 @@
   "What this app is, for a visiting model: windows, parameters, keys and shared pages": "What this app is, for a visiting model: windows, parameters, keys and shared pages",
   "What this theme cost when it was applied: surfaces that blur, shadows drawn, shine layers, the mean frame time": "What this theme cost when it was applied: surfaces that blur, shadows drawn, shine layers, the mean frame time",
   "Where the transport sits": "Where the transport sits",
+  "While a rack scrolls, each window’s name in a pill of {:ACCENT} A beside its title bar": "While a rack scrolls, each window’s name in a pill of {:ACCENT} A beside its title bar",
+  "While a rack scrolls, each window’s name in a pill of {:ACCENT} B beside its title bar": "While a rack scrolls, each window’s name in a pill of {:ACCENT} B beside its title bar",
   "White text on every label": "White text on every label",
   "Windows and Linux": "Windows and Linux",
   "Work bars": "Work bars",
@@ -1195,7 +1200,6 @@
   "enamel": "enamel",
   "every macro is already driven by another source — free one, or add a macro": "every macro is already driven by another source — free one, or add a macro",
   "every route into {target} removed": "every route into {target} removed",
-  "every window is open — × on a window closes it": "every window is open — × on a window closes it",
   "fitted to {s} s": "fitted to {s} s",
   "flipped in time": "flipped in time",
   "fold or unfold this window": "fold or unfold this window",
@@ -1286,7 +1290,6 @@
   "numbered lossless PNG frames": "numbered lossless PNG frames",
   "one cycle": "one cycle",
   "opal": "opal",
-  "open a window": "open a window",
   "open {path} in your notes tab": "open {path} in your notes tab",
   "opened {name}": "opened {name}",
   "page": "page",
@@ -1340,6 +1343,7 @@
   "scrub::LIGHT": "LIGHT",
   "scrub::LIVE": "LIVE",
   "sea": "sea",
+  "search windows": "search windows",
   "seek": "seek",
   "selected project": "selected project",
   "shared with a visiting model — hide it": "shared with a visiting model — hide it",
@@ -1380,6 +1384,7 @@
   "the debug dump, to the clipboard": "the debug dump, to the clipboard",
   "the empty project": "the empty project",
   "the envelope": "the envelope",
+  "the expander": "the expander",
   "the file is larger than 32 MB": "the file is larger than 32 MB",
   "the gate opens here and stays open until hysteresis below it": "the gate opens here and stays open until hysteresis below it",
   "the last frame took {ms} ms — scrubbing will lag; LIGHT keeps the hand smooth": "the last frame took {ms} ms — scrubbing will lag; LIGHT keeps the hand smooth",
@@ -1556,7 +1561,6 @@
   "{shape} mirrored": "{shape} mirrored",
   "{shape} · tap to draw; tap again to mirror": "{shape} · tap to draw; tap again to mirror",
   "{shape} — {points} points, {bent} bent. Right-drag empty space to add; drag dots and handles.": "{shape} — {points} points, {bent} bent. Right-drag empty space to add; drag dots and handles.",
-  "{skins} — coming (“name”-specs)": "{skins} — coming (“name”-specs)",
   "{step} of {total}": "{step} of {total}",
   "{title} controls": "{title} controls",
   "{title} window controls": "{title} window controls",
@@ -1603,6 +1607,7 @@
   "ENVELOPE · LOW ✓": "a clip's menu: the envelope band to follow, the one in use ticked",
   "EVT": "short for EVENT: this output fires on a hit (an onset), it does not carry a level",
   "Each label’s ink from the picture under it (this app’s sampler)": "the app's own sampler reads the picture behind each word and picks white or black ink",
+  "FINDER": "the finder: a search field over every window of the app; picking one opens it or scrolls the rack to it",
   "FOV": "field of view: how wide the camera sees",
   "FRAME": "the time to draw one frame of the screen, in milliseconds (not a picture frame)",
   "FREE": "the clock counts frame time (it slows when the picture slows), as opposed to WALL, which follows real elapsed time",
@@ -1639,6 +1644,7 @@
   "SAW↑": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
   "SAW↓": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
   "SCOPE · {value}": "a folded setting's row in the ⋯ list: its name · the choice in force",
+  "SCROLL PILL": "the small coloured label with a window's name shown beside it while the column of windows scrolls",
   "SHELF": "the SHELF: where your notes are kept in this browser (not the RACK, the column of windows)",
   "SIGNAL ONLY (MUTE THE FILE)": "a clip's menu: the file plays / the envelope alone / fit the audio into the clip's length (varispeed)",
   "SINE": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
@@ -1698,8 +1704,10 @@
   "peak hold::HOLD": "the audio follower's PEAK HOLD: how long a band's peak is held before it falls (a time), not the envelope stage",
   "retrying without the processing constraints": "the microphone's state: a browser that cannot turn AGC off is still worth listening to",
   "right rack scroll": "the scrollbar beside the cards of the left / right RACK (the column of docked windows)",
+  "search windows": "the finder's search field: type part of a window's name",
   "text ink::SAMPLED": "TEXT (the label ink) set by the app itself, from the picture under each label: \"measured\", not \"a sample\"",
   "the audio graph could not be built": "the microphone's state: a fault",
+  "the expander": "the transport bar's expander: the panel under the bar with the macros, the clock and the app's own rows",
   "the gate opens here and stays open until hysteresis below it": "hysteresis: a small margin below the opening level, so the gate does not flicker open and shut",
   "the left rack": "the RACK: the column of docked windows at the screen’s edge (not the SHELF, where notes are kept)",
   "the microphone could not be opened": "the microphone's state: a fault",
@@ -1718,7 +1726,6 @@
   "{kind} {id}": "a device's name: its kind and its id (LFO s2); reorder if your language puts the id first",
   "{kind} {name}": "what drives a macro: a device (its kind and name, e.g. LFO 2), or HAND — the value set by hand, nothing modulating it",
   "{kind} — {message}": "a status line: the device kind (LFO, ENV, AUDIO), then a message that is already a whole sentence",
-  "{skins} — coming (“name”-specs)": "a “name”-spec is a theme with its own rules or art, outside the built-in settings; METRO and SPRITES are names",
   "{verb} — {what}": "a button's name: its label, then what it acts on (SAVE — this project)",
   "{what} {i} name — type your own": "the name field of a macro or a trigger: {what} is Macro or Trigger, {i} its number",
   "{what} · TIMELINE": "a history row: what was done, then the window it was done in",
@@ -2690,7 +2697,7 @@
   "Every key is back to its default": [
    "mir/keyboard/keyboard.js"
   ],
-  "Every look option back home: the {:name::FROST} theme": [
+  "Every look option back home: the {skin} skin": [
    "mir/shell/gui.js"
   ],
   "Everything": [
@@ -2724,6 +2731,9 @@
   ],
   "FILL EACH {n} STEPS": [
    "mir/pattern/window.js"
+  ],
+  "FINDER": [
+   "mir/shell/window-picker.js"
   ],
   "FIT": [
    "mir/modulation/modwindow/modwindow.js",
@@ -3505,6 +3515,9 @@
   "No macros yet — add one in the modulation window.": [
    "mir/shell/transport.js"
   ],
+  "No name pill while a rack scrolls": [
+   "mir/shell/gui.js"
+  ],
   "No room for this audio clip here: add a lane or choose another time.": [
    "mir/timeline/audio-drop.js"
   ],
@@ -4182,6 +4195,9 @@
   ],
   "SCOPE · {value}": [
    "mir/timeline/editor.js"
+  ],
+  "SCROLL PILL": [
+   "mir/shell/gui.js"
   ],
   "SCRUB": [
    "mir/shell/gui.js"
@@ -5011,7 +5027,8 @@
    "mir/panels/xy.js"
   ],
   "WINDOWS": [
-   "mir/shell/gui.js"
+   "mir/shell/gui.js",
+   "mir/shell/window-picker.js"
   ],
   "WORK BARS · BOTTOM": [
    "mir/modulation/window.js"
@@ -5033,6 +5050,12 @@
   ],
   "Where the transport sits": [
    "mir/shell/transport.js"
+  ],
+  "While a rack scrolls, each window’s name in a pill of {:ACCENT} A beside its title bar": [
+   "mir/shell/gui.js"
+  ],
+  "While a rack scrolls, each window’s name in a pill of {:ACCENT} B beside its title bar": [
+   "mir/shell/gui.js"
   ],
   "White text on every label": [
    "mir/shell/gui.js"
@@ -5346,9 +5369,6 @@
   "every route into {target} removed": [
    "mir/modulation/window.js"
   ],
-  "every window is open — × on a window closes it": [
-   "mir/shell/rack.js"
-  ],
   "fitted to {s} s": [
    "mir/modulation/window.js"
   ],
@@ -5476,7 +5496,7 @@
    "mir/panels/lanes.js"
   ],
   "in the saved favourite layout": [
-   "mir/shell/rack.js"
+   "mir/shell/window-picker.js"
   ],
   "in this gallery": [
    "mir/folders/gallery.js"
@@ -5690,9 +5710,6 @@
   "opal": [
    "mir/palette.js"
   ],
-  "open a window": [
-   "mir/shell/rack.js"
-  ],
   "open {path} in your notes tab": [
    "mir/notes/face.js"
   ],
@@ -5854,6 +5871,9 @@
   "sea": [
    "mir/palette.js"
   ],
+  "search windows": [
+   "mir/shell/window-picker.js"
+  ],
   "seek": [
    "mir/render/panel.js"
   ],
@@ -5975,6 +5995,9 @@
   ],
   "the envelope": [
    "mir/modulation/window.js"
+  ],
+  "the expander": [
+   "mir/shell/transport.js"
   ],
   "the file is larger than 32 MB": [
    "mir/core/intake.js"
@@ -6395,9 +6418,6 @@
   ],
   "{shape} — {points} points, {bent} bent. Right-drag empty space to add; drag dots and handles.": [
    "mir/modulation/window.js"
-  ],
-  "{skins} — coming (“name”-specs)": [
-   "mir/shell/gui.js"
   ],
   "{step} of {total}": [
    "mir/shell/boot.js"

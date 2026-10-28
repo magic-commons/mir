@@ -126,6 +126,8 @@
 }
 .mir-transport :is(.dock-btn, .mod-exp) > svg { width: var(--xport-glyph); height: var(--xport-glyph); filter: var(--xport-glyph-lift); }
 .mir-transport .mod-exp > svg.mark { width: 16px; height: 16px; }
+.mir-transport .mod-exp > .mod-door-icon { display: block; width: var(--xport-door-icon, 18px); height: var(--xport-door-icon, 18px); margin: auto; background: currentColor;
+  -webkit-mask: var(--door-icon) center / contain no-repeat; mask: var(--door-icon) center / contain no-repeat; }   /* door: 'icon' (alpha.25) */
 .mir-transport :is(.dock-btn, .mod-exp, .tbtn.transport-home):hover { color: var(--fg); }
 .mir-transport :is(.dock-btn, .mod-exp, .tbtn.transport-home):active { background: var(--state-press, var(--glass-press)); }
 
@@ -171,22 +173,48 @@
 .mir-transport .native-tempo .trig { min-width: 0; height: 44px; min-height: 44px; padding: 0 3px; justify-content: center; font-size: var(--xport-tile-size); letter-spacing: var(--xport-tile-track); }
 .mir-transport.mini > :is(.tr-openers, .tr-seat, .dock-btn, .mod-exp) { order: 3; }
 
-/* ── λWAVES' own seats on its bar (skin.css §12): the scrub a thin line, a small RATE knob, the readouts stacked ── */
-.mir-transport .fd { flex: 1 1 48px; min-width: 40px; height: 24px; border: 0; background: transparent; box-shadow: var(--xport-flat); border-radius: 0; cursor: ew-resize; overflow: visible; }
-.mir-transport .fd::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; margin-top: -.5px; background: var(--xport-scrub-line); }
-.mir-transport .fd-fill { top: 50%; bottom: auto; height: 2px; margin-top: -1px; border-radius: var(--xport-line-r); background: var(--acc); opacity: .85; }
-.mir-transport .fd-edge { top: 50%; bottom: auto; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--fg); box-shadow: var(--relief-raise, var(--neu-raise)); }
-.mir-transport :is(.fd-lbl, .fd-label, .k-lbl, .k-label, .ro-lbl, .ro-label, .ro-sub) { display: none; }
-.mir-transport .fd-val { right: 0; top: -14px; bottom: auto; font-size: var(--fs-micro); padding: 0 5px; border-radius: var(--r-pill); background: var(--xport-face); }
-.mir-transport .k { width: 34px; gap: 0; flex: 0 0 auto; }
-.mir-transport .k-dial { width: 30px; height: 30px; }
-.mir-transport .k-val { position: absolute; top: -22px; left: 50%; transform: translate(-50%, 2px); font-size: var(--fs-micro); display: none; }
-.mir-transport .k:is(:hover, :focus-within, .drag) .k-val { display: block; transform: translate(-50%, 0); }
-.mir-transport .ro { flex: 0 1 auto; min-width: 0; width: auto; padding: 0 2px; background: transparent; box-shadow: var(--xport-flat); text-align: right;
+/* ── THIN SEATS (createTransport({ seats: 'thin' }) writes data-seats="thin"; 1.5.5, from λWAVES skin.css §12): the app's own nodes drawn small on a floating or work bar — the scrub a thin line, a small RATE knob, the readouts stacked without labels; docked, the card keeps the app's readouts with their labels.  :where() keeps the specificity λWAVES drew them at. ── */
+.mir-transport:where([data-seats="thin"]):not(.docked) .fd { flex: 1 1 48px; min-width: 40px; height: 24px; border: 0; background: transparent; box-shadow: var(--xport-flat); border-radius: 0; cursor: ew-resize; overflow: visible; }
+.mir-transport:where([data-seats="thin"]):not(.docked) .fd::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; margin-top: -.5px; background: var(--xport-scrub-line); }
+.mir-transport:where([data-seats="thin"]):not(.docked) .fd-fill { top: 50%; bottom: auto; height: 2px; margin-top: -1px; border-radius: var(--xport-line-r); background: var(--acc); opacity: .85; }
+.mir-transport:where([data-seats="thin"]):not(.docked) .fd-edge { top: 50%; bottom: auto; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--fg); box-shadow: var(--relief-raise, var(--neu-raise)); }
+.mir-transport:where([data-seats="thin"]):not(.docked) :is(.fd-lbl, .fd-label, .k-lbl, .k-label, .ro-lbl, .ro-label, .ro-sub) { display: none; }
+.mir-transport:where([data-seats="thin"]):not(.docked) .fd-val { right: 0; top: -14px; bottom: auto; font-size: var(--fs-micro); padding: 0 5px; border-radius: var(--r-pill); background: var(--xport-face); }
+.mir-transport:where([data-seats="thin"]):not(.docked) .k { width: 34px; gap: 0; flex: 0 0 auto; }
+.mir-transport:where([data-seats="thin"]):not(.docked) .k-dial { width: 30px; height: 30px; }
+.mir-transport:where([data-seats="thin"]):not(.docked) .k-val { position: absolute; top: -22px; left: 50%; transform: translate(-50%, 2px); font-size: var(--fs-micro); display: none; }
+.mir-transport:where([data-seats="thin"]):not(.docked) .k:is(:hover, :focus-within, .drag) .k-val { display: block; transform: translate(-50%, 0); }
+.mir-transport:where([data-seats="thin"]):not(.docked) .ro { flex: 0 1 auto; min-width: 0; width: auto; padding: 0 2px; background: transparent; box-shadow: var(--xport-flat); text-align: right;
   display: flex; flex-direction: column; justify-content: center; align-items: flex-end; gap: 0; overflow: hidden; }
-.mir-transport .ro.time { width: 58px; }
-.mir-transport .ro.period { width: 76px; }
-.mir-transport .ro-val { color: var(--ink-key, var(--fg-soft)); font-size: var(--fs-micro); line-height: 1.15; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.mir-transport:where([data-seats="thin"]):not(.docked) .ro.time { width: 58px; }
+.mir-transport:where([data-seats="thin"]):not(.docked) .ro.period { width: 76px; }
+.mir-transport:where([data-seats="thin"]):not(.docked) .ro-val { color: var(--ink-key, var(--fg-soft)); font-size: var(--fs-micro); line-height: 1.15; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── THE CONTROL SURFACE (CONTROL_SURFACE_LAYOUT, data-layout="csb"; 1.5.0-alpha.25, A8): three columns on the stage — the play over the
+   power, the timing row over the buttons row, the rate over the pill — and the panel under the whole bar; in a rack card (docked, or the
+   FREE window) the columns become bands.  A latch with a glyph shows the glyph alone. ── */
+.mir-transport[data-layout="csb"] { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "play mid tempo" "panel panel panel"; align-items: center; column-gap: 10px; row-gap: 6px; }
+.mir-transport.mini[data-layout="csb"] { width: max-content; min-width: 0; height: auto; }
+.mir-transport[data-layout="csb"] > .csb-play { grid-area: play; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.mir-transport[data-layout="csb"] > .csb-mid { grid-area: mid; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.mir-transport[data-layout="csb"] > .csb-tempo { grid-area: tempo; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.mir-transport[data-layout="csb"] .csb-row { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.mir-transport[data-layout="csb"] .csb-row :is(.tbtn.tempo-expand, .transport-tempo-input) { order: 0; }
+.mir-transport[data-layout="csb"] > .native-tempo { grid-area: panel; }
+.mir-transport[data-layout="csb"] > .tr-back { grid-column: 1 / -1; }
+.mir-transport[data-layout="csb"] .tr-openers { display: flex; gap: 4px; }
+.mir-transport[data-layout="csb"] .tr-open.has-glyph .tr-word { display: none; }
+.mir-transport[data-layout="csb"]:is(.docked, [data-place="free"]) { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "play . tempo" "mid mid mid" "panel panel panel"; }
+.mir-transport[data-layout="csb"]:is(.docked, [data-place="free"]) > :is(.csb-play, .csb-tempo) { flex-direction: row; }
+
+/* ── THE FREE WINDOW (1.5.0-alpha.25): the bar in a window of its own (data-place="free"), in the window's flow, the window as wide as the
+   app's freeWidth() ── */
+.mir-transport[data-place="free"] { position: static; inset: auto; transform: none; margin: 0; box-shadow: none; border: 0; background: transparent; }
+.mir-transport-free .mir-win-body { padding: 0; overflow: visible; }
+
+/* ── THE MIR LOGO BUTTON (logoButton; placed by no layout): a round seat, its mark 16 px and turning under a mouse ── */
+.mir-logo-btn { display: inline-grid; place-items: center; width: 34px; height: 34px; padding: 0; border-radius: 50%; border: 0; background: transparent; cursor: pointer; }
+.mir-logo-btn > svg { display: block; width: 16px; height: 16px; }
 
 /* ── COMPACT (ruled 2026-10-01): glyphs only, no TAP, no Hz reading ───────────────────────────────────────── */
 .mir-transport[data-form="compact"] { --xport-w: 0px; --xport-h: 40px; --xport-seat: 30px; --xport-power: 36px; --xport-pill-w: 52px; --xport-play-size: 22px; --xport-num-size: 14px; }
@@ -325,3 +353,6 @@ body.ui-hidden .mir-transport { display: none; }
 :root[data-motion="off"] .mir-transport :is(.tbtn.play svg, .mir-power-icon) { transition: none; transform: none; }
 
 }   /* end @layer mir.kit.house */
+/* the bar's EXPAND part (1.5.0-alpha.31, λWAVES 018 E6): one chevron, down while the expander is shut, turned up while it is open */
+.mir-transport .tr-expand > svg { transition: transform var(--t-fast, 120ms) ease; }
+.mir-transport .tr-expand[aria-expanded="true"] > svg { transform: rotate(180deg); }
