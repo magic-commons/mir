@@ -2,7 +2,7 @@
  * clamp and rounding, a drag's tempo, the keys' steps, a typed tempo, the seats' geometry and repair, the first run,
  * the opener rows (from objects, from the rack's WINDOW menu), and the key table's row for Space. */
 import assert from 'node:assert/strict';
-import { TRANSPORT, SEATS, formatBpm, clampBpm, digitStep, charAt, dragBpm, keyStep, parseBpm, seatOf, homeOf, seatRect, menuSide,
+import { TRANSPORT, SEATS, formatBpm, clampBpm, digitStep, charAt, dragBpm, keyStep, wheelNotches, parseBpm, seatOf, homeOf, seatRect, menuSide,
   firstRun, menuRow, openerRows, isOpenOf, toggleOf, rackOpeners, transportActions, layoutNames, createTempo, BASINS_LAYOUT, LAMBDAWAVES_LAYOUT } from '../mir/shell/transport.js';
 import { BPM_DEFAULT, BPM_MIN, BPM_MAX } from '../mir/modulation/mod.js';
 
@@ -36,6 +36,9 @@ const pass = (name) => { n++; console.log(`PASS ${name}`); };
   assert.equal(dragBpm(30, TRANSPORT.touchPxPerStep * 2, 10, true, R), 32, 'a finger steps in ones, 14 px a band');
   assert.equal(dragBpm(290, 900, 10, false, R), BPM_MAX, 'clamped');
   assert.equal(keyStep('ArrowUp'), 1); assert.equal(keyStep('ArrowDown', true), -0.1); assert.equal(keyStep('PageUp'), 10); assert.equal(keyStep('PageDown', true), -0.1, 'BASINS: Shift wins over the page');
+  { const s = {}; assert.equal(wheelNotches({ deltaMode: 0, deltaY: -100 }, s, 0), 1, 'a mouse notch is one notch, however far'); assert.equal(wheelNotches({ deltaMode: 1, deltaY: 3 }, s, 0), -1, 'a line event is one notch');
+    assert.equal(wheelNotches({ deltaMode: 0, deltaY: -30 }, s, 10), 0); assert.equal(wheelNotches({ deltaMode: 0, deltaY: -30 }, s, 20), 1, 'a trackpad gathers 50 px to a notch');
+    assert.equal(wheelNotches({ deltaMode: 0, deltaY: -30 }, s, 30), 0); assert.equal(wheelNotches({ deltaMode: 0, deltaY: -30 }, s, 900), 0, 'a part-notch is forgotten at rest'); }   // 1.5.6-alpha.9 ONE NOTCH IS ONE BPM
   assert.equal(keyStep('ArrowRight'), 1, 'BASINS: → steps up'); assert.equal(keyStep('ArrowLeft'), -1, 'BASINS: ← steps down'); assert.equal(keyStep('KeyA'), 0);
   assert.equal(parseBpm(' 92.5 '), 92.5); assert.equal(parseBpm('92,5'), 92.5); assert.equal(parseBpm('fast'), null); assert.equal(parseBpm(''), null);
   pass('a drag, a key and a typed value each give the tempo BASINS\' law says');

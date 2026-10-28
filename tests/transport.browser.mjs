@@ -1,7 +1,7 @@
 /* transport.browser.mjs — the transport's parts under a real browser (gallery/transport.html), real pointer, wheel and
  * keys through CDP, every press hit-tested with elementFromPoint first.  A first load shows only the bar; with nothing
  * saved the pill reads 30.0; play is the one play and the power button is modulation's power (neither moves the other);
- * the pill: a drag by the digit under the pointer (tens, tenths, ones), the wheel, ↑ ↓ ← → Shift PageUp (BASINS), a
+ * the pill: a drag by the digit under the pointer (tens, tenths, ones), the wheel (1 BPM a notch, 1.5.6-alpha.9), ↑ ↓ ← → Shift PageUp (BASINS), a
  * click opens the tempo panel and TAP there sets the tempo, a double click types it; the resting pill is not a well and
  * the typed field is; a latch opens its window and closing the window from the window unlatches it; the MIR mark opens
  * the modulation window; the bar dodges a floating window and comes back; the dock chip docks it into the rack and
@@ -48,7 +48,7 @@ try {
     for (let i = 1; i <= 6; i++) { await p.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: pt.x, y: Math.round(pt.y - (rise * i) / 6), button: 'left', buttons: 1 }); await sleep(20); }
     await sleep(40); await p.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: pt.x, y: pt.y - rise, button: 'left', buttons: 0, clickCount: 1 }); await sleep(80);
   };
-  /* after the size change, in any seat: the wheel on the tens digit steps by ten, a click opens the panel, play plays */
+  /* after the size change, in any seat: a wheel notch on the tens digit steps by one (1.5.6-alpha.9), a click opens the panel, play plays */
   const seatCheck = async (name, want = { glyph: 32, num: 18, seat: 40 }) => {
     await run(`T.tr.setBpm(30); if (T.clock.isPlaying()) T.clock.pause(); await wait(60); return 0;`);
     const dg = await digit(0);
@@ -60,8 +60,8 @@ try {
     const hy = await click(`__T.tr.el.play`);
     const q = await run(`await wait(60); const g = { width: parseFloat(getComputedStyle(T.tr.el.play.querySelector('svg')).width) }, b = T.tr.el.play.getBoundingClientRect(); const on = T.clock.isPlaying(); T.tr.toggle(); await wait(40);
       return { on, glyph: Math.round(g.width), seat: Math.round(b.width), num: parseFloat(getComputedStyle(T.tr.el.pill.querySelector('.tempo-number')).fontSize) };`);
-    check(name + ': after the size change the wheel on the tens digit steps by ten, a click opens the tempo panel, play plays (glyph ' + want.glyph + ' px in a ' + want.seat + ' px seat, tempo ' + want.num + ' px)',
-      dg.ok && dg.ch === '3' && w === 40 && hp.ok && op && hy.ok && q.on && q.glyph === want.glyph && q.seat === want.seat && q.num === want.num, JSON.stringify({ dg, w, op, q }));
+    check(name + ': after the size change a wheel notch on the tens digit steps by one, a click opens the tempo panel, play plays (glyph ' + want.glyph + ' px in a ' + want.seat + ' px seat, tempo ' + want.num + ' px)',
+      dg.ok && dg.ch === '3' && w === 31 && hp.ok && op && hy.ok && q.on && q.glyph === want.glyph && q.seat === want.seat && q.num === want.num, JSON.stringify({ dg, w, op, q }));
   };
   const shadowTerms = `(s) => (s === 'none' ? [] : s.split(/,(?![^(]*\\))/).map((x) => x.trim()))`;
 
@@ -122,12 +122,12 @@ try {
   d = await digit(1);
   await p.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: d.x, y: d.y, deltaX: 0, deltaY: 100 }); await sleep(80);
   r = await run(`return { bpm: tr.bpm };`);
-  check('wheel: up on the tens +10 (48.1), down on the ones −1 (47.1)', wheelTens === 48.1 && r.bpm === 47.1, JSON.stringify({ wheelTens, r }));
+  check('wheel: one notch is one BPM wherever it lands — up on the tens +1 (39.1), down on the ones −1 (38.1)', wheelTens === 39.1 && r.bpm === 38.1, JSON.stringify({ wheelTens, r }));
   await run(`pill.focus(); return 0;`);
   await key('ArrowUp', 'ArrowUp', 38); await key('ArrowRight', 'ArrowRight', 39); await key('ArrowLeft', 'ArrowLeft', 37);
   await key('ArrowDown', 'ArrowDown', 40, 8); await key('PageUp', 'PageUp', 33);
   r = await run(`await wait(30); return { bpm: tr.bpm, focus: document.activeElement === pill };`);
-  check('keys on the pill (BASINS): ↑ +1, → +1, ← −1, Shift+↓ −0.1, PageUp +10 (47.1 → 58.0)', r.bpm === 58 && r.focus, JSON.stringify(r));
+  check('keys on the pill (BASINS): ↑ +1, → +1, ← −1, Shift+↓ −0.1, PageUp +10 (38.1 → 49.0)', r.bpm === 49 && r.focus, JSON.stringify(r));
 
   /* ── a click opens BASINS' tempo panel; TAP four times there ─────────────────────────────────────────────── */
   h = await click(`__T.tr.el.pill`);
