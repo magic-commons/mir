@@ -3,6 +3,12 @@
 ## 1.5.6 (unreleased)
 
 Additive doors only (the 1.5 line); each from a λWAVES line (docs/FOR-MIR.md § FOR 1.5.6 in λWAVES).
+- **1.5.6-alpha.2 · the keyboard window takes panels** (`keyboard/keyboard.js`, λWAVES 021 I2): `createKeyboardWindow({ panels })` passes the app's faces to `createWindow` after KEYS, each a radio chip on the rail; under 860 px it opens on the first app face; the api gains `tab(name)`.
+- **1.5.6-alpha.2 · MORE KEYS** (`keyboard/keyboard.js`, λWAVES 021 I2): the board's second page in the same well — arrows, Home/End, PgUp/PgDn, Insert/Delete, F1–F24, the numpad and the media keys — so every key a binding can name is drawn and pressable; `extraRows()` exported.
+- **1.5.6-alpha.2 · media and volume keys** (`shell/keys.js`, λWAVES 021 I2): `MediaPlayPause`, `MediaStop`, `MediaTrackNext`, `MediaTrackPrevious`, `MediaSelect` and `AudioVolumeUp` / `Down` / `Mute` parse as keys (a rotary encoder or a macro pad sends them), with their cap text.
+- **1.5.6-alpha.2 · `RESERVED_BY_BROWSER`** (`shell/keys.js`, λWAVES 021 I1/I2): `createKeys({ reserved })` has check and bind refuse chords the browser keeps (Mod+W/T/N/⇧N/⇧T, Mod+Tab, F11) with a sentence; `bindError(chord, reserved?)`. Without `reserved`, nothing more is refused.
+- **1.5.6-alpha.2 · the event maps `trigger` and `toggle`** (`modulation/registry.js`, λWAVES 021 I2): a target on the unit line whose `fire(on)` runs on an edge through 0.5 with hysteresis (0.55 up, 0.45 down), deferred out of the writer — an LFO or a macro knob can fire an app's act; `MAP_KINDS` gains the two.
+- **1.5.6-alpha.2 · THE MIDI DOOR** (`shell/midi.js`, new, λWAVES 021 I2): `createMidi({ storage, run, up, source })` — `requestMIDIAccess` only on a press; the map `{ v: 1, map: { 'note:<ch>:<n>' | 'cc:<ch>:<n>': { id, mode } } }` (trigger · toggle · hold) through the app's store; note-on / CC rising across 64 runs, note-off releases a held row; every CC is a value 0…1 (`sources()`, `source(key, v)`); `learn()`, `devices()`, `midiSupport()` (Safari and the iPad have none).
 - **1.5.6-alpha.1 · a failed resume never arms** (`core/session.js`, λWAVES 021 R1): when saved parts throw or come back `failed`, `resume()` copies the record to `<key>.failed` and leaves autosave unarmed until a later resume takes, `discard()` or `arm()` — the next booked save can no longer write a half-restored state over the user's last work. The return shape is unchanged.
 
 ## 1.5.5 — 2026-10-27 · the λWAVES lift

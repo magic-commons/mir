@@ -198,4 +198,16 @@ const node = (tag, attrs = {}) => ({ nodeType: 1, tagName: tag.toUpperCase(), ty
   assert.ok(h.every((a) => a.inFields && a.repeat), 'inFields (a focused <select> still undoes the app; when() hands a text field its own undo), repeat');
   pass('undo and redo: one pair of ids and chords, the history\'s and the timeline\'s (shell/keys.js EDIT_KEYS)');
 }
+{ /* 1.5.6-alpha.2 · the media and volume codes are keys; RESERVED_BY_BROWSER refused when an app passes it */
+  const { RESERVED_BY_BROWSER, keyText: kt } = await import('../mir/shell/keys.js');
+  for (const c of ['MediaPlayPause', 'MediaTrackNext', 'AudioVolumeUp', 'AudioVolumeMute']) assert.equal(normalize(c), c, c + ' is a key');
+  assert.equal(normalize('Shift+AudioVolumeDown'), 'Shift+AudioVolumeDown'); assert.equal(kt('AudioVolumeUp'), 'Vol+');
+  const K = createKeys({ actions: [{ id: 'a', label: 'A', keys: ['KeyA'], run() {} }], platform: 'other', target: new EventTarget(), reserved: RESERVED_BY_BROWSER });
+  assert.match(K.check('a', 'Mod+KeyW'), /browser keeps/); assert.equal(K.bind('a', 'Ctrl+Shift+N').ok, false, 'Ctrl+Shift+N is the browser\'s');
+  assert.equal(K.bind('a', 'Mod+KeyE').ok, true); assert.equal(K.bind('a', 'MediaPlayPause').ok, true, 'a media key binds');
+  const free = createKeys({ actions: [{ id: 'a', label: 'A', keys: ['KeyA'], run() {} }], platform: 'other', target: new EventTarget() });
+  assert.equal(free.check('a', 'Mod+KeyW'), null, 'no `reserved`, nothing more is refused (the door is additive)');
+  K.destroy(); free.destroy();
+  pass('1.5.6-alpha.2: Media* and AudioVolume* codes are keys; an app that passes RESERVED_BY_BROWSER has Mod+W/T/N/⇧N refused');
+}
 console.log(`\n${n} passed`);

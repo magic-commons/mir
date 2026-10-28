@@ -71,8 +71,8 @@ const reg = (o) => createRegistry({ roots: ROOTS, ...(o || {}) });
     R.toNorm('grid.cells', 97.4) === R.toNorm('grid.cells', 96),
     { rungs: [0, 0.2, 0.4, 0.6, 0.8, 1].map((u) => R.fromNorm('grid.cells', u)) });
 
-  check('§7 MAP_KINDS is exactly the five map kinds',
-    JSON.stringify(MAP_KINDS) === JSON.stringify(['linear', 'log', 'wrap', 'integer', 'bipolar']), MAP_KINDS);
+  check('§7 MAP_KINDS is exactly the five map kinds and the two event maps (1.5.6-alpha.2)',
+    JSON.stringify(MAP_KINDS) === JSON.stringify(['linear', 'log', 'wrap', 'integer', 'bipolar', 'trigger', 'toggle']), MAP_KINDS);
 }
 
 /* ══════════════ λWAVES §8 · the id grammar ══════════════════════════════════════
@@ -230,6 +230,20 @@ const reg = (o) => createRegistry({ roots: ROOTS, ...(o || {}) });
       n === 1 && Object.is(R.baseOf('look.gain'), 1.25) && Object.is(R.read('look.gain'), 1.25) &&
       Object.is(R.restoreBase('look.gain'), 1.25));
   }
+}
+
+/* §19 · 1.5.6-alpha.2 THE EVENT MAPS: an edge through 0.5 with hysteresis, fired deferred (never inside the write) */
+{
+  const R = createRegistry({ roots: ['action'] }), got = [];
+  R.register('action.go', { map: 'trigger', get: () => 0, set: () => {}, fire: (on) => got.push('go ' + on) });
+  R.register('action.sw', { map: 'toggle', get: () => 0, set: () => {}, fire: (on) => got.push('sw ' + on) });
+  for (const v of [0.3, 0.6, 0.52, 0.58, 0.7, 0.4, 0.9]) { R.write('action.go', v); R.write('action.sw', v); }
+  check('§19 the event maps fire nothing inside the write (deferred out of the frame pump)', got.length === 0, got);
+  await new Promise((r) => setTimeout(r, 5));
+  check('§19 trigger fires once per rising edge (0.52 · 0.58 inside the band fire nothing); toggle follows the level up and down',
+    JSON.stringify(got.filter((x) => x.startsWith('go'))) === JSON.stringify(['go true', 'go true']) &&
+    JSON.stringify(got.filter((x) => x.startsWith('sw'))) === JSON.stringify(['sw true', 'sw false', 'sw true']), got);
+  R.write('action.go', 5); check('§19 an event map is the unit line whatever the spec says (5 reads 1)', R.read('action.go') === 1, R.read('action.go'));
 }
 
 const failed = results.filter((r) => !r.ok);
