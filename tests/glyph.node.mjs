@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs'; import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { glyphNames, glyphAliases, hasGlyph, glyphSvg } from '../mir/glyph.js';
+import { glyphNames, glyphAliases, hasGlyph, glyphSvg, registerGlyphs, appGlyphNames } from '../mir/glyph.js';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 let n = 0; const ok = (name, fn) => { fn(); n++; console.log('ok   ' + name); };
@@ -129,6 +129,19 @@ ok('no other module keeps a drawing of its own: the inline icon strings have bee
     if (INLINE.some((re) => re.test(src))) left.push(path.relative(ROOT, f));
   }
   assert.deepEqual(left, [], 'an inline icon svg is still in: ' + left.join(', ') + ' — fold it into glyph.js (docs/ICONS.md)');
+});
+
+/* 1.5.6-alpha.3 · registerGlyphs: an app's own drawings draw like a kit name; a kit name, a bad name or a second markup is refused whole */
+ok('registerGlyphs adds an app drawing and refuses a collision', () => {
+  const dot = '<circle cx="12" cy="12" r="3" fill="currentColor"/>';
+  assert.deepEqual(registerGlyphs({ appDot: dot }), ['appDot']);
+  assert.ok(hasGlyph('appDot') && glyphSvg('appDot').includes('r="3"') && appGlyphNames().includes('appDot') && !glyphNames().includes('appDot'));
+  assert.deepEqual(registerGlyphs({ appDot: dot }), ['appDot'], 'the same markup again is a no-op');
+  assert.throws(() => registerGlyphs({ appRing: dot, close: dot }), /close \(a kit glyph\)/);
+  assert.equal(hasGlyph('appRing'), false, 'a refused table registers none of its rows');
+  assert.throws(() => registerGlyphs({ north: dot }), /a kit glyph/);
+  assert.throws(() => registerGlyphs({ appDot: '<path d="M0 0"/>' }), /registered already/);
+  assert.throws(() => registerGlyphs({ 'app-dot': dot }), /camelCase/);
 });
 
 console.log(`\nALL ${n} glyph checks pass (${names.length} glyphs, ${Object.keys(glyphAliases()).length} alias)`);
