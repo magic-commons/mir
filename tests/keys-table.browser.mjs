@@ -19,14 +19,14 @@ try {
   await sleep(500);
   const ev = async (body) => JSON.parse(await p.eval(`(async () => { const U = __U, A = U.app, H = U.history; ${body} })().then(JSON.stringify)`));
   const hidden = () => p.eval(`document.body.classList.contains('ui-hidden')`);
-  const pops = () => p.eval(`document.querySelectorAll('.tl-pop').length`);
+  const pops = () => p.eval(`document.querySelectorAll('.tl-pop, .mir-ctx').length`);   // 1.5.6-alpha.4: a knob's menu is the kit's contextMenu
 
   /* 1. H is the table's 'hide', nothing else's */
   const k = await ev(`const d = document.querySelector('.dev[data-id="scene"] .k-dial'); const b = d.getBoundingClientRect(); const x = Math.round(b.left + b.width / 2), y = Math.round(b.top + b.height / 2), h = document.elementFromPoint(x, y); return { x, y, hit: !!h && d.contains(h) || h === d };`);
   check('hit-test: the knob', k.hit);
   for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased']) await p.send('Input.dispatchMouseEvent', { type, x: k.x, y: k.y, button: 'right', buttons: type === 'mousePressed' ? 2 : 0, clickCount: 1 });
   await sleep(150);
-  check('a right click on a routable knob opens TIMELINE CLIP', (await pops()) === 1);
+  check('a right click on a routable knob opens its knob menu', (await pops()) === 1);
   await p.key('H'); await sleep(150);
   check('H (the table\'s hide) hides the interface and the knob\'s menu goes with it', (await hidden()) && (await pops()) === 0);
   await p.key('H'); await sleep(150);

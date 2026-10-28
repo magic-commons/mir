@@ -50,8 +50,8 @@ const RUN = await (async () => {
     await page.waitForTimeout(80);
     const items = await page.evaluate(() => window.__P.pattern.menu());
     L.ck(Array.isArray(items) && items.length >= 7, 'the cap opens the row menu: ON/OFF · FILL 2/4/8 · CLEAR · LENGTH', items);
-    const fill4 = await page.evaluate(() => { const b = [...document.querySelectorAll('.pt-menu .pt-mi')][2].getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; });
-    const hitFill = await page.evaluate(([x, y]) => !!document.elementFromPoint(x, y).closest('.pt-menu'), [fill4.x, fill4.y]);
+    const fill4 = await page.evaluate(() => { const b = [...document.querySelectorAll('.mir-ctx .mb-item')][2].getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; });   // 1.5.6-alpha.4: the kit's contextMenu
+    const hitFill = await page.evaluate(([x, y]) => !!document.elementFromPoint(x, y).closest('.mir-ctx'), [fill4.x, fill4.y]);
     L.ck(hitFill, 'the menu item is what a hand presses (elementFromPoint)', fill4);
     await page.mouse.click(fill4.x, fill4.y);
     await page.waitForTimeout(60);

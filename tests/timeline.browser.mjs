@@ -130,11 +130,12 @@ const RUN = await (async () => {
     /* ── A HELD KNOB MAKES A CLIP ─────────────────────────────────────────────────────────────────────────────── */
     const [kx, ky] = await center('#card .k[data-param="scene.spin"] .k-dial');
     await page.mouse.move(kx, ky); await page.mouse.down(); await page.waitForTimeout(650); await page.mouse.up(); await page.waitForTimeout(80);
-    const popped = await page.locator('.tl-pop [data-tl-action="create-clip"]').count();
-    if (popped) await page.locator('.tl-pop [data-tl-action="create-clip"]').click();
+    if (await page.locator('.mir-ctx [data-id="clip"]').count()) await page.locator('.mir-ctx [data-id="clip"]').click();   // 1.5.6-alpha.4: the knob menu's CLIP ›
+    const popped = await page.locator('.mir-ctx [data-id="create-clip"]').count();
+    if (popped) await page.locator('.mir-ctx [data-id="create-clip"]').click();
     await page.waitForTimeout(80);
     const made = await E(() => window.__TL.model.state().curves.filter((c) => c.targetId === 'scene.spin').length);
-    L.ck(popped === 1 && made === 1, 'holding a knob offers CREATE AUTOMATION CLIP, which makes a clip on its parameter', { popped, made });
+    L.ck(popped === 1 && made === 1, 'holding a knob offers the knob menu, whose CLIP › CREATE AUTOMATION CLIP makes a clip on its parameter', { popped, made });
 
     /* ── THE TEMPO PILL in the work bar types the tempo (BASINS' timeline form) ─────────────────────────────── */
     await page.locator('.mir-timeline .mir-transport .tempo-expand').click(); await page.waitForTimeout(60);

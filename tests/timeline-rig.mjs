@@ -31,7 +31,7 @@ export async function openTimeline({ base = BASE, query = '?fresh', width = 1920
   const send = (type, extra = {}) => cdp.send('Input.dispatchMouseEvent', { type, x: st.x, y: st.y, modifiers: st.mods, buttons: st.buttons, button: st.button, ...extra });
   const hit = async (x, y) => cdp.eval(`(() => { const n = document.elementFromPoint(${x}, ${y}); if (!n) return 'nothing';
     const c = String(n.className && n.className.baseVal !== undefined ? n.className.baseVal : n.className || ''); return n.tagName.toLowerCase() + (c ? '.' + c.trim().split(/\\s+/).join('.') : '') +
-    (n.closest('.mir-timeline') ? ' @timeline' : n.closest('.mir-rail[data-mir-rail="timeline"]') ? ' @rail' : n.closest('.tl-pop, .tl-confirm') ? ' @popup' : n.closest('#bar') ? ' @bar' : n.closest('#card') ? ' @card' : ' @page'); })()`);
+    (n.closest('.mir-timeline') ? ' @timeline' : n.closest('.mir-rail[data-mir-rail="timeline"]') ? ' @rail' : n.closest('.tl-pop, .tl-confirm, .mir-ctx') ? ' @popup' : n.closest('#bar') ? ' @bar' : n.closest('#card') ? ' @card' : ' @page'); })()`);
   const mouse = {
     async move(x, y, { steps = 1 } = {}) {
       const x0 = st.x, y0 = st.y;
