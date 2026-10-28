@@ -155,6 +155,12 @@ export function registerWindow({ root, rail = null } = {}) {
    gripGesture runs on it as it runs on a rail's grip, so the drag, its cancels, the raise and the clamp are the same
    machinery.  The rail's side of that gesture is this stand-in: no element, no size, no seat. */
 const NO_RAIL = Object.freeze({ vertical: Object.freeze({ w: 0, h: 0 }), horizontal: Object.freeze({ w: 0, h: 0 }) });
+/** windowGlyphs({ id: glyphName }) (1.5.6-alpha.3) — an app names its windows' glyphs by window id once, before they are made, so a window
+ *  a kit factory creates (MIR OPTIONS `gui`, ABOUT `gui-about`, `keyboard`, the TIMELINE…) wears one with no option on each factory;
+ *  a `glyph` passed to createWindow wins */
+const NAMED = new Map();
+export function windowGlyphs(table) { for (const [id, g] of Object.entries(table || {})) if (typeof g === 'string' && g) NAMED.set(id, g); }
+
 function titleBar(doc, root, title, onClose, glyph) {
   const bar = doc.createElement('div'); bar.className = 'mir-win-head'; root.appendChild(bar);
   if (glyph && hasGlyph(glyph)) bar.appendChild(glyphEl(glyph, 'mir-win-glyph gly gly-' + glyph));   // 1.5.6-alpha.3: the window's one drawing, before its title
@@ -282,6 +288,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
   root.setAttribute('role', 'group');
   ariaLabel(root, String(title));   // no toUpperCase: it would upper-case a translation
   root.hidden = true;
+  if (!glyph) glyph = NAMED.get(id) || '';                         // 1.5.6-alpha.3: the app's table by id (windowGlyphs) for a kit factory's window
   if (glyph) root.dataset.glyph = glyph;                             // 1.5.6-alpha.3: drawn in a title bar; a rail window carries the name for a reader
   const head = chrome === 'close' ? titleBar(doc, root, title, () => api.close(), glyph) : null;
   if (head) { root.dataset.chrome = 'close'; dock = null; }
