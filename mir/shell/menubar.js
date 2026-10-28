@@ -88,8 +88,8 @@ export function createMenubar({ opener, host, menus, label, phone, keep } = {}) 
   const canPop = typeof bar.showPopover === 'function';
   let openList = null;
   const closeLists = () => { for (const l of bar.querySelectorAll('.mb-sub-list')) l.remove(); for (const l of bar.querySelectorAll('.mb-list')) l.hidden = true; for (const b of bar.querySelectorAll('.mb-btn')) b.setAttribute('aria-expanded', 'false'); openList = null; };
-  /* 1.5.6-alpha.2 · a submenu is a list of its own, made as it opens and removed as it closes: beside its row on the bar's own layer (a fixed
-     list a frosted parent cannot clip), or inline under its row on a phone.  `child` is the list a list has open, `row` the row that opened it */
+  /* 1.5.6-alpha.2 · a submenu is a list of its own, made as it opens and removed as it closes: beside its row on the bar's own layer (a list
+     a frosted, scrolling parent cannot clip), or inline under its row on a phone.  `child` is the list a list has open, `row` the row that opened it */
   const closeSub = (list) => { const c = list && list.mbChild; if (!c) return; closeSub(c); c.remove(); list.mbChild = null; if (c.mbRow) c.mbRow.setAttribute('aria-expanded', 'false'); };
   function openSub(list, it, entries) {
     if (list.mbChild && list.mbChild.mbRow === it) return list.mbChild;
@@ -97,8 +97,8 @@ export function createMenubar({ opener, host, menus, label, phone, keep } = {}) 
     const sub = el('div', 'mb-list mb-sub-list'), phone = isPhone(); sub.mbRow = it; sub.mbParent = list; list.mbChild = sub; it.setAttribute('aria-expanded', 'true');
     if (phone) { sub.classList.add('mb-accordion'); it.after(sub); } else bar.appendChild(sub);
     render(sub, entries);
-    if (!phone) { const r = it.getBoundingClientRect(), w = sub.offsetWidth, h = sub.offsetHeight, W = window.innerWidth, H = window.innerHeight;
-      const left = r.right + 2 + w <= W - 8 ? r.right + 2 : Math.max(8, r.left - 2 - w); sub.style.left = Math.round(left) + 'px'; sub.style.top = Math.round(Math.max(8, Math.min(H - h - 8, r.top - 4))) + 'px'; }
+    if (!phone) { const r = it.getBoundingClientRect(), o = bar.getBoundingClientRect(), w = sub.offsetWidth, h = sub.offsetHeight, W = window.innerWidth, H = window.innerHeight;   // placed in the viewport, written in the bar's frame
+      const left = r.right + 2 + w <= W - 8 ? r.right + 2 : Math.max(8, r.left - 2 - w); sub.style.left = Math.round(left - o.left) + 'px'; sub.style.top = Math.round(Math.max(8, Math.min(H - h - 8, r.top - 4)) - o.top) + 'px'; }
     return sub;
   }
   const subKeys = (e, list) => {
