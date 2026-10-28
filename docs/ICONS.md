@@ -88,6 +88,7 @@ An unknown name draws nothing, warns once and never throws. An icon button has n
 | `grade` | colour grade: three vertical sliders | `sliders` turned upright with different stops |
 | `morph` | one period of a sine, the LFO's own shape | |
 | `render` | render: a diamond inside a diamond | |
+| `keys` | a board of key caps: KEYBOARD's KEYS face and its THE BOARD (1.5.6-alpha.9) | |
 | **the apps' own marks** | | |
 | `mandelbrot`, `mandelbrotSmall`, `juliaRestore` | the fractal's marks (solid) | the one place the library carries an app's art |
 
