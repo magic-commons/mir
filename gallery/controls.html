@@ -58,7 +58,7 @@
 <div class="g-grid" id="grid"></div>
 <div id="floats"></div>
 <script type="module">
-import { el, knob, sw, seg, trig, fader, row as kitRow } from '../mir/kit.js';
+import { el, knob, sw, seg, trig, fader, row as kitRow, section as kitSection, knobBank, meter as kitMeter, lamp as kitLamp } from '../mir/kit.js';
 import { stepper } from '../mir/controls/stepper.js';
 import { select } from '../mir/controls/select.js';
 import { number } from '../mir/controls/number.js';
@@ -121,6 +121,22 @@ bar.append(seg({ value: document.body.dataset.theme, options: [{ id: 'dark', lab
   r.append(...W.fit.map((k) => k.root), W.fitSw.root);
   rules(c, [['a row of controls', 'row(parent, { fit: true })', 'kit', 'auto-fit cells of ≥ --cell-min (40); the face 28–44 px, 62 % of its cell'],
     ['a seg, or a control marked .wide', 'two cells', 'kit', '.full takes the line']]);
+}
+
+/* ── 1c · THE SURFACE PARTS (1.5.6-alpha.7): a section on a well, a knob bank of eight, a meter with LEDs and a lamp ── */
+{
+  const c = card('s-surface', 'SURFACE · section · knob bank · meter · lamp');
+  const well = el('div', null, c); well.dataset.mirSurface = 'well'; well.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;padding:6px;border-radius:10px';
+  const bankS = kitSection({ title: 'MACROS', parent: well }), meterS = kitSection({ title: 'METERS', parent: well });
+  W.bank = knobBank({ parent: bankS.body, items: ['DRIFT', 'GLOW', 'SPIN'].map((l, i) => ({ id: l, label: l, min: 0, max: 1, value: 0.3 * i + 0.1 })), onEmpty: () => {} });
+  bankS.root.style.flex = '1 1 240px';
+  W.meter = kitMeter({ parent: meterS.body, bands: ['low', 'mid', 'high'], labels: ['LOW', 'MID', 'HIGH'], led: true, peak: true });
+  W.meter.root.style.height = '64px';
+  W.lamp = kitLamp({ parent: meterS.body, on: true, title: 'the beat' });
+  W.meter.paint([0.3, 0.6, 0.9]);   // a still picture: a page that animates is never idle (W.meter.set() paints once a frame)
+  rules(c, [['a control surface', 'section({ title }) on a well', 'kit', 'a hairline frame, its name in a strip at the top-left'],
+    ['a bank of knobs', 'knobBank({ slots: 8, items })', 'kit', 'always eight slots, empty ones a faint +; pages past eight'],
+    ['a level', 'meter({ bands, led, peak })', 'kit', 'set(values) once a frame through the coalescer']]);
 }
 
 /* ── 2 · COLOUR: arc, swatch, lane slider ── */
