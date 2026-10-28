@@ -70,7 +70,7 @@ One line each. Paths are from `app/`.
 | Builder | Import | What it makes |
 |---|---|---|
 | `createApp`, `makeParam` | `../mir/app.js` | the standard wiring in one call (`app.play()`, `app.pause()`, `app.playing()`, `app.safeRect()`); one number as a control, a target and a saved value |
-| `knob`, `fader`, `sw`, `seg`, `trig`, `readout`, `group`, `device`, `el`, `label`, `onThemeChange` | `../mir/kit.js` | the controls; `el(tag, cls, parent, text)` for plain DOM (`el('div', 'row', body)` is the kit's row: controls side by side, spread across the window); `onThemeChange(fn)` outside `createApp` |
+| `knob`, `fader`, `sw`, `seg`, `trig`, `readout`, `group`, `device`, `row`, `el`, `label`, `onThemeChange` | `../mir/kit.js` | the controls; `row(body, { fit: true })` is the kit's fit row (controls side by side, one line while they fit, knob faces scaled to their cells); `el(tag, cls, parent, text)` for plain DOM (`el('div', 'row', body)` is the plain wrapping row); `onThemeChange(fn)` outside `createApp` |
 | `frame.coalesce(key, fn)`, `frame.read`, `frame.write` | `../mir/core/frame.js` | the one frame: every animation and DOM write |
 | `drag(el, { onMove, onEnd, onCancel })`, `installPress` | `../mir/core/pointer.js` | a gesture; the pressed look on buttons |
 | `presence`, `tweenRect`, `flip` | `../mir/core/motion.js` | motion, by transform, honouring reduced motion |

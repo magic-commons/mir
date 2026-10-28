@@ -79,6 +79,10 @@ Exports for a control the kit did not build: `fineHeld(event, pointerId)`, `gear
 
 `knob.dragging()` says whether a hand is on it. (The knob's warn / clamped states, `knob.setState`, are removed in 1.5.0-alpha.18: nothing used them.)
 
+## A row fits
+
+**A row of controls never adds a line for a control that fits** (1.5.6-alpha.6, λWAVES 022 F1). `row(parent, { fit: true })` (or the class `.row.fit`) is a grid of `repeat(auto-fit, minmax(--cell-min, 1fr))` cells: n controls share one line while n·40 + (n−1)·4 px fits — six at 262 px, where the plain row's 62-px knob seats went three and three, and four went 3 + 1. A knob's seat is its cell and its face scales with it, `clamp(--knob-min, 62 % of the cell, --knob-max)` (28–44 px; `knob: 'sm'` caps it at the plain knob's `--knob`, 34; `'lg'` floors it there), the arc, the needle and the base tick with it; the finger stays 44 px (the dial's outset). A switch, a trigger, a readout or a select stretches to its cell; a segmented select (and anything marked `.wide`) takes two cells, `.full` the line; the label under the cell's width ends in …. `cellMin` sets `--cell-min` on one row; the five sizes are tokens (`--cell-min` `--knob-min` `--knob` `--knob-max` `--row-gap`, css/tokens.css) for a skin or an app to retune. It is opt-in: a plain `.row` (the wrapping flex row, 62-px knob seats) does not move. What stays out of a fit row is what is not a row of controls: a curve, a sphere, a pad, a picture, a lane's own grid. Drawn live on `gallery/controls.html` (FIT ROW) and in the starter's PICTURE window.
+
 ## The lamp rules
 
 | | |

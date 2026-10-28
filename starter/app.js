@@ -1,7 +1,7 @@
 /* starter/app.js — THE STARTER: the smallest whole MIR app.  ../LLM.md explains it section by section.
  * To make your own: copy this folder beside the kit (../mir, ../fonts), rename NAME and KEY, replace S and draw(),
  * and keep everything else.  The one rule: the kit draws every control; you pass it data and options. */
-import { el, seg, trig } from '../mir/kit.js';
+import { el, row, seg, trig } from '../mir/kit.js';
 import { frame } from '../mir/core/frame.js';
 import { createApp } from '../mir/app.js';
 import { showPage } from '../mir/info/page.js';
@@ -58,7 +58,7 @@ function reset() { for (const p of app.params) p.set(p.home); S.shape = 'dot'; k
 
 // ── THE RACK: windows by name; each opens from its latch on the bar. `build` runs the first time a window opens. ──
 app.rack.register({ id: 'picture', title: 'PICTURE', side: 'right', open: !app.first, glyph: 'tune', hint: 'the four numbers the picture is drawn from',
-  build(body) { el('div', 'row', body).append(speed.root, size.root, hue.root, count.root); } });
+  build(body) { row(body, { fit: true }).append(speed.root, size.root, hue.root, count.root); } });   // a fit row: the four share one line
 app.rack.register({ id: 'ring', title: 'RING', side: 'left', glyph: 'sliders', hint: 'built the first time it opens',
   build(body) {                                                       // a parameter made here becomes a target when it is built
     el('div', 'row', body).append(app.param('spread', 'SPREAD', 0, 1).root, trig({ label: 'RESET', title: 'every number back home', onFire: reset }).root);
