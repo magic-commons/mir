@@ -166,7 +166,7 @@ try {
   await option('DISTANCE', () => dragUp(dial('light', 2), 'DISTANCE', 40), `hv('--shadow-dist') === P.get('shadowDist') + 'px'`, true, `cs('#pane', 'box-shadow')`);
   await option('SOFTNESS', () => dragUp(dial('light', 3), 'SOFTNESS', 40), `hv('--shadow-soft') === P.get('shadowSoft') + 'px'`, true, `cs('#pane', 'box-shadow')`);
   await option('SHINE', () => dragUp(dial('light', 4), 'SHINE', 40), `[document.documentElement.hasAttribute('data-shine'), cs('#strip .dev', 'mix-blend-mode', '::before')]`, [true, 'plus-lighter'], `cs('#strip .dev', 'box-shadow', '::before')`);
-  await option('SHINE SOFT', () => dragUp(dial('light', 5), 'SHINE SOFT', 40), `hv('--shine-soft') === P.get('shineSoft') + 'px'`, true, `cs('#strip .dev', 'box-shadow', '::before')`);
+  await option('SHINE SOFT', () => dragUp(dial('light', 5), 'SHINE SOFT', -40),   /* 1.5.6-alpha.5: home is the top of 0–6, so the drag goes down */ `hv('--shine-soft') === P.get('shineSoft') + 'px'`, true, `cs('#strip .dev', 'box-shadow', '::before')`);
   await J(`P.set('relief', 'default'); return 0;`); await sleep(150);   /* the relief back on (FLAT was proved on page 1), so RELIEF ANGLE has a raise to turn */
   await option('RELIEF ANGLE (an arc)', () => dragUp(dial('light', 6), 'RELIEF ANGLE', 50), `[P.get('reliefAngle') !== 315, hv('--relief-angle') === P.get('reliefAngle') + 'deg']`, [true, true], `cs('#knob .k-dial', 'box-shadow')`);
   await option('LINK (the relief takes LIGHT ANGLE)', () => click(swB('light', 0), 'LINK'), `[P.get('reliefLink'), hv('--relief-angle') === (P.get('lightAngle') === 315 ? '' : P.get('lightAngle') + 'deg')]`, [true, true], `cs('#knob .k-dial', 'box-shadow')`);
