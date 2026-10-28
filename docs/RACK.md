@@ -84,7 +84,8 @@ The window's `api` is `{ id, dev, root, body, setStatus, canPresent(), open(), c
 
 **Menus.**
 - `windowMenu({ rack, rackKey, keyOf })` returns the WINDOW menu's rows in the data shape `createMenubar({ menus })` takes: `[label, run, disabled, hint]`. There is one row per registered window: `↑ NAME` raises an open window and `⊕ NAME` opens a closed one. `rack: true` adds a separator and HIDE / SHOW the rack. `keyOf(action) → text` (1.5.0-alpha.19; `createApp` passes `keys.menuKey`) shows each window's chord from the key table beside its row; a window with no `action`, or no `keyOf`, shows none.
-- `addMenu` is `{ open(), close(), shown, queued, commit() }` and `favMenu` is `{ open(), close(), shown }`.
+- `favMenu` is `{ open(), close(), shown }`. The + list is gone (1.5.5): THE FINDER (`shell/window-picker.js` `createWindowPicker({ rack })`, [API.md](API.md)) lists every window under a search field and takes the old list's SHIFT queue and ☆. `rack.addMenu` answers as the FINDER once one is made (deprecated; it leaves at the next line).
+- `reveal(id)` (1.5.5) opens a closed window at its rack's top and scrolls the rack up, or scrolls the rack to an open one WITHOUT reordering it (unfolds it, shows the rack, a floating one to the front), and rings the card 900 ms (`.mir-reveal`, `RACK.reveal`). `lastFavourite()` → the ids open in the latest ☆ layout.
 
 **The layout.**
 - `capture()` returns `{ v, at, hidden, phoneShown, cards: [{ id, side, open, folded, off, float: { x, y, w, compact, z, index } | null }] }`, in rack order.
@@ -120,7 +121,7 @@ The window's `api` is `{ id, dev, root, body, setStatus, canPresent(), open(), c
 **The DOM it keeps:**
 - `#rack.mir-rack[data-side=right]` and `#rackL.mir-rack[data-side=left]`;
 - `#floats.mir-rack-floats`;
-- `#rackToggle`, `#rackAdd`, `#rackFav` (`.glass.mir-rack-btn[data-rack-btn]`) and `#rackAddList`, `#rackFavList` (`.mir-rack-list`);
+- `#rackToggle`, `#rackFav` (`.glass.mir-rack-btn[data-rack-btn]`) and `#rackFavList` (`.mir-rack-list`) — `#rackAdd` and `#rackAddList` are gone in 1.5.5 (the FINDER is the window list);
 - `.mir-rack-handle[data-side]`;
 - each window is a kit `device()` (`.dev`, `.dev-head`, `.dev-body`). A floating one is `.dev.floating` with `--float-w`.
 
@@ -283,7 +284,7 @@ The recipe for BASINS, and for any app whose rack predates the kit. It goes in f
   - `createRackMotion` (`rack-motion.js` 1–135). The kit's rack motion IS it: the same observers, the same refresh, the same height and FLIP animations, the same hold / follow / release, 320 ms `cubic-bezier(.22, 1, .36, 1)`. Tested on BASINS' markup (`tests/rack-motion.browser.mjs`). `createLayoutMotion` (136–204, the modulation shelf) stays until the modulation window moves;
   - the `.rack-drop` rule.
 
-**3. The `+` and ☆ menus.** Set `chrome: true`. `#rackToggle`, `#rackAdd`, `#rackFav` and their lists are found by id and keep their look.
+**3. The ☆ menu.** Set `chrome: true`. `#rackToggle`, `#rackFav` and its list are found by id and keep their look. (1.5.5: the `+` button and `#rackAddList` are gone — an app styling `#rackAdd` drops those rules and makes a FINDER, `createWindowPicker({ rack })`.)
 - **Deletes:**
   - `rack.js` 307–392 (the menus);
   - the toggle's wiring;

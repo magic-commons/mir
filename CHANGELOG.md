@@ -1,5 +1,48 @@
 # MIR — changelog
 
+## 1.5.5 — 2026-10-27 · the λWAVES lift
+
+**1.5.5 is the first shipped 1.5.** 1.5.0 – 1.5.4 were never cut: every 1.5.0-alpha (alpha.1 – alpha.24 here, alpha.25 – alpha.33 built inside λWAVES under its trickle-down rule, iterations 014 – 019, 2026-10-22 – 10-27) folds into this release. λWAVES' `lab/mir` was lifted home byte for byte (fonts identical), so its bytes and this kit agree. The line is **1.5** (`docs/LINES.md`): from here a patch is drop-in — a later app need is an additive door, numbered `1.5.6-alpha.N`; a removal waits for the next line.
+
+### BREAKING (every removal lands here, before the cut)
+- **The rack's + list is gone** (alpha.31): the `#rackAdd` button, `#rackAddList`, `addMenu`, `el.add` / `el.addList` and `.rack-add-none`. THE FINDER (`shell/window-picker.js`) is the one window list. An app that styles `#rackAdd` / `#rackAddList` (BASINS' `app/lab.css`, `app/skin.css`) drops those rules and makes a FINDER.
+- **MIR OPTIONS has no tabs** (alpha.32): `GUI_TABS`, `TAB_OF`, the `mir.gui.tab` record and the api's `tab` / `turn()` are gone; every older page name opens OPTIONS.
+- **`SKINS` is gone** (alpha.32) with its "coming" names; an app passes its own skin list (`createPrefs({ presets })`). The locale key of RESET LOOK's hint is renamed to "Every look option back home: the {skin} skin" (all ten packs).
+- **The scroll pill ships in its end state** (alpha.29): `PILL.track` and the pill's tail (`.rack-pill::before`) are gone; `PILL` is `{ linger, gap }`.
+- The transport's VERTICAL chip, `data-orient` and `setOrient` (alpha.25, never shipped) are gone; the bar's seat store is `{ v: 2, seat, place }`.
+
+**The shim (one release; it leaves at the next line).** `rack.addMenu` answers as the FINDER once an app makes one (`createWindowPicker({ rack })` defines it on the rack; the FINDER has the old `{ open, close, shown, queued, commit }`), with one console warning — 6 lines in `shell/window-picker.js`. An app with no FINDER gets no `addMenu`.
+
+### The doors (each from a λWAVES line, docs/FOR-MIR.md in λWAVES)
+- `knob({ reverse: true })` turns the dial the other way; the value, range, aria and a modulation map are unchanged (alpha.25, 014 D5).
+- THE FINDER: `createWindowPicker({ rack, open, can, icon, cls })` — every window under a search field, greyed with the app's word, SHIFT-queue in pick order, the ☆ layout's star, GOL-NOTE's spring motion (alpha.25 → 31).
+- `rack.reveal(id)` opens a closed window at its rack's top or scrolls to an open one without reordering, ringing it 900 ms; `rack.lastFavourite()` (alpha.31).
+- THE SCROLL PILL: while a rack scrolls, each window's name in an accent pill outside its card (`createRackPills`, MIR OPTIONS › WINDOWS › SCROLL PILL OFF · A · B); `inkOn(rgb, theme)` picks its ink past a 3:1 floor (alpha.25 → 29).
+- The transport: `createTransport({ places, onDock })` cycles RACK → STAGE → FREE; `freeWidth` / `freeHost` size the FREE window; `seatMenu: false`; `powerWord`; `door: 'icon'` + `doorIcon` (an app glyph as a mask); `modDoor({ mark: 'none' })`; `transportDock(rack)`; the `'expand'` part and `tempoPill({ typed })` (no open ring on a typed pill); `logoButton()`, THE MIR LOGO BUTTON, placed by no layout (alpha.25 → 32).
+- `CONTROL_SURFACE_LAYOUT` (`data-layout="csb"`, docked as CONTROL SURFACE) is an exported preset; `BASINS_LAYOUT` stays the default (alpha.25).
+- **New at the lift:** `createTransport({ seats: 'thin' })` (`data-seats="thin"`) draws the app's nodes small off the dock — λWAVES' thin scrub, small RATE and stacked readouts, which alpha.25 had drawn on every app's bar; the timeline's work bar takes `transport.seats` (`docs/TRANSPORT.md` "Thin seats").
+- `knob()` / `seg()` return their options as `spec`; `setTimelineKnobRows(fn)` adds an app's rows to the TIMELINE clip popup (alpha.25).
+- `aboutPage(host)` lends MIR ABOUT to the app's own ABOUT as its second page (alpha.25).
+- `workspaceSwitch({ glyph })` draws a kit glyph in place of the palette diamond (alpha.25).
+- `createRampPanel(…).setPresets(list, id?)` and `createCurvesPanel/View({ presets })` / `setPresets()` take the app's own rows and `coming` headings (alpha.26, alpha.30).
+- The modulation window's tempo and preset bars wear the transport's seats (`modhost.css` −72 selectors); `installModulation` port `cadenceKey: false` takes the 60 | 120 HZ key off the work bar (alpha.26, alpha.27).
+- `installTimeline({ transport: { onSwitch } })`: the timeline's door runs the app's swap (alpha.26).
+- The hint is a manual popover, the top of the top layer (`control-help.js`); a disabled seg button keeps its hint (`.seg-b:disabled`) (alpha.26, alpha.29).
+- A paged FOLDERS gallery pages its sub-folders too (alpha.29).
+- `createPrefs({ presets: [list] })` — the app's skin list, its first the first-run look (alpha.32).
+- `pictureFilter(target).setChain(runs)` — an app's own primitives after the grade's pair, one coalesced write per frame (alpha.33).
+
+### The older λWAVES asks it closes
+- "The + list's rows lead with the glyph" (λWAVES 012 M1): the + list is gone; the FINDER keeps the names in one column.
+- The + list half of "the glyph table takes no app SVG" (λWAVES 012 I1): the FINDER's `icon(id)` seat takes the app's own icon, and the door takes one (`door: 'icon'`). A menubar row's glyph stays open.
+
+### Strings, tests
+- The catalogue (`tools/i18n-extract.mjs`): 1,507 strings — four transport words newly reached (CONTROL SURFACE, "Dock the bar into the rack", "Put the bar on the stage", "Float the bar in its own window"), six gone with the tabs, the skins' names and the + list. The FINDER's, the expander's and SCROLL PILL's notes are `// tr[…]` comments now, so the extractor keeps them.
+- The ten packs: the 18 keys they lacked (alpha.24's seven MENUS words and the λWAVES lift's eleven) are drafted in every pack and flagged `review` ("1.5.5 draft"); the eight stale keys are gone.
+- The kit's own browser proofs (rack, rack-adopt, rack-leftovers, gui, starter), `tests/fixtures/rack-basins.html`, `gallery/shell.js` and the starter use the FINDER, the one-pack OPTIONS and `reveal`.
+
+Adopt with `node tools/adopt.mjs <app>`. No saved project format changed since alpha.24. λWAVES adopts it back first; BASINS, NEBULA, BUBBLDYNE and AUTOMATA adopt in their own sessions (BASINS: its `#rackAdd` rules go).
+
 ## 1.5.0-alpha.24 — 2026-10-07 · options gestures and menu access
 
 - Arc knobs and lane sliders no longer move their containing window, including when disabled. The control's forwarded pointer event is marked handled (`defaultPrevented`); the empty-glass window handler skips claimed presses. Outside-press closers and window raising still receive the forwarded event.

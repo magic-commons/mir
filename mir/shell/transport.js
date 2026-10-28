@@ -694,7 +694,7 @@ export function createTransport({ layout = BASINS_LAYOUT, nodes = {}, host = glo
   function pillPart() { if (!pillP) pillP = tempoPill({ tempo, panel: layoutNames(layout).includes('panel') ? panelPart() : null, work: () => placement === 'work', typed: layoutNames(layout).includes('expand'), signal }); return pillP; }
   /* 'expand' (1.5.0-alpha.31, λWAVES 018 E2 · E6): the expander's own button — it opens and shuts the tempo panel, so the pill only types; its
      chevron points down while shut and turns up while open (transport.css) */
-  function expandPart() { const p = barButton({ cls: 'tr-expand', glyph: 'chevronDown', label: 'the expander', title: 'the expander', run: () => panelPart().toggle(), signal });
+  function expandPart() { const p = barButton({ cls: 'tr-expand', glyph: 'chevronDown', label: 'the expander', title: 'the expander', run: () => panelPart().toggle(), signal });   // tr[the expander]: the transport bar's expander: the panel under the bar with the macros, the clock and the app's own rows
     p.sync = () => { const o = !!panel && panel.isOpen(); setAttr(p.root, 'aria-expanded', String(o)); p.root.classList.toggle('on', o); }; p.sync(); return p; }
   const place = (list, parent) => {
     for (const item of list) {

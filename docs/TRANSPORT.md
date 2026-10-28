@@ -152,6 +152,10 @@ Every look value of the bar is the kit's, so the GUI window restyles it with no 
 
 `createTransport({ bar: 'work' })` (`data-bar="work"` on the bar; `BARS` is `['float', 'work']`) is BASINS' timeline-mounted transport: the bar sits in its host's flow (no seat, no dodge), 52 px tall with 3 px of padding, and the seats named in `BAR_SEATS` (to-start, send-to-rack, the logo) carry `.trig`, the kit's button face, so the GUI's look paints them exactly as it paints the work bar's own buttons. `gallery/transport.html` shows one in a mock work bar beside two ordinary work-bar buttons (EDIT, SNAP); the test checks that the three seats match them in size, corner, face and relief. The same form is what `mountIn(host)` puts the stage bar in (below, "The one bar that moves").
 
+## Thin seats
+
+`createTransport({ seats: 'thin' })` (1.5.5, from λWAVES' bar) writes `data-seats="thin"`: off the dock (on the stage, in a work bar, FREE) the app's own nodes are drawn small — a fader is a thin scrub line with a dot, a knob a 30-px dial whose value shows under a hover, a readout stacked without its label. Docked, the card keeps the app's readouts with their labels. Without it (the default) the kit draws the nodes as it draws them anywhere. The timeline's work bar takes it as `installTimeline({ transport: { seats } })`.
+
 ## The opener law
 
 1. An app calls `createTransport({ opener: true })` first and asks `firstRun(store, …)` before it opens anything (true when none of the stores holds anything; a store is `{ get() }` or a localStorage key).
