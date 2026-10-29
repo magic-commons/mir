@@ -421,19 +421,25 @@
  },
  {
   "file": "mir/render/selftest.js",
-  "line": 192,
+  "line": 194,
   "why": "fragment",
   "text": " k · elst "
  },
  {
   "file": "mir/render/selftest.js",
-  "line": 192,
+  "line": 194,
   "why": "fragment",
   "text": " · roll "
  },
  {
   "file": "mir/render/selftest.js",
-  "line": 202,
+  "line": 195,
+  "why": "fragment",
+  "text": " · beats "
+ },
+ {
+  "file": "mir/render/selftest.js",
+  "line": 204,
   "why": "fragment",
   "text": "  FIRST FAILURE: "
  },
