@@ -188,9 +188,11 @@ export async function audioAlignment({ fps = 30, bpm = 120, seconds = 2, beats =
     want.push(f + '→' + s);
     deltas.push(peakIndex(audible, s - 2400, s + 2400) - s);
   }
-  const videoZero = (v.edits ? v.edits[0].mediaTime : 0) === 0, sameLength = a.edits[0].segment === v.duration && a.timescale === rate;
+  /* frame 0 is presented at movie time 0: the video's edit list starts at frame 0's composition time (0, or the B-frame shift its
+     ctts carries — Firefox's encoder reorders) */
+  const videoZero = (v.edits ? v.edits[0].mediaTime : 0) === (p.cttsOffsets ? p.cttsOffsets[0] : 0), sameLength = a.edits[0].segment === v.duration && a.timescale === rate;
   const line = audio.label + ' ' + rate / 1000 + ' k · elst ' + M + (head != null ? ' = OpusHead pre-skip' : ' = the measured delay') + (stripped ? ' (this decoder drops ' + stripped + ' itself)' : '') + ' · roll ' + a.roll.distance +
-    ' · audible sample 0 = frame 0 · beats ' + beats.join(' · ') + ' → frame→sample ' + want.join(' · ') + ' · Δ ' + deltas.join(' · ') + ' samples' + (sameLength ? ' · lengths equal' : ' · LENGTHS DIFFER');
+    (videoZero ? ' · audible sample 0 = frame 0' : ' · FRAME 0 IS NOT AT 0') + ' · beats ' + beats.join(' · ') + ' → frame→sample ' + want.join(' · ') + ' · Δ ' + deltas.join(' · ') + ' samples' + (sameLength ? ' · lengths equal' : ' · LENGTHS DIFFER');
   if (!videoZero || !sameLength || deltas.some((d) => !(Math.abs(d) <= 1))) throw new Error('MISALIGNED: ' + line);
   return { line, codec: ap.codec, mediaTime: M, deltas, samples: mixed.frames, bytes };
 }
