@@ -75,11 +75,11 @@ try {
   const at60 = await page.evaluate((w) => ({ fps: document.querySelector(w + '[data-field="fps"]').value, est: document.querySelector(w + '.sr-record-estimate').textContent, kept: Object.keys(localStorage).filter((k) => /\.fps$/.test(k)).map((k) => localStorage.getItem(k)).join() }), W);
   await page.locator(W + '[data-field="fps"] .seg-b:nth-child(2)').click(); await page.waitForTimeout(120);
   const back30 = await page.evaluate((w) => ({ fps: document.querySelector(w + '[data-field="fps"]').value, est: document.querySelector(w + '.sr-record-estimate').textContent }), W);
-  L.ck(own.natives === 0 && own.selects === 'motion,format,size,modulation,timeline' && own.seg && own.nums === 'duration,offset' && own.rows.every((h) => h <= 46)
+  L.ck(own.natives === 0 && own.selects === 'motion,format,size,modulation,timeline,audio' && own.seg && own.nums === 'duration,offset' && own.rows.every((h) => h <= 46)
       && at60.fps === '60' && at60.kept === '60' && at60.est !== est && back30.fps === '30' && back30.est === est,
     'RENDER\'s rows are the kit\'s controls, one row each (no native select or number input); a real press on FPS changes the estimate and is stored, and back', { own, at60, back30, est });
   const rowOrder = await page.evaluate((w) => [...document.querySelectorAll(w + '.sr-film .sr-row:not([hidden]) > .sr-label')].filter((n) => !n.closest('.sr-motion-ui[hidden]')).map((n) => n.textContent.trim()), W);
-  L.ck(rowOrder.join('|') === 'motion|format|size|fps|modulation|timeline', 'the film rows are BASINS\' (a timeline motion has no length or start: the range is both)', rowOrder);
+  L.ck(rowOrder.join('|') === 'motion|format|size|fps|modulation|timeline|audio', 'the film rows are BASINS\' (a timeline motion has no length or start: the range is both)', rowOrder);
 
   /* ── 3 · RENDER, pressed: 12 frames, the content follows the beat exactly ── */
   const before = await page.evaluate(() => { const R = window.__R, c = R.mod.host.clock; return { playing: c.isPlaying(), running: c.isRunning(), beats: R.mod.host.model.transport.beats, size: R.S.size, hue: R.S.hue, enabled: c.isEnabled(), mod: c.isModulationEnabled() }; });
@@ -304,7 +304,7 @@ try {
     return { motion: v.querySelector('[data-field="motion"]').value, rows, mark: !!d.querySelector('.dev-loading .mark'), markCard1: !!document.querySelector('#rackcard .dev[data-id="rackRender"] .dev-loading .mark'),
       fact: v.querySelector('.sr-keyfact .sr-value').textContent, section: (v.querySelector('.p7-section') || {}).textContent }; }, C2);
   L.ck(opened.motion === 'sweep', 'defaults.motion: the card opens on the app\'s motion (BASINS: ZOOM), nothing stored', opened.motion);
-  L.ck(opened.rows.join('|') === 'motion|amount|format|size|fps|length|speed|start at|modulation|timeline', 'row(…, \'length\') seats a motion\'s row under LENGTH (BASINS\' SPEED), the rest under MOTION', opened.rows);
+  L.ck(opened.rows.join('|') === 'motion|amount|format|size|fps|length|speed|start at|modulation|timeline|audio', 'row(…, \'length\') seats a motion\'s row under LENGTH (BASINS\' SPEED), the rest under MOTION', opened.rows);
   L.ck(!opened.mark && opened.markCard1, 'createRenderCard({ loadingMark: false }) has no waiting mark (the default card clones the wordmark\'s)', opened);
   L.ck(opened.fact === 'CARD-GALLERY' && opened.section === 'CARD-GALLERY', 'subject.facts and sections are handed the view\'s own gallery', opened);
   /* SPEED → LENGTH through the panel's fields, by a hand: click into the field, type, leave it */

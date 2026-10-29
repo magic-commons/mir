@@ -9,12 +9,15 @@
  * 1.5.6-alpha.13 (A2): THE MIXDOWN's plan — which KEEP clips sound in a range, where (sample 0 = frame 0), from which source
  * second, at which varispeed rate, for how long — and the WAV beside PNG frames.
  * 1.5.6-alpha.14 (A3): the audio ladder asked (AAC, then Opus), and THE STORE's audio: written once beside the payload, muxed
- * at finish in the interleaved order, a recovered prefix cut to its own frames. */
+ * at finish in the interleaved order, a recovered prefix cut to its own frames.
+ * 1.5.6-alpha.15 (A4): the recorder's estimate names the clips the film will carry, and AUDIO OFF or the timeline off carries none. */
 import { createHash } from 'node:crypto';
 import { mp4Parts, mp4Build, mp4Parse } from '../mir/render/mp4.js';
 import { mixPlan, mixFrames, wavBytes, MIX_RATE } from '../mir/render/audio-mix.js';
 import { RenderStore } from '../mir/render/store.js';
 import { decideAudioPath, peakIndex, muxAudio } from '../mir/render/encoder.js';
+import { createRecorder } from '../mir/render/recorder.js';
+import { createModHost } from '../mir/modulation/host.js';
 
 const results = [];
 const check = (name, ok, detail) => { results.push({ name, ok: !!ok }); if (!ok) console.log('FAIL ' + name + (detail === undefined ? '' : '\n     ' + JSON.stringify(detail).slice(0, 600))); };
@@ -167,6 +170,22 @@ class DirHandle {
   check('store: the manifest carries the audio table (a RESUME keeps it)', job && job.store.manifest.audio && job.store.manifest.audio.samples.length === apk.length && job.store.manifest.audio.priming === 312);
   const rec = mp4Parse(new Uint8Array(await (await job.store.finalize('mir-recovered.mp4')).blob.arrayBuffer()));
   check('store: a recovered 2-frame prefix has its 2 frames and the audio\'s edit list cut to them (2 × 3750 ticks)', rec.ok && rec.tracks[0].sampleCount === 2 && rec.tracks[1].edits[0].segment === 7500 && rec.movie.duration === 7500, rec.tracks?.[1]?.edits);
+}
+
+/* ── the estimate names the film's audio (A4) ── */
+{
+  const host = createModHost({ presentationActive: true });
+  host.model.modReset({ bare: true }); host.clock.setBpm(120);
+  const curves = [{ id: 'k', kind: 'audio', keep: true, assetId: 'k'.padEnd(32, '0'), seconds: 10, bpm: 120, name: 'CLICK' }, { id: 's', kind: 'audio', keep: false, assetId: 's'.padEnd(32, '0'), seconds: 10, bpm: 120, name: 'SIGNAL' }];
+  const clips = [{ id: 'c1', curveId: 'k', start: 1, duration: 2, offset: 0, scale: 1, mute: false }, { id: 'c2', curveId: 's', start: 0, duration: 4, offset: 0, scale: 1, mute: false }];
+  const rec = createRecorder({ host, editor: { model: { state: () => ({ curves, clips }) }, range: () => null, activeRange: () => null }, calib: { read: () => null, write: () => {} }, guard: false });
+  const on = rec.estimate({ motion: 'still', fps: 30, durationS: 2, format: 'mp4', resolution: '1080p' });
+  const off = rec.estimate({ motion: 'still', fps: 30, durationS: 2, format: 'mp4', resolution: '1080p', audio: false });
+  const bypass = rec.estimate({ motion: 'still', fps: 30, durationS: 2, format: 'mp4', resolution: '1080p', timeline: false });
+  const late = rec.estimate({ motion: 'still', fps: 30, durationS: 2, offsetS: 3, format: 'mp4', resolution: '1080p' });
+  check('estimate: AUDIO ON names the KEEP clip in the range (CLICK), never the SIGNAL ONLY one; 96000 samples at 48 k', on.audio && JSON.stringify(on.audio.clips) === '["CLICK"]' && on.audio.samples === 96000, on.audio);
+  check('estimate: AUDIO OFF, the timeline OFF, or a range past the clip carry no audio (the silent film)', off.audio === null && bypass.audio === null && late.audio === null, { off: off.audio, bypass: bypass.audio, late: late.audio });
+  rec.destroy();
 }
 
 const failed = results.filter((r) => !r.ok);
