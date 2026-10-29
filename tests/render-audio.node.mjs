@@ -7,10 +7,14 @@
  * sample's bytes where its chunk offset says (the chunks interleave by the half second).  Without `audio` the one-track file
  * is byte for byte what 1.5.6-alpha.11 wrote (the sha-256s below were taken from it).
  * 1.5.6-alpha.13 (A2): THE MIXDOWN's plan — which KEEP clips sound in a range, where (sample 0 = frame 0), from which source
- * second, at which varispeed rate, for how long — and the WAV beside PNG frames. */
+ * second, at which varispeed rate, for how long — and the WAV beside PNG frames.
+ * 1.5.6-alpha.14 (A3): the audio ladder asked (AAC, then Opus), and THE STORE's audio: written once beside the payload, muxed
+ * at finish in the interleaved order, a recovered prefix cut to its own frames. */
 import { createHash } from 'node:crypto';
 import { mp4Parts, mp4Build, mp4Parse } from '../mir/render/mp4.js';
 import { mixPlan, mixFrames, wavBytes, MIX_RATE } from '../mir/render/audio-mix.js';
+import { RenderStore } from '../mir/render/store.js';
+import { decideAudioPath, peakIndex, muxAudio } from '../mir/render/encoder.js';
 
 const results = [];
 const check = (name, ok, detail) => { results.push({ name, ok: !!ok }); if (!ok) console.log('FAIL ' + name + (detail === undefined ? '' : '\n     ' + JSON.stringify(detail).slice(0, 600))); };
@@ -108,6 +112,61 @@ for (const [label, fps, frames] of [['30 fps', 30, 60], ['24 fps', 24, 48], ['60
   check('mix: the WAV is RIFF 16-bit PCM, 2 ch, 48 kHz, N samples exactly, full scale clipped not wrapped',
     new TextDecoder().decode(wav.subarray(0, 4)) === 'RIFF' && dv.getUint16(22, true) === 2 && dv.getUint32(24, true) === 48000 && dv.getUint32(40, true) === 16 &&
     dv.getInt16(44 + 4, true) === 32767 && dv.getInt16(44 + 8, true) === -32768 && dv.getInt16(44 + 12, true) === 32767 && dv.getInt16(46, true) === 16384);
+}
+
+/* ── THE AUDIO SINK's ladder and THE STORE's audio (A3) ── */
+class Writable {
+  constructor(file) { this.file = file; this.chunks = []; }
+  async write(b) { this.chunks.push(b instanceof Uint8Array ? b.slice() : new Uint8Array(b)); }
+  async close() { this.file.blob = new Blob(this.chunks); }
+  async abort() { this.chunks = []; }
+}
+class FileHandle { constructor(name) { this.kind = 'file'; this.name = name; this.blob = new Blob([]); } async createWritable() { return new Writable(this); } async getFile() { return this.blob; } }
+class DirHandle {
+  constructor(name) { this.kind = 'directory'; this.name = name; this.map = new Map(); }
+  async getDirectoryHandle(n, o = {}) { if (!this.map.has(n)) { if (!o.create) throw new Error('NotFound'); this.map.set(n, new DirHandle(n)); } return this.map.get(n); }
+  async getFileHandle(n, o = {}) { if (!this.map.has(n)) { if (!o.create) throw new Error('NotFound'); this.map.set(n, new FileHandle(n)); } return this.map.get(n); }
+  async removeEntry(n) { if (!this.map.delete(n)) throw new Error('NotFound'); }
+  async *entries() { for (const e of this.map) yield e; }
+}
+{
+  const asked = [];
+  const env = (yes) => ({ AudioData: function () {}, AudioEncoder: Object.assign(function () {}, { isConfigSupported: async (c) => { asked.push(c.codec + '@' + c.sampleRate); return { supported: yes.includes(c.codec) }; } }) });
+  const linux = await decideAudioPath(48000, 2, env(['opus'])), mac = await decideAudioPath(48000, 2, env(['mp4a.40.2', 'opus'])), none = await decideAudioPath(48000, 2, env([]));
+  check('ladder: AAC is asked first, Opus after; a browser without AAC (Firefox, Linux) lands on Opus 48 k', linux.kind === 'audio' && linux.codec === 'opus' && linux.ladder === 'AAC no · Opus yes' &&
+    mac.codec === 'mp4a.40.2' && none.kind === 'none' && asked[0] === 'mp4a.40.2@48000', { linux, mac, none });
+  check('ladder: no AudioEncoder at all is a plain "none"', (await decideAudioPath(48000, 2, {})).kind === 'none');
+  check('peakIndex: the loudest sample\'s index', peakIndex(Float32Array.from([0, 0.1, -0.9, 0.5])) === 2 && peakIndex(Float32Array.from([0, 0.1, -0.9, 0.5]), 3) === 3);
+
+  const storage = (() => { const root = new DirHandle(''); return { getDirectory: async () => root, estimate: async () => ({ quota: 1e12, usage: 0 }), root }; })();
+  const opts = { dir: 'mir-recordings', storage }, fps = 24, DESCV = [1, 100, 0, 40, 255, 225, 0, 0];
+  const vbytes = (i) => new Uint8Array(100).fill(i + 1);
+  const info = (n) => ({ width: 16, height: 16, fps, description: DESCV, samples: Array.from({ length: n }, (_, i) => ({ size: 100, key: i === 0, ts: Math.round(i * 1e6 / fps), cts: i * 3750 })) });
+  const head = Uint8Array.from([...'OpusHead'].map((c) => c.charCodeAt(0)).concat([1, 2, 56, 1, 0x80, 0xbb, 0, 0, 0, 0, 0]));
+  const N = mixFrames(6, fps), apk = Array.from({ length: Math.ceil((312 + N) / 960) }, (_, j) => ({ data: new Uint8Array(30).fill(200 + j % 50), dur: 960 }));
+  const audio = { codec: 'opus', label: 'Opus', sampleRate: 48000, channels: 2, description: head, samples: apk, priming: 312, frames: N, bitrate: 192000, clips: ['CLICK'] };
+  const spec = { format: 'mp4', width: 16, height: 16, fps, frames: 6, bitrate: 40e6, rendererVersion: 1 };
+  const st = await RenderStore.create('av-1', spec, 6000, opts);
+  await st.saveAudio(audio);
+  for (let i = 0; i < 4; i++) st.append(vbytes(i));
+  await st.checkpoint(info(4));
+  for (let i = 4; i < 6; i++) st.append(vbytes(i));
+  const done = await st.finish(info(6), 'mir-render.mp4');
+  const file = new Uint8Array(await done.blob.arrayBuffer()), p = mp4Parse(file), [v, a] = p.tracks;
+  const memory = mp4Build({ ...info(6), description: Uint8Array.from(DESCV), samples: info(6).samples.map((s, i) => ({ ...s, data: vbytes(i) })), largeFile: true, audio: muxAudio(audio) });
+  check('store: the audio written before the first frame comes back as the second trak at finish, byte for byte the in-memory file',
+    p.ok && p.tracks.length === 2 && a.entry === 'Opus' && a.edits[0].mediaTime === 312 && a.edits[0].segment === 6 * 3750 && sha(file) === sha(memory), { ok: p.ok, n: p.tracks?.length, a: a?.edits });
+  check('store: finishing removes audio.bin with the payload parts', ![...(await (await (await storage.getDirectory()).getDirectoryHandle('mir-recordings')).getDirectoryHandle('av-1')).map.keys()].some((k) => k === 'audio.bin' || k.startsWith('payload')));
+  /* a run that dies after its checkpoint: the recovered prefix keeps the audio of its own frames */
+  const st2 = await RenderStore.create('av-2', spec, 6000, opts);
+  await st2.saveAudio(audio);
+  for (let i = 0; i < 2; i++) st2.append(vbytes(i));
+  await st2.checkpoint(info(2));
+  st2.append(vbytes(2)); await st2.interrupt();
+  const job = (await RenderStore.recoveries(opts)).find((j) => j.store.id === 'av-2');
+  check('store: the manifest carries the audio table (a RESUME keeps it)', job && job.store.manifest.audio && job.store.manifest.audio.samples.length === apk.length && job.store.manifest.audio.priming === 312);
+  const rec = mp4Parse(new Uint8Array(await (await job.store.finalize('mir-recovered.mp4')).blob.arrayBuffer()));
+  check('store: a recovered 2-frame prefix has its 2 frames and the audio\'s edit list cut to them (2 × 3750 ticks)', rec.ok && rec.tracks[0].sampleCount === 2 && rec.tracks[1].edits[0].segment === 7500 && rec.movie.duration === 7500, rec.tracks?.[1]?.edits);
 }
 
 const failed = results.filter((r) => !r.ok);
