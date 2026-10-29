@@ -5,9 +5,12 @@
  * A synthetic two-track file (H.264 samples + Opus or AAC packets) is muxed and read back with mp4Parse: the durations, the
  * edit lists (audible sample 0 at video frame 0), the integer sample tables, the roll group, the sample entries, and every
  * sample's bytes where its chunk offset says (the chunks interleave by the half second).  Without `audio` the one-track file
- * is byte for byte what 1.5.6-alpha.11 wrote (the sha-256s below were taken from it). */
+ * is byte for byte what 1.5.6-alpha.11 wrote (the sha-256s below were taken from it).
+ * 1.5.6-alpha.13 (A2): THE MIXDOWN's plan — which KEEP clips sound in a range, where (sample 0 = frame 0), from which source
+ * second, at which varispeed rate, for how long — and the WAV beside PNG frames. */
 import { createHash } from 'node:crypto';
 import { mp4Parts, mp4Build, mp4Parse } from '../mir/render/mp4.js';
+import { mixPlan, mixFrames, wavBytes, MIX_RATE } from '../mir/render/audio-mix.js';
 
 const results = [];
 const check = (name, ok, detail) => { results.push({ name, ok: !!ok }); if (!ok) console.log('FAIL ' + name + (detail === undefined ? '' : '\n     ' + JSON.stringify(detail).slice(0, 600))); };
@@ -83,6 +86,28 @@ for (const [label, fps, frames] of [['30 fps', 30, 60], ['24 fps', 24, 48], ['60
   const throws = (fn) => { try { fn(); return ''; } catch (e) { return e.message; } };
   check('aac: refused without its AudioSpecificConfig; an unknown codec refused', /AudioSpecificConfig/.test(throws(() => mp4Build({ ...o, audio: { ...o.audio, description: null } }))) &&
     /mp4a.40.2 or opus/.test(throws(() => mp4Build({ ...o, audio: { ...o.audio, codec: 'flac' } }))));
+}
+
+/* ── THE MIXDOWN's plan (A2): pure, the live placement's own arithmetic ── */
+{
+  const curve = (id, o = {}) => ({ id, kind: 'audio', keep: true, assetId: id.padEnd(32, '0'), seconds: 10, bpm: 120, name: id.toUpperCase(), ...o });
+  const clip = (id, curveId, o = {}) => ({ id, curveId, start: 0, duration: 4, offset: 0, scale: 1, mute: false, ...o });
+  const model = (curves, clips) => ({ state: () => ({ curves, clips }) });
+  check('mix: N = round(frames · 48000 / fps) — 300 frames at 30 fps are 480000 samples, one frame at 24 is 2000', mixFrames(300, 30) === 480000 && mixFrames(1, 24) === 2000 && MIX_RATE === 48000);
+  const near = (a, b) => Math.abs(a - b) < 1e-9;
+  let p = mixPlan({ model: model([curve('a')], [clip('c1', 'a', { start: 2 })]), startBeat: 0, bpm: 120, frames: 300, fps: 30 });
+  check('mix: a clip at beat 2 (120 BPM) sounds from 1.0 s, its source from 0, at rate 1, for its 2 s', p.frames === 480000 && p.clips.length === 1 &&
+    near(p.clips[0].when, 1) && near(p.clips[0].offset, 0) && near(p.clips[0].playRate, 1) && near(p.clips[0].length, 2) && p.clips[0].name === 'A', p.clips);
+  p = mixPlan({ model: model([curve('a')], [clip('c1', 'a', { start: 0, duration: 16 })]), startBeat: 4, bpm: 120, frames: 60, fps: 30 });
+  check('mix: a range that starts inside a clip starts the source 2 s in, at sample 0, for the range’s 2 s', near(p.clips[0].when, 0) && near(p.clips[0].offset, 2) && near(p.clips[0].length, 2), p.clips);
+  p = mixPlan({ model: model([curve('a'), curve('b', { keep: false })], [clip('m', 'a', { mute: true }), clip('s', 'b'), clip('late', 'a', { start: 40 })]), startBeat: 0, bpm: 120, frames: 300, fps: 30 });
+  check('mix: a muted clip, a SIGNAL ONLY clip and a clip past the range make no sound (no clip: no audio track)', p.clips.length === 0, p.clips);
+  p = mixPlan({ model: model([curve('a', { seconds: 1 })], [clip('v', 'a', { duration: 8, scale: 1 })]), startBeat: 0, bpm: 150, frames: 300, fps: 30 });
+  check('mix: a stretched clip plays varispeed (scale · bpm / source bpm = 1.25) and stops where its source runs out', near(p.clips[0].playRate, 1.25) && near(p.clips[0].length, 0.8), p.clips);
+  const wav = wavBytes([Float32Array.from([0, 1, -1, 2]), Float32Array.from([0.5, -0.5, 0, 0])], 48000), dv = new DataView(wav.buffer);
+  check('mix: the WAV is RIFF 16-bit PCM, 2 ch, 48 kHz, N samples exactly, full scale clipped not wrapped',
+    new TextDecoder().decode(wav.subarray(0, 4)) === 'RIFF' && dv.getUint16(22, true) === 2 && dv.getUint32(24, true) === 48000 && dv.getUint32(40, true) === 16 &&
+    dv.getInt16(44 + 4, true) === 32767 && dv.getInt16(44 + 8, true) === -32768 && dv.getInt16(44 + 12, true) === 32767 && dv.getInt16(46, true) === 16384);
 }
 
 const failed = results.filter((r) => !r.ok);
