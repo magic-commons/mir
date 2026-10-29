@@ -70,6 +70,7 @@ layer.addBlock({ md, hold, pane? })                      // pane: true / false; 
 layer.setPane(on); layer.setStyle('auto' | 'diagonal-first' | 'flat-first'); layer.setFollow(on); layer.setLines(on);
 layer.setEdit(on); layer.freeze(on); layer.hold(on); layer.setParallax(on); layer.setDrift(on);
 layer.viewChanged();                    // the picture moved: anchors, places and controls are read again
+layer.viewChanged({ land: true });      // the app re-seated it (furniture, seat): every body lands on its rest at once, held or not
 layer.replay(); layer.clear(kind?); layer.debug(); layer.destroy(); layer.root; layer.stage;
 ```
 
