@@ -4,7 +4,8 @@
  *   2. the rail's grip draws BASINS' dots (`.kwin-grip-dots > i`, nine 2 px dots) in the chip ink with its one-pixel lift, and the
  *      grip is what elementFromPoint finds at its centre
  *   3. createAccent({ model: 'hsl' }): at A = 180°, VIVID 1, the accent is hsl(180 100% 64%) (BASINS), where the palette model's
- *      is not; BRIGHTNESS mixes toward white in OKLCH; the palette model is unchanged
+ *      is not; BRIGHTNESS mixes toward white in OKLCH; the palette model is unchanged; accent.paintInk() (alpha.20) inks the header λ as
+ *      paintMarks does and paints no square
  *   4. a transport in a work bar OUTSIDE the modulation window: the pane's fill by card style (TINTED .58, REFRACTIVE clear),
  *      the pane's shadow, the Hz reading's .82 ink
  *   5. CONTROL FACES · GLASS clears a pill trigger, a segment well and a switch under FROST, in a card
@@ -44,6 +45,14 @@ try {
     return { palette, hsl, mixed, dull, model: acc.model };`);
   check('createAccent({ model: \'hsl\' }): A = 180°, VIVID 1 is hsl(180 100% 64%) = rgb(71, 255, 255) with BASINS\' six tokens; the palette model is not', r.hsl.color === 'rgb(71, 255, 255)' && r.hsl.hue === '180' && r.hsl.sat === '100%' && r.hsl.lum === '64%' && r.hsl.hueB === '20' && !r.hsl.bright && r.palette !== 'rgb(71, 255, 255)' && r.model === 'hsl', JSON.stringify(r));
   check('… BRIGHTNESS .5 mixes toward white in OKLCH (acc-bright, --acc-white 50%), VIVID 0 is hsl(.. 20% 28%)', r.mixed.cls && /color-mix\(in oklch/.test(r.mixed.acc) && r.mixed.white === '50%' && r.mixed.color !== r.hsl.color && r.dull.sat === '20%' && r.dull.lum === '28%', JSON.stringify({ mixed: r.mixed, dull: r.dull }));
+
+  /* ── 3b. accent.paintInk() (1.5.6-alpha.20): the header λ's half of paintMarks alone ── */
+  r = await J(`const h = document.createElement('div'); h.id = 'title'; h.innerHTML = '<span class="lam">λ</span><svg class="mark"><rect></rect><rect></rect></svg>'; document.body.appendChild(h);
+    const a = T.createAccent({ stageGround: () => [0.93, 0.95, 0.975] }), lam = h.querySelector('.lam'), sq = h.querySelector('rect');
+    a.paintInk(); const ink = lam.style.color, untouched = sq.getAttribute('fill') === null;
+    lam.style.color = ''; a.paintMarks(); const full = lam.style.color, painted = sq.getAttribute('fill') !== null; h.remove();
+    return { ink, full, untouched, painted };`);
+  check('accent.paintInk() re-inks the header λ as paintMarks does over the same ground, and paints no square', !!r.ink && r.ink === r.full && r.untouched && r.painted, JSON.stringify(r));
 
   /* ── 4. a work-bar transport outside the modulation window ── */
   const rows = [];

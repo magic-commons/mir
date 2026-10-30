@@ -276,8 +276,8 @@ BASINS' input capability layer (`app/overlay.js` WAVE-KBM), the kit's: touch or 
 | `gplLicence(name, { license, notice })`, `kitType(extra, fontsPath)` | The default licence and type lines |
 | `richText(node, line)` | Text and `[text, href]` parts. No `innerHTML`; unsafe schemes are dropped |
 | `safeHref(u)` | Whether a link's scheme is safe |
-| `createAccent({ accentStops, wheelStops, paletteOn, a, b, vivid, hueShift, stageGround, gamut, model, onAccent })` | Accents A and B as angles on a palette (`model: 'hsl'`, alpha.14: BASINS' HSL engine), plus the mark. Returns `{ apply, set(patch), wheelColor, accentColor, markInk, paintMarks, turn, busy(on), hueSat, a, b, vivid, hueShift, paletteOn, model }` |
-| `STAGE_GROUND`, `CARD_GROUND`, `MARK_SELECTOR` | The two stage grounds, the two card grounds, and the marks that `paintMarks()` paints |
+| `createAccent({ accentStops, wheelStops, paletteOn, a, b, vivid, hueShift, stageGround, gamut, model, onAccent })` | Accents A and B as angles on a palette (`model: 'hsl'`, alpha.14: BASINS' HSL engine), plus the mark. Returns `{ apply, set(patch), wheelColor, accentColor, markInk, paintMarks, paintInk, turn, busy(on), hueSat, a, b, vivid, hueShift, paletteOn, model }` |
+| `STAGE_GROUND`, `CARD_GROUND`, `MARK_SELECTOR` | The two stage grounds, the two card grounds, and the marks that `paintMarks()` paints (`paintInk()`, alpha.20: the header λ alone, over the stage ground) |
 | `renderNotebook(markdown, { marked, katex })` | Sanitised markdown with maths (λWAVES' renderer) |
 | `renderNotebookMath(tex, display, katex)` | One formula, with an escaped fallback |
 
