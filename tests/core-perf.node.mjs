@@ -29,6 +29,25 @@ const fakeEl = () => {
 }
 
 {
+  /* 1.5.6-alpha.18: an element holding one text node keeps that node; the write is its data (characterData), never a
+     replaced child (childList), so subtree-childList observers do not wake on a value */
+  reset();
+  const records = [];
+  const text = (d) => ({ nodeType: 3, _d: d, get data() { return this._d; }, set data(v) { this._d = v; records.push('characterData'); } });
+  const node = text('0.50');
+  const el = { firstChild: node, lastChild: node,
+    get textContent() { return this.firstChild ? this.firstChild.data : ''; },
+    set textContent(v) { records.push('childList'); this.firstChild = this.lastChild = v ? text(v) : null; } };
+  setText(el, '0.50'); setText(el, '0.75'); setText(el, 0.8);
+  assert.deepEqual(records, ['characterData', 'characterData']); assert.equal(el.firstChild, node); assert.equal(el.textContent, '0.8');
+  setText(el, '');                                                   // empty: the node goes, as textContent = '' did
+  assert.deepEqual(records.slice(2), ['childList']); assert.equal(el.firstChild, null);
+  setText(el, 'A');                                                  // no text node to keep: the old road
+  assert.equal(records[3], 'childList'); assert.equal(el.textContent, 'A');
+  pass('setText: one text node takes the new data (characterData), no childList record; an identical write writes nothing', records.join(' · '));
+}
+
+{
   reset();
   const el = fakeEl();
   setVar(el, '--turn', 0.25); setVar(el, '--turn', '0.25'); setVar(el, '--turn', 0.5);
