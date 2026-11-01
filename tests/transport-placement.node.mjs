@@ -1,7 +1,7 @@
 /* transport-placement.node.mjs — the pure rules of the one bar that moves, the tempo field, the macro rail's keys, the
  * lego stack and the palette diamond (BASINS' numbers). */
 import assert from 'node:assert/strict';
-import { placementOf, tempoDirection, travelBpm, reorderTo, TRANSPORT } from '../mir/shell/transport.js';
+import { placementOf, tempoDirection, travelBpm, reorderTo, TRANSPORT, nextPlace, placeGlyph, PLACES } from '../mir/shell/transport.js';
 import { stackedAt, withReserve, windowLayout } from '../mir/window/window.js';
 import { stackPlan, WORKSPACE } from '../mir/window/workspaces.js';
 import { paletteAt, MIR_PALETTE, PALETTE_STEP } from '../mir/shell/wordmark.js';
@@ -45,5 +45,12 @@ group('the lego stack: 8 px above, left edges together, inside the screen; the b
 group('the palette diamond: MIR\'s nine swatches, stepped exactly, every 240 ms (BASINS brand-motion.js)', () => {
   assert.equal(MIR_PALETTE.length, 9); assert.equal(PALETTE_STEP, 240);
   assert.equal(paletteAt(0, 0), '#f15b66'); assert.equal(paletteAt(0, 2), '#5bcfc2'); assert.equal(paletteAt(8, 1), '#f15b66');
+});
+group('a two-place cycle (1.5.6-alpha.28, λWAVES 032 C1/C3): RACK ↔ STAGE, the stage wears ↗ (popOut) and the rack ↙ (dock); a saved FREE is no place', () => {
+  const two = ['rack', 'stage'];
+  assert.equal(nextPlace(two, 'rack'), 'stage'); assert.equal(nextPlace(two, 'stage'), 'rack'); assert.equal(nextPlace(two, 'work'), 'rack', 'a work lane counts as the stage');
+  assert.equal(nextPlace(two, 'free'), 'rack', 'a place the cycle lacks steps to its first');
+  assert.equal(placeGlyph(two, 'stage'), 'popOut'); assert.equal(placeGlyph(two, 'rack'), 'dock');
+  assert.equal(placeGlyph(PLACES, 'stage'), 'barsBottom', 'the three-place cycle is unchanged'); assert.equal(placeGlyph(PLACES, 'free'), 'popOut');
 });
 console.log(`\n${groups.length} transport-placement groups pass`);

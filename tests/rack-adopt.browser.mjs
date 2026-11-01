@@ -107,6 +107,22 @@ try {
       return out;`);
     check('the sortable list in an adopted left rack (no kit look class) puts its chips on the outer edge, left of the pane; the grip is what a hand presses', r.rack === '' && r.hook === '' && r.side === 'left' && r.stripRight <= r.paneLeft + 1 && r.gripHit, JSON.stringify(r));
   }
+  /* 1.5.6-alpha.28 · THE CARD'S × AND THE BARE POP: an app card's × closes through the rack (its onClose runs, once); popped,
+     a { bare: true } card draws no title bar — its × and rail chip stay (the house skin hides the pop chip everywhere) */
+  {
+    const at = await run(`const { device } = await import('/mir/kit.js'); const d = device({ id: 'probe', eyebrow: 'PROBE' });
+      document.getElementById('rackL').appendChild(d.root); window.__shut = 0;
+      R.register({ id: 'probe', el: d, card: true, bare: true, onClose: () => { window.__shut++; } }); R.open('probe'); await settle();
+      const b = d.root.querySelector('.dev-close').getBoundingClientRect(); return { x: Math.round(b.left + b.width / 2), y: Math.round(b.top + b.height / 2) };`);
+    await mouse('mouseMoved', at.x, at.y); await mouse('mousePressed', at.x, at.y); await mouse('mouseReleased', at.x, at.y); await sleep(120);
+    const shut = await run(`return { shut: window.__shut, closed: dev('probe').classList.contains('closed'), again: R.close('probe') && window.__shut };`);
+    check('an app card\'s × closes through the rack: its onClose runs once (the empty-slot bug)', shut.shut === 1 && shut.closed && shut.again === 1, JSON.stringify(shut));
+    const bare = await run(`R.open('probe'); R.float('probe'); await settle(); const h = dev('probe').querySelector('.dev-head'), cs = (n) => getComputedStyle(n);
+      const out = { floating: dev('probe').classList.contains('floating'), id: cs(h.querySelector('.dev-id')).display, close: cs(h.querySelector('.dev-close')).display, rail: cs(h.querySelector('.dev-rail')).display, head: cs(h).position };
+      R.dock('probe'); await settle(); out.docked = cs(dev('probe').querySelector('.dev-id')).display; R.close('probe'); return out;`);
+    check('a bare card popped off the rack draws no title bar; its × and rail chip stay; docked again, its title is back',
+      bare.floating && bare.id === 'none' && bare.close !== 'none' && bare.rail !== 'none' && bare.head === 'absolute' && bare.docked !== 'none', JSON.stringify(bare));
+  }
   check('the page raised no exception', !p.logs.some((l) => l.startsWith('EXCEPTION')), p.logs.join(' | '));
 } finally {
   await p.close();

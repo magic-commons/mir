@@ -74,6 +74,10 @@ It returns `{ root, layout, parts, el: { play, power, door, pill, field, panel, 
 
 **Pure helpers** (`tests/transport.node.mjs`, `tests/transport-placement.node.mjs`): `formatBpm`, `clampBpm`, `digitStep`, `charAt`, `dragBpm`, `keyStep`, `parseBpm`, `seatOf`, `homeOf`, `seatRect`, `menuSide`, `firstRun`, `localSeatStore`, `menuRow`, `openerRows`, `isOpenOf`, `toggleOf`, `rackOpeners`, `transportActions`, `layoutNames`, `placementOf`, `tempoDirection`, `travelBpm`, `reorderTo`; `TRANSPORT`, `SEATS`, `PLACEMENTS`, `DOCK_ID`, `SVG_REWIND`.
 
+## Two places, and every close road (1.5.6-alpha.28)
+
+`createTransport({ places: ['rack', 'stage'] })` is a cycle of two (λWAVES 032 C1): the dock chip wears the NEXT place's glyph, the rack's ↙ (`dock`) and, with no FREE in the list, the stage's ↗ (`popOut`, `placeGlyph(list, place)`), and `setPlace('free')` is the stage there; a saved FREE seat opens on the stage. Nothing in the kit assumes FREE exists. **Every close road undocks**: whatever closes the card the bar stands in (the rack, the kit device's own ×, an app's verb) dispatches `devclose`, and the bar leaves it for the stage or the work lane (`setDocked(false)`).
+
 ## The one bar that moves
 
 Josh: *"when the timeline is open and the toolbar is hidden, let the center transport return. Hide center floating transport when the toolbar comes back."* · *"If timeline is hidden then bring back transport"* · *"If Transport was already selected to be closed, then let it stay closed until called back by the user."*
