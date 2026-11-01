@@ -223,6 +223,12 @@ export function createModClock(opts) {
   const advanceWatchers = new Set();
   const advanced = (kind) => { for (const fn of advanceWatchers) { try { fn(kind); } catch (e) { (globalThis.reportError || console.error)(e); } } };
   let automation = null;           /* optional beat-sampled moving baseline, never an authored write */
+  /* THE LOOP (1.5.6-alpha.25, λWAVES 032 T1): an optional provider () → { start, end } | null, read on the REALTIME pump
+     only.  A tick whose beat crosses `end` (from before it) lands at start + the overshoot, before anything is applied, so
+     no frame is drawn at `end`; a seek, a paused move and the recorder's deterministic step never loop (a film is exact). */
+  let loopProvider = null;
+  const readLoop = () => { let r = null; try { r = loopProvider(); } catch (_) { return null; }
+    return r && Number.isFinite(r.start) && Number.isFinite(r.end) && r.start >= 0 && r.end > r.start ? r : null; };
   let modulationEnabled = true;    /* deterministic clients may drive automation without macro routes */
   let exactResume = !!o.exactResume; /* arrangements can own an exact play cursor; legacy ships */
   let automationHold = !!o.automationHold; /* paused arrangement baseline is independent of LFO BASE/HOLD */
@@ -234,7 +240,7 @@ export function createModClock(opts) {
   const automationBeat = (beats) => (automationGrid && exactStep === 0 ? Math.floor(beats / automationGrid) * automationGrid : beats);
   const stats = { plays: 0, pauses: 0, autoPauses: 0, resumes: 0, frames: 0, steps: 0,
                   seconds: 0, sets: 0, restores: 0, presents: 0, refusedPlays: 0,
-                  arms: 0, disarms: 0, quantised: 0, beatsRewound: 0 };
+                  arms: 0, disarms: 0, quantised: 0, beatsRewound: 0, loops: 0 };
   let lastResume = { law: 'FREE', grid: 0, anch: 0, bpm: 0, trig: 0, free: 0,
                      from: 0, to: 0, moved: 0, mode: 'wall', applied: false };
 
@@ -456,9 +462,14 @@ export function createModClock(opts) {
       if (!running) return 0;
       stats.frames++;
       stats.seconds += dt;
+      const from = M.transport.beats;
       M.advance(dt, w);
+      const L = loopProvider && readLoop(), b = M.transport.beats, looped = !!L && from < L.end && b >= L.end;
+      if (looped) {                  /* THE LOOP: the model's own road, as the resume moves the beat (setTransport, re-anchor, a dt-0 edit) */
+        M.setTransport({ beats: L.start + ((b - L.end) % (L.end - L.start)) }); M.reanchorTransport(w); M.advance(0, w); stats.loops++;
+      }
       if (applyAll(false)) requestPresentation('modulation-output');
-      if (advanceWatchers.size) advanced('tick');
+      if (advanceWatchers.size) { if (looped) advanced('seek'); advanced('tick'); }
       return dt;
     },
 
@@ -533,6 +544,11 @@ export function createModClock(opts) {
     isModulationEnabled: () => modulationEnabled,
     setExactResume(on) { exactResume = !!on; return exactResume; },
     isExactResume: () => exactResume,
+    /** setLoop(provider | null) — THE LOOP's seat (1.5.6-alpha.25): () → { start, end } | null, read each realtime tick; a
+     *  tick that crosses `end` lands at `start` (+ the overshoot) and is heard as 'seek' then 'tick'.  → whether one is set */
+    setLoop(provider) { loopProvider = typeof provider === 'function' ? provider : null; return !!loopProvider; },
+    /** the loop in force now ({ start, end }) or null (free run) */
+    loop: () => (loopProvider ? readLoop() : null),
     /** onAdvance(fn(kind)) → off: fn after every move of musical time — 'tick', 'step' or 'seek' (see the notice above) */
     onAdvance(fn) { advanceWatchers.add(fn); return () => advanceWatchers.delete(fn); },
     /** the sampling grid in beats: 0 (FRAME), 1/32, 1/16 or 1/8; anything else is 0.  → the grid now */

@@ -71,7 +71,9 @@ const H2 = createModHost({ roots: ['camera'], presentationActive: false }); H2.m
 const ctl = createTransportController({ mod: { host: H2, armed: () => false, arm: () => false, play: () => ({ ok: true }) } });
 ctl.beginScrub();
 ctl.scrub(1.125, {}); assert.equal(H2.model.transport.beats, 1.125, 'unsnapped: the beat lands exactly');
-ctl.scrub(1.6, { shift: true, snap: .25 }); assert.equal(H2.model.transport.beats, 1.5, 'Shift snaps to the grid');
+ctl.scrub(1.6, { shift: true, snap: .25 }); assert.equal(H2.model.transport.beats, 1.5, 'Shift snaps to the grid (the BASINS spelling)');
+ctl.scrub(1.6, { snapped: true, snap: .25 }); assert.equal(H2.model.transport.beats, 1.5, 'snapped (the editor’s Ctrl, 1.5.6-alpha.23) snaps');
+ctl.scrub(1.6, { snapped: false, shift: true, snap: .25 }); assert.equal(H2.model.transport.beats, 1.6, 'snapped: false wins over shift');
 ctl.scrub(1.6, { shift: true, snap: .25, alt: true }); assert.equal(H2.model.transport.beats, 1.6, 'Alt bypasses the grid even with Shift held');
 assert.equal(ctl.handBeat(), 1.6);
 ctl.endScrub(); assert.equal(ctl.handBeat(), null, 'handBeat is null outside a scrub');
@@ -93,3 +95,32 @@ for (const [level, expectSeeks] of [['live', 6], ['light', 2], ['release', 0]]) 
 lev.dispose();
 ctl.dispose(); H2.dispose();
 console.log('Transport controller shared actions, source-free demand, independent MOD, Beginning, refusal cleanup, seek/base invariants, free scrub and SCRUB-level invariants pass.');
+
+// THE LOOP (1.5.6-alpha.25): loop() is the ruler's range › the ACTIVE range › the clips' extent › null; a playing tick that
+// crosses the end lands on the start (+ the overshoot) before anything is applied; a seek, a paused clock and the recorder's
+// step never loop; a play started past the end runs free.
+{ const H3 = createModHost({ roots: ['camera'], presentationActive: false }); H3.model.modReset({ bare: true }); H3.clock.setBpm(60);
+  let wall = 0, seen = [], values = [];
+  H3.targets.install({ id: 'camera.loop', min: 0, max: 8, map: 'linear', get: () => 0, set: (v) => values.push(v) });
+  H3.clock.setAutomation({ value: (_, b) => b / 8 }); H3.clock.onAdvance((k) => seen.push(k));
+  const lc = createTransportController({ now: () => wall, mod: { host: H3, armed: () => false, arm: () => false, play: (on) => (on ? H3.clock.play(wall) : H3.clock.pause(wall)) } });
+  let R = null, A = null, E = null;
+  assert.equal(lc.loop(), null, 'no source: free run');
+  lc.loopFrom({ range: () => R, active: () => A, extent: () => E });
+  assert.equal(lc.loop(), null); E = { start: 1, end: 4 }; assert.deepEqual(lc.loop(), E, 'the clips’ extent');
+  A = { start: 2, end: 6 }; assert.deepEqual(lc.loop(), A, 'ACTIVE over the extent'); R = { start: 0.5, end: 3 }; assert.deepEqual(lc.loop(), R, 'the ruler’s range over ACTIVE');
+  R = { start: 5, end: 5 }; assert.deepEqual(lc.loop(), A, 'an empty range is no range'); R = null; A = null;
+  assert.deepEqual(H3.clock.loop(), E, 'seated on the clock');
+  lc.seek(3); lc.play(true); assert.equal(H3.clock.isRunning(), true);
+  const tick = (dt) => { wall += dt; H3.clock.advanceTo(wall); };
+  tick(0); for (let i = 0; i < 10; i++) tick(.05); const near4 = H3.model.transport.beats; assert.ok(Math.abs(near4 - 3.5) < 1e-9, String(near4));
+  values.length = 0; seen.length = 0;
+  for (let i = 0; i < 11; i++) tick(.05);
+  const b = H3.model.transport.beats; assert.ok(Math.abs(b - 1.05) < 1e-9, 'crossed 4 by .05 → lands at 1.05: ' + b);
+  assert.ok(values.every((v) => v < 4 - 1e-9), 'no frame is applied at the end: ' + values.map((v) => v.toFixed(2)).join(' '));
+  assert.ok(seen.includes('seek') && seen.at(-1) === 'tick', 'heard as a seek, then the tick'); assert.equal(H3.clock.stats().loops, 1);
+  lc.play(false); lc.seek(4.5); assert.equal(H3.model.transport.beats, 4.5, 'a paused seek past the end is unaffected');
+  lc.play(true); tick(.05); tick(.05); assert.ok(H3.model.transport.beats > 4.5, 'a play started past the end runs free');
+  lc.play(false); lc.seek(3.9); for (let i = 0; i < 6; i++) H3.clock.step(.05); assert.ok(H3.model.transport.beats > 4, 'the recorder’s step never loops: ' + H3.model.transport.beats);
+  lc.loopFrom(null); assert.equal(H3.clock.loop(), null, 'loopFrom(null): free run'); lc.dispose(); H3.dispose(); }
+console.log('THE LOOP: precedence, the wrap before the apply, seeks, paused moves, the recorder and a late start pass.');

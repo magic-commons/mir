@@ -9,7 +9,7 @@
  *   createTimeline(host, port) → tl
  *     host    the element the window and its rail go in (the app's float layer)
  *     port    { model, mod, controller?, present?, say?, dock?, store?, size?, min?, keys?, transport?, audio?, id?, title?,
- *               remap? }  (docs/TIMELINE.md: the port)
+ *               remap?, loop? }  (docs/TIMELINE.md: the port; loop: false keeps the clock free-running, 1.5.6-alpha.25)
  *   tl: { win, root, rail, editor, model, controller, transport, open, close, toggle, isOpen, paintHead, presentation,
  *         restore, shortcuts(x, y), destroy }
  *
@@ -73,6 +73,8 @@ export function createTimeline(host, port) {
   editor = buildTimelineEditor({ body: win.body, root: win.root, rail: win.rail, isOpen: win.isOpen, open: win.open }, { model, mod, controller, present, say, audio: port.audio || null,
     keys: () => (tl && tl.keys) || port.keys || null });   // the table's chords beside ⋯'s rows (bind.js sets tl.keys: the app's, or the timeline's own)
   editor.setWorkLane(workLane);
+  /* THE LOOP (1.5.6-alpha.25): the ruler's range › the ACTIVE range › the clips' extent › free run, on the kit's controller */
+  if (port.loop !== false && typeof controller.loopFrom === 'function') controller.loopFrom({ range: () => editor.range(), active: () => editor.activeRange(), extent: () => model.extent() });
 
   /* THE ONE PLAY, in the work bar: the kit's transport in BASINS' timeline form */
   const clock = {
