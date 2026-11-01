@@ -6,7 +6,7 @@
  *     removePoint, setTension, setSegment, deleteClip, deleteClips, copyClips, pasteClips, duplicateClips, moveClips,
  *     duplicate, makeUnique, value(targetId, beat), setActive, activeClips(beat, kind?), needsClock(has), signature,
  *     rederive(patches), lastRefusal, extent({ unmuted }), stretchClip(id, edge, duration, { original }),
- *     placeClip(curveId, { laneId, start, duration, offset, scale }) }
+ *     placeClip(curveId, { laneId, start, duration, offset, scale }), retarget(clipId, targetId, { name }) }
  *   value(targetId, beat) is the automation the modulation clock samples (host.clock.setAutomation({ value })).
  *   THE ARRANGEMENT'S LAW (1.5.6-alpha.21, λWAVES 032 T12): of the unmuted clips under the beat on one target, the
  *   HIGHEST LANE wins (its index in `lanes`, 0 the top), then the EARLIEST start, then the lower id; its 0..1 value is
@@ -226,6 +226,17 @@ export function createTimelineModel() {
       if (!curve || !data.lanes.some(l => l.id === laneId) || ![start, duration, offset, scale].every(Number.isFinite) || start < 0 || duration <= 0 || offset < 0 || scale <= 0 || data.clips.length >= 4096) return null;
       if (refuseAudio([curve])) return null;
       return edit(d => { const clip = { id: id('clip'), curveId, laneId, start, duration, offset, scale, mute: false, followSourceEnd: !!followSourceEnd }; d.clips.push(clip); return clip.id; });
+    },
+    /** retarget(clipId, targetId, { name }) — THE ROUTE FROM A CLIP (1.5.6-alpha.26, λWAVES 032 T20): the clip's curve drives
+     *  another target; a curve other clips share is copied first (as makeUnique), so they keep theirs.  One undo; → the
+     *  curve id the clip now plays, or null (no clip, no target, the curve budget). */
+    retarget(clipId, targetId, { name } = {}) {
+      if (typeof targetId !== 'string' || !targetId) return null;
+      return edit(d => { const c = d.clips.find(x => x.id === clipId); if (!c) return null; let curve = d.curves.find(x => x.id === c.curveId);
+        if (d.clips.some(x => x !== c && x.curveId === curve.id)) {
+          if (d.curves.length >= 1024 || d.curves.reduce((n, x) => n + x.points.length, 0) + curve.points.length > TIMELINE_MAX_TOTAL_POINTS) return null;
+          curve = { ...clone(curve), id: id('curve') }; d.curves.push(curve); c.curveId = curve.id; }
+        curve.targetId = targetId; if (name != null) curve.name = String(name).slice(0, 80); return curve.id; });
     },
     makeUnique(clipId) { return edit(d=>{const c=d.clips.find(c=>c.id===clipId);if(!c)return false;
       if(d.clips.filter(x=>x.curveId===c.curveId).length===1)return true;

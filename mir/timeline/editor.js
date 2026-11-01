@@ -215,6 +215,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
       ['TITLE / COLOR',()=>editIdentity(x,y,curve),'identity'],
       [c.mute?'ENABLE CLIP':'DISABLE CLIP',()=>model.updateClip(c.id,{mute:!c.mute}),'mute'],   // T25: the MUTE row's words (clip.mute, the row id unchanged)
       ['DUPLICATE',()=>{selectOnly(c.id);duplicateSelection();},'duplicate'],
+      ...(drives&&typeof mod.view?.api?.armFor==='function'?[['ROUTE NEW PARAMETER…',()=>routeClip(c.id,curve),'route']]:[]),   // T20: arm the controls, the tap re-targets the clip
       ...(drives?[['OUTPUT RANGE',()=>{pop(x,y,'NORMALIZED MIN / MAX',[],'range');const num=(o)=>{const n=number({min:0,max:1,step:.01,...o});n.root.classList.add('tl-value-num');menu.appendChild(n.root);return n;};const lo=num({aria:'Output minimum',value:curve.min}),hi=num({aria:'Output maximum',value:curve.max});button(menu,'APPLY',()=>{for(const n of [lo,hi])if(n.editing)n.close(true);model.updateCurve(curve.id,{min:lo.get(),max:hi.get()});closeMenu();}).dataset.tlAction='apply';},'output-range']]:[]),   // the kit's number fields (call 19)
       ...(kind?[]:[['ADD MIDPOINT',()=>{const beat=c.offset+c.duration*c.scale/2;model.addPoint(curve.id,beat,evaluateTimelineSource(curve,beat));},'add-midpoint']]),
       ['STRETCH ×2',()=>model.updateClip(c.id,{duration:c.duration*2,scale:c.scale/2}),'stretch'],
@@ -230,6 +231,12 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
     return !!(yes&&doc.lanes.some(l=>l.id===laneId)&&model.removeLane(laneId,true)?.ok);}
   function laneMenu(x,y,laneId){const lane=doc.lanes.find(l=>l.id===laneId);if(!lane)return;
     pop(x,y,{raw:lane.name},[['ADD LANE',()=>model.addLane(),'add-lane'],...(doc.lanes.length>1?[['REMOVE LANE',()=>removeLane(laneId),'remove-lane']]:[])],'lane');}
+  /* ROUTE NEW PARAMETER… (T20, 1.5.6-alpha.26): the modulation window's arming with no macro — every routable control lights;
+     the one tapped becomes the clip's target (its curve copied first when other clips share it); Escape or a tap elsewhere ends it */
+  function routeClip(clipId,curve){say(t('Tap a lit control to route {clip} to it; Escape cancels.',{clip:curve.name}));
+    mod.view.api.armFor({label:curve.name,onPick(tid){const d=mod.registry.has(tid)?mod.registry.describe(tid):null,was=view.getClip(clipId)?.curveId;
+      const to=model.retarget(clipId,tid,{name:d?.label||tid});if(!to){say(t('No room for another curve: remove a curve first.'));return;}
+      say(to===was?t('{clip} now drives {target}',{clip:curve.name,target:d?.label||tid}):t('{clip} now drives {target} (its own copy: the other clips keep {old})',{clip:curve.name,target:d?.label||tid,old:curve.targetId}));}});}
   /* an EVENT clip's bands follow its target: a point edit on a curve drawn for another count takes the target's count (⚠ clears) */
   function syncSteps(curveId){const c=doc.curves.find(x=>x.id===curveId);if(!c||!c.steps)return;const want=stepsOf(c.targetId);if(want&&want!==c.steps)model.updateCurve(curveId,{steps:want});}
   /* createClip(targetId): a curve clip at the playhead's bar (or over the ruler's range); on a BANDED target (registry options,

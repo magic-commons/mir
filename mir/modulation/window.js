@@ -1169,6 +1169,18 @@ export function createModulation(host, port) {
     }
     return ok ? ok.dataset.param : null;
   }
+  /* armFor({ onPick(targetId), label, onEnd }) → end() — THE ARMING WITHOUT A MACRO (1.5.6-alpha.26, λWAVES 032 T20): every
+     routable control is lit as a macro's armed grip lights them; a tap on one calls onPick(its id) instead of routing; a tap
+     elsewhere, Escape or end() ends it (onEnd).  A timeline clip's ROUTE NEW PARAMETER… arms through it. */
+  function armFor({ onPick, label = '', onEnd = null } = {}) {
+    if (typeof onPick !== 'function') return () => {};
+    if (armed) endArm();
+    armed = { macroId: null, grip: null, mode: 'armed', over: null, onPick, onEnd };
+    targetsOn(true);
+    status(t('ROUTE {name}: tap a lit control, Escape cancels', { name: label || '—' }), '');   // tr: ROUTE: the clip waits for a tap on a control to drive it
+    const me = armed;
+    return () => { if (armed === me) { endArm(); status('', ''); } };
+  }
   function startArm(macroId, e, grip) {
     if (armed) endArm();
     armed = { macroId, grip, pid: e.pointerId, mode: 'press', x0: e.clientX, y0: e.clientY, over: null,
@@ -1179,9 +1191,10 @@ export function createModulation(host, port) {
   function endArm() {
     if (!armed) return;
     if (armed.over) armed.over.classList.remove('is-over');
-    armed.grip.classList.remove('m2armed');
-    const wasDrag = armed.mode === 'drag';
+    if (armed.grip) armed.grip.classList.remove('m2armed');
+    const wasDrag = armed.mode === 'drag', onEnd = armed.onEnd;
     armed = null; drops = [];
+    if (onEnd) { try { onEnd(); } catch (err) { (globalThis.reportError || console.error)(err); } }
     if (wasDrag) glow.end();
     targetsOn(false); hideGhost();
   }
@@ -1259,7 +1272,8 @@ export function createModulation(host, port) {
     const tid = k && k.dataset.param;
     if (tid && registry.has(tid)) {
       e.preventDefault(); e.stopPropagation();
-      const mid = armed.macroId; endArm(); dropOn(mid, tid);
+      const mid = armed.macroId, pick = armed.onPick; endArm();
+      if (pick) pick(tid); else dropOn(mid, tid);
       return;
     }
     if (e.target.closest && e.target.closest('.m2grip')) return;   // the grip's own handler answers
@@ -2284,7 +2298,12 @@ export function createModulation(host, port) {
     points = normalizeTimelinePoints(points);
     if (!points || !(beats > 0)) return warn(t('This device has no shape to send'));
     const d = registry.describe().find((x) => x.id === targetId);
-    return done(add('curve', { points, color: hexInk(rec) }, { duration: beats, targetId, name: (d && d.label) || targetId }), s.kind === 'env' ? t('the envelope') : t('one cycle'), beats);
+    const id = add('curve', { points, color: hexInk(rec) }, { duration: beats, targetId, name: (d && d.label) || targetId });
+    /* THE SEND DISARMS (1.5.6-alpha.27, λWAVES 032 T26): the shape now lives on the timeline, so the device is bypassed (its
+       power off, its settings kept; the hand turns it back on).  A pattern send keeps its ENV on: the clip fires through it. */
+    if (id && s.on) { M.setSource(s.id, { on: false }); clock.recomputeRunning(); apply(); sync(); }
+    const msg = done(id, s.kind === 'env' ? t('the envelope') : t('one cycle'), beats);
+    return id ? t('{sent} · the device is bypassed', { sent: msg }) : msg;
   }
 
 
@@ -3388,7 +3407,9 @@ export function createModulation(host, port) {
     dead: () => M.dormantRoutes().map((r) => ({ id: r.id, macro: r.macroId, target: r.targetId })),
     performance: () => ({ calls: paintCalls, paints: paintRuns, ms: paintMs, averageMs: paintRuns ? paintMs / paintRuns : 0 }),
     /** → TL for one device (the PATTERN row menu's SEND TO TIMELINE): the sentence said, or null (refused out loud) */
-    sendToTimeline: (id) => { const s = M.sourceOf(id); return s ? sendToTimeline(s) : null; }
+    sendToTimeline: (id) => { const s = M.sourceOf(id); return s ? sendToTimeline(s) : null; },
+    /** armFor({ onPick(targetId), label, onEnd }) → end(): the routing's arming with no macro (1.5.6-alpha.26) */
+    armFor
   };
 
 

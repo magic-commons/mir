@@ -603,6 +603,7 @@
   "No envelopes on the rack — add one with +": "No envelopes on the rack — add one with +",
   "No macros yet — add one in the modulation window.": "No macros yet — add one in the modulation window.",
   "No name pill while a rack scrolls": "No name pill while a rack scrolls",
+  "No room for another curve: remove a curve first.": "No room for another curve: remove a curve first.",
   "No room for this audio clip here: add a lane or choose another time.": "No room for this audio clip here: add a lane or choose another time.",
   "No room on the timeline for {what} — add a lane or move the playhead": "No room on the timeline for {what} — add a lane or move the playhead",
   "No room: {max} minutes of audio is the budget (this would be {now}).": "No room: {max} minutes of audio is the budget (this would be {now}).",
@@ -756,6 +757,7 @@
   "ROTATE": "ROTATE",
   "ROTATION": "ROTATION",
   "ROTATION — drag up or down to turn the view about its centre; double-tap for north": "ROTATION — drag up or down to turn the view about its centre; double-tap for north",
+  "ROUTE {name}: tap a lit control, Escape cancels": "ROUTE {name}: tap a lit control, Escape cancels",
   "RUN": "RUN",
   "RUN SELF-TEST": "RUN SELF-TEST",
   "Rack presets, in folders: {factory} ships with the app, the rest are yours": "Rack presets, in folders: {factory} ships with the app, the rest are yours",
@@ -1013,6 +1015,7 @@
   "Tab is kept for moving the focus.": "Tab is kept for moving the focus.",
   "Tap a corner (A · B · C · D) first, then a snapshot's number.": "Tap a corner (A · B · C · D) first, then a snapshot's number.",
   "Tap a corner first, then this number, to put this snapshot there": "Tap a corner first, then this number, to put this snapshot there",
+  "Tap a lit control to route {clip} to it; Escape cancels.": "Tap a lit control to route {clip} to it; Escape cancels.",
   "Tap repeatedly to set the modulation clock": "Tap repeatedly to set the modulation clock",
   "Tap the tempo": "Tap the tempo",
   "Tap the tempo: four taps set it": "Tap the tempo: four taps set it",
@@ -1500,6 +1503,8 @@
   "{chord} is already bound to “{other}”: press it again to take it, or Esc to cancel": "{chord} is already bound to “{other}”: press it again to take it, or Esc to cancel",
   "{chord} now runs “{action}”, taken from “{other}”": "{chord} now runs “{action}”, taken from “{other}”",
   "{chord} runs “{action}”": "{chord} runs “{action}”",
+  "{clip} now drives {target}": "{clip} now drives {target}",
+  "{clip} now drives {target} (its own copy: the other clips keep {old})": "{clip} now drives {target} (its own copy: the other clips keep {old})",
   "{key} is a modifier: it joins a chord": "{key} is a modifier: it joins a chord",
   "{key} is free": "{key} is free",
   "{key}: a modifier": "{key}: a modifier",
@@ -1570,6 +1575,7 @@
    "other": "{n} words · kept in this browser"
   },
   "{order} — press for the next sort order": "{order} — press for the next sort order",
+  "{sent} · the device is bypassed": "{sent} · the device is bypassed",
   "{shape} drawn": "{shape} drawn",
   "{shape} flipped": "{shape} flipped",
   "{shape} is its own mirror — nothing to flip": "{shape} is its own mirror — nothing to flip",
@@ -1654,6 +1660,7 @@
   "RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})": "raise = a control standing out; wells = sunken tracks and fields; ANGLE is the panes' light angle",
   "RISE": "a demo LFO's name: it moves the camera up and down (the user can rename it)",
   "ROOT": "ROOT: the top of the folder tree, the projects in no folder (not a route)",
+  "ROUTE {name}: tap a lit control, Escape cancels": "ROUTE: the clip waits for a tap on a control to drive it",
   "S&H": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
   "SAW↑": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
   "SAW↓": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
@@ -3557,6 +3564,9 @@
   "No name pill while a rack scrolls": [
    "mir/shell/gui.js"
   ],
+  "No room for another curve: remove a curve first.": [
+   "mir/timeline/editor.js"
+  ],
   "No room for this audio clip here: add a lane or choose another time.": [
    "mir/timeline/audio-drop.js"
   ],
@@ -4032,6 +4042,9 @@
   ],
   "ROTATION — drag up or down to turn the view about its centre; double-tap for north": [
    "mir/panels/camera-rig.js"
+  ],
+  "ROUTE {name}: tap a lit control, Escape cancels": [
+   "mir/modulation/window.js"
   ],
   "RUN": [
    "mir/modulation/window.js"
@@ -4809,6 +4822,9 @@
   ],
   "Tap a corner first, then this number, to put this snapshot there": [
    "mir/panels/xy.js"
+  ],
+  "Tap a lit control to route {clip} to it; Escape cancels.": [
+   "mir/timeline/editor.js"
   ],
   "Tap repeatedly to set the modulation clock": [
    "mir/modulation/window.js"
@@ -6328,6 +6344,12 @@
   "{chord} runs “{action}”": [
    "mir/keyboard/keyboard.js"
   ],
+  "{clip} now drives {target}": [
+   "mir/timeline/editor.js"
+  ],
+  "{clip} now drives {target} (its own copy: the other clips keep {old})": [
+   "mir/timeline/editor.js"
+  ],
   "{key} is a modifier: it joins a chord": [
    "mir/keyboard/keyboard.js"
   ],
@@ -6447,6 +6469,9 @@
   ],
   "{order} — press for the next sort order": [
    "mir/folders/folders.js"
+  ],
+  "{sent} · the device is bypassed": [
+   "mir/modulation/window.js"
   ],
   "{shape} drawn": [
    "mir/modulation/window.js"

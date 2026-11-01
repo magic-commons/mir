@@ -223,7 +223,7 @@ not on a canvas. **MIR has all four, in `mir/modulation/`** (λWAVES had them in
 |---|---|---|
 | 1 | **the parameter registry** — `has(id)`, `get(id)`, and a `label` per target; it is what makes a control routable, and `m2droppables()` walks it | `mir/modulation/registry.js`, `createRegistry()` |
 | 2 | **a target host** — `install` / `sync` / `uninstall` / `available` | `mir/modulation/host.js`, `createTargetHost()` |
-| 3 | **a clock that owns modulation time** — the whole of the risk, and six behaviours read the same two numbers (`dt`, wall stamp) and mean different things by them | `mir/modulation/host.js`, `createModClock()` |
+| 3 | **a clock that owns modulation time** — the whole of the risk, and six behaviours read the same two numbers (`dt`, wall stamp) and mean different things by them; its automation (a timeline) WINS where it has a value: a device's routes on that target stand aside there, a hand macro layers (1.5.6-alpha.27); it may loop (`setLoop`, 1.5.6-alpha.25) | `mir/modulation/host.js`, `createModClock()` |
 | 4 | **presentation + geometry invalidation callbacks** — default no-ops | `mir/modulation/host.js`, `createModHost()` |
 
 Plus the model itself: `mir/modulation/mod.js` (LFO, ENV, AUDIO, macros, routes, transport,

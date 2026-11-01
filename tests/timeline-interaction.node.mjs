@@ -87,3 +87,14 @@ console.log('Timeline grouped edits/copies/undo, capacity rejection, dock sides,
   assert.equal(p.placeClip(cv,{laneId:'lane1',start:-1,duration:4}),null);assert.equal(p.placeClip(cv,{laneId:'lane1',start:0,duration:0}),null);
   p.undo();p.undo();p.undo();p.undo();assert.equal(p.signature(),sig,'each stamp is one undo');void a;}
 console.log('Timeline pencil stamp: a shared instance on any lane, makeUnique detaches, refusals, one undo each.');
+
+// 1.5.6-alpha.26 · THE ROUTE FROM A CLIP: retarget(clipId, targetId, { name }) — a lone curve changes its target; a shared one
+// is copied first, so the other clips keep theirs; one undo each.
+{ const r=createTimelineModel(),a=r.create({targetId:'camera.rotation',start:0,duration:4,value:.3}),cv=r.state().curves[0].id;
+  assert.equal(r.retarget(a,'camera.zoom',{name:'ZOOM'}),cv);assert.deepEqual([r.state().curves[0].targetId,r.state().curves[0].name],['camera.zoom','ZOOM']);
+  near(r.value('camera.zoom',1),.3);assert.equal(r.value('camera.rotation',1),null,'the index follows the new target');
+  const b=r.duplicate(a);const sig=r.signature(),to=r.retarget(b,'camera.pan',{name:'PAN'});
+  assert.notEqual(to,cv,'a shared curve is copied first');assert.equal(r.state().curves.find(c=>c.id===cv).targetId,'camera.zoom','the other clip keeps its target');
+  assert.equal(r.state().clips.find(c=>c.id===b).curveId,to);r.undo();assert.equal(r.signature(),sig,'one undo');
+  assert.equal(r.retarget('nope','camera.pan'),null);assert.equal(r.retarget(a,''),null);}
+console.log('Timeline retarget: a lone curve re-targets, a shared one is copied first, one undo.');

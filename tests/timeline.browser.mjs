@@ -157,6 +157,24 @@ const RUN = await (async () => {
     L.ck(/^DISABLE CLIP/.test(muteWord), 'the clip menu\'s MUTE row reads DISABLE CLIP', muteWord);
     await E((keep) => { window.__TL.mod.remove('scene.mode'); window.__TL.model.restore(keep); }, ev.keep);
 
+    /* ── THE ROUTE FROM A CLIP (1.5.6-alpha.26): ⋯ › ROUTE NEW PARAMETER… arms every routable control (the modulation window's
+       arming, no macro); the tap on SPIN re-targets the clip's curve ───────────────────────────────────────────────── */
+    const rt = await E(() => { const T = window.__TL, keep = T.model.serialize(); T.model.restore(null); document.querySelector('.tl-viewport').scrollLeft = 0;
+      const id = T.model.create({ targetId: 'scene.glow', name: 'GLOW', value: .5, start: 0, duration: 8, laneId: T.model.state().lanes[0].id }); T.tl.editor.paint(); return { id, keep }; });
+    await page.waitForTimeout(80);
+    const rmore = await center(`.tl-clip-title[data-clip="${rt.id}"] .tl-clip-more`); await page.mouse.click(rmore[0], rmore[1]); await page.waitForTimeout(60);
+    const rrow = await center('.tl-pop [data-row="route"]'); if (rrow) { await page.mouse.click(rrow[0], rrow[1]); await page.waitForTimeout(60); }
+    const arming = await E(() => ({ on: document.body.classList.contains('mod-arming'), lit: document.querySelectorAll('.mod-drop').length }));
+    const spin = await center('.k[data-param="scene.spin"] .k-dial'); if (spin) { await page.mouse.click(spin[0], spin[1]); await page.waitForTimeout(60); }
+    const routed = await E(() => ({ target: window.__TL.model.state().curves[0].targetId, name: window.__TL.model.state().curves[0].name, on: document.body.classList.contains('mod-arming') }));
+    L.ck(!!rrow && arming.on && arming.lit >= 4 && routed.target === 'scene.spin' && routed.name === 'SPIN' && !routed.on, 'ROUTE NEW PARAMETER… lights every routable control; the tap on SPIN re-targets the clip and ends the arming', { arming, routed });
+    await E((keep) => { window.__TL.model.restore(keep); }, rt.keep);
+    /* THE SEND DISARMS (1.5.6-alpha.27): →TL lands the device's cycle on the timeline and bypasses the device (its power off) */
+    const sent = await E(() => { const T = window.__TL, keep = T.model.serialize(), r = T.mod.route('lfo', 'scene.glow', .3); if (!r) return null;
+      const before = r.source.on, msg = T.mod.view.api.sendToTimeline(r.source.id), after = T.mod.M.sourceOf(r.source.id)?.on, clips = T.model.state().clips.length;
+      r.remove(); T.model.restore(keep); return { before, after, clips, msg: String(msg) }; });
+    L.ck(!!sent && sent.before === true && sent.after === false && sent.clips >= 1 && /bypassed/.test(sent.msg), '→TL sends the cycle and bypasses the device (its power off)', sent);
+
     /* ── IDLE: after the gesture, nothing books a frame ────────────────────────────────────────────────────────── */
     const idle = await E(async () => { const { perf } = await import('/mir/core/perf.js'), { frame } = await import('/mir/core/frame.js');
       let rafs = 0; const raf = window.requestAnimationFrame; window.requestAnimationFrame = (f) => { rafs++; return raf(f); };

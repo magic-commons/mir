@@ -279,10 +279,14 @@ export function createModClock(opts) {
     const active = running || stepping > 0 || pauseMode === 'HOLD';
     const sample = (active || (automationHold && !hidden)) && automation ? automation.value(id, automationBeat(M.transport.beats)) : null;
     const baseline = Number.isFinite(sample) ? sample : st.baseNorm;
-    const pausedBaseline = automationHold && !running && stepping === 0 && pauseMode === 'BASE' && Number.isFinite(sample);
-    const v = modulationEnabled ? M.targetValue(id, baseline, st.wrap, pausedBaseline) : NaN;
-    if (v !== v) return Number.isFinite(sample) ? sample : null;
-    if (pausedBaseline) return v; // Hand offsets remain; paused source offsets return to the Timeline baseline.
+    /* THE ARRANGEMENT WINS WHERE IT PLAYS (1.5.6-alpha.27, λWAVES 032 T26): under a clip the clip's value is the target's —
+       a DEVICE's routes on it stand aside, playing or paused (only the hand's macros, source-less, still layer over it, as
+       they did over a paused clip); off a clip every route adds to the base as before.  mod.js is untouched: its own
+       hand-only sum is the road (targetValue's handOnly). */
+    const under = Number.isFinite(sample);
+    const v = modulationEnabled ? M.targetValue(id, baseline, st.wrap, under) : NaN;
+    if (v !== v) return under ? sample : null;
+    if (under) return v; // Hand offsets remain over the clip; a device's offsets return to the clip's value.
     if (!M.targetDriven(id)) return v;
     if (running || stepping > 0) return v;
     return pauseMode === 'HOLD' ? v : null;

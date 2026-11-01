@@ -41,7 +41,7 @@ function rig(options={}) {
   const hand=host.model.addMacro();host.model.setMacro(hand.id,{value:1});host.model.addRoute(hand.id,'test.level',0,.05);host.targets.sync();
   host.clock.applyAll(true);close(value(),.8);assert.equal(host.registry.baseOf('test.level'),.2);
   host.clock.setBpm(80);close(value(),.8);
-  host.clock.setPauseMode('HOLD');assert.ok(value()>.8);host.clock.setPauseMode('BASE');close(value(),.8);
+  host.clock.setPauseMode('HOLD');close(value(),.8);host.clock.setPauseMode('BASE');close(value(),.8);   // 1.5.6-alpha.27: under a clip the LFO stands aside in HOLD too (it held its offset before); the hand still layers
   host.clock.setModulationEnabled(false);assert.equal(value(),.75);
   host.clock.seek(5);assert.equal(value(),.2,'outside clips releases to the authored base');
   host.clock.setAutomationHold(false);host.clock.seek(3);host.clock.applyAll(true);assert.equal(value(),.2);
