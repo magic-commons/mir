@@ -165,7 +165,6 @@
   "CUSTOM: no theme to cost": "CUSTOM: no theme to cost",
   "CUT": "CUT",
   "Cancel": "Cancel",
-  "Cancel removing the lane": "Cancel removing the lane",
   "Cancel the gesture in flight, close menus, rewind a cancelled scrub": "Cancel the gesture in flight, close menus, rewind a cancelled scrub",
   "Cancelled: “{action}” keeps its keys": "Cancelled: “{action}” keeps its keys",
   "Capture an image first": "Capture an image first",
@@ -295,6 +294,7 @@
   "Drag window · Shift-drag, or hold, to move these controls to another edge · arrows when focused": "Drag window · Shift-drag, or hold, to move these controls to another edge · arrows when focused",
   "Drag {axis} onto any knob to route it there; tap to arm, then tap a knob; double-tap resets it": "Drag {axis} onto any knob to route it there; tap to arm, then tap a knob; double-tap resets it",
   "Drag ✥ onto a slider or knob to route it (a PAD’s ✥ makes that control get hit) · drop it there again to release · a macro bar: drag sideways to set, double-tap to reset, tap to rename or unassign · number ring: up/down = master depth, double-tap = 100% · route ring: up/down = depth, sideways = direction.": "Drag ✥ onto a slider or knob to route it (a PAD’s ✥ makes that control get hit) · drop it there again to release · a macro bar: drag sideways to set, double-tap to reset, tap to rename or unassign · number ring: up/down = master depth, double-tap = 100% · route ring: up/down = depth, sideways = direction.",
+  "Drawn for {m} choices; the target now has {n}. Edit a point to redraw it for {n}.": "Drawn for {m} choices; the target now has {n}. Edit a point to redraw it for {n}.",
   "Duplicate the selected saved project, including its thumbnail and settings.": "Duplicate the selected saved project, including its thumbnail and settings.",
   "Duplicate the selection while moving it (title or body)": "Duplicate the selection while moving it (title or body)",
   "Duplicate the selection, placed to its right": "Duplicate the selection, placed to its right",
@@ -775,8 +775,6 @@
   "Reload {name} to release the current session’s memory. Saved projects and settings are kept; unsaved renders are discarded.": "Reload {name} to release the current session’s memory. Saved projects and settings are kept; unsaved renders are discarded.",
   "Reload. If it happens again, press {:COPY DETAILS} and send them to the author.": "Reload. If it happens again, press {:COPY DETAILS} and send them to the author.",
   "Remove bottom automation lane": "Remove bottom automation lane",
-  "Remove clips?": "Remove clips?",
-  "Remove clips? {n} in {lane}": "Remove clips? {n} in {lane}",
   "Remove the macro from this control": "Remove the macro from this control",
   "Remove the selected stop (tap twice)": "Remove the selected stop (tap twice)",
   "Remove this device and release its macros": "Remove this device and release its macros",
@@ -785,6 +783,10 @@
   "Remove this {noun} (tap twice)": "Remove this {noun} (tap twice)",
   "Remove {noun} {n}": "Remove {noun} {n}",
   "Remove {noun} {n} — tap again to confirm": "Remove {noun} {n} — tap again to confirm",
+  "Remove {n} clips in {lane}?": {
+   "one": "Remove {n} clip in {lane}?",
+   "other": "Remove {n} clips in {lane}?"
+  },
   "Rename {name}": "Rename {name}",
   "Render cancelled. Completed checkpoints remain available below.": "Render cancelled. Completed checkpoints remain available below.",
   "Render complete": "Render complete",
@@ -792,7 +794,6 @@
   "Render — this project, and the picture or film you make of it": "Render — this project, and the picture or film you make of it",
   "Reorder {noun} {n} — drag, or the arrow keys": "Reorder {noun} {n} — drag, or the arrow keys",
   "Reset it": "Reset it",
-  "Reset window size": "Reset window size",
   "Resize at the edges; shift inside; double-click to reset": "Resize at the edges; shift inside; double-click to reset",
   "Resize the clip from its left edge": "Resize the clip from its left edge",
   "Resize the clip from its right edge": "Resize the clip from its right edge",
@@ -2226,9 +2227,6 @@
   "Cancel": [
    "mir/folders/gallery.js"
   ],
-  "Cancel removing the lane": [
-   "mir/timeline/editor.js"
-  ],
   "Cancel the gesture in flight, close menus, rewind a cancelled scrub": [
    "mir/timeline/shortcuts.js"
   ],
@@ -2626,6 +2624,9 @@
   "Drag ✥ onto a slider or knob to route it (a PAD’s ✥ makes that control get hit) · drop it there again to release · a macro bar: drag sideways to set, double-tap to reset, tap to rename or unassign · number ring: up/down = master depth, double-tap = 100% · route ring: up/down = depth, sideways = direction.": [
    "mir/modulation/modwindow/modwindow.js"
   ],
+  "Drawn for {m} choices; the target now has {n}. Edit a point to redraw it for {n}.": [
+   "mir/timeline/view.js"
+  ],
   "Duplicate the selected saved project, including its thumbnail and settings.": [
    "mir/folders/gallery.js"
   ],
@@ -2768,7 +2769,8 @@
   ],
   "FIT": [
    "mir/modulation/modwindow/modwindow.js",
-   "mir/modulation/window.js"
+   "mir/modulation/window.js",
+   "mir/timeline/window.js"
   ],
   "FL — Alt temporarily sets snap to none": [
    "mir/timeline/shortcuts.js"
@@ -4089,12 +4091,6 @@
   "Remove bottom automation lane": [
    "mir/timeline/window.js"
   ],
-  "Remove clips?": [
-   "mir/timeline/editor.js"
-  ],
-  "Remove clips? {n} in {lane}": [
-   "mir/timeline/editor.js"
-  ],
   "Remove the macro from this control": [
    "mir/modulation/window.js"
   ],
@@ -4119,6 +4115,9 @@
   "Remove {noun} {n} — tap again to confirm": [
    "mir/controls/list.js"
   ],
+  "Remove {n} clips in {lane}?": [
+   "mir/timeline/editor.js"
+  ],
   "Rename {name}": [
    "mir/folders/gallery.js"
   ],
@@ -4139,9 +4138,6 @@
   ],
   "Reset it": [
    "mir/timeline/shortcuts.js"
-  ],
-  "Reset window size": [
-   "mir/timeline/window.js"
   ],
   "Resize at the edges; shift inside; double-click to reset": [
    "mir/modulation/window.js"

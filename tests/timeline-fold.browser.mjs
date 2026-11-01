@@ -77,7 +77,7 @@ const RUN = await (async () => {
     const snapList = await page.evaluate(() => [...document.querySelectorAll('.tl-pop[data-pop="snap"] [data-row]')].map((n) => n.dataset.row + ':' + n.getAttribute('aria-pressed')));
     L.ck(snapList.includes('snap-1:true') && snapList.filter((x) => x.endsWith(':true')).length === 1, 'the folded SNAP row opens its choices, the one in force pressed', snapList);
     await page.locator('.tl-pop [data-row="snap-0.5"]').click(); await page.waitForTimeout(60);
-    L.ck(await page.evaluate(() => window.__TL.tl.editor.snap()) === .5 && await page.evaluate(() => document.querySelector('.tl-toolbar .tl-setting .mir-step-text').textContent) === 'EIGHTH', 'choosing EIGHTH there sets the snap and the bar\'s own stepper', await page.evaluate(() => window.__TL.tl.editor.snap()));
+    L.ck(await page.evaluate(() => window.__TL.tl.editor.snap()) === .5 && await page.evaluate(() => document.querySelector('.tl-toolbar .tl-setting .mir-step-text').textContent) === '1/8', 'choosing 1/8 there sets the snap and the bar\'s own stepper (SNAP\'s fractions, 1.5.6-alpha.24)', await page.evaluate(() => window.__TL.tl.editor.snap()));
     await page.locator('.tl-toolbar [data-mode="step"]').evaluate((b) => { b.click(); return 0; });   // STEP off again (folded: no seat to press)
 
     // ---- a state change moves nothing: every tool keeps its width pressed or not ------------------------------------------
@@ -119,11 +119,11 @@ const RUN = await (async () => {
     await page.locator('.tl-toolbar .tl-setting .mir-step-name').click(); await page.waitForTimeout(60);   // a press opens its list (the kit's menu pane) …
     const listed = await page.evaluate(() => [...document.querySelectorAll('.mir-pick .mir-pick-i')].map((n) => n.textContent).join());
     await page.keyboard.press('Escape'); await page.waitForTimeout(40);
-    await page.keyboard.press('ArrowDown'); await page.waitForTimeout(60);                                   // … and on the closed name ↓ steps it, as a select's did (EIGHTH → SIXTEENTH)
+    await page.keyboard.press('ArrowDown'); await page.waitForTimeout(60);                                   // … and on the closed name ↓ steps it, as a select's did (1/8 → 1/16)
     const snapped = { listed, ...(await page.evaluate(() => ({ snap: window.__TL.tl.editor.snap(), name: document.querySelector('.tl-toolbar .tl-setting .mir-step-text').textContent }))) };
     const seats1 = await seatsOf();
-    L.ck(natives === 0 && scoped.scope === 'points' && scoped.tool === 'select' && scoped.on === 'POINTS' && snapped.listed === 'MEASURE,QUARTER,EIGHTH,SIXTEENTH,OFF' && snapped.snap === .25 && snapped.name === 'SIXTEENTH' && seats1 === seats0,
-      'the scope is the kit\'s segment and SNAP the kit\'s stepper (no native select or number input): POINTS picks points and SELECT, SIXTEENTH sets the snap, and no seat moves', { natives, scoped, snapped, seats0, seats1 });
+    L.ck(natives === 0 && scoped.scope === 'points' && scoped.tool === 'select' && scoped.on === 'POINTS' && snapped.listed === '1,1/4,1/8,1/16,OFF' && snapped.snap === .25 && snapped.name === '1/16' && seats1 === seats0,
+      'the scope is the kit\'s segment and SNAP the kit\'s stepper (no native select or number input): POINTS picks points and SELECT, 1/16 sets the snap, and no seat moves', { natives, scoped, snapped, seats0, seats1 });
     await page.locator('.tl-toolbar .tl-scope-seg .seg-b:nth-child(1)').click(); await page.waitForTimeout(40);
 
     L.ck(errors().length === 0, 'no page errors', errors());

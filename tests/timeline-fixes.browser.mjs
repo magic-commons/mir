@@ -66,36 +66,36 @@ const RUN = await (async () => {
     const fillOpacity = () => page.evaluate(s => getComputedStyle(document.querySelector(s + ' .tl-fill')).opacity, `.tl-clip[data-clip="${ids.a}"]`);
     const curveFilter = () => page.evaluate(s => getComputedStyle(document.querySelector(s + ' .tl-curve')).filter, `.tl-clip[data-clip="${ids.a}"]`);
     L.ck(/rgba?\(0,\s*0,\s*0,\s*0\)|transparent/.test(await bg(`.tl-clip[data-clip="${ids.a}"]`)), 'clip body is transparent at rest', await bg(`.tl-clip[data-clip="${ids.a}"]`));
-    L.ck(Math.abs(+(await fillOpacity()) - .15) < .005, 'the fill is rest-opacity (.15) before any interaction', await fillOpacity());
+    L.ck(Math.abs(+(await fillOpacity()) - .28) < .005, 'the fill is rest-opacity (.28: λWAVES 032 T10, was .15) before any interaction', await fillOpacity());
     L.ck((await curveFilter()) === 'none', 'the curve is unbrightened before any interaction', await curveFilter());
 
-    // Hover alone (no click): .15 -> .20 -> .15, clip body still transparent.
+    // Hover alone (no click): .28 -> .32 -> .28, clip body still transparent (1.5.6-alpha.24: was .15 -> .20).
     const cb = await clipBox();
     await page.mouse.move(cb.x + cb.width / 2, cb.y + cb.height * .8, { steps: 6 }); await page.waitForTimeout(260);
-    L.ck(Math.abs(+(await fillOpacity()) - .20) < .005, 'hovering the plot brightens the fill to .20', await fillOpacity());
+    L.ck(Math.abs(+(await fillOpacity()) - .32) < .005, 'hovering the plot brightens the fill to .32', await fillOpacity());
     L.ck((await curveFilter()) !== 'none', 'hovering brightens the curve line (filter set)', await curveFilter());
     L.ck(/rgba?\(0,\s*0,\s*0,\s*0\)|transparent/.test(await bg(`.tl-clip[data-clip="${ids.a}"]`)), 'clip body stays transparent while hovered', await bg(`.tl-clip[data-clip="${ids.a}"]`));
     await page.mouse.move(5, 5, { steps: 6 }); await page.waitForTimeout(260);
     L.ck((await curveFilter()) === 'none', 'leaving restores the curve filter', await curveFilter());
-    L.ck(Math.abs(+(await fillOpacity()) - .15) < .005, 'leaving restores the fill to .15', await fillOpacity());
+    L.ck(Math.abs(+(await fillOpacity()) - .28) < .005, 'leaving restores the fill to .28', await fillOpacity());
 
-    // One press (selects + holds; zero movement, so no double-tap): held and selected both read .20.
+    // One press (selects + holds; zero movement, so no double-tap): held and selected both read .36 (selected wins, T16).
     const tabBox = await page.locator(`.tl-clip-title[data-clip="${ids.a}"]`).boundingBox();
     await page.mouse.move(tabBox.x + tabBox.width / 2, tabBox.y + tabBox.height / 2); await page.mouse.down();
     L.ck(/rgba?\(0,\s*0,\s*0,\s*0\)|transparent/.test(await bg(`.tl-clip[data-clip="${ids.a}"]`)), 'clip body is transparent while held', await bg(`.tl-clip[data-clip="${ids.a}"]`));
-    L.ck(Math.abs(+(await fillOpacity()) - .20) < .005, 'holding the tab brightens the fill to .20', await fillOpacity());
+    L.ck(Math.abs(+(await fillOpacity()) - .36) < .005, 'holding the tab (it is selected) brightens the fill to .36', await fillOpacity());
     await page.mouse.up(); await page.waitForTimeout(260);
     L.ck(/rgba?\(0,\s*0,\s*0,\s*0\)|transparent/.test(await bg(`.tl-clip[data-clip="${ids.a}"]`)), 'clip body is transparent once selected', await bg(`.tl-clip[data-clip="${ids.a}"]`));
-    L.ck(Math.abs(+(await fillOpacity()) - .20) < .005, 'a selected clip keeps the fill at .20 with no further input', await fillOpacity());
+    L.ck(Math.abs(+(await fillOpacity()) - .36) < .005, 'a selected clip keeps the fill at .36 with no further input', await fillOpacity());
     const emptySpot = await page.locator('.tl-pane').first().boundingBox();
     await page.mouse.click(emptySpot.x + emptySpot.width - 20, emptySpot.y + emptySpot.height / 2); // deselect
     await page.waitForTimeout(260);
-    L.ck(Math.abs(+(await fillOpacity()) - .15) < .005, 'deselecting returns the fill to rest (.15)', await fillOpacity());
+    L.ck(Math.abs(+(await fillOpacity()) - .28) < .005, 'deselecting returns the fill to rest (.28)', await fillOpacity());
 
     const pointR = () => page.evaluate(s => document.querySelector(s + ' circle.tl-point')?.getAttribute('r'), `.tl-clip[data-clip="${ids.a}"]`);
     const tensionR = () => page.evaluate(s => document.querySelector(s + ' circle.tl-tension')?.getAttribute('r'), `.tl-clip[data-clip="${ids.a}"]`);
-    L.ck(await pointR() === '6', 'point radius is 6', await pointR());
-    L.ck(await tensionR() === '5', 'tension radius is 5', await tensionR());
+    L.ck(await pointR() === '5', 'point radius is 5 (λWAVES 032 T11, was 6)', await pointR());
+    L.ck(await tensionR() === '4', 'tension radius is 4 (was 5)', await tensionR());
     // An interior point (t=0/t=1 sit exactly at the clip's edge, under the 8px resize-grip strip
     // the editor's own gesture code already gives points priority over — but a raw
     // elementFromPoint there would hit the grip, so this check uses a point clear of that zone).
@@ -219,6 +219,7 @@ const RUN = await (async () => {
     L.ck(/^url\(#/.test(tintFill), 'the tab tint fills from an SVG gradient id', tintFill);
     const gradCount = await page.evaluate(id => document.querySelectorAll(`.tl-clip-title[data-clip="${id}"] linearGradient`).length, ids.a);
     L.ck(gradCount === 2, 'two gradients exist (tint + rim)', gradCount);
+    await page.evaluate(() => window.__TL.tl.editor.act.deselect());   // at rest: a selected tab wears accent B (T16), so the one-ink law is read on an unselected clip
     const footColor = await page.evaluate(id => getComputedStyle(document.querySelector(`.tl-clip-title[data-clip="${id}"] .tl-tab-grad-foot`)).stopColor, ids.a);
     const curveStroke = await page.evaluate(id => getComputedStyle(document.querySelector(`.tl-clip[data-clip="${id}"] .tl-curve`)).stroke, ids.a);
     L.ck(footColor === curveStroke, 'the gradient foot equals the curve stroke colour (one token)', { footColor, curveStroke });

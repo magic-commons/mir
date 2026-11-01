@@ -132,6 +132,31 @@ const RUN = await (async () => {
     L.ck(rg && rg.start === 2 && rg.end === 6, 'Shift + a ruler drag selects a time range (snapped)', rg);
     await E((keep) => { window.__TL.model.restore(keep); }, H0.keep);   // the arrangement as the sections below expect it (a restore clears the selection and range)
 
+    /* ── THE FACE (1.5.6-alpha.24): FIT keeps the window's seat and dock (no NaN); an EVENT clip on a banded target draws its
+       bands and wears ⚠ while the target offers another count, until a point edit redraws it; the MUTE row reads DISABLE ── */
+    const fitBefore = await E(() => ({ ...window.__TL.tl.win.state() }));
+    const fitChip = await E(() => { const c = window.__TL.tl.win.rail.chip('resetSize'), b = c && c.getBoundingClientRect(); return b ? [b.left + b.width / 2, b.top + b.height / 2] : null; });
+    if (fitChip) { await page.mouse.click(fitChip[0], fitChip[1]); await page.waitForTimeout(160); }
+    const fitAfter = await E(() => ({ ...window.__TL.tl.win.state(), rect: window.__TL.tl.win.rect() }));
+    L.ck(!!fitChip && fitAfter.dock === fitBefore.dock && [fitAfter.x, fitAfter.y, fitAfter.rect.left, fitAfter.rect.top].every(Number.isFinite), 'FIT keeps the window\'s dock and a finite seat', { fitBefore, fitAfter });
+    const ev = await E(() => { const T = window.__TL, keep = T.model.serialize(); window.__opts = [0, 1, 2, 3]; let mode = 2;
+      T.mod.add({ id: 'scene.mode', label: 'MODE', min: 0, max: 3, map: 'integer', options: () => window.__opts, get: () => mode, set: (v) => { mode = v; } });
+      T.model.restore(null); document.querySelector('.tl-viewport').scrollLeft = 0; const id = T.tl.editor.createClip('scene.mode'); T.tl.editor.setSnap(0); T.tl.editor.paint();
+      const curve = T.model.state().curves[0]; return { id, keep, steps: curve.steps, hold: curve.points[0].segment, bands: document.querySelectorAll(`.tl-clip[data-clip="${id}"] .tl-band`).length }; });
+    const off0 = await E((id) => document.querySelector(`.tl-clip[data-clip="${id}"]`).classList.contains('steps-off'), ev.id);
+    await E(() => { window.__opts = [0, 1, 3]; window.__TL.tl.editor.paint(); });
+    const off1 = await E((id) => { const n = document.querySelector(`.tl-clip[data-clip="${id}"]`), w = n.querySelector('.tl-warn'); return { off: n.classList.contains('steps-off'), shown: !!w && getComputedStyle(w).display !== 'none' }; }, ev.id);
+    const [epx, epy] = await center(`.tl-clip[data-clip="${ev.id}"] circle.tl-point[data-point="1"]`);
+    await page.mouse.move(epx, epy); await page.mouse.down(); await page.mouse.move(epx, epy + 6, { steps: 3 }); await page.mouse.up(); await page.waitForTimeout(80);
+    const off2 = await E((id) => ({ off: document.querySelector(`.tl-clip[data-clip="${id}"]`).classList.contains('steps-off'), steps: window.__TL.model.state().curves[0].steps }), ev.id);
+    L.ck(ev.steps === 4 && ev.hold === 'hold' && ev.bands === 3 && !off0 && off1.off && off1.shown && !off2.off && off2.steps === 3,
+      'an event clip on a banded target: a HOLD curve for 4 bands (3 hairlines), ⚠ when the target offers 3, cleared by a point edit (steps → 3)', { ev: { ...ev, keep: undefined }, off0, off1, off2 });
+    const more = await center(`.tl-clip-title[data-clip="${ev.id}"] .tl-clip-more`); await page.mouse.click(more[0], more[1]); await page.waitForTimeout(60);
+    const muteWord = await E(() => document.querySelector('.tl-pop [data-row="mute"]')?.textContent || '');
+    await page.keyboard.press('Escape');
+    L.ck(/^DISABLE CLIP/.test(muteWord), 'the clip menu\'s MUTE row reads DISABLE CLIP', muteWord);
+    await E((keep) => { window.__TL.mod.remove('scene.mode'); window.__TL.model.restore(keep); }, ev.keep);
+
     /* ── IDLE: after the gesture, nothing books a frame ────────────────────────────────────────────────────────── */
     const idle = await E(async () => { const { perf } = await import('/mir/core/perf.js'), { frame } = await import('/mir/core/frame.js');
       let rafs = 0; const raf = window.requestAnimationFrame; window.requestAnimationFrame = (f) => { rafs++; return raf(f); };

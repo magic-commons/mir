@@ -59,6 +59,7 @@ An unknown name draws nothing, warns once and never throws. An icon button has n
 | `rename` | a pencil: rename a saved entry | |
 | `edit` | the timeline's EDIT tool, a pencil with ticks | BASINS' drawing; a second pencil, see "Open" |
 | `select`, `scrub` | the timeline's SELECT (two dashed squares) and SCRUB (arrows round a dotted playhead) tools | BASINS' drawings |
+| `slice` | the timeline's SLICE tool: a blade across the cut's two ticks | the kit's (1.5.6-alpha.24, λWAVES 032) |
 | `swap` | exchange one surface with another | |
 | `tune` | a crossed circle: the operator that adds a motif into a copy | |
 | `lock` | locked | |

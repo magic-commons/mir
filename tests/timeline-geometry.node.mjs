@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
-import { createClipCoordinates, timelineResizeDelta, resizeTimelineClip, snapTimelineBeat } from '../mir/timeline/geometry.js';
+import { createClipCoordinates, timelineResizeDelta, resizeTimelineClip, snapTimelineBeat, TIMELINE_POINT_RADIUS, TIMELINE_TENSION_RADIUS, TIMELINE_CURVE_GRAB } from '../mir/timeline/geometry.js';
+import { timelineExtent } from '../mir/timeline/model.js';
+import { SNAPS } from '../mir/timeline/editor.js';
 import { createTimelinePlot } from '../mir/timeline/curve-view.js';
 const close=(a,b)=>assert.ok(Math.abs(a-b)<1e-10,`${a} differs from ${b}`);
 const source={length:8,points:[{t:0,v:1,tension:0},{t:.375,v:.2,tension:.7},{t:1,v:0,tension:0}]};
@@ -32,4 +34,10 @@ const long={length:1000,points:source.points};
 const longPlot=createTimelinePlot({...clip,duration:1,offset:500},long,100,64);
 assert.ok((longPlot.path.match(/L/g)||[]).length>=99);
 assert.ok((longPlot.path.match(/L/g)||[]).length<=102);
-console.log('Timeline musical mapping, exact bounds, crop hits, held-edge snap and visible sampling pass.');
+// THE FACE (1.5.6-alpha.24): smaller handles (point 5, tension 4), the grab still 20; SNAP's words are note fractions, its values unchanged
+assert.deepEqual([TIMELINE_POINT_RADIUS,TIMELINE_TENSION_RADIUS,TIMELINE_CURVE_GRAB],[5,4,20]);
+assert.deepEqual(SNAPS,[[4,'1'],[1,'1/4'],[.5,'1/8'],[.25,'1/16'],[0,'OFF']]);
+assert.deepEqual(timelineExtent([{start:2,duration:2,mute:false},{start:8,duration:4,mute:true}]),{start:2,end:4});
+assert.deepEqual(timelineExtent([{start:2,duration:2,mute:false},{start:8,duration:4,mute:true}],{unmuted:false}),{start:2,end:12});
+assert.equal(timelineExtent([]),null);
+console.log('Timeline musical mapping, exact bounds, crop hits, held-edge snap and visible sampling pass; the handles, SNAP\'s fractions and the extent.');

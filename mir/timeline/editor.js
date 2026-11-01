@@ -33,6 +33,7 @@
  * core/frame.js; the popups are the house's menu pane; BASINS' CURVE_VIEW numbers live in geometry.js. */
 import { svgPoint, curveHit, curveAction, pointDrag, pointAddValue, tensionDelta, fineGear } from '../modulation/curve-gesture.js';
 import { el, label, ariaLabel, seg, stepper, number } from '../kit.js';
+import { confirmDialog } from '../shell/dialog.js';
 import { glyphSvg } from '../glyph.js';
 import { frame } from '../core/frame.js';
 import { isField } from '../core/pointer.js';
@@ -54,18 +55,18 @@ const bounded=(n,lo=0,hi=1)=>Math.min(hi,Math.max(lo,n));
 const editable=target=>isField(target,true);   // every input counts: the clip menu's colour well keeps its keys
 /* a word: an English key (translated, kept on the node for a language change) or [key, vars]; { raw } is data, shown as it is */
 const word=(node,w)=>{if(w&&typeof w==='object'&&!Array.isArray(w)){node.textContent=w.raw;return node;}if(Array.isArray(w))return label(node,w[0],w[1]),node;label(node,w);return node;};
-export const SNAPS=[[4,'MEASURE'],[1,'QUARTER'],[.5,'EIGHTH'],[.25,'SIXTEENTH'],[0,'OFF']];   // tr: the timeline's snap grid
+export const SNAPS=[[4,'1'],[1,'1/4'],[.5,'1/8'],[.25,'1/16'],[0,'OFF']];   // tr: the timeline's snap grid as note fractions: 1 a bar, 1/4 a beat, 1/8, 1/16 (1.5.6-alpha.24: was MEASURE · QUARTER · EIGHTH · SIXTEENTH)
 export const TOOLS=[['edit','EDIT'],['select','SELECT'],['scrub','SCRUB'],['slice','SLICE']];   // tr: the timeline's tools
 const SCOPES=[['clips','CLIPS'],['points','POINTS']];   // what a selection picks: whole clips or curve points
 const FOLD_SLACK=6;   // px: a folded tool comes back to the bar only with this much room to spare (a bar at the edge never flickers)
-export const SWATCHES=['#a7adb8','#ed8d91','#e2b579','#a9c987','#7bbfc8','#96a8df','#be9bdd'];   // BASINS' seven clip tints (data: a clip's colour is saved)
+export const SWATCHES=['#a7adb8','#f8858b','#e9b368','#a5cb7b','#6cc1cc','#92a7e9','#c297e6'];   // BASINS' seven clip tints, the six hues 20 % more chroma in oklch, same lightness and hue (1.5.6-alpha.24, T10; data: a clip's colour is saved, so a clip keeps the tint it was given)
 
 export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say=()=>{},audio=null,keys=null}) {
   /* the chord the app's table holds for a timeline action, in the user's platform ('' when none): never typed here */
   const chordOf=id=>{const k=typeof keys==='function'?keys():keys;return k&&k.get&&k.get('timeline.'+id)?k.menuKey('timeline.'+id):'';};
   const withKey=(node,id)=>{const c=id&&chordOf(id);if(c)el('span','tl-key',node).textContent=' · '+c;return node;};
   let doc=model.state(),selectedLane=doc.lanes[0].id,selected=null,selection=new Set(),pointSelection=null;
-  let px=20,snap=1,range=null,confirmation=null,menu=null,drag=null,lastTap=null,clipboard=null,lastClip=null;   // lastClip: THE PENCIL's memory, the clip last pressed
+  let px=20,snap=1,range=null,menu=null,drag=null,lastTap=null,clipboard=null,lastClip=null;   // lastClip: THE PENCIL's memory, the clip last pressed
   let stepMode=false,slideMode=false,drawTension=0,tool='edit',scope='clips',workLane='top';
   const dropHandlers=new Set();
   const transportBeat=()=>mod.host.model.transport.beats;
@@ -113,15 +114,18 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
     if(!worklane.getClientRects().length)return;   // the lane is hidden or the window is closed: nothing to measure
     const bar=getComputedStyle(toolbar),lane=getComputedStyle(worklane),num=v=>parseFloat(v)||0,gap=num(bar.columnGap);
     let room=worklane.clientWidth;if(lane.flexDirection!=='column')room-=transportHost.getBoundingClientRect().width+num(lane.columnGap);
-    for(const f of fold)if(!f.node.classList.contains('tl-folded'))widths.set(f.node,f.node.getBoundingClientRect().width);
-    let need=num(bar.paddingLeft)+num(bar.paddingRight)+num(bar.borderLeftWidth)+num(bar.borderRightWidth)+moreButton.getBoundingClientRect().width,k=0;
+    // layout widths (offsetWidth), never the painted box: a hovered or pressed button is scaled (THE CHIPS' MOTION) and must not fold the bar
+    for(const f of fold)if(!f.node.classList.contains('tl-folded'))widths.set(f.node,f.node.offsetWidth);
+    let need=num(bar.paddingLeft)+num(bar.paddingRight)+num(bar.borderLeftWidth)+num(bar.borderRightWidth)+moreButton.offsetWidth,k=0;
     for(;k<fold.length;k++){need+=(widths.get(fold[k].node)||0)+gap;if(need>room-(k>=shown?FOLD_SLACK:0)+.5)break;}
     if(k!==shown)frame.write(()=>foldAt(k));
   }
   function foldAt(k){shown=k;fold.forEach((f,i)=>f.node.classList.toggle('tl-folded',i>=k));moreButton.dataset.folded=String(fold.length-k);if(menu?.dataset.pop==='more')closeMenu();}
   const fitObserver=new ResizeObserver(()=>{if(fitBooked)return;fitBooked=true;frame.read(()=>{fitBooked=false;fit();});});
   for(const n of [worklane,transportHost,moreButton,...fold.map(f=>f.node)])fitObserver.observe(n);
-  const view=createTimelineView(surface,{pixels:()=>px,onClipMenu(e,c,curve){finish(null,true);clipMenu(e.clientX,e.clientY,c,curve);}});
+  /* THE EVENT TARGET (1.5.6-alpha.24): how many bands a target has now (registry describe(id).steps: its options, a toggle's two) */
+  const stepsOf=id=>mod.registry.has(id)?mod.registry.describe(id).steps??null:null;
+  const view=createTimelineView(surface,{pixels:()=>px,stepsOf,onClipMenu(e,c,curve){finish(null,true);clipMenu(e.clientX,e.clientY,c,curve);}});
   const {viewport,status}=view;
   const headPaint=createTimelinePlayhead({head:view.head,tail:view.tail,controller,clock:{beats:transportBeat,playing:()=>mod.host.clock.isPlaying(),bpm:()=>mod.host.model.transport.bpm},visible:()=>win.isOpen()&&!document.hidden&&!document.body.classList.contains('ui-hidden'),pixels:()=>px,scroll:()=>viewport.scrollLeft});
   const snapBeat=(beat,e)=>snapTimelineBeat(beat,snap,!!e?.altKey),closeMenu=()=>{menu?.remove();menu=null;};
@@ -144,11 +148,11 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   // SLICE: every listed clip spanning the beat cuts there as one undo; the halves join (Insert) or become (the tool) the selection.
   function sliceAt(ids,beat,keep=false){finish(null,true);const cuts=sliceClips(model,ids,beat);if(!cuts){const r=model.lastRefusal;say(r?t(r.why,r.vars):t('Nothing sliced: the cut must fall inside a clip.'));return null;}
     selection=new Set([...(keep?selection:[]),...cuts.flatMap(c=>[c.left,c.right])]);selected=cuts[0].right;pointSelection=null;paintSelection();return cuts;}
-  function markActive(){const end=Math.max(0,...doc.clips.map(c=>c.start+c.duration)),next=range?{...range}:end>0?{start:0,end}:null,now=activeRange();
+  function markActive(){const end=model.extent({unmuted:false})?.end??0,next=range?{...range}:end>0?{start:0,end}:null,now=activeRange();
     if(!next){say(t('Nothing to mark: drag a time range on the strip or add clips.'));return;}
     setActiveRange(now&&Math.abs(now.start-next.start)<1e-9&&Math.abs(now.end-next.end)<1e-9?null:next);}
-  function zoomSelection(){finish(null,true);const clips=doc.clips.filter(c=>selection.has(c.id)),chosen=clips.length?clips:doc.clips;
-    const bounds=clips.length||!range?chosen.length?{start:Math.min(...chosen.map(c=>c.start)),end:Math.max(...chosen.map(c=>c.start+c.duration))}:null:range;if(!bounds)return;
+  function zoomSelection(){finish(null,true);const clips=doc.clips.filter(c=>selection.has(c.id));
+    const bounds=clips.length?{start:Math.min(...clips.map(c=>c.start)),end:Math.max(...clips.map(c=>c.start+c.duration))}:range||model.extent({unmuted:false});if(!bounds)return;
     px=bounded((viewport.clientWidth-40)/Math.max(.0625,bounds.end-bounds.start),8,100);paint();viewport.scrollLeft=Math.max(0,bounds.start*px-20);paint();}
   function duplicateSelection(){const ids=model.duplicateClips([...selection]);if(!ids){const r=model.lastRefusal;say(r?t(r.why,r.vars):t('No copies made: select clips with room in the arrangement.'));return;}selection=new Set(ids);selected=ids[0];pointSelection=null;paintSelection();}
   function copySelection(cut=false){const value=model.copyClips([...selection]);if(!value)return;clipboard=value;if(cut){model.deleteClips([...selection]);selection.clear();selected=null;}paintSelection();}
@@ -209,7 +213,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
     const kind=clipKind(curve),drives=!kind||kind.drives!==false;
     pop(x,y,{raw:curve.name},[
       ['TITLE / COLOR',()=>editIdentity(x,y,curve),'identity'],
-      [c.mute?'UNMUTE':'MUTE',()=>model.updateClip(c.id,{mute:!c.mute}),'mute'],
+      [c.mute?'ENABLE CLIP':'DISABLE CLIP',()=>model.updateClip(c.id,{mute:!c.mute}),'mute'],   // T25: the MUTE row's words (clip.mute, the row id unchanged)
       ['DUPLICATE',()=>{selectOnly(c.id);duplicateSelection();},'duplicate'],
       ...(drives?[['OUTPUT RANGE',()=>{pop(x,y,'NORMALIZED MIN / MAX',[],'range');const num=(o)=>{const n=number({min:0,max:1,step:.01,...o});n.root.classList.add('tl-value-num');menu.appendChild(n.root);return n;};const lo=num({aria:'Output minimum',value:curve.min}),hi=num({aria:'Output maximum',value:curve.max});button(menu,'APPLY',()=>{for(const n of [lo,hi])if(n.editing)n.close(true);model.updateCurve(curve.id,{min:lo.get(),max:hi.get()});closeMenu();}).dataset.tlAction='apply';},'output-range']]:[]),   // the kit's number fields (call 19)
       ...(kind?[]:[['ADD MIDPOINT',()=>{const beat=c.offset+c.duration*c.scale/2;model.addPoint(curve.id,beat,evaluateTimelineSource(curve,beat));},'add-midpoint']]),
@@ -219,13 +223,20 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
     ],'clip');
   }
 
-  function cancelConfirm(){confirmation?.remove();confirmation=null;}
-  function removeLane(){cancelConfirm();const lane=doc.lanes.at(-1),result=model.removeLane(lane.id);if(!result.confirm)return;
-    confirmation=el('div','tl-confirm glass',document.body);confirmation.dataset.mirSurface='menu';confirmation.setAttribute('role','alertdialog');ariaLabel(confirmation,'Remove clips?');label(el('div','tl-confirm-text',confirmation),'Remove clips? {n} in {lane}',{n:result.count,lane:result.name});
-    ariaLabel(button(confirmation,{raw:'×'},cancelConfirm,'tl-cancel'),'Cancel removing the lane');const yes=button(confirmation,'YES, DELETE',()=>{if(doc.lanes.at(-1)?.id===lane.id)model.removeLane(lane.id,true);cancelConfirm();},'tl-delete');
-    const chip=win.rail?.chip?.('removeLane'),r=chip?chip.getBoundingClientRect():{right:innerWidth/2,top:innerHeight/2},box=confirmation.getBoundingClientRect();confirmation.style.left=bounded(r.right+8,8,innerWidth-box.width-8)+'px';confirmation.style.top=bounded(r.top,8,innerHeight-box.height-8)+'px';yes.focus();}
-  function createClip(targetId){finish(null,true);if(!mod.registry.has(targetId))return null;const beat=transportBeat(),desc=mod.registry.describeOne(targetId);
-    const id=model.create({targetId,name:desc.label,value:mod.registry.readNorm(targetId),start:range?range.start:Math.floor(beat/doc.meter)*doc.meter,duration:range?range.end-range.start:doc.meter,laneId:selectedLane});if(!id){say(t('This time range is occupied in every lane. Add a lane or choose another range.'));return null;}selectOnly(id);win.open();paint();viewport.scrollLeft=Math.max(0,view.getClip(id).start*px-20);return id;}
+  /* THE LANE ASK (T9, 1.5.6-alpha.24): a lane with clips asks through the kit's confirmDialog (danger) before it goes; the
+     rail's chip removes the bottom lane, a lane's own menu (right-click its empty space) that lane.  → Promise<boolean> */
+  async function removeLane(laneId=doc.lanes.at(-1)?.id){const result=model.removeLane(laneId);if(result.ok||!result.confirm)return !!result.ok;
+    const yes=await confirmDialog(tn(result.count,'Remove {n} clip in {lane}?','Remove {n} clips in {lane}?',{n:result.count,lane:result.name}),{yes:'REMOVE LANE',danger:true});
+    return !!(yes&&doc.lanes.some(l=>l.id===laneId)&&model.removeLane(laneId,true)?.ok);}
+  function laneMenu(x,y,laneId){const lane=doc.lanes.find(l=>l.id===laneId);if(!lane)return;
+    pop(x,y,{raw:lane.name},[['ADD LANE',()=>model.addLane(),'add-lane'],...(doc.lanes.length>1?[['REMOVE LANE',()=>removeLane(laneId),'remove-lane']]:[])],'lane');}
+  /* an EVENT clip's bands follow its target: a point edit on a curve drawn for another count takes the target's count (⚠ clears) */
+  function syncSteps(curveId){const c=doc.curves.find(x=>x.id===curveId);if(!c||!c.steps)return;const want=stepsOf(c.targetId);if(want&&want!==c.steps)model.updateCurve(curveId,{steps:want});}
+  /* createClip(targetId): a curve clip at the playhead's bar (or over the ruler's range); on a BANDED target (registry options,
+     a toggle) it is an EVENT clip — a HOLD source at the band now in force, remembering the target's band count (steps) */
+  function createClip(targetId){finish(null,true);if(!mod.registry.has(targetId))return null;const beat=transportBeat(),desc=mod.registry.describe(targetId),value=mod.registry.readNorm(targetId);
+    const source=desc.steps?{steps:desc.steps,points:[{t:0,v:value,tension:0,segment:'hold'},{t:1,v:value,tension:0}]}:null;
+    const id=model.create({targetId,name:desc.label,value,source,start:range?range.start:Math.floor(beat/doc.meter)*doc.meter,duration:range?range.end-range.start:doc.meter,laneId:selectedLane});if(!id){say(t('This time range is occupied in every lane. Add a lane or choose another range.'));return null;}selectOnly(id);win.open();paint();viewport.scrollLeft=Math.max(0,view.getClip(id).start*px-20);return id;}
   // THE KIND SEAM: the beat and lane under a client point, and a clip of any kind through the model's one create path.
   function at(clientX,clientY){const w=view.world({clientX,clientY}),beat=Math.max(0,w.x/px);return{beat,snapped:snapBeat(beat),laneId:doc.lanes[nearestTimelineLane(w.y,doc.lanes.length,view.height())].id};}
   function addClip(kind,source={},{start,duration,laneId,targetId,name,select=true}={}){finish(null,true);
@@ -294,7 +305,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
     if(held.kind==='zoom'&&cancel)zoomAt(held.px0,held.anchor,held.anchorBeat);
     // A SELECT-tool tap on the strip (no drag, no Shift) clears the range and seeks there, as a ruler click does in FL.
     if(held.kind==='range'&&!cancel&&held.tap&&!held.moved&&!held.addRange){range=null;view.setRange(null);controller.seek(held.startBeat);view.paint();}
-    if(held.author){if(cancel){model.cancel();selection=held.selectionBefore||selection;reconcile();}else model.commit();}
+    if(held.author){if(cancel){model.cancel();selection=held.selectionBefore||selection;reconcile();}else{if(held.curve&&['point','points','tension','step'].includes(held.kind))syncSteps(held.curve.id);model.commit();}}
     if(held.kind==='select'){
       if(cancel){selection=held.oldClips;pointSelection=held.oldPoints;selected=held.activeBefore;}
       else if(!held.moved&&held.clickedClip&&scope==='clips'){const id=held.clickedClip;selection=held.additive?new Set(held.oldClips):new Set();if(held.additive&&selection.has(id))selection.delete(id);else selection.add(id);selected=selection.values().next().value||null;}
@@ -313,7 +324,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   listen(surface,'pointerdown',e=>{
     if(drag)return;const target=e.target;if(target.closest('select,input,.tl-action,.tl-scope-seg,.tl-setting,.tl-clip-more,.tl-transport-host'))return;
     if(surface.contains(target)){surface.focus({preventScroll:true});}
-    closeMenu();cancelConfirm();
+    closeMenu();
     if(e.button===1){begin(e,{kind:'pan',scrollX:viewport.scrollLeft,scrollY:viewport.scrollTop});return;}
     const handle=target.closest('.tl-clip-title'),lane=target.closest('[data-lane]');if(lane)selectedLane=lane.dataset.lane;
     const plot=target.closest('svg[data-clip]')||(!handle&&lane&&[...lane.querySelectorAll('svg[data-clip]')].find(n=>{const r=n.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;}));
@@ -362,8 +373,8 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
       if(cmd&&e.button===0&&!hit?.kind){begin(e,{kind:'move',copy:true,clip,curve,ids:[...selection],originals:doc.clips.filter(c=>selection.has(c.id))},true);paintSelection();return;}
       if(stepMode&&tool==='edit'&&e.button===0&&!e.altKey){const position={beat:geometry.sourceBeatAtX(bounded(pos.x,0,geometry.width)),value:bounded(geometry.valueAtY(pos.y))};pointSelection=null;begin(e,{kind:'step',clip,curve,previous:position},true);drawStep(position,e.shiftKey);return;}
       if(action==='point-menu'){e.preventDefault();lastTap=null;fieldMenu(e.clientX,e.clientY,curve,hit.i,clip);return;}
-      if(action==='remove-point'){e.preventDefault();pointSelection=null;model.removePoint(curve.id,hit.i);return;}
-      if(action==='reset-tension'){e.preventDefault();drawTension=0;model.setTension(curve.id,hit.i,0);return;}
+      if(action==='remove-point'){e.preventDefault();pointSelection=null;model.begin();model.removePoint(curve.id,hit.i);syncSteps(curve.id);model.commit();return;}
+      if(action==='reset-tension'){e.preventDefault();drawTension=0;model.begin();model.setTension(curve.id,hit.i,0);syncSteps(curve.id);model.commit();return;}
       if(!action){paintSelection();return;}
       if(action==='move-point'&&pointSelection?.curveId===curve.id&&pointSelection.indices.has(hit.i)&&pointSelection.indices.size>1){beginPointGroup(e,clip,curve,hit.i);return;}
       // THE FINE GEAR (Shift, ⅛): a tension's in client px, a point's in the plot's own coordinates
@@ -371,6 +382,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
       if(action==='add-point'){const beat=Math.max(0,geometry.sourceBeatAtWorldBeat(snapBeat(geometry.worldBeatAtX(pos.x),e))),value=pointAddValue(e,bounded(geometry.valueAtY(pos.y)),evaluateTimelineSource(curve,beat)),added=model.addPoint(curve.id,beat,value,0);if(!added||added.index<0){finish(null,true);return;}index=added.index;edited=added.source;}
       const p=edited.points[index];Object.assign(drag,{curve:edited,index,pointBeat:p.t*edited.length,pointValue:p.v});paintSelection();return;
     }
+    if(e.button===2&&lane&&!clip){e.preventDefault();laneMenu(e.clientX,e.clientY,lane.dataset.lane);return;}   // a lane's own menu: ADD LANE · REMOVE LANE (T9)
     if(e.button===0&&tool==='edit'&&lane&&!clip&&!shift&&!cmd&&stamp(e,lane.dataset.lane))return;
     if(e.button===0){selection.clear();pointSelection=null;selected=null;}paintSelection();
   });
@@ -387,15 +399,15 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   listen(viewport,'drop',e=>{if(!dropHandlers.size)return;e.preventDefault();const where=at(e.clientX,e.clientY),files=[...(e.dataTransfer?.files||[])];for(const fn of dropHandlers)if(fn({event:e,files,dataTransfer:e.dataTransfer,...where}))break;});
   listen(surface,'contextmenu',e=>e.preventDefault());listen(surface,'auxclick',e=>{if(e.button===1)e.preventDefault();});listen(surface,'lostpointercapture',e=>finish(e,true));
   listen(document,'pointermove',e=>{if(drag&&e.pointerId===drag.pointerId){e.preventDefault();updates.post(pointer(e));}},{passive:false});listen(document,'pointerup',e=>finish(e));listen(document,'pointercancel',e=>finish(e,true));
-  listen(document,'pointerdown',e=>{if(menu&&!menu.contains(e.target)&&!surface.contains(e.target))closeMenu();if(confirmation&&!confirmation.contains(e.target)&&!win.rail?.el?.contains(e.target))cancelConfirm();});
+  listen(document,'pointerdown',e=>{if(menu&&!menu.contains(e.target)&&!surface.contains(e.target))closeMenu();});
   /* ESCAPE is not a table action (the kit keeps it): it only ends what is in flight.  HIDE needs no key of its own here:
      whatever key the table gives it, the interface going out of paint (body.ui-hidden) ends it (hiddenObserver below) */
-  listen(document,'keydown',e=>{if(e.code==='Escape'){closeMenu();cancelConfirm();finish(null,true,true);}});
-  listen(document,'visibilitychange',()=>{if(document.hidden){closeMenu();cancelConfirm();finish(null,true);headPaint.reset();}});listen(globalThis,'blur',()=>{closeMenu();cancelConfirm();finish(null,true);});
+  listen(document,'keydown',e=>{if(e.code==='Escape'){closeMenu();finish(null,true,true);}});
+  listen(document,'visibilitychange',()=>{if(document.hidden){closeMenu();finish(null,true);headPaint.reset();}});listen(globalThis,'blur',()=>{closeMenu();finish(null,true);});
   listen(view.shell,'wheel',e=>{if(!(e.ctrlKey||e.metaKey)||!e.deltaY)return;e.preventDefault();e.stopPropagation();const anchor=bounded(e.clientX-viewport.getBoundingClientRect().left,0,viewport.clientWidth),delta=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?viewport.clientHeight:1);zoom(Math.exp(-bounded(delta,-120,120)*.003),anchor);},{passive:false});
   const viewportPaint=coalesce(()=>{paint();if(drag?.last&&['select','point','points','move','trim','stretch'].includes(drag.kind))updates.post(drag.last);});
   listen(viewport,'scroll',()=>viewportPaint.post(),{passive:true});const observer=new ResizeObserver(()=>viewportPaint.post());observer.observe(viewport);
-  const hiddenObserver=new MutationObserver(()=>{if(document.body.classList.contains('ui-hidden')){closeMenu();cancelConfirm();finish(null,true);headPaint.reset();}else if(win.isOpen())viewportPaint.post();});hiddenObserver.observe(document.body,{attributes:true,attributeFilter:['class']});
+  const hiddenObserver=new MutationObserver(()=>{if(document.body.classList.contains('ui-hidden')){closeMenu();finish(null,true);headPaint.reset();}else if(win.isOpen())viewportPaint.post();});hiddenObserver.observe(document.body,{attributes:true,attributeFilter:['class']});
   const unsubscribe=model.subscribe(()=>{doc=model.state();view.setDocument(doc);view.setActive(activeRange());reconcile();if(win.isOpen()&&!document.body.classList.contains('ui-hidden'))paint();present();});
   const resetSubscription=model.beforeReplace(()=>{closeMenu();finish(null,true);selection.clear();pointSelection=null;selected=null;range=null;view.setRange(null);});
   const transportSubscription=controller.subscribe(reason=>{if(['seek','scrub','scrub-end'].includes(reason))headPaint.reset();else headPaint.paint();});
@@ -436,7 +448,8 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
     /** the timeline's keys are live: the window is open and the focus is in the surface, not in a field or the transport */
     keysLive:()=>win.isOpen()&&!!document.activeElement&&surface.contains(document.activeElement)&&!editable(document.activeElement)&&!transportHost.contains(document.activeElement),
     locate(id){finish(null,true);const curve=doc.curves.find(c=>c.targetId===id),clip=doc.clips.find(c=>c.curveId===curve?.id);win.open();if(clip){selectOnly(clip.id);selectedLane=clip.laneId;paint();viewport.scrollLeft=Math.max(0,clip.start*px-20);}},
-    removeLane(){finish(null,true);removeLane();},addLane(){finish(null,true);return model.addLane();},close(){closeMenu();cancelConfirm();finish(null,true);headPaint.reset();},
+    /** removeLane(laneId = the bottom lane) → Promise<boolean>: a lane with clips asks first (confirmDialog) */
+    removeLane(laneId){finish(null,true);return removeLane(laneId);},addLane(){finish(null,true);return model.addLane();},close(){closeMenu();finish(null,true);headPaint.reset();},
     dispose(){api.close();events.abort();observer.disconnect();fitObserver.disconnect();hiddenObserver.disconnect();viewportPaint.cancel();updates.cancel();unsubscribe();resetSubscription();transportSubscription();surface.remove();}};
   view.setDocument(doc);setTool('edit');setWorkLane('top');paint();return api;
 }

@@ -248,9 +248,7 @@ export function createTimelineModel() {
     },
     /** extent({ unmuted = true }) → { start, end } over the clips (the first start … the last end; muted clips too with
      *  unmuted: false), or null with none: the arrangement's span (THE LOOP's fallback, FIT, ACTIVE). */
-    extent({ unmuted = true } = {}) { let start = Infinity, end = -Infinity;
-      for (const c of data.clips) { if (unmuted && c.mute) continue; if (c.start < start) start = c.start; if (c.start + c.duration > end) end = c.start + c.duration; }
-      return end > start ? { start, end } : null; },
+    extent(options) { return timelineExtent(data.clips, options); },
     /** stretchClip(id, 'start' | 'end', duration, { original }) — THE STRETCH (λWAVES 032 T17): the clip takes `duration`
      *  and its scale changes with it so the source's shape keeps (the source span duration · scale is held: scale' =
      *  scale · oldDuration / newDuration, since a clip reads source beat (beat − start) · scale + offset); the start edge
@@ -278,6 +276,14 @@ export function createTimelineModel() {
     signature: () => JSON.stringify(data)
   };
   return api;
+}
+
+/** timelineExtent(clips, { unmuted = true }) → { start, end } | null: the first start … the last end (model.extent's law; the
+ *  view sizes its content by it, muted clips included) */
+export function timelineExtent(clips, { unmuted = true } = {}) {
+  let start = Infinity, end = -Infinity;
+  for (const c of clips) { if (unmuted && c.mute) continue; if (c.start < start) start = c.start; if (c.start + c.duration > end) end = c.start + c.duration; }
+  return end > start ? { start, end } : null;
 }
 
 export function isTimelineSnapshot(input) { return input == null || createTimelineModel().restore(input); }
