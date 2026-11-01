@@ -52,7 +52,7 @@ That is the whole seam. `installModulation` registers every parameter as a targe
 | Option | What it is | Default |
 |---|---|---|
 | `mount` | the element the window and its rail are appended to (the rack's `#floats`); `null`: the seam with no window, for node | required |
-| `params` | `[{ id, label, unit, group, hint, min, max, step, map, def, get(), set(v), widget }]`. `id` is `root.name`; `map` is `linear`, `log`, `wrap`, `integer` or `bipolar`; `widget` is a kit `knob()` or `fader()` (anything with `.root`, and `setBase`/`show`/`set` if it has them) | `[]` |
+| `params` | `[{ id, label, unit, group, hint, min, max, step, map, def, get(), set(v), widget }]`. `id` is `root.name`; `map` is `linear`, `log`, `wrap`, `integer` or `bipolar` (an `integer` row may pass `options`, an array or `() => array` of the values a segmented control offers: the unit line is then cut into equal bands, a band's centre is its option, and `registry.describe(id)` says `options` and `steps`, 1.5.6-alpha.22); `widget` is a kit `knob()` or `fader()` (anything with `.root`, and `setBase`/`show`/`set` if it has them) | `[]` |
 | `roots` | the registry's id roots (a target added later must sit under one) | the first segment of every id, and `app` |
 | `available()` | may modulation write now (BASINS: `flowActive`; NEBULA: the instrument is ready) | always |
 | `present()` | ask the app for a frame | none |
