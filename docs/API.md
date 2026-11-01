@@ -401,6 +401,7 @@ The kit gives the parts and the look; the layout is the app's (BASINS' design, �
 **Additions (1.5.0-alpha.12).**
 - `createTransport({ …, door: 'palette' | 'mark', onSwitch, macros })` → adds `mountIn(host | null)` → placement, `placement` (`'stage' | 'work' | 'rack'`), `closed`, `tempoPanel(show)`. Event `transport-placement` (`detail.placement`) on the bar. The timeline takes the app's one bar as `transport: { shared: tr }`.
 - `bindTempoField({ button, input, tempo, enabled, drag, paint, signal })` → `{ open(), close(take), editing, destroy() }` · `tempoPill({ tempo, panel, work })` (`work()` true: a click types, a drag is the travel law) · `tempoPanel({ tempo, mod, macros })` → adds `rail` · `macroRail({ M, api, signal })` → `{ root, rail, tiles, sync(), rebuild(), destroy() }` · `modDoor({ mod, mark, onSwitch, work })`.
+- `nextPlace(list, current)`, `placeGlyph(list, place)` (1.5.6-alpha.28: with no FREE in the list the stage wears `popOut`), `PLACES`.
 - Pure: `placementOf({ docked, host })`, `tempoDirection(rect, panelHeight, viewHeight)`, `travelBpm(start, rise, { shift, touch, min, max })`, `reorderTo(key, at, count)`; `TRANSPORT.fieldChars / travel / travelTouch / travelFine / panelGap`. `reorderTo` (1.5.0-alpha.19) is the modulation window's law: every arrow moves a tile one place (↑ ← back, ↓ → on), Home to the first, End to the last; it was two places on some arrows.
 - **The hand (1.5.0-alpha.19).** Opening the tempo panel never widens the bar: the bar's width is read with the panel hidden and pinned, and the panel opens above the row on a bottom seat and below it on a top seat, MACROS over CLOCK at the row's width (a bar 640 px wide or more keeps them side by side). The BPM reading's seat is its widest word (`data-w`). The door, the dock chip and the way back carry `data-key-action` (`modulation`, `dock`, `hide`), and `rackOpeners` passes each card's `action`, so their tooltips show the table's chord.
 - `shell/wordmark.js`: `wordmark(parent, { lead, word, sub, id, svg, mark })`: `svg` = SVG markup or an element, or `{ dark, light }` image URLs (wordmark-dark carries white ink); `mark` = the app's symbol in place of the nine squares (kept unseen in `.word` so `#title .mark` still feeds loading seats); `.word` becomes `role="img"` with `aria-label` = `word`, `data-art`; its height is `--title-art-h`. `createMirDiamond(target, { colors })` → `{ diamond, tiles, destroy() }` (MIR's official diamond, JL-LOGOS mir-dark.svg); `installPaletteCycle(target, tiles, colors)` → destroy (the tiles glide: a linear `fill` transition of one step); `MIR_PALETTE`, `PALETTE_STEP` (240), `paletteAt(i, offset, colors)`.
@@ -744,6 +745,14 @@ mir/modulation/window.js (added)
 mir/modulation/host.js (added)
   AUTOMATION_GRIDS · clock.setAutomationGrid(g) / automationGrid() · clock.onAdvance(fn(kind)) → off ('tick' | 'step' | 'seek')
     · clock.isStepping()
+    · clock.setLoop(provider | null) / loop() (1.5.6-alpha.25: THE LOOP on the realtime pump) · stats().loops
+    · livePos: under a clip a device's routes stand aside, a hand macro layers (1.5.6-alpha.27)
+mir/modulation/window.js (1.5.6-alpha.26)
+  api.armFor({ onPick(targetId), label, onEnd }) → end() — the routing's arming with no macro; →TL bypasses the device (alpha.27)
+mir/modulation/registry.js (1.5.6-alpha.22)
+  register(id, { map: 'integer', options: array | () => array }) — equal bands; describe(id) → one row with options, steps
+mir/modulation/curve-gesture.js (1.5.6-alpha.23)
+  fineGear(origin) · CURVE_FINE · pointDrag(start, current, event, gear?) · tensionDelta(startY, currentY, event, gear?)
 mir/modulation/mod.js (added)
   presetCaps(name) · presetUpsertCaps(name, rack) · bundledPresets(list, folder?) · rackApply(rack, fromV?)
 mir/modulation/layout-motion.js
@@ -823,6 +832,12 @@ mir/pattern/sequencer.js
   pasteClips, duplicateClips, moveClips, duplicate, makeUnique, value(targetId, beat) → 0..1 | null, setActive(range),
   activeClips(beat, kind?), needsClock(has), signature() }`; `isTimelineSnapshot(o)`; `DEFAULT_TIMELINE_COLOR`,
   `TIMELINE_HISTORY_BYTES`, `TIMELINE_HISTORY_LIMIT`.
+- λWAVES 032 (1.5.6-alpha.21 … 26): `value()` — the highest lane, then the earliest start, then the lower id; `extent({ unmuted })`
+  → `{ start, end } | null` (and the pure `timelineExtent(clips, { unmuted })`); `stretchClip(id, 'start' | 'end', duration,
+  { original })` (duration and scale together, the shape kept); `placeClip(curveId, { laneId, start, duration, offset, scale,
+  followSourceEnd })` (a shared instance: THE PENCIL); `retarget(clipId, targetId, { name })` (a shared curve copied first); a
+  plain curve's optional `steps` (2 … 4096: `timelineSteps(n)`, `TIMELINE_MAX_STEPS` in `source.js`), through `create`'s
+  source, `updateCurve({ steps })` (`null` clears), paste and `restore`.
 
 ### The pure laws
 - `source.js`: `normalizeTimelinePoints`, `evaluateTimelineSource`, `addTimelinePoint`, `moveTimelinePoint`,
@@ -842,8 +857,10 @@ mir/pattern/sequencer.js
   `pointsInRectangle`; `slice.js` `sliceClips`, `sliceClip`, `curveCut`, `midpointTension`, `SLICE_MIN`;
   `time-format.js` `formatSeconds`, `formatBar`, `formatPercent`; `view.js` `tickLaw`, `ticks`.
 - `controller.js`: `createTransportController({ mod, onChange, onRefusedPlay, now, scrubLevel, busy })` → `{ play(on),
-  toggle(), seek(beat), scrub(beat, { snap, alt, shift }), beginning(), beginScrub(), endScrub({ cancel }), isScrubbing(),
-  handBeat(), subscribe(fn) → off, setModulation(on), toggleModulation(), state(), dispose() }`.
+  toggle(), seek(beat), scrub(beat, { snap, alt, snapped }), beginning(), beginScrub(), endScrub({ cancel }), isScrubbing(),
+  handBeat(), subscribe(fn) → off, setModulation(on), toggleModulation(), state(), loop(), loopFrom({ range, active, extent }),
+  dispose() }` — `snapped` (1.5.6-alpha.23; `shift` read when it is absent) snaps the scrub; `loop()` (1.5.6-alpha.25) is the ruler's
+  range › ACTIVE › the clips' extent › null, seated on `host.clock.setLoop` by `loopFrom` (createTimeline does it unless `loop: false`).
 - `project.js`: `timelinePart(model, { remap })` → `{ capture, restore, signature, subscribe }`,
   `registerTimelinePart(model, { remap, name }, register?)` → unregister.
 - `history.js`: `adoptTimeline(history, model, name = 'timeline')`, `timelineLabel(method)`.
