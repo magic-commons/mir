@@ -1,5 +1,10 @@
 # MIR — changelog
 
+## 1.5.6 — in progress (the doors of λWAVES 032)
+
+λWAVES 032 TIMELINE REDUX's doors, built on `kit-032` from 1.5.5 (`mir/version.js` stays 1.5.5: the number is Josh's). Newest first:
+- **1.5.6-alpha.21 · THE ARRANGEMENT'S LAW** (`timeline/model.js` `value` · `extent` · `stretchClip`, the curve's `steps`; `timeline/source.js` `timelineSteps`, λWAVES 032 T12 · T17 · T1 · T23): overlapping clips on one target — the HIGHEST LANE wins, then the EARLIEST start, then the lower id (was: the latest start); `extent({ unmuted = true })` → `{ start, end } | null`, the clips' first start … last end; `stretchClip(id, 'start' | 'end', duration, { original })` changes duration and scale together so the source's shape keeps (`scale' = scale · old / new`, the source span held; the start edge moves start, never before 0), one transaction; a plain curve may carry `steps` (an integer 2 … 4096: the bands of the target it was drawn for), validated by `create`, `updateCurve` (`steps: null` clears it), paste and `restore` (a bad one is dropped; an older file opens byte for byte); a pattern's own `steps` row is untouched. tests/timeline-editing.node.mjs.
+
 ## 1.5.5 — 2026-10-31 · λWAVES' kit at 0.9.9-beta: the lift of 10-27 and its twenty doors
 
 Josh (2026-10-31): "Call this version of MIR 1.5.5." The twenty additive doors built on the clone road for λWAVES iterations

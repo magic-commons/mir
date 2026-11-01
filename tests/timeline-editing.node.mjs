@@ -88,4 +88,47 @@ const sig=m.signature();m.begin();m.drawPoints(curve,[{beat:7,value:.3}]);m.canc
 assert.equal(m.makeUnique(linked),true);const unique=m.state().clips.find(c=>c.id===linked).curveId;
 m.setSegment(unique,0,'single');assert.equal(m.state().curves.find(c=>c.id===curve).points[0].segment,'hold');
 assert.equal(m.restore(m.serialize()),true);
-console.log('Timeline Hold playback/vertical paint, Slide musical timing, Step strokes, snapshots, linked instances and undo/cancel pass.');
+
+// 1.5.6-alpha.21 · THE ARRANGEMENT'S LAW: overlapping clips on one target — the highest lane wins (lanes[0] is the
+// top), then the earliest start, then the lower id; a muted clip never plays. (Was: the latest start won.)
+{ const a=createTimelineModel(),flat=v=>[{t:0,v,tension:0},{t:1,v,tension:0}];
+  const low=a.create({targetId:'camera.zoom',value:.3,start:0,duration:8,laneId:'lane3'}),high=a.create({targetId:'camera.zoom',value:.7,start:2,duration:4,laneId:'lane1'});
+  assert.equal(a.state().clips.find(c=>c.id===high).laneId,'lane1');
+  near(a.value('camera.zoom',1),.3);near(a.value('camera.zoom',3),.7,'the higher lane wins though it starts later');near(a.value('camera.zoom',7),.3);
+  a.updateClip(high,{mute:true});near(a.value('camera.zoom',3),.3,'a muted clip stands aside');a.updateClip(high,{mute:false});
+  const late=a.create({targetId:'camera.zoom',value:.9,start:4,duration:4,laneId:'lane3'});a.updateClip(late,{laneId:'lane2'});
+  near(a.value('camera.zoom',5),.7,'lane 1 over lane 2');a.moveClips([high],{laneDelta:3});
+  near(a.value('camera.zoom',5),.9,'lane 2 over lane 4 once lane 1 moves down');
+  a.updateClip(late,{laneId:'lane3'});near(a.value('camera.zoom',5),.3,'one lane: the earliest start wins');
+  a.updateClip(late,{start:0});const ids=[low,late].sort((x,y)=>x.localeCompare(y,undefined,{numeric:true}));
+  near(a.value('camera.zoom',1),a.state().curves.find(c=>c.id===a.state().clips.find(k=>k.id===ids[0]).curveId).points[0].v,'a tie: the lower id');
+  // extent: the first start … the last end, unmuted by default
+  const e=createTimelineModel();assert.equal(e.extent(),null);
+  const c1=e.create({targetId:'camera.zoom',value:.5,start:2,duration:4}),c2=e.create({targetId:'camera.pan',value:.5,start:10,duration:2});
+  assert.deepEqual(e.extent(),{start:2,end:12});e.updateClip(c2,{mute:true});assert.deepEqual(e.extent(),{start:2,end:6});
+  assert.deepEqual(e.extent({unmuted:false}),{start:2,end:12});e.updateClip(c1,{mute:true});assert.equal(e.extent(),null);
+  // THE STRETCH: duration and scale together, the source span held, the shape kept; the start edge moves start
+  const s=createTimelineModel(),sc=s.create({targetId:'camera.zoom',value:0,start:4,duration:8}),sid=s.state().curves[0].id;
+  s.updateCurve(sid,{points:[{t:0,v:0,tension:0},{t:1,v:1,tension:0}]});const before=[0,.25,.5,.75].map(f=>s.value('camera.zoom',4+8*f));
+  assert.equal(s.stretchClip(sc,'end',16),true);let k=s.state().clips[0];assert.deepEqual([k.start,k.duration,k.scale,k.followSourceEnd],[4,16,.5,false]);
+  [0,.25,.5,.75].forEach((f,i)=>near(s.value('camera.zoom',4+16*f),before[i]));
+  assert.equal(s.stretchClip(sc,'start',4),true);k=s.state().clips[0];assert.deepEqual([k.start,k.duration,k.scale],[16,4,2]);
+  [0,.25,.5,.75].forEach((f,i)=>near(s.value('camera.zoom',16+4*f),before[i]));
+  assert.equal(s.stretchClip(sc,'start',100),true);k=s.state().clips[0];assert.equal(k.start,0);assert.equal(k.duration,20,'the start edge stops at beat 0');
+  const o={...s.state().clips[0]};s.begin();for(const d of [24,31,9,20])s.stretchClip(sc,'end',d,{original:o});s.commit();
+  assert.deepEqual(s.state().clips[0],{...o,followSourceEnd:false},'reversed through the original: exact');
+  assert.equal(s.stretchClip(sc,'end',0),false);assert.equal(s.stretchClip(sc,'middle',4),false);assert.equal(s.stretchClip('nope','end',4),false);
+  const sig2=s.signature();s.stretchClip(sc,'end',3);s.undo();assert.equal(s.signature(),sig2,'one stretch, one undo');
+  // steps: optional on a curve; an older file opens unchanged; restore drops a bad one; updateCurve sets and clears it
+  const st=createTimelineModel(),ev=st.create({targetId:'material.style',value:.5,source:{steps:10}});
+  assert.equal(st.state().curves[0].steps,10);const cid=st.state().curves[0].id;
+  assert.equal(st.updateCurve(cid,{steps:12}),true);assert.equal(st.state().curves[0].steps,12);
+  assert.equal(st.updateCurve(cid,{steps:1}),false);assert.equal(st.updateCurve(cid,{steps:2.5}),false);assert.equal(st.state().curves[0].steps,12);
+  const dup=st.duplicate(ev,true);assert.equal(st.state().curves.find(c=>c.id===st.state().clips.find(x=>x.id===dup).curveId).steps,12,'a copy keeps its bands');
+  const wire=st.serialize(),re=createTimelineModel();assert.equal(re.restore(wire),true);assert.deepEqual(re.serialize(),wire);
+  assert.equal(st.updateCurve(cid,{steps:null}),true);assert.equal('steps' in st.state().curves[0],false);
+  const bad=JSON.parse(JSON.stringify(wire));bad.curves[0].steps=-3;assert.equal(re.restore(bad),true);assert.equal('steps' in re.state().curves[0],false);
+  assert.equal(createTimelineModel().create({targetId:'material.style',value:.5,source:{steps:'x'}})!=null,true);
+  const old=saved;assert.equal(re.restore(old),true);assert.deepEqual(re.serialize(),old,'a file without steps opens byte for byte');
+}
+console.log('Timeline Hold playback/vertical paint, Slide musical timing, Step strokes, snapshots, linked instances, undo/cancel, the arrangement\'s law, extent, the stretch and steps pass.');

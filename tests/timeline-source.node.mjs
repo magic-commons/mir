@@ -96,8 +96,10 @@ const second=indexed.create({targetId:'camera.rotation',value:.8,start:4});
 function checkIndex() {
   const data=indexed.state();
   for (const beat of [0,1,2,3.5,4,5,7.5,8,9,11.5,12]) {
+    // THE ARRANGEMENT'S LAW (1.5.6-alpha.21): the highest lane, then the earliest start, then the lower id
+    const lane=c=>data.lanes.findIndex(l=>l.id===c.laneId);
     const winner=data.clips.filter(c=>!c.mute && c.start<=beat && beat<c.start+c.duration)
-      .sort((a,b)=>b.start-a.start || b.id.localeCompare(a.id,undefined,{numeric:true}))[0];
+      .sort((a,b)=>lane(a)-lane(b) || a.start-b.start || a.id.localeCompare(b.id,undefined,{numeric:true}))[0];
     const curve=winner && data.curves.find(c=>c.id===winner.curveId);
     const expected=curve ? curve.min+(curve.max-curve.min)*evaluateTimelineSource(curve,(beat-winner.start)*winner.scale+winner.offset) : null;
     assert.equal(indexed.value('camera.rotation',beat),expected);

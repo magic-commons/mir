@@ -54,7 +54,7 @@ It returns the timeline: `{ win, root, rail, editor, model, controller, transpor
 
 | Module | What it is |
 |---|---|
-| `model.js` `createTimelineModel()` | the arrangement: lanes, curves (sources), clips (instances); its own snapshot undo; `value(targetId, beat)` is what the clock samples |
+| `model.js` `createTimelineModel()` | the arrangement: lanes, curves (sources), clips (instances); its own snapshot undo; `value(targetId, beat)` is what the clock samples; `extent({ unmuted })` the clips' span; `stretchClip(id, edge, duration, { original })` the shape-keeping stretch |
 | `source.js` | a curve source in beats: normalise, evaluate (MIR's `bend`), add / move / slide / draw / remove points, tension, Hold segments |
 | `kinds.js` | THE CLIP-KIND REGISTRY: `registerClipKind(name, { validate, value, paint, slice, duration, drives, menu })` |
 | `pattern-kind.js`, `audio-kind.js` | the kit's two kinds (below) |
@@ -103,6 +103,9 @@ A kind never overrides the model's own fields: the model merges the kind's sourc
 |---|---|
 | **One play** | Only the work bar's ▶ (and its Space row) starts or stops time (`controller.play`, the clock's own demand). Modulation's power is a bypass; power never plays; play never powers. |
 | **The scrub gate** | A ruler drag (or the SCRUB tool) takes the realtime pump (`host.clock.suspendRealtime`): the hand leads (free; Shift snaps; Alt bypasses), the playhead follows the hand's beat, the model lands on the hand's beat at release at every SCRUB level, Escape rewinds to where it began. |
+| **The arrangement's law** (1.5.6-alpha.21) | Where clips on one target overlap, the **highest lane** wins (its index in `lanes`, the top lane first), then the **earliest start**, then the lower id; a muted clip never plays. Lanes are the arrangement's priority (BASINS' law was the latest start). |
+| **The stretch** (1.5.6-alpha.21) | `stretchClip(id, 'start' \| 'end', duration)` changes the clip's length and its `scale` together (the source span `duration · scale` is held), so the curve keeps its shape; the start edge moves `start` (never before beat 0); one transaction. A trim (`updateClip`) cuts the shape instead. |
+| **An event is a banded curve** (1.5.6-alpha.21/22) | A plain curve may carry `steps` (an integer ≥ 2; optional, so an older file opens unchanged): the bands of a target whose registry row is `integer` with `options` (the unit line in equal bands, FL's law) or a `toggle` (two). `registry.describe(id).steps` is what the target has now. A pattern's own `steps` (its row) is the pattern kind's. |
 | **No second clock** | The arrangement is the modulation clock's automation (`setAutomation({ value })`, `setAutomationHold(true)`): a moving baseline under every route, sampled on the one tick; a paused seek previews it. `demand('timeline')` while an unmuted clip drives a registered target. |
 | **One gesture, one transaction** | A drag is `model.begin … commit`; Escape, a lost capture, a blur, a hidden page or H cancels it whole. The last pointer sample is flushed before the commit. A right-button sweep that deletes several clips is one undo. |
 | **One mapping** | Drawing, hit tests and edits use one musical-to-pixel mapping (`geometry.js`). The nearest lane comes from content coordinates, never `elementFromPoint`. Zoom keeps the beat under the anchor. |
