@@ -5,7 +5,8 @@
  *     addLane, removeLane, create, updateClip, updateCurve, addPoint, movePoint, movePoints, removePoints, drawPoints,
  *     removePoint, setTension, setSegment, deleteClip, deleteClips, copyClips, pasteClips, duplicateClips, moveClips,
  *     duplicate, makeUnique, value(targetId, beat), setActive, activeClips(beat, kind?), needsClock(has), signature,
- *     rederive(patches), lastRefusal, extent({ unmuted }), stretchClip(id, edge, duration, { original }) }
+ *     rederive(patches), lastRefusal, extent({ unmuted }), stretchClip(id, edge, duration, { original }),
+ *     placeClip(curveId, { laneId, start, duration, offset, scale }) }
  *   value(targetId, beat) is the automation the modulation clock samples (host.clock.setAutomation({ value })).
  *   THE ARRANGEMENT'S LAW (1.5.6-alpha.21, λWAVES 032 T12): of the unmuted clips under the beat on one target, the
  *   HIGHEST LANE wins (its index in `lanes`, 0 the top), then the EARLIEST start, then the lower id; its 0..1 value is
@@ -216,6 +217,16 @@ export function createTimelineModel() {
       if(unique && (d.curves.length>=1024 || d.curves.reduce((n,x)=>n+x.points.length,0)+original.points.length>TIMELINE_MAX_TOTAL_POINTS))return null;
       const copy={...c,id:id('clip'),start:c.start+c.duration};
       if(unique){const curve={...clone(d.curves.find(x=>x.id===c.curveId)),id:id('curve')};d.curves.push(curve);copy.curveId=curve.id;}d.clips.push(copy);return copy.id;}); },
+    /** placeClip(curveId, { laneId, start, duration, offset, scale, followSourceEnd }) — THE PENCIL STAMP (1.5.6-alpha.23,
+     *  λWAVES 032 T6): a new clip on an EXISTING curve, a shared instance as a duplicate is (makeUnique detaches it), on
+     *  any lane at any start (an overlap is the arrangement's law).  → its id, or null: no such curve or lane, a bad
+     *  number, the 4096-clip ceiling, the audio budget (lastRefusal says why). */
+    placeClip(curveId, { laneId, start, duration, offset = 0, scale = 1, followSourceEnd = false } = {}) {
+      refusal = null; const curve = data.curves.find(c => c.id === curveId);
+      if (!curve || !data.lanes.some(l => l.id === laneId) || ![start, duration, offset, scale].every(Number.isFinite) || start < 0 || duration <= 0 || offset < 0 || scale <= 0 || data.clips.length >= 4096) return null;
+      if (refuseAudio([curve])) return null;
+      return edit(d => { const clip = { id: id('clip'), curveId, laneId, start, duration, offset, scale, mute: false, followSourceEnd: !!followSourceEnd }; d.clips.push(clip); return clip.id; });
+    },
     makeUnique(clipId) { return edit(d=>{const c=d.clips.find(c=>c.id===clipId);if(!c)return false;
       if(d.clips.filter(x=>x.curveId===c.curveId).length===1)return true;
       const original=d.curves.find(x=>x.id===c.curveId);

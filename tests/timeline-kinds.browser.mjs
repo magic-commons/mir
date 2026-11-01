@@ -3,7 +3,7 @@
  * the device colour, a resize extends the repeats, a kind takes no point gestures but moves/trims/deletes, the seam
  * (addClip, onDrop) places clips, Insert slices a curve at the playhead continuously with one undo, the SLICE tool keeps a
  * pattern's phase, the toolbar has no UNDO/REDO/−/+ but their keys work, a SELECT strip drag makes a range that ACTIVE
- * stores, and a Shift-vertical strip drag zooms around the pointer's beat.  Buttons are found by their data- hooks
+ * stores, and a Ctrl-vertical strip drag zooms around the pointer's beat.  Buttons are found by their data- hooks
  * (data-tool, data-mode), where the rig found them by name.  Chromium only (BASINS also ran touch WebKit).
  * MIR_BASE=http://127.0.0.1:8830/ node tests/timeline-kinds.browser.mjs */
 import { mkdir } from 'node:fs/promises';
@@ -145,13 +145,13 @@ const RUN = await (async () => {
     const whole = await S(() => { const E = window.__TL.tl.editor; return { a: E.activeRange(), end: Math.max(...E.model.state().clips.map(c => c.start + c.duration)) }; });
     L.ck(whole.a && whole.a.start === 0 && whole.a.end === whole.end, 'with no range, ACTIVE = 0 → the last clip end', whole);
 
-    // ---- 9. Shift + vertical drag on the strip zooms around the pointer's beat (up = in) ----------------------------
+    // ---- 9. Ctrl + vertical drag on the strip zooms around the pointer's beat (up = in; THE HANDS: Shift before) -----
     await page.keyboard.press('p');
     const zx = vp.x + 300, b0 = await S((x) => window.__TL.tl.editor.at(x, 0).beat, zx), playhead0 = await S(() => window.__TL.mod.host.model.transport.beats), p0 = await px();
-    await page.keyboard.down('Shift'); await page.mouse.move(zx, sy); await page.mouse.down();
-    await page.mouse.move(zx, sy - 60, { steps: 8 }); await page.waitForTimeout(60); await page.mouse.up(); await page.keyboard.up('Shift'); await page.waitForTimeout(60);
+    await page.keyboard.down('Control'); await page.mouse.move(zx, sy); await page.mouse.down();
+    await page.mouse.move(zx, sy - 60, { steps: 8 }); await page.waitForTimeout(60); await page.mouse.up(); await page.keyboard.up('Control'); await page.waitForTimeout(60);
     const p1 = await px(), b1 = await S((x) => window.__TL.tl.editor.at(x, 0).beat, zx), playhead1 = await S(() => window.__TL.mod.host.model.transport.beats);
-    L.ck(near(p1, p0 * Math.exp(.6), .5), 'a 60 px upward Shift-drag zooms in by e^0.6', { p0, p1, want: p0 * Math.exp(.6) });
+    L.ck(near(p1, p0 * Math.exp(.6), .5), 'a 60 px upward Ctrl-drag zooms in by e^0.6', { p0, p1, want: p0 * Math.exp(.6) });
     L.ck(near(b1, b0, .05), 'the beat under the pointer stays put', { b0, b1 });
     L.ck(playhead1 === playhead0, 'the zoom drag leaves the playhead where it was (the scrub rewinds)', { playhead0, playhead1 });
 

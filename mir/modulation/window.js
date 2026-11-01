@@ -40,7 +40,7 @@ import { createModWindow, setDeviceMode, setWorkLane, sizeLaw, GEOM,
          buildGhost, buildAudioSheet, COPY } from './modwindow/modwindow.js';
 import { evaluate as curveEval, curveHash, curveInfo, presetPoints, presetMirror,
          pointsEqual, PRESET_LABEL } from './curve.js';
-import { svgPoint, curveHit, curveAction, pointDrag, pointAddValue, tensionDelta,
+import { svgPoint, curveHit, curveAction, pointDrag, pointAddValue, tensionDelta, fineGear,
          editablePresetForWave } from './curve-gesture.js';
 import { createRail, seatRail, seatOn, roomFor, SIDES } from '../window/rail.js';
 import { createDockGuide } from '../window/dock.js';
@@ -2512,7 +2512,7 @@ export function createModulation(host, port) {
   function wireEditor(rec) {
     const s = rec.s, g = rec.g, svg = g.svg;
     let pid = null, mode = null, idx = -1, key = null, y0 = 0, base = 0;
-    let anchor = { x: 0, y: 0 };
+    let anchor = { x: 0, y: 0 }, gear = null;   // gear: the Shift fine gear of this drag (curve-gesture fineGear, 1.5.6-alpha.23)
     let down = { key: null, t: 0, v: 0 };            // the LATCH: the stage, its seconds, and where the finger took it
 
     const local = (e) => svgPoint(svg, e);
@@ -2605,6 +2605,7 @@ export function createModulation(host, port) {
       key = mode === 'point' && s.kind === 'env' ? envMapOf(s).keys[idx] : null;
       down = { key, t: q0.t, v: key ? s[key] : 0 };
       y0 = p.y;
+      gear = mode === 'handle' ? fineGear(p) : fineGear({ x: q0.t, y: q0.v });
       if (mode === 'handle') base = g.pts[idx].tension;
       if (mode === 'handle' && s.kind === 'env') key = envMapOf(s).tens[idx];
       rec.drag = { kind: mode, index: idx };               // the readout's held state, same frame
@@ -2614,7 +2615,7 @@ export function createModulation(host, port) {
       if (pid !== e.pointerId) return;
       const p = local(e), q = uv(p);
       if (mode === 'point') {
-        const locked = pointDrag(anchor, { x: q.t, y: q.v }, e);
+        const locked = pointDrag(anchor, { x: q.t, y: q.v }, e, gear);
         if (s.kind === 'env') { if (envMove(e.ctrlKey ? down.t : locked.x, locked.y)) syncKnobs(rec); }
         else M.curveEdit(s.id, 'move', { index: idx, t: locked.x, v: locked.y });
         apply();
@@ -2627,7 +2628,7 @@ export function createModulation(host, port) {
         /* UP RAISES THE CURVE, whichever way the segment runs. */
         const a = g.pts[idx], b = g.pts[idx + 1];
         const sgn = b.v < a.v ? -1 : 1;
-        const tau = Math.max(-1, Math.min(1, base + sgn * tensionDelta(y0, p.y, e) / TENSION_PX));
+        const tau = Math.max(-1, Math.min(1, base + sgn * tensionDelta(y0, p.y, e, gear) / TENSION_PX));
         writeTension(idx, tau);
       }
     });
@@ -2644,7 +2645,7 @@ export function createModulation(host, port) {
       say(rec, t('tension reset'));
     });
     svg.addEventListener('contextmenu', (e) => e.preventDefault());
-    ariaLabel(svg, 'Curve editor: right-drag empty space to add a point; Shift-right-click adds at the current curve value; left-drag a point to move it; left-drag a tension handle to bend it; Ctrl makes tension fine; right-click or double-click a tension handle resets it; Alt-click a point deletes it.');
+    ariaLabel(svg, 'Curve editor: right-drag empty space to add a point; Shift-right-click adds at the current curve value; left-drag a point to move it (Shift is fine, Ctrl locks its time); left-drag a tension handle to bend it (Shift is fine); right-click or double-click a tension handle resets it; Alt-click a point deletes it.');
   }
 
   // Each meter is both an input-level display and a response-range editor.

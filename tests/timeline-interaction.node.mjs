@@ -73,3 +73,17 @@ scrubbing=false;reduced=true;time+=20;beat+=.02;paint.paint();assert.equal(tail.
 reduced=false;playing=false;paint.paint();assert.equal(tail.style.width,'0px');hidden=true;head.style.transform='unchanged';paint.paint();assert.equal(head.style.transform,'unchanged');
 Object.defineProperty(globalThis,'performance',{configurable:true,value:realPerformance});delete globalThis.matchMedia;
 console.log('Timeline grouped edits/copies/undo, capacity rejection, dock sides, selection coordinates and bounded playhead pass.');
+
+// 1.5.6-alpha.23 · THE PENCIL STAMP: placeClip puts a SHARED instance of an existing curve on any lane at any start (an
+// overlap is the arrangement's law); makeUnique detaches it; a missing curve or lane, a bad number refuses; one undo.
+{ const p=createTimelineModel(),a=p.create({targetId:'camera.rotation',start:0,duration:4,value:.3}),cv=p.state().clips[0].curveId;
+  const sig=p.signature(),b=p.placeClip(cv,{laneId:'lane2',start:6,duration:2,offset:1,scale:.5});assert.ok(b);
+  let k=p.state().clips.find(c=>c.id===b);assert.deepEqual([k.curveId,k.laneId,k.start,k.duration,k.offset,k.scale,k.mute,k.followSourceEnd],[cv,'lane2',6,2,1,.5,false,false]);
+  assert.equal(p.state().curves.length,1,'the curve is shared, not copied');near(p.value('camera.rotation',7),.3);
+  p.updateCurve(cv,{points:[{t:0,v:.9,tension:0},{t:1,v:.9,tension:0}]});near(p.value('camera.rotation',7),.9,'an edit reaches both instances');
+  assert.equal(p.makeUnique(b),true);assert.equal(p.state().curves.length,2);
+  assert.ok(p.placeClip(cv,{laneId:'lane1',start:2,duration:4}),'an overlap on the same lane is allowed');
+  assert.equal(p.placeClip('curve999',{laneId:'lane1',start:0,duration:4}),null);assert.equal(p.placeClip(cv,{laneId:'nope',start:0,duration:4}),null);
+  assert.equal(p.placeClip(cv,{laneId:'lane1',start:-1,duration:4}),null);assert.equal(p.placeClip(cv,{laneId:'lane1',start:0,duration:0}),null);
+  p.undo();p.undo();p.undo();p.undo();assert.equal(p.signature(),sig,'each stamp is one undo');void a;}
+console.log('Timeline pencil stamp: a shared instance on any lane, makeUnique detaches, refusals, one undo each.');

@@ -258,7 +258,8 @@ below, the four edges and the model.)*
 - **the curve** — write `d` on `dev.ed.path` and `dev.ed.fill`; bind its pointer surface through
   `../curve-gesture.js`. The 1.4.3 law is FL Studio's: right-drag empty space adds and places a point;
   Shift-right-click adds at the curve's current value;
-  left-drag moves a point or tension handle; Ctrl fine-tunes tension; right-click resets a tension
+  left-drag moves a point or tension handle; Shift fine-tunes either (⅛, `fineGear`) and Ctrl locks a point's time
+  (1.5.6-alpha.23; Ctrl was the tension's fine key and Shift locked the value); right-click resets a tension
   handle or double-click resets it; Alt-left-click deletes a point. Plain left-click on empty space is inert. `svgPoint()` must
   transform client pixels into the SVG viewBox before `curveHit()` is asked, or a resized visible
   tension handle becomes an empty-space press. A deterministic analytic wave materializes on its

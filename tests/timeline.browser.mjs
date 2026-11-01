@@ -102,6 +102,36 @@ const RUN = await (async () => {
     const after = await E(() => window.__TL.model.signature());
     L.ck(moved > 0 && after === sig1, 'a clip drag reversed half-way lands exactly where it began', { moved });
 
+    /* ── THE HANDS (1.5.6-alpha.23): Ctrl + an edge stretches (the shape keeps), Ctrl + a title clones, an EDIT click on empty
+       lane space stamps the clip last pressed (its curve shared), Shift + a ruler drag is a time range ───────────────────── */
+    const H0 = await E(() => { const T = window.__TL, m = T.model, keep = m.serialize(); m.restore(null); const lanes = m.state().lanes.map((l) => l.id);
+      const a = m.create({ targetId: 'scene.glow', name: 'GLOW', value: .5, start: 0, duration: 4, laneId: lanes[0] });
+      T.tl.editor.setTool('edit'); T.tl.editor.setSnap(1); document.querySelector('.tl-viewport').scrollLeft = 0; T.tl.editor.paint(); return { a, lanes, keep, px: T.tl.editor.px() }; });
+    await page.waitForTimeout(120);
+    const edgeR = await page.locator(`.tl-clip[data-clip="${H0.a}"] .tl-edge-right`).boundingBox();
+    // (pressed near the edge's top: at mid-height the curve's end point sits on the edge, and a point wins its press)
+    await page.keyboard.down('Control'); await page.mouse.move(edgeR.x + edgeR.width / 2, edgeR.y + 6); await page.mouse.down();
+    await page.mouse.move(edgeR.x + edgeR.width / 2 + 4 * H0.px, edgeR.y + 6, { steps: 6 }); await page.mouse.up(); await page.keyboard.up('Control'); await page.waitForTimeout(60);
+    const st = await E((id) => { const c = window.__TL.model.state().clips.find((x) => x.id === id); return { duration: c.duration, scale: c.scale }; }, H0.a);
+    L.ck(st.duration === 8 && st.scale === .5, 'Ctrl + the right edge stretches: twice the length at half the speed (the shape keeps)', st);
+    const tabA = await page.locator(`.tl-clip-title[data-clip="${H0.a}"]`).boundingBox();
+    await page.keyboard.down('Control'); await page.mouse.move(tabA.x + 30, tabA.y + 9); await page.mouse.down();
+    await page.mouse.move(tabA.x + 30 + 10 * H0.px, tabA.y + 9, { steps: 6 }); await page.mouse.up(); await page.keyboard.up('Control'); await page.waitForTimeout(60);
+    const cl = await E(() => { const d = window.__TL.model.state(); return { clips: d.clips.length, curves: d.curves.length }; });
+    L.ck(cl.clips === 2 && cl.curves === 2, 'Ctrl + a title drag clones the clip (its own curve)', cl);
+    await page.mouse.click(tabA.x + 30, tabA.y + 9); await page.waitForTimeout(40);
+    const pane = await page.locator(`.tl-pane[data-lane="${H0.lanes[2]}"]`).boundingBox(), sx = pane.x + 20.4 * H0.px, sy2 = pane.y + pane.height / 2;
+    const want = await E(([x, y]) => window.__TL.tl.editor.at(x, y).snapped, [sx, sy2]);
+    await page.mouse.click(sx, sy2); await page.waitForTimeout(60);
+    const stamped = await E(([id, lane]) => { const d = window.__TL.model.state(), a = d.clips.find((c) => c.id === id), s = d.clips.find((c) => c.laneId === lane); return { n: d.clips.length, shared: !!s && s.curveId === a.curveId, start: s?.start, duration: s?.duration }; }, [H0.a, H0.lanes[2]]);
+    L.ck(stamped.n === 3 && stamped.shared && stamped.start === want && stamped.duration === 8, 'an EDIT click on empty lane space stamps the clip last pressed: its curve, shared, at the snapped beat', { ...stamped, want });
+    const ruler = await page.locator('.tl-ruler').boundingBox(), scroll = await E(() => document.querySelector('.tl-viewport').scrollLeft);
+    const x2 = ruler.x + 2 * H0.px - scroll, x6 = ruler.x + 6 * H0.px - scroll;
+    await page.keyboard.down('Shift'); await page.mouse.move(x2, ruler.y + ruler.height / 2); await page.mouse.down(); await page.mouse.move(x6, ruler.y + ruler.height / 2, { steps: 6 }); await page.mouse.up(); await page.keyboard.up('Shift'); await page.waitForTimeout(40);
+    const rg = await E(() => window.__TL.tl.editor.range());
+    L.ck(rg && rg.start === 2 && rg.end === 6, 'Shift + a ruler drag selects a time range (snapped)', rg);
+    await E((keep) => { window.__TL.model.restore(keep); }, H0.keep);   // the arrangement as the sections below expect it (a restore clears the selection and range)
+
     /* ── IDLE: after the gesture, nothing books a frame ────────────────────────────────────────────────────────── */
     const idle = await E(async () => { const { perf } = await import('/mir/core/perf.js'), { frame } = await import('/mir/core/frame.js');
       let rafs = 0; const raf = window.requestAnimationFrame; window.requestAnimationFrame = (f) => { rafs++; return raf(f); };

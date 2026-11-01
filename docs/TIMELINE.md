@@ -102,7 +102,9 @@ A kind never overrides the model's own fields: the model merges the kind's sourc
 | Law | What it means |
 |---|---|
 | **One play** | Only the work bar's ▶ (and its Space row) starts or stops time (`controller.play`, the clock's own demand). Modulation's power is a bypass; power never plays; play never powers. |
-| **The scrub gate** | A ruler drag (or the SCRUB tool) takes the realtime pump (`host.clock.suspendRealtime`): the hand leads (free; Shift snaps; Alt bypasses), the playhead follows the hand's beat, the model lands on the hand's beat at release at every SCRUB level, Escape rewinds to where it began. |
+| **The scrub gate** | A ruler drag (or the SCRUB tool) takes the realtime pump (`host.clock.suspendRealtime`): the hand leads (free; Ctrl snaps — Shift until 1.5.6-alpha.23; Alt bypasses), the playhead follows the hand's beat, the model lands on the hand's beat at release at every SCRUB level, Escape rewinds to where it began. |
+| **One modifier table** (1.5.6-alpha.23, THE HANDS) | **Shift selects and fines** (the ruler's range, the marquee, a clip's toggle; ⅛ on a point, a tension, a stretch); **Ctrl shapes** (the ruler's zoom and snapped scrub, a clip's clone and stretch, a point's time lock); **Alt bypasses Snap and deletes a point**. Every tool's plain gesture is its modifier gesture (SELECT drag = Shift-drag, SLICE click = the cut, SCRUB drag = the scrub), so touch needs no key. The value lock on a point is retired. |
+| **The pencil** (1.5.6-alpha.23) | The clip last pressed is remembered; an EDIT click on empty lane space stamps it there (`model.placeClip`: the same curve, shared, its length, offset and scale, at the snapped beat), and the press moves it; one undo. MAKE UNIQUE detaches it. Nothing remembered: the click clears the selection. |
 | **The arrangement's law** (1.5.6-alpha.21) | Where clips on one target overlap, the **highest lane** wins (its index in `lanes`, the top lane first), then the **earliest start**, then the lower id; a muted clip never plays. Lanes are the arrangement's priority (BASINS' law was the latest start). |
 | **The stretch** (1.5.6-alpha.21) | `stretchClip(id, 'start' \| 'end', duration)` changes the clip's length and its `scale` together (the source span `duration · scale` is held), so the curve keeps its shape; the start edge moves `start` (never before beat 0); one transaction. A trim (`updateClip`) cuts the shape instead. |
 | **An event is a banded curve** (1.5.6-alpha.21/22) | A plain curve may carry `steps` (an integer ≥ 2; optional, so an older file opens unchanged): the bands of a target whose registry row is `integer` with `options` (the unit line in equal bands, FL's law) or a `toggle` (two). `registry.describe(id).steps` is what the target has now. A pattern's own `steps` (its row) is the pattern kind's. |
@@ -167,24 +169,29 @@ The timeline's keys are rows of the app's one key table (`docs/KEYS.md`), rebind
 | Key | Action | FL / BASINS |
 |---|---|---|
 | Middle button, hold + drag | Pan time and tracks | FL — Middle-Mouse-Click pans |
-| Ctrl/Cmd + drag (empty) | Rectangle-select clips or points | FL — Ctrl+drag selects |
+| Shift + drag (empty) | Rectangle-select clips or points | adapted — FL’s Ctrl+drag; in MIR Shift selects |
 | Ctrl/Cmd + Shift + drag | Add to the rectangle selection | FL — Ctrl+Shift+drag adds |
-| Ctrl/Cmd + click a clip | Toggle it in the selection | FL — Ctrl+click toggles |
-| Shift + drag a title | Duplicate the selection while moving it | FL — Shift-drag clones |
-| Ctrl/Cmd + drag the ruler | Select a time range; + Shift extends it | adapted — FL selects by dragging the bar-ruler |
-| Select tool: drag the ruler | Select a time range (no Ctrl, so touch can); a tap seeks | FL — dragging the bar-ruler selects time |
-| Shift + vertical drag on the ruler | Zoom time around the pointer’s beat (up = in) | BASINS — a touch-friendly zoom; a horizontal Shift-drag still snaps the scrub |
+| Shift + click a clip | Toggle it in the selection | adapted — FL’s Ctrl+click toggles |
+| Ctrl/Cmd + drag a clip | Duplicate the selection while moving it (title or body) | adapted — FL’s Shift-drag clones; in MIR Ctrl shapes |
+| Drag a clip’s edge | Trim it: the curve keeps its beats | FL — drag a clip’s edge |
+| Ctrl/Cmd + drag a clip’s edge | Stretch it: the curve keeps its shape | MIR — length and speed change together |
+| Ctrl/Cmd + Shift + drag a clip’s edge | Stretch it finely (⅛, free of Snap) | MIR — Shift is the fine gear |
+| Edit tool: click empty lane space | Place the clip last pressed there (the same curve, shared) | FL — the pencil places the last clip; MAKE UNIQUE detaches it |
+| Shift + drag the ruler | Select a time range; + Ctrl/Cmd extends it | adapted — FL selects by dragging the bar-ruler |
+| Select tool: drag the ruler | Select a time range (no key, so touch can); a tap seeks | FL — dragging the bar-ruler selects time |
+| Drag the ruler | Scrub: the playhead follows the hand, free of Snap | BASINS — the hand leads |
+| Ctrl/Cmd + vertical drag on the ruler | Zoom time around the pointer’s beat (up = in) | BASINS — a touch-friendly zoom; a horizontal Ctrl-drag scrubs on Snap |
 | Hold a knob | Create a timeline clip from it, or locate its clips | BASINS |
 | ACTIVE (toolbar) | Mark the ruler’s range, or the whole arrangement, as the active range; again to clear | BASINS — the range the record window renders |
 | Slice tool: click a clip | Cut it at the pointer’s beat (Snap applies, Alt bypasses) | FL — the Slice tool cuts at the click |
-| Drag a pattern / audio clip body | Move it (Shift copies, right-button deletes); it has no points | FL — pattern clips move from their body |
+| Drag a pattern / audio clip body | Move it (Ctrl copies, right-button deletes); it has no points | FL — pattern clips move from their body |
 | Right-drag empty clip space | Add and place a point | FL — Right-Click + drag adds a point |
 | Shift + right-click a clip | Add a point that preserves its current value | FL — Shift+Right-Click is non-destructive add |
 | Left-drag a point or tension handle | Move it | FL — drag a node or a tension handle |
-| Ctrl (held) while dragging tension | Fine-tune the tension | FL — Ctrl allows fine adjustment |
+| Shift (held) while dragging a point or tension | Fine-tune it (⅛; a point’s time is free of Snap) | adapted — FL fines tension with Ctrl; Shift is MIR’s fine gear |
+| Ctrl/Cmd (held) while moving a point | Lock its time | FL — Ctrl locks horizontal |
 | Right-click a tension handle | Reset it | BASINS — FL’s right-click opens a Delete menu instead |
 | Alt + left-click a point | Delete it | adapted — FL’s manual names Right-Alt+click specifically |
-| Shift / Ctrl while moving a point | Lock its value / time | FL — Shift locks vertical, Ctrl locks horizontal |
 | Alt (held) | Bypass Snap for the gesture in progress | FL — Alt temporarily sets snap to none |
 <!-- /SHORTCUTS -->
 

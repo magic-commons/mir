@@ -656,9 +656,10 @@ The modulation window `installModulation` mounts joins the kit's one window stac
 | `svgPoint(svg, event)` | Converts client coordinates to the SVG viewBox before hit testing, including CSS/UI scaling |
 | `curveHit(point, points, handles, radius)` | Nearest point-or-handle hit test in that coordinate system |
 | `curveAction(event, hit)` | FL Studio's action matrix: right-empty add, left-point move, left-handle tension, right- or double-click handle reset, Alt-left-point delete |
-| `pointDrag(start, current, event)` | Shift locks value; Ctrl locks time |
+| `pointDrag(start, current, event, gear?)` | Ctrl locks time; with a `gear` Shift is ⅛ (1.5.6-alpha.23: the value lock is retired) |
+| `fineGear(origin)` → `{ step(current, event), at() }` | The Shift fine gear (⅛, `CURVE_FINE`): made at pointer-down, it moves by the pointer's motion, ⅛ of it while Shift is held, so Shift mid-drag never jumps |
 | `pointAddValue(event, pointerValue, curveValue)` | Shift-right-click preserves the curve's current value; ordinary right-click uses pointer value |
-| `tensionDelta(startY, currentY, event)` | Handle travel with Ctrl fine adjustment |
+| `tensionDelta(startY, currentY, event, gear?)` | Handle travel; Shift is fine (⅛), through the gear when one is given |
 | `editablePresetForWave(wave)` | Deterministic analytic wave → editable breakpoint preset; S&H and DRIFT return `null` |
 | `CURVE_GESTURES` | The human-readable gesture contract |
 

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {
   CURVE_GESTURES, svgPoint, curveHit, curveAction, pointDrag, pointAddValue,
-  tensionDelta, editablePresetForWave
+  tensionDelta, editablePresetForWave, fineGear, CURVE_FINE
 } from '../mir/modulation/curve-gesture.js';
 
 let n = 0;
@@ -38,14 +38,27 @@ const pass = (name, detail) => { n++; console.log(`PASS ${name}${detail ? ` — 
 }
 
 {
+  /* THE HANDS (1.5.6-alpha.23): Shift is the fine gear (⅛) on a point and a tension; Ctrl locks a point's time; the value lock is retired */
   const start = { x: 0.25, y: 0.8 }, at = { x: 0.7, y: 0.2 };
-  assert.deepEqual(pointDrag(start, at, { shiftKey: true, ctrlKey: false }), { x: 0.7, y: 0.8 });
-  assert.deepEqual(pointDrag(start, at, { shiftKey: false, ctrlKey: true }), { x: 0.25, y: 0.2 });
-  assert.equal(tensionDelta(20, 100, { ctrlKey: false }), 80);
-  assert.equal(tensionDelta(20, 100, { ctrlKey: true }), 10);
+  assert.equal(CURVE_FINE, 8);
+  assert.deepEqual(pointDrag(start, at, { shiftKey: true, ctrlKey: false }), { x: 0.7, y: 0.2 }, 'Shift no longer locks the value');
+  assert.deepEqual(pointDrag(start, at, { shiftKey: false, ctrlKey: true }), { x: 0.25, y: 0.2 }, 'Ctrl locks the time');
+  assert.equal(tensionDelta(20, 100, { ctrlKey: true }), 80, 'Ctrl is no longer the tension’s fine key');
+  assert.equal(tensionDelta(20, 100, { shiftKey: true }), 10, 'Shift is');
   assert.equal(pointAddValue({ shiftKey: false }, 0.2, 0.65), 0.2);
   assert.equal(pointAddValue({ shiftKey: true }, 0.2, 0.65), 0.65);
-  pass('Shift/Ctrl point locks, Shift-right level preservation and Ctrl-fine tension keep their axes');
+  // the gear: motion since the last step, ⅛ while Shift is held; pressing or releasing Shift mid-drag never jumps
+  const g = fineGear({ x: 0, y: 0 });
+  assert.deepEqual(g.step({ x: 8, y: 16 }, {}), { x: 8, y: 16 });
+  assert.deepEqual(g.step({ x: 16, y: 32 }, { shiftKey: true }), { x: 9, y: 18 });
+  assert.deepEqual(g.step({ x: 16, y: 32 }, {}), { x: 9, y: 18 }, 'releasing Shift does not jump');
+  assert.deepEqual(g.step({ x: 24, y: 40 }, {}), { x: 17, y: 26 });
+  const p = fineGear({ x: 10, y: 10 });
+  assert.deepEqual(pointDrag({ x: 10, y: 10 }, { x: 26, y: 50 }, { shiftKey: true }, p), { x: 12, y: 15 }, 'a point at ⅛ with its gear');
+  assert.deepEqual(pointDrag({ x: 10, y: 10 }, { x: 34, y: 50 }, { ctrlKey: true }, p), { x: 10, y: 15 }, 'Ctrl keeps the time while the gear runs');
+  const tg = fineGear({ x: 0, y: 20 });
+  assert.equal(tensionDelta(20, 36, { shiftKey: true }, tg), 2); assert.equal(tensionDelta(20, 46, {}, tg), 12, 'the tension geared step by step');
+  pass('Shift is the fine gear (⅛, no jump), Ctrl locks time, Shift-right level preservation');
 }
 
 {

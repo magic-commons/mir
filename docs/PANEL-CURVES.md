@@ -36,10 +36,10 @@ The curve is drawn in accent B (SOLEIL draws it so: a transfer is a relationship
 | | |
 |---|---|
 | **a press on the plot** | adds a point **there** and drags it (Photoshop) |
-| **a press on a point** | drags it; Shift keeps its value, Ctrl its place (the kit's curve law) |
+| **a press on a point** | drags it; Shift is fine (⅛), Ctrl keeps its place (the kit's curve law, 1.5.6-alpha.23) |
 | **drag a point out of the plot** | it fades, and goes on release (Photoshop); back inside, it stays |
 | **double-tap a point** | removes it (Alt-click too) |
-| **drag a ring** | bends its segment: down drops it, up lifts it; Ctrl is fine (SOLEIL's rings, FL's tension) |
+| **drag a ring** | bends its segment: down drops it, up lifts it; Shift is fine (SOLEIL's rings, FL's tension; the kit's fine key since 1.5.6-alpha.23) |
 | **double-tap a ring** (or right-click it) | straightens it |
 | **right-click the plot** | adds a point on the curve where you clicked (the kit's curve law) |
 | **the two ends** | move only up and down, and are never removed |

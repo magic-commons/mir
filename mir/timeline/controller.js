@@ -3,14 +3,15 @@
  * the true play while Modulation will now have a power button": this is that play, and the scrub that holds the clock.
  *
  *   createTransportController({ mod, onChange, onRefusedPlay, now, scrubLevel, busy }) → { play(on), toggle, seek(beat),
- *     scrub(beat, { snap, alt, shift }), beginning, beginScrub, endScrub({ cancel }), isScrubbing, handBeat, subscribe(fn)
+ *     scrub(beat, { snap, alt, snapped }), beginning, beginScrub, endScrub({ cancel }), isScrubbing, handBeat, subscribe(fn)
  *     → off, setModulation(on), toggleModulation, state(), dispose }
  *   mod          installModulation's result (mir/modulation/bind.js): its play is the clock's, its arm is the power
  *   scrubLevel() 'live' | 'light' | 'release' — how often a scrub really seeks (BASINS: prefs.scrubLevel); default 'live'
  *   busy()       true while a recorder owns the clock (BASINS: its video and deterministic clocks); a scrub is refused then
  *
  * THE LAWS (BASINS'):
- *   THE HAND LEADS.  Free by default, Shift snaps to the grid, Alt always bypasses it.  The level, read once per gesture,
+ *   THE HAND LEADS.  Free by default, `snapped` snaps to the grid (the editor's Ctrl, 1.5.6-alpha.23; `shift` is still
+ *   read when `snapped` is not given, the BASINS spelling), Alt always bypasses it.  The level, read once per gesture,
  *   decides how often the engine actually seeks; handBeat() is always the latest commanded beat, so the playhead follows it.
  *   THE GATE.  beginScrub() takes the realtime pump (host.clock.suspendRealtime): time stands still under the hand while
  *   the transport keeps its play state; endScrub lands the model on the hand's beat at every level (a cancel rewinds to
@@ -40,7 +41,7 @@ export function createTransportController({ mod, onChange = () => {}, onRefusedP
 
   function seek(beat) { if (disposed) return modelBeat(); return changed(clock.seek(beat), 'seek'); }
   function scrubTo(beat, mods = {}) {
-    const b = snapTimelineBeat(beat, mods.shift ? mods.snap : 0, !!mods.alt);
+    const b = snapTimelineBeat(beat, (mods.snapped ?? mods.shift) ? mods.snap : 0, !!mods.alt);
     if (!scrub) return seek(b);
     scrub.hand = b; changed(b, 'scrub');
     if (scrub.level === 'release') return b;

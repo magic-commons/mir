@@ -40,7 +40,7 @@ const RUN = await (async () => {
     const ruler = page.locator('.tl-ruler');
     const r = await ruler.boundingBox();
 
-    /* ── LAW 1: FREE SCRUB — unsnapped by default, Shift snaps, Alt always bypasses ───────────── */
+    /* ── LAW 1: FREE SCRUB — unsnapped by default, Ctrl snaps (THE HANDS, 1.5.6-alpha.23: Shift before), Alt always bypasses ── */
     await page.mouse.move(r.x + 37, r.y + 16); await page.mouse.down();
     await page.mouse.move(r.x + 37, r.y + 16);
     await page.waitForTimeout(80);
@@ -48,21 +48,21 @@ const RUN = await (async () => {
     await page.mouse.up();
     L.ck(!Number.isInteger(free) && free > 0, 'plain scrub is unsnapped (not on the beat grid)', free);
 
-    await page.keyboard.down('Shift');
+    await page.keyboard.down('Control');
     await page.mouse.move(r.x + 50, r.y + 16); await page.mouse.down();
     await page.mouse.move(r.x + 50, r.y + 16);
     await page.waitForTimeout(80);
     const snapped = await page.evaluate(() => window.__TL.tl.controller.state().beat);
-    await page.mouse.up(); await page.keyboard.up('Shift');
-    L.ck(Number.isInteger(snapped), 'Shift snaps the scrub to the grid', snapped);
+    await page.mouse.up(); await page.keyboard.up('Control');
+    L.ck(Number.isInteger(snapped), 'Ctrl snaps the scrub to the grid', snapped);
 
-    await page.keyboard.down('Shift'); await page.keyboard.down('Alt');
+    await page.keyboard.down('Control'); await page.keyboard.down('Alt');
     await page.mouse.move(r.x + 63, r.y + 16); await page.mouse.down();
     await page.mouse.move(r.x + 63, r.y + 16);
     await page.waitForTimeout(80);
     const bypassed = await page.evaluate(() => window.__TL.tl.controller.state().beat);
-    await page.mouse.up(); await page.keyboard.up('Alt'); await page.keyboard.up('Shift');
-    L.ck(!Number.isInteger(bypassed), 'Alt bypasses the grid even with Shift held', bypassed);
+    await page.mouse.up(); await page.keyboard.up('Alt'); await page.keyboard.up('Control');
+    L.ck(!Number.isInteger(bypassed), 'Alt bypasses the grid even with Ctrl held', bypassed);
 
     /* ── LAW: Escape rewinds to where the gesture began ───────────────────────────────────────── */
     await page.evaluate(() => window.__TL.tl.controller.seek(5));
