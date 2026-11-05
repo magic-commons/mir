@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import {
   CAMERA_DEFAULTS, turn, wrapDegrees, createCameraRig, setCameraValue, cameraPose, atNorth, northStep, signed, fmtDeg, fmtScale, fmtPan,
-  VOCAB, IDS, HAND_IDS, has, present, describe, lookDir, anglesOf, project, sphereDrag, SPHERE, transform2d, transform3d,
+  VOCAB, IDS, HAND_IDS, has, present, describe, lookDir, anglesOf, project, sphereDrag, SPHERE, transform2d, transform3d, planeDrag, fromView, toView, VIEW_FRAME,
 } from '../mir/panels/camera-rig.js';
 
 let n = 0;
@@ -92,6 +92,18 @@ const near = (a, b, e = 1e-9) => Math.abs(a - b) < e;
   /* zero in, zero out */
   assert.deepEqual(sphereDrag(0.2, 0.3, 0, 0).map((v) => Math.abs(v)), [0, 0]);
   pass('the sphere drag: the arrow\'s tip follows the finger (worst error ' + worst.toFixed(3) + '), finite at the pole and at the eye');
+  /* 1.5.7-alpha.7 THE PLANE'S DRAG: in 3-D, so AT the pole (a plane's home normal z) a sideways step moves the tip sideways; the view frame
+     draws a viewer's right to the drawing's right and its eye to the centre, and turns back exactly */
+  let worstP = 0;
+  for (const d of [[0, 0, 1], [1, 0, 0], [0, -1, 0], lookDir(2.4, -0.4), lookDir(-0.4, -1.2)]) for (const [sx, sy] of [[0.2, 0], [0, 0.2], [-0.14, 0.14]]) {
+    const t0 = project(d), t1 = project(planeDrag(d, sx, sy));
+    worstP = Math.max(worstP, Math.hypot(t1[0] - t0[0] - sx, t1[1] - t0[1] - sy) / Math.hypot(sx, sy));
+  }
+  assert.ok(worstP < 0.05, 'the plane\'s tip follows the finger within 5% (worst ' + worstP.toFixed(3) + '), the pole included');
+  const r = project(fromView([1, 0, 0])), u = project(fromView([0, 1, 0])), e = project(fromView([0, 0, 1]));
+  assert.ok(r[0] > SPHERE.cx + 80 && near(r[1], SPHERE.cy) && u[1] < SPHERE.cy - 80 && near(u[0], SPHERE.cx) && near(e[0], SPHERE.cx) && near(e[1], SPHERE.cy), 'right, up and the eye where a viewer sees them');
+  assert.ok(toView(fromView([0.3, -0.5, 0.81])).every((v, i) => near(v, [0.3, -0.5, 0.81][i], 1e-12)) && Object.isFrozen(VIEW_FRAME), 'the frame turns back exactly');
+  pass('the plane\'s drag (1.5.7-alpha.7): the tip follows the finger in 3-D, at the pole too (worst ' + worstP.toFixed(3) + '); the view frame draws a viewer\'s right, up and eye where they see them');
 }
 {
   const rig = createCameraRig({ rotation: 30, panx: 0.1, pany: 0.2 });
