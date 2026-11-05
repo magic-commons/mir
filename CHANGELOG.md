@@ -1,5 +1,11 @@
 # MIR — changelog
 
+## 1.5.7 (unreleased) · the doors of λWAVES 036
+
+Built on the clone road for λWAVES 036 (branch `kit-032` from the 1.5.6 cut cdf20ae); each door additive. The doors, newest first:
+
+- **1.5.7-alpha.1 · THE STROKE** (`shell/gui.js` the look key `stroke` · the STROKE knob in MIR OPTIONS › CONTROLS, `knobOf` passes `step`; `css/base.css` `--ctl-hairline`; `css/skin.css`, `window/window.css`, `shell/transport.css`; tokens `--ctl-stroke` · `--ctl-hairline` · `--chip-edge`, λWAVES 036 K1): a number 0 … 1 (step .05, home 1 writes nothing; not a THEME_KEYS key) written on <html> as `--ctl-stroke` multiplies the alpha of every CONTROL ring — `--neu-flat`, `--state-on-rim`'s ring (its top light stays), `--seat-edge`, `--k-live-ring`, `--dev-carried-edge`, `--dev-tab-ring`, the controls' hairline borders (`.k-dial .sw .seg .trig select.sel .fd .ro .dev-swap .dev-copy .dev-pop .dev-rail`, the FINDER's `.wp-search`, and GLASS faces' outline) through the new `--ctl-hairline` (`--glass-hairline` keeps drawing `.grp` / `.mir-section` frames), `--chip-rim` (→ `--chip-sink`, the ON rim) and the chip disc's border (`--chip-edge`), the transport pill's three rims; not the panes' EDGE, the menus' edge (022's ≥ 3 : 1) or the focus ring. THE RELIEF SOFTENS: `--neu-raise`'s highlight is the soft halo of before 1.5.6-alpha.5 again (dark (−1, −1) 3 px at .05 + the top light .08, was 1 px `--neu-lit`; light 3 px · .9, was 1 px · .7; SOLID (2, 2) 6 px, was (1, 1) 2 px); the drop shadow and the wells unchanged.
+
 ## 1.5.6 — 2026-11-01 · TIMELINE REDUX: the eight doors of λWAVES 032
 
 Josh (2026-11-01): "Cut the kit as 1.5.6 and push it." The eight additive doors built on the clone road for λWAVES 032 TIMELINE REDUX
