@@ -8,6 +8,7 @@ import { typeahead, placePane, liveItems } from '../mir/controls/select.js';
 import { numberTravel, parseNumber, digitsOf, NUMBER } from '../mir/controls/number.js';
 import { rangeBounds, nearestThumb } from '../mir/controls/range.js';
 import { controlKind, KINDS } from '../mir/controls/factory.js';
+import { padWrap } from '../mir/controls/xy.js';
 
 let n = 0;
 const pass = (name) => { n++; console.log(`PASS ${name}`); };
@@ -107,5 +108,24 @@ const near = (a, b, e = 1e-9) => Math.abs(a - b) < e;
   for (const [d, kind] of cases) assert.equal(controlKind(d), kind, JSON.stringify(d).slice(0, 80));
   assert.deepEqual([...new Set(cases.map((c) => c[1]))].sort(), [...KINDS].sort(), 'every kind is reached');
   pass('control(): ' + cases.length + ' descriptors choose the kind the table says, and every kind is reached');
+}
+{
+  /* 1.5.7-alpha.13 THE PAD WRAPS: the plane is a torus (an edge's point stays, past it comes back in at the other side); the sphere's rim is the point
+     straight behind — past it at θ the point is at θ + π with r → 2 − r, at r = 2 the front again, a press outside the disc on the rim; no wrap clamps */
+  const eq = (a, b) => a.every((v, i) => near(v, b[i], 1e-12));
+  assert.ok(eq(padWrap('plane', 1, 0), [1, 0]) && eq(padWrap('plane', 1.02, 0.5), [0.02, 0.5]) && eq(padWrap('plane', -0.25, 1.5), [0.75, 0.5]), 'the plane: a torus');
+  assert.ok(eq(padWrap('plane', 1.3, -0.2, true), [1, 0]), 'a press is clamped to the square');
+  const c = (ux, uy) => [2 * ux - 1, 2 * uy - 1], at = (cx, cy) => [(1 + cx) / 2, (1 + cy) / 2];
+  assert.ok(eq(padWrap('sphere', ...at(0.3, -0.4)), at(0.3, -0.4)), 'inside the disc nothing moves');
+  assert.ok(eq(c(...padWrap('sphere', ...at(0, 1.02))), [0, -0.98]), 'past the top: in at the bottom, r 0.98');
+  assert.ok(eq(c(...padWrap('sphere', ...at(1.5 * Math.cos(1), 1.5 * Math.sin(1)))), [-0.5 * Math.cos(1), -0.5 * Math.sin(1)]), 'at θ, r 1.5: θ + π, r 0.5');
+  assert.ok(eq(c(...padWrap('sphere', ...at(2.25, 0))), [0.25, 0]), 'past r = 2 the great circle comes round to the front side again');
+  assert.ok(eq(c(...padWrap('sphere', 1, 1, true)), [Math.SQRT1_2, Math.SQRT1_2]), 'a press in the corner lands on the rim');
+  assert.ok(eq(padWrap(undefined, 1.2, -0.1), [1, 0]) && eq(padWrap('torus?', 0.4, 2), [0.4, 1]), 'no wrap (or an unknown word) clamps, as before');
+  /* a drag that keeps going up: the sphere's point climbs the disc, goes over the rim and on up from the bottom, never leaving the disc */
+  let p = at(0, 0), out = 0, laps = 0, was = 0;
+  for (let i = 0; i < 400; i++) { p = padWrap('sphere', p[0], p[1] + 0.01); const y = c(...p)[1]; if (Math.hypot(...c(...p)) > 1 + 1e-9) out++; if (y < was - 1) laps++; was = y; }
+  assert.equal(out, 0, 'never outside the disc'); assert.equal(laps, 4, 'over the rim four times in 400 steps of 0.02 (centre → top: 50, bottom → top: 100 each)');
+  pass('THE PAD WRAPS (1.5.7-alpha.13): padWrap\'s torus, its sphere (θ + π, 2 − r, the front again at r = 2, a press on the rim) and the old clamp');
 }
 console.log(`${n} PASS (controls.node)`);
