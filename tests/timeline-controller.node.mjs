@@ -98,7 +98,7 @@ console.log('Transport controller shared actions, source-free demand, independen
 
 // THE LOOP (1.5.6-alpha.25): loop() is the ruler's range › the ACTIVE range › the clips' extent › null; a playing tick that
 // crosses the end lands on the start (+ the overshoot) before anything is applied; a seek, a paused clock and the recorder's
-// step never loop; a play started past the end runs free.
+// step never loop; a play started past the end comes home to the start (1.5.7-alpha.8: it ran free).
 { const H3 = createModHost({ roots: ['camera'], presentationActive: false }); H3.model.modReset({ bare: true }); H3.clock.setBpm(60);
   let wall = 0, seen = [], values = [];
   H3.targets.install({ id: 'camera.loop', min: 0, max: 8, map: 'linear', get: () => 0, set: (v) => values.push(v) });
@@ -120,7 +120,7 @@ console.log('Transport controller shared actions, source-free demand, independen
   assert.ok(values.every((v) => v < 4 - 1e-9), 'no frame is applied at the end: ' + values.map((v) => v.toFixed(2)).join(' '));
   assert.ok(seen.includes('seek') && seen.at(-1) === 'tick', 'heard as a seek, then the tick'); assert.equal(H3.clock.stats().loops, 1);
   lc.play(false); lc.seek(4.5); assert.equal(H3.model.transport.beats, 4.5, 'a paused seek past the end is unaffected');
-  lc.play(true); tick(.05); tick(.05); assert.ok(H3.model.transport.beats > 4.5, 'a play started past the end runs free');
+  lc.play(true); tick(.05); tick(.05); assert.ok(Math.abs(H3.model.transport.beats - 1.05) < 1e-9, 'a play started past the end comes home to the start (1.5.7-alpha.8): ' + H3.model.transport.beats);
   lc.play(false); lc.seek(3.9); for (let i = 0; i < 6; i++) H3.clock.step(.05); assert.ok(H3.model.transport.beats > 4, 'the recorder’s step never loops: ' + H3.model.transport.beats);
   lc.loopFrom(null); assert.equal(H3.clock.loop(), null, 'loopFrom(null): free run'); lc.dispose(); H3.dispose(); }
 console.log('THE LOOP: precedence, the wrap before the apply, seeks, paused moves, the recorder and a late start pass.');
