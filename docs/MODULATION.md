@@ -81,7 +81,7 @@ It returns `{ host, view, registry, M, open(), close(), toggle(), isOpen, power(
 
 - **`setAutomationGrid(value)`** / **`automationGrid()`** — the AUTOMATION sampling grid (Settings › SAMPLING): the arrangement is read at the beat floored to the grid, so a value changes only on a grid line (BASINS measured 200 → 7 presents over a beat at 1/8). A recorder's deterministic `step()` always samples per frame. Stored with the record.
 - **`upsertProjectPreset(name, rack?)`** — a project save is also a preset (Josh 10-01: *"always write and include the modulation as it's own preset … All caps in titles"*): the rack (default: the live one) saved as a user preset named the project in CAPS, replacing its own earlier self; a factory name takes the free copy name. → `presetSave`'s result.
-- **`setTimeline(tl)`** on the install: the timeline this modulation works with (`installTimeline`'s result). → TL then appears on every LFO and ENV head (an LFO cycle, an ENV's stages, or a live pattern row becomes a clip at the playhead), and the PATTERN's sequencer reads the pattern clips.
+- **`setTimeline(tl)`** on the install: the timeline this modulation works with (`installTimeline`'s result). → TL then appears on every LFO and ENV head (an LFO's whole cycles — at least a bar's worth, 1.5.7-alpha.10 THE MEASURE IS THE LEAST LOOP: n = ⌈bar / period⌉, so a 1/16 LFO sends 16 cycles; a period of a bar or longer stays one cycle — an ENV's stages, or a live pattern row becomes a clip at the start of the playhead's bar, 1.5.7-alpha.8), and the PATTERN's sequencer reads the pattern clips.
 
 ### `createModulation(host, port)` — `mir/modulation/window.js`
 
