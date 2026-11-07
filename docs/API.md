@@ -543,10 +543,10 @@ Load `mir/shell/parts.css` after the kit's sheets.
 - `createFolders({ host, id = 'folders', domId, title = 'FOLDERS', store = 'mir.folders', storage, prefs, app, adapter, actions = DEFAULT_ACTIONS,
   panels, galleryPanel, onTab, head = false, status = false, chipSide = 'right', seeds, seededKey, size, min, dock, onMoved, rack, firstSeat,
   anchor = 'right', top = 162, say, download, picture, defaultName, capChars, parts, sorts, depthOf, factory, freshLoses, locked, projection,
-  capturePicture, savePicture, pictureStale, onInspect, onOpened, onSaved, galleryCopy, files, emptyDragExcept })` → `{ win, files, gallery, adapter,
+  capturePicture, savePicture, pictureStale, onInspect, onOpened, onSaved, galleryCopy, captions, files, emptyDragExcept })` → `{ win, files, gallery, adapter,
   seeded, intake, views, panels, tab(id?), activeTab(), mountGallery(el, { pageSize, prefsKey, actions, factory, onInspect }), open(), close(),
   toggle(), isOpen(), save(), saveAs(), fresh(), openEntry(), current(), dirty(), seed(), exportProject(), importEnvelope(), ingest(), say(),
-  state(), destroy() }` (1.5.0-alpha.7: BASINS' toolbar and panels by default). 1.5.0-alpha.8 adds `dragToFolder` (off; drag-to-folder and MOVE TO), `folderGlyph` (BASINS' `mandelbrotSmall` by default), `onOpen` (a persisted open included), `material` (default `'modulation'`: the window wears the modulation window's material; `null` for the house glass) and `railGap`
+  state(), destroy() }` (1.5.0-alpha.7: BASINS' toolbar and panels by default). 1.5.0-alpha.8 adds `dragToFolder` (off; drag-to-folder and MOVE TO), `folderGlyph` (BASINS' `mandelbrotSmall` by default), `onOpen` (a persisted open included), `material` (default `'modulation'`: the window wears the modulation window's material; `null` for the house glass) and `railGap`. 1.5.7-alpha.22 adds `captions` (off; every card of every view wears its name in its own row beneath its picture at rest, and a paged view's page reserves that row); a card's hint says a second tap opens it
 - `DEFAULT_ACTIONS` (BASINS' toolbar: PROJECT · CAPTURE · DOWNLOAD · DUPLICATE · NEW · ⋯), `FOLDERS_ACTIONS` (SAVE · SAVE AS · NEW · OPEN FILE · EXPORT), `GALLERY_PANEL`; `freeSeat({ …, anchor: 'centre' | 'right', gutter })`
 - `localPrefs(storage, key)` → `{ read, write }` · `toThumb(src, { max, type, quality })` → `Promise<data URL>` · `FOLDERS_COPY`
 
