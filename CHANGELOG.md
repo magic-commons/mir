@@ -1,8 +1,10 @@
 # MIR — changelog
 
-## 1.5.7 (unreleased) · the doors of λWAVES 036, 037 and 038
+## 1.5.7 (unreleased) · the doors of λWAVES 036, 037, 038 and 039
 
-Built on the clone road for λWAVES 036 (branch `kit-032` from the 1.5.6 cut cdf20ae), 037 (branch `kit-037` from kit-032's a3dcb80) and 038 (branch `kit-038` from kit-037's e377982); each door additive. The doors, newest first:
+Built on the clone road for λWAVES 036 (branch `kit-032` from the 1.5.6 cut cdf20ae), 037 (branch `kit-037` from kit-032's a3dcb80), 038 (branch `kit-038` from kit-037's e377982) and 039 (branch `kit-039` from kit-038's eddd2b6); each door additive. The doors, newest first:
+
+- **1.5.7-alpha.17 · THE STEPPED CLOCK LOOPS** (`modulation/host.js` `clock.step(dt, { loop })`, docs/API.md, docs/TIMELINE.md, tests/timeline-controller.node.mjs, λWAVES 039 K1): an app that steps the clock on its own frame — λWAVES' PLAYBACK LOCK steps it exactly 1/hz per present — saw the arrangement run free, empty or not, because `step()` never looped (THE LOOP of 1.5.6-alpha.25 lives on the realtime pump only). `step(dt, { loop: true })` wraps by the realtime rule: a step that crosses the loop's end lands on its start plus the overshoot before anything is applied, a step already at or past the end lands on the start (alpha.8), heard as 'seek' then 'step'. The two roads share one wrap (`wrapLoop`). The recorder passes nothing and keeps the unlooped step: a film is exact.
 
 - **1.5.7-alpha.16 · THE MENU PANE KEEPS ITS FLOOR** (`css/skin.css` the menu floor, `shell/shell.css` the bar's list floor, `tests/mir-css.node.mjs`, λWAVES 038 N8): under dark REFRACTIVE with FROST · ALWAYS — a desktop first run in the dark theme — every menu pane (a contextMenu's and its submenus, an app's `.glass[data-mir-surface="menu"]`) read `rgba(0,0,0,.10)` with the blur, not the .72 floor: the floor rule tied at (0,4,1) with FROST's dark veil and FROST · STILL's fill, which came later and won; the bar's `#menubar .mb-list` floor (1,3,1) lost to the dark veil's (1,4,1) outright. Both floors weigh one attribute more (`body[data-card][data-card]`): (0,5,1) and (1,4,1), later — the floor in every material (light REFRACTIVE .72, dark REFRACTIVE FROST .72, TINTED .94, SOLID 1); the blur and the sheen stay, the colour is the floor's. A node test holds the weights.
 

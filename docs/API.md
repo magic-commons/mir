@@ -746,6 +746,8 @@ mir/modulation/host.js (added)
   AUTOMATION_GRIDS · clock.setAutomationGrid(g) / automationGrid() · clock.onAdvance(fn(kind)) → off ('tick' | 'step' | 'seek')
     · clock.isStepping()
     · clock.setLoop(provider | null) / loop() (1.5.6-alpha.25: THE LOOP on the realtime pump) · stats().loops
+    · clock.step(dt, { loop: true }) (1.5.7-alpha.17: THE STEPPED CLOCK LOOPS — an app's own frame wraps by the same rule,
+      heard as 'seek' then 'step'; the recorder passes nothing and never loops)
     · livePos: under a clip a device's routes stand aside, a hand macro layers (1.5.6-alpha.27)
 mir/modulation/window.js (1.5.6-alpha.26)
   api.armFor({ onPick(targetId), label, onEnd }) → end() — the routing's arming with no macro; →TL bypasses the device (alpha.27)

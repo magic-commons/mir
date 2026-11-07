@@ -122,5 +122,10 @@ console.log('Transport controller shared actions, source-free demand, independen
   lc.play(false); lc.seek(4.5); assert.equal(H3.model.transport.beats, 4.5, 'a paused seek past the end is unaffected');
   lc.play(true); tick(.05); tick(.05); assert.ok(Math.abs(H3.model.transport.beats - 1.05) < 1e-9, 'a play started past the end comes home to the start (1.5.7-alpha.8): ' + H3.model.transport.beats);
   lc.play(false); lc.seek(3.9); for (let i = 0; i < 6; i++) H3.clock.step(.05); assert.ok(H3.model.transport.beats > 4, 'the recorder’s step never loops: ' + H3.model.transport.beats);
+  // THE STEPPED CLOCK LOOPS (1.5.7-alpha.17): step(dt, { loop: true }) — an app's own frame — wraps by the realtime rule
+  lc.seek(3.9); seen.length = 0; for (let i = 0; i < 5; i++) H3.clock.step(.04, { loop: true });
+  assert.ok(Math.abs(H3.model.transport.beats - 1.1) < 1e-9, 'a stepped clock asked to loop crosses 4 by .02 → 1.02, then two steps → 1.1: ' + H3.model.transport.beats);
+  assert.ok(seen.includes('seek') && seen.at(-1) === 'step', 'heard as a seek, then the step: ' + seen.join(' '));
+  lc.seek(4.5); H3.clock.step(.05, { loop: true }); assert.equal(H3.model.transport.beats, 1, 'a step past the end comes home to the start');
   lc.loopFrom(null); assert.equal(H3.clock.loop(), null, 'loopFrom(null): free run'); lc.dispose(); H3.dispose(); }
 console.log('THE LOOP: precedence, the wrap before the apply, seeks, paused moves, the recorder and a late start pass.');
