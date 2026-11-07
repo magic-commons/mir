@@ -128,4 +128,15 @@ const near = (a, b, e = 1e-9) => Math.abs(a - b) < e;
   assert.equal(out, 0, 'never outside the disc'); assert.equal(laps, 4, 'over the rim four times in 400 steps of 0.02 (centre → top: 50, bottom → top: 100 each)');
   pass('THE PAD WRAPS (1.5.7-alpha.13): padWrap\'s torus, its sphere (θ + π, 2 − r, the front again at r = 2, a press on the rim) and the old clamp');
 }
+{
+  /* 1.5.7-alpha.15 THE ARC WEARS A GRADIENT: a finite range with two or more stops is an arc (its track the colours, a thumb the value); one stop,
+     no range or options keep their own kind */
+  const rainbow = ['red', 'yellow', 'lime', 'cyan', 'blue', 'magenta', 'red'];
+  assert.equal(controlKind({ id: 'h', min: -180, max: 180, stops: rainbow }), 'arc', 'a rainbow track');
+  assert.equal(controlKind({ id: 's', min: 0, max: 3, log: true, stops: ['grey', 'red'] }), 'arc', 'two stops on a log range');
+  assert.equal(controlKind({ id: 's', min: 0, max: 1, stops: ['grey'] }), 'knob', 'one stop is no gradient');
+  assert.equal(controlKind({ id: 'n', value: 3, stops: ['grey', 'red'] }), 'number', 'no finite range, no arc');
+  assert.equal(controlKind({ id: 'm', options: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }], stops: ['grey', 'red'] }), 'segment', 'options stay a segment');
+  pass('THE ARC WEARS A GRADIENT (1.5.7-alpha.15): stops on a finite range choose the arc; one stop, no range or options do not');
+}
 console.log(`${n} PASS (controls.node)`);
