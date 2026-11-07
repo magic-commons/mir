@@ -135,7 +135,8 @@ Since 1.5.0-alpha.3 a skin may also set the state and height tokens the house re
 
 | Export | What it is |
 |---|---|
-| `installControlHelp(root = document)` | Every `[title]` becomes a hint shown after `HELP_HOVER_DELAY` (600 ms) |
+| `installControlHelp(root = document)` | Every `[title]` becomes a hint shown after `HELP_HOVER_DELAY` (600 ms), below its control (above if it does not fit); a control in a window's head (`.dev-head`, `.mir-win-head`) is hinted above the bar, else beside the bar in its band (1.5.7-alpha.21 THE HINT CLEARS THE ROW) |
+| `hintSpot(rect, w, h, vw, vh, head?)` → `{ left, top }` | That placement, pure (seen px) |
 | `infoPanel(content, label)` → `anchor` | An ⓘ button whose panel holds `content`: hover or focus to peek, click to pin, Escape closes |
 | `consolidateWindowHelp(root, { sources })` | Gathers each window's notes into one ⓘ in its header. `sources` defaults to `.note:not(.link-note), .sp-fx` |
 | `HELP_CLASSES`, `setHelpClasses({ hintsOff })` | The two body switches that silence help: `control-hints-off` (an app may rename it) and `window-info-off` (a CSS contract name, not renameable) |

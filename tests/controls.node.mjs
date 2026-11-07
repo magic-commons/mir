@@ -9,6 +9,7 @@ import { numberTravel, parseNumber, digitsOf, NUMBER } from '../mir/controls/num
 import { rangeBounds, nearestThumb } from '../mir/controls/range.js';
 import { controlKind, KINDS } from '../mir/controls/factory.js';
 import { padWrap } from '../mir/controls/xy.js';
+import { hintSpot } from '../mir/control-help.js';
 
 let n = 0;
 const pass = (name) => { n++; console.log(`PASS ${name}`); };
@@ -138,5 +139,19 @@ const near = (a, b, e = 1e-9) => Math.abs(a - b) < e;
   assert.equal(controlKind({ id: 'n', value: 3, stops: ['grey', 'red'] }), 'number', 'no finite range, no arc');
   assert.equal(controlKind({ id: 'm', options: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }], stops: ['grey', 'red'] }), 'segment', 'options stay a segment');
   pass('THE ARC WEARS A GRADIENT (1.5.7-alpha.15): stops on a finite range choose the arc; one stop, no range or options do not');
+}
+{
+  /* THE HINT CLEARS THE ROW (1.5.7-alpha.21): a control in a window's head is hinted above the bar, else beside it in the bar's band */
+  const R = (left, top, width, height) => ({ left, top, width, height, right: left + width, bottom: top + height });
+  const body = hintSpot(R(100, 300, 30, 30), 200, 24, 1500, 900);
+  assert.deepEqual(body, { left: 15, top: 337 }, 'a body control: below');
+  const fold = R(380, 120, 30, 30), bar = R(100, 116, 320, 38);
+  assert.deepEqual(hintSpot(fold, 200, 24, 1500, 900, bar), { left: 295, top: 85 }, 'a head control: above the bar');
+  const top = hintSpot(R(380, 12, 30, 30), 200, 24, 1500, 900, R(100, 8, 320, 38));
+  assert.deepEqual(top, { left: 427, top: 15 }, 'no room above: beside the bar (its right), in the bar\'s band');
+  assert.ok(top.top + 24 <= 8 + 38 + 1, 'the hint stays inside the bar\'s band, off the first row');
+  assert.deepEqual(hintSpot(R(1440, 12, 30, 30), 200, 24, 1500, 900, R(1200, 8, 290, 38)), { left: 993, top: 15 }, 'a bar at the right edge: its left');
+  assert.deepEqual(hintSpot(R(350, 12, 30, 30), 200, 24, 400, 900, R(0, 8, 400, 38)), { left: 192, top: 49 }, 'a bar as wide as the screen: below, as before');
+  pass('THE HINT CLEARS THE ROW (1.5.7-alpha.21): a head control\'s hint goes above the bar, else beside the bar in its band; a body control\'s below');
 }
 console.log(`${n} PASS (controls.node)`);
