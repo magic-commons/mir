@@ -24,4 +24,17 @@ ok('no sheet is imported twice', () => assert.deepEqual(imports.filter((x, i) =>
 ok('every sheet under mir/ is imported (vendor/ aside)', () => assert.deepEqual(sheets.filter((s) => !imports.includes(s)).sort(), [], 'missing from mir/mir.css'));
 ok('base.css is first: it declares the layer order', () => assert.equal(imports[0], 'css/base.css'));
 ok('nothing but imports and comments (an @import after a rule is ignored by the browser)', () => assert.equal(src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/@import[^;]+;/g, '').trim(), ''));
+/* 1.5.7-alpha.16 · THE MENU PANE KEEPS ITS FLOOR: the menu floors outweigh every card style's pane veil and fill (FROST · ALWAYS's dark veil and
+   FROST · STILL's fill tied the pane's floor and won, being later; the bar's list lost outright) — specificity compared as (ids, classes, elements) */
+const spec = (s) => { s = s.replace(/:where\((?:[^()]|\([^()]*\))*\)/g, '').replace(/:not\(/g, '(');
+  return [(s.match(/#[\w-]+/g) || []).length, (s.match(/\.[\w-]+|\[[^\]]+\]|:[\w-]+/g) || []).length, (s.match(/(?:^|[\s>+~(])[a-z][\w-]*/g) || []).length]; };
+const more = (a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2];
+const sel = (file, needle) => { const css = fs.readFileSync(path.join(MIR, file), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  return [...css.matchAll(/([^{}]+)\{/g)].flatMap((m) => m[1].split(',').map((x) => x.trim())).filter((x) => x.includes(needle)); };
+ok('the menu pane keeps its floor (1.5.7-alpha.16): the floor outweighs the frost veil and the STILL fill', () => {
+  const floor = sel('css/skin.css', '.glass[data-mir-surface="menu"]:not([hidden])'), bar = sel('shell/shell.css', '#menubar .mb-list:not([hidden])');
+  assert.equal(floor.length, 1); assert.equal(bar.length, 1);
+  for (const v of sel('css/skin.css', 'body.frost').filter((x) => /\.glass$/.test(x))) assert.ok(more(spec(floor[0]), spec(v)) > 0, floor[0] + ' does not outweigh ' + v);
+  for (const v of sel('shell/shell.css', '#menubar .mb-list').filter((x) => x !== bar[0] && x.startsWith('body'))) assert.ok(more(spec(bar[0]), spec(v)) >= 0, bar[0] + ' is outweighed by ' + v);
+});
 console.log(`\nmir-css: ${n} passed`);
