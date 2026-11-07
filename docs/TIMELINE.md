@@ -40,7 +40,7 @@ Load `mir/timeline/timeline.css` after the kit's sheets (`mir/mir.css`). A lane 
 | `project` | `false` keeps the arrangement out of the project | registered as the part `timeline` |
 | `remap(id, saved)` | targets whose ids do not survive a reload (BASINS binds palette curves by position) | ids are stable |
 | `automation` | `false`: the app wires the arrangement to its clock itself (BASINS, for its recorder) | wired |
-| `transport` | `{ layout, nodes, rack }` for the work bar's transport; `{ shared: tr }`: the app's ONE transport (`createTransport`): it moves into the work lane while the lane shows and the window is open, back to the stage otherwise (the rack's dock wins; `body.no-transport-bar` keeps it off everywhere); `false`: none | `TIMELINE_TRANSPORT` |
+| `transport` | `{ layout, nodes, rack, powerWord }` for the work bar's transport (`powerWord`, 1.5.7-alpha.20: the power seat wears the app's word, as `createTransport({ powerWord })`); `{ shared: tr }`: the app's ONE transport (`createTransport`): it moves into the work lane while the lane shows and the window is open, back to the stage otherwise (the rack's dock wins; `body.no-transport-bar` keeps it off everywhere); `false`: none | `TIMELINE_TRANSPORT` |
 | `audio` | `{ pick({ laneId, start }) }`: ADD AUDIO… in the ⋯ menu | absent |
 | `scrubLevel()` | `'live' \| 'light' \| 'release'`: how often a scrub really seeks | `'live'` |
 | | `createApp` builds no timeline, so SAMPLING · SCRUB (the GUI's saved `scrub`) reaches the arrangement through the app's own one line: `scrubLevel: () => gui.prefs.get('scrub')` (`app.gui.prefs.get('scrub')` with `createApp`) | |
