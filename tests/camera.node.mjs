@@ -1,10 +1,11 @@
 /* camera.node.mjs — the camera panel's pure part (mir/panels/camera-rig.js): BASINS' rig (rotation, pan, orbit, the two scales, the unwrapped
- * seam), NORTH and its memory, the vocabulary and its units, the sphere's drag (the arrow's tip follows the finger), the CSS transforms.
+ * seam), NORTH and its memory, the vocabulary and its units, the sphere's drag (the arrow's tip follows the finger; alpha.46 THE ARCBALL), the CSS transforms.
  * The panel under a real browser is tests/camera.browser.mjs. */
 import assert from 'node:assert/strict';
 import {
   CAMERA_DEFAULTS, turn, wrapDegrees, createCameraRig, setCameraValue, cameraPose, atNorth, northStep, signed, fmtDeg, fmtScale, fmtPan,
   VOCAB, IDS, HAND_IDS, has, present, describe, lookDir, anglesOf, project, sphereDrag, SPHERE, transform2d, transform3d, planeDrag, fromView, toView, VIEW_FRAME,
+  ballPoint, arcballTurn, sphereTurn,
 } from '../mir/panels/camera-rig.js';
 
 let n = 0;
@@ -104,6 +105,45 @@ const near = (a, b, e = 1e-9) => Math.abs(a - b) < e;
   assert.ok(r[0] > SPHERE.cx + 80 && near(r[1], SPHERE.cy) && u[1] < SPHERE.cy - 80 && near(u[0], SPHERE.cx) && near(e[0], SPHERE.cx) && near(e[1], SPHERE.cy), 'right, up and the eye where a viewer sees them');
   assert.ok(toView(fromView([0.3, -0.5, 0.81])).every((v, i) => near(v, [0.3, -0.5, 0.81][i], 1e-12)) && Object.isFrozen(VIEW_FRAME), 'the frame turns back exactly');
   pass('the plane\'s drag (1.5.7-alpha.7): the tip follows the finger in 3-D, at the pole too (worst ' + worstP.toFixed(3) + '); the view frame draws a viewer\'s right, up and eye where they see them');
+}
+{
+  /* 1.5.7-alpha.46 THE SPHERE TURNS SMOOTHLY: THE ARCBALL. ballPoint is project's inverse on the inner disc, unit and continuous on the whole plane */
+  const DEG = Math.PI / 180, R = SPHERE.R, wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a)), dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+  for (const d of [[0, 0, 1], [0.3, -0.2, Math.sqrt(1 - 0.13)], [-0.5, 0.45, Math.sqrt(1 - 0.4525)], [0.6, 0.3, Math.sqrt(0.55)]].map(fromView)) {
+    assert.ok(dist(ballPoint(...project(d)), d) < 1e-12, 'ballPoint inverts project on the inner disc');
+  }
+  const rim = R / Math.SQRT2, a0 = ballPoint(SPHERE.cx + rim - 1e-7, SPHERE.cy), a1 = ballPoint(SPHERE.cx + rim + 1e-7, SPHERE.cy);
+  assert.ok(dist(a0, a1) < 1e-6, 'continuous at R/√2, the seam of the sphere and the sheet');
+  for (const [sx, sy] of [[SPHERE.cx + 2 * R, SPHERE.cy], [SPHERE.cx - 3 * R, SPHERE.cy + R], [SPHERE.cx, SPHERE.cy - 0.9 * R]]) assert.ok(near(Math.hypot(...ballPoint(sx, sy)), 1, 1e-12), 'unit past the rim');
+  /* arcballTurn takes p0 onto p1 exactly; the gear turns an eighth of the angle */
+  const p0 = ballPoint(220, 130), p1 = ballPoint(160, 170);
+  assert.ok(dist(arcballTurn(p0, p0, p1), p1) < 1e-12, 'arcballTurn maps p0 onto p1');
+  const ang = (u, v) => Math.acos(Math.max(-1, Math.min(1, u[0] * v[0] + u[1] * v[1] + u[2] * v[2])));
+  assert.ok(near(ang(p0, arcballTurn(p0, p0, p1, 1 / 8)) / ang(p0, p1), 1 / 8, 1e-9), 'the gear turns an eighth');
+  assert.deepEqual(sphereTurn(0.2, 0.3, p0, p0), [0, 0], 'zero in, zero out');
+  /* a tip grabbed inside the disc stays under the finger */
+  let y = 0.6, p = 0.3, q; const tip = project(lookDir(y, p)); q = ballPoint(...tip); let worstT = 0;
+  for (let i = 1; i <= 8; i++) {
+    const f = [tip[0] + 3 * i, tip[1] - 2 * i], q1 = ballPoint(...f), [dy, dp] = sphereTurn(y, p, q, q1);
+    y += dy; p += dp; q = q1; const t = project(lookDir(y, p)); worstT = Math.max(worstT, Math.hypot(t[0] - f[0], t[1] - f[1]));
+  }
+  assert.ok(worstT < 1e-9, 'the grabbed tip stays under the finger (worst ' + worstT.toExponential(1) + ' px)');
+  /* out past the rim and back the way it went: the direction returns (nothing mirrored) */
+  const d0 = lookDir(y, p), start = [tip[0] + 24, tip[1] - 16], out = [];
+  for (let i = 1; i <= 12; i++) out.push([start[0] + 12 * i, start[1]]);
+  for (const f of [...out, ...out.slice(0, -1).reverse(), start]) { const q1 = ballPoint(...f), [dy, dp] = sphereTurn(y, p, q, q1); y += dy; p += dp; q = q1; }
+  assert.ok(dist(lookDir(y, p), d0) < 1e-9, 'out past the rim and back: the direction returns');
+  /* THE POLAR CAP: a finger pushed over the pole holds the tip a degree short of it, the yaw never flips, no event spins it */
+  const y0 = 45 * DEG; y = y0; p = 60 * DEG; const top = project(lookDir(y0, p)); q = ballPoint(...top); let worstY = 0;
+  for (let i = 1; i <= 40; i++) {
+    const q1 = ballPoint(top[0], top[1] - 3 * i), [dy, dp] = sphereTurn(y, p, q, q1); y += dy; p += dp; q = q1;
+    worstY = Math.max(worstY, Math.abs(dy)); assert.ok(Math.abs(p) <= 89 * DEG + 1e-12, 'the tip stops a degree short of the pole');
+  }
+  assert.ok(Math.abs(wrap(y - y0)) < 30 * DEG && worstY <= 45 * DEG, 'the yaw never flips (' + (y / DEG).toFixed(1) + '°)');
+  y = y0; p = 80 * DEG; const hi = project(lookDir(y0, p)); q = ballPoint(...hi); worstY = 0;
+  for (let i = 1; i <= 3; i++) { const q1 = ballPoint(hi[0], hi[1] - 40 * i), [dy, dp] = sphereTurn(y, p, q, q1); y += dy; p += dp; q = q1; worstY = Math.max(worstY, Math.abs(dy)); }
+  assert.ok(worstY <= 45 * DEG && Math.abs(p) <= 89 * DEG + 1e-12, 'a fast pass over the pole: no event turns the yaw more than 45°');
+  pass('THE ARCBALL (1.5.7-alpha.46): ballPoint inverts project on the inner disc and is continuous past the rim; the gear is an eighth; a grabbed tip stays under the finger (' + worstT.toExponential(1) + ' px); out and back returns; the pole holds with no flip');
 }
 {
   const rig = createCameraRig({ rotation: 30, panx: 0.1, pany: 0.2 });

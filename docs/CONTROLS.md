@@ -19,7 +19,7 @@ Source tags: **J** is Josh's own rule · **B** BASINS draws it so · **R** a rea
 | A plain scalar on a straight horizontal track, with no lane ink | **FADER** (`fader()`, `kit.js`): the lane slider's plain base, the same hand law, a modulation target | kit |
 | A thing's one principal parameter (a colour's FREQUENCY, a lane's gain, a layer's opacity) | **LANE SLIDER**: a long pill in the thing's ink, a thumb of the same ink with no glow, a modulation target natively | J, B |
 | A coupled pair (pan x/y, a point in a plane, az/el) | **XY PAD** for the hand + its two knobs, which stay the modulation targets | J (the control), AUTOMATA's contract |
-| A 3-D direction (a camera's yaw and pitch, a light's az/el) | **DIRECTION SPHERE** (`directionSphere`, `mir/panels/camera.js`): the plane model's sphere, the arrow's tip follows the finger, + its two arcs, which stay the modulation targets; the XY pad stays the control for a flat pair | R (1.5.0-alpha.14, the CAMERA panel: for Josh to rule) |
+| A 3-D direction (a camera's yaw and pitch, a light's az/el) | **DIRECTION SPHERE** (`directionSphere`, `mir/panels/camera.js`): the plane model's sphere, the ball turns under the finger and the arrow rides it (1.5.7-alpha.46 THE ARCBALL: a grabbed tip stays under the finger, no jump at the rim, no mirror on re-entry, a degree short of a pole the ball slips instead of flipping the readout), + its two arcs, which stay the modulation targets; the XY pad stays the control for a flat pair | R (1.5.0-alpha.14, the CAMERA panel: for Josh to rule) |
 | A lo/hi range | **RANGE SLIDER**: one track, two thumbs | R |
 | An unbounded turn | jog wheel (`knob({ onDelta })`) | kit |
 | A state that stays on | **SWITCH with a lamp** | J |
