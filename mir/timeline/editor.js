@@ -25,7 +25,9 @@
  * time lock); Alt bypasses Snap and deletes a point.  The EDIT tool's click on empty lane space stamps the clip last pressed
  * (THE PENCIL: its curve, shared).  The words are shortcuts.js TIMELINE_POINTER.
  * THE TIMELINE'S HANDS (λWAVES 040, 1.5.7-alpha.38 …): THE RIGHT CLICK DELETES — a right-button press on empty lane space or
- * between the lanes sweeps every clip the pointer crosses (one undo); the lane's right-click menu is gone.
+ * between the lanes sweeps every clip the pointer crosses (one undo); the lane's right-click menu is gone.  SHIFT-DRAG CLONES
+ * (alpha.39): Shift + drag on a clip duplicates the selection and moves the copies, a Shift click still toggles, Shift on empty
+ * space is still the marquee; Ctrl + drag's clone stays as an alias.
  * THE LAWS (BASINS', unchanged): one musical-to-pixel mapping (geometry.js) for drawing, hit tests and edits; a gesture is
  * one model transaction (begin … commit, or cancel on Escape, a lost capture, a blur, a hidden page or a hidden interface); a drag's last
  * pointer sample is flushed before its commit; the nearest lane is resolved from content coordinates, never from
@@ -347,6 +349,8 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
     // A SELECT-tool tap on the strip (no drag, no Shift) clears the range and seeks there, as a ruler click does in FL.
     if(held.kind==='range'&&!cancel&&held.tap&&!held.moved&&!held.addRange){range=null;view.setRange(null);controller.seek(held.startBeat);view.paint();}
     if(held.author){if(cancel){model.cancel();selection=held.selectionBefore||selection;reconcile();}else{if(held.curve&&['point','points','tension','step'].includes(held.kind))syncSteps(held.curve.id);model.commit();}}
+    // a Shift press on a clip that never moved is a click: it toggles the clip in the selection (alpha.39; the clone needs the drag)
+    if(held.kind==='move'&&held.toggle&&!held.moved&&!cancel){const id=held.clip.id;if(selection.has(id))selection.delete(id);else selection.add(id);selected=selection.has(id)?id:selection.values().next().value||null;}
     if(held.kind==='select'){
       if(cancel){selection=held.oldClips;pointSelection=held.oldPoints;selected=held.activeBefore;}
       else if(!held.moved&&held.clickedClip&&scope==='clips'){const id=held.clickedClip;selection=held.additive?new Set(held.oldClips):new Set();if(held.additive&&selection.has(id))selection.delete(id);else selection.add(id);selected=selection.values().next().value||null;}
@@ -397,6 +401,13 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
       const originals=many?doc.clips.filter(c=>selection.has(c.id)):null;
       begin(e,{kind:stretch?'stretch':'trim',edge:edgeName,clip,curve,originals,glued:stretch&&many?glueTimelineClips(originals):null,original:{start:clip.start,duration:clip.duration,scale:clip.scale},gear:fineGear(view.world(e))},true);paintSelection();};
     if(e.button===0&&edge&&clip&&tool==='edit'&&!hit?.kind&&(cmd||!shift)){edgeFrom(edge.dataset.trim,cmd);return;}
+    // SHIFT-DRAG CLONES (1.5.7-alpha.39, λWAVES 040 T2; Josh: "Shift+drag on a clip handle should duplicate a clip; Shift+drag on empty space will
+    // create a selection"): a Shift press on a clip — its tab, a kind's body, or a curve body with no point or handle under it — holds; a drag
+    // duplicates the selection (the clip joins it) and moves the copies (FL's Shift-drag); a click without a drag still toggles the clip in the
+    // selection (finish).  Shift on empty space stays the marquee (below); Ctrl+drag's clone stays as an alias; POINTS scope keeps its point marquee.
+    if(e.button===0&&shift&&!cmd&&clip&&(grab||plot&&!kind&&!hit?.kind&&scope!=='points')){
+      const ids=selection.has(clip.id)?[...selection]:[clip.id];
+      begin(e,{kind:'move',copy:true,toggle:true,clip,curve,ids,originals:doc.clips.filter(c=>ids.includes(c.id))},true);return;}
     // SHIFT SELECTS: on empty space a drag is the marquee (Ctrl+Shift adds to the selection), a click on a clip toggles it; the
     // SELECT tool's plain drag is the same marquee (and its Shift adds).  A Shift press on a point or a handle is the fine gear.
     if(e.button===0&&(tool==='select'||shift&&!(plot&&hit?.kind)&&!(cmd&&trimZone))){

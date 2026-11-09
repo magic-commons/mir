@@ -300,7 +300,8 @@
   "Drag ✥ onto a slider or knob to route it (a PAD’s ✥ makes that control get hit) · drop it there again to release · a macro bar: drag sideways to set, double-tap to reset, tap to rename or unassign · number ring: up/down = master depth, double-tap = 100% · route ring: up/down = depth, sideways = direction.": "Drag ✥ onto a slider or knob to route it (a PAD’s ✥ makes that control get hit) · drop it there again to release · a macro bar: drag sideways to set, double-tap to reset, tap to rename or unassign · number ring: up/down = master depth, double-tap = 100% · route ring: up/down = depth, sideways = direction.",
   "Drawn for {m} choices; the target now has {n}. Edit a point to redraw it for {n}.": "Drawn for {m} choices; the target now has {n}. Edit a point to redraw it for {n}.",
   "Duplicate the selected saved project, including its thumbnail and settings.": "Duplicate the selected saved project, including its thumbnail and settings.",
-  "Duplicate the selection while moving it (title or body)": "Duplicate the selection while moving it (title or body)",
+  "Duplicate the selection (the clip joins it) and move the copies (tab or body)": "Duplicate the selection (the clip joins it) and move the copies (tab or body)",
+  "Duplicate the selection while moving it (title or body): an alias of Shift + drag, kept": "Duplicate the selection while moving it (title or body): an alias of Shift + drag, kept",
   "Duplicate the selection, placed to its right": "Duplicate the selection, placed to its right",
   "Duplicated — {name}": "Duplicated — {name}",
   "Duplicated — {name} · made room by deleting {n} projects": {
@@ -369,6 +370,7 @@
   "FL — Select tool": "FL — Select tool",
   "FL — Shift+Right-Click is non-destructive add": "FL — Shift+Right-Click is non-destructive add",
   "FL — Shift+arrows move clips": "FL — Shift+arrows move clips",
+  "FL — Shift-drag clones a clip": "FL — Shift-drag clones a clip",
   "FL — Slice tool": "FL — Slice tool",
   "FL — Zoom in": "FL — Zoom in",
   "FL — Zoom out": "FL — Zoom out",
@@ -570,7 +572,7 @@
   "More tools and actions": "More tools and actions",
   "Move": "Move",
   "Move it": "Move it",
-  "Move it (Ctrl copies, right-button deletes); it has no points": "Move it (Ctrl copies, right-button deletes); it has no points",
+  "Move it (Shift or Ctrl copies, right-button deletes); it has no points": "Move it (Shift or Ctrl copies, right-button deletes); it has no points",
   "Move macros to either side": "Move macros to either side",
   "Move macros to left or right end": "Move macros to left or right end",
   "Move the selection down a lane": "Move the selection down a lane",
@@ -951,6 +953,7 @@
   "Shift (held) while dragging a point or tension": "Shift (held) while dragging a point or tension",
   "Shift + click a clip": "Shift + click a clip",
   "Shift + drag (empty)": "Shift + drag (empty)",
+  "Shift + drag a clip": "Shift + drag a clip",
   "Shift + drag the ruler": "Shift + drag the ruler",
   "Shift + right-click a clip": "Shift + right-click a clip",
   "Show Mac and iPad key names": "Show Mac and iPad key names",
@@ -1171,7 +1174,7 @@
   "adapted — FL’s Ctrl+click toggles": "adapted — FL’s Ctrl+click toggles",
   "adapted — FL’s Ctrl+drag; in MIR Shift selects": "adapted — FL’s Ctrl+drag; in MIR Shift selects",
   "adapted — FL’s P is the Draw tool; BASINS has one modeless curve editor": "adapted — FL’s P is the Draw tool; BASINS has one modeless curve editor",
-  "adapted — FL’s Shift-drag clones; in MIR Ctrl shapes": "adapted — FL’s Shift-drag clones; in MIR Ctrl shapes",
+  "adapted — FL’s Shift-drag clones; MIR’s Ctrl alias stays": "adapted — FL’s Shift-drag clones; MIR’s Ctrl alias stays",
   "adapted — FL’s Y is the Playback/Preview tool": "adapted — FL’s Y is the Playback/Preview tool",
   "adapted — FL’s manual names Right-Alt+click specifically": "adapted — FL’s manual names Right-Alt+click specifically",
   "add a page": "add a page",
@@ -2674,7 +2677,10 @@
   "Duplicate the selected saved project, including its thumbnail and settings.": [
    "mir/folders/gallery.js"
   ],
-  "Duplicate the selection while moving it (title or body)": [
+  "Duplicate the selection (the clip joins it) and move the copies (tab or body)": [
+   "mir/timeline/shortcuts.js"
+  ],
+  "Duplicate the selection while moving it (title or body): an alias of Shift + drag, kept": [
    "mir/timeline/shortcuts.js"
   ],
   "Duplicate the selection, placed to its right": [
@@ -2877,6 +2883,9 @@
    "mir/timeline/shortcuts.js"
   ],
   "FL — Shift+arrows move clips": [
+   "mir/timeline/shortcuts.js"
+  ],
+  "FL — Shift-drag clones a clip": [
    "mir/timeline/shortcuts.js"
   ],
   "FL — Slice tool": [
@@ -3488,7 +3497,7 @@
   "Move it": [
    "mir/timeline/shortcuts.js"
   ],
-  "Move it (Ctrl copies, right-button deletes); it has no points": [
+  "Move it (Shift or Ctrl copies, right-button deletes); it has no points": [
    "mir/timeline/shortcuts.js"
   ],
   "Move macros to either side": [
@@ -4652,6 +4661,9 @@
   "Shift + drag (empty)": [
    "mir/timeline/shortcuts.js"
   ],
+  "Shift + drag a clip": [
+   "mir/timeline/shortcuts.js"
+  ],
   "Shift + drag the ruler": [
    "mir/timeline/shortcuts.js"
   ],
@@ -5326,7 +5338,7 @@
   "adapted — FL’s P is the Draw tool; BASINS has one modeless curve editor": [
    "mir/timeline/shortcuts.js"
   ],
-  "adapted — FL’s Shift-drag clones; in MIR Ctrl shapes": [
+  "adapted — FL’s Shift-drag clones; MIR’s Ctrl alias stays": [
    "mir/timeline/shortcuts.js"
   ],
   "adapted — FL’s Y is the Playback/Preview tool": [

@@ -139,6 +139,13 @@ const RUN = await (async () => {
     await E(() => window.__TL.model.undo()); await page.waitForTimeout(40);
     const unswept = await E(() => window.__TL.model.state().clips.length);
     L.ck(swept.inLane === 0 && swept.n === 2 && !swept.menu && unswept === 3, 'a right-button sweep from empty lane space deletes the clip it crosses, no lane menu; one undo restores it (alpha.38)', { ...swept, unswept });
+    // alpha.39 SHIFT-DRAG CLONES: Shift + a tab drag down a lane clones the clip there (its own curve); a Shift click on the original toggles it in
+    await E(() => window.__TL.tl.editor.act.deselect());
+    const band1 = await page.locator(`.tl-pane[data-lane="${H0.lanes[1]}"]`).boundingBox();
+    await page.keyboard.down('Shift'); await page.mouse.move(tabA.x + 30, tabA.y + 9); await page.mouse.down(); await page.mouse.move(tabA.x + 30, band1.y - 9, { steps: 6 }); await page.mouse.up(); await page.waitForTimeout(40);
+    await page.mouse.click(tabA.x + 30, tabA.y + 9); await page.keyboard.up('Shift'); await page.waitForTimeout(60);
+    const sh = await E(([id, lane]) => { const d = window.__TL.model.state(), a = d.clips.find((c) => c.id === id), k = d.clips.find((c) => c.laneId === lane); const s = window.__TL.tl.editor.selection(); return { n: d.clips.length, cloned: !!k && k.start === a.start && k.duration === a.duration && k.curveId !== a.curveId, sel: s.clips.length, both: !!k && s.clips.includes(id) && s.clips.includes(k.id) }; }, [H0.a, H0.lanes[1]]);
+    L.ck(sh.n === 4 && sh.cloned && sh.sel === 2 && sh.both, 'Shift + a tab drag clones the clip into the lane below (its own curve); a Shift click toggles the original into the selection (alpha.39)', sh);
     await E((keep) => { window.__TL.model.restore(keep); }, H0.keep);   // the arrangement as the sections below expect it (a restore clears the selection and range)
 
     /* ── THE FACE (1.5.6-alpha.24): FIT keeps the window's seat and dock (no NaN); an EVENT clip on a banded target draws its
