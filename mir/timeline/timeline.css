@@ -213,10 +213,18 @@
 .mir-win.mir-timeline .tl-toolbar .tl-setting-word { order: 2; font: var(--w-bold) var(--tl-pill-word-size) / 1 var(--font-ui); letter-spacing: var(--tr-wide); color: var(--ink-key, var(--dim)); }
 .mir-win.mir-timeline .tl-toolbar .tl-setting .mir-step-name { background: transparent; box-shadow: none; font: var(--w-bold) var(--tl-pill-num-size) / 1 var(--font-num); color: var(--acc2); }
 .mir-timeline .tl-select-wrap { position: relative; display: inline-flex; align-items: center; flex: none; }
-/* THE KIT'S OWN CHOOSERS, never a native select (Josh, 2026-10-07, call 19): the scope is a SEGMENT at the tools' height (its
-   track 34 px: 28 px segments in the well's 2 px), and SNAP a compact STEPPER whose name wears the select's well and chevron —
+/* THE KIT'S OWN CHOOSERS, never a native select (Josh, 2026-10-07, call 19): the scope is a SEGMENT at the tools' height (since
+   alpha.47 two chips of 36 px, below, not 28 px segments in a well), and SNAP a compact STEPPER whose name wears the select's well and chevron —
    its seat is its longest word (the stepper's own), so a choice moves nothing */
-.mir-win.mir-timeline .tl-toolbar .tl-scope-seg .seg-b { min-height: var(--tl-setting-h); height: var(--tl-setting-h); font-size: var(--tl-action-size); letter-spacing: var(--tl-action-track); }
+.mir-win.mir-timeline .tl-toolbar .tl-scope-seg .seg-b { font-size: var(--tl-action-size); letter-spacing: var(--tl-action-track); }
+/* 1.5.7-alpha.47 · THE CHIP WEARS THE DEPTH: CLIPS · POINTS are two of the bar's chips, not a well — each the trigger's raise at the tools'
+   height with no face and no outline, the hover wash, the press; the chosen one wears ON's frost face and rim (INTENT) */
+.mir-win.mir-timeline .tl-toolbar .tl-scope-seg .seg { gap: var(--tl-bar-gap); padding: 0; border-color: transparent; background: transparent; box-shadow: none; }
+.mir-win.mir-timeline .tl-toolbar .tl-scope-seg .seg-b { min-height: var(--tl-action-h); height: var(--tl-action-h); padding: var(--tl-action-pad); border-color: transparent; border-radius: var(--tl-action-r);
+  background: transparent; box-shadow: var(--relief-raise, var(--neu-raise)); }
+.mir-win.mir-timeline .tl-toolbar .tl-scope-seg .seg-b:hover { box-shadow: var(--relief-raise, var(--neu-raise)), var(--state-hover-wash); }
+.mir-win.mir-timeline .tl-toolbar .tl-scope-seg .seg-b:active { box-shadow: var(--trig-press-relief); }
+.mir-win.mir-timeline .tl-toolbar .tl-scope-seg .seg-b.on { background: var(--state-on, var(--glass-raise)); box-shadow: var(--state-on-rim, var(--neu-flat)); }
 .mir-timeline .tl-select-wrap .mir-step-name { min-width: 0; min-height: var(--tl-setting-h); height: var(--tl-setting-h); padding: var(--tl-select-pad); border-radius: var(--tl-select-r);
   font-size: var(--tl-action-size); color: inherit; background: var(--glass-well); box-shadow: var(--relief-well, var(--neu-inset)); }
 .mir-timeline .tl-select-wrap::after { content: ''; position: absolute; right: 9px; top: 50%; width: var(--tl-chevron); height: var(--tl-chevron); border-right: var(--tl-chevron-w) solid currentColor; border-bottom: var(--tl-chevron-w) solid currentColor;

@@ -4,7 +4,8 @@
  *   · THE PAD moves pan, and both of its knobs (the modulation targets) show it; a knob drag moves the pad's dot; the picture's CSS transform follows.
  *   · NORTH goes north and, pressed again, back to where it left; routed, it moves the BASE and comes back.
  *   · A ROUTED macro turns ROTATION and the arc follows (accent B), the hand's base staying put.
- *   · THE SPHERE: a drag turns yaw and pitch and the arrow's tip follows the finger; Shift is the ⅛ gear; the picture's perspective follows.
+ *   · THE SPHERE: a drag turns yaw and pitch and the arrow's tip, grabbed, stays under the finger (1.5.7-alpha.46 THE ARCBALL); Shift is the ⅛ gear;
+ *     the picture's perspective follows.
  *   · A PORT BY HAND (radians, port.turn, HAND, a verb of its own): the sphere turns the engine through port.turn, DRAG is a knob on the engine, HOME and
  *     the verb run, and nothing is polled (idle costs no frames).
  *   · THE PROJECT carries the values as parts named for the panels.
@@ -117,21 +118,21 @@ try {
   const tipAt = () => J(`const b = ${TIP}.getBoundingClientRect(); return [b.left + b.width / 2, b.top + b.height / 2];`);
   await J(`K.p3.port.set('yaw', 20); K.p3.port.set('pitch', 15); await wait(200); return 1;`);
   const t0 = await tipAt(), y0 = await get('p3', 'yaw'), pi0 = await get('p3', 'pitch');
-  await drag(SPH, 'sphere', fine(12, -5.6), { at: [0.25, 0.5] });
+  await drag(TIP, 'sphere (the tip)', fine(12, -5.6));                            // 1.5.7-alpha.46 THE ARCBALL: the tip grabbed inside the disc stays under the finger
   const t1 = await tipAt(), y1 = await get('p3', 'yaw'), pi1 = await get('p3', 'pitch');
   const dtx = t1[0] - t0[0], dty = t1[1] - t0[1];
-  check('the sphere: a real drag turns yaw and pitch', Math.abs(y1 - y0) > 3 && Math.abs(pi1 - pi0) > 1, JSON.stringify({ y0, y1, pi0, pi1 }));
-  check('the arrow\'s tip follows the finger (a 12 px × 5.6 px drag moves it about 12 × 5.6 px, the way the finger went)', dtx > 0 && dty < 0 && Math.abs(dtx - 12) < 4 && Math.abs(dty + 5.6) < 3, JSON.stringify({ dtx, dty }));
+  check('the sphere: a real drag turns yaw and pitch', Math.abs(y1 - y0) > 3 && Math.abs(pi1 - pi0) > 0.5, JSON.stringify({ y0, y1, pi0, pi1 }));
+  check('the arrow\'s tip stays under the finger (a 12 px × 5.6 px drag of the tip moves it 12 × 5.6 px, within 2 px)', Math.abs(dtx - 12) < 2 && Math.abs(dty + 5.6) < 2, JSON.stringify({ dtx, dty }));
   const knobsNow = await J(`const ks = [...${D('camera3d')}.querySelectorAll('.mir-camsphere-side .k')]; return ks.map((k) => Number(k.getAttribute('aria-valuenow')));`);
   check('the sphere\'s two arcs (yaw, pitch: the targets) show it', near(knobsNow[0], y1, 0.5) && near(knobsNow[1], pi1, 0.5), JSON.stringify({ knobsNow, y1, pi1 }));
   const tf3 = await J(`return document.getElementById('pic3').style.transform;`);
   check('the picture turned in perspective (rotateY follows yaw)', new RegExp('rotateY\\(' + y1.toFixed(1).replace('.', '\\.') + '|rotateY\\(' + y1.toFixed(0)).test(tf3) || /rotateY\(-?[1-9]/.test(tf3), tf3);
   await J(`K.p3.port.set('yaw', 20); K.p3.port.set('pitch', 15); await wait(200); return 1;`);
   const g0 = await get('p3', 'yaw');
-  await drag(SPH, 'sphere (Shift)', fine(24, 0), { at: [0.25, 0.5], mod: 8 });
+  await drag(TIP, 'sphere (Shift)', fine(-24, 0), { mod: 8 });                    // from the tip toward the centre: inside the ball, where the turn is the finger's
   const g1 = await get('p3', 'yaw');
-  await J(`K.p3.port.set('yaw', 20); await wait(200); return 1;`);
-  await drag(SPH, 'sphere (full)', fine(3, 0, 3), { at: [0.25, 0.5] });
+  await J(`K.p3.port.set('yaw', 20); K.p3.port.set('pitch', 15); await wait(200); return 1;`);
+  await drag(TIP, 'sphere (full)', fine(-3, 0, 3));
   const g2 = await get('p3', 'yaw');
   check('Shift is the ⅛ gear: 24 px under Shift turns yaw as far as 3 px does without it', Math.abs(g1 - g0) > 0.2 && near((g2 - 20) / (g1 - g0), 1, 0.2), JSON.stringify({ fine24: g1 - g0, full3: g2 - 20 }));
   const modeSeg = D('camera3d') + '.querySelectorAll(".cam-mode .seg-b")[1]';

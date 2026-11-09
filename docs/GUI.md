@@ -132,6 +132,7 @@ Every control on MIR OPTIONS changes what is drawn through a hook a kit sheet or
 | | DISCONNECTED | switch | `body.disconnected` | off |
 | | SPACING 0 · TIGHT · DEFAULT · AIRY | seg | BASINS' row (AIRY added): `--rack-gap`, `--rack-inset`, `--pane-pad`, `--rail-gap` on `<html>`; 0 is `html[data-flush]` (`docs/THEMES.md`) | DEFAULT |
 | | TRANSPORT BAR | switch | off: `body.no-transport-bar` (the transport's sheet hides the bar in every seat) | on |
+| | DRAG HANDLE | switch | off: `body.no-grip` (1.5.7-alpha.48 THE GRIP CAN HIDE, λWAVES 040 C3): the dot grip of a card's head (`.dev-head::before`) and of a window rail's move chip goes; their seats stay and both still drag (purely an aesthetic change). The user's own: no theme sets it | on |
 | SAMPLING (page 2) | SCRUB live · light · release | seg | stored; the app hands `() => gui.prefs.get('scrub')` to `createTransportController({ scrubLevel })`. Choosing LIVE while the last frame took over 16 ms says so in a toast (BASINS) | LIVE |
 | | AUTOMATION frame · 1/32 · 1/16 · 1/8 | seg | `setAutomationGrid(beats)` of `modulation/bind.js` (or `sampling.automation`); a grid says "values step on the grid" in a toast | FRAME |
 
