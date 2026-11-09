@@ -167,11 +167,11 @@ try {
   await drag(NF, 'number', [[0, -11], [0, -22]]);
   v = await val('W.number'); check('number: a drag is the knob law (22 px up = a tenth of the 0..100 range, to the 0.5 step)', near(v, 22.5, 0.01), String(v));
   await J(`W.number.set(12.5); return 1;`);
-  await drag(NF, 'number (Shift)', [[0, -88]], { mod: 8 });
-  v = await val('W.number'); check('number: Shift is the eighth gear (88 px = 0.1 of range / 8 · 4 ≈ 5 → 17.5)', near(v, 17.5, 0.01), String(v));
+  await drag(NF, 'number (Shift)', [[0, -5], [0, -6], [0, -7]], { mod: 8 });
+  v = await val('W.number'); check('number: under Shift a stepped number moves one step a pixel, the slop not counted (1.5.7-alpha.45: 5 px slop, 2 px = 2 × 0.5 → 13.5)', near(v, 13.5, 0.01), String(v));
   { const s = await need(NF, 'number click'); await mouse('mouseMoved', s.x, s.y); await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(100); }
   const ed = await J(`const i = W.number.input; return { shown: !i.hidden, face: W.number.face.hidden, text: i.value, sel: i.selectionStart === 0 && i.selectionEnd === i.value.length, focus: document.activeElement === i, max: i.maxLength, mode: i.inputMode };`);
-  check('number: a press that never travels opens the field with the number selected (the tempo field\'s law)', ed.shown && ed.face && ed.text === '17.5' && ed.sel && ed.focus && ed.max === 8 && ed.mode === 'decimal', JSON.stringify(ed));
+  check('number: a press that never travels opens the field with the number selected (the tempo field\'s law)', ed.shown && ed.face && ed.text === '13.5' && ed.sel && ed.focus && ed.max === 8 && ed.mode === 'decimal', JSON.stringify(ed));
   await p.key('Digit4'); await p.key('Digit2'); await p.key('Enter'); await sleep(80);
   v = await val('W.number'); check('number: typed 42 and Enter takes it; the face is back', near(v, 42, 1e-9) && !(await J(`return W.number.face.hidden;`)) && !!(await J(`return W.number.input.hidden;`)) && (await J(`return document.activeElement === W.number.face;`)), String(v));
   { const s = await need(NF, 'number click'); await mouse('mouseMoved', s.x, s.y); await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(100); }

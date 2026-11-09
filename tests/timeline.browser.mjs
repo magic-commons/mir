@@ -276,6 +276,13 @@ const RUN = await (async () => {
     const typing = await E(() => { const f = document.querySelector('.mir-timeline .mir-transport .transport-tempo-input'); return { shown: !f.hidden, focused: document.activeElement === f, panel: !!document.querySelector('.mir-timeline .mir-transport .native-tempo:not([hidden])') }; });
     await page.keyboard.press('Escape');
     L.ck(typing.shown && typing.focused && !typing.panel, 'a click on the work bar\'s BPM pill types the tempo (no panel)', typing);
+    // alpha.45 THE FINE DRAG LANDS ON THE STEP: Shift + the pill's drag, one pixel a frame from 59.9, lands on 60.0 then 60.1 (the slop not counted)
+    await E(() => { window.__TL.mod.host.model.setTransport({ bpm: 59.9 }); return 0; }); await page.waitForTimeout(40);
+    const [px8, py8] = await center('.mir-timeline .mir-transport .tempo-expand'), bpmNow = () => E(() => window.__TL.mod.host.model.transport.bpm), walk = [];
+    await page.keyboard.down('Shift'); await page.mouse.move(px8, py8); await page.mouse.down(); await page.mouse.move(px8, py8 - 5); await page.waitForTimeout(40); walk.push(await bpmNow());
+    for (let i = 1; i <= 2; i++) { await page.mouse.move(px8, py8 - 5 - i); await page.waitForTimeout(40); walk.push(await bpmNow()); }
+    await page.mouse.up(); await page.keyboard.up('Shift'); await page.waitForTimeout(40);
+    L.ck(walk.join() === '59.9,60,60.1', 'Shift + a drag on the BPM pill moves one tenth a pixel: 59.9 → 60.0 → 60.1 (alpha.45)', walk);
 
     /* ── THE LOOK: the vanilla themes' settings reach the timeline's panes and controls (no literal in its sheet) ── */
     const look = async (set) => { await E((set) => { window.__TL.gui.prefs.set(set); return 0; }, set); await settle(cdp); return E(() => {   // the condition, not a fixed 150 ms (tests/settle.mjs)
