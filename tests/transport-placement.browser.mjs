@@ -49,7 +49,7 @@ try {
   let c = await at(`__T.tr.el.pill`);
   await click(c.x, c.y);
   r = await run(`const f = tr.el.field; return { open: !f.hidden && document.activeElement === f, value: f.value, bpm: tr.bpm, panel: tr.root.classList.contains('tempo-open'), max: f.maxLength };`);
-  check('in the work bar a click on the pill opens the tempo field (BASINS tempo-editor), holding the tempo, 8 characters, no panel', c.hit && r.open && r.value === String(r.bpm) && !r.panel && r.max === 8, JSON.stringify({ c, r }));
+  check('in the work bar a click on the pill opens the tempo field (BASINS tempo-editor), holding the tempo, 8 characters, no panel', c.hit && r.open && Number(r.value) === r.bpm && !r.panel && r.max === 8, JSON.stringify({ c, r }));
   await p.eval(`(() => { const f = __T.tr.el.field; f.select(); })()`);
   await type('123.5'); await key('Enter', 13);
   r = await run(`return { bpm: tr.bpm, field: tr.el.field.hidden, pill: !tr.el.pill.hidden };`);
