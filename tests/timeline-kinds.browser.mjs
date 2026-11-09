@@ -140,7 +140,9 @@ const RUN = await (async () => {
     L.ck(act.a && act.a.start === 2 && act.a.end === 6 && act.band === 1 && act.pressed === 'true', 'ACTIVE stores the range as editor.activeRange(), a band on the strip', act);
     await page.mouse.click(vp.x + 30 * 20 - scroll, sy); await page.waitForTimeout(60);
     const tap = await S(() => ({ range: window.__TL.tl.editor.range(), beat: window.__TL.mod.host.model.transport.beats }));
-    L.ck(tap.range === null && tap.beat === 30, 'a SELECT-tool tap on the strip clears the range and seeks', tap);
+    await page.waitForTimeout(350); await page.mouse.click(vp.x + 30 * 20 - scroll, sy); await page.waitForTimeout(60); await page.mouse.click(vp.x + 30 * 20 - scroll, sy); await page.waitForTimeout(60);
+    tap.cleared = await S(() => window.__TL.tl.editor.range());
+    L.ck(tap.range?.start === 2 && tap.range?.end === 6 && tap.beat === 30 && tap.cleared === null, 'a SELECT-tool tap on the strip seeks and keeps the range; a double-tap at the spot clears it (1.5.7-alpha.40 THE RANGE STAYS)', tap);
     await page.locator('.tl-toolbar [data-mode="active"]').click(); await page.waitForTimeout(40);
     const whole = await S(() => { const E = window.__TL.tl.editor; return { a: E.activeRange(), end: Math.max(...E.model.state().clips.map(c => c.start + c.duration)) }; });
     L.ck(whole.a && whole.a.start === 0 && whole.a.end === whole.end, 'with no range, ACTIVE = 0 → the last clip end', whole);
