@@ -146,6 +146,14 @@ const RUN = await (async () => {
     await page.mouse.click(tabA.x + 30, tabA.y + 9); await page.keyboard.up('Shift'); await page.waitForTimeout(60);
     const sh = await E(([id, lane]) => { const d = window.__TL.model.state(), a = d.clips.find((c) => c.id === id), k = d.clips.find((c) => c.laneId === lane); const s = window.__TL.tl.editor.selection(); return { n: d.clips.length, cloned: !!k && k.start === a.start && k.duration === a.duration && k.curveId !== a.curveId, sel: s.clips.length, both: !!k && s.clips.includes(id) && s.clips.includes(k.id) }; }, [H0.a, H0.lanes[1]]);
     L.ck(sh.n === 4 && sh.cloned && sh.sel === 2 && sh.both, 'Shift + a tab drag clones the clip into the lane below (its own curve); a Shift click toggles the original into the selection (alpha.39)', sh);
+    // alpha.40 THE RANGE STAYS: a click on the ruler (a scrub press) seeks and keeps the 2 … 6 range; a double-click at one spot clears it
+    const x4 = ruler.x + 4 * H0.px - scroll, ry = ruler.y + ruler.height / 2;   // (the undo above reset the range — a replace does — so it is drawn again)
+    await page.keyboard.down('Shift'); await page.mouse.move(x2, ry); await page.mouse.down(); await page.mouse.move(x6, ry, { steps: 6 }); await page.mouse.up(); await page.keyboard.up('Shift'); await page.waitForTimeout(350);
+    await page.mouse.click(x4, ry); await page.waitForTimeout(350);
+    const rk = await E(() => ({ range: window.__TL.tl.editor.range(), beat: window.__TL.mod.host.model.transport.beats }));
+    await page.mouse.click(x4, ry); await page.waitForTimeout(60); await page.mouse.click(x4, ry); await page.waitForTimeout(60);
+    const rc = await E(() => window.__TL.tl.editor.range());
+    L.ck(rk.range && rk.range.start === 2 && rk.range.end === 6 && near(rk.beat, 4, .05) && rc === null, 'a ruler click seeks and keeps the range; a double-click at one spot clears it (alpha.40)', { rk, rc });
     await E((keep) => { window.__TL.model.restore(keep); }, H0.keep);   // the arrangement as the sections below expect it (a restore clears the selection and range)
 
     /* ── THE FACE (1.5.6-alpha.24): FIT keeps the window's seat and dock (no NaN); an EVENT clip on a banded target draws its

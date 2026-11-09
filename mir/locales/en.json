@@ -181,6 +181,7 @@
   "Choose at least one project component before saving.": "Choose at least one project component before saving.",
   "Choose where the transport sits": "Choose where the transport sits",
   "Clear saved interface settings and reload": "Clear saved interface settings and reload",
+  "Clear the time range (two presses within 300 ms at one spot); no single click clears it": "Clear the time range (two presses within 300 ms at one spot); no single click clears it",
   "Click the strip to add a stop; drag a stop to move it, off the strip to remove it": "Click the strip to add a stop; drag a stop to move it, off the strip to remove it",
   "Clip color": "Clip color",
   "Clip options": "Clip options",
@@ -277,6 +278,7 @@
   "Disconnect the source from this macro": "Disconnect the source from this macro",
   "Dock the bar into the rack": "Dock the bar into the rack",
   "Dock the transport into the rack": "Dock the transport into the rack",
+  "Double-click the ruler": "Double-click the ruler",
   "Download image — capture first": "Download image — capture first",
   "Download image — {name}, {size}": "Download image — {name}, {size}",
   "Download the captured image to your photos or files.": "Download the captured image to your photos or files.",
@@ -539,6 +541,7 @@
   "MIR is free software under the GNU GPL v3.0 only (GPL-3.0-only) — no warranty.": "MIR is free software under the GNU GPL v3.0 only (GPL-3.0-only) — no warranty.",
   "MIR is the shared Magic Commons interface kit behind its controls, window system, gestures, and modulation. MIR is an open source platform and will continuously be updated, allowing for ‘LLM Mods’ support and customizable skins.": "MIR is the shared Magic Commons interface kit behind its controls, window system, gestures, and modulation. MIR is an open source platform and will continuously be updated, allowing for ‘LLM Mods’ support and customizable skins.",
   "MIR {version} · SKIN {theme}": "MIR {version} · SKIN {theme}",
+  "MIR — Josh 2026-11-09; FL clears the selection on a click": "MIR — Josh 2026-11-09; FL clears the selection on a click",
   "MIR — Shift is the fine gear": "MIR — Shift is the fine gear",
   "MIR — length and speed change together": "MIR — length and speed change together",
   "MOD": "MOD",
@@ -916,7 +919,7 @@
   "Scroll time while you hold it there (the playhead, a range, a move, a trim, a stretch)": "Scroll time while you hold it there (the playhead, a range, a move, a trim, a stretch)",
   "Scrub the timeline playhead": "Scrub the timeline playhead",
   "Scrub tool": "Scrub tool",
-  "Scrub: the playhead follows the hand, free of Snap": "Scrub: the playhead follows the hand, free of Snap",
+  "Scrub: the playhead follows the hand, free of Snap; the range stays": "Scrub: the playhead follows the hand, free of Snap; the range stays",
   "Seek about once every three moves. The hand always stays smooth.": "Seek about once every three moves. The hand always stays smooth.",
   "Seek the picture on every scrub move. Smoothest when a frame is fast; can lag at a deep place.": "Seek the picture on every scrub move. Smoothest when a frame is fast; can lag at a deep place.",
   "Seek to the beginning": "Seek to the beginning",
@@ -924,7 +927,7 @@
   "Seek to the previous measure": "Seek to the previous measure",
   "Select a band for timing": "Select a band for timing",
   "Select a curve before reversing it": "Select a curve before reversing it",
-  "Select a time range (no key, so touch can); a tap seeks": "Select a time range (no key, so touch can); a tap seeks",
+  "Select a time range (no key, so touch can); a tap seeks and keeps the range": "Select a time range (no key, so touch can); a tap seeks and keeps the range",
   "Select a time range; + Ctrl/Cmd extends it": "Select a time range; + Ctrl/Cmd extends it",
   "Select all clips": "Select all clips",
   "Select clips to slice them at the playhead.": "Select clips to slice them at the playhead.",
@@ -2310,6 +2313,9 @@
   "Clear saved interface settings and reload": [
    "mir/shell/gui.js"
   ],
+  "Clear the time range (two presses within 300 ms at one spot); no single click clears it": [
+   "mir/timeline/shortcuts.js"
+  ],
   "Click the strip to add a stop; drag a stop to move it, off the strip to remove it": [
    "mir/panels/ramp.js"
   ],
@@ -2604,6 +2610,9 @@
   ],
   "Dock the transport into the rack": [
    "mir/shell/transport.js"
+  ],
+  "Double-click the ruler": [
+   "mir/timeline/shortcuts.js"
   ],
   "Download image — capture first": [
    "mir/folders/gallery.js"
@@ -3392,6 +3401,9 @@
   ],
   "MIR {version} · SKIN {theme}": [
    "mir/shell/gui.js"
+  ],
+  "MIR — Josh 2026-11-09; FL clears the selection on a click": [
+   "mir/timeline/shortcuts.js"
   ],
   "MIR — Shift is the fine gear": [
    "mir/timeline/shortcuts.js"
@@ -4549,7 +4561,7 @@
   "Scrub tool": [
    "mir/timeline/shortcuts.js"
   ],
-  "Scrub: the playhead follows the hand, free of Snap": [
+  "Scrub: the playhead follows the hand, free of Snap; the range stays": [
    "mir/timeline/shortcuts.js"
   ],
   "Seek about once every three moves. The hand always stays smooth.": [
@@ -4574,7 +4586,7 @@
   "Select a curve before reversing it": [
    "mir/modulation/window.js"
   ],
-  "Select a time range (no key, so touch can); a tap seeks": [
+  "Select a time range (no key, so touch can); a tap seeks and keeps the range": [
    "mir/timeline/shortcuts.js"
   ],
   "Select a time range; + Ctrl/Cmd extends it": [

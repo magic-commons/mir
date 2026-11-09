@@ -27,7 +27,8 @@
  * THE TIMELINE'S HANDS (λWAVES 040, 1.5.7-alpha.38 …): THE RIGHT CLICK DELETES — a right-button press on empty lane space or
  * between the lanes sweeps every clip the pointer crosses (one undo); the lane's right-click menu is gone.  SHIFT-DRAG CLONES
  * (alpha.39): Shift + drag on a clip duplicates the selection and moves the copies, a Shift click still toggles, Shift on empty
- * space is still the marquee; Ctrl + drag's clone stays as an alias.
+ * space is still the marquee; Ctrl + drag's clone stays as an alias.  THE RANGE STAYS (alpha.40): no press on the ruler clears
+ * the range; a double-tap at one spot (TAP: 300 ms, 14 px) does.
  * THE LAWS (BASINS', unchanged): one musical-to-pixel mapping (geometry.js) for drawing, hit tests and edits; a gesture is
  * one model transaction (begin … commit, or cancel on Escape, a lost capture, a blur, a hidden page or a hidden interface); a drag's last
  * pointer sample is flushed before its commit; the nearest lane is resolved from content coordinates, never from
@@ -39,7 +40,7 @@
  * key table (keys.js timelineActions: this file only exposes the verbs); toasts through `say`; the frame coalescer is
  * core/frame.js; the popups are the house's menu pane; BASINS' CURVE_VIEW numbers live in geometry.js. */
 import { svgPoint, curveHit, curveAction, pointDrag, pointAddValue, tensionDelta, fineGear } from '../modulation/curve-gesture.js';
-import { el, label, ariaLabel, seg, stepper, number } from '../kit.js';
+import { el, label, ariaLabel, seg, stepper, number, TAP } from '../kit.js';
 import { confirmDialog } from '../shell/dialog.js';
 import { glyphSvg } from '../glyph.js';
 import { frame } from '../core/frame.js';
@@ -73,7 +74,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   const chordOf=id=>{const k=typeof keys==='function'?keys():keys;return k&&k.get&&k.get('timeline.'+id)?k.menuKey('timeline.'+id):'';};
   const withKey=(node,id)=>{const c=id&&chordOf(id);if(c)el('span','tl-key',node).textContent=' · '+c;return node;};
   let doc=model.state(),selectedLane=doc.lanes[0].id,selected=null,selection=new Set(),pointSelection=null;
-  let px=20,snap=1,range=null,menu=null,drag=null,lastTap=null,clipboard=null,lastClip=null;   // lastClip: THE PENCIL's memory, the clip last pressed
+  let px=20,snap=1,range=null,menu=null,drag=null,lastTap=null,rulerTap=null,clipboard=null,lastClip=null;   // lastClip: THE PENCIL's memory, the clip last pressed; rulerTap: the ruler's last press (THE RANGE STAYS)
   let stepMode=false,slideMode=false,drawTension=0,tool='edit',scope='clips',workLane='top';
   const dropHandlers=new Set();
   const transportBeat=()=>mod.host.model.transport.beats;
@@ -292,7 +293,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
     if(drag.kind==='pan'){viewport.scrollLeft=drag.scrollX-(e.x-drag.x);viewport.scrollTop=drag.scrollY-(e.y-drag.y);return;}
     // a scrub's beat stays inside the lanes on view (1.5.7-alpha.14): past an edge the head waits at that edge while the pump scrolls, and where the content ends it stops there, never off the view
     if(drag.kind==='scrub'){controller.scrub(bounded(pos.x,viewport.scrollLeft,viewport.scrollLeft+viewport.clientWidth)/px,{snap,alt:!!e.altKey,snapped:!!(e.ctrlKey||e.metaKey)});return;}
-    if(drag.kind==='range'){const beat=snapBeat(pos.x/px,e),start=Math.min(beat,drag.startBeat),end=Math.max(beat,drag.startBeat);range=end-start>=.0625?{start:drag.addRange?Math.min(start,drag.addRange.start):start,end:drag.addRange?Math.max(end,drag.addRange.end):end}:null;view.setRange(range);paint();return;}
+    if(drag.kind==='range'){const beat=snapBeat(pos.x/px,e),start=Math.min(beat,drag.startBeat),end=Math.max(beat,drag.startBeat);range=end-start>=.0625?{start:drag.addRange?Math.min(start,drag.addRange.start):start,end:drag.addRange?Math.max(end,drag.addRange.end):end}:drag.oldRange;view.setRange(range);paint();return;}   // under a sixteenth the old range stands (alpha.40)
     if(drag.kind==='select'){
       const rect=selectionRect(drag.startWorld,pos);Object.assign(view.marquee.style,{display:'block',left:rect.left+'px',top:rect.top+'px',width:rect.right-rect.left+'px',height:rect.bottom-rect.top+'px'});
       if(scope==='points'){const c=view.getClip(selected),curve=view.getCurve(c?.curveId);if(c&&curve){const indices=pointsInRectangle(c,curve,rect,px,view.height(),doc.lanes.findIndex(l=>l.id===c.laneId));pointSelection={clipId:c.id,curveId:curve.id,indices:new Set([...drag.basePoints,...indices])};}}
@@ -346,8 +347,8 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
       const L=controller.loop?.();if(L&&mod.host.clock.isPlaying()&&transportBeat()>=L.end&&L.start*px<viewport.scrollLeft)viewport.scrollLeft=Math.max(0,L.start*px-20);}
     if(held.kind==='range'&&cancel){range=held.oldRange;view.setRange(range);view.paint();}
     if(held.kind==='zoom'&&cancel)zoomAt(held.px0,held.anchor,held.anchorBeat);
-    // A SELECT-tool tap on the strip (no drag, no Shift) clears the range and seeks there, as a ruler click does in FL.
-    if(held.kind==='range'&&!cancel&&held.tap&&!held.moved&&!held.addRange){range=null;view.setRange(null);controller.seek(held.startBeat);view.paint();}
+    // A SELECT-tool tap on the strip (no drag, no Shift) seeks there; the range stays (alpha.40 — until then it cleared it, as a ruler click does in FL).
+    if(held.kind==='range'&&!cancel&&held.tap&&!held.moved&&!held.addRange)controller.seek(held.startBeat);
     if(held.author){if(cancel){model.cancel();selection=held.selectionBefore||selection;reconcile();}else{if(held.curve&&['point','points','tension','step'].includes(held.kind))syncSteps(held.curve.id);model.commit();}}
     // a Shift press on a clip that never moved is a click: it toggles the clip in the selection (alpha.39; the clone needs the drag)
     if(held.kind==='move'&&held.toggle&&!held.moved&&!cancel){const id=held.clip.id;if(selection.has(id))selection.delete(id);else selection.add(id);selected=selection.has(id)?id:selection.values().next().value||null;}
@@ -379,9 +380,13 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
       // needs no key; a tap seeks); Ctrl picks its axis at 6 px — vertical zooms about the pointer's beat (up = in), horizontal
       // scrubs snapped to SNAP; a plain drag scrubs free; Alt always bypasses Snap.  The zoom holds the pressed beat itself, so a
       // scroll clamped while the arrangement is narrow never drifts it.
+      // THE RANGE STAYS (1.5.7-alpha.40, λWAVES 040 T3; Josh: "clicking anywhere should not delete the selection; however double clicking fast enough in
+      // the same spot can remove the selection"): no press on the strip clears the range — only the second press of a double-tap at one spot (the kit's
+      // TAP law: 300 ms, 14 px); a scrub press and a SELECT tap seek and leave it; a Shift-drag draws a new one
+      const now=performance.now();if(rulerTap&&now-rulerTap.time<TAP.ms&&Math.hypot(e.clientX-rulerTap.x,e.clientY-rulerTap.y)<TAP.px){rulerTap=null;if(range){range=null;view.setRange(null);paint();}}else rulerTap={time:now,x:e.clientX,y:e.clientY};
       const anchor=e.clientX-viewport.getBoundingClientRect().left,pick=cmd&&!shift,strip={pick,px0:px,anchor,anchorBeat:(viewport.scrollLeft+anchor)/px,oldRange:range};
       if(!pick&&(shift||tool==='select')){begin(e,{kind:'range',startBeat:snapBeat(view.world(e).x/px,e),addRange:shift&&cmd?range:null,tap:!shift,...strip});}
-      else if(controller.beginScrub()){begin(e,{kind:'scrub',...strip});range=null;view.setRange(null);controller.scrub(view.world(e).x/px,{snap,alt:!!e.altKey,snapped:cmd});paint();}else say(t('The renderer currently owns the clock.'));return;
+      else if(controller.beginScrub()){begin(e,{kind:'scrub',...strip});controller.scrub(view.world(e).x/px,{snap,alt:!!e.altKey,snapped:cmd});paint();}else say(t('The renderer currently owns the clock.'));return;
     }
     if(e.button===0&&tool==='scrub'){if(controller.beginScrub()){begin(e,{kind:'scrub'});controller.scrub(view.world(e).x/px,{snap,alt:!!e.altKey,snapped:cmd});}return;}
     // THE SLICE TOOL (C): a click on a clip, tab or body, cuts it at the pointer's beat (Snap applies, Alt bypasses).
