@@ -51,6 +51,7 @@ import { TIMELINE_TAB_HEIGHT, TIMELINE_ROW_GAP, TIMELINE_CURVE_GRAB, TIMELINE_TE
 import { createTimelinePlot } from './curve-view.js';
 import { evaluateTimelineSource, normalizeTimelinePoints } from './source.js';
 import { clipKind } from './kinds.js';
+import { timelineFamily } from './model.js';
 import { sliceClips } from './slice.js';
 import { timelineStepSamples } from './draw.js';
 import { createTimelineView } from './view.js';
@@ -181,13 +182,14 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
     for(const a of actions){if(!a){el('div','tl-pop-sep',menu).setAttribute('role','separator');continue;}const [text,fn,id,chosen]=a;const b=withKey(button(menu,text,()=>{closeMenu();fn();}),id);if(id)b.dataset.row=id;if(typeof chosen==='boolean'){b.setAttribute('aria-pressed',String(chosen));b.classList.toggle('on',chosen);}}
     placeMenu(x,y);menu.querySelector('button')?.focus();
   }
-  function editIdentity(x,y,curve) {
+  function editIdentity(x,y,curve,clip) {
     pop(x,y,'CLIP TITLE / COLOR',[],'identity');menu.setAttribute('role','dialog');ariaLabel(menu,'Clip title and color');
     const titleLabel=el('label','tl-field',menu),input=el('input','tl-value-input',titleLabel);titleLabel.prepend(label(el('span','tl-field-word'),'TITLE'));input.value=curve.name;input.maxLength=80;ariaLabel(input,'Clip title');
     const colorLabel=el('label','tl-field tl-color-field',menu),color=el('input','tl-color-input',colorLabel);colorLabel.prepend(label(el('span','tl-field-word'),'TINT'));color.type='color';color.value=curve.color;ariaLabel(color,'Clip color');
     const swatches=el('div','tl-swatches',menu);
     for(const tint of SWATCHES){const b=el('button','tl-swatch',swatches);b.type='button';b.dataset.tint=tint;b.style.setProperty('--tl-clip-tint',tint);ariaLabel(b,'Tint {tint}',{tint});b.onclick=()=>{color.value=tint;};}
-    const apply=()=>{model.updateCurve(curve.id,{name:input.value.trim()||curve.targetId,color:color.value});closeMenu();};
+    // THE COPIES WEAR ONE COLOUR (1.5.7-alpha.42): a new tint paints the clip's family (timelineFamily) — one undo
+    const apply=()=>{const tint=color.value,family=clip&&tint!==curve.color?timelineFamily(model.state(),clip.id):[];model.begin();model.updateCurve(curve.id,{name:input.value.trim()||curve.targetId,color:tint});for(const id of family)if(id!==curve.id)model.updateCurve(id,{color:tint});model.commit();closeMenu();};
     button(menu,'APPLY',apply).dataset.tlAction='apply';button(menu,'CANCEL',closeMenu).dataset.tlAction='cancel';
     input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();apply();}});placeMenu(x,y);input.focus();input.select();
   }
@@ -222,7 +224,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
     // A kind keeps the instance actions, drops the point ones, keeps OUTPUT RANGE only when it drives, and adds its own.
     const kind=clipKind(curve),drives=!kind||kind.drives!==false;
     pop(x,y,{raw:curve.name},[
-      ['TITLE / COLOR',()=>editIdentity(x,y,curve),'identity'],
+      ['TITLE / COLOR',()=>editIdentity(x,y,curve,c),'identity'],
       [c.mute?'ENABLE CLIP':'DISABLE CLIP',()=>model.updateClip(c.id,{mute:!c.mute}),'mute'],   // T25: the MUTE row's words (clip.mute, the row id unchanged)
       ['DUPLICATE',()=>{selectOnly(c.id);duplicateSelection();},'duplicate'],
       ...(drives&&typeof mod.view?.api?.armFor==='function'?[['ROUTE NEW PARAMETER…',()=>routeClip(c.id,curve),'route']]:[]),   // T20: arm the controls, the tap re-targets the clip
@@ -357,7 +359,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
       else if(!held.moved&&held.clickedClip&&scope==='clips'){const id=held.clickedClip;selection=held.additive?new Set(held.oldClips):new Set();if(held.additive&&selection.has(id))selection.delete(id);else selection.add(id);selected=selection.values().next().value||null;}
     }
     if(!cancel&&e&&['move','point','tension'].includes(held.kind)&&!held.moved&&!held.copy&&!held.added){const now=performance.now(),id=held.clip.id+':'+held.kind+':'+(held.index??'');
-      if(lastTap?.id===id&&now-lastTap.time<400&&Math.hypot(e.clientX-lastTap.x,e.clientY-lastTap.y)<16){lastTap=null;const current=view.getCurve(held.curve.id);if(held.kind==='move'&&current)editIdentity(e.clientX,e.clientY,current);else if(held.kind==='point'&&current)fieldMenu(e.clientX,e.clientY,current,held.index,held.clip);else if(held.kind==='tension'){drawTension=0;model.setTension(held.curve.id,held.index,0);}}
+      if(lastTap?.id===id&&now-lastTap.time<400&&Math.hypot(e.clientX-lastTap.x,e.clientY-lastTap.y)<16){lastTap=null;const current=view.getCurve(held.curve.id);if(held.kind==='move'&&current)editIdentity(e.clientX,e.clientY,current,held.clip);else if(held.kind==='point'&&current)fieldMenu(e.clientX,e.clientY,current,held.index,held.clip);else if(held.kind==='tension'){drawTension=0;model.setTension(held.curve.id,held.index,0);}}
       else lastTap={id,time:now,x:e.clientX,y:e.clientY};}else lastTap=null;paintSelection();headPaint.reset();
   }
   function begin(e,value,author=false){drag={...value,x:e.clientX,y:e.clientY,pointerId:e.pointerId,startWorld:view.world(e),author,activeBefore:selected,selectionBefore:new Set(selection)};surface.dataset.gesture=value.kind;if(value.clip)surface.dataset.dragClip=value.clip.id;if(author)model.begin();e.preventDefault();surface.setPointerCapture(e.pointerId);}

@@ -299,4 +299,17 @@ export function timelineExtent(clips, { unmuted = true } = {}) {
   return end > start ? { start, end } : null;
 }
 
+/** THE COPIES WEAR ONE COLOUR (1.5.7-alpha.42, λWAVES 040 T5; Josh: "All similar clips on the timeline needs to recolor if one of copies gets
+ *  recolored. If one is unique among the rest, it doesn't recolor"): the curves a recolour of `clipId` paints — its own (every clip that
+ *  shares it: the pencil's stamps) and every BYTE-EQUAL curve (Shift-drag's and Ctrl+B's own copies: the curve's JSON with its id, name
+ *  and colour set aside) that a clip of the same duration, offset and scale plays. A copy edited apart (its curve, length or scale)
+ *  leaves the family and keeps its colour — the odd colour is the indicator.  PURE.  → [curveId], the clip's own first */
+export function timelineFamily(doc, clipId) {
+  const clip = doc.clips.find((c) => c.id === clipId), curve = clip && doc.curves.find((c) => c.id === clip.curveId); if (!curve) return [];
+  const body = ({ id, name, color, ...rest }) => JSON.stringify(rest), mine = body(curve), ids = new Set([curve.id]);
+  for (const c of doc.clips) if (!ids.has(c.curveId) && c.duration === clip.duration && c.offset === clip.offset && c.scale === clip.scale) {
+    const k = doc.curves.find((x) => x.id === c.curveId); if (k && body(k) === mine) ids.add(k.id); }
+  return [...ids];
+}
+
 export function isTimelineSnapshot(input) { return input == null || createTimelineModel().restore(input); }
