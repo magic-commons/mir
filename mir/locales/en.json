@@ -160,7 +160,6 @@
   "COPY TO PROJECT": "COPY TO PROJECT",
   "COPY TO SHELF": "COPY TO SHELF",
   "CORNERS": "CORNERS",
-  "CREATE AUTOMATION CLIP": "CREATE AUTOMATION CLIP",
   "CURVE": "CURVE",
   "CURVES AMOUNT": "CURVES AMOUNT",
   "CUSTOM": "CUSTOM",
@@ -613,7 +612,6 @@
   "No blur, no relief, no shadows, no motion": "No blur, no relief, no shadows, no motion",
   "No clip placed: the arrangement is full.": "No clip placed: the arrangement is full.",
   "No clips pasted: the selected lanes or source budget cannot fit this group.": "No clips pasted: the selected lanes or source budget cannot fit this group.",
-  "No clips yet — right-click or hold a knob: {:CLIP} › {:CREATE AUTOMATION CLIP}; or {:→TL} on an LFO in {:MODULATION}": "No clips yet — right-click or hold a knob: {:CLIP} › {:CREATE AUTOMATION CLIP}; or {:→TL} on an LFO in {:MODULATION}",
   "No copies made: select clips with room in the arrangement.": "No copies made: select clips with room in the arrangement.",
   "No copies made: source budget reached.": "No copies made: source budget reached.",
   "No envelopes on the rack — add one with +": "No envelopes on the rack — add one with +",
@@ -2253,9 +2251,6 @@
   "CORNERS": [
    "mir/shell/gui.js"
   ],
-  "CREATE AUTOMATION CLIP": [
-   "mir/timeline/view.js"
-  ],
   "CURVE": [
    "mir/modulation/window.js"
   ],
@@ -3431,8 +3426,7 @@
   ],
   "MODULATION": [
    "mir/app.js",
-   "mir/modulation/window.js",
-   "mir/timeline/view.js"
+   "mir/modulation/window.js"
   ],
   "MORE KEYS": [
    "mir/keyboard/keyboard.js"
@@ -3628,9 +3622,6 @@
   ],
   "No clips pasted: the selected lanes or source budget cannot fit this group.": [
    "mir/timeline/editor.js"
-  ],
-  "No clips yet — right-click or hold a knob: {:CLIP} › {:CREATE AUTOMATION CLIP}; or {:→TL} on an LFO in {:MODULATION}": [
-   "mir/timeline/view.js"
   ],
   "No copies made: select clips with room in the arrangement.": [
    "mir/timeline/editor.js"
@@ -6680,8 +6671,7 @@
    "mir/shell/notebook.js"
   ],
   "→TL": [
-   "mir/modulation/window.js",
-   "mir/timeline/view.js"
+   "mir/modulation/window.js"
   ],
   "≈ {time} to render": [
    "mir/render/panel.js"
