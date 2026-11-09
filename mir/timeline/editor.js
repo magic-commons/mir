@@ -47,7 +47,7 @@ import { frame } from '../core/frame.js';
 import { isField } from '../core/pointer.js';
 import { t, tn } from '../core/i18n.js';
 import { coalesce } from './readout.js';
-import { TIMELINE_TAB_HEIGHT, TIMELINE_ROW_GAP, TIMELINE_CURVE_GRAB, TIMELINE_TENSION_TRAVEL, resizeTimelineClip, glueTimelineClips, createClipCoordinates, snapTimelineBeat, timelineResizeDelta, nearestTimelineLane } from './geometry.js';
+import { TIMELINE_TAB_HEIGHT, TIMELINE_ROW_GAP, TIMELINE_CURVE_GRAB, TIMELINE_TENSION_TRAVEL, resizeTimelineClip, glueTimelineClips, createClipCoordinates, snapTimelineBeat, timelineResizeDelta, nearestTimelineLane, timelineEdgeAt } from './geometry.js';
 import { createTimelinePlot } from './curve-view.js';
 import { evaluateTimelineSource, normalizeTimelinePoints } from './source.js';
 import { clipKind } from './kinds.js';
@@ -361,6 +361,11 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
       else lastTap={id,time:now,x:e.clientX,y:e.clientY};}else lastTap=null;paintSelection();headPaint.reset();
   }
   function begin(e,value,author=false){drag={...value,x:e.clientX,y:e.clientY,pointerId:e.pointerId,startWorld:view.world(e),author,activeBefore:selected,selectionBefore:new Set(selection)};surface.dataset.gesture=value.kind;if(value.clip)surface.dataset.dragClip=value.clip.id;if(author)model.begin();e.preventDefault();surface.setPointerCapture(e.pointerId);}
+  /* THE EDGE IS THE EDGE (1.5.7-alpha.41): the clip edge under the pointer — on a title band the tabs', in a lane the bodies' — each zone as wide
+     as that clip's own trim element (8 px, 12 px on a tab, 14 px on touch, half a narrow clip), centred on the edge (timelineEdgeAt) */
+  function edgeUnder(e){const band=e.target.closest?.('.tl-titleband,.tl-pane');if(!band)return null;const body=band.classList.contains('tl-pane');
+    const rim=timelineEdgeAt([...band.querySelectorAll(body?':scope > .tl-clip':':scope > .tl-clip-title')].map(n=>{const r=n.getBoundingClientRect();return{id:n.dataset.clip,start:r.left,end:r.right,zone:n.querySelector('[data-trim]')?.offsetWidth||0};}),e.clientX);
+    return rim&&{...rim,node:band.querySelector(`:scope > [data-clip="${rim.id}"] [data-trim="${rim.edge}"]`)};}
   function beginPointGroup(e,c,curve,index,additive=false){
     if(pointSelection?.curveId!==curve.id)pointSelection={clipId:c.id,curveId:curve.id,indices:new Set()};
     if(additive){if(pointSelection.indices.has(index))pointSelection.indices.delete(index);else pointSelection.indices.add(index);}else if(!pointSelection.indices.has(index))pointSelection.indices=new Set([index]);
@@ -395,17 +400,20 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
     if(clip&&curve)lastClip={curveId:curve.id,duration:clip.duration,offset:clip.offset,scale:clip.scale,followSourceEnd:!!clip.followSourceEnd,kind:curve.kind||'curve'};
     let hit=null,pos=null,geometry=null;
     if(plot&&!kind){pos=svgPoint(plot,e);const{width,height}=plot.viewBox.baseVal,p=createTimelinePlot(clip,curve,px,height),r=plot.getBoundingClientRect();geometry=p.geometry;hit=curveHit({x:e.clientX,y:e.clientY},p.points.map(p=>({...p,x:r.left+p.x/width*r.width,y:r.top+p.y/height*r.height})),p.handles.map(p=>({...p,x:r.left+p.x/width*r.width,y:r.top+p.y/height*r.height})),TIMELINE_CURVE_GRAB);}
-    const edge=target.closest('.tl-edge'),trimZone=target.closest('[data-trim]');
+    const rim=edgeUnder(e),rimClip=rim&&view.getClip(rim.id);
     // A kind without points has no curve gestures: its body handles like its tab (move, Ctrl-copy, right-delete).
     const grab=handle||(kind?plot||target.closest('.tl-clip'):null);
     // AN EDGE: a plain drag trims; Ctrl stretches (the shape keeps); Ctrl+Shift stretches at ⅛.  Shift alone selects (below).
     // THE SELECTION RESIZES TOGETHER (1.5.7-alpha.11, λWAVES 038 T5): an edge pressed on a clip inside a selection of several keeps the
     // selection — a trim moves that edge of every selected clip by the same snapped beats (each keeps its own start on a right edge);
     // a stretch first closes the gaps between them (glueTimelineClips: lane by lane), then scales the block about its other edge.
-    const edgeFrom=(edgeName,stretch)=>{const many=selection.has(clip.id)&&selection.size>1;if(many){selected=clip.id;pointSelection=null;}else selectOnly(clip.id);
+    // THE EDGE IS THE EDGE (1.5.7-alpha.41, λWAVES 040 T4): the edge is found by geometry (edgeUnder), not by the element under the pointer —
+    // the zone is centred on the clip's visual edge (the tab's and the body's), and at a seam the pointer's side names the clip; a curve's point
+    // or handle under the pointer still wins.
+    const edgeFrom=(clip,edgeName,stretch)=>{const curve=view.getCurve(clip.curveId),many=selection.has(clip.id)&&selection.size>1;if(many){selected=clip.id;pointSelection=null;}else selectOnly(clip.id);
       const originals=many?doc.clips.filter(c=>selection.has(c.id)):null;
       begin(e,{kind:stretch?'stretch':'trim',edge:edgeName,clip,curve,originals,glued:stretch&&many?glueTimelineClips(originals):null,original:{start:clip.start,duration:clip.duration,scale:clip.scale},gear:fineGear(view.world(e))},true);paintSelection();};
-    if(e.button===0&&edge&&clip&&tool==='edit'&&!hit?.kind&&(cmd||!shift)){edgeFrom(edge.dataset.trim,cmd);return;}
+    if(e.button===0&&rimClip&&tool==='edit'&&!hit?.kind&&(cmd||!shift)){edgeFrom(rimClip,rim.edge,cmd);return;}
     // SHIFT-DRAG CLONES (1.5.7-alpha.39, λWAVES 040 T2; Josh: "Shift+drag on a clip handle should duplicate a clip; Shift+drag on empty space will
     // create a selection"): a Shift press on a clip — its tab, a kind's body, or a curve body with no point or handle under it — holds; a drag
     // duplicates the selection (the clip joins it) and moves the copies (FL's Shift-drag); a click without a drag still toggles the clip in the
@@ -415,7 +423,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
       begin(e,{kind:'move',copy:true,toggle:true,clip,curve,ids,originals:doc.clips.filter(c=>ids.includes(c.id))},true);return;}
     // SHIFT SELECTS: on empty space a drag is the marquee (Ctrl+Shift adds to the selection), a click on a clip toggles it; the
     // SELECT tool's plain drag is the same marquee (and its Shift adds).  A Shift press on a point or a handle is the fine gear.
-    if(e.button===0&&(tool==='select'||shift&&!(plot&&hit?.kind)&&!(cmd&&trimZone))){
+    if(e.button===0&&(tool==='select'||shift&&!(plot&&hit?.kind))){
       if(scope==='points'&&clip){if(pointSelection?.curveId!==curve.id){selected=clip.id;selection=new Set([clip.id]);pointSelection={clipId:clip.id,curveId:curve.id,indices:new Set()};}if(hit?.kind==='point'){beginPointGroup(e,clip,curve,hit.i,shift);return;}}
       const adds=shift&&(cmd||tool==='select');
       begin(e,{kind:'select',baseClips:adds?new Set(selection):new Set(),basePoints:adds?new Set(pointSelection?.indices||[]):new Set(),oldClips:new Set(selection),oldPoints:pointSelection?{...pointSelection,indices:new Set(pointSelection.indices)}:null,clickedClip:clip?.id,additive:shift});return;
@@ -425,7 +433,6 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
       // other tabs deletes each of those too, the whole sweep as one undo transaction (begin here,
       // commit/cancel in finish()). The MIR plot curve law and the tab's ⋯ menu are untouched.
       if(e.button===2){e.preventDefault();lastTap=null;closeMenu();begin(e,{kind:'delete',clip,curve},true);if(doc.clips.some(x=>x.id===clip.id))model.deleteClip(clip.id);return;}if(e.button!==0)return;
-      if(trimZone){edgeFrom(trimZone.dataset.trim,cmd);return;}
       // CTRL CLONES (call 1): a Ctrl-drag on a title (or a kind's body) duplicates the selection while moving it.
       if(!selection.has(clip.id))selectOnly(clip.id);else selected=clip.id;begin(e,{kind:'move',copy:cmd,clip,curve,ids:[...selection],originals:doc.clips.filter(c=>selection.has(c.id))},true);paintSelection();return;
     }
@@ -463,6 +470,9 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   listen(viewport,'dragover',e=>{if(!dropHandlers.size)return;e.preventDefault();if(e.dataTransfer)e.dataTransfer.dropEffect='copy';});
   listen(viewport,'drop',e=>{if(!dropHandlers.size)return;e.preventDefault();const where=at(e.clientX,e.clientY),files=[...(e.dataTransfer?.files||[])];for(const fn of dropHandlers)if(fn({event:e,files,dataTransfer:e.dataTransfer,...where}))break;});
   listen(surface,'contextmenu',e=>e.preventDefault());listen(surface,'auxclick',e=>{if(e.button===1)e.preventDefault();});listen(surface,'lostpointercapture',e=>finish(e,true));
+  // FL's indicator: before the press the edge a press would take lights (data-hot); a drag keeps it until the hand moves again
+  let hot=null;const light=n=>{if(hot===n)return;if(hot)delete hot.dataset.hot;hot=n;if(hot)hot.dataset.hot='';};
+  listen(viewport,'pointermove',e=>{if(!drag)light(tool==='edit'&&!e.buttons&&edgeUnder(e)?.node||null);});listen(viewport,'pointerleave',()=>{if(!drag)light(null);});
   listen(document,'pointermove',e=>{if(drag&&e.pointerId===drag.pointerId){e.preventDefault();updates.post(pointer(e));if(!drag.moved&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>6)drag.moved=true;   // the slop, as updates reads it
       if(drag.moved&&PUMPED.includes(drag.kind)){pumpX=e.clientX;if(!pumpId)pumpId=requestAnimationFrame(edgePump);}}},{passive:false});listen(document,'pointerup',e=>finish(e));listen(document,'pointercancel',e=>finish(e,true));
   listen(document,'pointerdown',e=>{if(menu&&!menu.contains(e.target)&&!surface.contains(e.target))closeMenu();});

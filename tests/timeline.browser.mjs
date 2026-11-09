@@ -154,6 +154,20 @@ const RUN = await (async () => {
     await page.mouse.click(x4, ry); await page.waitForTimeout(60); await page.mouse.click(x4, ry); await page.waitForTimeout(60);
     const rc = await E(() => window.__TL.tl.editor.range());
     L.ck(rk.range && rk.range.start === 2 && rk.range.end === 6 && near(rk.beat, 4, .05) && rc === null, 'a ruler click seeks and keeps the range; a double-click at one spot clears it (alpha.40)', { rk, rc });
+    // alpha.41 THE EDGE IS THE EDGE: two clips abut at beat 4; 2 px left of the seam the left clip's end lights and trims, 2 px right the right clip's start
+    const E4 = await E(() => { const T = window.__TL, m = T.model; m.restore(null); const lane = m.state().lanes[0].id;
+      const a = m.create({ targetId: 'scene.glow', name: 'A', value: .5, start: 0, duration: 4, laneId: lane }), b = m.create({ targetId: 'scene.spin', name: 'B', value: .5, start: 4, duration: 4, laneId: lane });
+      T.tl.editor.setTool('edit'); T.tl.editor.setSnap(1); document.querySelector('.tl-viewport').scrollLeft = 0; T.tl.editor.paint(); return { a, b, px: T.tl.editor.px() }; });
+    await page.waitForTimeout(120);
+    const seamBox = await page.locator(`.tl-clip[data-clip="${E4.b}"]`).boundingBox(), seam = seamBox.x, ey = seamBox.y + 6;
+    await page.mouse.move(seam - 2, ey); await page.waitForTimeout(30);
+    const lit = await E(([a, b]) => ({ a: !!document.querySelector(`.tl-clip[data-clip="${a}"] .tl-edge-right[data-hot]`), b: !!document.querySelector(`.tl-clip[data-clip="${b}"] .tl-edge-left[data-hot]`) }), [E4.a, E4.b]);
+    await page.mouse.down(); await page.mouse.move(seam - 2 - E4.px, ey, { steps: 5 }); await page.mouse.up(); await page.waitForTimeout(40);
+    const leftEnd = await E((id) => window.__TL.model.state().clips.find((c) => c.id === id).duration, E4.a);
+    await E(() => window.__TL.model.undo()); await page.waitForTimeout(60);
+    await page.mouse.move(seam + 2, ey); await page.mouse.down(); await page.mouse.move(seam + 2 + E4.px, ey, { steps: 5 }); await page.mouse.up(); await page.waitForTimeout(40);
+    const rightStart = await E((id) => { const c = window.__TL.model.state().clips.find((c) => c.id === id); return [c.start, c.duration]; }, E4.b);
+    L.ck(lit.a && !lit.b && leftEnd === 3 && rightStart[0] === 5 && rightStart[1] === 3, 'at a seam the side the pointer is on names the clip: its edge lights, 2 px left trims the left clip\'s end, 2 px right the right clip\'s start (alpha.41)', { lit, leftEnd, rightStart });
     await E((keep) => { window.__TL.model.restore(keep); }, H0.keep);   // the arrangement as the sections below expect it (a restore clears the selection and range)
 
     /* ── THE FACE (1.5.6-alpha.24): FIT keeps the window's seat and dock (no NaN); an EVENT clip on a banded target draws its

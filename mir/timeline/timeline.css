@@ -306,15 +306,21 @@
 .mir-timeline .tl-clip-title.narrow .tl-trim { width: 6px; }
 .mir-timeline .tl-clip-title.micro :is(.tl-clip-name, .tl-clip-more) { display: none; }
 .mir-timeline .tl-clip-title.micro .tl-trim { width: 50%; min-width: 0; }
+/* THE EDGE IS THE EDGE (1.5.7-alpha.41): every trim zone is centred on the clip's visual edge — half in, half out (the tab's 2-px inline
+   padding added back); the editor names the edge by the same geometry (timelineEdgeAt), and the named edge lights before the press */
+.mir-timeline .tl-trim-left { translate: calc(-50% - 2px); }
+.mir-timeline .tl-trim-right { translate: calc(50% + 2px); }
+.mir-timeline .tl-clip-title.narrow .tl-trim-left { translate: -50%; }
+.mir-timeline .tl-clip-title.narrow .tl-trim-right { translate: 50%; }
 .mir-timeline .tl-edge { position: absolute; top: 0; bottom: 0; width: var(--tl-edge-w); padding: 0; border: 0; border-radius: 0; background: transparent; color: inherit; cursor: ew-resize; touch-action: none; }
-.mir-timeline .tl-edge-left { left: 0; }
-.mir-timeline .tl-edge-right { right: 0; }
+.mir-timeline .tl-edge-left { left: 0; translate: -50%; }
+.mir-timeline .tl-edge-right { right: 0; translate: 50%; }
 .mir-timeline .tl-edge::after { content: ''; position: absolute; top: 50%; width: var(--tl-grip-w); height: 16px; margin-top: -8px; border-radius: var(--tl-grip-r); background: currentColor; opacity: 0; transition: opacity var(--tl-tab-t) var(--tl-ease); }
-.mir-timeline .tl-edge-left::after { left: 1px; }
-.mir-timeline .tl-edge-right::after { right: 1px; }
+.mir-timeline .tl-edge::after { inset-inline: 0; margin-inline: auto; }
 .mir-timeline :is(.tl-clip:is(:hover, .held) .tl-edge, .tl-edge:focus-visible)::after { opacity: .5; }
 .mir-timeline .tl-edge:focus-visible { outline: var(--tl-edge-focus); outline-offset: -1px; }
 .mir-timeline .tl-clip.narrow .tl-edge { width: 50%; }
+.mir-timeline :is(.tl-clip-title, .tl-clip) [data-trim][data-hot]::after { opacity: .9; }
 @media (pointer: coarse) { .mir-timeline :is(.tl-trim, .tl-edge) { width: var(--tl-edge-touch); } }
 /* no positional tween on authored geometry: a pointer edit is exact; feedback animates paint only */
 .mir-timeline .timeline-surface[data-gesture] :is(.tl-fill, .tl-tab-tint, .tl-tab-rim) { transition: none; }

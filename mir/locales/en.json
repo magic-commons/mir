@@ -377,7 +377,7 @@
   "FL — Zoom in": "FL — Zoom in",
   "FL — Zoom out": "FL — Zoom out",
   "FL — Zoom to selection (Shift+5); Shift+Z is BASINS’ own, kept beside it": "FL — Zoom to selection (Shift+5); Shift+Z is BASINS’ own, kept beside it",
-  "FL — drag a clip’s edge; a selection resizes together": "FL — drag a clip’s edge; a selection resizes together",
+  "FL — drag a clip’s edge; a selection resizes together; the lit edge is the one that moves": "FL — drag a clip’s edge; a selection resizes together; the lit edge is the one that moves",
   "FL — drag a node or a tension handle": "FL — drag a node or a tension handle",
   "FL — dragging the bar-ruler selects time": "FL — dragging the bar-ruler selects time",
   "FL — pattern clips move from their body": "FL — pattern clips move from their body",
@@ -1091,7 +1091,7 @@
   "Transport": "Transport",
   "Trigger": "Trigger",
   "Trigger this envelope. Start modulation to advance it.": "Trigger this envelope. Start modulation to advance it.",
-  "Trim it: the curve keeps its beats; every selected clip trims with it, each from its own start": "Trim it: the curve keeps its beats; every selected clip trims with it, each from its own start",
+  "Trim it: the curve keeps its beats; every selected clip trims with it, each from its own start. The zone is centred on the edge; where two clips meet, the side you are on names the clip, and its edge lights first": "Trim it: the curve keeps its beats; every selected clip trims with it, each from its own start. The zone is centred on the edge; where two clips meet, the side you are on names the clip, and its edge lights first",
   "Trim the clip end": "Trim the clip end",
   "Turn this window on or off": "Turn this window on or off",
   "Type the tempo in BPM": "Type the tempo in BPM",
@@ -2909,7 +2909,7 @@
   "FL — Zoom to selection (Shift+5); Shift+Z is BASINS’ own, kept beside it": [
    "mir/timeline/shortcuts.js"
   ],
-  "FL — drag a clip’s edge; a selection resizes together": [
+  "FL — drag a clip’s edge; a selection resizes together; the lit edge is the one that moves": [
    "mir/timeline/shortcuts.js"
   ],
   "FL — drag a node or a tension handle": [
@@ -5084,7 +5084,7 @@
   "Trigger this envelope. Start modulation to advance it.": [
    "mir/modulation/window.js"
   ],
-  "Trim it: the curve keeps its beats; every selected clip trims with it, each from its own start": [
+  "Trim it: the curve keeps its beats; every selected clip trims with it, each from its own start. The zone is centred on the edge; where two clips meet, the side you are on names the clip, and its edge lights first": [
    "mir/timeline/shortcuts.js"
   ],
   "Trim the clip end": [

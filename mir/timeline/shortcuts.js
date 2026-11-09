@@ -76,7 +76,7 @@ export const TIMELINE_POINTER = [   // tr: the timeline's pointer gestures: the 
   { label: 'Shift + click a clip', hint: 'Toggle it in the selection', t: 'adapted — FL’s Ctrl+click toggles' },
   { label: 'Shift + drag a clip', hint: 'Duplicate the selection (the clip joins it) and move the copies (tab or body)', t: 'FL — Shift-drag clones a clip' },
   { label: 'Ctrl/Cmd + drag a clip', hint: 'Duplicate the selection while moving it (title or body): an alias of Shift + drag, kept', t: 'adapted — FL’s Shift-drag clones; MIR’s Ctrl alias stays' },
-  { label: 'Drag a clip’s edge', hint: 'Trim it: the curve keeps its beats; every selected clip trims with it, each from its own start', t: 'FL — drag a clip’s edge; a selection resizes together' },
+  { label: 'Drag a clip’s edge', hint: 'Trim it: the curve keeps its beats; every selected clip trims with it, each from its own start. The zone is centred on the edge; where two clips meet, the side you are on names the clip, and its edge lights first', t: 'FL — drag a clip’s edge; a selection resizes together; the lit edge is the one that moves' },
   { label: 'Ctrl/Cmd + drag a clip’s edge', hint: 'Stretch it: the curve keeps its shape; several selected close their gaps, then stretch as one', t: 'MIR — length and speed change together' },
   { label: 'Ctrl/Cmd + Shift + drag a clip’s edge', hint: 'Stretch it finely (⅛, free of Snap)', t: 'MIR — Shift is the fine gear' },
   { label: 'Edit tool: click empty lane space', hint: 'Place the clip last pressed there (the same curve, shared)', t: 'FL — the pencil places the last clip; MAKE UNIQUE detaches it' },
