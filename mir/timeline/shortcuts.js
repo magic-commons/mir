@@ -94,6 +94,7 @@ export const TIMELINE_POINTER = [   // tr: the timeline's pointer gestures: the 
   { label: 'Left-drag a point or tension handle', hint: 'Move it', t: 'FL — drag a node or a tension handle' },
   { label: 'Shift (held) while dragging a point or tension', hint: 'Fine-tune it (⅛; a point’s time is free of Snap)', t: 'adapted — FL fines tension with Ctrl; Shift is MIR’s fine gear' },
   { label: 'Ctrl/Cmd (held) while moving a point', hint: 'Lock its time', t: 'FL — Ctrl locks horizontal' },
+  { label: 'Ctrl/Cmd + drag a tension handle', hint: 'Repeat the segment between its two points: up adds copies of its shape (one per 24 px), down makes mirrored copies, or takes back copies made going up', t: 'MIR — Ctrl shapes (Josh, 040)' },
   { label: 'Right-click a tension handle', hint: 'Reset it', t: 'BASINS — FL’s right-click opens a Delete menu instead' },
   { label: 'Alt + left-click a point', hint: 'Delete it', t: 'adapted — FL’s manual names Right-Alt+click specifically' },
   { label: 'Alt (held)', hint: 'Bypass Snap for the gesture in progress', t: 'FL — Alt temporarily sets snap to none' },

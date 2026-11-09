@@ -177,6 +177,17 @@ const RUN = await (async () => {
     const tint = (ids) => E((ids) => { const d = window.__TL.model.state(); return ids.map((id) => d.curves.find((c) => c.id === d.clips.find((x) => x.id === id).curveId).color); }, ids);
     const fam = await tint([E4.a, F5.c1, F5.c2]); await E(() => window.__TL.model.undo()); const famUndo = await tint([E4.a, F5.c1, F5.c2]);
     L.ck(fam[0] === '#6cc1cc' && fam[1] === '#6cc1cc' && fam[2] !== '#6cc1cc' && famUndo.every((c) => c === famUndo[2]), 'a recolour paints the clip\'s copies, not a copy trimmed apart; one undo (alpha.42)', { fam, famUndo });
+    // alpha.43 THE TENSION REPEATS: Ctrl + the handle of a .2 → .8 segment, 50 px up: three copies (6 points); on, 50 px below the press: three mirrored (4 points, .2 .8 .2 .8); one undo restores 2
+    const R6 = await E(() => { const T = window.__TL, m = T.model; m.restore(null); const lane = m.state().lanes[0].id;
+      const a = m.create({ targetId: 'scene.glow', name: 'R', value: .5, start: 0, duration: 8, laneId: lane }), cid = m.state().clips.find((c) => c.id === a).curveId;
+      m.updateCurve(cid, { points: [{ t: 0, v: .2, tension: 0 }, { t: 1, v: .8, tension: 0 }] }); T.tl.editor.setTool('edit'); document.querySelector('.tl-viewport').scrollLeft = 0; T.tl.editor.paint(); return { cid }; });
+    await page.waitForTimeout(100);
+    const hd = await page.locator('.tl-clip circle.tl-tension[data-handle="0"]').boundingBox(), hx = hd.x + hd.width / 2, hy = hd.y + hd.height / 2;
+    const pts = () => E((cid) => window.__TL.model.state().curves.find((c) => c.id === cid).points.map((p) => p.v), R6.cid);
+    await page.keyboard.down('Control'); await page.mouse.move(hx, hy); await page.mouse.down(); await page.mouse.move(hx, hy - 50, { steps: 5 }); await page.waitForTimeout(40);
+    const up = await pts(); await page.mouse.move(hx, hy + 50, { steps: 8 }); await page.mouse.up(); await page.keyboard.up('Control'); await page.waitForTimeout(40);
+    const down = await pts(); await E(() => window.__TL.model.undo()); const unrepeated = await pts();
+    L.ck(up.length === 6 && down.join() === '0.2,0.8,0.2,0.8' && unrepeated.length === 2, 'Ctrl + a tension handle\'s drag repeats the segment: up three copies, down three mirrored; one undo (alpha.43)', { up, down, unrepeated });
     await E((keep) => { window.__TL.model.restore(keep); }, H0.keep);   // the arrangement as the sections below expect it (a restore clears the selection and range)
 
     /* ── THE FACE (1.5.6-alpha.24): FIT keeps the window's seat and dock (no NaN); an EVENT clip on a banded target draws its

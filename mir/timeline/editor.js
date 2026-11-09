@@ -339,6 +339,9 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
       if(drag.kind==='points'){model.movePoints(curve.id,drag.indices,beat-drag.pointBeat,value-drag.pointValue,{slide:slideMode,original:curve});}
       else{const moved=model.movePoint(curve.id,drag.index,Math.max(0,beat),value,{slide:slideMode});if(moved?.index>=0)drag.index=moved.index;}return;
     }
+    // THE TENSION REPEATS (1.5.7-alpha.43, λWAVES 040 T6): Ctrl + a tension handle's drag — every 24 px up one more copy of the segment's shape,
+    // past the press downward mirrored copies (an upward drag coming back takes copies away first); always from the press's curve, one undo
+    if(drag.kind==='repeat'){const k=Math.round((drag.y-e.y)/24),n=Math.min(32,1+Math.abs(k));if(n!==drag.n||k<0!==drag.mirror){drag.n=n;drag.mirror=k<0;model.repeatSegment(curve.id,drag.index,n,{mirror:k<0,original:curve});}return;}
     if(drag.kind==='tension'){const a=curve.points[drag.index],b=curve.points[drag.index+1],sign=b.v<a.v?-1:1;drawTension=bounded(drag.tension+sign*tensionDelta(drag.y,e.y,e,drag.gear)/TIMELINE_TENSION_TRAVEL,-1,1);model.setTension(curve.id,drag.index,drawTension);}
   });
   function finish(e,cancel=false,rewind=false){
@@ -448,6 +451,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
       if(action==='reset-tension'){e.preventDefault();drawTension=0;model.begin();model.setTension(curve.id,hit.i,0);syncSteps(curve.id);model.commit();return;}
       if(!action){paintSelection();return;}
       if(action==='move-point'&&pointSelection?.curveId===curve.id&&pointSelection.indices.has(hit.i)&&pointSelection.indices.size>1){beginPointGroup(e,clip,curve,hit.i);return;}
+      if(action==='move-tension'&&cmd){pointSelection=null;begin(e,{kind:'repeat',clip,curve,index:hit.i,n:1,mirror:false},true);paintSelection();return;}
       // THE FINE GEAR (Shift, ⅛): a tension's in client px, a point's in the plot's own coordinates
       pointSelection=null;let index=hit.i,edited=curve;begin(e,{kind:action==='move-tension'?'tension':'point',added:action==='add-point',clip,curve,index,tension:curve.points[hit.i]?.tension||0,gear:action==='move-tension'?fineGear({x:e.clientX,y:e.clientY}):fineGear(pos)},true);
       if(action==='add-point'){const beat=Math.max(0,geometry.sourceBeatAtWorldBeat(snapBeat(geometry.worldBeatAtX(pos.x),e))),value=pointAddValue(e,bounded(geometry.valueAtY(pos.y)),evaluateTimelineSource(curve,beat)),added=model.addPoint(curve.id,beat,value,0);if(!added||added.index<0){finish(null,true);return;}index=added.index;edited=added.source;}
