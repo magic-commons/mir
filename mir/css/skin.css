@@ -339,6 +339,11 @@ body[data-theme="light"] :is(.mir-modwindow, .kwin-chiprail, .m2ghost, [data-mir
      modulation rail's reorder handle, so every "drag me" in the lab is one mark. */
   background-image: radial-gradient(circle at 50% 50%, currentColor 1.25px, transparent 1.45px); background-size: 5px 5px; background-position: 0 0; background-repeat: repeat; }
 .dev:hover .dev-head::before, .dev.dragging .dev-head::before { color: var(--fg-soft); }
+/* 1.5.7-alpha.48 · THE GRIP CAN HIDE (λWAVES 040 C3): MIR OPTIONS › WINDOWS › DRAG HANDLE off is body.no-grip — the dot grip goes from a
+   card's head and from a window rail's move chip; the head's 28-px seat and the chip's seat stay (nothing moves), both still drag, and
+   the chip shows itself again when the keyboard focuses it */
+body.no-grip .dev-head::before { content: none; }
+body.no-grip :is(.mir-chip, .crail-chip):has(> .kwin-grip-dots):not(:focus-visible) { opacity: 0; }
 
 
 .dev-head > .dev-util { grid-column: 3; justify-self: end; gap: 4px; }

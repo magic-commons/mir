@@ -254,6 +254,7 @@
   "DOWNLOAD {name}": "DOWNLOAD {name}",
   "DRAFT": "DRAFT",
   "DRAG": "DRAG",
+  "DRAG HANDLE": "DRAG HANDLE",
   "DRAG — how far the view turns for a drag; Shift is finer; double-tap resets": "DRAG — how far the view turns for a drag; Shift is finer; double-tap resets",
   "DRIFT": "DRIFT",
   "DRIVES": "DRIVES",
@@ -1038,6 +1039,7 @@
   "The browser has WebGPU but found no graphics adapter to use.": "The browser has WebGPU but found no graphics adapter to use.",
   "The browser keeps this key for itself: the page never sees it.": "The browser keeps this key for itself: the page never sees it.",
   "The controls take the panes’ light: one {:ANGLE} for everything": "The controls take the panes’ light: one {:ANGLE} for everything",
+  "The dot grip on window heads; off, they still drag": "The dot grip on window heads; off, they still drag",
   "The dotted guide where a dragged window will land": "The dotted guide where a dragged window will land",
   "The envelope drives the target and the file plays with the transport": "The envelope drives the target and the file plays with the transport",
   "The envelope drives the target; the file stays silent": "The envelope drives the target; the file stays silent",
@@ -2528,6 +2530,9 @@
   ],
   "DRAG": [
    "mir/panels/camera-rig.js"
+  ],
+  "DRAG HANDLE": [
+   "mir/shell/gui.js"
   ],
   "DRAG — how far the view turns for a drag; Shift is finer; double-tap resets": [
    "mir/panels/camera-rig.js"
@@ -4914,6 +4919,9 @@
    "mir/shell/keys.js"
   ],
   "The controls take the panes’ light: one {:ANGLE} for everything": [
+   "mir/shell/gui.js"
+  ],
+  "The dot grip on window heads; off, they still drag": [
    "mir/shell/gui.js"
   ],
   "The dotted guide where a dragged window will land": [
