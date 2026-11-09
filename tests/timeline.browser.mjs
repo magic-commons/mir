@@ -221,13 +221,14 @@ const RUN = await (async () => {
       const cs = (s, ...ps) => { const n = document.querySelector(s), c = getComputedStyle(n); return ps.map((p) => c.getPropertyValue(p)).join(' | '); };
       return { lane: cs('.mir-timeline .tl-pane:not(.clip-at-start)', 'background-color', 'backdrop-filter', 'border-top-right-radius', 'box-shadow'),
         bar: cs('.mir-timeline .tl-toolbar', 'background-color', 'border-top-right-radius'), tool: cs('.mir-timeline .tl-tool[aria-pressed="false"]', 'background-color', 'box-shadow'),
+        seat: cs('.mir-timeline .tl-transport-host .transport-home', 'background-color'),   // 1.5.7-alpha.47: the bar's chips wear no face in any FACES, the work bar's seats do
         chips: (() => { const c = [...document.querySelectorAll('.mir-rail[data-mir-rail="timeline"] .mir-chip')].map((n) => n.getBoundingClientRect()); return Math.round(c[2].top - c[1].top); })() }; }); };
     const base = await look({ card: 'refractive', frost: 'always', corners: 24, spacing: 'default', faces: 'glass', lightAngle: 0, reliefAngle: 315 });
     const reach = {
       card: (await look({ card: 'tinted' })).lane !== base.lane,
       frost: (await look({ card: 'refractive', frost: 'off' })).lane !== base.lane,
       corners: /10px/.test((await look({ frost: 'always', corners: 10 })).lane.split(' | ')[2]),
-      faces: (await look({ corners: 24, faces: 'solid' })).tool !== base.tool,
+      faces: (await look({ corners: 24, faces: 'solid' })).seat !== base.seat,
       lightAngle: (await look({ faces: 'glass', lightAngle: 90 })).lane !== base.lane,
       reliefAngle: (await look({ lightAngle: 0, reliefAngle: 45 })).tool !== base.tool,
       spacing: (await look({ reliefAngle: 315, spacing: 'tight' })).chips !== base.chips,

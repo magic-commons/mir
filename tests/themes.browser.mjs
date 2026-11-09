@@ -189,8 +189,8 @@ try {
   let r = JSON.parse(await p.eval(`(async () => { ${SETTLE} __T.P.set({ card: 'refractive', frost: 'always', quality: 'full', faces: 'glass' }); __T.P.apply({ now: true }); await settle();
     const bg = (n) => getComputedStyle(n).backgroundColor, bc = (n) => getComputedStyle(n).borderTopColor;
     return JSON.stringify({ chosen: bg(document.querySelector('.dev .seg-b.on')), swOff: bc(__T.sOff.root), trig: bc(__T.tr.root), fd: bc(__T.fd.root), arc: bc(__T.arc.root.querySelector('.k-dial')), knobImg: getComputedStyle(__T.k.root.querySelector('.k-dial')).backgroundImage }); })()`));
-  const hair = 'rgba(255, 255, 255, 0.08)';
-  check('GLASS faces as BASINS draws them: the chosen segment is clear, a knob has no image, and the switch, trigger, own-colour fader and arc knob wear the .08 white hairline', r.chosen === 'rgba(0, 0, 0, 0)' && r.knobImg === 'none' && [r.swOff, r.trig, r.fd, r.arc].every((c) => c === hair), JSON.stringify(r));
+  const hair = ['rgba(255, 255, 255, 0.08)', 'color(srgb 1 1 1 / 0.08)'];   // 1.5.7-alpha.1 THE STROKE draws the hairline by color-mix, which Chromium writes as color(srgb …)
+  check('GLASS faces as BASINS draws them: the chosen segment is clear, a knob has no image, and the switch, trigger, own-colour fader and arc knob wear the .08 white hairline', r.chosen === 'rgba(0, 0, 0, 0)' && r.knobImg === 'none' && [r.swOff, r.trig, r.fd, r.arc].every((c) => hair.includes(c)), JSON.stringify(r));
   /* BASINS' list a–g (its adoption log, row 21), under the engine at BASINS' boot (SHADOW 100 %) and at FROST */
   r = JSON.parse(await p.eval(`(async () => { ${SETTLE} const cs = (n, ps) => getComputedStyle(typeof n === 'string' ? document.querySelector(n) : n, ps || null);
     const { themeValues } = await import('/mir/shell/themes.js');
