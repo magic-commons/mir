@@ -130,6 +130,15 @@ const RUN = await (async () => {
     await page.keyboard.down('Shift'); await page.mouse.move(x2, ruler.y + ruler.height / 2); await page.mouse.down(); await page.mouse.move(x6, ruler.y + ruler.height / 2, { steps: 6 }); await page.mouse.up(); await page.keyboard.up('Shift'); await page.waitForTimeout(40);
     const rg = await E(() => window.__TL.tl.editor.range());
     L.ck(rg && rg.start === 2 && rg.end === 6, 'Shift + a ruler drag selects a time range (snapped)', rg);
+    /* ── THE TIMELINE'S HANDS (λWAVES 040): one check a door ─────────────────────────────────────────────────────────── */
+    // alpha.38 THE RIGHT CLICK DELETES: a right-button press on empty lane space sweeps the stamped clip's body in lane 3; one undo
+    const sweepPane = await page.locator(`.tl-pane[data-lane="${H0.lanes[2]}"]`).boundingBox();
+    await page.mouse.move(sweepPane.x + 4, sweepPane.y + sweepPane.height * .25); await page.mouse.down({ button: 'right' });
+    await page.mouse.move(sweepPane.x + sweepPane.width - 8, sweepPane.y + sweepPane.height * .25, { steps: 8 }); await page.mouse.up({ button: 'right' }); await page.waitForTimeout(60);
+    const swept = await E((lane) => { const d = window.__TL.model.state(); return { n: d.clips.length, inLane: d.clips.filter((c) => c.laneId === lane).length, menu: !!document.querySelector('.tl-pop') }; }, H0.lanes[2]);
+    await E(() => window.__TL.model.undo()); await page.waitForTimeout(40);
+    const unswept = await E(() => window.__TL.model.state().clips.length);
+    L.ck(swept.inLane === 0 && swept.n === 2 && !swept.menu && unswept === 3, 'a right-button sweep from empty lane space deletes the clip it crosses, no lane menu; one undo restores it (alpha.38)', { ...swept, unswept });
     await E((keep) => { window.__TL.model.restore(keep); }, H0.keep);   // the arrangement as the sections below expect it (a restore clears the selection and range)
 
     /* ── THE FACE (1.5.6-alpha.24): FIT keeps the window's seat and dock (no NaN); an EVENT clip on a banded target draws its

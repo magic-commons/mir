@@ -261,6 +261,7 @@
   "DROP SHADOW": "DROP SHADOW",
   "DUPLICATE": "DUPLICATE",
   "Dead-send inspector": "Dead-send inspector",
+  "Delete every clip the pointer crosses, tab or body (one undo); down on a tab deletes it at once": "Delete every clip the pointer crosses, tab or body (one undo); down on a tab deletes it at once",
   "Delete it": "Delete it",
   "Delete macro {i}": "Delete macro {i}",
   "Delete the selection": "Delete the selection",
@@ -376,6 +377,7 @@
   "FL — drag a node or a tension handle": "FL — drag a node or a tension handle",
   "FL — dragging the bar-ruler selects time": "FL — dragging the bar-ruler selects time",
   "FL — pattern clips move from their body": "FL — pattern clips move from their body",
+  "FL — right-click deletes a clip; MIR sweeps while the button is held": "FL — right-click deletes a clip; MIR sweeps while the button is held",
   "FL — the Slice tool cuts at the click": "FL — the Slice tool cuts at the click",
   "FL — the pencil places the last clip; MAKE UNIQUE detaches it": "FL — the pencil places the last clip; MAKE UNIQUE detaches it",
   "FL — the playlist scrolls under a drag held at its edge": "FL — the playlist scrolls under a drag held at its edge",
@@ -814,6 +816,7 @@
   "Return this window to its rack": "Return this window to its rack",
   "Reveal or trim curve end": "Reveal or trim curve end",
   "Reverse the curve in time": "Reverse the curve in time",
+  "Right-button drag on empty lane space (or between lanes)": "Right-button drag on empty lane space (or between lanes)",
   "Right-click a tension handle": "Right-click a tension handle",
   "Right-click or tap: FILL · CLEAR · LENGTH · PATTERN ON/OFF": "Right-click or tap: FILL · CLEAR · LENGTH · PATTERN ON/OFF",
   "Right-drag empty clip space": "Right-drag empty clip space",
@@ -2551,6 +2554,9 @@
   "Dead-send inspector": [
    "mir/modulation/modwindow/modwindow.js"
   ],
+  "Delete every clip the pointer crosses, tab or body (one undo); down on a tab deletes it at once": [
+   "mir/timeline/shortcuts.js"
+  ],
   "Delete it": [
    "mir/timeline/shortcuts.js"
   ],
@@ -2895,6 +2901,9 @@
    "mir/timeline/shortcuts.js"
   ],
   "FL — pattern clips move from their body": [
+   "mir/timeline/shortcuts.js"
+  ],
+  "FL — right-click deletes a clip; MIR sweeps while the button is held": [
    "mir/timeline/shortcuts.js"
   ],
   "FL — the Slice tool cuts at the click": [
@@ -4228,6 +4237,9 @@
   ],
   "Reverse the curve in time": [
    "mir/modulation/window.js"
+  ],
+  "Right-button drag on empty lane space (or between lanes)": [
+   "mir/timeline/shortcuts.js"
   ],
   "Right-click a tension handle": [
    "mir/timeline/shortcuts.js"

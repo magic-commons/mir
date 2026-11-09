@@ -24,6 +24,8 @@
  * clip's toggle, ⅛ on a point, a tension or a stretch); Ctrl shapes (the ruler's zoom, a clip's clone and stretch, a point's
  * time lock); Alt bypasses Snap and deletes a point.  The EDIT tool's click on empty lane space stamps the clip last pressed
  * (THE PENCIL: its curve, shared).  The words are shortcuts.js TIMELINE_POINTER.
+ * THE TIMELINE'S HANDS (λWAVES 040, 1.5.7-alpha.38 …): THE RIGHT CLICK DELETES — a right-button press on empty lane space or
+ * between the lanes sweeps every clip the pointer crosses (one undo); the lane's right-click menu is gone.
  * THE LAWS (BASINS', unchanged): one musical-to-pixel mapping (geometry.js) for drawing, hit tests and edits; a gesture is
  * one model transaction (begin … commit, or cancel on Escape, a lost capture, a blur, a hidden page or a hidden interface); a drag's last
  * pointer sample is flushed before its commit; the nearest lane is resolved from content coordinates, never from
@@ -230,12 +232,10 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   }
 
   /* THE LANE ASK (T9, 1.5.6-alpha.24): a lane with clips asks through the kit's confirmDialog (danger) before it goes; the
-     rail's chip removes the bottom lane, a lane's own menu (right-click its empty space) that lane.  → Promise<boolean> */
+     rail's chip removes the bottom lane (the lane's own right-click menu went in 1.5.7-alpha.38: the right click deletes).  → Promise<boolean> */
   async function removeLane(laneId=doc.lanes.at(-1)?.id){const result=model.removeLane(laneId);if(result.ok||!result.confirm)return !!result.ok;
     const yes=await confirmDialog(tn(result.count,'Remove {n} clip in {lane}?','Remove {n} clips in {lane}?',{n:result.count,lane:result.name}),{yes:'REMOVE LANE',danger:true});
     return !!(yes&&doc.lanes.some(l=>l.id===laneId)&&model.removeLane(laneId,true)?.ok);}
-  function laneMenu(x,y,laneId){const lane=doc.lanes.find(l=>l.id===laneId);if(!lane)return;
-    pop(x,y,{raw:lane.name},[['ADD LANE',()=>model.addLane(),'add-lane'],...(doc.lanes.length>1?[['REMOVE LANE',()=>removeLane(laneId),'remove-lane']]:[])],'lane');}
   /* ROUTE NEW PARAMETER… (T20, 1.5.6-alpha.26): the modulation window's arming with no macro — every routable control lights;
      the one tapped becomes the clip's target (its curve copied first when other clips share it); Escape or a tap elsewhere ends it */
   function routeClip(clipId,curve){say(t('Tap a lit control to route {clip} to it; Escape cancels.',{clip:curve.name}));
@@ -297,8 +297,10 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
       else{selection=new Set([...drag.baseClips,...clipsInRectangle(doc,rect,px,view.height())]);selected=selection.values().next().value||null;pointSelection=null;}paintSelection();return;
     }
     if(drag.kind==='delete'){
-      const id=document.elementFromPoint(e.x,e.y)?.closest('.tl-clip-title,svg[data-kind]')?.dataset.clip;
-      if(id&&doc.clips.some(x=>x.id===id))model.deleteClip(id);return;
+      // THE RIGHT CLICK DELETES (1.5.7-alpha.38, λWAVES 040 T1): every clip the pointer crosses, tab or body, by the one geometry — the path
+      // since the last sample as a rectangle (clipsInRectangle), so a fast hand skips none; a narrow clip between two samples dies too
+      const ids=clipsInRectangle(doc,selectionRect(drag.sweep||drag.startWorld,pos),px,view.height());drag.sweep=pos;
+      if(ids.length)model.deleteClips(ids);return;
     }
     const{clip:c,curve}=drag;
     if(drag.kind==='move'){
@@ -426,7 +428,10 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
       if(action==='add-point'){const beat=Math.max(0,geometry.sourceBeatAtWorldBeat(snapBeat(geometry.worldBeatAtX(pos.x),e))),value=pointAddValue(e,bounded(geometry.valueAtY(pos.y)),evaluateTimelineSource(curve,beat)),added=model.addPoint(curve.id,beat,value,0);if(!added||added.index<0){finish(null,true);return;}index=added.index;edited=added.source;}
       const p=edited.points[index];Object.assign(drag,{curve:edited,index,pointBeat:p.t*edited.length,pointValue:p.v});paintSelection();return;
     }
-    if(e.button===2&&lane&&!clip){e.preventDefault();laneMenu(e.clientX,e.clientY,lane.dataset.lane);return;}   // a lane's own menu: ADD LANE · REMOVE LANE (T9)
+    // THE RIGHT CLICK DELETES (1.5.7-alpha.38, λWAVES 040 T1; Josh: "right clicking on an empty space on the lane (and even in-between the lanes …) and
+    // while holding the click, the cursor will delete anything in its path"): a right-button press on empty lane space, on a title band or in the
+    // gap between lanes starts the delete sweep (one undo: begin here, commit in finish); the lane menu of 1.5.6-alpha.24 is gone — the chips add and remove lanes
+    if(e.button===2&&!clip&&viewport.contains(target)){e.preventDefault();lastTap=null;begin(e,{kind:'delete',clip:null,curve:null},true);return;}
     if(e.button===0&&tool==='edit'&&lane&&!clip&&!shift&&!cmd&&stamp(e,lane.dataset.lane))return;
     if(e.button===0){selection.clear();pointSelection=null;selected=null;}paintSelection();
   });

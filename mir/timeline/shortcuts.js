@@ -70,6 +70,7 @@ export const TIMELINE_POINTER = [   // tr: the timeline's pointer gestures: the 
   { label: 'Middle button, hold + drag', hint: 'Pan time and tracks', t: 'FL — Middle-Mouse-Click pans' },
   { label: 'Wheel over the timeline', hint: 'Scroll time (Shift + wheel too; with more lanes than fit, the wheel scrolls the lanes); Ctrl/Cmd + wheel zooms', t: 'FL — the wheel scrolls the playlist, Ctrl + wheel zooms' },
   { label: 'Drag past the left or right edge', hint: 'Scroll time while you hold it there (the playhead, a range, a move, a trim, a stretch)', t: 'FL — the playlist scrolls under a drag held at its edge' },
+  { label: 'Right-button drag on empty lane space (or between lanes)', hint: 'Delete every clip the pointer crosses, tab or body (one undo); down on a tab deletes it at once', t: 'FL — right-click deletes a clip; MIR sweeps while the button is held' },
   { label: 'Shift + drag (empty)', hint: 'Rectangle-select clips or points', t: 'adapted — FL’s Ctrl+drag; in MIR Shift selects' },
   { label: 'Ctrl/Cmd + Shift + drag', hint: 'Add to the rectangle selection', t: 'FL — Ctrl+Shift+drag adds' },
   { label: 'Shift + click a clip', hint: 'Toggle it in the selection', t: 'adapted — FL’s Ctrl+click toggles' },
