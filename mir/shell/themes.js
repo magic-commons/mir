@@ -45,7 +45,7 @@ const TABLE = [   // tr: names
     tones: [tone('clear', 'CLEAR', 0, 0, 0, 30, 300, 0.1), tone('rose', 'ROSE', 340, 0.22, 0, 345, 300, 0.25), tone('azure', 'AZURE', 205, 0.28, 0, 200, 280, 0.25)] },
   /* MORPH — neumorphism: the SOLID pane, the light at the upper left, a drop shadow bottom-right and the shine upper-left
      (Josh: "So bottom right shadow, upper left shine"), faces the pane's colour, soft corners, no edge. */
-  { id: 'morph', name: 'MORPH', values: { card: 'solid', corners: 20, edge: false, lightAngle: 315, reliefLink: true, shadow: 1.4, shadowDist: 6, shadowSoft: 14, shine: 0.5, shineSoft: 6, glow: false, parallax: false, spacing: 'airy' },
+  { id: 'morph', name: 'MORPH', values: { card: 'solid', corners: 20, edge: false, lightAngle: 315, reliefLink: true, shadow: 1.4, shadowDist: 6, shadowSoft: 14, shine: 0.5, shineSoft: 6, glow: false, parallax: false, spacing: 16 },
     tones: [tone('clay', 'CLAY', 24, 0.16, 0, 30, 300, 0.1), tone('mint', 'MINT', 150, 0.18, 0, 140, 300, 0.1), tone('lilac', 'LILAC', 268, 0.2, 0, 280, 30, 0.1), tone('slate', 'SLATE', 0, 0, 0, 30, 300, 0.1)] },
   /* CLASSIC — the 1.4 spirit: the tinted pane, solid faces, the relief, the house corner and veil, and 1.4's 22 px blur.
      FROST is 1.4's own default, OFF (STYLE-LOCK: "FROST OFF, GLASS BLUR 22px"): a still tinted pane, no filter.  Since
