@@ -44,6 +44,15 @@ const RUN = await (async () => {
     L.ck(chosen.tool === 'mute' && !chosen.open && chosen.chip === 'mute' && chosen.chipGlyph, 'a mode row chooses the mode, closes the menu, and the chip wears it', chosen);
     L.ck(chosen.cursor.startsWith('url("data:image/svg') && chosen.all === 'all' && chosen.tab === 'url(', 'the cursor wears the mode (its glyph, over the lanes and — not a pencil — over the clips)', chosen);
 
+    /* ── by keyboard: the chip opens it on the mode in force; ↓ walks, → crosses, Enter chooses, and the focus comes home to the surface ── */
+    await E(() => { document.querySelector('.tl-toolbar [data-mode="modes"]').focus(); return 0; }); await page.keyboard.press('Enter'); await wait();
+    const kb0 = await E(() => document.activeElement?.dataset.modeRow);
+    await page.keyboard.press('ArrowDown'); const kb1 = await E(() => document.activeElement?.dataset.modeRow);
+    await page.keyboard.press('ArrowRight'); const kb2 = await E(() => document.activeElement?.dataset.row || document.activeElement?.dataset.fold);
+    await page.keyboard.press('ArrowLeft'); await page.keyboard.press('ArrowUp'); await page.keyboard.press('ArrowUp'); await page.keyboard.press('Enter'); await wait();
+    const kb3 = await E(() => ({ tool: window.__TL.tl.editor.tool(), open: !!document.querySelector('.tl-pop'), live: window.__TL.tl.editor.keysLive() }));
+    L.ck(kb0 === 'mute' && kb1 === 'slice' && kb2 === 'step' && kb3.tool === 'delete' && !kb3.open && kb3.live, 'by keyboard: Enter on the chip opens it on the mode in force, the arrows walk and cross, Enter chooses, and the timeline\'s keys are live again', { kb0, kb1, kb2, kb3 });
+
     /* ── the mouse's roads: a middle click on the lanes, the chord middle + right ───────────────────────────────── */
     await mode('edit');
     await page.mouse.move(X(20), p1.y + p1.height / 2); await page.mouse.down({ button: 'middle' }); await page.mouse.up({ button: 'middle' }); await wait();

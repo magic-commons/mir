@@ -418,7 +418,7 @@
 .tl-pop .tl-mode-dot { width: var(--tl-mode-dot); height: var(--tl-mode-dot); box-sizing: border-box; border: 1px solid currentColor; border-radius: 50%; opacity: var(--tl-mode-dot-fade); flex: none; }
 .tl-pop .tl-mode.on .tl-mode-dot { background: currentColor; opacity: 1; }
 .tl-pop.tl-modes .tl-modes-menu .trig { min-height: var(--tl-modes-row-h); display: flex; align-items: center; justify-content: flex-start; gap: var(--tl-pop-row-gap); text-align: start; }
-@media (pointer: coarse) { .tl-pop.tl-modes .tl-modes-menu .trig { min-height: var(--tl-pop-trig-h); } }
+@media (pointer: coarse) { .tl-pop.tl-modes .tl-modes-menu .trig { min-height: var(--tl-pop-trig-h); } .tl-pop .trig.tl-mode { min-height: var(--touch); height: var(--touch); } }   /* a finger's rows */
 .tl-pop.tl-modes .tl-modes-menu .trig.tl-sub { justify-content: space-between; }
 .tl-pop .trig.tl-row svg.tl-sub-arrow { width: var(--tl-sub-arrow); height: var(--tl-sub-arrow); opacity: var(--tl-sub-arrow-fade); }
 .tl-confirm { position: fixed; z-index: calc(var(--z-veil) + 21); max-width: var(--tl-confirm-max); padding: var(--tl-confirm-pad); font-size: var(--tl-confirm-size); animation: lw-warn-in var(--tl-pop-t) var(--tl-ease-spring); }

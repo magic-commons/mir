@@ -153,7 +153,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   const view=createTimelineView(surface,{pixels:()=>px,stepsOf,onClipMenu(e,c,curve){finish(null,true);clipMenu(e.clientX,e.clientY,c,curve);}});
   const {viewport,status}=view;
   const headPaint=createTimelinePlayhead({head:view.head,tail:view.tail,controller,clock:{beats:transportBeat,playing:()=>mod.host.clock.isPlaying(),bpm:()=>mod.host.model.transport.bpm},visible:()=>win.isOpen()&&!document.hidden&&!document.body.classList.contains('ui-hidden'),pixels:()=>px,scroll:()=>viewport.scrollLeft});
-  const snapBeat=(beat,e)=>snapTimelineBeat(beat,snap,!!e?.altKey),closeMenu=()=>{menu?.remove();menu=null;};
+  const snapBeat=(beat,e)=>snapTimelineBeat(beat,snap,!!e?.altKey),closeMenu=()=>{const back=menu?.dataset.pop==='modes'&&menu.contains(document.activeElement);menu?.remove();menu=null;if(back)surface.focus({preventScroll:true});};   // THE MODE MENU closed from inside it hands the focus back to the surface: the timeline's keys stay live
   function setTool(name){const mode=MODES.find(m=>m[0]===name)||MODES[0];tool=mode[0];surface.dataset.tool=tool;surface.dataset.cursor=mode[4];surface.style.setProperty('--tl-mode-cursor',modeCursor(mode[2],mode[3]));
     surface.classList.toggle('tl-step-mode',stepMode&&PEN.has(tool));for(const[id,b]of toolButtons){b.setAttribute('aria-pressed',String(id===tool));b.classList.toggle('on',id===tool);}
     modesButton.replaceChildren();modesButton.insertAdjacentHTML('beforeend',glyphSvg(mode[2],'gly gly-'+mode[2],16));modesButton.firstChild?.setAttribute('aria-hidden','true');modesButton.dataset.now=tool;paintSelection();}
@@ -208,6 +208,10 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
      right in either order (the surface's pointermove, below); the bar's MODE chip opens it for a finger. */
   function modeMenu(x,y){finish(null,true);closeMenu();menu=el('div','tl-pop tl-modes glass',document.body);menu.dataset.mirSurface='menu';menu.dataset.pop='modes';menu.setAttribute('role','menu');ariaLabel(menu,'Timeline modes');
     menu.addEventListener('contextmenu',e=>e.preventDefault());   // the chord's right button comes up over it
+    // by keyboard: ↑ ↓ walk a column (round), ← → cross to the other at the same height; Enter and Space press, Escape closes (the document's)
+    menu.addEventListener('keydown',e=>{const cols=[left,right],at=cols.findIndex(c=>c.contains(document.activeElement));if(at<0||!e.key.startsWith('Arrow'))return;e.preventDefault();e.stopPropagation();
+      const rows=c=>[...c.querySelectorAll('button')],list=rows(cols[at]),i=list.indexOf(document.activeElement),other=rows(cols[1-at]);
+      (e.key==='ArrowDown'||e.key==='ArrowUp'?list[(i+(e.key==='ArrowDown'?1:-1)+list.length)%list.length]:other[Math.min(i,other.length-1)])?.focus();});
     const left=el('div','tl-modes-col',menu),right=el('div','tl-modes-col tl-modes-menu',menu);label(el('div','tl-pop-title',left),'MODE');label(el('div','tl-pop-title',right),'MENU');
     for(const[id,text,glyph]of MODES){const b=button(left,{raw:''},()=>{closeMenu();setTool(id);},'tl-mode');b.dataset.modeRow=id;b.setAttribute('role','menuitemradio');b.setAttribute('aria-checked',String(id===tool));b.classList.toggle('on',id===tool);
       ariaLabel(b,text);b.dataset.help=text;el('span','tl-mode-dot',b);b.insertAdjacentHTML('beforeend',glyphSvg(glyph,'gly gly-'+glyph,24));b.lastChild.setAttribute('aria-hidden','true');}
