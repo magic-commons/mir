@@ -260,6 +260,8 @@ BASINS' input capability layer (`app/overlay.js` WAVE-KBM), the kit's: touch or 
 
 ### `info/layer.js`: additions
 
+**A leaving block takes no seat** (1.5.7-alpha.66, λWAVES 041 K3): from `handle.remove()` on, a block fades where it stands, out of the force and out of its column; `old.remove(); layer.addBlock({ md })` in the same tick puts the new block on the seat at once (no wait for the promise, no glide up from under the old one). Labels are unchanged.
+
 `createInfoLayer({ …, pane = false, controls = null, keys, avoid })` (`avoid`: viewport rects a block never rests under, e.g. `rack.keepClear()`; a block with no room beside the subject sits over it, dimmed, with `data-over`) (with the app's key table the layer listens to no key of its own); `layer.hold(on)`; `infoActions(get, { keys = ['I'] })` → the `info-hold` row; `HOLD_KEY` (`'KeyI'`); `addLabel({ anchor: 'ui:name', control? })`; `addBlock({ pane? })`; `setPane(on)`; `layer.stage`. A `() => null` anchor hides its labels.
 
 ---
