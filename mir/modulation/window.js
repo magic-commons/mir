@@ -44,7 +44,7 @@ import { svgPoint, curveHit, curveAction, pointDrag, pointAddValue, tensionDelta
          editablePresetForWave } from './curve-gesture.js';
 import { createRail, seatRail, seatOn, roomFor, SIDES } from '../window/rail.js';
 import { createDockGuide } from '../window/dock.js';
-import { windowLayout, dockInput, stackedAt, windowOf, gripGesture } from '../window/window.js';
+import { windowLayout, dockInput, stackedAt, windowOf, gripGesture, windowGlyph } from '../window/window.js';
 import { workspaceSwitch } from '../window/workspaces.js';
 import { bindTempoField } from '../shell/transport.js';
 import { tweenRect, presence, owns, settled } from '../core/motion.js';
@@ -208,7 +208,7 @@ export function createModulation(host, port) {
      "modulation"] .crail-chip` (modwindow.css PART A, modhost.css), so the rail is re-classed once and its inks
      after each write — the same DOM the old builder made, now with a grip that is a button (keyboard, long press). */
   let P = null;                                       // the presentation state, below; the rail's callbacks read it late
-  const rail = createRail({ id: 'modulation', title: 'MODULATION', chips: RAIL_CHIPS, layer: host,
+  const rail = createRail({ id: 'modulation', title: 'MODULATION', chips: RAIL_CHIPS, layer: host, glyph: windowGlyph('modulation'),
     seats: () => SIDES.map((side) => ({ id: side, rect: relocated(side).seat })),
     onChip: (name, state) => chipPressed(name, state),
     onSide(side, phase) {

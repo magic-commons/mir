@@ -343,7 +343,17 @@ body[data-theme="light"] :is(.mir-modwindow, .kwin-chiprail, .m2ghost, [data-mir
    card's head and from a window rail's move chip; the head's 28-px seat and the chip's seat stay (nothing moves), both still drag, and
    the chip shows itself again when the keyboard focuses it */
 body.no-grip .dev-head::before { content: none; }
-body.no-grip :is(.mir-chip, .crail-chip):has(> .kwin-grip-dots):not(:focus-visible) { opacity: 0; }
+/* 1.5.7-alpha.56 · THE HANDLE WEARS THE WINDOW'S ICON (λWAVES 041 W1): a rail's drag chip stays visible in every state (alpha.48 faded it:
+   Josh never saw "a move button" go and the chip is the rail's one handle).  DRAG HANDLE › ICON is body.icon-grip: a card whose head has
+   its glyph (.dev-glyph, kit.js device) drops the dots and the glyph stands in their seat, the name following it; a rail's drag chip
+   wears its window's glyph (.mir-grip-glyph, rail.js) instead of the dots.  A window with no glyph keeps the dots. */
+body.icon-grip .dev-head:has(.dev-glyph)::before { content: none; }
+body.icon-grip .dev-head:has(.dev-glyph) { padding-inline-start: 8px; }
+body.icon-grip .dev-head .dev-glyph { width: 15px; height: 15px; }
+.dev:hover .dev-head .dev-glyph, .dev.dragging .dev-head .dev-glyph { color: var(--fg-soft); }
+.mir-grip-glyph { display: none; }
+body.icon-grip :is(.mir-chip, .crail-chip):has(> .mir-grip-glyph) > :is(.mir-grip-dots, .kwin-grip-dots) { display: none; }
+body.icon-grip :is(.mir-chip, .crail-chip) > .mir-grip-glyph { display: block; }
 
 
 .dev-head > .dev-util { grid-column: 3; justify-self: end; gap: 4px; }

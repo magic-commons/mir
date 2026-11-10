@@ -439,10 +439,12 @@
   "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license}": "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license}",
   "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license} and {notice}": "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license} and {notice}",
   "GRAIN": "GRAIN",
+  "GRIP": "GRIP",
   "Gallery — browse saved projects": "Gallery — browse saved projects",
   "H": "H",
   "HAND": "HAND",
   "HELP": "HELP",
+  "HIDDEN": "HIDDEN",
   "HIDE / SHOW the rack": "HIDE / SHOW the rack",
   "HIDE the interface": "HIDE the interface",
   "HIGH": "HIGH",
@@ -469,6 +471,7 @@
   "Hold to multiply the tempo, release to return · tap to latch, tap again to release": "Hold to multiply the tempo, release to return · tap to latch, tap again to release",
   "Hover hints on controls": "Hover hints on controls",
   "How far the shadow falls from its pane (and the shine across from it)": "How far the shadow falls from its pane (and the shine across from it)",
+  "ICON": "ICON",
   "IDLE": "IDLE",
   "IMPORT .MD": "IMPORT .MD",
   "IMPORTED": "IMPORTED",
@@ -616,6 +619,7 @@
   "No copies made: select clips with room in the arrangement.": "No copies made: select clips with room in the arrangement.",
   "No copies made: source budget reached.": "No copies made: source budget reached.",
   "No envelopes on the rack — add one with +": "No envelopes on the rack — add one with +",
+  "No grip on window heads; they still drag": "No grip on window heads; they still drag",
   "No macros yet — add one in the modulation window.": "No macros yet — add one in the modulation window.",
   "No name pill while a rack scrolls": "No name pill while a rack scrolls",
   "No room for another curve: remove a curve first.": "No room for another curve: remove a curve first.",
@@ -1049,7 +1053,7 @@
   "The browser has WebGPU but found no graphics adapter to use.": "The browser has WebGPU but found no graphics adapter to use.",
   "The browser keeps this key for itself: the page never sees it.": "The browser keeps this key for itself: the page never sees it.",
   "The controls take the panes’ light: one {:ANGLE} for everything": "The controls take the panes’ light: one {:ANGLE} for everything",
-  "The dot grip on window heads; off, they still drag": "The dot grip on window heads; off, they still drag",
+  "The dot grip on window heads": "The dot grip on window heads",
   "The dotted guide where a dragged window will land": "The dotted guide where a dragged window will land",
   "The envelope drives the target and the file plays with the transport": "The envelope drives the target and the file plays with the transport",
   "The envelope drives the target; the file stays silent": "The envelope drives the target; the file stays silent",
@@ -1073,6 +1077,7 @@
   "The view moved since the picture was made — tap CAPTURE IMAGE again.": "The view moved since the picture was made — tap CAPTURE IMAGE again.",
   "The wheel zooms a notch at a time": "The wheel zooms a notch at a time",
   "The wheel zooms continuously": "The wheel zooms continuously",
+  "The window’s own icon where the grip was; it drags the same": "The window’s own icon where the grip was; it drags the same",
   "The {noun} list is full — {count} of {cap}": "The {noun} list is full — {count} of {cap}",
   "The {panel} panel could not be built: {why}": "The {panel} panel could not be built: {why}",
   "The ⓘ panels on windows": "The ⓘ panels on windows",
@@ -3086,6 +3091,9 @@
   "GRAIN": [
    "mir/modulation/host.js"
   ],
+  "GRIP": [
+   "mir/shell/gui.js"
+  ],
   "Gallery — browse saved projects": [
    "mir/folders/folders.js"
   ],
@@ -3097,6 +3105,9 @@
    "mir/panels/camera.js"
   ],
   "HELP": [
+   "mir/shell/gui.js"
+  ],
+  "HIDDEN": [
    "mir/shell/gui.js"
   ],
   "HIDE / SHOW the rack": [
@@ -3183,6 +3194,9 @@
    "mir/shell/gui.js"
   ],
   "How far the shadow falls from its pane (and the shine across from it)": [
+   "mir/shell/gui.js"
+  ],
+  "ICON": [
    "mir/shell/gui.js"
   ],
   "IDLE": [
@@ -3636,6 +3650,9 @@
   ],
   "No envelopes on the rack — add one with +": [
    "mir/pattern/window.js"
+  ],
+  "No grip on window heads; they still drag": [
+   "mir/shell/gui.js"
   ],
   "No macros yet — add one in the modulation window.": [
    "mir/shell/transport.js"
@@ -4960,7 +4977,7 @@
   "The controls take the panes’ light: one {:ANGLE} for everything": [
    "mir/shell/gui.js"
   ],
-  "The dot grip on window heads; off, they still drag": [
+  "The dot grip on window heads": [
    "mir/shell/gui.js"
   ],
   "The dotted guide where a dragged window will land": [
@@ -5031,6 +5048,9 @@
   ],
   "The wheel zooms continuously": [
    "mir/panels/camera-rig.js"
+  ],
+  "The window’s own icon where the grip was; it drags the same": [
+   "mir/shell/gui.js"
   ],
   "The {noun} list is full — {count} of {cap}": [
    "mir/controls/list.js"

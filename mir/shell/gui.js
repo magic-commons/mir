@@ -210,7 +210,10 @@ export function lookSchema({ tier = () => null } = {}) {
     { key: 'transportBar', type: 'bool', default: true, apply: [{ on: 'body', cls: 'no-transport-bar', when: (v) => !v }] },
     /* DRAG HANDLE (1.5.7-alpha.48 THE GRIP CAN HIDE, λWAVES 040 C3; Josh: "purely an aesthetic change"): off is body.no-grip — the dot grip
        of a card's head and of a window rail's move chip go, their seats stay, both still drag (skin.css) */
-    { key: 'grip', type: 'bool', default: true, apply: [{ on: 'body', cls: 'no-grip', when: (v) => !v }] },
+    /* 1.5.7-alpha.56 THE HANDLE WEARS THE WINDOW'S ICON: three states under the same key — GRIP (the dots), ICON (body.icon-grip: the window's
+       own glyph in the grip's seat) and HIDDEN (body.no-grip); the switch's stored true / false open as GRIP / HIDDEN (prefs.js `legacy`) */
+    { key: 'grip', type: 'enum', values: ['grip', 'icon', 'hidden'], default: 'grip', legacy: { true: 'grip', false: 'hidden' },
+      apply: [{ on: 'body', cls: 'no-grip', when: (v) => v === 'hidden' }, { on: 'body', cls: 'icon-grip', when: (v) => v === 'icon' }] },
     { key: 'menuBar', type: 'enum', values: ['hover', 'always'], default: 'hover', apply: [{ on: 'html', attr: 'data-menu-bar', map: (v) => v === 'always' ? v : null }] },
     { key: 'logo', type: 'bool', default: true, apply: [{ on: 'html', attr: 'data-logo', map: (v) => v ? null : 'hidden' }] },
     /* SAMPLING (BASINS docs/TIMELINE-SAMPLING-2026-10-01.md): SCRUB is read by the timeline's transport controller at each
@@ -527,7 +530,6 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   line(g, 'gui-sws').append(swOf('disconnected', phrase('DISCONNECTED'), phrase('Separate window headers from their bodies')).root,
     /* TRANSPORT BAR (BASINS Settings › DISPLAY): the main transport bar in every seat; the transport's sheet reads the class */
     swOf('transportBar', phrase('TRANSPORT BAR'), phrase('Show the main transport bar, floating or docked')).root);
-  line(g, 'gui-sws').append(swOf('grip', phrase('DRAG HANDLE'), phrase('The dot grip on window heads; off, they still drag')).root);   // 1.5.7-alpha.48
   line(g).append(segOf('spacing', phrase('SPACING'), [['0', '0', phrase('Rack windows flush to each other and to the screen’s edge')], ['tight', phrase('TIGHT'), phrase('3 px between rack windows and from the edge')],
     ['default', phrase('DEFAULT'), phrase('6 px between rack windows and from the edge')], ['airy', phrase('AIRY'), phrase('16 px between rack windows and from the edge')]]).root);   // BASINS' row (settings-window.js), and AIRY
   const kScale = knobOf('scale', phrase('UI SCALE'), { min: 50, max: 200, step: 5, fmt: pct, toUi: (v) => v * 100, fromUi: (v) => v / 100, title: 'The size of every window, menu and bar; the picture keeps its resolution' });   // tr[UI SCALE]: the size of the interface (windows, menus, bars), not of the picture
@@ -535,6 +537,8 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   line(g).append(segOf('rackPill', phrase('SCROLL PILL'), [['off', phrase('OFF'), phrase('No name pill while a rack scrolls')],   // tr[SCROLL PILL]: the small coloured label with a window's name shown beside it while the column of windows scrolls
     ['a', phrase('A'), phrase('While a rack scrolls, each window’s name in a pill of {:ACCENT} A beside its title bar')],
     ['b', phrase('B'), phrase('While a rack scrolls, each window’s name in a pill of {:ACCENT} B beside its title bar')]]).root);   // tr[SCROLL PILL]: the small coloured label with a window's name shown beside it while the column of windows scrolls
+  line(g).append(segOf('grip', phrase('DRAG HANDLE'), [['grip', phrase('GRIP'), phrase('The dot grip on window heads')], ['icon', phrase('ICON'), phrase('The window’s own icon where the grip was; it drags the same')],
+    ['hidden', phrase('HIDDEN'), phrase('No grip on window heads; they still drag')]]).root);   // 1.5.7-alpha.48 the switch, alpha.56 the three states
 
   /* SAMPLING (BASINS Settings › QUALITY › SAMPLING, docs/TIMELINE-SAMPLING-2026-10-01.md): how a scrub and the automation
      read the engine.  BASINS' words, its cost toasts and its note (prose: it hides with HELP) */
