@@ -132,6 +132,7 @@ It creates these ids only when they are absent, so an app's existing elements ar
 **Body classes it writes:**
 - `rack-hidden`;
 - `rack-peek`, `rack-peek-left` and `rack-peek-right`;
+- **The reveal is quick and near** (1.5.7-alpha.63, λWAVES 041 W10): a hidden rack peeks when the pointer is within `RACK.peekNear` = 140 px of its edge (44 before) and the hidden transport within `RACK.barNear` = 160 px of its seat (it holds within `RACK.barHold` = 220); the hide and show slide is `--rack-reveal`, 120 ms (320 before);
 - `transport-peek`;
 - `ui-hidden`;
 - `phone` (crossing the sentinel).
