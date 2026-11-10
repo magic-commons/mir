@@ -94,6 +94,7 @@ const engine = {
   get: (id) => E[id],
   set(id, v) { if (E[id] === v) return; E[id] = v; show(); notify(); },
   turn(dy, dp) { E.yaw += dy; E.pitch = Math.max(-1.52, Math.min(1.52, E.pitch + dp)); show(); notify(); },     // λWAVES' orbitBy: the one road for a relative turn
+  drag(dx, dy) { engine.turn(-dx * 0.008, -dy * 0.008); },                         // 1.5.7-alpha.54: the engine's own stage drag, fed the sphere's raw pointer step (the delta mode)
   home() { Object.assign(E, HOME); show(); notify(); },
   subscribe: (fn) => { subs.add(fn); return () => subs.delete(fn); },
   verbs: [{ label: 'RESET ZOOM', title: 'RESET ZOOM — back to the default distance', run: () => engine.set('zoom', HOME.zoom) }],
