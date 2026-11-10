@@ -35,6 +35,7 @@ Load `mir/timeline/timeline.css` after the kit's sheets (`mir/mir.css`). A lane 
 | `dock` | `{ span, guide, anchor }`, as `createWindow` | floats only |
 | `storageKey`, `store` | where the window's shape and the work lane are kept (`{ read, write }`) | `localStore('mir.timeline')` |
 | `initial` | the first shape when nothing is stored: `{ dock, open, x, y, w, h, chipSide, workLane }` | closed, floating 1080 × 440 |
+| `scaledRoom` | 1.5.7-alpha.68 (docs/WINDOWS.md law 16): under UI SCALE above 100 % the window, docked or floating, is at most the screen's room ÷ the scale tall in its own px, so it never covers the page (at 150 % on a 1300 × 850 page: 551 px, was 660); `TIMELINE_MIN.h` (400) yields to it. `false` lets it take the screen as before | on |
 | `keys` | the app's key table: the timeline's rows (and the one play's Space, if it has none) are added | a small table of its own |
 | `history` | the app's one history: the timeline becomes one delegated domain (`adoptTimeline`) | the model's own 64-row undo |
 | `project` | `false` keeps the arrangement out of the project | registered as the part `timeline` |

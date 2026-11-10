@@ -92,7 +92,11 @@ export function installPattern(o) {
        AND the pane fits under it on the screen (or not even the pane fits over it); then its top is held on the screen.  At 150 % on a
        1300 × 850 page it sat under MODULATION 32 px off the bottom, its rail over the LFO device.  Across, the seat stays the device's
        (Josh's law): the run cuts the pane where it cuts the device */
-    const vh = win0.innerHeight, above = g.content.top - gap - H, below = g.content.bottom + gap;
+    /* … and over MODULATION's chips when they stand over its content across the device (its top rail at 150 % on a wide page: the rail
+       sits flush on the content once its size is its own px, alpha.68, and the cap and the first steps were under it) */
+    const mr = view.rail && !view.rail.hidden ? view.rail.getBoundingClientRect() : null;
+    const roof = mr && mr.height > 0 && mr.bottom <= g.content.top + 1 && mr.right > d.left && mr.left < d.right ? Math.min(g.content.top, mr.top) : g.content.top;
+    const vh = win0.innerHeight, above = roof - gap - H, below = g.content.bottom + gap;
     const flip = above - railH < gap && (below + H <= vh - gap || above < gap);
     /* outer: the edge facing away from the modulation window; avoid: its glass — the rail seats in a clear lane only
        (window/rail.js seatClear, BASINS snap-window.js seat) */

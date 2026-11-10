@@ -95,7 +95,10 @@ export function windowLayout(P, env) {
        which edge faces away from it (`outer`); the racks' span is the lane a side seat must stay inside */
     if (env.anchor && env.anchor.width > 0) {
       const box = anchorBox(env.anchor, Math.min(P.h, roomH(env))), a = env.anchor;
-      return { box, seat: seatRail({ prefer: P.chipSide, box, sizes, view, gap: env.gap ?? 0, avoid: a.avoid || null, outer: a.outer || null, lane: a.avoid ? env.span || null : null }), docked: 'anchor' };
+      /* 1.5.7-alpha.68: the rail seats beside the part of the pane on the screen — a seat running past the edge (an ENV device half
+         scrolled out of the run at 150 %) centred it off the screen, where no side fit and it fell on the window it is seated on */
+      const l = Math.max(0, box.left), r = Math.min(view.width, box.left + box.width), on = r - l >= RAIL.pad * 2 ? { ...box, left: l, width: r - l } : box;
+      return { box, seat: seatRail({ prefer: P.chipSide, box: on, sizes, view, gap: env.gap ?? 0, avoid: a.avoid || null, outer: a.outer || null, lane: a.avoid ? env.span || null : null }), docked: 'anchor' };
     }
     if (env.anchor !== undefined) return { box: null, seat: null, docked: 'anchor', away: true };
   }
@@ -326,7 +329,9 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
   let box = null, moving = null, deferred = false, gripping = () => false, kbBefore = null, active = panels && panels.length ? panels[0].name : null;
   let reserve = 0, stack = null;                                     // the lego stack: a band kept free above; the window this one sits on
   const seatOf = () => (dock && dock.anchor && typeof dock.anchor.rect === 'function' ? ownOf(dock.anchor.rect()) || null : undefined);   // a seat is a seen rect
-  const zoom = () => cssZoom(root), ownOf = (r) => { if (!r) return r; const z = zoom(); return z === 1 ? r : { ...r, left: r.left / z, top: r.top / z, right: r.right / z, bottom: r.bottom / z, width: r.width / z, height: r.height / z }; };
+  /* a seen rect in the window's px; a seat's `avoid` too (1.5.7-alpha.68: it stayed seen, so under UI SCALE the rail kept off the wrong box) */
+  const zoom = () => cssZoom(root), ownOf = (r) => { if (!r) return r; const z = zoom(); return z === 1 ? r : { ...r, left: r.left / z, top: r.top / z, right: r.right / z, bottom: r.bottom / z, width: r.width / z, height: r.height / z,
+    ...(r.avoid ? { avoid: { left: r.avoid.left / z, top: r.avoid.top / z, right: r.avoid.right / z, bottom: r.avoid.bottom / z } } : {}) }; };
   const env = () => ({ view: { width: view.innerWidth / zoom(), height: view.innerHeight / zoom() }, sizes: rail.sizes(), span: dock ? withReserve(ownOf(dock.span.read()), reserve) : null,
     gap: railGap, anchor: P.dock === 'anchor' ? seatOf() : undefined, top: reserve > 0 ? 8 + reserve : undefined, scale: scaledRoom ? zoom() : undefined });
   const shape = () => ({ x: P.x, y: P.y, w: P.w, h: P.h, open: P.open, dock: P.dock, chipSide: P.chipSide });
