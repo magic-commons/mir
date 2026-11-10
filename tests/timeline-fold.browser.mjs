@@ -5,7 +5,7 @@
 // Real input through the rig (every press hit-tested).  MIR_BASE=http://127.0.0.1:8837/ node tests/timeline-fold.browser.mjs
 import { openTimeline, ledger } from './timeline-rig.mjs';
 
-const ORDER = ['edit', 'select', 'scrub', 'slice', 'scope', 'snap', 'step', 'slide', 'active'];   // the bar's fold order, restated
+const ORDER = ['edit', 'select', 'scrub', 'slice', 'modes', 'scope', 'snap', 'step', 'slide', 'active'];   // 'modes': THE MODE CHIP (1.5.7-alpha.49), after the four tools   // the bar's fold order, restated
 const RUN = await (async () => {
   const { page, errors, presses, close } = await openTimeline();
   await page.emulateMedia({ reducedMotion: 'reduce' });

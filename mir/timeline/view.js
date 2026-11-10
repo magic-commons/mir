@@ -56,7 +56,7 @@ export function createTimelineView(surface,{pixels,onClipMenu,stepsOf=()=>null})
     const left=el('button','tl-trim tl-trim-left',title);left.type='button';left.dataset.trim='left';ariaLabel(left,'Pull the clip start');left.title='Pull curve start; keep right edge fixed';
     el('span','tl-clip-name',title,curve.name);const more=el('button','tl-clip-more',title,'⋯');more.type='button';ariaLabel(more,'Clip options');more.onclick=e=>{e.stopPropagation();const current=getClip(c.id);if(current)onClipMenu(e,current,getCurve(current.curveId));};
     const right=el('button','tl-trim tl-trim-right',title);right.type='button';right.dataset.trim='right';ariaLabel(right,'Trim the clip end');
-    const block=el('div','tl-clip',row.pane);block.dataset.clip=c.id;block.style.width=w+'px';block.style.setProperty('--tl-clip-tint',curve.color);block.classList.toggle('muted',!!c.mute);
+    const block=el('div','tl-clip',row.pane);block.dataset.clip=c.id;block.style.width=w+'px';block.style.setProperty('--tl-clip-tint',curve.color);block.classList.toggle('muted',!!c.mute);title.classList.toggle('muted',!!c.mute);
     // A registered kind paints itself into the plot svg and owns no points or handles; a curve keeps the MIR plot.
     const kind=clipKind(curve);let s;
     if(kind){const geometry=createClipCoordinates(c,curve.length,px,height);block.dataset.kind=curve.kind;

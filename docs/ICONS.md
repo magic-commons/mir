@@ -60,6 +60,10 @@ An unknown name draws nothing, warns once and never throws. An icon button has n
 | `edit` | the timeline's EDIT tool, a pencil with ticks | BASINS' drawing; a second pencil, see "Open" |
 | `select`, `scrub` | the timeline's SELECT (two dashed squares) and SCRUB (arrows round a dotted playhead) tools | BASINS' drawings |
 | `slice` | the timeline's SLICE tool: a blade across the cut's two ticks | the kit's (1.5.6-alpha.24, λWAVES 032) |
+| `paint`, `paintAdd` | the timeline's PAINT mode (a brush) and PAINT ADD (the brush and a plus: FL's step brush) | the kit's (1.5.7-alpha.49, λWAVES 041: THE MODE MENU) |
+| `forbid` | the barred ring: the timeline's DELETE mode (the left button deletes) | not `close` (dismiss this one) |
+| `zoom` | a magnifier holding a plus: the timeline's ZOOM mode | `search` is the bare glass |
+| `preview` | a loudspeaker sounding: the timeline's PREVIEW mode (FL's Playback) | `mute` is the same speaker struck out; the old `scrub` drawing stays in the set |
 | `swap` | exchange one surface with another | |
 | `tune` | a crossed circle: the operator that adds a motif into a copy | |
 | `lock` | locked | |
