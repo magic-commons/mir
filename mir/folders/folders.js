@@ -46,6 +46,7 @@ import { projectZip, readProjectZip, restoreAssets, rollbackAssets, zipProject }
 import { assets } from '../core/assets.js';
 import { fmtBytes } from '../render/plan.js';
 import { jsonStore } from '../core/prefs.js';
+import { cssZoom } from '../core/zoom.js';
 
 export const FOLDERS_COPY = {
   save: [phrase('SAVE'), phrase('this project'), phrase('Save — store what is on screen over the open project (a new one the first time).')],
@@ -241,6 +242,7 @@ export function createFolders(options = {}) {
     } })),
   });
   win.root.classList.add('mir-folders');
+  if (win.rail.el) win.rail.el.classList.add('mir-folders-rail');   // 1.5.7-alpha.58: the rail takes UI SCALE with its window (base.css)
   /* the window's DOM id is its id, as kwin gave BASINS' (#savewin): an app's own rules and rigs that name it keep
      working.  Nothing in the kit hangs on it: the pointer is the class's (.mir-win), so a missed id is not a dead window */
   if (o.domId !== false) win.root.id = o.domId || id;
@@ -441,7 +443,8 @@ export function createFolders(options = {}) {
   const firstSeat = typeof o.firstSeat === 'function' ? o.firstSeat : () => {
     const st = win.state(), rack = typeof o.rack === 'function' ? o.rack() : o.rack;
     const right = st.chipSide === 'right', railW = right ? Math.round(((win.rail.sizes() || {}).vertical || {}).w || 62) : 0;
-    return freeSeat({ vw: view.innerWidth, vh: view.innerHeight, w: st.w || 380, h: st.h || 680, minH: (o.min || { h: 360 }).h,
+    const z = cssZoom(win.root);                                     // 1.5.7-alpha.58: the window's own px under UI SCALE
+    return freeSeat({ vw: view.innerWidth / z, vh: view.innerHeight / z, w: st.w || 380, h: st.h || 680, minH: (o.min || { h: 360 }).h,
       clear: rack && typeof rack.keepClear === 'function' ? rack.keepClear() : [], anchor: o.anchor || 'right', top: o.top ?? 162, gutter: railW });
   };
   /* the first seat: BASINS' — top right, clear of the right rack and of the rail on the window's right, 162 px down,
