@@ -449,10 +449,11 @@ select.sel { border-color: transparent; background: var(--glass-well); box-shado
    (.sw.on, .trig.on, an expanded or pressed trigger) keeps its own face.  Heavy on purpose: it must beat the hover,
    press and chosen rules above, as BASINS' ladder did.  The relief, the rims, the scale and the accent label stay. */
 body[data-faces="glass"]:is([data-card="refractive"], .frost):not([data-card="solid"]) :is(.k-dial, .trig:not(.on):not([aria-expanded="true"]):not([aria-pressed="true"]),
-  .seg, .seg-b, .sw:not(.on), select.sel, .fd, .ro, .native-info-button, .badge,                 /* not .dev-power: the power disc stays solid in every face (Josh 2026-10-06) */
+  .seg, .seg-b, .sw:not(.on), select.sel, .fd, .ro, .native-info-button, .badge, .mir-sel-b:not([aria-expanded="true"]), .mir-num-face, .rng-t,   /* alpha.61: the kit's own select, number field and range puck */
+                /* not .dev-power: the power disc stays solid in every face (Josh 2026-10-06) */
   .mir-folders :is(.sv-split, .sv-parts, .sv-field input, .sv-input, .sv-card, .sv-folder, .sr-section)) { background-color: transparent; background-image: none; }   /* FOLDERS' seats: BASINS' SAVE seats (material.css) */
 body:is([data-faces="glass"], [data-faces="blend"]):is([data-card="refractive"], .frost):not([data-card="solid"]) :is(.k-dial, .trig:not(.on):not([aria-expanded="true"]):not([aria-pressed="true"]),
-  .sw:not(.on), .seg, select.sel, .fd, .ro) { border-color: var(--ctl-hairline); }   /* × STROKE (1.5.7-alpha.1) */
+  .sw:not(.on), .seg, select.sel, .fd, .ro, .mir-sel-b, .mir-num-face) { border-color: var(--ctl-hairline); }   /* × STROKE (1.5.7-alpha.1) */
 /* … and BLEND's crossing layer, over the face, under the label (BASINS material.css BLEND) */
 :where(body[data-faces="blend"]:is([data-card="refractive"], .frost):not([data-card="solid"])) :is(.trig, .seg, .sw, select.sel, .fd, .ro) {
   background-image: linear-gradient(var(--faces-transition-source), var(--faces-transition-source)); background-blend-mode: var(--faces-transition-mode); }
