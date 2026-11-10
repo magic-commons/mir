@@ -150,7 +150,12 @@ try {
   const e0 = await J(`return { yaw: K.E.yaw, pitch: K.E.pitch };`);
   await drag(ESPH, 'engine sphere', fine(20, 0), { at: [0.25, 0.5] });
   const e1 = await J(`return { yaw: K.E.yaw, pitch: K.E.pitch, box: document.getElementById('eng').textContent };`);
-  check('the engine port: the sphere turned the engine through port.turn, in radians', Math.abs(e1.yaw - e0.yaw) > 0.1 && Math.abs(e1.yaw - e0.yaw) < 2 && /yaw\s+/.test(e1.box) && e1.box.includes(e1.yaw.toFixed(3)), JSON.stringify({ e0, e1: { yaw: e1.yaw, pitch: e1.pitch } }));
+  check('the engine port: the sphere handed the engine its raw pointer step (port.drag, 1.5.7-alpha.54: 20 px × the 1.5 gain × the engine\'s 0.008 rad)', near(e0.yaw - e1.yaw, 0.24, 0.01) && near(e1.pitch, e0.pitch, 1e-9) && /yaw\s+/.test(e1.box) && e1.box.includes(e1.yaw.toFixed(3)), JSON.stringify({ e0, e1: { yaw: e1.yaw, pitch: e1.pitch } }));
+  await J(`K.engine.set('pitch', 1.3); await wait(120); return 1;`);
+  await drag(ESPH, 'engine sphere (near the pole)', fine(0, 10), { at: [0.25, 0.5] });
+  const ep = await J(`return K.E.pitch;`);
+  check('the delta mode is linear: 10 px down near the pole turns the pitch by the same 0.12 rad as anywhere', near(1.3 - ep, 0.12, 0.005), String(ep));
+  await J(`K.engine.set('pitch', 0.38); await wait(120); return 1;`);
   const dragK = D('cameraeng') + '.querySelector("[data-param=\\"eng.drag\\"] .k-dial")';
   await drag(dragK, 'DRAG knob', [[0, -11], [0, -22]]);
   const eg = await J(`return K.E.drag;`);

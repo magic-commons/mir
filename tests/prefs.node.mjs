@@ -94,7 +94,7 @@ const mk = (storage) => createPrefs({ key: 'mir.gui', schema, presets: LOOK_PRES
   const m = at(themeValues('morph'));
   assert.equal(m['body attr data-card'], 'solid'); assert.equal(m['html prop --light-angle'], '315deg'); assert.equal(m['html attr data-shine'], ''); assert.equal(m['body attr data-text'], 'light', 'AUTO on a dark SOLID pane is white');
   assert.equal(at(themeValues('morph'), { theme: 'light' })['body attr data-text'], 'dark', '… and black on a light one');
-  assert.equal(at({ spacing: '0' })['html attr data-flush'], '', 'SPACING 0 is flush'); assert.equal(at({ spacing: '0' })['html prop --rack-gap'], '0px'); assert.equal(at({ spacing: '0' })['html prop --pane-pad'], '6px', 'a pane keeps 6 px');
+  assert.equal(at({ spacing: 0 })['html attr data-flush'], '', 'SPACING 0 is flush'); assert.equal(at({ spacing: 0 })['html prop --rack-gap'], '0px'); assert.equal(at({ spacing: 0 })['html prop --pane-pad'], '6px', 'a pane keeps 6 px');
   assert.equal(at({ faces: 'solid', faceBlend: 0.5 })['body attr data-faces'], 'blend'); assert.equal(at({ faces: 'solid', faceBlend: 0.5 })['body prop --faces-solid-pct'], '50.00%');
   assert.equal(at({ dropShadow: false })['body prop --surface-shadow'], '0 0 0 0 transparent', 'DROP SHADOW off: no pane shadow'); assert.equal(at({ dropShadow: false })['html attr data-cast'], null);
   const l = at(LOOK_PRESETS.swift);

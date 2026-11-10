@@ -78,6 +78,22 @@ Every continuous control is a modulation target. The id is `camera.` + the id in
 
 `directionSphere(options)` is exported. It is the kit's `plane-model.js` drawing (the same sphere, three rings, isometric projection, 400 × 280) for a direction: the arrow is where the camera looks, the film plane stands across it and turns with ROLL. The hand **turns the ball and the arrow rides it** (1.5.7-alpha.46 THE SPHERE TURNS SMOOTHLY, λWAVES 040 C1; Josh: "controls VERY roughly … an unreliable rotation source"). THE ARCBALL: the finger's point on the drawing is a point of the ball — `ballPoint`, Holroyd's map: the sphere over the inner disc (ρ ≤ R/√2), the hyperbolic sheet z = R²/2ρ beyond, so every point of the plane has one and the map is continuous — and each move is the one rotation taking the last point onto the new one (`turnBetween`, Rodrigues), applied to the direction in 3-D. A tip grabbed inside the disc stays under the finger exactly; a finger past the rim keeps turning the ball (slower) and comes back the way it went — nothing jumps at the rim, nothing is mirrored on re-entry. The direction mode reads each move on the yaw / pitch chart in 2.5° steps (`sphereTurn`): THE POLAR CAP stops the tip a degree short of a pole (89°), and a step that would turn the yaw more than 45° is not taken, so at the pole the ball slips under the finger and the readout never flips. The plane mode (CLIP's normal) has no chart and no pole: `arcballTurn` turns the normal itself. The gear scales each move's angle, so engaging or leaving it moves nothing. `sphereDrag` and `planeDrag` (the damped least-squares tip step of 1.5.0 and alpha.7) stay exported and pure; the arrows still nudge a plane through `planeDrag`. With a `port.turn`, the panel sets the two arcs from the port after every move, so the next move starts from the live arrow. It stands on the one knob law: ⅛ gear on any modifier or a second finger, a double-tap is home, arrows nudge (Shift ⅛, Page ten). It paints from its two arcs (the base, or the modulated value a route shows).
 
+### The delta mode (1.5.7-alpha.54 THE SPHERE IS THE STAGE'S DRAG)
+
+Josh, 2026-11-09: "clicking and dragging on the stage already does the behavior perfectly. Just imagine clicking on the control simply is like clicking on the stage but at a slightly higher sensitivity." In the delta mode the sphere reads no ball point: every pointer move of a press-drag reports the **raw pointer step** and the app turns its camera by the same law its stage drag uses. Nothing slows at a pole or at the rim.
+
+| Where | Option | What |
+|---|---|---|
+| `directionSphere({ … })` | `delta(dx, dy, info)` | called per pointer move: `dx`, `dy` are CSS px since the last move (right and down positive), already times the gear and the gain; `info = { gear, gain, event }` (`gear` 1 or ⅛ under a modifier or a second finger) |
+| | `delta: true` | the kit's own linear turn: `turn(−dx · SPHERE_DELTA.rad, −dy · SPHERE_DELTA.rad)` (0.4° a px) |
+| | `gain` | the sensitivity over the stage's hand, default `SPHERE_DELTA.gain` = 1.5 |
+| | `onStart(event)` | the press that begins a drag (both modes); `onChange()` is its end, as before |
+| `directionSphere({ plane: { … } })` | `plane.delta(dx, dy, info)` or `plane.delta: true` | the same for the plane sphere; `true` turns the normal about the drawing's up and right (no pole) and hands it to `set(n)`. After a `delta` call the sphere repaints from `normal()` |
+| `createCameraView` / `createCameraPanel` | `port.drag(dx, dy, info)` | a port with `drag` puts its sphere in the delta mode; the arcs are re-read from `port.get('yaw' / 'pitch')` after each call |
+| | `sphereDelta: true`, `sphereGain`, `onSphereStart` | the kit's linear turn for a port without `drag`; the gain; the press |
+
+The double-tap (home), the arrow keys, Home / Delete and the two arcs are unchanged. The arcball stays the default.
+
 ## The zero-engine camera
 
 With `canvas` and no `port`, `createCssPort(canvas, { mode })` is the port: it keeps the numbers (BASINS' rig: `cameraPose` composes rotation, pan, orbit and the scales, unwrapped across the 359° → 0° seam) and writes one coalesced CSS transform per frame (`translate · rotate · scale`; 3-D: `perspective · rotateX · rotateY · rotateZ · scale`, roll only in FREE). The starter and the gallery use it to show a live camera on any picture. The panel destroys the port it made.

@@ -99,7 +99,7 @@ const renderPanel = { id: 'render', label: 'RENDER', glyph: 'render', hint: 'Ren
 
 F = createFolders({
   host: document.getElementById('floats'),
-  id: 'savewin', title: 'FOLDERS', store: 'basins.library', app: 'basins', defaultName: 'FRACTAL',
+  id: 'savewin', title: 'FOLDERS', chipSide: 'right', store: 'basins.library', app: 'basins', defaultName: 'FRACTAL',
   prefs: { read: () => readPrefs().savewin || null, write: (v) => writePrefs({ savewin: v }) },
   adapter, depthOf: (e) => (e.facts && Number.isFinite(e.facts.depth) ? e.facts.depth : 0),
   parts: [{ id: 'rack', label: 'MODULATION' }, { id: 'look', label: 'COLOUR & BRIGHTNESS' }, { id: 'place', label: 'POSITION' }, { id: 'cache', label: 'CACHE', soon: 'under construction' }],

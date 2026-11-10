@@ -30,9 +30,6 @@
   ".MD": ".MD",
   ".mir or picture": ".mir or picture",
   "0% solid · 100% glass. The transition uses color burn in dark mode and color dodge in light mode.": "0% solid · 100% glass. The transition uses color burn in dark mode and color dodge in light mode.",
-  "16 px between rack windows and from the edge": "16 px between rack windows and from the edge",
-  "3 px between rack windows and from the edge": "3 px between rack windows and from the edge",
-  "6 px between rack windows and from the edge": "6 px between rack windows and from the edge",
   "60 Hz": "60 Hz",
   "A": "A",
   "A file the app needs did not load.": "A file the app needs did not load.",
@@ -49,7 +46,6 @@
   "ADD ENV": "ADD ENV",
   "ADD LFO": "ADD LFO",
   "ADD MACRO": "ADD MACRO",
-  "AIRY": "AIRY",
   "ALWAYS": "ALWAYS",
   "AMOUNT": "AMOUNT",
   "AMOUNT — how much of the curves apply: the diagonal at 0, the whole curve at 100 %": "AMOUNT — how much of the curves apply: the diagonal at 0, the whole curve at 100 %",
@@ -150,6 +146,7 @@
   "CONTRAST": "CONTRAST",
   "CONTRAST — about mid-grey; double-tap for 1": "CONTRAST — about mid-grey; double-tap for 1",
   "CONTROL": "CONTROL",
+  "CONTROL HIGHLIGHT": "CONTROL HIGHLIGHT",
   "CONTROL SURFACE": "CONTROL SURFACE",
   "CONTROLS": "CONTROLS",
   "COPIED": "COPIED",
@@ -453,13 +450,16 @@
   "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license}": "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license}",
   "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license} and {notice}": "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license} and {notice}",
   "GRAIN": "GRAIN",
+  "GRIP": "GRIP",
   "Gallery — browse saved projects": "Gallery — browse saved projects",
   "H": "H",
   "HAND": "HAND",
   "HELP": "HELP",
+  "HIDDEN": "HIDDEN",
   "HIDE / SHOW the rack": "HIDE / SHOW the rack",
   "HIDE the interface": "HIDE the interface",
   "HIGH": "HIGH",
+  "HIGHLIGHT": "HIGHLIGHT",
   "HINTS": "HINTS",
   "HISTORY": "HISTORY",
   "HIT": "HIT",
@@ -483,6 +483,7 @@
   "Hold to multiply the tempo, release to return · tap to latch, tap again to release": "Hold to multiply the tempo, release to return · tap to latch, tap again to release",
   "Hover hints on controls": "Hover hints on controls",
   "How far the shadow falls from its pane (and the shine across from it)": "How far the shadow falls from its pane (and the shine across from it)",
+  "ICON": "ICON",
   "IDLE": "IDLE",
   "IMPORT .MD": "IMPORT .MD",
   "IMPORTED": "IMPORTED",
@@ -639,6 +640,7 @@
   "No copies made: select clips with room in the arrangement.": "No copies made: select clips with room in the arrangement.",
   "No copies made: source budget reached.": "No copies made: source budget reached.",
   "No envelopes on the rack — add one with +": "No envelopes on the rack — add one with +",
+  "No grip on window heads; they still drag": "No grip on window heads; they still drag",
   "No macros yet — add one in the modulation window.": "No macros yet — add one in the modulation window.",
   "No name pill while a rack scrolls": "No name pill while a rack scrolls",
   "No room for another curve: remove a curve first.": "No room for another curve: remove a curve first.",
@@ -813,7 +815,6 @@
   "RUN": "RUN",
   "RUN SELF-TEST": "RUN SELF-TEST",
   "Rack presets, in folders: {factory} ships with the app, the rest are yours": "Rack presets, in folders: {factory} ships with the app, the rest are yours",
-  "Rack windows flush to each other and to the screen’s edge": "Rack windows flush to each other and to the screen’s edge",
   "Raise {name}": "Raise {name}",
   "Raised controls and wells, lit by {:LIGHT ANGLE}": "Raised controls and wells, lit by {:LIGHT ANGLE}",
   "Ramp preset": "Ramp preset",
@@ -1047,7 +1048,6 @@
   "THEME": "THEME",
   "THIS VIEW": "THIS VIEW",
   "TIER": "TIER",
-  "TIGHT": "TIGHT",
   "TIME": "TIME",
   "TIME · BEATS FROM 0": "TIME · BEATS FROM 0",
   "TIMELINE": "TIMELINE",
@@ -1080,11 +1080,12 @@
   "That is not a project zip: {why}": "That is not a project zip: {why}",
   "The 1-px rings around knobs, buttons, switches and fields": "The 1-px rings around knobs, buttons, switches and fields",
   "The MIR logo is outlined from Butler Free Extra Bold by {who}.": "The MIR logo is outlined from Butler Free Extra Bold by {who}.",
+  "The air between rack windows and from the screen’s edge, and the padding inside windows, bars and menus; 0 is flush": "The air between rack windows and from the screen’s edge, and the padding inside windows, bars and menus; 0 is flush",
   "The bank holds {n}: STORE over one, or × one.": "The bank holds {n}: STORE over one, or × one.",
   "The browser has WebGPU but found no graphics adapter to use.": "The browser has WebGPU but found no graphics adapter to use.",
   "The browser keeps this key for itself: the page never sees it.": "The browser keeps this key for itself: the page never sees it.",
   "The controls take the panes’ light: one {:ANGLE} for everything": "The controls take the panes’ light: one {:ANGLE} for everything",
-  "The dot grip on window heads; off, they still drag": "The dot grip on window heads; off, they still drag",
+  "The dot grip on window heads": "The dot grip on window heads",
   "The dotted guide where a dragged window will land": "The dotted guide where a dragged window will land",
   "The envelope drives the target and the file plays with the transport": "The envelope drives the target and the file plays with the transport",
   "The envelope drives the target; the file stays silent": "The envelope drives the target; the file stays silent",
@@ -1108,6 +1109,8 @@
   "The view moved since the picture was made — tap CAPTURE IMAGE again.": "The view moved since the picture was made — tap CAPTURE IMAGE again.",
   "The wheel zooms a notch at a time": "The wheel zooms a notch at a time",
   "The wheel zooms continuously": "The wheel zooms continuously",
+  "The white light on the lit side of knobs, buttons and wells": "The white light on the lit side of knobs, buttons and wells",
+  "The window’s own icon where the grip was; it drags the same": "The window’s own icon where the grip was; it drags the same",
   "The {noun} list is full — {count} of {cap}": "The {noun} list is full — {count} of {cap}",
   "The {panel} panel could not be built: {why}": "The {panel} panel could not be built: {why}",
   "The ⓘ panels on windows": "The ⓘ panels on windows",
@@ -1883,15 +1886,6 @@
   "0% solid · 100% glass. The transition uses color burn in dark mode and color dodge in light mode.": [
    "mir/shell/gui.js"
   ],
-  "16 px between rack windows and from the edge": [
-   "mir/shell/gui.js"
-  ],
-  "3 px between rack windows and from the edge": [
-   "mir/shell/gui.js"
-  ],
-  "6 px between rack windows and from the edge": [
-   "mir/shell/gui.js"
-  ],
   "60 Hz": [
    "mir/shell/transport.js"
   ],
@@ -1939,9 +1933,6 @@
   ],
   "ADD MACRO": [
    "mir/modulation/modwindow/modwindow.js"
-  ],
-  "AIRY": [
-   "mir/shell/gui.js"
   ],
   "ALWAYS": [
    "mir/shell/gui.js"
@@ -2253,6 +2244,9 @@
   ],
   "CONTROL": [
    "mir/panels/camera-rig.js"
+  ],
+  "CONTROL HIGHLIGHT": [
+   "mir/shell/gui.js"
   ],
   "CONTROL SURFACE": [
    "mir/shell/transport.js"
@@ -3165,6 +3159,9 @@
   "GRAIN": [
    "mir/modulation/host.js"
   ],
+  "GRIP": [
+   "mir/shell/gui.js"
+  ],
   "Gallery — browse saved projects": [
    "mir/folders/folders.js"
   ],
@@ -3178,6 +3175,9 @@
   "HELP": [
    "mir/shell/gui.js"
   ],
+  "HIDDEN": [
+   "mir/shell/gui.js"
+  ],
   "HIDE / SHOW the rack": [
    "mir/app.js"
   ],
@@ -3187,6 +3187,9 @@
   "HIGH": [
    "mir/modulation/modwindow/modwindow.js",
    "mir/modulation/window.js"
+  ],
+  "HIGHLIGHT": [
+   "mir/shell/gui.js"
   ],
   "HINTS": [
    "mir/shell/gui.js"
@@ -3262,6 +3265,9 @@
    "mir/shell/gui.js"
   ],
   "How far the shadow falls from its pane (and the shine across from it)": [
+   "mir/shell/gui.js"
+  ],
+  "ICON": [
    "mir/shell/gui.js"
   ],
   "IDLE": [
@@ -3742,6 +3748,9 @@
   ],
   "No envelopes on the rack — add one with +": [
    "mir/pattern/window.js"
+  ],
+  "No grip on window heads; they still drag": [
+   "mir/shell/gui.js"
   ],
   "No macros yet — add one in the modulation window.": [
    "mir/shell/transport.js"
@@ -4281,9 +4290,6 @@
   ],
   "Rack presets, in folders: {factory} ships with the app, the rest are yours": [
    "mir/modulation/modwindow/modwindow.js"
-  ],
-  "Rack windows flush to each other and to the screen’s edge": [
-   "mir/shell/gui.js"
   ],
   "Raise {name}": [
    "mir/modulation/modwindow/modwindow.js"
@@ -4988,9 +4994,6 @@
   "TIER": [
    "mir/shell/gui.js"
   ],
-  "TIGHT": [
-   "mir/shell/gui.js"
-  ],
   "TIME": [
    "mir/modulation/modwindow/modwindow.js"
   ],
@@ -5090,6 +5093,9 @@
   "The MIR logo is outlined from Butler Free Extra Bold by {who}.": [
    "mir/shell/gui.js"
   ],
+  "The air between rack windows and from the screen’s edge, and the padding inside windows, bars and menus; 0 is flush": [
+   "mir/shell/gui.js"
+  ],
   "The bank holds {n}: STORE over one, or × one.": [
    "mir/panels/xy.js"
   ],
@@ -5102,7 +5108,7 @@
   "The controls take the panes’ light: one {:ANGLE} for everything": [
    "mir/shell/gui.js"
   ],
-  "The dot grip on window heads; off, they still drag": [
+  "The dot grip on window heads": [
    "mir/shell/gui.js"
   ],
   "The dotted guide where a dragged window will land": [
@@ -5173,6 +5179,12 @@
   ],
   "The wheel zooms continuously": [
    "mir/panels/camera-rig.js"
+  ],
+  "The white light on the lit side of knobs, buttons and wells": [
+   "mir/shell/gui.js"
+  ],
+  "The window’s own icon where the grip was; it drags the same": [
+   "mir/shell/gui.js"
   ],
   "The {noun} list is full — {count} of {cap}": [
    "mir/controls/list.js"

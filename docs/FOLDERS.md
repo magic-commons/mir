@@ -60,7 +60,7 @@ Read from BASINS (`save-window.js`, `mir-plugins/kwin/kwin.js`, `shell.js`; adop
 | **MOVE TO** (with `dragToFolder`) | the touch and keyboard way to do the same: long-press a tile (or right-click, or the context-menu key), or press its MOVE verb. The menu lists every folder as a button, then BASINS' typed path and MOVE |
 | Folder menu | long-press or right-click a folder: RENAME (onto an existing path it merges), REMOVE FOLDER (it arms first: MOVE CONTENTS TO ROOT?) |
 | Opening | over a screen not known to be saved (as at start, BASINS' law) it asks: SAVE & OPEN or OPEN WITHOUT SAVING |
-| The rail | close, the panel chips, the sort (A–Z, Z–A, newest, oldest; the depth sorts too with `depthOf`), the grip. On the window's **right** by default (BASINS). Shift-drag, long-press or the arrow keys on the grip move it to another edge |
+| The rail | close, the panel chips, the sort (A–Z, Z–A, newest, oldest; the depth sorts too with `depthOf`), the grip. On the window's **left** by default (1.5.7-alpha.55, as TIMELINE's and MODULATION's; BASINS passes `chipSide: 'right'`). Shift-drag, long-press or the arrow keys on the grip move it to another edge |
 | The window | drags by its grip **and by any empty glass**; a drag that starts on a tile carries the tile instead. Resizes from its corner. Opens and closes with motion. Reports its rect so a transport can dodge it. First opens at BASINS' seat: top right, 162 px down, clear of the right rack and its own rail |
 
 ## The API, as built
@@ -86,7 +86,7 @@ Read from BASINS (`save-window.js`, `mir-plugins/kwin/kwin.js`, `shell.js`; adop
 | `onOpen(api)` | — | every open, a window persisted open included (BASINS seeds its factory gallery and JOSH'S LIBRARY here) |
 | `material`, `railGap` | `'modulation'`, the kit's | `'modulation'`: the window wears the modulation window's material: rail, chips, controls, resize corner; no CSS cloning (`[data-mir-material="modulation"]`, window.css; BASINS' SAVE window wore it); `null` for the plain house glass |
 | `head`, `status` | `false`, `false` | the name line with UNSAVED CHANGES; a status line in the window instead of the toast |
-| `chipSide` | `'right'` | the rail's side before the user moves it |
+| `chipSide` | `'left'` | the rail's side before the user moves it. A side saved before 1.5.7-alpha.55 (no `rail: 2` in the prefs) is read once as this home |
 | `seeds` / `seededKey` | — / `store + '.seeded'` | starter projects (below) |
 | `size`, `min` | `380×680`, `280×360` | the floating size and its floor |
 | `dock` | none | `{ span, guide }` as `createWindow` takes it; omitted, FOLDERS floats |

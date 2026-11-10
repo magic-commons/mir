@@ -150,6 +150,15 @@ try {
   await hover(640, 300); await sleep(450);
   const unpeek = await run(`return { peek: R.peek, vis: getComputedStyle(document.getElementById('rack')).visibility };`);
   check('edge peek: resting at the right edge peeks the rack; leaving it lets it go', peek.peek === 'right' && peek.vis === 'visible' && peek.cls && unpeek.peek === '' && unpeek.vis === 'hidden', JSON.stringify({ peek, unpeek }));
+  /* 1.5.7-alpha.63 THE REVEAL IS QUICK AND NEAR: 130 px from the edge peeks (it was 44), and the slide is 120 ms (it was 320) */
+  const vw = await run(`return innerWidth;`);
+  await hover(vw - 130, 300); await sleep(300);
+  const near = await run(`const rk = document.getElementById('rack'); return { peek: R.peek, vis: getComputedStyle(rk).visibility, dur: getComputedStyle(rk).transitionDuration };`);
+  await hover(vw - 150, 300); await sleep(60);
+  const held = await run(`return R.peek;`);
+  await hover(640, 300); await sleep(300);
+  const gone = await run(`const rk = document.getElementById('rack'); return { peek: R.peek, vis: getComputedStyle(rk).visibility, dur: getComputedStyle(rk).transitionDuration };`);
+  check('the reveal is near and quick: 130 px from the edge peeks the rack, it holds over the rack, and both slides are 120 ms', near.peek === 'right' && near.vis === 'visible' && held === 'right' && gone.peek === '' && gone.vis === 'hidden' && /^0\.12s/.test(near.dur) && /^0\.12s/.test(gone.dur), JSON.stringify({ near, held, gone }));
   h = await click(`document.getElementById('rackToggle')`);
   r = await run(`await wait(450); return { hidden: R.hidden, vis: getComputedStyle(document.getElementById('rack')).visibility };`);
   check('show: the hide button answers the mouse and brings the racks back', h.ok && !r.hidden && r.vis === 'visible', JSON.stringify({ h, r }));

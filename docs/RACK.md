@@ -132,6 +132,7 @@ It creates these ids only when they are absent, so an app's existing elements ar
 **Body classes it writes:**
 - `rack-hidden`;
 - `rack-peek`, `rack-peek-left` and `rack-peek-right`;
+- **The reveal is quick and near** (1.5.7-alpha.63, λWAVES 041 W10): a hidden rack peeks when the pointer is within `RACK.peekNear` = 140 px of its edge (44 before) and the hidden transport within `RACK.barNear` = 160 px of its seat (it holds within `RACK.barHold` = 220); the hide and show slide is `--rack-reveal`, 120 ms (320 before);
 - `transport-peek`;
 - `ui-hidden`;
 - `phone` (crossing the sentinel).
@@ -179,7 +180,7 @@ The brief asked for survey C's 65-item rack list. Survey C has no numbered list 
 | 16 | Floating windows keep a stack; `floating()` lists them back-most first | kept |
 | 17 | `popOut`: comes off sideways, one card's width from its rack; lands fully on screen when it fits | kept (`float`), and it travels there |
 | 18 | `dockWindow`: home (side + index) unless dropped somewhere | kept (`dock`), and it travels into its slot |
-| 19 | Float clamp: 120 px stay across, the header below the top | kept (`clampFloat`) |
+| 19 | Float clamp: 120 px stay across, the header below the top | kept (`clampFloat`) for the hand's drag; 1.5.7-alpha.59: on a resize or a UI SCALE change a float that stood whole on the screen is brought back whole (`refit`) |
 | 20 | Touch-tablet clamp to the visual viewport (BASINS) | **closed** (1.5.0-alpha.12): `tabletClamp` (on by default), `clampFloatTablet`; floats re-fit when the visual viewport resizes |
 | 21 | Floats re-clamped on resize | kept |
 | 22 | COMPACT floating window (the rail chip) | kept (`setCompact`, the `.dev-rail` chip) |
