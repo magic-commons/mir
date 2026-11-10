@@ -86,7 +86,7 @@ The window's `api` is `{ id, dev, root, body, setStatus, canPresent(), open(), c
 
 **Menus.**
 - `windowMenu({ rack, rackKey, keyOf })` returns the WINDOW menu's rows in the data shape `createMenubar({ menus })` takes: `[label, run, disabled, hint]`. There is one row per registered window: `↑ NAME` raises an open window and `⊕ NAME` opens a closed one. `rack: true` adds a separator and HIDE / SHOW the rack. `keyOf(action) → text` (1.5.0-alpha.19; `createApp` passes `keys.menuKey`) shows each window's chord from the key table beside its row; a window with no `action`, or no `keyOf`, shows none.
-- `favMenu` is `{ open(), close(), shown }`. The + list is gone (1.5.5): THE FINDER (`shell/window-picker.js` `createWindowPicker({ rack })`, [API.md](API.md)) lists every window under a search field and takes the old list's SHIFT queue and ☆. `rack.addMenu` answers as the FINDER once one is made (deprecated; it leaves at the next line).
+- `favMenu` is `{ open(), close(), shown }`. The + list is gone (1.5.5): THE FINDER (1.5.7-alpha.67: with the app's own `sections` and search `words`, docs/API.md) (`shell/window-picker.js` `createWindowPicker({ rack })`, [API.md](API.md)) lists every window under a search field and takes the old list's SHIFT queue and ☆. `rack.addMenu` answers as the FINDER once one is made (deprecated; it leaves at the next line).
 - `reveal(id)` (1.5.5) opens a closed window at its rack's top and scrolls the rack up, or scrolls the rack to an open one WITHOUT reordering it (unfolds it, shows the rack, a floating one to the front), and rings the card 900 ms (`.mir-reveal`, `RACK.reveal`). `lastFavourite()` → the ids open in the latest ☆ layout.
 
 **The layout.**
