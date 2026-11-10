@@ -151,7 +151,6 @@ export const markForwarded = (e) => { forwarded.add(e); return e; };
 
 /** createRail({ id, title, chips, side, layer, seats, onChip, onSide, onNudge })
  *  chips: [{ name, kind: close|action|toggle|radio|cycle|grip, label, hint?, glyph? | text?, group?, states?, state? }]
- *  glyph: the window's glyph name — the drag chip wears it instead of the dots under MIR OPTIONS › DRAG HANDLE › ICON (1.5.7-alpha.56)
  *  close: false leaves the close chip out (a title-bar window's rail); gripAt: 'first' puts the drag chip before the others (default 'last')
  *  seats() → [{ id: side, rect }] — where the rail would land on each side (the window's own layout); onSide(side,
  *  phase) with phase 'preview' (keyboard, live), 'commit' or 'cancel' (back to where the keyboard started).
@@ -160,7 +159,7 @@ export const markForwarded = (e) => { forwarded.add(e); return e; };
  *  setDock('top' | 'bottom' | null) — the rail carries its window's dock (data-dock): docked at the top or bottom, the
  *  chips sit tighter along it (window.css, --rail-gap; BASINS 2026-10-01).  Its length changes, so the next sizes()
  *  measures again; its width across does not (the dock lane is measured from it). */
-export function createRail({ id, title, chips = [], layer, seats, onChip, onSide, onNudge, close = true, gripAt = 'last', glyph = '' } = {}) {
+export function createRail({ id, title, chips = [], layer, seats, onChip, onSide, onNudge, close = true, gripAt = 'last' } = {}) {
   const doc = (layer && layer.ownerDocument) || document;
   const el = doc.createElement('div');
   el.className = 'mir-rail';
@@ -177,8 +176,7 @@ export function createRail({ id, title, chips = [], layer, seats, onChip, onSide
     const b = doc.createElement('button');
     b.type = 'button'; b.className = 'mir-chip';
     b.dataset.mirChip = spec.name; b.dataset.kind = spec.kind;
-    if (spec.kind === 'grip') { const dots = doc.createElement('span'); dots.className = 'mir-grip-dots kwin-grip-dots'; dots.setAttribute('aria-hidden', 'true'); for (let i = 0; i < 9; i++) dots.appendChild(doc.createElement('i')); b.appendChild(dots);
-      const g = glyph ? glyphEl(glyph, 'mir-grip-glyph gly-' + glyph, 26) : null; if (g) b.appendChild(g); }   // 1.5.7-alpha.56: the window's glyph, shown for the dots under DRAG HANDLE › ICON (skin.css body.icon-grip)
+    if (spec.kind === 'grip') { const dots = doc.createElement('span'); dots.className = 'mir-grip-dots kwin-grip-dots'; dots.setAttribute('aria-hidden', 'true'); for (let i = 0; i < 9; i++) dots.appendChild(doc.createElement('i')); b.appendChild(dots); }
     el.appendChild(b);
     specs.set(spec.name, spec); nodes.set(spec.name, b); tables.set(spec.name, chipTable(spec));
     setChip(spec.name, initial(spec));

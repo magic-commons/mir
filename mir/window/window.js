@@ -160,8 +160,6 @@ const NO_RAIL = Object.freeze({ vertical: Object.freeze({ w: 0, h: 0 }), horizon
  *  a kit factory creates (MIR OPTIONS `gui`, ABOUT `gui-about`, `keyboard`, the TIMELINE…) wears one with no option on each factory;
  *  a `glyph` passed to createWindow wins */
 const NAMED = new Map();
-/** windowGlyph(id) → the glyph the app named for that window, or '' (1.5.7-alpha.56: a rail's drag chip wears it under DRAG HANDLE › ICON) */
-export const windowGlyph = (id) => NAMED.get(id) || '';
 export function windowGlyphs(table) { for (const [id, g] of Object.entries(table || {})) if (typeof g === 'string' && g) NAMED.set(id, g); }
 
 function titleBar(doc, root, title, onClose, glyph) {
@@ -323,7 +321,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
   const shape = () => ({ x: P.x, y: P.y, w: P.w, h: P.h, open: P.open, dock: P.dock, chipSide: P.chipSide });
   const save = () => { if (persist && persist.write) persist.write(shape()); };
 
-  const rail = head && !railed ? head.rail : createRail({ id, title, chips, layer: host, close: !railed, gripAt, glyph,
+  const rail = head && !railed ? head.rail : createRail({ id, title, chips, layer: host, close: !railed, gripAt,
     seats: () => ['left', 'right', 'top', 'bottom'].map((side) => ({ id: side, rect: relocated(side).seat })),
     onChip(name, state, spec) {
       if (spec.kind === 'close') { api.close(); return; }

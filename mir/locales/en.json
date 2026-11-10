@@ -147,6 +147,7 @@
   "CONTRAST": "CONTRAST",
   "CONTRAST — about mid-grey; double-tap for 1": "CONTRAST — about mid-grey; double-tap for 1",
   "CONTROL": "CONTROL",
+  "CONTROL HIGHLIGHT": "CONTROL HIGHLIGHT",
   "CONTROL SURFACE": "CONTROL SURFACE",
   "CONTROLS": "CONTROLS",
   "COPIED": "COPIED",
@@ -444,6 +445,7 @@
   "HIDE / SHOW the rack": "HIDE / SHOW the rack",
   "HIDE the interface": "HIDE the interface",
   "HIGH": "HIGH",
+  "HIGHLIGHT": "HIGHLIGHT",
   "HINTS": "HINTS",
   "HISTORY": "HISTORY",
   "HIT": "HIT",
@@ -1072,6 +1074,7 @@
   "The view moved since the picture was made — tap CAPTURE IMAGE again.": "The view moved since the picture was made — tap CAPTURE IMAGE again.",
   "The wheel zooms a notch at a time": "The wheel zooms a notch at a time",
   "The wheel zooms continuously": "The wheel zooms continuously",
+  "The white light on the lit side of knobs, buttons and wells": "The white light on the lit side of knobs, buttons and wells",
   "The window’s own icon where the grip was; it drags the same": "The window’s own icon where the grip was; it drags the same",
   "The {noun} list is full — {count} of {cap}": "The {noun} list is full — {count} of {cap}",
   "The {panel} panel could not be built: {why}": "The {panel} panel could not be built: {why}",
@@ -2208,6 +2211,9 @@
   "CONTROL": [
    "mir/panels/camera-rig.js"
   ],
+  "CONTROL HIGHLIGHT": [
+   "mir/shell/gui.js"
+  ],
   "CONTROL SURFACE": [
    "mir/shell/transport.js"
   ],
@@ -3102,6 +3108,9 @@
   "HIGH": [
    "mir/modulation/modwindow/modwindow.js",
    "mir/modulation/window.js"
+  ],
+  "HIGHLIGHT": [
+   "mir/shell/gui.js"
   ],
   "HINTS": [
    "mir/shell/gui.js"
@@ -5028,6 +5037,9 @@
   ],
   "The wheel zooms continuously": [
    "mir/panels/camera-rig.js"
+  ],
+  "The white light on the lit side of knobs, buttons and wells": [
+   "mir/shell/gui.js"
   ],
   "The window’s own icon where the grip was; it drags the same": [
    "mir/shell/gui.js"

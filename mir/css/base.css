@@ -33,6 +33,7 @@
   color-scheme: dark;
   --ui-scale: 1; --touch: 44px;
   --ctl-stroke: 1;
+  --relief-lit: 1;                                                 /* 1.5.7-alpha.62 · HIGHLIGHT: the white light of a control's relief, 0 … 1 (MIR OPTIONS › LIGHT writes it on <html>) */
   --ui-zoom: 1;                                                    /* 1.5.7-alpha.2 · UI SCALE: the UI roots' CSS zoom (MIR OPTIONS writes it on <html>) */                                                 /* 1.5.7-alpha.1 · STROKE: every control ring's alpha times it (MIR OPTIONS writes it on <html>) */
   --font-ui: 'Roboto', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;

@@ -175,6 +175,9 @@ export function lookSchema({ tier = () => null, spacingHome = SPACING_PX.default
     { key: 'shadow', type: 'number', step: 0.01, min: 0, max: 2, default: 2, apply: [{ on: 'html', prop: '--shadow-amount', map: (v) => (v === 1 ? null : String(v)) }] },
     { key: 'shadowDist', type: 'number', step: 1, min: 0, max: 24, default: 2, apply: [{ on: 'html', prop: '--shadow-dist', map: (v) => (v === 2 ? null : v + 'px') }] },
     { key: 'shadowSoft', type: 'number', step: 1, min: 0, max: 48, default: 8, apply: [{ on: 'html', prop: '--shadow-soft', map: (v) => (v === 8 ? null : v + 'px') }] },
+    /* 1.5.7-alpha.62 · HIGHLIGHT — the white light of the controls' relief (the glow on the lit side of a knob, a button, a well), 0 … 100 %,
+       home 100 %: --relief-lit on <html>, the alpha of each lit term times it (skin.css --neu-raise, --neu-inset).  Not a THEME_KEYS key: the reader's own */
+    { key: 'reliefLit', type: 'number', step: 0.05, min: 0, max: 1, default: 1, apply: [{ on: 'html', prop: '--relief-lit', map: (v) => (v === 1 ? null : String(v)) }] },
     { key: 'shine', type: 'number', step: 0.01, min: 0, max: 1, default: 0, apply: [{ on: 'html', prop: '--shine-amount', map: (v) => (v ? String(v) : null) }] },
     /* 1.5.6-alpha.5 · SHINE SOFT 0–6 (was 0–48), drawn ÷ 3: the shine is a hairline (skin.css); a stored value above 6 clamps on read */
     { key: 'shineSoft', type: 'number', step: 1, min: 0, max: 6, default: 6, apply: [{ on: 'html', prop: '--shine-soft', map: (v) => (v === 6 ? null : v + 'px') }] },
@@ -527,6 +530,9 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   const swLink = swOf('reliefLink', phrase('LINK'), phrase('The controls take the panes’ light: one {:ANGLE} for everything'));   // tr[LINK]: a switch that joins the controls' light to the panes' light (link = tie together, not a web link) // tr[The controls take the panes’ light: one {:ANGLE} for everything]: the relief follows the pane light's ANGLE: one light for the whole interface
   swLink.root.classList.add('gui-link');
   line(g, 'gui-knobs').append(kShine.root, kShineSoft.root, kRelief.root, swLink.root);
+  /* 1.5.7-alpha.62 · HIGHLIGHT (Josh's picture: the white glow under the knobs and boxes) */
+  const kLit = knobOf('reliefLit', phrase('HIGHLIGHT'), { ...hundred, step: 5, aria: 'CONTROL HIGHLIGHT', title: 'The white light on the lit side of knobs, buttons and wells' });
+  line(g, 'gui-knobs').append(kLit.root, seat(), seat(), seat());
 
   /* WINDOWS — the pane's rim, its drop shadow, its header apart */
   g = groupEl('windows', phrase('WINDOWS'));
