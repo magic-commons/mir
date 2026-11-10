@@ -188,9 +188,9 @@ const RUN = await (async () => {
     const up = await pts(); await page.mouse.move(hx, hy + 50, { steps: 8 }); await page.mouse.up(); await page.keyboard.up('Control'); await page.waitForTimeout(40);
     const down = await pts(); await E(() => window.__TL.model.undo()); const unrepeated = await pts();
     L.ck(up.length === 6 && down.join() === '0.2,0.8,0.2,0.8' && unrepeated.length === 2, 'Ctrl + a tension handle\'s drag repeats the segment: up three copies, down three mirrored; one undo (alpha.43)', { up, down, unrepeated });
-    // alpha.44 THE EMPTY LANE IS QUIET: an empty arrangement shows no line over the lanes; an empty lane's pane keeps its hint
-    const quiet = await E(() => { window.__TL.model.restore(null); window.__TL.tl.editor.paint(); return { line: !!document.querySelector('.mir-timeline .tl-empty'), hint: document.querySelector('.mir-timeline .tl-pane').title }; });
-    L.ck(!quiet.line && /is empty/.test(quiet.hint), 'an empty arrangement shows no line over the lanes; an empty lane keeps its hint (alpha.44)', quiet);
+    // alpha.44 THE EMPTY LANE IS QUIET · alpha.51 THE EMPTY LANE HAS NO HINT: an empty arrangement shows no line over the lanes, and an empty lane's band and pane wear no hint
+    const quiet = await E(() => { window.__TL.model.restore(null); window.__TL.tl.editor.paint(); return { line: !!document.querySelector('.mir-timeline .tl-empty'), hint: [...document.querySelectorAll('.mir-timeline :is(.tl-pane, .tl-titleband)')].map((n) => (n.title || '') + (n.dataset.help || '')).join('') }; });
+    L.ck(!quiet.line && quiet.hint === '', 'an empty arrangement shows no line over the lanes (alpha.44) and no lane wears a hint (alpha.51)', quiet);
     await E((keep) => { window.__TL.model.restore(keep); }, H0.keep);   // the arrangement as the sections below expect it (a restore clears the selection and range)
 
     /* ── THE FACE (1.5.6-alpha.24): FIT keeps the window's seat and dock (no NaN); an EVENT clip on a banded target draws its

@@ -140,7 +140,6 @@
   "CENTER PLAYHEAD": "CENTER PLAYHEAD",
   "CHANNEL — which curve the plot edits": "CHANNEL — which curve the plot edits",
   "CLEAR": "CLEAR",
-  "CLIP": "CLIP",
   "CLOSED": "CLOSED",
   "CMP": "CMP",
   "COMPACT": "COMPACT",
@@ -1579,7 +1578,6 @@
   "{kind} — {message}": "{kind} — {message}",
   "{knob} of {band}": "{knob} of {band}",
   "{k} kHz · {hz} Hz feed": "{k} kHz · {hz} Hz feed",
-  "{lane} is empty — right-click a knob › {:CLIP} to make a clip": "{lane} is empty — right-click a knob › {:CLIP} to make a clip",
   "{macro} already reaches {target}": "{macro} already reaches {target}",
   "{macro} value": "{macro} value",
   "{macro} → {target}  ·  {lo} … {hi}": "{macro} → {target}  ·  {lo} … {hi}",
@@ -2223,9 +2221,6 @@
   ],
   "CLEAR": [
    "mir/history/window.js"
-  ],
-  "CLIP": [
-   "mir/timeline/view.js"
   ],
   "CLOSED": [
    "mir/modulation/window.js"
@@ -6645,9 +6640,6 @@
   ],
   "{k} kHz · {hz} Hz feed": [
    "mir/modulation/window.js"
-  ],
-  "{lane} is empty — right-click a knob › {:CLIP} to make a clip": [
-   "mir/timeline/view.js"
   ],
   "{macro} already reaches {target}": [
    "mir/modulation/window.js"
