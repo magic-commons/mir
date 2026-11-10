@@ -191,6 +191,8 @@ try {
   await load('');
   r = await run(`return { left: R.order('left'), ghost: !!document.querySelector('.dev[data-id="ghost"]'), logs: 0 };`);
   check('layout: an unknown id in a saved layout is ignored, never thrown on', r.left.includes('tone') && !r.ghost && !p.logs.some((l) => l.startsWith('EXCEPTION')), JSON.stringify({ r, logs: p.logs }));
+  r = await run(`R.showPills(); await wait(80); const z = (n) => +getComputedStyle(n).zIndex; return { pills: z(document.querySelector('.rack-pills')), floats: z(R.el.floats), veil: +getComputedStyle(document.documentElement).getPropertyValue('--z-veil'), n: document.querySelectorAll('.rack-pill').length };`);
+  check('THE PILLS STAY ON TOP (1.5.7-alpha.50): the scroll pills stand above the float layer (a docked TIMELINE, a work bar) and under the veil', r.n > 0 && r.pills > r.floats && r.pills < r.veil, JSON.stringify(r));
 } finally {
   await p.close();
 }

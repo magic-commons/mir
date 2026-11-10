@@ -114,8 +114,11 @@ body.ui-hidden .rack-scrollbar { display: none; }
    floats OUTSIDE the window over the stage, 8 px clear of the card (and its scrollbar), the name whole, revealed by a clip-path mask
    from the window's side and hidden the same way back, 180 ms; never a target, never a layout.  ONLY A PILL (1.5.0-alpha.28, λWAVES
    017 R1; Josh: "strange diamonds under the pills … it should only be a pill"): 015's tail (an 8-px square turned 45° under the pill)
-   is gone — the mask opened from it, so every reveal and every hide showed it alone, a diamond, for a frame or more */
-.rack-pills { position: absolute; left: 0; right: 0; overflow: hidden; pointer-events: none; z-index: calc(var(--z-chrome) + 1);
+   is gone — the mask opened from it, so every reveal and every hide showed it alone, a diamond, for a frame or more.
+   THE PILLS STAY ON TOP (1.5.7-alpha.50, λWAVES 041 T2; Josh: "timeline is drawn over the title pills when scrolling the rack. Let the pills stay on
+   top of everything"): the layer stood at chrome + 1, under the float layer (chrome + 2: a docked TIMELINE, every kit window, a work bar) and the
+   transport's seats (chrome + 3); it stands one under the veil now — above every window, bar and handle, under a dialog's veil and the menus */
+.rack-pills { position: absolute; left: 0; right: 0; overflow: hidden; pointer-events: none; z-index: calc(var(--z-veil) - 1);
   --rack-pill-r: 12px; --rack-pill-t: 180ms; --rack-pill-ease: cubic-bezier(.2, 0, 0, 1); }
 .rack-pills-in { position: absolute; inset: 0; }
 .rack-pill { position: absolute; transform: translateY(-50%); box-sizing: border-box; padding: 4px 10px; border-radius: var(--rack-pill-r); white-space: nowrap;
