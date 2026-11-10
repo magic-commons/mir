@@ -29,6 +29,9 @@ const pass = (name, detail) => { n++; console.log(`PASS ${name}${detail ? ` — 
   assert.equal(solidInk({ bright: 0 }, 'dark'), 'light'); assert.equal(solidInk({ bright: 0 }, 'light'), 'dark'); assert.equal(solidInk({ bright: -1 }, 'light'), 'light', 'a light theme darkened past the middle takes white');
   assert.deepEqual(spacingPx('0'), { gap: 0, inset: 0, pad: 6, rail: 0 }); assert.deepEqual(spacingPx('tight'), { gap: 3, inset: 3, pad: 6, rail: 2 });
   assert.deepEqual(spacingPx('default'), { gap: 6, inset: 6, pad: 8, rail: 4 }, "BASINS' DEFAULT"); assert.deepEqual(spacingPx('nope'), spacingPx('default'));
+  /* 1.5.7-alpha.57: px — the levels' px are the levels; between and beyond them, whole px */
+  for (const [px, name] of [[0, '0'], [3, 'tight'], [6, 'default'], [16, 'airy']]) assert.deepEqual(spacingPx(px), spacingPx(name));
+  assert.deepEqual(spacingPx(10), { gap: 10, inset: 10, pad: 8, rail: 5 }); assert.deepEqual(spacingPx(24), { gap: 24, inset: 24, pad: 10, rail: 8 }); assert.deepEqual(spacingPx(99), spacingPx(24));
   pass('one light: the offsets, the cast at FROST, the home; SOLID ink; SPACING');
 }
 {

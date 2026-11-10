@@ -30,9 +30,6 @@
   ".MD": ".MD",
   ".mir or picture": ".mir or picture",
   "0% solid · 100% glass. The transition uses color burn in dark mode and color dodge in light mode.": "0% solid · 100% glass. The transition uses color burn in dark mode and color dodge in light mode.",
-  "16 px between rack windows and from the edge": "16 px between rack windows and from the edge",
-  "3 px between rack windows and from the edge": "3 px between rack windows and from the edge",
-  "6 px between rack windows and from the edge": "6 px between rack windows and from the edge",
   "60 Hz": "60 Hz",
   "A": "A",
   "A file the app needs did not load.": "A file the app needs did not load.",
@@ -49,7 +46,6 @@
   "ADD ENV": "ADD ENV",
   "ADD LFO": "ADD LFO",
   "ADD MACRO": "ADD MACRO",
-  "AIRY": "AIRY",
   "ALWAYS": "ALWAYS",
   "AMOUNT": "AMOUNT",
   "AMOUNT — how much of the curves apply: the diagonal at 0, the whole curve at 100 %": "AMOUNT — how much of the curves apply: the diagonal at 0, the whole curve at 100 %",
@@ -780,7 +776,6 @@
   "RUN": "RUN",
   "RUN SELF-TEST": "RUN SELF-TEST",
   "Rack presets, in folders: {factory} ships with the app, the rest are yours": "Rack presets, in folders: {factory} ships with the app, the rest are yours",
-  "Rack windows flush to each other and to the screen’s edge": "Rack windows flush to each other and to the screen’s edge",
   "Raise {name}": "Raise {name}",
   "Raised controls and wells, lit by {:LIGHT ANGLE}": "Raised controls and wells, lit by {:LIGHT ANGLE}",
   "Ramp preset": "Ramp preset",
@@ -1016,7 +1011,6 @@
   "THEME": "THEME",
   "THIS VIEW": "THIS VIEW",
   "TIER": "TIER",
-  "TIGHT": "TIGHT",
   "TIME": "TIME",
   "TIME · BEATS FROM 0": "TIME · BEATS FROM 0",
   "TIMELINE": "TIMELINE",
@@ -1049,6 +1043,7 @@
   "That is not a project zip: {why}": "That is not a project zip: {why}",
   "The 1-px rings around knobs, buttons, switches and fields": "The 1-px rings around knobs, buttons, switches and fields",
   "The MIR logo is outlined from Butler Free Extra Bold by {who}.": "The MIR logo is outlined from Butler Free Extra Bold by {who}.",
+  "The air between rack windows and from the screen’s edge, and the padding inside windows, bars and menus; 0 is flush": "The air between rack windows and from the screen’s edge, and the padding inside windows, bars and menus; 0 is flush",
   "The bank holds {n}: STORE over one, or × one.": "The bank holds {n}: STORE over one, or × one.",
   "The browser has WebGPU but found no graphics adapter to use.": "The browser has WebGPU but found no graphics adapter to use.",
   "The browser keeps this key for itself: the page never sees it.": "The browser keeps this key for itself: the page never sees it.",
@@ -1851,15 +1846,6 @@
   "0% solid · 100% glass. The transition uses color burn in dark mode and color dodge in light mode.": [
    "mir/shell/gui.js"
   ],
-  "16 px between rack windows and from the edge": [
-   "mir/shell/gui.js"
-  ],
-  "3 px between rack windows and from the edge": [
-   "mir/shell/gui.js"
-  ],
-  "6 px between rack windows and from the edge": [
-   "mir/shell/gui.js"
-  ],
   "60 Hz": [
    "mir/shell/transport.js"
   ],
@@ -1907,9 +1893,6 @@
   ],
   "ADD MACRO": [
    "mir/modulation/modwindow/modwindow.js"
-  ],
-  "AIRY": [
-   "mir/shell/gui.js"
   ],
   "ALWAYS": [
    "mir/shell/gui.js"
@@ -4151,9 +4134,6 @@
   "Rack presets, in folders: {factory} ships with the app, the rest are yours": [
    "mir/modulation/modwindow/modwindow.js"
   ],
-  "Rack windows flush to each other and to the screen’s edge": [
-   "mir/shell/gui.js"
-  ],
   "Raise {name}": [
    "mir/modulation/modwindow/modwindow.js"
   ],
@@ -4863,9 +4843,6 @@
   "TIER": [
    "mir/shell/gui.js"
   ],
-  "TIGHT": [
-   "mir/shell/gui.js"
-  ],
   "TIME": [
    "mir/modulation/modwindow/modwindow.js"
   ],
@@ -4963,6 +4940,9 @@
    "mir/shell/gui.js"
   ],
   "The MIR logo is outlined from Butler Free Extra Bold by {who}.": [
+   "mir/shell/gui.js"
+  ],
+  "The air between rack windows and from the screen’s edge, and the padding inside windows, bars and menus; 0 is flush": [
    "mir/shell/gui.js"
   ],
   "The bank holds {n}: STORE over one, or × one.": [

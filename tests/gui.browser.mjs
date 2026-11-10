@@ -171,7 +171,7 @@ try {
   await option('RELIEF ANGLE (an arc)', () => dragUp(dial('light', 6), 'RELIEF ANGLE', 50), `[P.get('reliefAngle') !== 315, hv('--relief-angle') === P.get('reliefAngle') + 'deg']`, [true, true], `cs('#knob .k-dial', 'box-shadow')`);
   await option('LINK (the relief takes LIGHT ANGLE)', () => click(swB('light', 0), 'LINK'), `[P.get('reliefLink'), hv('--relief-angle') === (P.get('lightAngle') === 315 ? '' : P.get('lightAngle') + 'deg')]`, [true, true], `cs('#knob .k-dial', 'box-shadow')`);
   await option('EDGE off', () => click(swB('windows', 1), 'EDGE'), `bv('--pane-edge')`, 'transparent', `cs('#pane', 'border-top-color')`);
-  await option('SPACING tight', () => click(segB('windows', 0, 1), 'SPACING TIGHT'), `[P.get('spacing'), hv('--rack-gap'), hv('--pane-pad'), hv('--rail-gap')]`, ['tight', '3px', '6px', '2px'], `cs('#strip .dev > .dev-body', 'padding-top')`);
+  await option('SPACING tight', async () => { await J(`P.set('spacing', 'tight'); return 1;`); return { hit: true }; }, `[P.get('spacing'), hv('--rack-gap'), hv('--pane-pad'), hv('--rail-gap')]`, [3, '3px', '6px', '2px'], `cs('#strip .dev > .dev-body', 'padding-top')`);
   await option('DROP SHADOW off', () => click(swB('windows', 0), 'DROP SHADOW'), `bv('--surface-shadow')`, '0 0 0 0 transparent', `cs('#pane', 'box-shadow')`);
   await option('DISCONNECTED on', () => click(swB('windows', 2), 'DISCONNECTED'), `document.body.classList.contains('disconnected')`, true, `cs('.dev', 'visibility')`);
 

@@ -62,7 +62,7 @@ import { setMotionPolicy } from '../core/motion.js';
 import { frame } from '../core/frame.js';
 import { setText, setAttr } from '../core/perf.js';
 import { registerProjectPart } from '../core/project.js';
-import { glassTint as lookTint, glassVeil, autoInk, solidRelief, spacingPx, DEVICE_BLUR, TIER_LAW, classifyTier, qualityOfTier, isIPad, TOUCH_TABLET_MQ } from '../core/look.js';
+import { glassTint as lookTint, glassVeil, autoInk, solidRelief, spacingPx, SPACING_PX, SPACING_MAX, DEVICE_BLUR, TIER_LAW, classifyTier, qualityOfTier, isIPad, TOUCH_TABLET_MQ } from '../core/look.js';
 import { createAccent, accentPart } from './accent.js';
 import { notice } from './notice.js';
 import { richText, safeHref } from './about.js';
@@ -92,7 +92,7 @@ export const AUTOMATION_GRID = Object.freeze({ frame: 0, 32: 1 / 32, 16: 1 / 16,
 export const effectiveQuality = (q, tier) => (q === 'auto' ? qualityOfTier(tier) : q);
 
 /** lookSchema({ tier }) — tier() → 'A' | 'B' | 'C' | null, the device's measured tier that QUALITY · AUTO reads */
-export function lookSchema({ tier = () => null } = {}) {
+export function lookSchema({ tier = () => null, spacingHome = SPACING_PX.default } = {}) {
   const q = (s) => effectiveQuality(s.quality, tier());
   const full = (s) => q(s) === 'full';
   const offShadow = (s) => s.shadow === 0 || !s.dropShadow;           // SHADOW at 0 %, or DROP SHADOW off: no pane shadow at all
@@ -189,14 +189,16 @@ export function lookSchema({ tier = () => null } = {}) {
     /* SPACING — the rack's air (Josh, 2026-10-01: "the dock margins are too large … an option for 0 padding/margins"):
        BASINS' levels 0 · TIGHT · DEFAULT (and AIRY, this kit's) to --rack-gap, --rack-inset, --pane-pad and --rail-gap
        (core/look.js SPACING); 0 is flush (html[data-flush]) */
-    { key: 'spacing', type: 'enum', values: ['0', 'tight', 'default', 'airy'], default: 'default', apply: [
+    /* 1.5.7-alpha.57 SPACING IS A KNOB (λWAVES 041 W6): px under the same key — the old levels open as 0 · 3 · 6 · 16 (`legacy`).  At the
+       HOME value (6, or the app's `defaults.spacing`) the pane's padding stays the sheets' own; --pad-k (the pane's padding over home's)
+       carries SPACING into floating windows, the bars and the menus (window.css, transport.css, shell.css) */
+    { key: 'spacing', type: 'number', min: 0, max: SPACING_MAX, step: 1, default: SPACING_PX.default, legacy: SPACING_PX, apply: [
       { on: 'html', prop: '--rack-gap', map: (v) => spacingPx(v).gap + 'px' },
       { on: 'html', prop: '--rack-inset', map: (v) => spacingPx(v).inset + 'px' },
-      /* DEFAULT leaves the pane's padding as the sheets have it (7 · 7 · 10, BASINS' numbers: BASINS wrote nothing there),
-         so choosing DEFAULT changes nothing inside a window (1.5.0-alpha.12) */
-      { on: 'html', prop: '--pane-pad', map: (v) => (v === 'default' ? null : spacingPx(v).pad + 'px') },
+      { on: 'html', prop: '--pane-pad', map: (v) => (v === spacingHome ? null : spacingPx(v).pad + 'px') },
+      { on: 'html', prop: '--pad-k', map: (v) => (v === spacingHome ? null : (spacingPx(v).pad / spacingPx(spacingHome).pad).toFixed(3)) },
       { on: 'html', prop: '--rail-gap', map: (v) => spacingPx(v).rail + 'px' },
-      { on: 'html', attr: 'data-flush', map: (v) => (v === '0' ? '' : null) }] },
+      { on: 'html', attr: 'data-flush', map: (v) => (v === 0 ? '' : null) }] },
     { key: 'motion', type: 'enum', values: ['auto', 'full', 'reduced', 'off'], default: 'auto', apply: [{ run: (v) => setMotionPolicy(v) }] },
     { key: 'glow', type: 'bool', default: true },                    // fx/pointer-light.js — off on touch by its own law (ruling 13)
     { key: 'parallax', type: 'bool', default: true },                // fx/parallax.js
@@ -353,7 +355,9 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   /* ── the store, the accent, the pointer effects, the device ── */
   let tierReading = (() => { try { return storedTier(win.localStorage); } catch (_) { return null; } })();   // read before the first paint, so AUTO paints the known tier
   const ctx = { doc, accent: accent === false ? null : accent || createAccent(), moving: false, lastAccent: null, fx: null };
-  const schema = lookSchema({ tier: () => (tierReading ? tierReading.tier : null) }).map((r) => (r.key in defaults ? { ...r, default: defaults[r.key] } : r));
+  const homeOf = (r, v) => (r.legacy && Object.prototype.hasOwnProperty.call(r.legacy, String(v)) && typeof v !== typeof r.default ? r.legacy[String(v)] : v);   // an app's old-form default (spacing: 'tight')
+  const schema = lookSchema({ tier: () => (tierReading ? tierReading.tier : null), spacingHome: 'spacing' in defaults ? spacingPx(defaults.spacing).gap : undefined })
+    .map((r) => (r.key in defaults ? { ...r, default: homeOf(r, defaults[r.key]) } : r));
   if (!prefs) migrateShadow(storageKey, win);
   const P = prefs || createPrefs({ key: storageKey, schema, presets: THEMES, context: ctx });
   /* THE SKINS are the store's list (1.5.0-alpha.32): an app may put its own first (λWAVES: its first-run look, λWAVES); the kit's THEMES
@@ -530,10 +534,10 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   line(g, 'gui-sws').append(swOf('disconnected', phrase('DISCONNECTED'), phrase('Separate window headers from their bodies')).root,
     /* TRANSPORT BAR (BASINS Settings › DISPLAY): the main transport bar in every seat; the transport's sheet reads the class */
     swOf('transportBar', phrase('TRANSPORT BAR'), phrase('Show the main transport bar, floating or docked')).root);
-  line(g).append(segOf('spacing', phrase('SPACING'), [['0', '0', phrase('Rack windows flush to each other and to the screen’s edge')], ['tight', phrase('TIGHT'), phrase('3 px between rack windows and from the edge')],
-    ['default', phrase('DEFAULT'), phrase('6 px between rack windows and from the edge')], ['airy', phrase('AIRY'), phrase('16 px between rack windows and from the edge')]]).root);   // BASINS' row (settings-window.js), and AIRY
   const kScale = knobOf('scale', phrase('UI SCALE'), { min: 50, max: 200, step: 5, fmt: pct, toUi: (v) => v * 100, fromUi: (v) => v / 100, title: 'The size of every window, menu and bar; the picture keeps its resolution' });   // tr[UI SCALE]: the size of the interface (windows, menus, bars), not of the picture
-  line(g, 'gui-knobs').append(kScale.root, seat(), seat());
+  /* 1.5.7-alpha.57: SPACING is a knob with a px reading (it was BASINS' 0 · TIGHT · DEFAULT · AIRY row) */
+  const kSpacing = knobOf('spacing', phrase('SPACING'), { min: 0, max: SPACING_MAX, step: 1, fmt: px, title: 'The air between rack windows and from the screen’s edge, and the padding inside windows, bars and menus; 0 is flush' });
+  line(g, 'gui-knobs').append(kScale.root, kSpacing.root, seat());
   line(g).append(segOf('rackPill', phrase('SCROLL PILL'), [['off', phrase('OFF'), phrase('No name pill while a rack scrolls')],   // tr[SCROLL PILL]: the small coloured label with a window's name shown beside it while the column of windows scrolls
     ['a', phrase('A'), phrase('While a rack scrolls, each window’s name in a pill of {:ACCENT} A beside its title bar')],
     ['b', phrase('B'), phrase('While a rack scrolls, each window’s name in a pill of {:ACCENT} B beside its title bar')]]).root);   // tr[SCROLL PILL]: the small coloured label with a window's name shown beside it while the column of windows scrolls

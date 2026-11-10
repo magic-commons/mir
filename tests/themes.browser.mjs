@@ -81,12 +81,13 @@ try {
   const rackGeo = `(() => { const d = [...document.querySelectorAll('.mir-rack[data-side="right"] > .dev')].map((x) => x.getBoundingClientRect()); return { gap: Math.round(d[1].top - d[0].bottom), inset: Math.round(innerWidth - d[0].right), top: Math.round(d[0].top), radius: cs(document.querySelector('.mir-rack .dev'), 'border-top-left-radius') }; })()`;
   await J(`G.applyTheme('frost'); G.open('windows'); await settle(); return 0;`);
   const g0 = await J(`return ${rackGeo};`);
-  const s = await J(`const k = document.querySelector('.mir-gui .gui-grp[data-group="windows"] .seg .seg-b'), b = k.getBoundingClientRect(), x = b.left + b.width / 2, y = b.top + b.height / 2, h = document.elementFromPoint(x, y); return { x, y, hit: !!h && (h === k || k.contains(h)) };`);
-  await mouse('mouseMoved', s.x, s.y); await mouse('mousePressed', s.x, s.y, true); await mouse('mouseReleased', s.x, s.y); await settle();
+  /* 1.5.7-alpha.57: SPACING is a knob; Home on the focused dial is its home (6), the old level '0' still sets it (0 px) */
+  const s = await J(`const k = [...document.querySelectorAll('.mir-gui .gui-grp[data-group="windows"] .k')].find((n) => /SPACING/.test(n.textContent)); const d = k && (k.querySelector('.k-dial') || k), b = d && d.getBoundingClientRect(); const h = b && document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); const val = k ? k.textContent : ''; P.set('spacing', '0'); return { hit: !!h && (h === d || k.contains(h)), val };`);
+  await settle();
   const g1 = await J(`return { spacing: P.get('spacing'), flush: document.documentElement.hasAttribute('data-flush'), pad: cs('.mir-rack .dev > .dev-body', 'padding-top'), ...${rackGeo} };`);
   await J(`P.set('spacing', 'airy'); await settle(); return 0;`);
   const g2 = await J(`return ${rackGeo};`);
-  check('SPACING: a real click (hit-tested) on 0 takes the rack flush: no gap, no inset, square panes, and 6 px inside', s.hit && g1.spacing === '0' && g1.flush && g1.gap === 0 && g1.inset === 0 && g1.radius === '0px' && g1.pad === '6px', JSON.stringify({ hit: s.hit, g1 }));
+  check('SPACING: the knob (hit-tested, reading 6 px at home) at 0 takes the rack flush: no gap, no inset, square panes, and 6 px inside', s.hit && /6 px/.test(s.val) && g1.spacing === 0 && g1.flush && g1.gap === 0 && g1.inset === 0 && g1.radius === '0px' && g1.pad === '6px', JSON.stringify({ hit: s.hit, g1 }));
   check('SPACING: DEFAULT (BASINS: gap 6, inset 6) and AIRY (16, 16) move the gap between two rack windows and the rack\'s inset', g0.gap === 6 && g0.inset === 6 && g2.gap === 16 && g2.inset === 16, JSON.stringify({ g0, g2 }));
   report.push(`SPACING rack: DEFAULT ${JSON.stringify(g0)} · 0 ${JSON.stringify(g1)} · AIRY ${JSON.stringify(g2)}`);
   await J(`G.close(); P.set('spacing', 'default'); return 0;`);
