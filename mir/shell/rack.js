@@ -877,8 +877,23 @@ export function createRack({ host = globalThis.document && document.body, sides 
     }
   }, passive);
   view.addEventListener('blur', () => setPeek(''), on);
-  const refit = () => { for (const root of stack) { const st = floatState.get(root.dataset.id); if (st) placeFloat(root, st); } };
+  /* 1.5.7-alpha.59 A WINDOW COMES BACK TO THE EDGE: a float that stood whole on the screen before the page or UI SCALE changed is brought
+     back whole (its head and its buttons can be pressed), not left hanging by the drag clamp's 120 px; one parked partly off stays as the hand left it */
+  let fitView = null, fitZoom = 1;
+  const refit = () => {
+    const v = viewSize();
+    for (const root of stack) {
+      const st = floatState.get(root.dataset.id); if (!st) continue;
+      const z = cssZoom(root), h = root.offsetHeight;
+      if (fitView && !isTablet() && st.x >= 0 && st.y >= 0 && st.x + st.w * fitZoom <= fitView.width + 1 && st.y + h * fitZoom <= fitView.height + 1) {
+        st.x = Math.max(0, Math.min(st.x, v.width - st.w * z)); st.y = Math.max(0, Math.min(st.y, v.height - h * z));
+      }
+      placeFloat(root, st);
+    }
+    fitView = v; fitZoom = cssZoom(racks.right || racks.left) || 1;
+  };
   view.addEventListener('resize', () => { rackW = 0; trBox = null; refit(); syncPhone(); }, passive);
+  fitView = viewSize(); fitZoom = cssZoom(racks.right || racks.left) || 1;                 // what the floats were last fitted to
   if (tabletMq && view.visualViewport) view.visualViewport.addEventListener('resize', refit, passive);   // BASINS fitFloats: the keyboard and the pinch move the visual viewport
   view.addEventListener('orientationchange', () => syncPhone(), passive);
 

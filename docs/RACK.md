@@ -179,7 +179,7 @@ The brief asked for survey C's 65-item rack list. Survey C has no numbered list 
 | 16 | Floating windows keep a stack; `floating()` lists them back-most first | kept |
 | 17 | `popOut`: comes off sideways, one card's width from its rack; lands fully on screen when it fits | kept (`float`), and it travels there |
 | 18 | `dockWindow`: home (side + index) unless dropped somewhere | kept (`dock`), and it travels into its slot |
-| 19 | Float clamp: 120 px stay across, the header below the top | kept (`clampFloat`) |
+| 19 | Float clamp: 120 px stay across, the header below the top | kept (`clampFloat`) for the hand's drag; 1.5.7-alpha.59: on a resize or a UI SCALE change a float that stood whole on the screen is brought back whole (`refit`) |
 | 20 | Touch-tablet clamp to the visual viewport (BASINS) | **closed** (1.5.0-alpha.12): `tabletClamp` (on by default), `clampFloatTablet`; floats re-fit when the visual viewport resizes |
 | 21 | Floats re-clamped on resize | kept |
 | 22 | COMPACT floating window (the rail chip) | kept (`setCompact`, the `.dev-rail` chip) |

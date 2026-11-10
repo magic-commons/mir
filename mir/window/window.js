@@ -385,6 +385,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
       setVar(root, 'width', `${box.width}px`); setVar(root, 'height', `${box.height}px`);
     }
     rail.seat(L.seat, { animate });
+    lastView = viewNow();
     if (onMoved) onMoved({ ...box, right: box.left + box.width, bottom: box.top + box.height });   // a whole rect, as a DOMRect reads (W20 TR: BASINS' shell read `right` and dropped every report)
     return box;
   }
@@ -442,7 +443,17 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
   const raise = () => raisePair(pair);
   root.addEventListener('pointerdown', raise, true);
   if (rail.el) rail.el.addEventListener('pointerdown', raise, true);
-  const resized = () => layout();
+  /* 1.5.7-alpha.59 A WINDOW COMES BACK TO THE EDGE: when UI SCALE or the page changes, a floating window that stood WHOLE on the screen
+     before is brought back whole (to the edge), not left hanging by the drag clamp's 120 px; one the hand parked partly off stays the hand's */
+  const viewNow = () => ({ width: view.innerWidth / zoom(), height: view.innerHeight / zoom() });
+  let lastView = null;
+  const resized = () => {
+    const v = viewNow(), was = lastView; lastView = v;
+    if (P.open && !P.dock && box && was && !(stack && stack()) && box.left >= 0 && box.top >= 0 && box.left + box.width <= was.width + 1 && box.top + box.height <= was.height + 1) {
+      P.x = Math.max(0, Math.min(box.left, v.width - box.width)); P.y = Math.max(0, Math.min(box.top, v.height - box.height));
+    }
+    layout();
+  };
   view.addEventListener('resize', resized, { passive: true });
   /* a title-bar window closes on Escape: when focus is in it, or on nothing while it is the top open window */
   const onEscape = (e) => {
