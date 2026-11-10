@@ -76,7 +76,7 @@ It returns `{ root, layout, parts, el: { play, power, door, pill, field, panel, 
 
 ## Two places, and every close road (1.5.6-alpha.28)
 
-`createTransport({ places: ['rack', 'stage'] })` is a cycle of two (λWAVES 032 C1): the dock chip wears the NEXT place's glyph, the rack's ↙ (`dock`) and, with no FREE in the list, the stage's ↗ (`popOut`, `placeGlyph(list, place)`), and `setPlace('free')` is the stage there; a saved FREE seat opens on the stage. Nothing in the kit assumes FREE exists. **Every close road undocks**: whatever closes the card the bar stands in (the rack, the kit device's own ×, an app's verb) dispatches `devclose`, and the bar leaves it for the stage or the work lane (`setDocked(false)`).
+`createTransport({ places: ['rack', 'stage'] })` is a cycle of two (λWAVES 032 C1): the dock chip wears the NEXT place's glyph, the rack's ↙ (`dock`) and, with no FREE in the list, the stage's ↗ (`popOut`, `placeGlyph(list, place)`), and `setPlace('free')` is the stage there; **`placeGlyphs: { rack, stage, free }`** (1.5.7-alpha.65, λWAVES 041 K2; any subset) names the glyph the chip wears for the place it leads to — `createTransport({ places: ['rack', 'stage'], placeGlyphs: { rack: 'rackIn' } })` — a glyph name of the kit's or one the app registered; a place left out keeps the kit's, and the chip's word and hint stay the kit's; a saved FREE seat opens on the stage. Nothing in the kit assumes FREE exists. **Every close road undocks**: whatever closes the card the bar stands in (the rack, the kit device's own ×, an app's verb) dispatches `devclose`, and the bar leaves it for the stage or the work lane (`setDocked(false)`).
 
 ## The one bar that moves
 

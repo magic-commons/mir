@@ -52,5 +52,6 @@ group('a two-place cycle (1.5.6-alpha.28, λWAVES 032 C1/C3): RACK ↔ STAGE, th
   assert.equal(nextPlace(two, 'free'), 'rack', 'a place the cycle lacks steps to its first');
   assert.equal(placeGlyph(two, 'stage'), 'popOut'); assert.equal(placeGlyph(two, 'rack'), 'dock');
   assert.equal(placeGlyph(PLACES, 'stage'), 'barsBottom', 'the three-place cycle is unchanged'); assert.equal(placeGlyph(PLACES, 'free'), 'popOut');
+  assert.equal(placeGlyph(two, 'rack', { rack: 'rackIn' }), 'rackIn', 'placeGlyphs: the app names a place\'s glyph'); assert.equal(placeGlyph(two, 'stage', { rack: 'rackIn' }), 'popOut', 'a place it leaves out keeps the kit\'s');
 });
 console.log(`\n${groups.length} transport-placement groups pass`);
