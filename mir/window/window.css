@@ -132,7 +132,7 @@ body.frost.frost-hold[data-card="refractive"] .mir-rail { --chip-fill: var(--sur
 body.touch-tablet .mir-win { --win-head-h: var(--touch); --win-head-btn: var(--touch); }
 @media (pointer: coarse) { .mir-win { --win-head-h: var(--touch); --win-head-btn: var(--touch); } }
 /* a title-bar window's body starts under the bar: the bar carries the top inset */
-.mir-win[data-chrome="close"] > .mir-win-body { padding-top: 0; }
+.mir-win:is([data-chrome="close"], [data-chrome="both"]) > .mir-win-body { padding-top: 0; }
 
 /* ── THE RAIL ─────────────────────────────────────────────────────────────────────────────────────────────── */
 .mir-rail {

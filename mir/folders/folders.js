@@ -227,8 +227,10 @@ export function createFolders(options = {}) {
     /* BASINS' SAVE window wears the modulation window's material (kwin adoptMaterial): the kit window's material hook
        ([data-mir-material], window.css) gives FOLDERS the same by default; `material: null` for the plain house glass */
     material: o.material === undefined ? 'modulation' : o.material, railGap: o.railGap,
-    /* BASINS seats the SAVE rail on the window's RIGHT; a saved chipSide wins */
-    persist: { read: () => ({ chipSide: o.chipSide || 'right', ...readPrefs() }), write: (shape) => writePrefs(shape) },
+    /* 1.5.7-alpha.55 THE CHIPS STAND ON THE LEFT: the rail's home is the window's LEFT, as TIMELINE's and MODULATION's (BASINS seated
+       SAVE's on the right: an app that wants that passes chipSide: 'right').  A chipSide saved since this door (rail: 2) wins; one
+       saved before it was the old default more often than a choice, so it is read once as the new home. */
+    persist: { read: () => { const pr = readPrefs(), home = o.chipSide || 'left'; return { chipSide: home, ...pr, ...(pr.rail === 2 ? {} : { chipSide: home }) }; }, write: (shape) => writePrefs({ ...shape, rail: 2 }) },
     onMoved: (r) => { if (typeof o.onMoved === 'function') o.onMoved(r); },
     /* every open, a persisted one included, tells the app (BASINS seeds its factory gallery and library here) */
     onOpen: () => { if (typeof o.onOpen === 'function') { try { o.onOpen(api); } catch (_) {} } if (gallery) gallery.paint(); if (active !== 'gallery') showTab(active); paintMark(); },
