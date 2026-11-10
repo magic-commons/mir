@@ -242,12 +242,18 @@ try {
   await p.eval(`__T.gui.close(); __T.gui.prefs.set({ glow: true, parallax: true, motion: 'auto', quality: 'full' }); 0`); await sleep(500);
   const L = await spot(`document.getElementById('lit')`);
   await mouse('mouseMoved', L.x - 20, L.y - 20); await sleep(120);
-  const a = await J(`return { x: cs('#lit', '--light-x'), lit: document.getElementById('lit').hasAttribute('data-lit') };`);
+  /* 1.5.7-alpha.60 THE LIFT: one disc over the whole page that brightens and saturates what is under the pointer; no accent paint on the surface */
+  const lift = `(() => { const d = document.querySelector('.mir-pointer-lift'); if (!d) return null; const c = getComputedStyle(d); return { at: c.translate, lit: d.hasAttribute('data-lit'), bf: c.backdropFilter || c.webkitBackdropFilter, pe: c.pointerEvents, op: c.opacity, bg: c.backgroundImage + c.backgroundColor }; })()`;
+  const a = await J(`return { d: ${lift}, surface: document.getElementById('lit').hasAttribute('data-lit') };`);
   await mouse('mouseMoved', L.x + 25, L.y + 15); await sleep(120);
-  const b = await J(`return { x: cs('#lit', '--light-x'), paint: cs('#lit', 'background-image', '::after') };`);
+  const b = await J(`return { d: ${lift} };`);
+  await mouse('mouseMoved', 640, 12); await sleep(120);                                      // off every data-light surface: the lift is there too
+  const c2 = await J(`return { d: ${lift}, under: (document.elementFromPoint(640, 12) || {}).className };`);
+  await mouse('mouseMoved', L.x + 25, L.y + 15); await sleep(400);
   await J(`T.perf.reset(); return 0;`); await sleep(600);
   const still = await J(`return T.perf.snapshot();`);
-  check('the glow follows the pointer on a data-light surface (its place moves with the hand)', a.lit && a.x && b.x && a.x !== b.x && b.paint.includes('radial-gradient'), `${a.x} → ${b.x}`);
+  check('the glow is THE LIFT: one disc at the pointer, anywhere on the page, that brightens and saturates its backdrop and lays no colour (alpha.60)',
+    !!a.d && a.d.lit && !a.surface && a.d.at === `${L.x - 20}px ${L.y - 20}px` && b.d.at === `${L.x + 25}px ${L.y + 15}px` && c2.d.at === '640px 12px' && c2.d.lit && /brightness\(1\.28\) saturate\(1\.6\)/.test(b.d.bf) && b.d.pe === 'none' && /^none(rgba\(0, 0, 0, 0\))$/.test(b.d.bg) && !/mir-pointer-lift/.test(String(c2.under)), JSON.stringify({ a, b, c2 }));
   check('a still pointer costs nothing: no write, no read, no frame', still.writes === 0 && still.reads === 0 && still.frames === 0, JSON.stringify(still));
 
   /* ── off rules: reduced motion, the flat tier ── */
