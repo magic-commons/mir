@@ -1,5 +1,11 @@
 # MIR — changelog
 
+## 1.6.0 (unreleased) · THE KIT REVIEWED WHOLE
+
+`main` takes the whole 1.5 line (through 1.5.7-alpha.71) and numbers its own alpha series from here (Josh, 2026-11-12). MIR Focus stays a separate line.
+
+- **1.6.0-alpha.1 · MAIN IS LINE 1.6** (`mir/version.js`, `package.json`, `mir/tokens.json`, `docs/LINES.md`): the bytes of 1.5.7-alpha.71 under the new number; no API change, no door. An app on line 1.5 moves with `node tools/adopt.mjs <app> --line 1.6`.
+
 ## 1.5.7 (unreleased) · the doors of λWAVES 036, 037, 038, 039, 040, 041 and 043
 
 Built on the clone road for λWAVES 036 (branch `kit-032` from the 1.5.6 cut cdf20ae), 037 (branch `kit-037` from kit-032's a3dcb80), 038 (branch `kit-038` from kit-037's e377982), 039 (branch `kit-039` from kit-038's eddd2b6) 040 (branches `kit-040` and `kit-040c` from kit-039's 3086c0b: THE TIMELINE'S HANDS and THE CONTROLS, Josh's 11-09 list with the app in his hands) and 043 (branch `kit-043-sos` from kit-041-sos's 24cd015: THE SOAK's three asks); each door additive. The doors, newest first:

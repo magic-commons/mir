@@ -12,6 +12,14 @@ no `line` field; its line is read from its `version`.
 - `main` moves on to 1.5.
 - λWAVES is pinned to 1.4 (MIR 1.4.3) while 1.5 is built.
 
+## The 1.5 close and line 1.6
+
+- Line 1.5 ends at `1.5.7-alpha.71` (branch `kit-043-sos` @ bf9cf2a; the cuts `v1.5.5` and `v1.5.6` are its tags). Fixes for an app
+  that stays on 1.5 go on a branch cut from there.
+- `main` is line **1.6** from 2026-11-12 (Josh: "merge/cut all the latest MIR work into main to get its own alpha series"): it holds
+  every 1.5 door through alpha.71 and numbers its own series, `1.6.0-alpha.N`. A new door is built on a branch from `main` and merged back.
+- MIR Focus (the phone; branches `focus`, `focus-043`) is its own world with its own numbers. The two lines trade ideas, not branches.
+
 ## What adopt does across lines
 
 An app whose manifest is on a different line from the kit you run is **pinned**:
