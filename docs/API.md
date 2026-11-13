@@ -529,6 +529,8 @@ Load `mir/shell/parts.css` after the kit's sheets.
 
 **`mir/shell/menubar.js` (added)**: `comingRow(name, hint)` · `purgeRow({ name })` · `copyDumpRow(dump, hint?)`: one menu entry each ([SHELL-PARTS.md](SHELL-PARTS.md) §10). **`mir/folders/files.js` (added)**: `recentRows(files, n = 5, open)`: the last `n` projects as `↺  NAME` rows, newest first, the folder in the hint, raw names.
 
+**`mir/shell/menubar.js`, the control menu (1.6.0-alpha.14)**: `controlMenu(target, { x, y, rows?, appRows?, open?, onClose? })` → the `contextMenu` or `null`: ONE menu in ONE order for every value control, `CONTROL_MENU` = `reset · copy · paste · fine · routes · clip · learn · event · fav` (RESET · COPY VALUE · PASTE · FINE · ROUTES › · CLIP › · LEARN… · CREATE EVENT · the favourites); a row that does not apply is left out, never moved. A knob or a fader (its `root.mirKnob` value door: `get · home · input · fine?`) gets the kit's own RESET · COPY VALUE · PASTE (and FINE on a knob); any other control shows the rows its app hands in, `rows: { slot: [entry…] }`. `knobMenu(knob, o)` is `controlMenu` on a value door; `knobMenuPart(name, (id, root) → { entries?, rows?, reset?, copied? })` names a part's rows once (`routes`, `clip`, `app`); `knobAct(knob, 'reset' | 'copy' | 'paste' | 'fine')` runs an act from a key. COPY VALUE on a registered knob also feeds the timeline's PASTE VALUE.
+
 **`mir/core/describe.js` (added)**: `registerDumpLines(name, fn)` → `off()` · `dumpLines()` → `[string]`: a module's own lines in every dump; a throwing producer is one line.
 
 **`mir/core/wakelock.js`**

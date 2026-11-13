@@ -193,6 +193,7 @@
   "Colour intensity across glass surfaces: 0% neutral · 100% original · 200% vivid.": "Colour intensity across glass surfaces: 0% neutral · 100% original · 200% vivid.",
   "Complete · {frames} frames · {time} render time": "Complete · {frames} frames · {time} render time",
   "Continue from the clock phase": "Continue from the clock phase",
+  "Control": "Control",
   "Copy the exact centre, zoom and rotation as text": "Copy the exact centre, zoom and rotation as text",
   "Copy the selection": "Copy the selection",
   "Corner radius across window panes.": "Corner radius across window panes.",
@@ -2395,6 +2396,9 @@
   ],
   "Continue from the clock phase": [
    "mir/modulation/window.js"
+  ],
+  "Control": [
+   "mir/shell/menubar.js"
   ],
   "Copy the exact centre, zoom and rotation as text": [
    "mir/render/panel.js"
