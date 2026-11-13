@@ -4,7 +4,8 @@
 import assert from 'node:assert/strict';
 import { setKnobLaw, dragTravel, fineHeld, gearOf, verticalDrag } from '../mir/kit.js';
 import { stepTo } from '../mir/controls/stepper.js';
-import { typeahead, placePane, liveItems } from '../mir/controls/select.js';
+import { typeahead, placePane, liveItems, walk } from '../mir/controls/select.js';
+import { sliderKey } from '../mir/slider-keys.js';
 import { numberTravel, parseNumber, digitsOf, NUMBER } from '../mir/controls/number.js';
 import { rangeBounds, nearestThumb } from '../mir/controls/range.js';
 import { controlKind, KINDS } from '../mir/controls/factory.js';
@@ -153,5 +154,15 @@ const near = (a, b, e = 1e-9) => Math.abs(a - b) < e;
   assert.deepEqual(hintSpot(R(1440, 12, 30, 30), 200, 24, 1500, 900, R(1200, 8, 290, 38)), { left: 993, top: 15 }, 'a bar at the right edge: its left');
   assert.deepEqual(hintSpot(R(350, 12, 30, 30), 200, 24, 400, 900, R(0, 8, 400, 38)), { left: 192, top: 49 }, 'a bar as wide as the screen: below, as before');
   pass('THE HINT CLEARS THE ROW (1.5.7-alpha.21): a head control\'s hint goes above the bar, else beside the bar in its band; a body control\'s below');
+}
+{
+  /* 1.6.0-alpha.21 THE KEYS AGREE: the host slider's map has Page (ten hundredths), and the select's walk wraps */
+  const k = (key, shiftKey = false) => ({ key, shiftKey });
+  assert.ok(near(sliderKey(k('PageUp'), 0.5), 0.6)); assert.ok(near(sliderKey(k('PageDown'), 0.5), 0.4)); assert.equal(sliderKey(k('PageUp'), 0.95), 1, 'clamped');
+  assert.ok(near(sliderKey(k('ArrowUp'), 0.5), 0.51)); assert.ok(near(sliderKey(k('ArrowDown', true), 0.5), 0.5 - 0.01 / 8)); assert.equal(sliderKey(k('Home'), 0.5), 0); assert.equal(sliderKey(k('End'), 0.5), 1);
+  assert.equal(sliderKey(k('a'), 0.5), null, 'not a slider key: left to the app');
+  assert.equal(walk(5, 4, 1), 0, '↓ on the last is the first'); assert.equal(walk(5, 0, -1), 4, '↑ on the first is the last'); assert.equal(walk(5, 2, 1), 3);
+  assert.equal(walk(5, -1, 1), 0); assert.equal(walk(5, -1, -1), 4); assert.equal(walk(0, -1, 1), -1);
+  pass('1.6.0-alpha.21: bindSliderKeys has Page Up / Down (×10), and a select\'s walk wraps at both ends');
 }
 console.log(`${n} PASS (controls.node)`);

@@ -221,7 +221,7 @@ export function xyPad(o = {}) {
     if (disabled || e.ctrlKey || e.metaKey || e.altKey) return;
     const d = 0.01 * (e.code.startsWith('Page') ? 10 : 1) * (e.shiftKey ? setKnobLaw().keyFine : 1);   // the kit's one fine gear
     const dir = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1], PageUp: [0, 1], PageDown: [0, -1] }[e.code];
-    if (!dir && e.code !== 'Home' && e.code !== 'Delete' && e.code !== 'Backspace') return;   // Home and Delete: home, as on a knob
+    if (!dir && e.code !== 'Home' && e.code !== 'Delete' && e.code !== 'Backspace') return;   // Delete is home, as on every control; Home is home too HERE, where there is no low end (on a 1-D control Home is the minimum)
     e.preventDefault(); e.stopPropagation();
     if (dir) { const [ux, uy] = padWrap(o.wrap, norm('x', kx.get()) + dir[0] * d, norm('y', ky.get()) + dir[1] * d); put(denorm('x', ux), denorm('y', uy)); } else put(home[0], home[1]);   // the arrows wrap as the drag does
     land();

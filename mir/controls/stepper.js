@@ -3,7 +3,7 @@
  * THE LAW IT KEEPS: ONE BUILD OF "STEP THROUGH A LIST".  The census found five (the GUI's, BASINS' blend picker and SAVE pager,
  * λWAVES' palette and transport step); this is the GUI's, generalised, and the others use it.  Two round 44 px buttons around a
  * live name (`aria-live`); the arrows wrap; an item marked `coming` is listed and never chosen (the arrows skip it and stand down
- * when nothing else can be reached); the keys are ← and → on the row, and on the name ↑ ↓ step as a closed select's do (Alt+↓
+ * when nothing else can be reached); the keys are ← and → on the row (Home and End the first and the last, 1.6.0-alpha.21), and on the name ↑ ↓ step as a closed select's do (Alt+↓
  * opens the list: one law for ↑ ↓ on a closed list, wave 19).  A TAP ON THE NAME OPENS THE FULL LIST in the kit's menu pane
  * (controls/select.js `listPane`), so a long ordered list (twelve blend modes) is one tap from any entry, not eleven.  By the rules of
  * docs/INTENT.md: no relief at rest, hover a lighter face, press a sink and a small scale, focus an accent ring outside.
@@ -101,6 +101,10 @@ export function stepper(o = {}) {
     let rtl = false; try { rtl = row.matches(':dir(rtl)'); } catch (_) {}
     const fwd = rtl ? 'ArrowLeft' : 'ArrowRight', back = rtl ? 'ArrowRight' : 'ArrowLeft';
     if (e.code === back) { e.preventDefault(); step(-1); } else if (e.code === fwd) { e.preventDefault(); step(1); }
+    else if (e.code === 'Home' || e.code === 'End') {                // the first and the last live item (1.6.0-alpha.21), as on a seg and a select
+      const L = liveItems(items), to = L.length ? L[e.code === 'Home' ? 0 : L.length - 1].id : v;
+      e.preventDefault(); if (to !== v) { v = to; paint(); if (o.onChange) o.onChange(v, e.code === 'Home' ? -1 : 1); }
+    }
   });
   paint();
   return { root, prev, next, name, get: () => v, set(id) { v = id; paint(); }, setItems(list, id) { items = list; if (id !== undefined) v = id; sizeSeat(); paint(); },

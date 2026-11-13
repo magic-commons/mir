@@ -222,7 +222,7 @@ try {
   await p.key('Digit9'); await p.key('Escape'); await sleep(80);
   check('number: Escape does not take it', near(await val('W.number'), 42, 1e-9));
   await J(`W.number.face.focus(); return 1;`); await p.key('ArrowUp'); await p.key('Shift+ArrowUp'); await sleep(40);
-  v = await val('W.number'); check('number: ↑ steps by one step, Shift ↑ an eighth of it (42 → 42.5 → 42.5625 → 42.5)', near(v, 42.5, 0.1), String(v));
+  v = await val('W.number'); check('number: ↑ steps by one step, and Shift ↑ is one step too on a stepped number (42 → 42.5 → 43; 1.6.0-alpha.21)', near(v, 43, 1e-9), String(v));
 
   /* ── THE RANGE SLIDER ── */
   await J(`W.range.set(0.25, 0.75); return 1;`);
@@ -299,6 +299,25 @@ try {
   { const hits = []; for (const id of Object.keys(want)) { const s = await spot(`W.factory.${id}.root`); hits.push(!!s && s.hit && s.w > 20); } check('control(): every control is hit-testable where it is drawn', hits.every(Boolean), JSON.stringify(hits)); }
   { const pr = await J(`const ps = W.factory.pan.params(), rs = W.factory.win.params(), ks = W.factory.gain.params(); return { pan: ps.map((q) => q.id), win: rs.map((q) => q.id), gain: ks.map((q) => [q.id, q.map, typeof q.get, typeof q.set, !!q.widget]), hue: W.factory.hue.params()[0].map, freq: W.factory.freq.params()[0].map, sw: W.factory.enable.params().length };`);
     check('control().params(): installModulation records, one per target (pan.x pan.y · win.lo win.hi · gain linear · hue wrap · freq log · a switch none)', pr.pan.join() === 'pan.x,pan.y' && pr.win.join() === 'win.lo,win.hi' && pr.gain[0][0] === 'gain' && pr.gain[0][1] === 'linear' && pr.hue === 'wrap' && pr.freq === 'log' && pr.sw === 0, JSON.stringify(pr)); }
+
+  /* ── 1.6.0-alpha.21 THE KEYS AGREE (real keys on the focused control) ── */
+  { const VK = { ArrowUp: 38, ArrowDown: 40, Home: 36, End: 35, PageUp: 33, PageDown: 34 };
+    const key = async (k, m = 0) => { for (const type of ['keyDown', 'keyUp']) await p.send('Input.dispatchKeyEvent', { type, key: k, code: k, windowsVirtualKeyCode: VK[k], modifiers: m }); await sleep(40); };
+    await J(`W.number.set(12.5); W.number.face.focus(); return 1;`); await key('ArrowUp', 8); const shifted = await val('W.number'); await key('ArrowUp'); const plain = await val('W.number');
+    check('number: on a stepped number Shift + ↑ is one step, as ↑ is (an eighth of a step rounded straight back: a dead key)', near(shifted, 13, 1e-9) && near(plain, 13.5, 1e-9), JSON.stringify({ shifted, plain }));
+    await J(`W.select.set('p23'); W.select.button.focus(); return 1;`); await key('ArrowDown'); const wrapped = await val('W.select'); await key('ArrowUp'); const back = await val('W.select');
+    await J(`W.select.open(); return 1;`); await sleep(80); await key('ArrowDown'); const paneAt = await J(`return document.activeElement.dataset.id;`); await key('ArrowUp'); const paneBack = await J(`return document.activeElement.dataset.id;`);
+    await J(`W.select.close(false); return 1;`);
+    check('select: the walk wraps at both ends, closed (↓ on the last is the first, ↑ back) and in the open pane', wrapped === 'p0' && back === 'p23' && paneAt === 'p0' && paneBack === 'p23', JSON.stringify({ wrapped, back, paneAt, paneBack }));
+    await J(`W.stepper.set('c'); W.stepper.name.focus(); return 1;`); await key('End'); const last = await val('W.stepper'); await key('Home'); const first = await val('W.stepper');
+    check('stepper: End is the last live item and Home the first', last === 'e' && first === 'a', JSON.stringify({ last, first }));
+    await J(`W.knob.set(0.4); if (document.activeElement) document.activeElement.blur(); return 1;`);
+    const s = await need(K, 'knob (press takes the focus)'); await mouse('mouseMoved', s.x, s.y); await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(60);
+    const kf = await J(`return document.activeElement === W.knob.root;`);
+    const f = await need('W.fader.root', 'fader (press takes the focus)', [0.5, 0.5]); await mouse('mouseMoved', f.x, f.y); await mouse('mousePressed', f.x, f.y); await mouse('mouseReleased', f.x, f.y); await sleep(60);
+    const ff = await J(`return document.activeElement === W.fader.root;`);
+    check('a pressed knob and a pressed fader hold the focus (the arrows after a click are the control\'s)', kf && ff, JSON.stringify({ kf, ff }));
+    await J(`if (document.activeElement) document.activeElement.blur(); return 1;`); await sleep(330); }
 
   /* ── light: the same page, the other theme, still drawn ── */
   await J(`document.body.dataset.theme = 'light'; return 1;`); await sleep(200);

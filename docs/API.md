@@ -154,7 +154,7 @@ A window does no presentation work while it is off, closed, folded, compact, hid
 
 ## `mir/slider-keys.js`
 
-`bindSliderKeys(element, { get, set, editable, reset })` gives a 0…1 host slider arrow keys: arrows move 0.01, Shift the kit's fine gear of that (`setKnobLaw().keyFine`, an eighth), Home and End go to the ends. Delete (and Backspace: an iPad has no forward Delete) runs `reset()`, the slider's own reset, the one its double-tap runs (1.5.0-alpha.19); with no `reset` (a macro's value has no default) the key is left alone. Space is left to the app.
+`bindSliderKeys(element, { get, set, editable, reset })` gives a 0…1 host slider arrow keys: arrows move 0.01, Shift the kit's fine gear of that (`setKnobLaw().keyFine`, an eighth), Page Up / Page Down 0.1 (1.6.0-alpha.21), Home and End go to the ends (`sliderKey(event, value)` is that map, pure). Delete (and Backspace: an iPad has no forward Delete) runs `reset()`, the slider's own reset, the one its double-tap runs (1.5.0-alpha.19); with no `reset` (a macro's value has no default) the key is left alone. Space is left to the app.
 
 ## `mir/plane-model.js`
 
