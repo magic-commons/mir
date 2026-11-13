@@ -800,7 +800,7 @@ body.frost.frost-hold[data-card="refractive"] :is(.native-info .native-info-cont
 body[data-card] :is(.native-info .native-info-content, .control-help):not([hidden]) { background-color: hsl(var(--surface-menu-tint) / var(--surface-menu-floor)); border-color: var(--surface-menu-edge); }
 .plane-model { display: block; width: 100%; height: 150px; touch-action: none; cursor: grab; }
 .plane-model:active { cursor: grabbing; }
-@media (pointer: coarse) { .native-info-button { min-width: 44px; min-height: 44px; } }
+@media (pointer: coarse) { .native-info-button { min-width: var(--touch, 44px); min-height: var(--touch, 44px); } }
 .native-info .native-info-content { position:fixed !important; inset:auto; margin:0; }   /* the border is the pane's, above */
 .native-info .native-info-content:popover-open { display:block !important; }
 .plane-model[aria-disabled="true"] { opacity:var(--state-disabled, .38);cursor:default; }

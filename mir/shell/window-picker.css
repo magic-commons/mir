@@ -8,11 +8,11 @@
   display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: var(--wp-r); transform-origin: 50% 0; color: var(--fg); }
 .mir-window-picker[hidden] { display: none; }
 .mir-window-picker .wp-search { display: block; flex: 0 0 auto; width: 100%; height: 34px; padding: 0 12px; border: 1px solid var(--ctl-hairline, transparent); border-radius: var(--r-pill, 999px);
-  background: var(--glass-well, transparent); color: var(--fg); font: 14px var(--font-ui); }
+  background: var(--glass-well, transparent); color: var(--fg); font: var(--fs-large) var(--font-ui); }
 .mir-window-picker .wp-search:focus { outline: 0; }   /* no accent ring: the field is the finder's only input */
 .mir-window-picker .wp-list { display: flex; flex-direction: column; gap: 1px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--dim) 55%, transparent) transparent; }
 .mir-window-picker .wp-row { position: relative; display: flex; align-items: center; gap: 10px; flex: 0 0 var(--wp-row); height: var(--wp-row); padding: 0 10px;
-  border: 0; border-radius: 9px; background: transparent; color: var(--fg); font: var(--w-bold, 700) 12px/1 var(--font-ui); letter-spacing: var(--tr-wide, .06em);
+  border: 0; border-radius: 9px; background: transparent; color: var(--fg); font: var(--w-bold, 700) var(--fs-mid)/1 var(--font-ui); letter-spacing: var(--tr-wide, .06em);
   text-align: left; cursor: pointer; }
 .mir-window-picker .wp-row[hidden] { display: none; }
 /* 1.5.7-alpha.67 · a section's head (createWindowPicker({ sections })): a hairline and a small word, in the list, scrolled with it */
