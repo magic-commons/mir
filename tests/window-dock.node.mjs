@@ -3,7 +3,7 @@
  * the window lays out (windowLayout) into that same rect once docked.  Also the persisted shape. */
 import assert from 'node:assert/strict';
 import { DOCK, dockGeometry, dockTargets, anchorTarget, anchorBox } from '../mir/window/dock.js';
-import { windowLayout, dockInput, readShape } from '../mir/window/window.js';
+import { windowLayout, dockInput, readShape, floorOf, FLOOR } from '../mir/window/window.js';
 import { measure } from '../mir/core/proximity.js';
 
 let n = 0;
@@ -94,6 +94,17 @@ const geo = (side, dock = 'bottom', height = 300, s = span) => dockGeometry({ sp
   assert.ok(gone.away && gone.docked === 'anchor', 'the seat gone: away, and the wish kept');
   assert.equal(readShape({ dock: 'anchor' }, { w: 1, h: 1 }).dock, 'anchor', 'an anchor dock persists');
   pass('anchorTarget: a seat on another element is a dock target, corner to corner; the landing is the guide; away when it leaves');
+}
+{
+  /* 1.6.0-alpha.27 THE FLOOR IS THE RESIZER'S: `min` is read only with `resizable`; the width floor is one number, 280 */
+  assert.deepEqual(floorOf(undefined, true), { w: 280, h: 160 }, 'a resizable window that names no floor: 280 × 160');
+  assert.deepEqual(floorOf({ w: 240, h: 200 }, true), { w: 280, h: 200 }, 'a narrower floor is raised to 280; the height is the caller\'s');
+  assert.deepEqual(floorOf({ w: 320, h: 400 }, true), { w: 320, h: 400 }, 'a wider floor is kept');
+  assert.deepEqual(floorOf({ w: 40, h: 40 }, false), { w: 1, h: 1 }, 'a window no hand resizes has no floor: its `min` is not read');
+  assert.deepEqual(floorOf({ w: 300, h: 300 }, false), floorOf(undefined, false), 'with or without a `min`, the same');
+  assert.equal(FLOOR.w, 280);
+  assert.equal(readShape({ w: 46, h: 46 }, { w: 560, h: 46 }, floorOf({ w: 320, h: 240 }, false)).w, 46, 'a fixed window keeps the size it was given, under any `min`');
+  pass('floorOf: a floor only where a hand can resize, never under 280 wide; a fixed window\'s `min` is not read');
 }
 
 console.log(`ALL ${n} MIR window dock and layout laws passed`);

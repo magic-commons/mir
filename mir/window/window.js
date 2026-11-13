@@ -40,6 +40,17 @@ import { cssZoom, ownRect } from '../core/zoom.js';
 
 /** the house clamp (kwin.js): 120 px of a window stays across the screen, 52 px of it stays below its top */
 export const CLAMP = Object.freeze({ x: 120, y: 52, inset: 16, top: 56 });
+/** FLOOR (1.6.0-alpha.27 THE FLOOR IS THE RESIZER'S): the least size of a window a hand can resize — one width, 280, for every window
+ *  (NODES', FOLDERS', MIR OPTIONS' and the notebook's already), and the least height a window that names none gets */
+export const FLOOR = Object.freeze({ w: 280, h: 160 });
+/** floorOf(min, resizable) — the floor createWindow keeps.  `min` is a RESIZABLE window's: its width is never under FLOOR.w, its height
+ *  is the caller's (FLOOR.h when it names none).  A window no hand can resize has no floor (1 × 1): its size is what its maker gave it,
+ *  so a `min` passed without `resizable` says nothing and is not read. */
+export function floorOf(min, resizable) {
+  if (!resizable) return { w: 1, h: 1 };
+  const m = min && typeof min === 'object' ? min : {};
+  return { w: Math.max(FLOOR.w, Number.isFinite(m.w) ? m.w : 0), h: Number.isFinite(m.h) && m.h > 0 ? m.h : FLOOR.h };
+}
 const CHIP_SIDES = ['left', 'right', 'top', 'bottom', 'auto'];
 const clamp = (n, lo, hi) => Math.max(lo, Math.min(Math.max(lo, hi), n));
 
@@ -261,8 +272,10 @@ export function gripGesture(rail, w) {
  *    chips      rail chip specs (window/rail.js); a chip may carry press(state, win).  The close chip and the grip are
  *               added when absent; a radio chip named like a panel switches to it
  *    body       a Node, or fn(bodyEl) that fills the body;  panels: [{ name, body }] — one shown at a time (tab())
- *    size, min  { w, h } floating size and its floor;  resizable adds the corner;  emptyDrag true or a selector of
- *               the host's own pressable things
+ *    size, min  { w, h } floating size and its floor;  resizable adds the corner.  `min` is read only with `resizable` (1.6.0-alpha.27,
+ *               floorOf): never under 280 wide, 160 tall when it names no height; a window no hand resizes has no floor
+ *    emptyDrag  true (the default since 1.6.0-alpha.27: rule 4, EMPTY GLASS IS A HANDLE), a selector of the host's own pressable
+ *               things, or false for a window whose glass is its own ground (the TIMELINE, a node graph)
  *    dock       { span: { read(), subscribe(fn) } (dock.js observeSpan), guide: () => bool (the Display switch),
  *                 anchor?: { rect() → DOMRect | null, clip?() → DOMRect | null, subscribe?(fn) → off } — a seat on another
  *                 element the window can dock to (BASINS' anchorTarget): it follows it, is clipped to clip(), and hides
@@ -294,10 +307,11 @@ export function gripGesture(rail, w) {
  *    scaledRoom true (1.5.7-alpha.68 A SCALED WINDOW KEEPS TO THE SCREEN): under UI SCALE above 100 % the window, docked, floating or
  *               stacked, is at most the screen's room ÷ the scale tall in its own px (scaledCap), and `min.h` yields to that; the
  *               stored height is kept.  At 100 % and below nothing changes.  The TIMELINE passes it. */
-export function createWindow({ id, title = id, host, chips = [], body, panels, size = { w: 520, h: 360 }, min = { w: 240, h: 160 },
-  resizable = false, emptyDrag = false, dock = null, persist = null, material = null, railGap = RAIL.gap, railTier = 1, chrome = 'rail', gripAt = 'last', glyph = '', scaledRoom = false, onMoved, onOpen, onClose } = {}) {
+export function createWindow({ id, title = id, host, chips = [], body, panels, size = { w: 520, h: 360 }, min,
+  resizable = false, emptyDrag = true, dock = null, persist = null, material = null, railGap = RAIL.gap, railTier = 1, chrome = 'rail', gripAt = 'last', glyph = '', scaledRoom = false, onMoved, onOpen, onClose } = {}) {
   const doc = host.ownerDocument, view = doc.defaultView;
   installOnce(doc);
+  min = floorOf(min, resizable);                                    // 1.6.0-alpha.27: a floor only where a hand can resize, never under 280 wide
   const mk = (tag, cls, parent) => { const n = doc.createElement(tag); if (cls) n.className = cls; if (parent) parent.appendChild(n); return n; };
 
   /* ── the DOM ── */

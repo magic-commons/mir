@@ -103,6 +103,17 @@ try {
   const after2 = await at(`__T.A.root`);
   check('empty glass is a handle: a press on nothing pressable drags the window; a press on a control does not', Math.abs(after.left - before.left + 60) < 0.5 && Math.abs(after.top - before.top - 30) < 0.5 && after2.left === after.left && after2.top === after.top,
     `glass ${after.left - before.left},${after.top - before.top} · control ${after2.left - after.left},${after2.top - after.top}`);
+  /* 1.6.0-alpha.27: emptyDrag is the default; `min` is the resizer's (floorOf), 280 wide at least */
+  const dflt = await run(`const { createWindow } = await import('/mir/window/window.js'); const host = A.root.parentElement;
+    const press = (w) => { const ev = new PointerEvent('pointerdown', { bubbles: true, cancelable: true, button: 0, isPrimary: true, pointerId: 77, clientX: 5, clientY: 5 }); w.body.dispatchEvent(ev);
+      w.rail.grip.dispatchEvent(new PointerEvent('pointercancel', { bubbles: true, pointerId: 77 })); return ev.defaultPrevented; };
+    const D = createWindow({ id: 'dflt', host, size: { w: 300, h: 200 }, min: { w: 400, h: 400 }, body: (b) => { b.textContent = 'd'; } }); D.open();
+    const O = createWindow({ id: 'own', host, size: { w: 300, h: 200 }, emptyDrag: false, body: (b) => { b.textContent = 'o'; } }); O.open();
+    const Z = createWindow({ id: 'rz', host, size: { w: 400, h: 300 }, min: { w: 200, h: 100 }, resizable: true, body: (b) => { b.textContent = 'r'; } }); Z.open();
+    D.resize({ w: 120, h: 90 }); Z.resize({ w: 120, h: 90 });
+    const out = { dflt: press(D), own: press(O), fixed: D.state(), sized: Z.state() }; D.destroy(); O.destroy(); Z.destroy(); return out;`);
+  check('1.6.0-alpha.27: empty glass is a handle BY DEFAULT (emptyDrag: false keeps a window\'s own ground); `min` is read only with `resizable` and is never under 280 wide',
+    dflt.dflt === true && dflt.own === false && dflt.fixed.w === 120 && dflt.fixed.h === 90 && dflt.sized.w === 280 && dflt.sized.h === 100, JSON.stringify(dflt));
 
   /* ── the dock: the guide IS the landing, the landing travels and settles ───────────────────────────────── */
   before = await at(`__T.A.root`); g = await at(`__T.A.rail.grip`);
