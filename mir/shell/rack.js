@@ -461,6 +461,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
   function first(w) {
     const root = w.dev.root;
     if (typeof w.spec.kind === 'string' && w.spec.kind) root.dataset.kind = w.spec.kind;
+    if (w.spec.window) { root.dataset.twin = ''; popFace(root); }       // 1.6.0-alpha.31: rack.css shows its ↗ in the rack
     if (w.spec.folded === true && !root.classList.contains('folded')) w.dev.fold(true);
   }
   /** adopt(w, x) — take over a window the app ALREADY BUILT (BASINS builds every window eagerly with its own builder):
@@ -509,10 +510,10 @@ export function createRack({ host = globalThis.document && document.body, sides 
       const b = e.target.closest && e.target.closest('button'); if (!b || !root.contains(b)) return;
       /* an app card keeps its own buttons — but its × closes through the rack (1.5.6-alpha.28), so its onClose runs: the kit
          device's own close only marked it closed, and a later close(id) found it closed and returned (λWAVES' empty slot) */
-      if (w.spec.card && !b.classList.contains('dev-fold') && !b.classList.contains('dev-close')) return;
+      if (w.spec.card && !b.classList.contains('dev-fold') && !b.classList.contains('dev-close') && !(w.spec.window && b.classList.contains('dev-pop'))) return;
       if (b.classList.contains('dev-close')) { e.stopPropagation(); close(id); }
       else if (b.classList.contains('dev-fold')) { e.stopPropagation(); fold(id); }
-      else if (b.classList.contains('dev-pop')) { e.stopPropagation(); toggleFloat(id); }
+      else if (b.classList.contains('dev-pop')) { e.stopPropagation(); toggleFloat(id); }   // a card with a window twin: its ↗ opens the twin (toggleFloat)
       else if (b.classList.contains('dev-rail')) { e.stopPropagation(); setCompact(id, !root.classList.contains('compact')); }
     }, { capture: true, signal: life.signal });
     head.addEventListener('dblclick', (e) => { if (e.target.closest(PRESSABLE)) return; e.stopImmediatePropagation(); fold(id); }, { capture: true, signal: life.signal });
@@ -543,7 +544,8 @@ export function createRack({ host = globalThis.document && document.body, sides 
   }
   function popFace(d) {
     const b = d.querySelector('.dev-pop'); if (!b) return;
-    const out = d.classList.contains('floating');
+    const out = d.classList.contains('floating'), w = reg.get(d.dataset.id);
+    if (w && w.spec.window && !out) { chip(b, 'popOut', 'open this as a window'); b.title = 'Open this as a window'; return; }   // 1.6.0-alpha.31: the twin's door
     chip(b, out ? 'dock' : 'popOut', out ? 'dock this window back into the rack' : 'take this window off the rack');
     b.title = out ? 'Return this window to its rack' : 'Move this window onto the stage';
   }
@@ -717,7 +719,13 @@ export function createRack({ host = globalThis.document && document.body, sides 
     dockNow(id, drop);                                                // BASINS dockWindow: it lands at once; the rack makes room
     save(); return true;
   }
-  const toggleFloat = (id) => (floatState.has(id) ? dock(id) : float(id));
+  const toggleFloat = (id) => (floatState.has(id) ? dock(id) : twinOf(id) ? twin(id) : float(id));
+  /* 1.6.0-alpha.31 A CARD DECLARES ITS WINDOW (register({ window })): a card that has a window twin — the same thing as a kit window (λWAVES'
+     NODES, FOLDERS) — says so, and its ↗ seat, shown in the rack, opens the twin instead of floating the card: one way out of the rack.
+     `window` is the twin ({ open(), raise?() }) or () => it (it may be made later).  twin(id) opens and raises it; what becomes of the card
+     (it stays, or the app closes it from the twin's onOpen) is the app's.  A drag of the head still floats the card. */
+  const twinOf = (id) => { const w = reg.get(id), t = w && w.spec.window; if (!t) return null; try { const x = typeof t === 'function' ? t(w.api) : t; return x && typeof x.open === 'function' ? x : null; } catch (err) { console.warn('rack: ' + id + '.window', err); return null; } };
+  function twin(id) { const t = twinOf(id); if (!t) return false; t.open(); if (typeof t.raise === 'function') t.raise(); return true; }
   function setCompact(id, v) {
     const w = reg.get(id), st = floatState.get(id); if (!w || !w.dev || !st) return false;
     st.compact = !!v; w.dev.root.classList.toggle('compact', !!v); railFace(w.dev.root); save(); return true;
@@ -865,7 +873,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
     if (e.target !== e.currentTarget || e.ctrlKey || e.metaKey || e.altKey) return;
     const root = e.currentTarget.closest('.dev'), id = root.dataset.id, floating = root.classList.contains('floating');
     const k = e.key; let done = true;
-    if (k === 'Enter') { if (floating) dock(id); else float(id); }
+    if (k === 'Enter') toggleFloat(id);                               // floats or docks it; a card with a window twin opens the twin
     else if (floating && k.startsWith('Arrow')) {
       const st = floatState.get(id), d = RACK.nudge;
       st.x += k === 'ArrowLeft' ? -d : k === 'ArrowRight' ? d : 0; st.y += k === 'ArrowUp' ? -d : k === 'ArrowDown' ? d : 0;
@@ -1149,6 +1157,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
    *  closes through the rack, so its onClose runs (1.5.6-alpha.28).
    *  { bare: true }: popped off the rack (floating), the card draws no title bar — the pop and rail chips and the × stay,
    *  and its empty glass drags it (1.5.6-alpha.28).
+   *  { window } (1.6.0-alpha.31): the card's window twin ({ open(), raise?() } or () => it): its ↗ seat shows in the rack and opens it.
    *  { kind, folded } (1.6.0-alpha.30): `kind` → `data-kind` on the card and in spec() / windows(); `folded: true` → it arrives folded
    *  (its first fold; a saved layout's fold wins after). */
   function register(spec) {
@@ -1185,7 +1194,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
   queueMicrotask(() => { if (!life.signal.aborted) start(); });
 
   const api = {
-    register, start, open, close, toggle, isOpen, raise, reveal, power, lastFavourite: lastFavIds, fold, move, float, dock, toggleFloat, setCompact,
+    register, start, open, close, toggle, isOpen, raise, reveal, power, lastFavourite: lastFavIds, fold, move, float, dock, toggleFloat, twin, setCompact,
     setHidden, setInterface, dodge, setHome, windowMenu,
     get hidden() { return isHidden(); },
     toggleHidden: () => setHidden(!isHidden()),

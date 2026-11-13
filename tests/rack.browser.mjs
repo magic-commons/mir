@@ -234,6 +234,25 @@ try {
   check('register({ kind, folded }): the card is built folded on its first open (no onFold: it is not a press) and wears data-kind; windows() and spec() say the kind; a card with neither is as before',
     !r.built && r.first.folded && r.first.kind === 'info' && r.first.row === 'info' && r.first.spec === 'info' && r.first.hooks === 0 && r.first.exp === 'false' && !r.plain.folded && r.plain.kind, JSON.stringify(r));
   check('the first fold is only the first: a hand\'s unfold is kept by the layout (capture → apply leaves it unfolded)', !r.kept.folded && r.kept.hooks === 'false', JSON.stringify(r.kept));
+  /* ── 1.6.0-alpha.31 THE HEAD BUTTONS KEEP THEIR SEATS · A CARD DECLARES ITS WINDOW ────────────────────────── */
+  r = await run(`R.register({ id: 'st', title: 'ST', side: 'right', build() {} }); R.open('st'); await settle();
+    const d = dev('st'), seats = () => { const h = d.querySelector('.dev-head').getBoundingClientRect(); return ['.dev-power', '.dev-fold', '.dev-close'].map((q) => Math.round(h.right - d.querySelector(q).getBoundingClientRect().right)).join(); };
+    const shown = (q) => getComputedStyle(d.querySelector(q)).display !== 'none', left = (q) => d.querySelector(q).getBoundingClientRect().left;
+    const docked = { seats: seats(), rail: shown('.dev-rail') }; R.float('st', { x: 420, y: 300 }); await settle();
+    const out = { docked, floating: { seats: seats(), rail: shown('.dev-rail'), railLeftOfPower: left('.dev-rail') < left('.dev-power') } }; R.dock('st'); await settle(); R.close('st'); return out;`);
+  check('the head buttons keep their seats: ⏻ ▾ × stand the same distance from the head\'s right edge docked and floating; ▯ comes in at the left end',
+    r.docked.seats === r.floating.seats && !r.docked.rail && r.floating.rail && r.floating.railLeftOfPower, JSON.stringify(r));
+  r = await run(`T.drift.close(); await wait(350); R.register({ id: 'tw', title: 'TW', side: 'right', build() {}, window: () => T.drift }); R.open('tw'); await settle();
+    const d = dev('tw'), pop = d.querySelector('.dev-pop'); return { twin: 'twin' in d.dataset, shown: getComputedStyle(pop).display !== 'none', hint: pop.title, plain: getComputedStyle(dev('tone').querySelector('.dev-pop')).display, open: T.drift.isOpen() };`);
+  h = await click(`document.querySelector('.dev[data-id="tw"] .dev-pop')`);
+  after = await run(`await wait(350); const d = dev('tw'); const out = { open: T.drift.isOpen(), floating: d.classList.contains('floating'), card: R.isOpen('tw') };
+    T.drift.close(); await wait(350); d.querySelector('.dev-head').focus(); return out;`);
+  await key('Enter', 'Enter', 13); await sleep(350);
+  const tw2 = await run(`const out = { open: T.drift.isOpen(), floating: dev('tw').classList.contains('floating'), verb: (T.drift.close(), R.twin('tw')), none: R.twin('tone') }; await wait(50); R.close('tw'); return out;`);
+  check('register({ window }): the card\'s ↗ is shown in the rack (another card\'s is not) and says what it does; a press (hit-tested) opens the window twin, and the card neither floats nor closes',
+    r.twin && r.shown && r.hint === 'Open this as a window' && r.plain === 'none' && !r.open && h && h.ok && after.open && !after.floating && after.card, JSON.stringify({ r, h, after }));
+  check('Enter on the head of a card with a twin opens the twin (it does not float the card); rack.twin(id) is the verb, false for a card with none',
+    tw2.open && !tw2.floating && tw2.verb === true && tw2.none === false, JSON.stringify(tw2));
   r = await run(`R.showPills(); await wait(80); const z = (n) => +getComputedStyle(n).zIndex; return { pills: z(document.querySelector('.rack-pills')), floats: z(R.el.floats), veil: +getComputedStyle(document.documentElement).getPropertyValue('--z-veil'), n: document.querySelectorAll('.rack-pill').length };`);
   check('THE PILLS STAY ON TOP (1.5.7-alpha.50): the scroll pills stand above the float layer (a docked TIMELINE, a work bar) and under the veil', r.n > 0 && r.pills > r.floats && r.pills < r.veil, JSON.stringify(r));
 } finally {
