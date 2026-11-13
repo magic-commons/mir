@@ -33,10 +33,11 @@ async function drag(node, label, steps, { mod = 0, at } = {}) {
   const s = await need(node, label, at); if (!s) return null;
   mods = 0; await mouse('mouseMoved', s.x, s.y); mods = mod; await mouse('mousePressed', s.x, s.y);
   for (const [dx, dy, m] of steps) { if (m !== undefined) mods = m; await mouse('mouseMoved', s.x + dx, s.y + dy); await sleep(20); }
-  const last = steps[steps.length - 1]; await mouse('mouseReleased', s.x + last[0], s.y + last[1]); mods = 0; await sleep(120);
+  const last = steps[steps.length - 1]; await mouse('mouseReleased', s.x + last[0], s.y + last[1]); mods = 0; await sleep(320);   // past TAP.ms: the next press here is a new gesture, not a double-tap (home, and no drag: 1.6.0-alpha.19)
   return s;
 }
 const val = (node) => J(`return ${node}.get();`);
+const RT0 = (w) => `W.range.${w}.root`;
 
 try {
   await p.goto(URL_, 1200);
@@ -84,6 +85,20 @@ try {
     await mouse('mousePressed', s.x - 10, s.y); await mouse('mouseReleased', s.x - 10, s.y); await sleep(40); await mouse('mousePressed', s.x + 10, s.y); await mouse('mouseReleased', s.x + 10, s.y); await sleep(350);
     const apart = await val('W.knob');
     check('knob: two taps 330 ms apart, or 20 px apart, are not home (300 ms within 14 px)', near(slow, 0.9, 1e-6) && near(apart, 0.9, 1e-6), JSON.stringify({ slow, apart })); }
+  /* 1.6.0-alpha.19 ONE DOUBLE PRESS, ONE HOME: a real mouse double-click (the second press carries clickCount 2, so the browser fires `dblclick`
+     after it) goes home ONCE on a knob, a fader and a range thumb, and the second press begins no drag: a pixel of travel leaves the value home */
+  { const dbl = async (node, label, at) => { const s = await need(node, label, at); mods = 0; await mouse('mouseMoved', s.x, s.y);
+      await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(60);
+      const two = (type, x) => p.send('Input.dispatchMouseEvent', { type, x, y: s.y, button: 'left', buttons: type === 'mousePressed' ? 1 : 0, clickCount: 2 });
+      await two('mousePressed', s.x); await mouse('mouseMoved', s.x + 2, s.y); held = false; await two('mouseReleased', s.x + 2); await sleep(120); };
+    await sleep(350); await J(`W.knob.set(0.9); W.knob.setDefault(0.4); W.fader.set(0.2); W.fader.setDefault(0.5); W.range.set(0.25, 0.75); W.range.lo.setDefault(0.1); W.n.knob = W.n.fader = W.n.range = 0; window.__dbl = 0; document.addEventListener('dblclick', () => { __dbl++; }, true); return 1;`);
+    await dbl(K, 'knob (double-click)'); await sleep(350);
+    await dbl('W.fader.root', 'fader (double-click)', [0.8, 0.5]); await sleep(350);
+    await dbl(RT0('lo'), 'range lo (double-click)');
+    const r = await J(`return { knob: W.knob.get(), fader: W.fader.get(), lo: W.range.get()[0], n: W.n, dbl: __dbl };`);
+    check('a mouse double-click is home ONCE on a knob, a fader and a range thumb (the browser fired dblclick three times and none of them answered; the second press starts no drag)',
+      near(r.knob, 0.4, 1e-9) && near(r.fader, 0.5, 1e-9) && near(r.lo, 0.1, 1e-9) && r.dbl === 3 && r.n.knob === 2 && r.n.fader === 2 && r.n.range === 2, JSON.stringify(r));
+    await J(`W.knob.set(0.4); W.range.set(0.25, 0.75); W.range.lo.setDefault(0.25); if (document.activeElement) document.activeElement.blur(); return 1;`); await sleep(350); }
 
   /* a second finger is the gear: real touch events */
   await p.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });

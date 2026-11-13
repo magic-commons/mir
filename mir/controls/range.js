@@ -111,11 +111,12 @@ export function rangeSlider(o = {}) {
     const onThumb = e.target.closest && e.target.closest('.rng-t');
     const u = clamp01((e.clientX - r.left) / Math.max(1, r.width));
     const which = onThumb ? (onThumb.classList.contains('rng-lo') ? 'lo' : 'hi') : nearestThumb(u, norm(state.lo), norm(state.hi));
-    e.preventDefault(); try { rail.setPointerCapture(e.pointerId); } catch (_) {}
+    e.preventDefault();
     T[which].root.focus({ preventScroll: true });
+    if (onThumb && tap[which](e)) return;                              // HOME, and no drag after it (1.6.0-alpha.19: a pixel of travel put the thumb back)
+    try { rail.setPointerCapture(e.pointerId); } catch (_) {}
     drag = { id: e.pointerId, which, lastX: e.clientX, w: r.width || 1, u: norm(state[which]), tie: !!onThumb && state.hi - state.lo <= gap };   // two thumbs on one spot: the first move chooses which one goes
     rail.classList.add('drag'); T[which].root.classList.add('drag');
-    if (onThumb) tap[which](e);
     if (!onThumb && gearOf(e, e.pointerId) === 1) { drag.u = u; move(which, denorm(u)); }
   });
   rail.addEventListener('pointermove', (e) => {
@@ -136,7 +137,7 @@ export function rangeSlider(o = {}) {
     paintAll(); land();
   };
   rail.addEventListener('pointerup', end); rail.addEventListener('pointercancel', end); rail.addEventListener('lostpointercapture', end);
-  rail.addEventListener('dblclick', (e) => { const t = e.target.closest && e.target.closest('.rng-t'); if (t) { e.preventDefault(); homeOf(t.classList.contains('rng-lo') ? 'lo' : 'hi'); } });
+  rail.addEventListener('dblclick', (e) => e.preventDefault());   // the second press on a thumb was the double-tap (1.6.0-alpha.19: one home, not two)
   wheelTurn(rail, null, { focus: null });   // 1.6.0-alpha.3 THE WHEEL WAITS FOR A CLICK: the pressed thumb, while it holds the focus, turns by the wheel as by its arrows
   /* the keys, on a thumb: one hundredth of the range, Shift an eighth of it (the one gear), Page ten; Home and End its bounds */
   const KEYDIR = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1, PageUp: 1, PageDown: -1 };

@@ -250,7 +250,7 @@ export function wheelTurn(node, turn = null, { focus = node, signal } = {}) {
  *   · THE DRAG IS VERTICAL.  A full scale is `travel` px of rise (220; a finger 320); sideways motion is ignored.
  *   · THE FINE GEAR IS ⅛, and ANY modifier engages it (Shift, Alt, Ctrl, Meta), and so does a SECOND FINGER put down while
  *     one drags.  It runs on a VIRTUAL POINT (p += gear · Δy / travel), so engaging or leaving the gear moves nothing.
- *   · DOUBLE-TAP (300 ms, 14 px: TAP) or double-click = home.
+ *   · DOUBLE-TAP (300 ms, 14 px: TAP) = home, taken on the second PRESS; the browser's `dblclick` is swallowed and answers nothing.
  * `verticalDrag(e)` is that law as one small object, so the arc knob, the lane slider, the swatch, the number field and the
  * XY pad stand on the same arithmetic instead of copying it.  `setKnobLaw()` retunes it (`fine` alone moves every gear). */
 /** setKnobLaw's defaults: travel = px for a full scale, fine = the gear's divisor on a drag, keyFine = the Shift factor on an
@@ -405,10 +405,11 @@ export function knob(o) {
   /* THE GESTURE belongs to the pointer that started it: a second finger (the fine gear) is neither a new drag nor a move of this one. */
   dial.addEventListener('pointerdown', (e) => {
     if (disabled || dragging) return;
-    e.preventDefault(); try { dial.setPointerCapture(e.pointerId); } catch (_) {}   // a pointer already gone (or a synthetic one) must not abort the drag
+    e.preventDefault();
+    if (tap(e)) return;                                 // HOME, and no drag after it (1.6.0-alpha.19: the drag it began started from the value before home)
+    try { dial.setPointerCapture(e.pointerId); } catch (_) {}   // a pointer already gone (or a synthetic one) must not abort the drag
     dragging = true; root.classList.add('drag'); root.classList.add('active'); p0 = norm(v); acc = 0;   // p0 is the BASE: a routed knob's drag moves the range, never teleports it to where the modulator was
     vd = verticalDrag(e, { travel: o.travel, fine: o.fine, axis: o.dragAxis === 'sum' ? 'sum' : 'y' });
-    tap(e);
   });
   dial.addEventListener('pointermove', (e) => {
     if (!dragging || e.pointerId !== vd.id) return;
@@ -422,7 +423,7 @@ export function knob(o) {
   dial.addEventListener('pointerup', end); dial.addEventListener('pointercancel', end); dial.addEventListener('lostpointercapture', end);
   const reset = () => { if (disabled) return; if (o.onDelta) { if (o.onReset) o.onReset(); return; } v = def; paint(); if (o.onInput) o.onInput(v); if (o.onChange) o.onChange(v); };
   const tap = tapWatcher(reset);                       // two taps within 300 ms and 14 px reset the control to its default …
-  dial.addEventListener('dblclick', (e) => { e.preventDefault(); reset(); });   // … and so does a double-click
+  dial.addEventListener('dblclick', (e) => e.preventDefault());   // … and a double-CLICK is that second press, already answered (1.6.0-alpha.19: it ran home a second time)
   wheelTurn(root);                                     // 1.6.0-alpha.3 THE WHEEL WAITS FOR A CLICK: pressed and focused, a notch is the arrow key's step
   /* THE KEY MAP.  Δp = 1/100 of TRAVEL · Shift ×⅛ (the one gear) · Page ×10 · Home/End the ends · Delete resets.
      Three rulings a builder gets wrong, so they are written here rather than inferred:
@@ -658,14 +659,14 @@ export function fader(o) {
   const fromEvent = (e) => { const r = root.getBoundingClientRect(); return denorm((e.clientX - r.left) / Math.max(1, r.width)); };
   watchTouches();
   let gid = null;   // the pointer that owns the gesture: a second finger is the fine gear, not a second drag
-  root.addEventListener('pointerdown', (e) => { if (disabled || dragging || e.button) return;   /* 1.6.0-alpha.18: the left button, a finger or a pen alone drags; the right button is the menu's */ e.preventDefault(); try { root.setPointerCapture(e.pointerId); } catch (_) {} dragging = true; gid = e.pointerId; root.classList.add('drag'); tap(e); lastX = e.clientX; if (!fineHeld(e, gid)) v = fromEvent(e); paint(); if (o.onInput) o.onInput(v); });
+  root.addEventListener('pointerdown', (e) => { if (disabled || dragging || e.button) return;   /* 1.6.0-alpha.18: the left button, a finger or a pen alone drags; the right button is the menu's */ e.preventDefault(); if (tap(e)) return;   /* HOME, and no drag after it (1.6.0-alpha.19: the press then threw the value back to the pointer) */ try { root.setPointerCapture(e.pointerId); } catch (_) {} dragging = true; gid = e.pointerId; root.classList.add('drag'); lastX = e.clientX; if (!fineHeld(e, gid)) v = fromEvent(e); paint(); if (o.onInput) o.onInput(v); });
   let dragRect = null;   // 2026-09-11: the rect is read once per drag, not once per move
   root.addEventListener('pointermove', (e) => { if (!dragging || e.pointerId !== gid) return; if (fineHeld(e, gid)) { const r = dragRect || (dragRect = root.getBoundingClientRect()); v = denorm(norm(v) + (e.clientX - lastX) / Math.max(1, r.width * fine)); } else v = fromEvent(e); lastX = e.clientX; paint(); if (o.onInput) o.onInput(v); });
   const end = (e) => { if (!dragging || (e && e.isTrusted && e.pointerId !== gid)) return; dragging = false; gid = null; dragRect = null; root.classList.remove('drag'); if (o.onChange) o.onChange(v); };
   root.addEventListener('pointerup', end); root.addEventListener('pointercancel', end); root.addEventListener('lostpointercapture', end);
   const reset = () => { if (disabled) return; v = def; paint(); if (o.onInput) o.onInput(v); if (o.onChange) o.onChange(v); };   // a disabled fader does not reset either (1.4.0)
   const tap = tapWatcher(reset);
-  root.addEventListener('dblclick', (e) => { e.preventDefault(); reset(); });
+  root.addEventListener('dblclick', (e) => e.preventDefault());   // the second press was the double-tap (1.6.0-alpha.19: one home, not two)
   wheelTurn(root);
   const FDIR = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1, PageUp: 1, PageDown: -1 };
   root.addEventListener('keydown', (e) => {
@@ -818,8 +819,7 @@ export function device(o) {
   let folded = false;
   const setFold = (on) => { folded = on; root.classList.toggle('folded', on); fold.setAttribute('aria-expanded', String(!on)); };   // the glyph is ONE drawing now; `.dev.folded .dev-fold svg` turns it (lab.css §55)
   fold.addEventListener('click', () => setFold(!folded));
-  /* the guard is `closest`, not `===`: the target of a click on a chip is the SVG inside the button, never the button */
-  head.addEventListener('dblclick', (e) => { if (e.target.closest && e.target.closest('button')) return; setFold(!folded); });
+  /* a double press on the head folds through the RACK's one listener (shell/rack.js); the card keeps none of its own (1.6.0-alpha.19) */
   return { root, body, setOff, setLoading, popBtn: pop, railBtn: rail, foldBtn: fold, get off() { return off; }, get loading() { return loadingKeys.size > 0; }, setStatus(t, cls) { if (stat.textContent !== t) { stat.textContent = t; headHint(t); } if (cls !== undefined) stat.className = 'dev-stat ' + cls; }, fold: setFold, row(cls) { return el('div', 'row' + (cls ? ' ' + cls : ''), body); } };
 }
 

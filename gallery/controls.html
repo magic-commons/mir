@@ -106,7 +106,10 @@ bar.append(seg({ value: document.body.dataset.theme, options: [{ id: 'dark', lab
   W.knob = knob({ label: 'RATE', min: 0, max: 1, value: 0.4, fmt: (v) => v.toFixed(3), title: 'Drag up or down. Shift (or any modifier, or a second finger) is the eighth gear. Double-tap is home.' });
   W.exposure = knob({ label: 'EXPOSURE', min: -4, max: 4, value: 0, fmt: (v) => v.toFixed(2) + ' EV' });
   W.jog = knob({ label: 'JOG', min: 0, max: 1, value: 0, onDelta: () => {}, title: 'An unbounded turn: a wheel that holds no value' });
-  r.append(W.knob.root, W.exposure.root, W.jog.root);
+  W.n = { knob: 0, fader: 0, range: 0 };                                    // how many times a control LANDED (onChange), for the test
+  W.knob.spec.onChange = () => { W.n.knob++; };
+  W.fader = fader({ label: 'LEVEL', min: 0, max: 1, value: 0.5, onChange: () => { W.n.fader++; } }); W.fader.root.style.flex = '1 1 140px';
+  r.append(W.knob.root, W.exposure.root, W.jog.root, W.fader.root);
   rules(c, [['an ordinary continuous parameter', 'KNOB', 'J', 'one drag law: vertical; any modifier or a second finger = ⅛ fine; double-tap = home'],
     ['a colour amount in a global grade', 'solid KNOB', 'J', '"the ol\' regular knobs" (EXPOSURE)'],
     ['an unbounded turn', 'JOG WHEEL', 'kit', 'knob({ onDelta })']]);
@@ -162,7 +165,7 @@ bar.append(seg({ value: document.body.dataset.theme, options: [{ id: 'dark', lab
 {
   const c = card('s-pairs', 'XY PAD · RANGE SLIDER (pairs)');
   W.xy = xyPad({ label: 'PAN', x: { label: 'X', min: -1, max: 1, value: 0.2, fmt: (v) => v.toFixed(3) }, y: { label: 'Y', min: -1, max: 1, value: -0.3, fmt: (v) => v.toFixed(3) }, home: [0, 0], tags: { bl: 'A', br: 'B', tl: 'C', tr: 'D' } });
-  W.range = rangeSlider({ label: 'RANGE', min: 0, max: 1, lo: 0.25, hi: 0.75, step: 0.01, fmt: (v) => v.toFixed(2) });
+  W.range = rangeSlider({ label: 'RANGE', min: 0, max: 1, lo: 0.25, hi: 0.75, step: 0.01, fmt: (v) => v.toFixed(2), onChange: () => { W.n.range++; } });
   c.append(W.xy.root, W.range.root);
   rules(c, [['a coupled pair (pan x/y, a point in a plane, az/el)', 'XY PAD + its two knobs', 'J', 'the pad is for the hand; the two knobs stay the modulation targets (AUTOMATA\'s contract); Home or a double-tap centres'],
     ['where the point is', 'the LATTICE', 'J', '"a dot matrix that grows in size the closer the XY is": the dots swell and take the accent toward the point (it replaced the dot\'s glow); a gentler swell under a hovering cursor'],
