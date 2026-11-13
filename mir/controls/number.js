@@ -130,7 +130,9 @@ export function number(o = {}) {
     else if (e.code === 'Delete' || e.code === 'Backspace') { e.preventDefault(); model.set(def); model.commit(); }
   });
   paint();
-  return { root, face, input, get: () => v, set(x) { v = settle(x); paint(); }, setDefault(x) { def = x; },
+  /* THE VALUE DOOR, as the knob's (1.6.0-alpha.26; `input` is the field here, so the door's hand is `write`): home() = Delete, write(x) = a typed value */
+  root.mirKnob = { root, get: () => v, home() { if (!disabled) { model.set(def); model.commit(); } }, input(x) { if (!disabled) { model.set(x); model.commit(); } } };
+  return { root, face, input, get: () => v, set(x) { v = settle(x); paint(); }, setDefault(x) { def = x; }, home: root.mirKnob.home, write: root.mirKnob.input,
     setDisabled(on) { disabled = !!on; root.classList.toggle('disabled', disabled); face.disabled = disabled; if (disabled) binding.close(false); },
     open: binding.open, close: binding.close, get editing() { return binding.editing; }, destroy() { binding.destroy(); root.remove(); } };
 }

@@ -716,9 +716,11 @@ export function fader(o) {
     /** a dead fader says so and gives up its seat, as the knob does */
     setDisabled(on) { disabled = !!on; root.classList.toggle('disabled', disabled); root.tabIndex = disabled ? -1 : 0; root.setAttribute('aria-disabled', String(disabled));
       if (disabled && root === document.activeElement) { const dev = root.closest('.dev'); const seat = dev && dev.querySelector('.dev-power'); if (seat) seat.focus(); else root.blur(); } },
-    paint, setDefault(x) { def = x; }, setLabel(s) { label(lbl, s); }, dragging: () => dragging };
-  /* 1.6.0-alpha.14 · THE VALUE DOOR, as the knob's (root.mirKnob): the control menu's RESET · COPY VALUE · PASTE reach a fader too */
-  root.mirKnob = { root, get: api.get, home: reset, input(x) { if (disabled) return; const nv = Math.min(hi, Math.max(lo, x)); if (nv !== v) { v = nv; paint(true); if (o.onInput) o.onInput(v); if (o.onChange) o.onChange(v); } } };
+    paint, setDefault(x) { def = x; }, setLabel(s) { label(lbl, s); }, dragging: () => dragging,
+    /* THE VALUE DOOR, as the knob's: home() = a double tap, input(x) = a hand's value (1.6.0-alpha.26: on the widget too; a lane slider's `home` stays its number) */
+    home: reset, input(x) { if (disabled) return; const nv = Math.min(hi, Math.max(lo, x)); if (nv !== v) { v = nv; paint(true); if (o.onInput) o.onInput(v); if (o.onChange) o.onChange(v); } } };
+  /* 1.6.0-alpha.14 · root.mirKnob, as the knob's: the control menu's RESET · COPY VALUE · PASTE reach a fader too */
+  root.mirKnob = { root, get: api.get, home: api.home, input: api.input };
   return api;
 }
 
@@ -761,10 +763,27 @@ export function formula(o) {
   };
 }
 
-/** device({ id, eyebrow, status, glyph, closed, onPower, loadingMark }) — a rack window: identity | live status | utilities.  `glyph` (1.5.6-alpha.3): the window's
+/** devTool(card, { id, glyph, label, hint, run, on, cls }) → the button — ONE DOOR FOR A CARD'S OWN HEAD BUTTONS (1.6.0-alpha.26; λWAVES 044, LEDGER L93):
+ *  `card` is device()'s result or its `.dev` root.  The button is `.dev-tool[data-tool=id]`: the bare 22 px disc of the head's × with a DRAWN glyph
+ *  (glyph.js; never a typed character), `label` its accessible name, `hint` its hover sentence; run(event, button) on a press (the press never
+ *  reaches the head: it folds and drags nothing).  The tools sit TOGETHER AT THE LEFT END of the head's buttons, before power, in the order they
+ *  were added, so power, fold, float and close never change seats.  `on` (a boolean) makes it a toggle: it starts with that `aria-pressed`, and
+ *  its owner writes `aria-pressed` after (pressed is the accent).  A railed card hides them, as it hides every head button but power and close. */
+export function devTool(card, { id, glyph, label: name, hint: tip, run, on, cls } = {}) {
+  const root = card && card.root ? card.root : card, util = root.querySelector(':scope > .dev-head > .dev-util');
+  const b = el('button', 'dev-tool' + (cls ? ' ' + cls : '')); b.type = 'button'; if (id) b.dataset.tool = id;
+  chip(b, glyph, name); if (tip) hint(b, tip);
+  if (on !== undefined) b.setAttribute('aria-pressed', String(!!on));
+  b.addEventListener('click', (e) => { e.stopPropagation(); if (run) run(e, b); });
+  util.insertBefore(b, util.querySelector(':scope > .dev-power'));
+  return b;
+}
+/** device({ id, eyebrow, status, glyph, closed, tools, onPower, loadingMark }) — a rack window: identity | live status | utilities.  `glyph` (1.5.6-alpha.3): the window's
  *  one drawing, written as data-glyph (createRack's register reads it when none is passed: the FINDER, the window menu, the scroll pill)
  *  and drawn before the name in the head (`.dev-glyph`).  `closed: true` (1.6.0-alpha.25 THE CARD IS BORN CLOSED): the card starts closed
- *  (`.dev.closed`), before any rack exists; a rack that adopts it reads it as closed, as register({ closed }) says for a window it builds. */
+ *  (`.dev.closed`), before any rack exists; a rack that adopts it reads it as closed, as register({ closed }) says for a window it builds.
+ *  `tools: [{ id, glyph, label, hint, run, on }]` (1.6.0-alpha.26): the card's own head buttons, each through devTool() above; `tool(spec)` on
+ *  the result adds one later and `tools[id]` is its button. */
 export function device(o) {
   const root = el('section', 'dev'); root.dataset.id = o.id;
   if (o.closed) root.classList.add('closed');
@@ -849,7 +868,9 @@ export function device(o) {
   const setFold = (on) => { folded = on; root.classList.toggle('folded', on); fold.setAttribute('aria-expanded', String(!on)); };   // the glyph is ONE drawing now; `.dev.folded .dev-fold svg` turns it (lab.css §55)
   fold.addEventListener('click', () => setFold(!folded));
   /* a double press on the head folds through the RACK's one listener (shell/rack.js); the card keeps none of its own (1.6.0-alpha.19) */
-  return { root, body, setOff, setLoading, popBtn: pop, railBtn: rail, foldBtn: fold, get off() { return off; }, get loading() { return loadingKeys.size > 0; }, setStatus(t, cls) { if (stat.textContent !== t) { stat.textContent = t; headHint(t); } if (cls !== undefined) stat.className = 'dev-stat ' + cls; }, fold: setFold, row(cls) { return el('div', 'row' + (cls ? ' ' + cls : ''), body); } };
+  const tools = {}, tool = (spec) => { const b = devTool(root, spec); if (spec && spec.id) tools[spec.id] = b; return b; };
+  for (const spec of o.tools || []) tool(spec);
+  return { root, body, tools, tool, setOff, setLoading, popBtn: pop, railBtn: rail, foldBtn: fold, get off() { return off; }, get loading() { return loadingKeys.size > 0; }, setStatus(t, cls) { if (stat.textContent !== t) { stat.textContent = t; headHint(t); } if (cls !== undefined) stat.className = 'dev-stat ' + cls; }, fold: setFold, row(cls) { return el('div', 'row' + (cls ? ' ' + cls : ''), body); } };
 }
 
 /** a labelled group inside a device body */

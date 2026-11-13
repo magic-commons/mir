@@ -164,6 +164,18 @@ try {
   /* 1.6.0-alpha.25 THE CARD IS BORN CLOSED: device({ closed: true }) is closed from its first frame (no box), an ordinary card is not */
   check('device({ closed: true }) starts closed and draws no box; a card without it is open', await ev(`(() => { const a = __T.kit.device({ id: 'born-closed', eyebrow: 'CLOSED', closed: true, loadingMark: false }), b = __T.kit.device({ id: 'born-open', eyebrow: 'OPEN', loadingMark: false });
     document.body.append(a.root, b.root); const r = a.root.classList.contains('closed') && a.root.getClientRects().length === 0 && !b.root.classList.contains('closed') && b.root.getClientRects().length > 0; a.root.remove(); b.root.remove(); return r; })()`));
+  /* 1.6.0-alpha.26 ONE DOOR FOR A CARD'S OWN HEAD BUTTONS: device({ tools }) and devTool(root, …) put drawn-glyph discs together at the left end,
+     before power; a real press runs the tool and neither folds nor powers the card; a toggle starts with its aria-pressed */
+  { await ev(`(() => { window.__tool = { n: 0 }; const a = __T.kit.device({ id: 'tooled', eyebrow: 'TOOLED', loadingMark: false, tools: [{ id: 'copy', glyph: 'duplicate', label: 'copy this panel', hint: 'Copy this panel as text', run: () => { __tool.n++; } }] });
+      a.root.style.width = '300px'; document.body.append(a.root); __tool.dev = a; __tool.late = __T.kit.devTool(a.root, { id: 'lean', glyph: 'close', label: 'hide notes', on: false, run: (e, b) => b.setAttribute('aria-pressed', 'true') }); })()`);
+    const at = JSON.parse(await ev(`(() => { const b = __tool.dev.tools.copy; b.scrollIntoView({ block: 'center' }); const r = b.getBoundingClientRect(); return JSON.stringify({ x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width, h: r.height }); })()`));
+    await p.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: at.x, y: at.y, button: 'left', buttons: 1, clickCount: 1 }); await p.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: at.x, y: at.y, button: 'left', clickCount: 1 }); await sleep(80);
+    await ev(`__tool.late.click()`);
+    const t = JSON.parse(await ev(`(() => { const d = __tool.dev, kids = [...d.root.querySelector('.dev-util').children].map((b) => b.className.split(' ')[0]), b = d.tools.copy;
+      const out = { kids, n: __tool.n, svg: !!b.querySelector('svg') && !b.textContent.trim(), name: b.getAttribute('aria-label'), hint: b.getAttribute('title') || b.dataset.tTitle, tool: b.dataset.tool, folded: d.root.classList.contains('folded'), off: d.off, late: __tool.late.getAttribute('aria-pressed'), disc: getComputedStyle(b).borderRadius };
+      d.root.remove(); return JSON.stringify(out); })()`));
+    check('device({ tools }) and devTool(): drawn-glyph discs together at the left end before power, in the order added; a real press runs the tool and neither folds nor powers the card',
+      t.kids.join() === 'dev-tool,dev-tool,dev-power,dev-fold,dev-pop,dev-rail,dev-close' && t.n === 1 && t.svg && t.name === 'copy this panel' && t.hint === 'Copy this panel as text' && t.tool === 'copy' && !t.folded && !t.off && t.late === 'true' && at.w === 22 && at.h === 22 && t.disc === '50%', JSON.stringify({ t, at })); }
   check('no page errors', !p.logs.some((l) => /EXCEPTION/.test(l)), p.logs.join(' | '));
 } finally { await p.close(); }
 

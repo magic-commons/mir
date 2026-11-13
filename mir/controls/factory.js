@@ -9,7 +9,8 @@
  *   a coupled pair (pair: [axisX, axisY]) ...................................... XY pad + its two knobs
  *   a lo/hi range (type 'range', or a value [lo, hi]) ........................... range slider
  *   options, 1–4 and every label short (< 26 characters) ........................ segment
- *   options, 5 or 6, every label short ........................................... segment in two rows   (`.seg-2`: three columns; 1.6.0-alpha.24)
+ *   options, 5 or 6, every label short ........................................... segment in two rows   (`.seg-2`: three columns; 1.6.0-alpha.24;
+ *                                                                                  `ordered: true` — a list WALKED in order — keeps the stepper)
  *   options, a long list of data (list: true, ordered: false, or over 16) ....... select
  *   options, 7 or more, in order ................................................ stepper   (the page turner's form)
  *   a finite range that is a hue (hue: true) ..................................... arc knob  (ARCS ARE COLOUR: Josh, 2026-10-02)
@@ -59,7 +60,7 @@ export function controlKind(d) {
     const n = d.options.length, short = d.options.every((o) => String(o.label).length < SHORT);
     if (n <= SEG_ONE && short) return 'segment';
     if (d.list || d.ordered === false || n > LONG_LIST || (!short && n <= SEG_ONE)) return 'select';
-    if (n <= SEG_TWO && short) return 'segment';                     // five or six: two rows of three (1.6.0-alpha.24)
+    if (n <= SEG_TWO && short && d.ordered !== true) return 'segment';   // five or six: two rows of three (1.6.0-alpha.24); a list walked in order stays a stepper
     return 'stepper';
   }
   if (finiteRange(d)) {

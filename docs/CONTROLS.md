@@ -49,7 +49,7 @@ An app describes a parameter once and gets the right control and a modulation ta
 | `pair: [axisX, axisY]` | `xyPad` |
 | `type: 'range'`, or `value: [lo, hi]` | `rangeSlider` |
 | `options`, 1–4, every label under 26 characters | `seg` |
-| `options`, 5 or 6, every label under 26 characters | `seg` in two rows (`.seg-2`, three columns; 1.6.0-alpha.24) |
+| `options`, 5 or 6, every label under 26 characters | `seg` in two rows (`.seg-2`, three columns; 1.6.0-alpha.24); with `ordered: true` (a list walked in order) still a `stepper` |
 | `options`, 7 or more, in order | `stepper` |
 | `options` with `list: true` or `ordered: false`, over 16, or a long label | `select` |
 | finite `min`/`max` with `hue`, or with `stops` (a gradient track) | `arcKnob` (arcs are colour; before 1.6.0-alpha.24 `wrap`, `cyclic` and `angle` made one too) |

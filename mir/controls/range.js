@@ -84,8 +84,10 @@ export function rangeSlider(o = {}) {
       setBase(fn) { baseOf = typeof fn === 'function' ? fn : null; announce(false); },
       setDefault(x) { def[which] = x; },
       setDisabled(on) { t.classList.toggle('disabled', !!on); t.tabIndex = on ? -1 : 0; t.setAttribute('aria-disabled', String(!!on)); },
-      paint, which };
-    t._api = api;
+      paint, which,
+      /* THE VALUE DOOR, as the knob's (1.6.0-alpha.26): home() = a double tap on this thumb, input(x) = a hand's value, held against the other */
+      home: () => homeOf(which), input(x) { if (!disabled && move(which, x)) land(); } };
+    t._api = api; t.mirKnob = api;
     return api;
   }
   const lo = thumb('lo', o.loLabel), hi = thumb('hi', o.hiLabel);

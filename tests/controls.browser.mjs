@@ -365,6 +365,17 @@ try {
         same: Math.max(...bs.map((b) => b.width)) - Math.min(...bs.map((b) => b.width)) < 1, arc: ph.classList.contains('k-arcknob'), knob: ph.classList.contains('k') };`);
     check('six short options are a segment in two rows of three equal columns; a wrapped phase is a knob, not an arc', r.cls && r.n === 6 && r.rows === 2 && r.cols === 3 && r.same && !r.arc && r.knob, JSON.stringify(r)); }
 
+  /* 1.6.0-alpha.26 THE VALUE DOOR ON EVERY VALUE CONTROL (root.mirKnob: get · home · input): a fader's widget, an arc (its `home` is a number: the
+     door is its own), a range thumb and a number, so the one control menu can RESET and PASTE on each */
+  { const r = await J(`const door = (n) => n.mirKnob, out = {};
+      W.fader.setDefault(0.5); W.fader.set(0.2); W.fader.input(0.8); out.faderIn = W.fader.get(); W.fader.home(); out.faderHome = W.fader.get();
+      const a = door(W.opacity.root); a.input(0.25); out.arcIn = W.opacity.get(); a.home(); out.arcHome = W.opacity.get(); out.arcNumber = typeof W.opacity.home;
+      W.range.set(0.25, 0.75); const t = door(W.range.lo.root); t.input(0.4); out.thumbIn = W.range.get()[0]; t.input(0.9); out.thumbHeld = W.range.get()[0]; t.home(); out.thumbHome = W.range.get()[0];
+      const n = door(W.number.root); n.input(33.3); out.numIn = W.number.get(); W.number.setDefault(12.5); n.home(); out.numHome = W.number.get();
+      W.range.set(0.25, 0.75); return out;`);
+    check('the value door (root.mirKnob: home · input) on a fader, an arc knob, a range thumb (held against the other) and a number',
+      near(r.faderIn, 0.8, 1e-9) && near(r.faderHome, 0.5, 1e-9) && near(r.arcIn, 0.25, 1e-9) && near(r.arcHome, 1, 1e-9) && r.arcNumber === 'number' && near(r.thumbIn, 0.4, 1e-9) && r.thumbHeld <= 0.75 && r.thumbHeld > 0.7 && near(r.thumbHome, 0.25, 1e-9) && near(r.numIn, 33.5, 1e-9) && near(r.numHome, 12.5, 1e-9), JSON.stringify(r)); }
+
   /* ── light: the same page, the other theme, still drawn ── */
   await J(`document.body.dataset.theme = 'light'; return 1;`); await sleep(200);
   const light = await J(`const cs = (n, pr) => getComputedStyle(n)[pr]; const rt = W.range.hi.root, pad = W.xy.pad, face = W.number.face, sel = W.select.button;

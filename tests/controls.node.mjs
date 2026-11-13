@@ -98,7 +98,7 @@ const near = (a, b, e = 1e-9) => Math.abs(a - b) < e;
     [{ id: 'on', value: true }, 'switch'], [{ id: 'on', type: 'boolean' }, 'switch'],
     [{ id: 'm', options: opts(3), value: 'o0' }, 'segment'], [{ id: 'm', options: opts(4) }, 'segment'],
     [{ id: 'b', options: opts(12) }, 'stepper'], [{ id: 'b', options: opts(7) }, 'stepper'],
-    [{ id: 'v', options: opts(5) }, 'segment'], [{ id: 'v', options: opts(6) }, 'segment'],                       // 1.6.0-alpha.24: five or six short options are a segment in two rows
+    [{ id: 'v', options: opts(5) }, 'segment'], [{ id: 'v', options: opts(6) }, 'segment'], [{ id: 'v', options: opts(6), ordered: true }, 'stepper'],                       // 1.6.0-alpha.24: five or six short options are a segment in two rows
     [{ id: 'v', options: [...opts(5), { id: 'long', label: 'A VERY LONG LABEL THAT WILL NOT FIT IN A SEGMENT' }] }, 'stepper'],
     [{ id: 'p', options: opts(5), list: true }, 'select'], [{ id: 'p', options: opts(5), ordered: false }, 'select'], [{ id: 'p', options: opts(40) }, 'select'],
     [{ id: 'm', options: [{ id: 'a', label: 'A VERY LONG LABEL THAT WILL NOT FIT IN A SEGMENT' }, { id: 'b', label: 'B' }] }, 'select'],
