@@ -112,6 +112,20 @@ try {
     const Z = createWindow({ id: 'rz', host, size: { w: 400, h: 300 }, min: { w: 200, h: 100 }, resizable: true, body: (b) => { b.textContent = 'r'; } }); Z.open();
     D.resize({ w: 120, h: 90 }); Z.resize({ w: 120, h: 90 });
     const out = { dflt: press(D), own: press(O), fixed: D.state(), sized: Z.state() }; D.destroy(); O.destroy(); Z.destroy(); return out;`);
+  /* 1.6.0-alpha.28 A WINDOW OPENS CLEAR: createWindow({ avoid }) and the app's windowAvoid(fn) */
+  const clr = await run(`const { createWindow, windowAvoid } = await import('/mir/window/window.js'); const host = A.root.parentElement;
+    const bar = { left: 300, top: 600, right: 980, bottom: 660 }, meets = (w) => { const r = w.root.getBoundingClientRect(), q = w.rail.el ? w.rail.el.getBoundingClientRect() : r;
+      return [r, q].some((b) => b.left < bar.right && b.right > bar.left && b.top < bar.bottom && b.bottom > bar.top); };
+    const mk = (id, o) => { const w = createWindow({ id, host, size: { w: 300, h: 200 }, body: (b) => { b.textContent = id; }, ...o }); w.place({ x: 500, y: 520 }); w.open(); return w; };
+    const plain = mk('clr-plain', {}), own = mk('clr-own', { avoid: () => [bar] });
+    const out = { plain: meets(plain), own: meets(own), ownAt: own.rect() };
+    own.place({ x: 500, y: 520 }); out.hand = meets(own);                                  // a later placement is never undone
+    own.close(); own.open(); out.again = meets(own);                                       // … until it opens again
+    windowAvoid(() => [bar]); const app = mk('clr-app', {}), out2 = mk('clr-out', { avoid: false });
+    out.app = meets(app); out.optOut = meets(out2); windowAvoid(null);
+    for (const w of [plain, own, app, out2]) w.destroy(); return out;`);
+  check('1.6.0-alpha.28: a window opens clear of what `avoid` names (its own, or the app\'s windowAvoid), pane and rail; a later placement stands; `avoid: false` opts out',
+    clr.plain === true && clr.own === false && clr.hand === true && clr.again === false && clr.app === false && clr.optOut === true, JSON.stringify(clr));
   check('1.6.0-alpha.27: empty glass is a handle BY DEFAULT (emptyDrag: false keeps a window\'s own ground); `min` is read only with `resizable` and is never under 280 wide',
     dflt.dflt === true && dflt.own === false && dflt.fixed.w === 120 && dflt.fixed.h === 90 && dflt.sized.w === 280 && dflt.sized.h === 100, JSON.stringify(dflt));
 

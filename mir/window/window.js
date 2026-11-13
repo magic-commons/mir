@@ -182,6 +182,28 @@ const NO_RAIL = Object.freeze({ vertical: Object.freeze({ w: 0, h: 0 }), horizon
  *  a kit factory creates (MIR OPTIONS `gui`, ABOUT `gui-about`, `keyboard`, the TIMELINE…) wears one with no option on each factory;
  *  a `glyph` passed to createWindow wins */
 const NAMED = new Map();
+/** clearSeat(box, { avoid, view, top, gap }) (1.6.0-alpha.28 A WINDOW OPENS CLEAR; λWAVES' lab/summon.js, 039 V2, moved here whole) — the seat
+ *  NEAREST the one a window would open in (`box`: { left, top, right, bottom }, its rail included) that meets none of the rects in `avoid`,
+ *  `gap` px clear of each and of the screen's edges, never above `top` (a band kept free at the top: a menu row); a window already clear
+ *  stays where it is.  → { left, top }, or null when no seat on the screen clears them.  Pure. */
+export function clearSeat(box, { avoid = [], view, top = 0, gap = 8 }) {
+  const w = box.right - box.left, h = box.bottom - box.top, hiX = view.width - gap - w, hiY = view.height - gap - h;
+  if (hiX < gap || hiY < top) return null;
+  const cx = (x) => Math.min(hiX, Math.max(gap, x)), cy = (y) => Math.min(hiY, Math.max(top, y));
+  const meets = (a, b) => a.left < b.right + gap && a.right > b.left - gap && a.top < b.bottom + gap && a.bottom > b.top - gap;
+  const xs = new Set([box.left, ...avoid.flatMap((o) => [o.right + gap, o.left - gap - w])].map(cx)), ys = new Set([box.top, ...avoid.flatMap((o) => [o.bottom + gap, o.top - gap - h])].map(cy));
+  let best = null, d = Infinity;
+  for (const x of xs) for (const y of ys) {
+    const r = { left: x, top: y, right: x + w, bottom: y + h }, e = Math.hypot(x - box.left, y - box.top);
+    if (e < d && !avoid.some((o) => meets(r, o))) { d = e; best = { left: Math.round(x), top: Math.round(y) }; }
+  }
+  return best;
+}
+/** windowAvoid(fn | null) (1.6.0-alpha.28) — an app says ONCE what every kit window opens clear of: fn(win) → the seen rects (a transport
+ *  bar, a logo, an open work bar), so a window a kit factory creates (MIR OPTIONS, KEYBOARD, FOLDERS…) clears them with no option on each
+ *  factory, as windowGlyphs names their glyphs.  createWindow({ avoid }) is one window's own answer and wins; `avoid: false` opts one out. */
+let AVOID = null;
+export function windowAvoid(fn) { AVOID = typeof fn === 'function' ? fn : null; }
 export function windowGlyphs(table) { for (const [id, g] of Object.entries(table || {})) if (typeof g === 'string' && g) NAMED.set(id, g); }
 
 function titleBar(doc, root, title, onClose, glyph) {
@@ -304,11 +326,14 @@ export function gripGesture(rail, w) {
  *               a long press and the arrows on the drag chip relocate the rail; it does not dock
  *    gripAt     'last' (default) or 'first': where the rail's drag chip stands among the chips
  *    glyph      a glyph name (1.5.6-alpha.3): the window's one drawing — before the title in a title bar, `data-glyph` on the root either way
+ *    avoid      () → rects (1.6.0-alpha.28 A WINDOW OPENS CLEAR): what this window opens clear of, as seen rects; at open() a floating
+ *               window over one of them moves once to the nearest clear seat (clearSeat), its rail with it.  Default: the app's
+ *               windowAvoid(fn), if it named one; `false` opts this window out.
  *    scaledRoom true (1.5.7-alpha.68 A SCALED WINDOW KEEPS TO THE SCREEN): under UI SCALE above 100 % the window, docked, floating or
  *               stacked, is at most the screen's room ÷ the scale tall in its own px (scaledCap), and `min.h` yields to that; the
  *               stored height is kept.  At 100 % and below nothing changes.  The TIMELINE passes it. */
 export function createWindow({ id, title = id, host, chips = [], body, panels, size = { w: 520, h: 360 }, min,
-  resizable = false, emptyDrag = true, dock = null, persist = null, material = null, railGap = RAIL.gap, railTier = 1, chrome = 'rail', gripAt = 'last', glyph = '', scaledRoom = false, onMoved, onOpen, onClose } = {}) {
+  resizable = false, emptyDrag = true, dock = null, persist = null, material = null, railGap = RAIL.gap, railTier = 1, chrome = 'rail', gripAt = 'last', glyph = '', scaledRoom = false, avoid = null, onMoved, onOpen, onClose } = {}) {
   const doc = host.ownerDocument, view = doc.defaultView;
   installOnce(doc);
   min = floorOf(min, resizable);                                    // 1.6.0-alpha.27: a floor only where a hand can resize, never under 280 wide
@@ -341,6 +366,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
   const P = readShape(persist && persist.read ? persist.read() : null, { w: size.w, h: size.h, chipSide: 'left' }, min);
   const wantOpen = P.open; P.open = false;
   let box = null, moving = null, deferred = false, gripping = () => false, kbBefore = null, active = panels && panels.length ? panels[0].name : null;
+  let lastSeat = null;                                               // where the rail last landed (the open's clear seat reads it)
   let reserve = 0, stack = null;                                     // the lego stack: a band kept free above; the window this one sits on
   const seatOf = () => (dock && dock.anchor && typeof dock.anchor.rect === 'function' ? ownOf(dock.anchor.rect()) || null : undefined);   // a seat is a seen rect
   /* a seen rect in the window's px; a seat's `avoid` too (1.5.7-alpha.68: it stayed seen, so under UI SCALE the rail kept off the wrong box) */
@@ -412,10 +438,25 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
       setVar(root, 'left', `${box.left}px`); setVar(root, 'top', `${box.top}px`);
       setVar(root, 'width', `${box.width}px`); setVar(root, 'height', `${box.height}px`);
     }
-    rail.seat(L.seat, { animate });
+    rail.seat(L.seat, { animate }); lastSeat = rail.el ? L.seat : null;
     lastView = viewNow();
     if (onMoved) onMoved({ ...box, right: box.left + box.width, bottom: box.top + box.height });   // a whole rect, as a DOMRect reads (W20 TR: BASINS' shell read `right` and dropped every report)
     return box;
+  }
+  /** 1.6.0-alpha.28 A WINDOW OPENS CLEAR: a floating window that opens over what `avoid` names (this window's own, else the app's
+   *  windowAvoid) moves once, pane and rail together, to the nearest seat that clears them (clearSeat); none on this screen: it stays.
+   *  Only at open(): a hand's later drag is never undone.  A docked, anchored or stacked window keeps its own seat. */
+  function openClear() {
+    const fn = avoid === false ? null : avoid || AVOID;
+    if (typeof fn !== 'function' || P.dock || !box || (stack && stack())) return;
+    let rects; try { rects = fn(api); } catch (err) { console.warn('window: avoid ' + id, err); return; }
+    const list = (Array.isArray(rects) ? rects : []).filter(Boolean).map((r) => ownOf({ left: r.left, top: r.top, right: r.right ?? r.left + r.width, bottom: r.bottom ?? r.top + r.height }));
+    if (!list.length) return;
+    const s = lastSeat, span = { left: Math.min(box.left, s ? s.left : box.left), top: Math.min(box.top, s ? s.top : box.top),
+      right: Math.max(box.left + box.width, s ? s.left + s.width : -Infinity), bottom: Math.max(box.top + box.height, s ? s.top + s.height : -Infinity) };
+    const at = clearSeat(span, { avoid: list, view: viewNow() });
+    if (!at || (at.left === Math.round(span.left) && at.top === Math.round(span.top))) return;
+    P.x = Math.round(box.left + at.left - span.left); P.y = Math.round(box.top + at.top - span.top); layout();
   }
   /** stop the window's own travel where it is seen, so a hand can take it */
   function still() { if (moving) { moving = null; tweenRect(root, ownRect(root)); box = { ...box, ...pick(ownRect(root)) }; } }
@@ -512,7 +553,7 @@ export function createWindow({ id, title = id, host, chips = [], body, panels, s
     open() {
       if (P.open) return;
       P.open = true;
-      shown(true); rail.measure(); layout(); shown(false);
+      shown(true); rail.measure(); layout(); openClear(); shown(false);
       raise();
       presence(root, true); if (rail.el) presence(rail.el, true);
       if (onOpen) onOpen(api);

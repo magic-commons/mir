@@ -3,7 +3,7 @@
  * the window lays out (windowLayout) into that same rect once docked.  Also the persisted shape. */
 import assert from 'node:assert/strict';
 import { DOCK, dockGeometry, dockTargets, anchorTarget, anchorBox } from '../mir/window/dock.js';
-import { windowLayout, dockInput, readShape, floorOf, FLOOR } from '../mir/window/window.js';
+import { windowLayout, dockInput, readShape, floorOf, FLOOR, clearSeat } from '../mir/window/window.js';
 import { measure } from '../mir/core/proximity.js';
 
 let n = 0;
@@ -105,6 +105,19 @@ const geo = (side, dock = 'bottom', height = 300, s = span) => dockGeometry({ sp
   assert.equal(FLOOR.w, 280);
   assert.equal(readShape({ w: 46, h: 46 }, { w: 560, h: 46 }, floorOf({ w: 320, h: 240 }, false)).w, 46, 'a fixed window keeps the size it was given, under any `min`');
   pass('floorOf: a floor only where a hand can resize, never under 280 wide; a fixed window\'s `min` is not read');
+}
+{
+  /* 1.6.0-alpha.28 A WINDOW OPENS CLEAR: the nearest seat that meets none of the rects, 8 px clear of each */
+  const view = { width: 1280, height: 800 }, bar = { left: 300, top: 690, right: 980, bottom: 740 };
+  const box = { left: 400, top: 500, right: 800, bottom: 760 };            // 400 × 260, lying over the bar
+  assert.deepEqual(clearSeat(box, { avoid: [bar], view }), { left: 400, top: 422 }, 'straight up, 8 px above the bar: 690 − 8 − 260');
+  assert.deepEqual(clearSeat({ left: 400, top: 100, right: 800, bottom: 360 }, { avoid: [bar], view }), { left: 400, top: 100 }, 'already clear: it stays');
+  assert.deepEqual(clearSeat(box, { avoid: [], view }), { left: 400, top: 500 }, 'nothing to avoid: it stays');
+  assert.equal(clearSeat({ left: 0, top: 0, right: 1280, bottom: 790 }, { avoid: [bar], view }), null, 'no seat on this screen: null (the window stays where it opened)');
+  assert.equal(clearSeat(box, { avoid: [{ left: 0, top: 0, right: 1280, bottom: 800 }], view }), null, 'everything covered: null');
+  assert.deepEqual(clearSeat({ left: 400, top: 10, right: 800, bottom: 270 }, { avoid: [], view, top: 52 }), { left: 400, top: 52 }, 'never above the band kept free at the top');
+  assert.deepEqual(clearSeat({ left: 400, top: 500, right: 600, bottom: 760 }, { avoid: [bar, { left: 0, top: 0, right: 1280, bottom: 430 }], view }), { left: 92, top: 500 }, 'no room above: beside the bar, on the nearer side');
+  pass('clearSeat: the nearest seat clear of every rect by 8 px; already clear stays; no seat is null');
 }
 
 console.log(`ALL ${n} MIR window dock and layout laws passed`);
