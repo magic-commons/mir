@@ -116,7 +116,11 @@ try {
   a = await hit(headOf('tone'));
   await p.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
   const touch = (type, x, y) => p.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' || type === 'touchCancel' ? [] : [{ x, y, id: 1 }] });
-  await touch('touchStart', a.x, a.y); await sleep(520);
+  /* 1.6.0-alpha.4 THE HOLD IS 550: a finger held 500 ms lifts nothing; held 620 it lifts (the check held 520 over a 400 ms hold) */
+  await touch('touchStart', a.x, a.y); await sleep(500);
+  const early = await run(`return dev('tone').classList.contains('dragging');`);
+  await touch('touchEnd', 0, 0); await sleep(120);
+  await touch('touchStart', a.x, a.y); await sleep(620);
   const lifted = await run(`return dev('tone').classList.contains('dragging');`);
   for (let i = 1; i <= 10; i++) { await touch('touchMove', a.x - i * 45, a.y + i * 4); await sleep(16); }
   const out = await run(`return dev('tone').classList.contains('floating');`);
@@ -124,7 +128,7 @@ try {
   await touch('touchCancel', 0, 0); await sleep(80);
   await p.send('Emulation.setTouchEmulationEnabled', { enabled: false });
   after = await run(`await settle(); return ${snap};`);
-  check('touch: a 400-ms hold lifts the header, the finger carries it off the rack (it floats)', lifted && out, JSON.stringify({ lifted, out }));
+  check('touch: a finger held 500 ms lifts nothing; held past TAP.hold (550 ms) it lifts the header, and carries it off the rack (it floats)', !early && lifted && out, JSON.stringify({ early, lifted, out }));
   check('cancel (pointercancel) after carrying it out and halfway back: it is back in its rack, in its place', JSON.stringify(before) === JSON.stringify(after), JSON.stringify({ before, after }));
 
   /* ── the keyboard: ↓ moves, Enter floats, Enter docks ────────────────────────────────────────────────────── */

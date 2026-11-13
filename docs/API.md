@@ -71,7 +71,7 @@ Notes on the builders:
 |---|---|
 | `setKnobLaw({ travel, fine, keyFine, faderFine, touchTravel })` | Retunes the law and returns the law in force. Defaults (1.5.0-alpha.13): `travel 220`, `fine 8`, `keyFine .125`, `faderFine 8`, `touchTravel 320`. |
 | `dragTravel(event, { touch, travel, fine })` | Pixels for a full scale under the law (1760 with any modifier). It's for drag surfaces the kit did not build. |
-| `tapWatcher(fn)`, `TAP` | The kit's one double-tap law: two presses within `TAP.ms` 300 and `TAP.px` 14 (Josh, 2026-10-07). `tapWatcher(fn)` → `(e?) → true` when this press is the second (fn(e) ran); without an event only the time decides. `controls/gesture.js` re-exports both (`tapHome` is this). |
+| `tapWatcher(fn)`, `TAP` | The kit's one double-tap law: two presses within `TAP.ms` 300 and `TAP.px` 14 (Josh, 2026-10-07). `tapWatcher(fn)` → `(e?) → true` when this press is the second (fn(e) ran); without an event only the time decides. `controls/gesture.js` re-exports both (`tapHome` is this). **THE HOLD IS 550** (1.6.0-alpha.4, Josh 2026-11-12): `TAP.hold` 550 ms and `TAP.slop` 8 px are the one still hold, read wherever a long press lifts, opens or stores — `holdTap` / `onContext`, the rack head (`RACK.longPress`), a window's rail (`RAIL.longPress`), the transport bar (`TRANSPORT.longPress`), INFORMATIONAL (`INFO.longPress`), the XY corner (`HOLD_MS`), the route pop-over and the arc, the timeline's knob menu; `TAP` lives in `core/tap.js` (a leaf) and `kit.js` re-exports it. The lanes' 250 ms is a peek-versus-click split, `PEEK_MS` (`HOLD_MS` is its old name, kept). |
 
 About `setKnobLaw`:
 - `fine` alone retunes every fine gear at once; ⅛ (`fine: 8`) is the default since 1.5.0-alpha.13, on Shift, Alt, Ctrl, Meta or a second finger, for knobs, faders, arrow keys and `bindSliderKeys`.
@@ -1086,7 +1086,7 @@ createLanesPanel(options) → api                      the lanes as a rack card 
 createLanesView(parent, options) → { root, view (the sortableList), layout, refresh(), request(), ids(), lane(id), laneRoot(id), params(), targetId,
                     solo(id), peek(id, on), soloOf(), peeking(), present(on), destroy() }
 laneTargetId(root, laneId, key) · hueCss(v, min, max) · createSolo({ ids, get, set }) → { toggle(id), peek(id, on), latched(), peeking(), forget(), clear() }
-laneKeys(lane) · snapshotLanes(port) · restoreLanes(port, snap) · HOLD_MS (250)
+laneKeys(lane) · snapshotLanes(port) · restoreLanes(port, snap) · PEEK_MS (250; HOLD_MS is its old name)
 
 createRampPanel(options) → api                       the ramp editor as a rack card or in `parent`
   ramp            the port: get() → { stops: [{ at, rgb }], preset? }, set(stops, { preset, live }), lut?(Float32Array, n), subscribe?(fn) → off
