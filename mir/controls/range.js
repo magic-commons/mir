@@ -115,8 +115,8 @@ export function rangeSlider(o = {}) {
     T[which].root.focus({ preventScroll: true });
     if (onThumb && tap[which](e)) return;                              // HOME, and no drag after it (1.6.0-alpha.19: a pixel of travel put the thumb back)
     try { rail.setPointerCapture(e.pointerId); } catch (_) {}
-    drag = { id: e.pointerId, which, lastX: e.clientX, w: r.width || 1, u: norm(state[which]), tie: !!onThumb && state.hi - state.lo <= gap };   // two thumbs on one spot: the first move chooses which one goes
-    rail.classList.add('drag'); T[which].root.classList.add('drag');
+    drag = { id: e.pointerId, which, lastX: e.clientX, w: r.width || 1, u: norm(state[which]), tie: !!onThumb && state.hi - state.lo <= gap, lo0: state.lo, hi0: state.hi };   // two thumbs on one spot: the first move chooses which one goes
+    rail.classList.add('drag'); T[which].root.classList.add('drag'); root.ownerDocument.addEventListener('keydown', esc, true);
     if (!onThumb && gearOf(e, e.pointerId) === 1) { drag.u = u; move(which, denorm(u)); }
   });
   rail.addEventListener('pointermove', (e) => {
@@ -131,12 +131,17 @@ export function rangeSlider(o = {}) {
     if (x < bl || x > bh) drag.u = norm(Math.min(bh, Math.max(bl, x)));                  // pinned against the other thumb: the point stays on the edge
     move(drag.which, denorm(drag.u));
   });
-  const end = (e) => {
-    if (!drag || (e && e.pointerId !== drag.id)) return;
+  /* the lift commits; a cancel (the pointer cancelled, its capture lost, Escape) puts both thumbs back and lands nothing (1.6.0-alpha.20) */
+  const stop = (e) => {
+    if (!drag || (e && e.pointerId !== undefined && e.pointerId !== drag.id)) return null;
     const d = drag; drag = null; rail.classList.remove('drag'); T[d.which].root.classList.remove('drag');
-    paintAll(); land();
+    root.ownerDocument.removeEventListener('keydown', esc, true); try { rail.releasePointerCapture(d.id); } catch (_) {}
+    return d;
   };
-  rail.addEventListener('pointerup', end); rail.addEventListener('pointercancel', end); rail.addEventListener('lostpointercapture', end);
+  const end = (e) => { if (stop(e)) { paintAll(); land(); } };
+  const abort = (e) => { const d = stop(e); if (!d) return; const moved = state.lo !== d.lo0 || state.hi !== d.hi0; state.lo = d.lo0; state.hi = d.hi0; paintAll(); if (moved) emit(); };
+  function esc(e) { if (drag && e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); abort(); } }
+  rail.addEventListener('pointerup', end); rail.addEventListener('pointercancel', abort); rail.addEventListener('lostpointercapture', abort);
   rail.addEventListener('dblclick', (e) => e.preventDefault());   // the second press on a thumb was the double-tap (1.6.0-alpha.19: one home, not two)
   wheelTurn(rail, null, { focus: null });   // 1.6.0-alpha.3 THE WHEEL WAITS FOR A CLICK: the pressed thumb, while it holds the focus, turns by the wheel as by its arrows
   /* the keys, on a thumb: one hundredth of the range, Shift an eighth of it (the one gear), Page ten; Home and End its bounds */

@@ -99,6 +99,23 @@ try {
     check('a mouse double-click is home ONCE on a knob, a fader and a range thumb (the browser fired dblclick three times and none of them answered; the second press starts no drag)',
       near(r.knob, 0.4, 1e-9) && near(r.fader, 0.5, 1e-9) && near(r.lo, 0.1, 1e-9) && r.dbl === 3 && r.n.knob === 2 && r.n.fader === 2 && r.n.range === 2, JSON.stringify(r));
     await J(`W.knob.set(0.4); W.range.set(0.25, 0.75); W.range.lo.setDefault(0.25); if (document.activeElement) document.activeElement.blur(); return 1;`); await sleep(350); }
+  /* 1.6.0-alpha.20 A GESTURE ENDS ONE OF TWO WAYS: Escape mid-drag (a real key) puts a knob, a fader and a range thumb back where the hand found
+     them and lands nothing; so does a cancelled pointer (it committed); the lift after it is nobody's */
+  { const held2 = async (node, label, dx, dy, how, at) => { const s = await need(node, label, at); mods = 0; await mouse('mouseMoved', s.x, s.y); await mouse('mousePressed', s.x, s.y);
+      await mouse('mouseMoved', s.x + dx / 2, s.y + dy / 2); await mouse('mouseMoved', s.x + dx, s.y + dy); await sleep(40);
+      const mid = await J(`return [W.knob.get(), W.fader.get(), W.range.get()[0]];`);
+      if (how === 'esc') { await p.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 }); await p.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 }); }
+      else await J(`const n = ${node}; n.dispatchEvent(new PointerEvent('pointercancel', { pointerId: 1, bubbles: true })); return 1;`);
+      await mouse('mouseMoved', s.x + dx * 2, s.y + dy * 2); await mouse('mouseReleased', s.x + dx * 2, s.y + dy * 2); await sleep(330); return mid; };
+    await J(`W.knob.set(0.4); W.fader.set(0.2); W.range.set(0.25, 0.75); W.n.knob = W.n.fader = W.n.range = 0; return 1;`);
+    const m1 = await held2(K, 'knob (Escape)', 0, -44, 'esc'), m2 = await held2('W.fader.root', 'fader (Escape)', 30, 0, 'esc', [0.6, 0.5]), m3 = await held2(RT0('lo'), 'range lo (Escape)', 40, 0, 'esc');
+    const a = await J(`return { v: [W.knob.get(), W.fader.get(), W.range.get()[0]], n: W.n, drag: [W.knob.dragging(), W.fader.dragging()] };`);
+    check('Escape mid-drag puts a knob, a fader and a range thumb back where the hand found them and lands nothing (each had moved under the hand)',
+      near(m1[0], 0.6, 0.01) && m2[1] > 0.5 && m3[2] > 0.3 && near(a.v[0], 0.4, 1e-9) && near(a.v[1], 0.2, 1e-9) && near(a.v[2], 0.25, 1e-9) && a.n.knob + a.n.fader + a.n.range === 0 && !a.drag[0] && !a.drag[1], JSON.stringify({ m1, m2, m3, a }));
+    const c1 = await held2(K, 'knob (cancel)', 0, -44, 'cancel'), c2 = await held2('W.fader.root', 'fader (cancel)', 30, 0, 'cancel', [0.6, 0.5]);
+    const b = await J(`return { v: [W.knob.get(), W.fader.get()], n: W.n };`);
+    check('a cancelled pointer puts a knob and a fader back too (it committed) and lands nothing', near(c1[0], 0.6, 0.01) && c2[1] > 0.5 && near(b.v[0], 0.4, 1e-9) && near(b.v[1], 0.2, 1e-9) && b.n.knob + b.n.fader === 0, JSON.stringify({ c1, c2, b }));
+    await J(`if (document.activeElement) document.activeElement.blur(); return 1;`); }
 
   /* a second finger is the gear: real touch events */
   await p.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });

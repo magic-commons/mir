@@ -401,14 +401,15 @@ export function knob(o) {
     if (o.wrap) return lo + ((((nv - lo) % (hi - lo)) + (hi - lo)) % (hi - lo));
     return Math.min(hi, Math.max(lo, nv));
   };
-  let p0 = 0, vd = null, acc = 0;
+  let p0 = 0, vd = null, acc = 0, v0 = 0;                 // v0: the value the hand found, where an abort puts it back
   /* THE GESTURE belongs to the pointer that started it: a second finger (the fine gear) is neither a new drag nor a move of this one. */
   dial.addEventListener('pointerdown', (e) => {
     if (disabled || dragging) return;
     e.preventDefault();
     if (tap(e)) return;                                 // HOME, and no drag after it (1.6.0-alpha.19: the drag it began started from the value before home)
     try { dial.setPointerCapture(e.pointerId); } catch (_) {}   // a pointer already gone (or a synthetic one) must not abort the drag
-    dragging = true; root.classList.add('drag'); root.classList.add('active'); p0 = norm(v); acc = 0;   // p0 is the BASE: a routed knob's drag moves the range, never teleports it to where the modulator was
+    dragging = true; root.classList.add('drag'); root.classList.add('active'); p0 = norm(v); acc = 0; v0 = v;   // p0 is the BASE: a routed knob's drag moves the range, never teleports it to where the modulator was
+    document.addEventListener('keydown', esc, true);
     vd = verticalDrag(e, { travel: o.travel, fine: o.fine, axis: o.dragAxis === 'sum' ? 'sum' : 'y' });
   });
   dial.addEventListener('pointermove', (e) => {
@@ -418,9 +419,18 @@ export function knob(o) {
     const nv = settle(denorm(o.wrap ? p0 + dp : clamp01(p0 + (rev ? -dp : dp))));
     if (nv !== v) { v = nv; paint(); if (o.onInput) o.onInput(v); }
   });
-  const end = (e) => { if (!dragging || (e && e.isTrusted && vd && e.pointerId !== vd.id)) return;   // a synthetic cancel (the timeline's hold, a test) ends it whoever it names
-    dragging = false; vd = null; root.classList.remove('drag'); setTimeout(() => root.classList.remove('active'), 700); if (o.onChange && !o.onDelta) o.onChange(v); };
-  dial.addEventListener('pointerup', end); dial.addEventListener('pointercancel', end); dial.addEventListener('lostpointercapture', end);
+  /* A GESTURE ENDS ONE OF TWO WAYS (core/pointer.js; 1.6.0-alpha.20 THE KNOB AND THE FADER TAKE THE ABORT): the lift commits; a cancel — the
+     pointer cancelled, its capture lost, Escape — puts the value back where the hand found it and lands nothing, as on the arc and the lane */
+  const stop = (e) => { if (!dragging || (e && e.isTrusted && vd && e.pointerId !== vd.id)) return false;   // a synthetic cancel (the timeline's hold, a test) ends it whoever it names
+    const id = vd.id; dragging = false; vd = null; root.classList.remove('drag'); setTimeout(() => root.classList.remove('active'), 700);
+    document.removeEventListener('keydown', esc, true); try { dial.releasePointerCapture(id); } catch (_) {}
+    return true; };
+  const end = (e) => { if (stop(e) && o.onChange && !o.onDelta) o.onChange(v); };
+  const abort = (e) => { if (!stop(e)) return;
+    if (o.onDelta) { if (acc) { turn = ((turn - acc * 360) % 360 + 360) % 360; o.onDelta(-acc * 2 * Math.PI); announce(true); } return; }   // a wheel turns back what it turned
+    if (v !== v0) { v = v0; if (o.onInput) o.onInput(v); } paint(); };
+  function esc(e) { if (dragging && e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); abort(); } }
+  dial.addEventListener('pointerup', end); dial.addEventListener('pointercancel', abort); dial.addEventListener('lostpointercapture', abort);
   const reset = () => { if (disabled) return; if (o.onDelta) { if (o.onReset) o.onReset(); return; } v = def; paint(); if (o.onInput) o.onInput(v); if (o.onChange) o.onChange(v); };
   const tap = tapWatcher(reset);                       // two taps within 300 ms and 14 px reset the control to its default …
   dial.addEventListener('dblclick', (e) => e.preventDefault());   // … and a double-CLICK is that second press, already answered (1.6.0-alpha.19: it ran home a second time)
@@ -621,7 +631,7 @@ export function fader(o) {
   const edge = el('div', 'fd-edge', root);
   const lbl = label(el('div', 'fd-lbl', root), o.label || '');
   const val = el('div', 'fd-val', root);
-  let v = o.value, def = o.value, dragging = false, lastX = 0;
+  let v = o.value, def = o.value, dragging = false, lastX = 0, v0 = 0;   // v0: the value the hand found, where an abort puts it back
   const lo = o.min, hi = o.max;
   const fmt = o.fmt || ((x) => x.toFixed(3));
   const log = !!o.log && lo > 0 && hi > lo;   // a log fader: FREQ-shaped ranges on a slider
@@ -659,11 +669,16 @@ export function fader(o) {
   const fromEvent = (e) => { const r = root.getBoundingClientRect(); return denorm((e.clientX - r.left) / Math.max(1, r.width)); };
   watchTouches();
   let gid = null;   // the pointer that owns the gesture: a second finger is the fine gear, not a second drag
-  root.addEventListener('pointerdown', (e) => { if (disabled || dragging || e.button) return;   /* 1.6.0-alpha.18: the left button, a finger or a pen alone drags; the right button is the menu's */ e.preventDefault(); if (tap(e)) return;   /* HOME, and no drag after it (1.6.0-alpha.19: the press then threw the value back to the pointer) */ try { root.setPointerCapture(e.pointerId); } catch (_) {} dragging = true; gid = e.pointerId; root.classList.add('drag'); lastX = e.clientX; if (!fineHeld(e, gid)) v = fromEvent(e); paint(); if (o.onInput) o.onInput(v); });
+  root.addEventListener('pointerdown', (e) => { if (disabled || dragging || e.button) return;   /* 1.6.0-alpha.18: the left button, a finger or a pen alone drags; the right button is the menu's */ e.preventDefault(); if (tap(e)) return;   /* HOME, and no drag after it (1.6.0-alpha.19: the press then threw the value back to the pointer) */ try { root.setPointerCapture(e.pointerId); } catch (_) {} dragging = true; gid = e.pointerId; v0 = v; document.addEventListener('keydown', esc, true); root.classList.add('drag'); lastX = e.clientX; if (!fineHeld(e, gid)) v = fromEvent(e); paint(); if (o.onInput) o.onInput(v); });
   let dragRect = null;   // 2026-09-11: the rect is read once per drag, not once per move
   root.addEventListener('pointermove', (e) => { if (!dragging || e.pointerId !== gid) return; if (fineHeld(e, gid)) { const r = dragRect || (dragRect = root.getBoundingClientRect()); v = denorm(norm(v) + (e.clientX - lastX) / Math.max(1, r.width * fine)); } else v = fromEvent(e); lastX = e.clientX; paint(); if (o.onInput) o.onInput(v); });
-  const end = (e) => { if (!dragging || (e && e.isTrusted && e.pointerId !== gid)) return; dragging = false; gid = null; dragRect = null; root.classList.remove('drag'); if (o.onChange) o.onChange(v); };
-  root.addEventListener('pointerup', end); root.addEventListener('pointercancel', end); root.addEventListener('lostpointercapture', end);
+  /* the lift commits; a cancel (the pointer cancelled, its capture lost, Escape) puts the value back and lands nothing (1.6.0-alpha.20, as the knob) */
+  const stop = (e) => { if (!dragging || (e && e.isTrusted && e.pointerId !== gid)) return false; const id = gid; dragging = false; gid = null; dragRect = null; root.classList.remove('drag');
+    document.removeEventListener('keydown', esc, true); try { root.releasePointerCapture(id); } catch (_) {} return true; };
+  const end = (e) => { if (stop(e) && o.onChange) o.onChange(v); };
+  const abort = (e) => { if (!stop(e)) return; if (v !== v0) { v = v0; if (o.onInput) o.onInput(v); } paint(); };
+  function esc(e) { if (dragging && e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); abort(); } }
+  root.addEventListener('pointerup', end); root.addEventListener('pointercancel', abort); root.addEventListener('lostpointercapture', abort);
   const reset = () => { if (disabled) return; v = def; paint(); if (o.onInput) o.onInput(v); if (o.onChange) o.onChange(v); };   // a disabled fader does not reset either (1.4.0)
   const tap = tapWatcher(reset);
   root.addEventListener('dblclick', (e) => e.preventDefault());   // the second press was the double-tap (1.6.0-alpha.19: one home, not two)
