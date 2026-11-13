@@ -139,36 +139,36 @@ The timeline's keys are rows of the app's one key table (`docs/KEYS.md`), rebind
 <!-- SHORTCUTS -->
 ### Keyboard: rows of the app’s key table, live while the timeline’s surface has the focus
 
-| Key | Action | FL / BASINS |
+| Key | Action | FL / MIR |
 |---|---|---|
 | Ctrl+A | Select all clips | FL — Select All |
 | Ctrl+D | Deselect | FL — Deselect selection |
-| Ctrl+B | Duplicate the selection, placed to its right | BASINS — FL documents no Ctrl+B; every copy gets an independent source, never a linked one |
+| Ctrl+B | Duplicate the selection, placed to its right | MIR — FL documents no Ctrl+B; every copy gets an independent source, never a linked one |
 | Ctrl+C | Copy the selection | FL — Copy selection |
 | Ctrl+X | Cut the selection | FL — Cut selection |
 | Ctrl+V | Paste at the playhead, into the active lane | FL — Paste selection |
 | Ctrl+Z | Undo | standard — not an FL Playlist binding |
 | Ctrl+Shift+Z · Ctrl+Y | Redo | standard — not an FL Playlist binding |
-| Ctrl+Enter | Set the time range to the selection’s span | BASINS |
-| Ctrl+← | Slide the time range back by its own width | BASINS |
-| Ctrl+→ | Slide the time range forward by its own width | BASINS |
-| Del · Bksp | Delete the selection | BASINS — FL’s Backspace toggles Global Snap; not adopted, since an iPad keyboard has no forward Delete |
+| Ctrl+Enter | Set the time range to the selection’s span | MIR |
+| Ctrl+← | Slide the time range back by its own width | MIR |
+| Ctrl+→ | Slide the time range forward by its own width | MIR |
+| Del · Bksp | Delete the selection | MIR — FL’s Backspace toggles Global Snap; not adopted, since an iPad keyboard has no forward Delete |
 | Home | Seek to the beginning | FL — Move playback marker to start |
 | Num Multiply | Seek to the next measure | FL — Next bar |
 | Num Divide | Seek to the previous measure | FL — Previous bar |
-| Shift+0 | Center the view on the playhead | BASINS |
+| Shift+0 | Center the view on the playhead | MIR |
 | Shift+1 | Zoom to 12px per beat | FL — Horizontal Zoom level 1 |
 | Shift+2 | Zoom to 20px per beat | FL — Horizontal Zoom level 2 |
 | Shift+3 | Zoom to 40px per beat | FL — Horizontal Zoom level 3 |
 | Shift+4 | Zoom to show the whole arrangement | FL — Horizontal Zoom, show all |
-| Shift+5 · Shift+Z | Zoom to the selection | FL — Zoom to selection (Shift+5); Shift+Z is BASINS’ own, kept beside it |
+| Shift+5 · Shift+Z | Zoom to the selection | FL — Zoom to selection (Shift+5); Shift+Z is MIR’s own, kept beside it |
 | Shift+I | Invert the clip selection | FL — Invert selection |
 | PgUp | Zoom in | FL — Zoom in |
 | PgDn | Zoom out | FL — Zoom out |
 | Shift+← · Alt+Shift+← | Move the selection earlier by the snap (Alt: a sixteenth) | FL — Shift+arrows move clips |
 | Shift+→ · Alt+Shift+→ | Move the selection later by the snap (Alt: a sixteenth) | FL — Shift+arrows move clips |
-| Shift+↑ | Move the selection up a lane | BASINS — FL has no lane axis to move on |
-| Shift+↓ | Move the selection down a lane | BASINS — FL has no lane axis to move on |
+| Shift+↑ | Move the selection up a lane | MIR — FL has no lane axis to move on |
+| Shift+↓ | Move the selection down a lane | MIR — FL has no lane axis to move on |
 | E | Select mode | FL — Select tool |
 | P | Pencil mode | FL — Draw tool (P) |
 | Y | Preview mode: a press plays from there while held, a drag scrubs | FL — Playback tool (Y) |
@@ -178,14 +178,14 @@ The timeline's keys are rows of the app's one key table (`docs/KEYS.md`), rebind
 | — | Delete mode: the left button deletes what it crosses | FL — Delete tool (D); unbound in MIR |
 | — | Mute mode: a press mutes or unmutes a clip | FL — Mute tool (T); unbound in MIR |
 | — | Zoom mode: drag a range to zoom to it, click to zoom out | FL — Zoom tool (Z); unbound in MIR |
-| Ins | Slice every selected clip at the playhead (one undo) | BASINS — FL slices with the tool; Insert cuts the selection at the playhead |
-| Shift+T | Fit each selected audio clip’s remaining audio into its length (varispeed) | BASINS — Shift+T |
-| Space | Play / pause, exact resume | BASINS — the transport’s one play (transportActions); FL’s Space stops to the start position instead |
-| Escape | Cancel the gesture in flight, close menus, rewind a cancelled scrub | BASINS — active wherever the timeline is open |
+| Ins | Slice every selected clip at the playhead (one undo) | MIR — FL slices with the tool; Insert cuts the selection at the playhead |
+| Shift+T | Fit each selected audio clip’s remaining audio into its length (varispeed) | MIR — Shift+T |
+| Space | Play / pause, exact resume | MIR — the transport’s one play (transportActions); FL’s Space stops to the start position instead |
+| Escape | Cancel the gesture in flight, close menus, rewind a cancelled scrub | MIR — active wherever the timeline is open |
 
 ### Pointer and touch
 
-| Key | Action | FL / BASINS |
+| Key | Action | FL / MIR |
 |---|---|---|
 | Middle button, hold + drag | Pan time and tracks | FL — Middle-Mouse-Click pans |
 | Middle click on the lanes · middle + right together · the bar’s MODE chip | Open THE MODE MENU: the nine modes (the left button’s tool) and this window’s menus | FL — Middle-Mouse-Click + Right-Click opens the context tool-menu; the lone middle click and the chip are MIR’s |
@@ -209,11 +209,11 @@ The timeline's keys are rows of the app's one key table (`docs/KEYS.md`), rebind
 | Preview: press · drag | Play from the press while it is held; a drag scrubs (the hand leads) | FL — the Playback tool: a click plays from there, a drag scrubs |
 | Shift + drag the ruler | Select a time range; + Ctrl/Cmd extends it | adapted — FL selects by dragging the bar-ruler |
 | Select: drag the ruler | Select a time range (no key, so touch can); a tap seeks and keeps the range | FL — dragging the bar-ruler selects time |
-| Drag the ruler | Scrub: the playhead follows the hand, free of Snap; the range stays | BASINS — the hand leads |
+| Drag the ruler | Scrub: the playhead follows the hand, free of Snap; the range stays | MIR — the hand leads |
 | Double-click the ruler | Clear the time range (two presses within 300 ms at one spot); no single click clears it | MIR — Josh 2026-11-09; FL clears the selection on a click |
-| Ctrl/Cmd + vertical drag on the ruler | Zoom time around the pointer’s beat (up = in) | BASINS — a touch-friendly zoom; a horizontal Ctrl-drag scrubs on Snap |
-| Hold a knob | Create a timeline clip from it, or locate its clips | BASINS |
-| ACTIVE (toolbar) | Mark the ruler’s range, or the whole arrangement, as the active range; again to clear | BASINS — the range the record window renders |
+| Ctrl/Cmd + vertical drag on the ruler | Zoom time around the pointer’s beat (up = in) | MIR — a touch-friendly zoom; a horizontal Ctrl-drag scrubs on Snap |
+| Hold a knob | Create a timeline clip from it, or locate its clips | MIR |
+| ACTIVE (toolbar) | Mark the ruler’s range, or the whole arrangement, as the active range; again to clear | MIR — the range the record window renders |
 | Slice: click a clip · drag down the lanes | Cut the clip at the pointer’s beat (Snap applies, Alt bypasses); a drag cuts every clip its line crosses there (one undo) | FL — the Slice tool: click and drag vertically to slice |
 | Drag a pattern / audio clip body | Move it (Shift or Ctrl copies, right-button deletes); it has no points | FL — pattern clips move from their body |
 | Right-drag empty clip space | Add and place a point | FL — Right-Click + drag adds a point |
@@ -222,7 +222,7 @@ The timeline's keys are rows of the app's one key table (`docs/KEYS.md`), rebind
 | Shift (held) while dragging a point or tension | Fine-tune it (⅛; a point’s time is free of Snap) | adapted — FL fines tension with Ctrl; Shift is MIR’s fine gear |
 | Ctrl/Cmd (held) while moving a point | Lock its time | FL — Ctrl locks horizontal |
 | Ctrl/Cmd + drag a tension handle | Repeat the segment between its two points: up adds copies of its shape (one per 24 px), down makes mirrored copies, or takes back copies made going up | MIR — Ctrl shapes (Josh, 040) |
-| Right-click a tension handle | Reset it | BASINS — FL’s right-click opens a Delete menu instead |
+| Right-click a tension handle | Reset it | MIR — FL’s right-click opens a Delete menu instead |
 | Alt + left-click a point | Delete it | adapted — FL’s manual names Right-Alt+click specifically |
 | Alt (held) | Bypass Snap for the gesture in progress | FL — Alt temporarily sets snap to none |
 <!-- /SHORTCUTS -->
