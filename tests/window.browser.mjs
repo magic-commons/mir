@@ -112,6 +112,13 @@ try {
     const Z = createWindow({ id: 'rz', host, size: { w: 400, h: 300 }, min: { w: 200, h: 100 }, resizable: true, body: (b) => { b.textContent = 'r'; } }); Z.open();
     D.resize({ w: 120, h: 90 }); Z.resize({ w: 120, h: 90 });
     const out = { dflt: press(D), own: press(O), fixed: D.state(), sized: Z.state() }; D.destroy(); O.destroy(); Z.destroy(); return out;`);
+  /* 1.6.0-alpha.33 A RAIL KEEPS ITS SIDE: a pane as wide as the page yields its rail's lane */
+  const keep = await run(`const { createWindow } = await import('/mir/window/window.js'); const host = A.root.parentElement;
+    const W = createWindow({ id: 'wide', host, size: { w: 4000, h: 200 }, body: (b) => { b.textContent = 'wide'; } }); W.open(); await wait(350);
+    const r = W.root.getBoundingClientRect(), q = W.rail.el.getBoundingClientRect();
+    const out = { side: W.rail.el.dataset.side, pane: [Math.round(r.left), Math.round(r.width)], rail: [Math.round(q.left), Math.round(q.right)], view: innerWidth, stored: W.state().w }; W.destroy(); return out;`);
+  check('1.6.0-alpha.33: a rail keeps its side — a pane as wide as the page yields the lane and stands beside its left rail (the rail does not go to another edge); the stored width is kept',
+    keep.side === 'left' && keep.rail[0] === 4 && keep.rail[1] <= keep.pane[0] && keep.pane[0] + keep.pane[1] === keep.view - 4 && keep.stored === 4000, JSON.stringify(keep));
   /* 1.6.0-alpha.28 A WINDOW OPENS CLEAR: createWindow({ avoid }) and the app's windowAvoid(fn) */
   const clr = await run(`const { createWindow, windowAvoid } = await import('/mir/window/window.js'); const host = A.root.parentElement;
     const bar = { left: 300, top: 600, right: 980, bottom: 660 }, meets = (w) => { const r = w.root.getBoundingClientRect(), q = w.rail.el ? w.rail.el.getBoundingClientRect() : r;

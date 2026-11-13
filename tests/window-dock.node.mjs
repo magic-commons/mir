@@ -119,5 +119,27 @@ const geo = (side, dock = 'bottom', height = 300, s = span) => dockGeometry({ sp
   assert.deepEqual(clearSeat({ left: 400, top: 500, right: 600, bottom: 760 }, { avoid: [bar, { left: 0, top: 0, right: 1280, bottom: 430 }], view }), { left: 92, top: 500 }, 'no room above: beside the bar, on the nearer side');
   pass('clearSeat: the nearest seat clear of every rect by 8 px; already clear stays; no seat is null');
 }
+{
+  /* 1.6.0-alpha.33 A RAIL KEEPS ITS SIDE: on a page too narrow for pane and rail side by side, the pane yields the lane */
+  const small = { width: 1000, height: 700 }, sizes = { vertical: { w: 52, h: 406 }, horizontal: { w: 406, h: 52 } };
+  const kb = { x: null, y: null, w: 1080, h: 416, open: true, dock: null, chipSide: 'left' };
+  const L = windowLayout(kb, { view: small, sizes });
+  assert.equal(L.seat.side, 'left', 'KEYBOARD at 1000 × 700: the rail stays on the left (it went to the top)'); assert.ok(L.seat.fits);
+  assert.deepEqual({ left: L.box.left, width: L.box.width }, { left: 56, width: 940 }, 'the pane is the view less the lane (1000 − 8 − 52), beside the rail');
+  assert.equal(L.seat.left + L.seat.width, L.box.left, 'rail and pane side by side');
+  const R = windowLayout({ ...kb, chipSide: 'right' }, { view: small, sizes, gap: { left: 0, right: 8, top: 0, bottom: 0 } });
+  assert.equal(R.seat.side, 'right'); assert.equal(R.box.left + R.box.width + 8, R.seat.left, 'on the right, its 8 px gap counted in the lane');
+  const wide = windowLayout(kb, { view: { width: 1280, height: 800 }, sizes });
+  assert.deepEqual({ left: wide.box.left, width: wide.box.width, side: wide.seat.side }, { left: 100, width: 1080, side: 'left' }, 'a page with room: nothing changes');
+  const auto = windowLayout({ ...kb, chipSide: 'auto' }, { view: small, sizes });
+  assert.equal(auto.box.width, 984, 'no side chosen: the solver as before');
+  const parked = windowLayout({ ...kb, x: -300, y: 100 }, { view: small, sizes });
+  assert.equal(parked.box.left, -300, 'a pane the hand parked partly off the screen is not pulled back');
+  const none = windowLayout(kb, { view: small, sizes: { vertical: { w: 0, h: 0 }, horizontal: { w: 0, h: 0 } } });
+  assert.equal(none.box.width, 984, 'a window with no rail (a title bar) yields nothing');
+  const tall = windowLayout({ x: null, y: null, w: 400, h: 900, open: true, dock: null, chipSide: 'top' }, { view: small, sizes });
+  assert.equal(tall.seat.side, 'top'); assert.equal(tall.box.height, 700 - 8 - 52, 'a top rail: the pane yields height');
+  pass('windowLayout: a rail keeps its side on a narrow page — the pane yields the lane and makes room; auto, a parked pane, a railless window and a roomy page are untouched');
+}
 
 console.log(`ALL ${n} MIR window dock and layout laws passed`);

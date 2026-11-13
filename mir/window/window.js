@@ -34,7 +34,7 @@ import { presence, tweenRect, owns, settled } from '../core/motion.js';
 import { rect, setVar, setAttr } from '../core/perf.js';
 import { ariaLabel, label, hint } from '../kit.js';
 import { glyphEl, hasGlyph } from '../glyph.js';
-import { createRail, seatRail, seatOn, nearestSide, roomFor, markForwarded, RAIL } from './rail.js';
+import { createRail, seatRail, seatOn, nearestSide, roomFor, markForwarded, gapOf, SIDES, RAIL } from './rail.js';
 import { dockGeometry, createDockGuide, anchorBox } from './dock.js';
 import { cssZoom, ownRect } from '../core/zoom.js';
 
@@ -117,12 +117,22 @@ export function windowLayout(P, env) {
     const g = dockGeometry({ ...dockInput(P, env), dock: P.dock });
     if (g) { const box = { left: g.left, top: g.top, width: g.width, height: g.height }; return { box, seat: seatOn(g.side, box, sizes, view), docked: P.dock }; }
   }
-  const w = Math.min(P.w, view.width - CLAMP.inset), h = Math.min(P.h, roomH(env));
+  let w = Math.min(P.w, view.width - CLAMP.inset), h = Math.min(P.h, roomH(env));
+  /* 1.6.0-alpha.33 A RAIL KEEPS ITS SIDE (λWAVES 044 L72, REVIEW-H H25): on a page too narrow for the pane and its rail side by side the
+     solver found no room on the chosen side and stood the rail on another (KEYBOARD's left rail went to the top at 1000 × 700, over the
+     stage's title).  The pane yields the rail's lane instead, as a docked window's landing does: it is at most the view less the lane
+     wide (a top or bottom rail: tall), and a pane standing whole on the screen makes room on that side.  One the hand parked partly
+     off the screen is left to the solver, as before; 'auto' (no side chosen) and a window with no rail are untouched. */
+  const side = SIDES.includes(P.chipSide) ? P.chipSide : null, across = side === 'left' || side === 'right';
+  const rs = side && sizes ? sizes[across ? 'vertical' : 'horizontal'] : null, lane = rs && rs.w > 0 && rs.h > 0 ? (across ? rs.w : rs.h) + gapOf(env.gap ?? 0, side) : 0;
+  const room = (across ? view.width : view.height) - 2 * RAIL.pad - lane, tight = lane > 0 && (across ? w : h) > room && room >= CLAMP.x;
+  if (tight) { if (across) w = room; else h = room; }
   /* env.top: a floating window stays below a reserved band (BASINS snap-window.js: P.y = max(P.y, bounds().top)) */
   const x = P.x ?? Math.round((view.width - w) / 2), y = Math.max(env.top ?? -Infinity, P.y ?? Math.round(Math.max(CLAMP.top, (view.height - h) / 2)));
   /* 1.5.6-alpha.3 (λWAVES 021 V1) · THE TALL WINDOW: one too tall to sit below the top band keeps its bottom (and its resize corner) on screen */
   const low = h > view.height - CLAMP.top - CLAMP.inset / 2 ? Math.max(0, view.height - h - CLAMP.inset / 2) : view.height - CLAMP.y;
-  const box = { left: clamp(x, CLAMP.x - w, view.width - CLAMP.x), top: clamp(y, 0, Math.min(low, view.height - CLAMP.y)), width: w, height: h };
+  let box = { left: clamp(x, CLAMP.x - w, view.width - CLAMP.x), top: clamp(y, 0, Math.min(low, view.height - CLAMP.y)), width: w, height: h };
+  if (tight && box.left >= 0 && box.top >= 0 && box.left + w <= view.width && box.top + h <= view.height) box = roomFor(box, side, sizes, view, RAIL.pad, env.gap ?? 0);   // whole on the screen: it makes the lane
   return { box, seat: seatRail({ prefer: P.chipSide, box, sizes, view, gap: env.gap ?? 0 }), docked: null };
 }
 
