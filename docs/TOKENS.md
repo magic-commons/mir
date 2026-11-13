@@ -760,8 +760,8 @@ Durations and easings (docs/MOTION-LAW.md).
 | `--ease-out` | semantic | easing | `cubic-bezier(.22, 1, .36, 1)` |  | kit | ✓ | stable |  | 1.5 core: the out curve; F1 §5.2 proposed the name. MOTION-LAW's entrance curve (.23,1,.32,1) is a different literal in base.css |
 | `--logo-turn` | primitive | duration | `1.2s` |  | kit | ✓ | stable |  | one turn of the palette through the mark |
 | `--m2-motion-ease` | component | easing | `cubic-bezier(.2, .7, .2, 1)` |  | plugin |  | stable |  | plugin easing |
-| `--m2-motion-micro` | component | duration | `80ms` |  | plugin |  | stable |  | plugin micro motion: 80 ms; 0 in the flat tier and under data-motion="off" (and reduced motion) |
-| `--m2-motion-structural` | component | duration | `120ms` |  | plugin |  | stable |  | plugin structural motion: 120 ms; 0 in the flat tier and under data-motion="off" (and reduced motion) |
+| `--m2-motion-micro` | component | duration | `var(--motion-micro, 80ms)` |  | plugin |  | stable |  | plugin micro motion: the house's --motion-micro (80 ms; an alias of equal value since 1.6.0-alpha.10); 0 in the flat tier and under data-motion="off" (and reduced motion) |
+| `--m2-motion-structural` | component | duration | `var(--t-fast, 120ms)` |  | plugin |  | stable |  | plugin structural motion: the house's --t-fast (120 ms; an alias of equal value since 1.6.0-alpha.10); 0 in the flat tier and under data-motion="off" (and reduced motion) |
 | `--motion-micro` | semantic | duration | `80ms` |  | kit | ✓ | stable |  | 1.5 core (mir/core/core.css): micro motion, 80ms; 0 under data-motion="off"; = --m2-motion-micro |
 | `--motion-structural` | semantic | duration | `320ms` |  | kit | ✓ | stable |  | 1.5 core: rack and window motion, 320ms (BASINS RACK_MOTION); the plugin's --m2-motion-structural is 120ms *[read-by-js]* |
 | `--motion-ui` | semantic | duration | `160ms` |  | kit | ✓ | stable |  | 1.5 core: a UI change, 160ms |
@@ -775,7 +775,7 @@ Durations and easings (docs/MOTION-LAW.md).
 | `--ease-linear` | primitive | easing | `linear` |  | kit | ✓ | stable |  | the constant curve, `linear`: the proximity guide's fades and the wordmark's palette turn |
 | `--dev-enter-time` | component | duration | `.22s` |  | kit | ✓ | stable |  | the window entrance (layout.reopen): 220 ms |
 | `--dev-enter-ease` | component | easing | `cubic-bezier(.23, 1, .32, 1)` |  | kit | ✓ | stable |  | the window entrance's curve, MOTION-LAW's entrance easing (a hair from core.css --ease-out) |
-| `--m2-ease` | component | easing | `ease` |  | plugin | ✓ | stable |  | FROST value (MIR 1.5.0-alpha.4), ease |
+| `--m2-ease` | component | easing | `var(--ease-std, ease)` |  | plugin | ✓ | stable |  | FROST value (MIR 1.5.0-alpha.4), ease: the house's --ease-std (an alias of equal value since 1.6.0-alpha.10) |
 | `--m2-ease-spring` | component | easing | `cubic-bezier(0.34, 1.56, 0.64, 1)` |  | plugin | ✓ | stable |  | FROST value (MIR 1.5.0-alpha.4), ease |
 | `--m2-t-140` | component | duration | `140ms` |  | plugin | ✓ | stable |  | FROST value (MIR 1.5.0-alpha.4), t |
 | `--m2-t-240` | component | duration | `240ms` |  | plugin | ✓ | stable |  | FROST value (MIR 1.5.0-alpha.4), t |
@@ -1409,10 +1409,10 @@ The project window (docs/FOLDERS.md).
 | `--tl-tension-w` | component | number | `1.5` |  | kit | ✓ | stable |  | the timeline plugin's tension w (BASINS timeline-window.css, 2026-10-01) |
 | `--tl-point-hover` | component | number | `1.35` |  | kit | ✓ | stable |  | the timeline plugin's point hover (BASINS timeline-window.css, 2026-10-01) |
 | `--tl-fade` | component | duration | `200ms` |  | kit | ✓ | stable |  | the timeline plugin's fade (BASINS timeline-window.css, 2026-10-01) |
-| `--tl-quick` | component | duration | `120ms` |  | kit | ✓ | stable |  | the timeline plugin's quick (BASINS timeline-window.css, 2026-10-01) |
+| `--tl-quick` | component | duration | `var(--t-fast, 120ms)` |  | kit | ✓ | stable |  | the timeline plugin's quick (BASINS timeline-window.css, 2026-10-01): the house's --t-fast (120 ms; an alias of equal value since 1.6.0-alpha.10) |
 | `--tl-tab-t` | component | duration | `180ms` |  | kit | ✓ | stable |  | the timeline plugin's tab t (BASINS timeline-window.css, 2026-10-01) |
 | `--tl-pop-t` | component | duration | `140ms` |  | kit | ✓ | stable |  | the timeline plugin's pop t (BASINS timeline-window.css, 2026-10-01) |
-| `--tl-ease` | component | easing | `ease` |  | kit | ✓ | stable |  | the timeline plugin's ease (BASINS timeline-window.css, 2026-10-01) |
+| `--tl-ease` | component | easing | `var(--ease-std, ease)` |  | kit | ✓ | stable |  | the timeline plugin's ease (BASINS timeline-window.css, 2026-10-01): the house's --ease-std (an alias of equal value since 1.6.0-alpha.10) |
 | `--tl-ease-spring` | component | easing | `cubic-bezier(.2, .8, .2, 1)` |  | kit | ✓ | stable |  | the timeline plugin's ease spring (BASINS timeline-window.css, 2026-10-01) |
 | `--tl-playhead-w` | component | length | `1.5px` |  | kit | ✓ | stable |  | the timeline plugin's playhead w (BASINS timeline-window.css, 2026-10-01) |
 | `--tl-flag-w` | component | length | `7px` |  | kit | ✓ | stable |  | the timeline plugin's flag w (BASINS timeline-window.css, 2026-10-01) |
