@@ -64,7 +64,7 @@ A registered window costs one Map entry. Its `device()` shell is made, and its `
 - `bare: true` (1.5.6-alpha.28, λWAVES 032 C2): popped off the rack (floating, not compact), the card draws no title bar — its rail chip and its × stay, at its top corner over the body (the house skin hides the pop chip everywhere) — and its empty glass is the handle the title bar was. Docked, nothing changes;
 - the lifecycle hooks, each called with `api` last: `onOpen`, `onWake` (a reopen), `onClose` and `onSleep` (the same moment, two names), `onFold(folded)`, `onPower(live)`, `onPresent(canPresent)`.
 
-The window's `api` is `{ id, dev, root, body, setStatus, canPresent(), open(), close(), raise(), isOpen, floating, side }`.
+The window's `api` is `{ id, dev, root, body, setStatus, canPresent(), open(), close(), raise(), power(on?), on, isOpen, floating, side }`.
 
 **Windows.**
 - `open(id, { side, index })`: builds the window if it was never built, and puts it at the top of its rack unless told where.
@@ -73,6 +73,17 @@ The window's `api` is `{ id, dev, root, body, setStatus, canPresent(), open(), c
 - `raise(id)`: opens it, unfolds it, shows the rack, and brings it to the top of its rack (or to the front if it floats).
 - `fold(id, on?)`.
 - `move(id, { side, index })`.
+- `power(id, on?)` (1.6.0-alpha.29): **presses power as the hand does**. It is the click on the card's ⏻: `on` true powers it on, false off, left out flips it; already there, nothing is pressed. `false` for an id that was never built.
+
+**Power: which road runs what** (1.6.0-alpha.29, λWAVES 044 L134 · L135). Three things can hear a card's power, and a press is not a restore:
+
+| the road | `register({ onPower })` | `device({ onPower })` (the card's own option) | the `devpower` event |
+|---|---|---|---|
+| a click on ⏻ · `rack.power(id, on)` · the window api's `power(on)` | runs | runs | dispatched |
+| a restore: `apply(layout)`, a ☆ layout, the reload's layout, `resetLayout()` — they call `dev.setOff` | runs for a window the rack **built** (`build`): its registration's hook *is* its device's option · does **not** run for an adopted `device()` result | runs (the option fires on every `setOff`) | not dispatched |
+| the same restore on a card adopted as a bare **element** (`el: aDevElement`): the rack has no `setOff`, so it presses the button | runs | runs | not dispatched |
+
+So a hook that must follow the hand only (λWAVES' ATOMS: "a project restoring the window's power never moves the operator") is the **registration's** `onPower` on an adopted `device()` result, or a `devpower` listener. `devpower` is dispatched on the card (`.dev`), bubbles, and carries `detail: { on }`; it comes after the card's own listeners, so the card has already switched when it is heard — a second module joins a card's power with it, as with `devclose` / `devopen`. `windows()` rows carry `off`.
 - `float(id, { x, y, w, compact })`, `dock(id, { side, index })`, `toggleFloat(id)`, `setCompact(id, on)`.
 
 **Hiding.**

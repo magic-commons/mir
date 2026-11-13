@@ -509,12 +509,18 @@ export function createRack({ host = globalThis.document && document.body, sides 
     if (w.spec.bare) { root.dataset.bare = '';
       root.addEventListener('pointerdown', (e) => { if (root.classList.contains('floating') && !head.contains(e.target) && !e.target.closest(CONTROLS)) headDown(e); }, on); }
     root.addEventListener('pointerdown', () => { if (root.classList.contains('floating')) raiseFloat(root); }, { capture: true, signal: life.signal });
+    /* 1.6.0-alpha.29 THE POWER HAS A VERB AND AN EVENT: `devpower` beside `devclose` / `devopen`, on the card, bubbling, detail { on } — for
+       the HAND's press (a click on ⏻, and rack.power(id), which is that click).  Never for a restore: a layout's `off` goes by dev.setOff,
+       and an element-adopted card's shim press is `passing`.  It follows the card's own listeners, so the card has acted when it is heard. */
+    const pw = root.querySelector('.dev-power');
+    if (pw) pw.addEventListener('click', () => { if (!passing) root.dispatchEvent(new CustomEvent('devpower', { bubbles: true, detail: { on: !root.classList.contains('off') } })); }, on);
     popFace(root); railFace(root);
     w.api = {
       id, dev, root, body: dev.body,
       setStatus: (t, cls) => dev.setStatus(t, cls),
       canPresent: () => activity.canPresent(root),
-      open: () => open(id), close: () => close(id), raise: () => raise(id),
+      open: () => open(id), close: () => close(id), raise: () => raise(id), power: (v) => power(id, v),
+      get on() { return !root.classList.contains('off'); },
       get isOpen() { return !root.classList.contains('closed'); },
       get floating() { return root.classList.contains('floating'); },
       get side() { return sideFor(root); },
@@ -582,6 +588,18 @@ export function createRack({ host = globalThis.document && document.body, sides 
     if (next === now) return true;
     w.dev.fold(next);
     call(w, 'onFold', next); save(); return true;
+  }
+  /** power(id, on?) — 1.6.0-alpha.29 (λWAVES 044 L134): PRESS POWER AS THE HAND DOES.  It is the click on the card's ⏻, so everything a
+   *  press reaches runs: the device's own switch, the registration's onPower, any listener on the button, and `devpower`.  `on` true powers
+   *  it on, false off, left out flips it; already there, nothing is pressed.  (A restore is not a press: apply() and a ☆ layout go by
+   *  dev.setOff — docs/RACK.md "Power".)  A card with no ⏻ is switched by dev.setOff and its onPower called.  → false for an unbuilt id */
+  function power(id, want) {
+    const w = reg.get(id); if (!w || !w.dev) return false;
+    const root = w.dev.root, live = !root.classList.contains('off'), next = want === undefined ? !live : !!want;
+    if (next === live) return true;
+    const b = root.querySelector('.dev-power');
+    if (b) b.click(); else { w.dev.setOff(!next); call(w, 'onPower', next); save(); }
+    return true;
   }
   /** raise(id) — open it, unfold it, show the rack, and bring it to the top of its rack (or the front, floating) */
   function raise(id) {
@@ -1153,7 +1171,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
   queueMicrotask(() => { if (!life.signal.aborted) start(); });
 
   const api = {
-    register, start, open, close, toggle, isOpen, raise, reveal, lastFavourite: lastFavIds, fold, move, float, dock, toggleFloat, setCompact,
+    register, start, open, close, toggle, isOpen, raise, reveal, power, lastFavourite: lastFavIds, fold, move, float, dock, toggleFloat, setCompact,
     setHidden, setInterface, dodge, setHome, windowMenu,
     get hidden() { return isHidden(); },
     toggleHidden: () => setHidden(!isHidden()),
@@ -1164,10 +1182,10 @@ export function createRack({ host = globalThis.document && document.body, sides 
     get built() { return built; },
     get registered() { return [...reg.keys()]; },
     isBuilt: (id) => !!(reg.get(id) && reg.get(id).dev),
-    /** windows() — every registered window, in registration order: [{ id, title, side, open, built, floating, folded, hidden, glyph }];
+    /** windows() — every registered window, in registration order: [{ id, title, side, open, built, floating, folded, off, hidden, glyph }];
      *  `hidden` (1.5.6-alpha.3): its card is `[hidden]` (an app's mode or a legacy window) — open or not, nobody sees it */
     windows: () => [...reg.values()].map((w) => ({ id: w.spec.id, card: !!w.spec.card, title: w.spec.title, side: (w.dev && w.dev.root.parentElement && w.dev.root.parentElement.dataset.side) || w.spec.side, open: isOpen(w.spec.id), built: !!w.dev,
-      floating: !!(w.dev && w.dev.root.classList.contains('floating')), folded: !!(w.dev && w.dev.root.classList.contains('folded')), hidden: !!(w.dev && w.dev.root.hidden), glyph: w.spec.glyph || '' })),
+      floating: !!(w.dev && w.dev.root.classList.contains('floating')), folded: !!(w.dev && w.dev.root.classList.contains('folded')), off: !!(w.dev && w.dev.root.classList.contains('off')), hidden: !!(w.dev && w.dev.root.hidden), glyph: w.spec.glyph || '' })),
     /** keepClear() — the rects a new floating window should not land on: each rack showing a window, and the transport */
     keepClear() {
       const out = [];

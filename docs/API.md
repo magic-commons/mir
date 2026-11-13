@@ -62,7 +62,7 @@ Each builder makes its own DOM, styled by `mir/css/base.css` and `skin.css`, and
 Notes on the builders:
 - **The modulated look.** `show(x)` paints a value over the base: the knob's needle moves while a tick marks the base, and a fader gets `.mod`. `get()` stays the value the user set. A control driven by modulation announces its base once `setBase(() => base)` is wired.
 - **Disabled.** `setDisabled(true)` removes the control from the tab order and sets `aria-disabled`. If the control had focus, focus moves to the window's power button.
-- **`device()`.** It dispatches `devclose` (bubbling) when its × is pressed.
+- **`device()`.** It dispatches `devclose` (bubbling) when its × is pressed. In a rack, the card also dispatches `devopen` when the rack opens it and `devpower` (`detail: { on }`, 1.6.0-alpha.29) when the hand presses ⏻ or `rack.power(id, on)` does; `device({ onPower })` itself fires on every `setOff`, a layout's restore included ([RACK.md](RACK.md), "Power: which road runs what").
   - `loadingMark`: an element, a selector, or `false`. The default is the wordmark's mark (`#title .mark`).
 
 ### The drag law

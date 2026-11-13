@@ -204,6 +204,26 @@ try {
   await load('');
   r = await run(`return { left: R.order('left'), ghost: !!document.querySelector('.dev[data-id="ghost"]'), logs: 0 };`);
   check('layout: an unknown id in a saved layout is ignored, never thrown on', r.left.includes('tone') && !r.ghost && !p.logs.some((l) => l.startsWith('EXCEPTION')), JSON.stringify({ r, logs: p.logs }));
+  /* ── 1.6.0-alpha.29 THE POWER HAS A VERB AND AN EVENT ─────────────────────────────────────────────────────── */
+  r = await run(`const log = [], ev = []; document.addEventListener('devpower', (e) => ev.push(e.target.dataset.id + ':' + e.detail.on));
+    R.register({ id: 'pw', title: 'PW', side: 'right', build() {}, onPower: (live) => log.push(live) }); R.open('pw'); await settle();
+    const off = () => dev('pw').classList.contains('off'), out = {};
+    out.unbuilt = R.power('camera-never', false);
+    R.power('pw', false); out.a = { off: off(), log: log.join(), ev: ev.join() };          // the verb: the press
+    R.power('pw', false); out.b = { log: log.join(), ev: ev.join() };                       // already there: nothing is pressed
+    R.power('pw'); out.c = { off: off(), log: log.join(), ev: ev.join() };                  // left out: it flips
+    const L = R.capture(); L.cards.find((c) => c.id === 'pw').off = true; R.apply(L); await settle();
+    out.d = { off: off(), log: log.join(), ev: ev.join(), w: R.windows().find((x) => x.id === 'pw').off, api: R.window('pw').on };   // a restore: the built window's onPower, never devpower
+    R.window('pw').power(true); out.e = { off: off(), ev: ev.join() }; R.close('pw'); return out;`);
+  await run(`R.open('pw'); await settle(); return 0;`);
+  check('rack.power(id, on) presses ⏻ as the hand does: the window\'s onPower runs and `devpower` is heard; already there, nothing is pressed; left out, it flips',
+    r.unbuilt === false && r.a.off && r.a.log === 'false' && r.a.ev === 'pw:false' && r.b.log === 'false' && r.b.ev === 'pw:false' && !r.c.off && r.c.log === 'false,true' && r.c.ev === 'pw:false,pw:true', JSON.stringify(r));
+  check('a restore is not a press: apply() powers the window off by dev.setOff (a kit-built window\'s onPower runs), `devpower` is not heard; windows() and the window\'s api say off',
+    r.d.off && r.d.log === 'false,true,false' && r.d.ev === 'pw:false,pw:true' && r.d.w === true && r.d.api === false && !r.e.off && r.e.ev === 'pw:false,pw:true,pw:true', JSON.stringify(r));
+  h = await click(`document.querySelector('.dev[data-id="pw"] .dev-power')`);
+  r = await run(`return { off: dev('pw').classList.contains('off') };`);
+  check('the hand\'s own click on ⏻ (hit-tested) powers the window off', h && h.ok && r.off, JSON.stringify({ h, r }));
+  await run(`R.power('pw', true); R.close('pw'); await settle(); return 0;`);
   r = await run(`R.showPills(); await wait(80); const z = (n) => +getComputedStyle(n).zIndex; return { pills: z(document.querySelector('.rack-pills')), floats: z(R.el.floats), veil: +getComputedStyle(document.documentElement).getPropertyValue('--z-veil'), n: document.querySelectorAll('.rack-pill').length };`);
   check('THE PILLS STAY ON TOP (1.5.7-alpha.50): the scroll pills stand above the float layer (a docked TIMELINE, a work bar) and under the veil', r.n > 0 && r.pills > r.floats && r.pills < r.veil, JSON.stringify(r));
 } finally {

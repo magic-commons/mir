@@ -123,6 +123,19 @@ try {
     check('a bare card popped off the rack draws no title bar; its × and rail chip stay; docked again, its title is back',
       bare.floating && bare.id === 'none' && bare.close !== 'none' && bare.rail !== 'none' && bare.head === 'absolute' && bare.docked !== 'none', JSON.stringify(bare));
   }
+  {
+    /* 1.6.0-alpha.29: an ADOPTED card — the registration's onPower is the hand's press (and rack.power), not a restore's setOff */
+    const pwr = await run(`const { device } = await import('/mir/kit.js'); const log = [], own = [], ev = [];
+      const d = device({ id: 'pwa', eyebrow: 'PWA', loadingMark: false, onPower: (live) => own.push(live) }); document.getElementById('rack').appendChild(d.root);
+      R.register({ id: 'pwa', el: d, onPower: (live) => log.push(live) }); d.root.addEventListener('devpower', (e) => ev.push(e.detail.on));
+      R.power('pwa', false); const a = { log: log.join(), own: own.join(), ev: ev.join(), off: d.off };
+      d.root.querySelector('.dev-power').click(); const b = { log: log.join(), ev: ev.join(), off: d.off };
+      const L = R.capture(); L.cards.find((c) => c.id === 'pwa').off = true; R.apply(L); await settle();
+      const c = { log: log.join(), own: own.join(), ev: ev.join(), off: d.off }; R.power('pwa', true); R.close('pwa'); return { a, b, c };`);
+    check('an adopted card: rack.power and the click run the registration\'s onPower and `devpower`; a restore (apply) runs neither — only device({ onPower }), which fires on every setOff',
+      pwr.a.log === 'false' && pwr.a.own === 'false' && pwr.a.ev === 'false' && pwr.a.off && pwr.b.log === 'false,true' && pwr.b.ev === 'false,true' && !pwr.b.off
+      && pwr.c.off && pwr.c.log === 'false,true' && pwr.c.ev === 'false,true' && pwr.c.own === 'false,true,false', JSON.stringify(pwr));
+  }
   check('the page raised no exception', !p.logs.some((l) => l.startsWith('EXCEPTION')), p.logs.join(' | '));
 } finally {
   await p.close();
