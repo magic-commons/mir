@@ -180,6 +180,9 @@ export function readLayout(raw, known, retired) {
   }
   return out;
 }
+/** defaultCard(spec) (1.6.0-alpha.30) — the record of a window no saved layout names, opened by its `open` default: open, on its own
+ *  side, and FOLDED AS IT WAS REGISTERED (`folded: true`), so the rack's first arrangement does not undo a card's first fold */
+export const defaultCard = (spec) => ({ id: spec.id, side: sideOf(spec.side), open: true, folded: spec.folded === true });
 /** closedLayout(windows, { phoneShown, at }) — BASINS' reload record (createRack({ persist: 'closed' })): each window
  *  [{ id, side, open }] in registration order on its own side, open or closed, and nothing the hand arranged (no
  *  order, fold, float or hidden rack); readLayout reads it as any layout. */
@@ -449,7 +452,16 @@ export function createRack({ host = globalThis.document && document.body, sides 
     rackOf(w.spec.side).appendChild(dev.root);
     wire(w);
     try { if (w.spec.build) w.spec.build(dev.body, w.api); } catch (err) { console.warn('rack: build ' + id, err); }
+    first(w);
     return w;
+  }
+  /** 1.6.0-alpha.30 A CARD SAYS ITS KIND AND ITS FIRST FOLD (register({ kind, folded })): `kind` is the app's own word for the card's family,
+   *  written once as `data-kind` (an app's sheet and menus read it; the kit gives it no meaning); `folded: true` is the card's FIRST fold —
+   *  it arrives folded when it is built or taken over.  Not a press: no onFold, nothing saved.  A saved layout's fold wins after. */
+  function first(w) {
+    const root = w.dev.root;
+    if (typeof w.spec.kind === 'string' && w.spec.kind) root.dataset.kind = w.spec.kind;
+    if (w.spec.folded === true && !root.classList.contains('folded')) w.dev.fold(true);
   }
   /** adopt(w, x) — take over a window the app ALREADY BUILT (BASINS builds every window eagerly with its own builder):
    *  x is device()'s return value (best: its fold / setOff are used) or the `.dev` element itself.  Nothing is rebuilt
@@ -479,7 +491,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
     /* power: an adopted window's own power button tells the rack after it has acted */
     const pw = q('.dev-power');
     if (pw) pw.addEventListener('click', () => { call(w, 'onPower', !root.classList.contains('off')); save(); }, on);
-    wire(w);
+    wire(w); first(w);
     return w;
   }
   /** the rack's hands on a window, built or adopted: the header (pointer, keyboard), close / fold / pop / rail through
@@ -1136,7 +1148,9 @@ export function createRack({ host = globalThis.document && document.body, sides 
    *  order and in saved layouts, drags and folds with the rest, and is in neither the + list nor the WINDOW menu; its ×
    *  closes through the rack, so its onClose runs (1.5.6-alpha.28).
    *  { bare: true }: popped off the rack (floating), the card draws no title bar — the pop and rail chips and the × stay,
-   *  and its empty glass drags it (1.5.6-alpha.28). */
+   *  and its empty glass drags it (1.5.6-alpha.28).
+   *  { kind, folded } (1.6.0-alpha.30): `kind` → `data-kind` on the card and in spec() / windows(); `folded: true` → it arrives folded
+   *  (its first fold; a saved layout's fold wins after). */
   function register(spec) {
     if (!spec || typeof spec.id !== 'string' || reg.has(spec.id)) throw new Error('rack.register: a new string id is required');
     /* an adopted window's home is the rack it is standing in, unless the app says otherwise */
@@ -1163,8 +1177,8 @@ export function createRack({ host = globalThis.document && document.body, sides 
     /* the reload: the notebook keeps its own size (only a ☆ load or a host's apply() resizes it) */
     if (raw && raw.layout) {
       const listed = new Set(saved.cards.map((c) => c.id));
-      arrange({ ...saved, cards: [...saved.cards, ...[...reg.values()].filter((w) => !listed.has(w.spec.id) && w.spec.open).map((w) => ({ id: w.spec.id, side: w.spec.side, open: true }))] }, false);
-    } else arrange({ v: 1, hidden: isHidden(), cards: [...reg.values()].filter((w) => w.spec.open && !w.spec.el).map((w) => ({ id: w.spec.id, side: w.spec.side, open: true })) }, false);   // an adopted window is already where the app put it
+      arrange({ ...saved, cards: [...saved.cards, ...[...reg.values()].filter((w) => !listed.has(w.spec.id) && w.spec.open).map((w) => defaultCard(w.spec))] }, false);
+    } else arrange({ v: 1, hidden: isHidden(), cards: [...reg.values()].filter((w) => w.spec.open && !w.spec.el).map((w) => defaultCard(w.spec)) }, false);   // an adopted window is already where the app put it
     started = true; save();
     return api;
   }
@@ -1182,9 +1196,9 @@ export function createRack({ host = globalThis.document && document.body, sides 
     get built() { return built; },
     get registered() { return [...reg.keys()]; },
     isBuilt: (id) => !!(reg.get(id) && reg.get(id).dev),
-    /** windows() — every registered window, in registration order: [{ id, title, side, open, built, floating, folded, off, hidden, glyph }];
+    /** windows() — every registered window, in registration order: [{ id, kind, title, side, open, built, floating, folded, off, hidden, glyph }];
      *  `hidden` (1.5.6-alpha.3): its card is `[hidden]` (an app's mode or a legacy window) — open or not, nobody sees it */
-    windows: () => [...reg.values()].map((w) => ({ id: w.spec.id, card: !!w.spec.card, title: w.spec.title, side: (w.dev && w.dev.root.parentElement && w.dev.root.parentElement.dataset.side) || w.spec.side, open: isOpen(w.spec.id), built: !!w.dev,
+    windows: () => [...reg.values()].map((w) => ({ id: w.spec.id, card: !!w.spec.card, kind: w.spec.kind || '', title: w.spec.title, side: (w.dev && w.dev.root.parentElement && w.dev.root.parentElement.dataset.side) || w.spec.side, open: isOpen(w.spec.id), built: !!w.dev,
       floating: !!(w.dev && w.dev.root.classList.contains('floating')), folded: !!(w.dev && w.dev.root.classList.contains('folded')), off: !!(w.dev && w.dev.root.classList.contains('off')), hidden: !!(w.dev && w.dev.root.hidden), glyph: w.spec.glyph || '' })),
     /** keepClear() — the rects a new floating window should not land on: each rack showing a window, and the transport */
     keepClear() {

@@ -3,7 +3,7 @@
  * SHIFT-queue's order, the ☆ slot choice, and the layout repair (unknown ids dropped, λWAVES/BASINS records read). */
 import assert from 'node:assert/strict';
 import { RACK, reorderIndex, insertionIndex, slotRect, moveId, clampFloat, detached, peekSide, dodgeSeat,
-  queueToggle, openOrder, favSlot, readLayout, layoutLabel } from '../mir/shell/rack.js';
+  queueToggle, openOrder, favSlot, readLayout, layoutLabel, defaultCard } from '../mir/shell/rack.js';
 
 let n = 0;
 const pass = (name, detail) => { n++; console.log(`PASS ${name}${detail ? ` — ${detail}` : ''}`); };
@@ -87,5 +87,15 @@ const B = [{ top: 0, height: 100 }, { top: 110, height: 100 }, { top: 220, heigh
   for (const junk of [null, undefined, 'x', 3, [], { cards: 'no' }]) assert.deepEqual(readLayout(junk, known).cards, []);
   assert.match(layoutLabel(L, 2), /^2  ·  2 windows  ·  both racks  ·  1 floating  ·  \d\d:\d\d$/);
   pass('readLayout: the one shape, repaired; λWAVES and BASINS records read as they are; junk is an empty layout');
+}
+{
+  /* 1.6.0-alpha.30 A CARD SAYS ITS FIRST FOLD: the record of a window no layout names keeps the fold it was registered with */
+  assert.deepEqual(defaultCard({ id: 'settings', side: 'left', folded: true }), { id: 'settings', side: 'left', open: true, folded: true });
+  assert.deepEqual(defaultCard({ id: 'tone', side: 'right' }), { id: 'tone', side: 'right', open: true, folded: false }, 'no first fold: open and unfolded');
+  assert.equal(defaultCard({ id: 'x', side: 'L', folded: 'yes' }).folded, false, 'only `true` folds');
+  const L = readLayout({ cards: [defaultCard({ id: 'settings', side: 'left', folded: true })] }, new Set(['settings']));
+  assert.equal(L.cards[0].folded, true, 'and the layout repair keeps it, so the first arrangement does not unfold the card');
+  assert.equal(readLayout({ cards: [{ id: 'settings', side: 'left', open: true, folded: false }] }, new Set(['settings'])).cards[0].folded, false, 'a saved record that says unfolded wins');
+  pass('defaultCard: a window opened by its default arrives folded as it was registered; a saved fold wins');
 }
 console.log(`\n${n} rack groups pass`);

@@ -224,6 +224,16 @@ try {
   r = await run(`return { off: dev('pw').classList.contains('off') };`);
   check('the hand\'s own click on ⏻ (hit-tested) powers the window off', h && h.ok && r.off, JSON.stringify({ h, r }));
   await run(`R.power('pw', true); R.close('pw'); await settle(); return 0;`);
+  /* ── 1.6.0-alpha.30 A CARD SAYS ITS KIND AND ITS FIRST FOLD ───────────────────────────────────────────────── */
+  r = await run(`const folds = []; R.register({ id: 'kf', title: 'KF', side: 'right', kind: 'info', folded: true, build() {}, onFold: (v) => folds.push(v) });
+    const out = { built: R.isBuilt('kf') }; R.open('kf'); await settle(); const d = dev('kf'), row = () => R.windows().find((x) => x.id === 'kf');
+    out.first = { folded: d.classList.contains('folded'), kind: d.dataset.kind, row: row().kind, spec: R.spec('kf').kind, hooks: folds.length, exp: d.querySelector('.dev-fold').getAttribute('aria-expanded') };
+    R.fold('kf', false); const L = R.capture(); R.apply(L); await settle(); out.kept = { folded: d.classList.contains('folded'), hooks: folds.join() };
+    R.register({ id: 'kp', title: 'KP', side: 'right', build() {} }); R.open('kp'); out.plain = { folded: dev('kp').classList.contains('folded'), kind: dev('kp').dataset.kind === undefined };
+    R.close('kf'); R.close('kp'); await settle(); return out;`);
+  check('register({ kind, folded }): the card is built folded on its first open (no onFold: it is not a press) and wears data-kind; windows() and spec() say the kind; a card with neither is as before',
+    !r.built && r.first.folded && r.first.kind === 'info' && r.first.row === 'info' && r.first.spec === 'info' && r.first.hooks === 0 && r.first.exp === 'false' && !r.plain.folded && r.plain.kind, JSON.stringify(r));
+  check('the first fold is only the first: a hand\'s unfold is kept by the layout (capture → apply leaves it unfolded)', !r.kept.folded && r.kept.hooks === 'false', JSON.stringify(r.kept));
   r = await run(`R.showPills(); await wait(80); const z = (n) => +getComputedStyle(n).zIndex; return { pills: z(document.querySelector('.rack-pills')), floats: z(R.el.floats), veil: +getComputedStyle(document.documentElement).getPropertyValue('--z-veil'), n: document.querySelectorAll('.rack-pill').length };`);
   check('THE PILLS STAY ON TOP (1.5.7-alpha.50): the scroll pills stand above the float layer (a docked TIMELINE, a work bar) and under the veil', r.n > 0 && r.pills > r.floats && r.pills < r.veil, JSON.stringify(r));
 } finally {

@@ -136,6 +136,16 @@ try {
       pwr.a.log === 'false' && pwr.a.own === 'false' && pwr.a.ev === 'false' && pwr.a.off && pwr.b.log === 'false,true' && pwr.b.ev === 'false,true' && !pwr.b.off
       && pwr.c.off && pwr.c.log === 'false,true' && pwr.c.ev === 'false,true' && pwr.c.own === 'false,true,false', JSON.stringify(pwr));
   }
+  {
+    /* 1.6.0-alpha.30: an ADOPTED card says its kind and its first fold at the registration */
+    const kf = await run(`const { device } = await import('/mir/kit.js'); const mk = (id) => { const d = device({ id, eyebrow: id.toUpperCase(), loadingMark: false }); document.getElementById('rack').appendChild(d.root); return d; };
+      const a = mk('kfa'), b = mk('kfb'); R.register({ id: 'kfa', el: a, kind: 'control', folded: true }); R.register({ id: 'kfb', el: b.root, kind: 'other', folded: true });
+      const out = { a: [a.root.classList.contains('folded'), a.root.dataset.kind, a.root.querySelector('.dev-fold').getAttribute('aria-expanded')], b: [b.root.classList.contains('folded'), b.root.dataset.kind],
+        rows: R.windows().filter((x) => x.id.startsWith('kf')).map((x) => x.kind + ':' + x.folded).join() };
+      R.close('kfa'); R.close('kfb'); return out;`);
+    check('an adopted card (a device() result, or its bare element) arrives folded and wears data-kind when its registration says { kind, folded: true }',
+      kf.a[0] && kf.a[1] === 'control' && kf.a[2] === 'false' && kf.b[0] && kf.b[1] === 'other' && kf.rows === 'control:true,other:true', JSON.stringify(kf));
+  }
   check('the page raised no exception', !p.logs.some((l) => l.startsWith('EXCEPTION')), p.logs.join(' | '));
 } finally {
   await p.close();
