@@ -147,6 +147,27 @@ try {
     check('route glow: released beside the knob, the route lands on it and the glow clears', routed.routes.length === 1 && routed.rings.includes('scene.spin') && routed.cleared, JSON.stringify(routed));
   }
 
+  /* ── 4b · 1.6.0-alpha.2 THE RING'S DOUBLE PRESS GOES HOME, THE RIGHT CLICK REMOVES: real presses on the arc round SPIN ── */
+  {
+    const pt = JSON.parse(await p.eval(`(() => { const h = document.querySelector('.k[data-param="scene.spin"] .k-ring-hit'), d = h.closest('.k-dial').getBoundingClientRect();
+      for (let a = 0; a < 64; a++) for (let r = d.width / 2 - 2; r <= d.width / 2 + 14; r++) { const x = Math.round(d.left + d.width / 2 + Math.cos(a * Math.PI / 32) * r), y = Math.round(d.top + d.height / 2 + Math.sin(a * Math.PI / 32) * r);
+        if (document.elementFromPoint(x, y) === h) return JSON.stringify({ x, y }); }
+      return 'null'; })()`));
+    const route = () => run(`const r = M.routeList().find((x) => x.targetId === 'scene.spin'); return r ? { min: r.min, max: r.max, base: mod.registry.baseOf('scene.spin') } : null;`);
+    const v0 = (await route()).base;
+    await run(`mod.registry.setBase('scene.spin', 0.45); mod.apply(); await frames(2); return 1;`);
+    const before = await route();
+    await mouse('mouseMoved', pt.x, pt.y);
+    for (const n of [1, 2]) { await p.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: pt.x, y: pt.y, button: 'left', buttons: 1, clickCount: n }); await sleep(30);
+      await p.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: pt.x, y: pt.y, button: 'left', buttons: 0, clickCount: n }); await sleep(60); }
+    const home = await route();
+    check('ring: a double press on the arc sends the KNOB home; the route and its depth stay', !!pt && !!before && before.max - before.min !== 0 && !!home && home.min === before.min && home.max === before.max && before.base !== v0 && home.base === v0, JSON.stringify({ pt, v0, before, home }));
+    await p.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: pt.x, y: pt.y, button: 'right', buttons: 2, clickCount: 1 }); await sleep(30);
+    await p.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: pt.x, y: pt.y, button: 'right', buttons: 0, clickCount: 1 }); await sleep(120);
+    const gone = await run(`return { route: M.routeList().some((x) => x.targetId === 'scene.spin'), ring: api.rings().includes('scene.spin'), pop: !!document.querySelector('.mir-menu-pane:not([hidden]), .m2pop:not([hidden])') };`);
+    check('ring: a right-click on the arc removes the route (no menu opens)', !gone.route && !gone.ring, JSON.stringify(gone));
+  }
+
   /* ── 5 · a route onto a fader: drop MACRO 1 onto SPREAD; while the transport plays, the fader's value moves ── */
   {
     const grip = await at(`document.querySelectorAll('#modwin .m2grip')[0]`);
