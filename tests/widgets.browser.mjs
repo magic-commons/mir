@@ -161,6 +161,9 @@ try {
   const px = async () => ev(`(() => { const c = document.querySelector('.plane-model'); const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let h = 0; for (let i = 0; i < d.length; i += 97) h = (h * 31 + d[i]) >>> 0; return h; })()`);
   const pxDark = await px(); await ev(`document.body.dataset.theme = 'light'`); await sleep(200); const pxLight = await px(); await ev(`document.body.dataset.theme = 'dark'`);
   check('plane model: a theme flip repaints it', pxDark !== pxLight);
+  /* 1.6.0-alpha.25 THE CARD IS BORN CLOSED: device({ closed: true }) is closed from its first frame (no box), an ordinary card is not */
+  check('device({ closed: true }) starts closed and draws no box; a card without it is open', await ev(`(() => { const a = __T.kit.device({ id: 'born-closed', eyebrow: 'CLOSED', closed: true, loadingMark: false }), b = __T.kit.device({ id: 'born-open', eyebrow: 'OPEN', loadingMark: false });
+    document.body.append(a.root, b.root); const r = a.root.classList.contains('closed') && a.root.getClientRects().length === 0 && !b.root.classList.contains('closed') && b.root.getClientRects().length > 0; a.root.remove(); b.root.remove(); return r; })()`));
   check('no page errors', !p.logs.some((l) => /EXCEPTION/.test(l)), p.logs.join(' | '));
 } finally { await p.close(); }
 

@@ -52,7 +52,7 @@ Each builder makes its own DOM, styled by `mir/css/base.css` and `skin.css`, and
 | **ONE SPELLING ON EVERY BUILDER** (1.6.0-alpha.23) | | every builder returns `root`; its hint is `title` (on the root: knob, fader, seg, sw, trig, stepper, select, number, rangeSlider, xyPad, directionSphere, hueSwatch, lamp); home is `home` (knob, fader, arcKnob, laneSlider, number; `[lo, hi]` on a range, `[x, y]` on the pad; `setDefault(x)` moves it later); a list of choices is `options` (seg, stepper, select; `items` still reads on the last two); every builder that can stand down has `setDisabled(on)`; `onChange` carries the value (a trigger has none: `onFire`). `control(descriptor)` keeps mapping its `hint` to `title` |
 | `readout(o)` | `label, value, cls` | `{ root, set(text, cls), setSub(text) }`. `cls` is `live`, `ok` or `warn` |
 | `formula(o)` | `lines: [[string \| {s, v}]…], cls` | `{ root, set({s: v…}), names }` (only moved slots are written) |
-| `device(o)` | `id, eyebrow, status, onPower, loadingMark` | `{ root, body, setOff, setLoading(v, key), popBtn, railBtn, foldBtn, off, loading, setStatus(text, cls), fold, row }` |
+| `device(o)` | `id, eyebrow, status, glyph, closed (1.6.0-alpha.25: the card starts closed, before any rack exists), onPower, loadingMark` | `{ root, body, setOff, setLoading(v, key), popBtn, railBtn, foldBtn, off, loading, setStatus(text, cls), fold, row }` |
 | `group(parent, label)` | | the group element |
 | `gripDots(parent, size=13)` | | the 3 × 3 DRAG-ME grip |
 | `chip(button, glyphName, label)` | | draws a glyph on a round chip |

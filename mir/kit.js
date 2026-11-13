@@ -761,11 +761,13 @@ export function formula(o) {
   };
 }
 
-/** device({ id, eyebrow, title, status, glyph }) — a rack window: identity | live status | utilities.  `glyph` (1.5.6-alpha.3): the window's
+/** device({ id, eyebrow, status, glyph, closed, onPower, loadingMark }) — a rack window: identity | live status | utilities.  `glyph` (1.5.6-alpha.3): the window's
  *  one drawing, written as data-glyph (createRack's register reads it when none is passed: the FINDER, the window menu, the scroll pill)
- *  and drawn before the name in the head (`.dev-glyph`) */
+ *  and drawn before the name in the head (`.dev-glyph`).  `closed: true` (1.6.0-alpha.25 THE CARD IS BORN CLOSED): the card starts closed
+ *  (`.dev.closed`), before any rack exists; a rack that adopts it reads it as closed, as register({ closed }) says for a window it builds. */
 export function device(o) {
   const root = el('section', 'dev'); root.dataset.id = o.id;
+  if (o.closed) root.classList.add('closed');
   if (o.glyph) root.dataset.glyph = o.glyph;
   const head = el('header', 'dev-head', root);
   /* THE STATUS IS NOT ALWAYS VISIBLE (wave 44).  The header is one grid row — eyebrow, status, buttons — and on a
