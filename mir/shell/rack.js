@@ -26,7 +26,8 @@
  *      (the likely cause of the Linux bug where a clicked rack window lost its blur).  rack.css says the same.
  *   5. A TOUCH USER ALWAYS HAS A WAY BACK: the edge handle shows while the interface is hidden on a coarse pointer.
  *   6. KEYBOARD AND TOUCH ARE FIRST-CLASS.  A window's header is focusable: ↑ ↓ move it in its rack, ← → move it to the
- *      other rack, Enter floats or docks it (arrows nudge a floating one).  A finger holds the header 400 ms to lift it.
+ *      other rack, Enter floats or docks it; Shift+arrows nudge a floating one (headKeyAct: the window rail's law, 1.6.0-alpha.32).
+ *      A finger holds the header TAP.hold (550 ms) to lift it; two presses (TAP) fold it.
  *   7. IDLE COSTS NOTHING: no poller, no rAF while nothing moves; peek reads one cached width per pointer move.
  *   8. THE LAYOUT IS DATA.  capture() → { v, hidden, phoneShown, cards: [{ id, side, open, folded, off, float }], nb? } in
  *      rack order, through an injected store; readLayout() repairs anything it is handed (unknown ids are dropped,
@@ -37,7 +38,7 @@
  *
  * createRack(options) → api — see docs/RACK.md.  windows() lists the windows with their titles and state (for describe()
  * and the openers); keepClear() gives the rects a new floating window should not land on (FOLDERS' first seat).  The pure helpers are exported for node tests. */
-import { el, device, chip, ariaLabel } from '../kit.js';
+import { el, device, chip, ariaLabel, tapWatcher } from '../kit.js';
 import { TAP } from '../core/tap.js';
 import { drag } from '../core/pointer.js';
 import { sequence, motionPolicy, motionToken, own, parseDuration } from '../core/motion.js';
@@ -63,7 +64,7 @@ export const RACK = Object.freeze({
   barHold: 220,     // … and holds while it stays within this of it
   longPress: TAP.hold,   // a finger holds a header this long to lift it: the kit's one hold (1.6.0-alpha.4; it was 400)
   slop: 3,          // the hand travels this far before a press becomes a drag
-  nudge: 24,        // an arrow nudges a floating window this far (the window rail's Shift+arrow)
+  nudge: 24,        // Shift+arrow nudges a floating window this far, as on a window's rail (1.6.0-alpha.32; a plain arrow did)
   favourites: 4,    // ☆ layout slots (λWAVES LAYOUT_SLOTS)
   seatTop: 52, seatBottom: 60,   // the transport's two seats (λWAVES seatRect)
   tabletEdge: 8,    // on a touch tablet a float stays this far inside the visual viewport (BASINS clampFloat)
@@ -143,6 +144,17 @@ export function dodgeSeat(seats, r, current = 'bottom', home = 'bottom') {
   if (!r || !hits(seats[home], r)) return home;
   if (!hits(seats[away], r)) return away;
   return current;
+}
+/** headKeyAct({ key, shiftKey, floating }) (1.6.0-alpha.32 ONE LAW TO MOVE A WINDOW BY KEYS; λWAVES 044 L47, REVIEW-F F19) — what a key
+ *  on a card's head does, the window rail's law: ARROWS ARE THE SEAT, SHIFT+ARROWS NUDGE.  Docked: ↑ ↓ 'order' (its place in the rack),
+ *  ← → 'side' (the other rack); Shift+arrows nothing (there is nothing to nudge).  Floating: Shift+arrows 'nudge' (24 px); a plain arrow
+ *  nothing (a float has no seat to choose; before, it nudged).  Enter 'float' (floats or docks it, or opens its window twin).  → the act, or null */
+export function headKeyAct({ key, shiftKey = false, floating = false }) {
+  if (key === 'Enter') return shiftKey ? null : 'float';
+  if (!/^Arrow(Up|Down|Left|Right)$/.test(key)) return null;
+  if (floating) return shiftKey ? 'nudge' : null;
+  if (shiftKey) return null;
+  return key === 'ArrowUp' || key === 'ArrowDown' ? 'order' : 'side';
 }
 /** queueToggle(queue, id) — SHIFT-click adds a window to the queue, or takes it back out */
 export const queueToggle = (q, id) => (q.includes(id) ? q.filter((x) => x !== id) : [...q, id]);
@@ -501,7 +513,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
     const id = w.spec.id, dev = w.dev, root = dev.root, head = root.querySelector('.dev-head') || root;
     /* the header: a handle for the hand (pointer pre-gesture) and for the keyboard */
     head.tabIndex = 0; head.setAttribute('aria-roledescription', 'rack window');
-    head.setAttribute('aria-keyshortcuts', 'ArrowUp ArrowDown ArrowLeft ArrowRight Enter');
+    head.setAttribute('aria-keyshortcuts', 'ArrowUp ArrowDown ArrowLeft ArrowRight Enter Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight');
     head.addEventListener('pointerdown', headDown, on);
     head.addEventListener('keydown', headKey, on);
     /* close, fold and double-click go through the rack so the neighbours travel (flip) and the layout is kept */
@@ -516,7 +528,12 @@ export function createRack({ host = globalThis.document && document.body, sides 
       else if (b.classList.contains('dev-pop')) { e.stopPropagation(); toggleFloat(id); }   // a card with a window twin: its ↗ opens the twin (toggleFloat)
       else if (b.classList.contains('dev-rail')) { e.stopPropagation(); setCompact(id, !root.classList.contains('compact')); }
     }, { capture: true, signal: life.signal });
-    head.addEventListener('dblclick', (e) => { if (e.target.closest(PRESSABLE)) return; e.stopImmediatePropagation(); fold(id); }, { capture: true, signal: life.signal });
+    /* 1.6.0-alpha.32 THE HEAD'S DOUBLE PRESS IS THE ONE TAP (λWAVES 044 L38, REVIEW-F F32): the fold is the second of two presses within
+       TAP.ms and TAP.px (tapWatcher: a mouse, a pen and a finger alike), not the browser's `dblclick` and its own timing.  The `dblclick`
+       is still taken here, and does nothing: device()'s own dblclick fold would answer the same two presses a second time. */
+    const tap = tapWatcher(() => fold(id));
+    head.addEventListener('pointerdown', (e) => { if (e.button === 0 && (e.isPrimary || !e.isTrusted) && !e.target.closest(PRESSABLE) && !root.classList.contains('closed')) tap(e); }, on);
+    head.addEventListener('dblclick', (e) => { if (e.target.closest(PRESSABLE)) return; e.stopImmediatePropagation(); }, { capture: true, signal: life.signal });
     /* BARE (1.5.6-alpha.28): popped off the rack, the card draws no title bar (rack.css) — its chips and × stay — and its empty
        glass is the handle the title bar was */
     if (w.spec.bare) { root.dataset.bare = '';
@@ -872,19 +889,19 @@ export function createRack({ host = globalThis.document && document.body, sides 
   function headKey(e) {
     if (e.target !== e.currentTarget || e.ctrlKey || e.metaKey || e.altKey) return;
     const root = e.currentTarget.closest('.dev'), id = root.dataset.id, floating = root.classList.contains('floating');
-    const k = e.key; let done = true;
-    if (k === 'Enter') toggleFloat(id);                               // floats or docks it; a card with a window twin opens the twin
-    else if (floating && k.startsWith('Arrow')) {
+    const k = e.key, act = headKeyAct({ key: k, shiftKey: e.shiftKey, floating });   // arrows are the seat, Shift+arrows nudge (the rail's law)
+    if (!act) return;
+    if (act === 'float') toggleFloat(id);                             // floats or docks it; a card with a window twin opens the twin
+    else if (act === 'nudge') {
       const st = floatState.get(id), d = RACK.nudge;
       st.x += k === 'ArrowLeft' ? -d : k === 'ArrowRight' ? d : 0; st.y += k === 'ArrowUp' ? -d : k === 'ArrowDown' ? d : 0;
       placeFloat(root, st); save();
-    } else if (k === 'ArrowUp' || k === 'ArrowDown') {
+    } else if (act === 'order') {
       const i = cards(root.parentElement).indexOf(root); move(id, { index: Math.max(0, i + (k === 'ArrowUp' ? -1 : 1)) });
-    } else if (k === 'ArrowLeft' || k === 'ArrowRight') {
+    } else {
       const side = k === 'ArrowLeft' ? 'left' : 'right';
       if (racks[side] && racks[side] !== root.parentElement && !phoneOn) move(id, { side, index: Math.min(cards(root.parentElement).indexOf(root), cards(racks[side]).length) });
-    } else done = false;
-    if (!done) return;
+    }
     e.preventDefault();
     const head = root.querySelector('.dev-head'); if (doc.activeElement !== head) head.focus({ preventScroll: true });
   }

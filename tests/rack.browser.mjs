@@ -141,6 +141,33 @@ try {
   const back = await run(`await settle(); return { left: R.order('left'), floating: R.floating() };`);
   check('keyboard: ↓ moves the window down its rack (focus kept), Enter floats it, Enter docks it home', r.left.indexOf('mix') === 2 && r.focus && fl.includes('mix') && back.floating.length === 0 && back.left.indexOf('mix') === 2, JSON.stringify({ r, fl, back }));
 
+  /* ── 1.6.0-alpha.32: arrows are the seat, Shift+arrows nudge a float; the head's double press is the one tap ── */
+  await run(`dev('mix').querySelector('.dev-head').focus(); return 0;`);
+  await key('Enter', 'Enter', 13); await sleep(40);
+  const f0 = await run(`await settle(); return R.floatOf('mix');`);
+  await key('ArrowRight', 'ArrowRight', 39); await key('ArrowDown', 'ArrowDown', 40); await sleep(40);
+  const f1 = await run(`return R.floatOf('mix');`);
+  await key('ArrowRight', 'ArrowRight', 39, 8); await key('ArrowUp', 'ArrowUp', 38, 8); await sleep(40);
+  const f2 = await run(`return R.floatOf('mix');`);
+  await key('Enter', 'Enter', 13); await sleep(40);
+  const f3 = await run(`await settle(); const o = R.order('left'); dev('mix').querySelector('.dev-head').focus(); return { floating: R.floating(), at: o.indexOf('mix'), n: o.length };`);
+  await key('ArrowUp', 'ArrowUp', 38, 8); await sleep(40);
+  const f4 = await run(`await settle(); return R.order('left').indexOf('mix');`);
+  check('ONE LAW TO MOVE A WINDOW BY KEYS: on a floating card a plain arrow moves nothing and Shift+arrow nudges it 24 px (as a window\'s rail); docked, Shift+arrow reorders nothing',
+    !!f0 && f1.x === f0.x && f1.y === f0.y && f2.x === f0.x + 24 && f2.y === f0.y - 24 && f3.floating.length === 0 && f4 === f3.at, JSON.stringify({ f0, f1, f2, f3, f4 }));
+  {
+    const hp = await hit(headOf('tone'));
+    const press = async (n) => { await p.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: hp.x, y: hp.y, button: 'left', buttons: 1, clickCount: n }); await p.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: hp.x, y: hp.y, button: 'left', buttons: 0, clickCount: n }); };
+    const folded = () => run(`await settle(); return dev('tone').classList.contains('folded');`);
+    await run(`window.__dbl = 0; dev('tone').addEventListener('dblclick', () => window.__dbl++, true); return 0;`);
+    await mouse('mouseMoved', hp.x, hp.y); await press(1); await sleep(60); await press(2); const a = await folded();        // a real double click: ONE fold
+    await sleep(500); await press(1); await sleep(450); await press(1); const b = await folded();                            // two slow presses: no fold
+    await sleep(500); await press(1); await sleep(60); await press(1); const c = await folded();                             // two quick presses the browser calls no dblclick: the tap alone
+    const dbl = await run(`return window.__dbl;`);
+    check('THE HEAD\'S DOUBLE PRESS IS THE ONE TAP: a real double click folds the card ONCE (its dblclick came too and folds nothing more); two presses 450 ms apart fold nothing; two quick presses with no dblclick unfold it',
+      hp.ok && a === true && b === true && c === false && dbl === 1, JSON.stringify({ hp, a, b, c, dbl }));
+  }
+
   /* ── hide and show by the one path: no rack ancestor below opacity 1, at any frame of the hide ─────────────── */
   await run(`window.__samples = []; window.__sampling = true; const tick = () => { if (!window.__sampling) return;
       let min = 1; for (const h of document.querySelectorAll('.mir-rack .dev > .dev-head')) for (let n = h.parentElement; n; n = n.parentElement) min = Math.min(min, +getComputedStyle(n).opacity);

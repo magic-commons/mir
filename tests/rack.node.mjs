@@ -3,7 +3,7 @@
  * SHIFT-queue's order, the ☆ slot choice, and the layout repair (unknown ids dropped, λWAVES/BASINS records read). */
 import assert from 'node:assert/strict';
 import { RACK, reorderIndex, insertionIndex, slotRect, moveId, clampFloat, detached, peekSide, dodgeSeat,
-  queueToggle, openOrder, favSlot, readLayout, layoutLabel, defaultCard } from '../mir/shell/rack.js';
+  queueToggle, openOrder, favSlot, readLayout, layoutLabel, defaultCard, headKeyAct } from '../mir/shell/rack.js';
 
 let n = 0;
 const pass = (name, detail) => { n++; console.log(`PASS ${name}${detail ? ` — ${detail}` : ''}`); };
@@ -97,5 +97,19 @@ const B = [{ top: 0, height: 100 }, { top: 110, height: 100 }, { top: 220, heigh
   assert.equal(L.cards[0].folded, true, 'and the layout repair keeps it, so the first arrangement does not unfold the card');
   assert.equal(readLayout({ cards: [{ id: 'settings', side: 'left', open: true, folded: false }] }, new Set(['settings'])).cards[0].folded, false, 'a saved record that says unfolded wins');
   pass('defaultCard: a window opened by its default arrives folded as it was registered; a saved fold wins');
+}
+{
+  /* 1.6.0-alpha.32 ONE LAW TO MOVE A WINDOW BY KEYS: arrows are the seat, Shift+arrows nudge — on a card's head as on a window's rail */
+  const act = (key, shiftKey, floating) => headKeyAct({ key, shiftKey, floating });
+  assert.equal(act('ArrowUp', false, false), 'order'); assert.equal(act('ArrowDown', false, false), 'order');
+  assert.equal(act('ArrowLeft', false, false), 'side'); assert.equal(act('ArrowRight', false, false), 'side');
+  for (const k of ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']) {
+    assert.equal(act(k, true, true), 'nudge', 'floating: Shift+arrow nudges');
+    assert.equal(act(k, false, true), null, 'floating: a plain arrow no longer nudges (it did)');
+    assert.equal(act(k, true, false), null, 'docked: Shift+arrow moves nothing');
+  }
+  assert.equal(act('Enter', false, false), 'float'); assert.equal(act('Enter', false, true), 'float'); assert.equal(act('a', false, false), null);
+  assert.equal(RACK.nudge, 24);
+  pass('headKeyAct: arrows are the seat (order, side), Shift+arrows nudge a float, Enter floats or docks');
 }
 console.log(`\n${n} rack groups pass`);
