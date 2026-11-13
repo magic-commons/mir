@@ -2,7 +2,7 @@
 /* tests/folders.node.mjs — FOLDERS' pure parts over an injected storage: the library store (folders/files.js, BASINS'
  * model), the seeds (folders/seed.js) and the project adapter with its open-with-rollback (folders/project.js). */
 import assert from 'node:assert/strict';
-import { createFiles } from '../mir/folders/files.js';
+import { createFiles, entryOk, thumbOf } from '../mir/folders/files.js';
 import { seed } from '../mir/folders/seed.js';
 import { createProjectAdapter, openWithRollback, emptyProject, restoreOk } from '../mir/folders/project.js';
 import { createProjectParts } from '../mir/core/project.js';
@@ -125,6 +125,28 @@ await ok('adapter: an open whose part throws rolls back to what was there, and s
   assert.equal(t2.ok, false); assert.match(t2.why, /engine is not up/);
   assert.equal(t2.rolledBack, false, 'a rollback that fails too is said, not hidden');
   assert.deepEqual(restoreOk(undefined), { ok: true, failed: [] }); assert.equal(restoreOk(false).ok, false); assert.equal(restoreOk({ failed: ['x'] }).ok, false);
+});
+
+await ok('store: a stored picture is a data:image/ picture or nothing (1.6.0-alpha.6) — a URL never reaches the gallery, and the project is kept', () => {
+  const PIC = 'data:image/jpeg;base64,AAAA', URL_ = 'https://tracker.example/t.png';
+  const rec = (id, thumb) => ({ id, name: id.toUpperCase(), folder: '', at: 1, thumb, payload: P(id), facts: {} });
+  assert.equal(thumbOf(PIC), PIC); assert.equal(thumbOf(''), '');
+  for (const bad of [URL_, '//tracker.example/t.png', 'x.png', 'javascript:alert(1)', 'data:text/html,x', ' data:image/png;base64,AA', 'x'.repeat(4096), 7, null, undefined]) assert.equal(thumbOf(bad), '', String(bad).slice(0, 30));
+  assert.equal(entryOk(rec('f1', PIC)), true); assert.equal(entryOk(rec('f1', '')), true);
+  assert.equal(entryOk(rec('f1', URL_)), false, 'the entry check refuses a URL thumb'); assert.equal(entryOk(rec('f1', 'x.png')), false);
+  /* the road in from storage: the work stays, the picture goes; nothing is counted unreadable */
+  const raw = JSON.stringify({ kit: 'MIR files', formatVersion: 1, seq: 3, entries: [rec('f1', URL_), rec('f2', PIC), rec('f3', 'x'.repeat(4096))], folders: {} });
+  const st = memory({ 'mir.folders': raw }), F = createFiles({ key: 'mir.folders', storage: st });
+  assert.deepEqual(F.entries().map((e) => [e.id, e.thumb]), [['f1', ''], ['f2', PIC], ['f3', '']]);
+  assert.equal(F.state().refusedPending, false); assert.deepEqual(F.entry('f1').payload, P('f1'));
+  assert.equal(F.folderPicture('').id, 'f2', 'the folder wears the one picture that is one');
+  /* the roads in from an app: save, overwrite, refresh, saveMakingRoom */
+  const s = F.save({ name: 'S', folder: '', payload: P(1), thumb: URL_ }); assert.equal(s.entry.thumb, '');
+  assert.equal(F.overwrite(s.entry.id, { payload: P(2), thumb: URL_ }).entry.thumb, '');
+  assert.equal(F.overwrite(s.entry.id, { payload: P(2), thumb: PIC }).entry.thumb, PIC);
+  F.refresh([{ id: s.entry.id, payload: P(3), thumb: URL_ }]); assert.equal(F.entry(s.entry.id).thumb, '');
+  assert.equal(F.saveMakingRoom({ name: 'R', folder: '', payload: P(4), thumb: URL_ }, { consent: true }).entry.thumb, '');
+  assert.ok(!/tracker\.example/.test(st.getItem('mir.folders')), 'no URL is written back');
 });
 
 await ok('adapter: the default is core/project.js — capture is { parts }, empty restores every part with null', async () => {

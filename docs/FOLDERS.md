@@ -115,7 +115,7 @@ Returns `{ win, files, gallery, adapter, seeded, intake, views, panels (id → b
 | `capture(presence?)` | the project as JSON. `presence` is the components switches (`{ rack: true, … }`); none (a rollback's own capture) means all | `{ parts: captureProject() }` |
 | `restore(data, entry?)` | `true`/nothing = it took; `false`, `{ ok: false, why }` or `{ failed: [names] }` = it did not | `restoreProject(data.parts)` |
 | `signature()` | a string: equal means unchanged | `projectSignature()` |
-| `thumbnail()` | a canvas, a Blob, a data URL (kept as it is), or null | null |
+| `thumbnail()` | a canvas, a Blob, a `data:image/…` URL (kept as it is), or null. Any other string is no picture (1.6.0-alpha.6) | null |
 | `empty()` | as `restore`; a string is the sentence the user is told (BASINS: "New fractal — …") | `restore(null)`: every part restored with null |
 | `subscribe(fn)` | an `off()` | `subscribeProject` |
 | `facts()` | small JSON kept beside the entry (BASINS: the depth) | `{}` |
@@ -144,7 +144,7 @@ The panel's `build(body, api)` becomes the window's `body`; `onShow` becomes the
 seeds: [{ name: 'EMBER', folder: 'STARTERS', data: { parts: { … } }, thumbnail: 'data:image/jpeg;…', readOnly: true }]
 ```
 
-Each starter is added **once**, counted by its `id` (default `folder/name`) in a list under `seededKey`. One the user deleted stays deleted; a library that already holds it (`facts.seedId`) is not given a second; a name the user already used is suffixed. `readOnly` starters cannot be saved over or renamed.
+A starter's `thumbnail` is a `data:image/…` URL; a path or a web address is stored as no picture (1.6.0-alpha.6: the library keeps a picture's bytes, never an address the gallery would fetch). Each starter is added **once**, counted by its `id` (default `folder/name`) in a list under `seededKey`. One the user deleted stays deleted; a library that already holds it (`facts.seedId`) is not given a second; a name the user already used is suffixed. `readOnly` starters cannot be saved over or renamed.
 
 **A changed starter is refreshed in place** (1.5.0-alpha.13; BASINS `starter-gallery.js`). Give a starter a `revision` (any string or number; bump it when its art or data changes). The entry made from it records `facts.seedRevision`; at the next seed an entry that came from this starter (`facts.seedId`) and records another revision (or none: it was seeded before revisions) takes the new picture, payload, facts and date, **keeping its id, name, folder and place**, and every starter refreshes in **one write, all or none** (`files.refresh(updates)`): a full library, a quota or another tab's write leaves the gallery as it was and the next load tries again. Only a bundled entry is ever touched: a user's save of the same name has no `seedId`, and SAVE over a starter is refused. `replaces(entry) → bool` is the app's own test of which entry is the previous revision, for entries that predate `seedId` (BASINS matched its starter id, its source and its date). `seed()` returns `refreshed` (and `refreshFailed` with the store's own refusal).
 

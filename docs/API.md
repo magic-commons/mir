@@ -563,7 +563,7 @@ Load `mir/shell/parts.css` after the kit's sheets.
 **`folders/files.js`** (pure; BASINS' model) — `createFiles({ key, storage, capChars, defaultName })` → `{ save, overwrite, rename, move,
   remove, renameFolder, deleteFolder, setFolderPicture, folderPicture, saveMakingRoom, evictOldest, entries, entry, folders, count,
   proposedName, state, subscribe, reload, key, cap, setCap, chars }`; `normalizeFolder`, `inFolderTree`, `leafOf`,
-  `uniqueName`, `savedAtLabel`, `entryOk`, `FILES_V`, `NAME_MAX`
+  `uniqueName`, `savedAtLabel`, `entryOk`, `thumbOf`, `FILES_V`, `NAME_MAX`. A stored picture is `data:image/…` or `''` (1.6.0-alpha.6): `thumbOf(t)` is that rule, `entryOk` holds it, and `save`, `overwrite`, `refresh`, `saveMakingRoom` and the read from storage empty any other string
 
 **`folders/seed.js`** (pure) — `seed(files, starters, { storage, seededKey })` → `{ ok, added, skipped, total }`; `seedId(starter)`
 
