@@ -58,7 +58,7 @@
 <div class="g-grid" id="grid"></div>
 <div id="floats"></div>
 <script type="module">
-import { el, knob, sw, seg, trig, fader, row as kitRow, section as kitSection, knobBank, meter as kitMeter, lamp as kitLamp } from '../mir/kit.js';
+import { el, knob, sw, seg, trig, fader, setKnobLaw, row as kitRow, section as kitSection, knobBank, meter as kitMeter, lamp as kitLamp } from '../mir/kit.js';
 import { stepper } from '../mir/controls/stepper.js';
 import { select } from '../mir/controls/select.js';
 import { number } from '../mir/controls/number.js';
@@ -279,7 +279,7 @@ let mod = null;
     ['a routed range', 'each thumb a target', 'R']]);
 }
 
-window.__C = { W, mod, kit: { knob, sw, seg, trig, fader }, control, controlKind };
+window.__C = { W, mod, kit: { knob, sw, seg, trig, fader, setKnobLaw }, control, controlKind };
 window.__ready = true;
 }
 </script>

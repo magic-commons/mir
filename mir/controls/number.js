@@ -124,7 +124,7 @@ export function number(o = {}) {
   face.addEventListener('keydown', (e) => {
     if (disabled || e.ctrlKey || e.metaKey || e.altKey) return;
     const dir = e.code === 'ArrowUp' || e.code === 'ArrowRight' || e.code === 'PageUp' ? 1 : e.code === 'ArrowDown' || e.code === 'ArrowLeft' || e.code === 'PageDown' ? -1 : 0;
-    if (dir) { e.preventDefault(); model.set(v + dir * unit * (e.code.startsWith('Page') ? 10 : 1) * (e.shiftKey && !step ? 1 / setKnobLaw().fine : 1)); model.commit(); return; }
+    if (dir) { e.preventDefault(); model.set(v + dir * unit * (e.code.startsWith('Page') ? 10 : 1) * (e.shiftKey && !step ? setKnobLaw().keyFine : 1)); model.commit(); return; }   // keyFine, the arrow's own gear (1.6.0-alpha.22: it read the DRAG's divisor)
     if (e.code === 'Home' && Number.isFinite(min)) { e.preventDefault(); model.set(min); model.commit(); } else if (e.code === 'End' && Number.isFinite(max)) { e.preventDefault(); model.set(max); model.commit(); }
     else if (e.code === 'Delete' || e.code === 'Backspace') { e.preventDefault(); model.set(def); model.commit(); }
   });

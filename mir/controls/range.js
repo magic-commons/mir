@@ -12,7 +12,7 @@
  *     onInput(lo, hi) while a thumb moves; onChange(lo, hi) when a gesture or key lands.  minGap is in value units (default: one step, or 0).
  *   → { root, lo, hi, get() → [lo, hi], set(lo, hi), setDisabled(on), destroy() }   (lo and hi are the thumb widgets)
  * The pure parts (for tests): rangeBounds, nearestThumb. */
-import { el, label, ariaLabel, hint, watchTouches, gearOf, tapWatcher, wheelTurn } from '../kit.js';
+import { el, label, ariaLabel, hint, watchTouches, gearOf, tapWatcher, wheelTurn, setKnobLaw } from '../kit.js';
 import { setVar, setText, setAttr } from '../core/perf.js';
 import { digitsOf } from './number.js';
 import { t as tx } from '../core/i18n.js';
@@ -153,7 +153,7 @@ export function rangeSlider(o = {}) {
     let x = state[which];
     if (dir) {
       if (step && !log) x = x + dir * step * (page ? 10 : 1);
-      else x = denorm(norm(x) + dir * 0.01 * (page ? 10 : 1) * (e.shiftKey ? 0.125 : 1));
+      else x = denorm(norm(x) + dir * 0.01 * (page ? 10 : 1) * (e.shiftKey ? setKnobLaw().keyFine : 1));   // the ONE gear (1.6.0-alpha.22: this was a literal 0.125 that setKnobLaw never reached)
     } else if (e.code === 'Home') x = bl; else if (e.code === 'End') x = bh;
     else if (e.code === 'Delete' || e.code === 'Backspace') x = def[which]; else return;
     e.preventDefault();

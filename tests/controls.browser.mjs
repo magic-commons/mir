@@ -311,6 +311,14 @@ try {
     check('select: the walk wraps at both ends, closed (↓ on the last is the first, ↑ back) and in the open pane', wrapped === 'p0' && back === 'p23' && paneAt === 'p0' && paneBack === 'p23', JSON.stringify({ wrapped, back, paneAt, paneBack }));
     await J(`W.stepper.set('c'); W.stepper.name.focus(); return 1;`); await key('End'); const last = await val('W.stepper'); await key('Home'); const first = await val('W.stepper');
     check('stepper: End is the last live item and Home the first', last === 'e' && first === 'a', JSON.stringify({ last, first }));
+    /* 1.6.0-alpha.22 NO CONTROL KEEPS THE LAW AS A NUMBER: with the arrow's gear retuned (keyFine ½, the drag's divisor left at 8), Shift + ↑ on an
+       unstepped range thumb and on an unstepped number is HALF a plain arrow (the range kept a literal ⅛, the number read the drag's divisor) */
+    { await J(`C.kit.setKnobLaw({ keyFine: 0.5 }); W.law = { r: C.control({ id: 'law.r', label: 'LAW', type: 'range', min: 0, max: 1, value: [0.2, 0.8] }), n: C.control({ id: 'law.n', label: 'LAWN', value: 5 }) };
+        document.body.append(W.law.r.root, W.law.n.root); W.law.r.widget.hi.root.focus(); return 1;`);
+      await key('ArrowUp', 8); const hi = (await J(`return W.law.r.get();`))[1];
+      await J(`W.law.n.widget.face.focus(); return 1;`); await key('ArrowUp', 8); const num = await J(`return W.law.n.get();`);
+      const law = await J(`const l = C.kit.setKnobLaw({ fine: 8 }); W.law.r.root.remove(); W.law.n.root.remove(); return l;`);
+      check('setKnobLaw({ keyFine }) reaches the range thumb\'s and the number\'s Shift + arrow (0.8 → 0.805, 5 → 5.5), and { fine: 8 } puts the law back', near(hi, 0.805, 1e-9) && near(num, 5.5, 1e-9) && law.keyFine === 0.125 && law.fine === 8, JSON.stringify({ hi, num, law })); }
     await J(`W.knob.set(0.4); if (document.activeElement) document.activeElement.blur(); return 1;`);
     const s = await need(K, 'knob (press takes the focus)'); await mouse('mouseMoved', s.x, s.y); await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(60);
     const kf = await J(`return document.activeElement === W.knob.root;`);
