@@ -52,16 +52,20 @@ try {
   const seatCheck = async (name, want = { glyph: 32, num: 18, seat: 40 }) => {
     await run(`T.tr.setBpm(30); if (T.clock.isPlaying()) T.clock.pause(); await wait(60); return 0;`);
     const dg = await digit(0);
+    await run(`if (document.activeElement) document.activeElement.blur(); return 0;`);
     await p.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: dg.x, y: dg.y, deltaX: 0, deltaY: -100 }); await sleep(80);
-    const w = await run(`return T.tr.bpm;`);
+    const w0 = await run(`return T.tr.bpm;`);                      // 1.6.0-alpha.3 THE WHEEL WAITS FOR A CLICK: unpressed, the wheel is the page's
     const hp = await click(`__T.tr.el.pill`);
     const op = await run(`await wait(60); const o = !__T.tr.el.panel.hidden; return o;`);
-    await click(`__T.tr.el.pill`);
+    const d2 = await digit(0);                                     // the open panel may have moved the pill
+    await p.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: d2.x, y: d2.y, deltaX: 0, deltaY: -100 }); await sleep(80);
+    const w = await run(`return T.tr.bpm;`);
+    await sleep(320); await click(`__T.tr.el.pill`);
     const hy = await click(`__T.tr.el.play`);
     const q = await run(`await wait(60); const g = { width: parseFloat(getComputedStyle(T.tr.el.play.querySelector('svg')).width) }, b = T.tr.el.play.getBoundingClientRect(); const on = T.clock.isPlaying(); T.tr.toggle(); await wait(40);
       return { on, glyph: Math.round(g.width), seat: Math.round(b.width), num: parseFloat(getComputedStyle(T.tr.el.pill.querySelector('.tempo-number')).fontSize) };`);
-    check(name + ': after the size change a wheel notch on the tens digit steps by one, a click opens the tempo panel, play plays (glyph ' + want.glyph + ' px in a ' + want.seat + ' px seat, tempo ' + want.num + ' px)',
-      dg.ok && dg.ch === '3' && w === 31 && hp.ok && op && hy.ok && q.on && q.glyph === want.glyph && q.seat === want.seat && q.num === want.num, JSON.stringify({ dg, w, op, q }));
+    check(name + ': after the size change a wheel on the unpressed pill changes nothing; a click opens the tempo panel and a wheel notch on the tens digit then steps by one; play plays (glyph ' + want.glyph + ' px in a ' + want.seat + ' px seat, tempo ' + want.num + ' px)',
+      dg.ok && dg.ch === '3' && w0 === 30 && w === 31 && hp.ok && op && hy.ok && q.on && q.glyph === want.glyph && q.seat === want.seat && q.num === want.num, JSON.stringify({ dg, w0, w, op, q }));
   };
   const shadowTerms = `(s) => (s === 'none' ? [] : s.split(/,(?![^(]*\\))/).map((x) => x.trim()))`;
 
@@ -122,7 +126,17 @@ try {
   d = await digit(1);
   await p.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: d.x, y: d.y, deltaX: 0, deltaY: 100 }); await sleep(80);
   r = await run(`return { bpm: tr.bpm };`);
-  check('wheel: one notch is one BPM wherever it lands — up on the tens +1 (39.1), down on the ones −1 (38.1)', wheelTens === 39.1 && r.bpm === 38.1, JSON.stringify({ wheelTens, r }));
+  check('wheel (the pill was just pressed and holds the focus): one notch is one BPM wherever it lands — up on the tens +1 (39.1), down on the ones −1 (38.1)', wheelTens === 39.1 && r.bpm === 38.1, JSON.stringify({ wheelTens, r }));
+  await run(`pill.blur(); return 0;`);
+  await p.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: d.x, y: d.y, deltaX: 0, deltaY: -100 }); await sleep(80);
+  r = await run(`return { bpm: tr.bpm };`);
+  check('wheel: once the focus has left the pill the wheel changes nothing (1.6.0-alpha.3 THE WHEEL WAITS FOR A CLICK)', r.bpm === 38.1, JSON.stringify(r));
+  { /* a double click types the tempo: the open, focused field is the pressed control, and a notch over it steps the number in it */
+    const c = await hit(`__T.tr.el.pill`); await mouse('mouseMoved', c.x, c.y); await mouse('mousePressed', c.x, c.y); await mouse('mouseReleased', c.x, c.y); await mouse('mousePressed', c.x, c.y, 0, 2); await mouse('mouseReleased', c.x, c.y, 0, 2); await sleep(120);
+    await p.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: c.x, y: c.y, deltaX: 0, deltaY: -100 }); await sleep(80);
+    r = await run(`const f = tr.el.field; const o = { open: !f.hidden, focus: document.activeElement === f, value: f.value, bpm: tr.bpm }; f.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true })); await wait(60); o.after = tr.bpm; o.panel = !tr.el.panel.hidden; if (o.panel) pill.click(); await wait(60); return o;`);
+    check('wheel over the open tempo field (the pill was pressed to type): a notch steps the number in the field and the tempo (38.1 → 39.1); Enter keeps it', r.open && r.focus && r.value === '39.1' && r.bpm === 39.1 && r.after === 39.1, JSON.stringify(r));
+    await run(`tr.setBpm(38.1); await wait(40); return 0;`); }
   await run(`pill.focus(); return 0;`);
   await key('ArrowUp', 'ArrowUp', 38); await key('ArrowRight', 'ArrowRight', 39); await key('ArrowLeft', 'ArrowLeft', 37);
   await key('ArrowDown', 'ArrowDown', 40, 8); await key('PageUp', 'PageUp', 33);

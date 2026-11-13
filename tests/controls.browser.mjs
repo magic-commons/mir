@@ -64,6 +64,18 @@ try {
   { const s = await need(K, 'knob (double-tap)'); mods = 0; await mouse('mouseMoved', s.x, s.y);
     await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(60); await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(100); }
   v = await val('W.knob'); check('knob: a double-tap is home', near(v, 0.4, 1e-6), String(v));
+  /* 1.6.0-alpha.3 THE WHEEL WAITS FOR A CLICK: over an unpressed knob the wheel is the page's (the value stays, the default is not prevented);
+     pressed and focused, a notch is the arrow key's step (1/100, Shift an eighth of it) and the page stays; the focus leaving ends it */
+  { await J(`W.knob.set(0.4); if (document.activeElement) document.activeElement.blur(); window.__wh = []; W.knob.root.addEventListener('wheel', (e) => setTimeout(() => __wh.push(e.defaultPrevented)), true); return 1;`);
+    const s = await need(K, 'knob (wheel)'); mods = 0; await mouse('mouseMoved', s.x, s.y);
+    const wheel = async (dy, m = 0) => { await p.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: s.x, y: s.y, deltaX: 0, deltaY: dy, modifiers: m }); await sleep(80); };
+    await wheel(-100); const cold = await val('W.knob');
+    await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(350);
+    await wheel(-100); const up = await val('W.knob'); await wheel(100); await wheel(100); const down = await val('W.knob'); await wheel(-100, 8); const fine = await val('W.knob');
+    await J(`document.activeElement.blur(); return 1;`); await wheel(-100); const left = await val('W.knob');
+    const seen = await J(`return __wh;`);
+    check('knob: a wheel over an unpressed knob changes nothing and is left to the page; pressed and focused, a notch is the arrow key\'s step (Shift the fine gear) and the page does not scroll; the focus leaving ends it',
+      near(cold, 0.4, 1e-9) && near(up, 0.41, 1e-9) && near(down, 0.39, 1e-9) && near(fine, 0.39125, 1e-9) && near(left, fine, 1e-9) && seen.join() === 'false,true,true,true,true,false', JSON.stringify({ cold, up, down, fine, left, seen })); }
   /* ONE double-tap law (Josh, 2026-10-07, call 20): 300 ms and 14 px — two presses 330 ms apart, or 20 px apart, are not home */
   { await J(`W.knob.set(0.9); return 1;`); await sleep(350);
     const s = await need(K, 'knob (slow taps)'); mods = 0; await mouse('mouseMoved', s.x, s.y);
@@ -183,6 +195,16 @@ try {
   /* ── THE RANGE SLIDER ── */
   await J(`W.range.set(0.25, 0.75); return 1;`);
   const RT = (w) => `W.range.${w}.root`;
+  { /* 1.6.0-alpha.3 THE WHEEL WAITS FOR A CLICK, on a thumb: unpressed nothing; pressed, a notch is the thumb's arrow step */
+    await J(`if (document.activeElement) document.activeElement.blur(); return 1;`);
+    let s = await need(RT('hi'), 'range hi (wheel)'); mods = 0; await mouse('mouseMoved', s.x, s.y);
+    const wheel = async (dy) => { await p.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: s.x, y: s.y, deltaX: 0, deltaY: dy }); await sleep(80); };
+    const y0 = await J(`return scrollY;`); await wheel(100); const cold = await J(`return W.range.get();`), y1 = await J(`return scrollY;`);
+    s = await need(RT('hi'), 'range hi (wheel, pressed)'); await mouse('mouseMoved', s.x, s.y);   // the unpressed wheel scrolled the page: aim again
+    await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(350);
+    const held = await J(`return W.range.get();`), y2 = await J(`return scrollY;`); await wheel(100); const turned = await J(`return W.range.get();`), y3 = await J(`return scrollY;`);
+    check('range: a wheel over an unpressed thumb changes nothing and scrolls the page; over the pressed, focused thumb one notch is its arrow step, the other thumb stays and the page does not scroll', near(cold[0], 0.25, 1e-9) && near(cold[1], 0.75, 1e-9) && y1 > y0 && turned[1] < held[1] && near(turned[0], held[0], 1e-9) && y3 === y2, JSON.stringify({ cold, held, turned, y: [y0, y1, y2, y3] }));
+    await J(`document.activeElement.blur(); W.range.set(0.25, 0.75); return 1;`); }
   await drag(RT('lo'), 'range lo', [[40, 0], [80, 0]]);
   let rg = await J(`return W.range.get();`); check('range: the lo thumb drags right', rg[0] > 0.25 && near(rg[1], 0.75, 1e-9), JSON.stringify(rg));
   await drag(RT('hi'), 'range hi', [[-40, 0], [-80, 0]]);
