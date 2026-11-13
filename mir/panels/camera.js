@@ -136,6 +136,7 @@ function deltaMove(g, e, o, fn, own) {
 export function directionSphere(o = {}) {
   const unit = o.unit || 1, toRad = (v) => v * DEG / unit;
   const root = el('div', 'mir-camsphere' + (o.plane ? ' plane' : ''));
+  if (o.title) hint(root, o.title);                                               // THE ROOT WEARS THE HINT (1.6.0-alpha.23)
   if (o.label) label(el('div', 'k-lbl', root), o.label);
   const body = el('div', 'mir-camsphere-body', root);
   const svg = svgEl('svg', 'cs-svg', body);

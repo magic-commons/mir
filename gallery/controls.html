@@ -180,8 +180,9 @@ bar.append(seg({ value: document.body.dataset.theme, options: [{ id: 'dark', lab
   W.swOff = sw({ label: 'SYNC', value: false });
   W.swNoLamp = sw({ label: 'ALL', value: true, lamp: false, title: 'a switch without a lamp: its label is the light' });
   W.trig = trig({ label: 'FIRE', onFire: () => {} });
+  W.trigGlyph = trig({ label: 'Add one', glyph: 'plus', word: false, title: 'the glyph form: no word, the label is its name', onFire: () => {} });
   W.seg = seg({ label: 'MODE', value: 'b', options: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }, { id: 'c', label: 'C' }] });
-  r.append(W.swLamp.root, W.swOff.root, W.swNoLamp.root, W.trig.root, W.seg.root);
+  r.append(W.swLamp.root, W.swOff.root, W.swNoLamp.root, W.trig.root, W.trigGlyph.root, W.seg.root);
   rules(c, [['a state that stays on', 'SWITCH with a lamp', 'J', '"I like the little light switches when things are on"'],
     ['no lamp: the glyph itself is the state', 'a chrome button (power, an eye, play/pause, invert)', 'R'],
     ['no lamp: a lane\'s dot is itself the lamp', 'the dot, in the lane\'s ink', 'R'],
@@ -195,10 +196,10 @@ bar.append(seg({ value: document.body.dataset.theme, options: [{ id: 'dark', lab
 {
   const c = card('s-modes', 'STEPPER · SELECT · NUMBER');
   const blends = ['NORMAL', 'MULTIPLY', 'SCREEN', 'OVERLAY', 'SOFT LIGHT', 'HARD LIGHT', 'DIFFERENCE', 'EXCLUSION', 'COLOUR DODGE', 'COLOUR BURN', 'LIGHTEN', 'DARKEN'].map((l) => ({ id: l.toLowerCase(), label: l }));
-  W.stepper = stepper({ label: 'BLEND', items: blends, value: 'overlay' });
-  W.pager = stepper({ pager: true, count: true, aria: 'page', items: [{ id: 'one', label: 'PAGE ONE' }, { id: 'two', label: 'PAGE TWO' }, { id: 'three', label: 'PAGE THREE' }], value: 'one' });
+  W.stepper = stepper({ label: 'BLEND', options: blends, value: 'overlay' });
+  W.pager = stepper({ pager: true, count: true, aria: 'page', options: [{ id: 'one', label: 'PAGE ONE' }, { id: 'two', label: 'PAGE TWO' }, { id: 'three', label: 'PAGE THREE' }], value: 'one' });
   const ports = Array.from({ length: 24 }, (_, i) => ({ id: 'p' + i, label: 'MIDI PORT ' + (i + 1) }));
-  W.select = select({ label: 'MIDI IN', items: ports, value: 'p3' });
+  W.select = select({ label: 'MIDI IN', options: ports, value: 'p3', title: 'Which port to listen to' });
   W.number = number({ label: 'AMOUNT', min: 0, max: 100, step: 0.5, value: 12.5, unit: '' });
   c.append(W.stepper.root, W.pager.root, W.select.root, W.number.root);
   rules(c, [['one of 5 or more modes, in order', 'STEPPER ‹ NAME ›', 'J·R', 'a tap on the name opens the full list; it is the page turner too'],

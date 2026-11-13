@@ -25,7 +25,7 @@
  * dots are bucketed by tint, one path and one fill per bucket.  `lattice(reset)` is the test's probe: { n, nx, ny, radii, paints,
  * hover, ms, max, sum } (the paint's own cost in ms; reset zeroes the counters after reading).
  * Styled by controls.css (`.mir-xy`, `.xy-pad`, `.xy-lattice`, `.xy-dot`, `.xy-base`; the `--xy-lattice-*` tokens). */
-import { el, label, ariaLabel, knob, watchTouches, gearOf, tapWatcher, setKnobLaw, onThemeChange } from '../kit.js';
+import { el, label, ariaLabel, hint, knob, watchTouches, gearOf, tapWatcher, setKnobLaw, onThemeChange } from '../kit.js';
 import { setVar } from '../core/perf.js';
 import { frame } from '../core/frame.js';
 import { motionToken } from '../core/motion.js';
@@ -145,6 +145,7 @@ function createLattice(pad) {
 
 export function xyPad(o = {}) {
   const root = el('div', 'mir-xy' + (o.cls ? ' ' + o.cls : ''));
+  if (o.title) hint(root, o.title);                                   // THE ROOT WEARS THE HINT (1.6.0-alpha.23); each axis knob still takes its own
   if (o.label) label(el('div', 'k-lbl', root), o.label);
   const body = el('div', 'mir-xy-body', root);
   const pad = el('div', 'xy-pad', body); pad.tabIndex = 0; pad.setAttribute('role', 'application');

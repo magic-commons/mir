@@ -8,7 +8,8 @@
  * virtual point; a press on the track brings the NEAREST thumb to it (unless the gear is engaged: then nothing jumps); a double-tap on a
  * thumb is home.  The keys on a thumb: ← ↓ and → ↑ one hundredth of the range (one step on a stepped range, Shift ignored there, as on a stepped knob),
  * Shift ⅛ of that, Page ten, Home and End its bounds.
- *   rangeSlider({ label, aria, min, max, lo, hi, step, log, fmt, minGap, onInput, onChange, cls, loLabel, hiLabel })
+ *   rangeSlider({ label, aria, title, min, max, lo, hi, home, step, log, fmt, minGap, onInput, onChange, cls, loLabel, hiLabel })
+ *     title: the hint, on the root; home: [lo, hi], where a double-tap and Delete send each thumb (default the built lo / hi).
  *     onInput(lo, hi) while a thumb moves; onChange(lo, hi) when a gesture or key lands.  minGap is in value units (default: one step, or 0).
  *   → { root, lo, hi, get() → [lo, hi], set(lo, hi), setDisabled(on), destroy() }   (lo and hi are the thumb widgets)
  * The pure parts (for tests): rangeBounds, nearestThumb. */
@@ -44,7 +45,7 @@ export function rangeSlider(o = {}) {
   el('i', 'mir-rng-track', rail);
   const spanEl = el('i', 'mir-rng-span', rail);
   const vals = el('div', 'mir-rng-vals', root);
-  const state = { lo: o.lo ?? min, hi: o.hi ?? max }, def = { lo: state.lo, hi: state.hi };
+  const state = { lo: o.lo ?? min, hi: o.hi ?? max }, def = Array.isArray(o.home) ? { lo: o.home[0], hi: o.home[1] } : { lo: state.lo, hi: state.hi };   // `home: [lo, hi]` (1.6.0-alpha.23)
   let disabled = false, drag = null;
   watchTouches();
 

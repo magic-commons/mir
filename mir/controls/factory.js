@@ -80,17 +80,17 @@ export function control(d, hooks = {}) {
   let widget, targets = [], getter, setter, recs = null;
   switch (kind) {
     case 'switch': widget = sw({ ...common, value: !!read(), lamp: d.lamp, onChange: change }); getter = () => widget.get(); setter = (v) => widget.set(v); break;
-    case 'swatch': widget = hueSwatch({ ...common, rgb: read(), onInput: (c) => input(c), onChange: () => change(widget.get ? widget.get() : read()) }); getter = () => widget.get(); setter = (v) => widget.set(v); break;
+    case 'swatch': widget = hueSwatch({ ...common, rgb: read(), onInput: input, onChange: change }); getter = () => widget.get(); setter = (v) => widget.set(v); break;
     case 'segment': widget = seg({ ...common, options: d.options.map((o) => ({ id: o.id, label: o.label, title: o.hint })), value: String(read()), onChange: change }); getter = () => widget.get(); setter = (v) => widget.set(v); break;
-    case 'stepper': widget = stepper({ ...common, items: itemsOf(d), value: read(), onChange: change }); getter = () => widget.get(); setter = (v) => widget.set(v); break;
-    case 'select': widget = select({ ...common, items: itemsOf(d), value: read(), onChange: change }); getter = () => widget.get(); setter = (v) => widget.set(v); break;
+    case 'stepper': widget = stepper({ ...common, options: itemsOf(d), value: read(), onChange: change }); getter = () => widget.get(); setter = (v) => widget.set(v); break;
+    case 'select': widget = select({ ...common, options: itemsOf(d), value: read(), onChange: change }); getter = () => widget.get(); setter = (v) => widget.set(v); break;
     case 'arc': widget = arcKnob({ ...knobOpts(), ink: d.ink, home: d.home, stops: d.stops }); targets = [widget]; getter = () => widget.get(); setter = (v) => widget.set(v); break;
     case 'lane': widget = laneSlider({ ...common, min: d.min, max: d.max, value: read(), log: d.log, fmt: d.fmt, ink: d.ink, orient: d.orient, home: d.home, onInput: input, onChange: change }); targets = [widget]; getter = () => widget.get(); setter = (v) => widget.set(v); break;
-    case 'knob': widget = knob(knobOpts()); if (Number.isFinite(d.home)) widget.setDefault(d.home); targets = [widget]; getter = () => widget.get(); setter = (v) => widget.set(v); break;   // a double-tap goes HOME
+    case 'knob': widget = knob({ ...knobOpts(), home: d.home }); targets = [widget]; getter = () => widget.get(); setter = (v) => widget.set(v); break;   // a double-tap goes HOME
     case 'xy': {
       const [ax, ay] = d.pair;
       const axis = (a, f) => ({ label: a.label, min: a.min, max: a.max, value: typeof a.get === 'function' ? a.get() : a.value, step: a.step, log: a.log, unit: a.unit, fmt: a.fmt, title: a.hint });
-      widget = xyPad({ label: d.label, aria: d.aria, x: axis(ax), y: axis(ay), home: d.home, tags: d.tags, wrap: d.wrap,   // 1.5.7-alpha.13: a pair's `wrap` is its pad's ('plane' | 'sphere')
+      widget = xyPad({ label: d.label, aria: d.aria, title: d.hint, x: axis(ax), y: axis(ay), home: d.home, tags: d.tags, wrap: d.wrap,   // 1.5.7-alpha.13: a pair's `wrap` is its pad's ('plane' | 'sphere')
         onInput: (x, y) => { if (typeof ax.set === 'function') ax.set(x); if (typeof ay.set === 'function') ay.set(y); if (d.onInput) d.onInput([x, y]); if (hooks.onInput) hooks.onInput([x, y]); },
         onChange: (x, y) => { if (typeof ax.set === 'function') ax.set(x); if (typeof ay.set === 'function') ay.set(y); if (d.onChange) d.onChange([x, y]); if (hooks.onChange) hooks.onChange([x, y]); } });
       targets = [widget.x, widget.y]; getter = () => widget.get(); setter = (v) => widget.set(v[0], v[1]);
@@ -99,13 +99,12 @@ export function control(d, hooks = {}) {
     case 'range': {
       const v0 = Array.isArray(d.value) ? d.value : (typeof d.get === 'function' ? d.get() : [d.min, d.max]);
       const both = (lo, hi) => { if (typeof d.set === 'function') d.set([lo, hi]); };
-      widget = rangeSlider({ label: d.label, aria: d.aria, title: d.hint, min: d.min, max: d.max, lo: v0[0], hi: v0[1], step: d.step, log: d.log, fmt: d.fmt, minGap: d.minGap,
+      widget = rangeSlider({ label: d.label, aria: d.aria, title: d.hint, min: d.min, max: d.max, lo: v0[0], hi: v0[1], home: d.home, step: d.step, log: d.log, fmt: d.fmt, minGap: d.minGap,
         onInput: (lo, hi) => { both(lo, hi); if (d.onInput) d.onInput([lo, hi]); if (hooks.onInput) hooks.onInput([lo, hi]); },
         onChange: (lo, hi) => { both(lo, hi); if (d.onChange) d.onChange([lo, hi]); if (hooks.onChange) hooks.onChange([lo, hi]); } });
-      if (Array.isArray(d.home)) { widget.lo.setDefault(d.home[0]); widget.hi.setDefault(d.home[1]); }
       targets = [widget.lo, widget.hi]; getter = () => widget.get(); setter = (v) => widget.set(v[0], v[1]); break;
     }
-    default: widget = number({ ...common, min: d.min, max: d.max, value: read(), step: d.step, digits: d.digits, fmt: d.fmt, unit: d.unit, onInput: input, onChange: change }); getter = () => widget.get(); setter = (v) => widget.set(v);
+    default: widget = number({ ...common, min: d.min, max: d.max, value: read(), home: d.home, step: d.step, digits: d.digits, fmt: d.fmt, unit: d.unit, onInput: input, onChange: change }); getter = () => widget.get(); setter = (v) => widget.set(v);
   }
   const root = widget.root;
   root.dataset.control = kind;

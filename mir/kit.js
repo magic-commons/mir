@@ -312,7 +312,8 @@ export function dragTravel(e, { touch = false, travel, fine } = {}) {
   return touch ? KNOB_LAW.touchTravel : (travel || KNOB_LAW.travel);
 }
 /**
- * knob({ label, aria, title, min, max, value, log, wrap, step, fmt, unit, onInput, onChange, onDelta, onReset, size, cls, travel, fine, dragAxis })
+ * knob({ label, aria, title, min, max, value, home, log, wrap, step, fmt, unit, onInput, onChange, onDelta, onReset, size, cls, travel, fine, dragAxis })
+ *   home: where a double-tap and Delete go (1.6.0-alpha.23: ONE spelling on every value control; default the built `value`; setDefault(x) moves it later).
  *   wrap: free-spinning (phase); onDelta(dRad) reports drag deltas instead of absolute values (a JOG WHEEL);
  *   onReset: what a wheel's reset does; size: 'lg'; travel / fine: this knob's own drag law (see setKnobLaw).
  *   dragAxis: 'vertical' (the default: one law for every knob) or 'sum' (the 1.4 law, rise + sideways, for an app that has not moved).
@@ -327,7 +328,7 @@ export function knob(o) {
   const dial = el('div', 'k-dial', root);
   const needle = el('i', 'k-needle', dial);
   const val = el('div', 'k-val', root);
-  let v = o.value, def = o.value, dragging = false, disabled = false, fine = false;   // fine: the menu's FINE (half the drag gain, this session)
+  let v = o.value, def = Number.isFinite(o.home) ? o.home : o.value, dragging = false, disabled = false, fine = false;   // def: `home` (1.6.0-alpha.23), else the built value; fine: the menu's FINE (half the drag gain, this session)
   let shown = null;                 // a value PAINTED over the base by a modulator (show()); the base v is what the hand owns
   const lo = o.min, hi = o.max, log = !!o.log, rev = !!o.reverse && !o.wrap;   // rev: the displayed direction flips (see reverse above)
   if (rev) root.classList.add('k-rev');   // 1.5.7-alpha.12 THE RING FOLLOWS THE DIAL: an overlay drawn in value space (the route ring) mirrors with it
@@ -507,7 +508,7 @@ export function knob(o) {
   return api;
 }
 
-/** sw({ label, value, onChange, lamp, glyph, glyphSize, title, cls }) — a boolean that stays on.  It wears the LAMP (Josh: "I like the
+/** sw({ label, value, onChange, lamp, glyph, glyphSize, title, cls }) → { root, get, set(on), setDisabled(on) } — a boolean that stays on.  It wears the LAMP (Josh: "I like the
  *  little light switches when things are on"); `lamp: false` is for the listed cases where the lamp is wrong (docs/CONTROLS.md): the label is
  *  then ON's light, as a trigger's is (accent, no glow).  `glyph: name` is the case where the glyph is the state (power, an eye, invert): a
  *  44 px round target with no face and no word (the label is its accessible name), `.sw-glyph` in controls.css; the owner says how the
@@ -528,10 +529,10 @@ export function sw(o) {
   const paint = () => { b.classList.toggle('on', v); b.setAttribute('aria-pressed', String(v)); };
   b.addEventListener('click', () => { v = !v; paint(); if (o.onChange) o.onChange(v); });
   paint();
-  return { root: b, get: () => v, set(x) { v = !!x; paint(); } };
+  return { root: b, get: () => v, set(x) { v = !!x; paint(); }, setDisabled(on) { b.disabled = !!on; } };   // setDisabled: 1.6.0-alpha.23, as every builder's
 }
 
-/** seg({ label, aria, title, options: [{id, label, title}], value, onChange }) — an enumeration.  `title` hints the control on its root
+/** seg({ label, aria, title, options: [{id, label, title}], value, onChange }) → { root, get, set(id), button(id), paint, setDisabled(on) } — an enumeration.  `title` hints the control on its root
  *  (THE ROOT WEARS THE HINT, 1.5.7-alpha.18), as every other kit control does; an option's own `title` hints that option. */
 export function seg(o) {
   const root = el('div', 'segw' + (o.cls ? ' ' + o.cls : ''));
@@ -598,10 +599,16 @@ export function seg(o) {
   };
   paint();
   try { new MutationObserver(paint).observe(row, { attributes: true, attributeFilter: ['disabled'], subtree: true }); } catch (_) {}
-  return { root, spec: o, get: () => v, set(x) { v = x; paint(); }, button: (id) => btns.get(id), paint };   // spec: as knob's (1.5.0-alpha.25)
+  /* setDisabled (1.6.0-alpha.23): the whole group, and back; an option the app disabled by itself (button(id).disabled) stays as the app left it */
+  const mine = new Set();
+  const setDisabled = (on) => { root.classList.toggle('disabled', !!on);
+    for (const [id, b] of btns) { if (on) { if (!b.disabled) { b.disabled = true; mine.add(id); } } else if (mine.delete(id)) b.disabled = false; } };
+  return { root, spec: o, get: () => v, set(x) { v = x; paint(); }, button: (id) => btns.get(id), paint, setDisabled };   // spec: as knob's (1.5.0-alpha.25)
 }
 
-/** trig({ label, onFire, glyph, cls }) — a momentary event (`glyph`: a glyph name draws, other text is text) */
+/** trig({ label, onFire, glyph, word, title, cls }) → { root, setLabel(s), setGlyph(g), on, setDisabled(on) } — a momentary event (`glyph`: a glyph name
+ *  draws, other text is text).  `word: false` with a `glyph` is THE GLYPH FORM (1.6.0-alpha.23), as sw({ glyph })'s: the glyph alone on a square
+ *  touch seat (`.trig-glyph`), no word shown, and `label` is its accessible name (setLabel renames it). */
 /** THE DOT GRIP — Josh's 5×5: dots at rows 1, 3, 5 × columns 1, 3, 5. The reorder handle in the modulation
  *  rail and the transport's macro tiles; the four-way cross stays the ROUTING grip. */
 export function gripDots(parent, size = 13) {
@@ -614,17 +621,20 @@ export function trig(o) {
   b.type = 'button';
   /* 1.5.6-alpha.3: a glyph NAME draws its SVG, as sw({ glyph }) does; any other string stays text (a character, as before) */
   const ink = (s, g) => { s.textContent = ''; if (hasGlyph(g)) s.appendChild(glyphEl(g, 'gly gly-' + g, 16)); else s.textContent = g; };
+  const bare = !!o.glyph && o.word === false;            // the glyph form: no word, the label is the name
+  if (bare) b.classList.add('trig-glyph');
   if (o.glyph) ink(el('span', 'trig-g', b), o.glyph);
-  label(el('span', 'trig-l', b), o.label);
+  if (bare) ariaLabel(b, o.label); else label(el('span', 'trig-l', b), o.label);
   if (o.title) hint(b, o.title);
   b.addEventListener('click', (e) => { if (o.onFire) o.onFire(e); });
   /* wave 62: a `trig` used as a STATE says so.  A trig that never sets `on` never gets the attribute,
      so this is correct for every caller and costs one expression. */
-  return { root: b, setLabel(s) { label(b.querySelector('.trig-l'), s); }, setGlyph(g) { const s = b.querySelector('.trig-g'); if (s) ink(s, g); }, set on(v) { b.classList.toggle('on', !!v); b.setAttribute('aria-pressed', String(!!v)); } };
+  return { root: b, setDisabled(on) { b.disabled = !!on; }, setLabel(s) { if (bare) ariaLabel(b, s); else label(b.querySelector('.trig-l'), s); }, setGlyph(g) { const s = b.querySelector('.trig-g'); if (s) ink(s, g); }, set on(v) { b.classList.toggle('on', !!v); b.setAttribute('aria-pressed', String(!!v)); } };
 }
 
-/** fader({ label, aria, min, max, value, fmt, log, fine, cls, onInput, onChange }) — a horizontal scalar
- *   log: a log scale (min must be > 0); fine: this fader's Shift divisor (see setKnobLaw)
+/** fader({ label, aria, title, min, max, value, home, fmt, log, fine, cls, onInput, onChange }) — a horizontal scalar
+ *   log: a log scale (min must be > 0); fine: this fader's Shift divisor (see setKnobLaw); title: its hint, on the root; home: where a
+ *   double-tap and Delete go (default the built value) — both 1.6.0-alpha.23, as the knob's
  *   → { root, get, set(x), show(x), shown, setBase(fn), setDisabled(on), paint, setDefault(x), setLabel(t), dragging() } */
 export function fader(o) {
   const root = ltr(el('div', 'fd' + (o.cls ? ' ' + o.cls : '')));
@@ -632,7 +642,8 @@ export function fader(o) {
   const edge = el('div', 'fd-edge', root);
   const lbl = label(el('div', 'fd-lbl', root), o.label || '');
   const val = el('div', 'fd-val', root);
-  let v = o.value, def = o.value, dragging = false, lastX = 0, v0 = 0;   // v0: the value the hand found, where an abort puts it back
+  if (o.title) hint(root, o.title);                      // THE ROOT WEARS THE HINT, on a fader too (1.6.0-alpha.23: it could take none)
+  let v = o.value, def = Number.isFinite(o.home) ? o.home : o.value, dragging = false, lastX = 0, v0 = 0;   // v0: the value the hand found, where an abort puts it back
   const lo = o.min, hi = o.max;
   const fmt = o.fmt || ((x) => x.toFixed(3));
   const log = !!o.log && lo > 0 && hi > lo;   // a log fader: FREQ-shaped ranges on a slider

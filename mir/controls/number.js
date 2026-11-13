@@ -22,7 +22,7 @@
  *     onInput(v) while a drag or a key moves it; onChange(v) when a gesture, a typed number or a key lands.  set(x) is silent.
  *     snap: false keeps a typed or set number as it is (clamped, not rounded to `step`), as a native number input's value is:
  *     the keys and the drag still move by `step` (the RENDER panel's LENGTH, which an app writes to the millisecond). */
-import { el, label, ariaLabel, watchTouches, verticalDrag, setKnobLaw } from '../kit.js';
+import { el, label, ariaLabel, hint, watchTouches, verticalDrag, setKnobLaw } from '../kit.js';
 import { drag as pointerDrag } from '../core/pointer.js';
 import { setText, setAttr } from '../core/perf.js';
 import { cssZoom } from '../core/zoom.js';
@@ -111,7 +111,8 @@ export function number(o = {}) {
   if (o.aria || o.label) { ariaLabel(face, o.aria || o.label); ariaLabel(input, o.aria || o.label); }
   face.setAttribute('role', 'spinbutton');
   if (Number.isFinite(min)) face.setAttribute('aria-valuemin', String(min)); if (Number.isFinite(max)) face.setAttribute('aria-valuemax', String(max));
-  let v = Number.isFinite(o.value) ? o.value : (Number.isFinite(min) ? min : 0), def = v, disabled = false;
+  let v = Number.isFinite(o.value) ? o.value : (Number.isFinite(min) ? min : 0), def = Number.isFinite(o.home) ? o.home : v, disabled = false;   // `home`: where Delete goes (1.6.0-alpha.23)
+  if (o.title) hint(root, o.title);
   const settle = (x) => numberTravel(x, 0, { min, max, step: o.snap === false ? 0 : step });
   const paint = () => { setText(face, fmt(v)); setAttr(face, 'aria-valuenow', String(v)); setAttr(face, 'aria-valuetext', fmt(v)); };
   const model = { get: () => v, min, max,

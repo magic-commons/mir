@@ -327,6 +327,38 @@ try {
     check('a pressed knob and a pressed fader hold the focus (the arrows after a click are the control\'s)', kf && ff, JSON.stringify({ kf, ff }));
     await J(`if (document.activeElement) document.activeElement.blur(); return 1;`); await sleep(330); }
 
+  /* ── 1.6.0-alpha.23 ONE SPELLING ON EVERY BUILDER: home · options · title · setDisabled · root · the trigger's glyph form ── */
+  { const r = await J(`const k = C.kit, hintOf = (n) => n.getAttribute('title') || '';
+      const kn = k.knob({ label: 'H', min: 0, max: 1, value: 0.7, home: 0.2 }), fd = k.fader({ label: 'F', min: 0, max: 1, value: 0.7, home: 0.2, title: 'a fader hint' });
+      kn.home(); fd.root.mirKnob.home();
+      const rg = C.control({ id: 'o.r', type: 'range', min: 0, max: 1, value: [0.3, 0.6], home: [0.1, 0.9] }); document.body.append(rg.root);
+      for (const t of rg.targets) { t.root.focus(); t.root.dispatchEvent(new KeyboardEvent('keydown', { code: 'Delete', key: 'Delete', bubbles: true, cancelable: true })); }
+      const nm = C.control({ id: 'o.n', label: 'N', hint: 'a number hint', value: 4, home: 9 }); document.body.append(nm.root);
+      nm.widget.face.dispatchEvent(new KeyboardEvent('keydown', { code: 'Delete', key: 'Delete', bubbles: true, cancelable: true }));
+      const xy = C.control({ id: 'o.xy', label: 'P', hint: 'a pad hint', pair: [{ id: 'o.x', label: 'X', min: 0, max: 1, value: 0.5 }, { id: 'o.y', label: 'Y', min: 0, max: 1, value: 0.5 }] });
+      const sw = k.sw({ label: 'S', value: false }), sg = k.seg({ label: 'G', value: 'a', options: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }, { id: 'c', label: 'C' }] }), tg = k.trig({ label: 'T' });
+      document.body.append(sw.root, sg.root, tg.root); sg.button('c').disabled = true;
+      let fired = 0; sw.setDisabled(true); sg.setDisabled(true); tg.setDisabled(true); W.stepper.setDisabled(true);
+      sw.root.click(); sg.button('b').click(); const before = W.stepper.get(); W.stepper.step(1);
+      const off = { sw: sw.get(), seg: sg.get(), trig: tg.root.disabled, segAll: ['a', 'b', 'c'].every((id) => sg.button(id).disabled), step: W.stepper.get() === before, stepArrows: W.stepper.prev.disabled && W.stepper.next.disabled, stepCls: W.stepper.root.classList.contains('disabled') };
+      sw.setDisabled(false); sg.setDisabled(false); tg.setDisabled(false); W.stepper.setDisabled(false);
+      sw.root.click(); sg.button('b').click(); W.stepper.step(1);
+      const on = { sw: sw.get(), seg: sg.get(), trig: tg.root.disabled, segC: sg.button('c').disabled, step: W.stepper.get() !== before };
+      const g = W.trigGlyph.root, out = { knob: kn.get(), fader: fd.get(), range: rg.get(), number: nm.get(),
+        hints: [hintOf(fd.root), hintOf(nm.root), hintOf(xy.root), hintOf(W.select.root)], off, on,
+        glyph: { cls: g.classList.contains('trig-glyph'), name: g.getAttribute('aria-label'), word: !!g.querySelector('.trig-l'), svg: !!g.querySelector('.trig-g svg'), w: g.getBoundingClientRect().width, h: g.getBoundingClientRect().height },
+        sel: W.select.get(), pick: (W.select.open(), document.querySelectorAll('.mir-pick-i').length) };
+      W.select.close(false); W.trigGlyph.setLabel('Add two'); out.glyph.renamed = g.getAttribute('aria-label');
+      for (const n of [rg.root, nm.root, sw.root, sg.root, tg.root]) n.remove();
+      return out;`);
+    check('home: knob({ home }), fader({ home }), a range\'s home: [lo, hi] and a number\'s home are where home goes (0.2 · 0.2 · [0.1, 0.9] · 9)',
+      near(r.knob, 0.2, 1e-9) && near(r.fader, 0.2, 1e-9) && near(r.range[0], 0.1, 1e-9) && near(r.range[1], 0.9, 1e-9) && r.number === 9, JSON.stringify([r.knob, r.fader, r.range, r.number]));
+    check('title: a fader, a number, an XY pad and a select wear their hint on the root', r.hints.join('|') === 'a fader hint|a number hint|a pad hint|Which port to listen to', JSON.stringify(r.hints));
+    check('setDisabled: a switch, a seg, a trigger and a stepper stand down and come back; an option the app disabled itself stays disabled',
+      r.off.sw === false && r.off.seg === 'a' && r.off.trig && r.off.segAll && r.off.step && r.off.stepArrows && r.off.stepCls && r.on.sw === true && r.on.seg === 'b' && !r.on.trig && r.on.segC && r.on.step, JSON.stringify({ off: r.off, on: r.on }));
+    check('trig({ glyph, word: false }): the glyph alone on a square touch seat, the label its accessible name (setLabel renames it); `options` fills a select',
+      r.glyph.cls && r.glyph.name === 'Add one' && !r.glyph.word && r.glyph.svg && r.glyph.w >= 44 && r.glyph.w <= 48 && r.glyph.h >= 44 && r.glyph.renamed === 'Add two' && r.pick === 24, JSON.stringify(r.glyph) + ' ' + r.pick); }
+
   /* ── light: the same page, the other theme, still drawn ── */
   await J(`document.body.dataset.theme = 'light'; return 1;`); await sleep(200);
   const light = await J(`const cs = (n, pr) => getComputedStyle(n)[pr]; const rt = W.range.hi.root, pad = W.xy.pad, face = W.number.face, sel = W.select.button;
