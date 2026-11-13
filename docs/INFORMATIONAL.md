@@ -43,7 +43,7 @@ Turning it by $2\pi/3$ gives the same curve.
 | **The anchor** | A **feature** the app names (`nucleus`); a **place** in the app's own coordinates (starts with `@`: `@-0.7453+0.1127i`, `@51.48,-0.00`); a **control** (`ui:zoom-knob`) |
 | **The line word** | One optional word after the anchor: `flat` (or `flat-first`) or `diagonal` (or `diagonal-first`). Without it the job decides (below). Any other word is ignored |
 | **Other callouts** | `> [!note]`, `> [!tip]` … are ordinary prose and stay in their block |
-| **Maths and markdown** | Pass through untouched; the layer renders them (sanitised marked + KaTeX) |
+| **Maths and markdown** | Pass through untouched; the layer renders them (sanitised marked + KaTeX; a picture loads only from the app's own origin or from `data:image/…` in the text) |
 | **Also accepted** | CRLF line ends, a byte-order mark, Obsidian's properties (front matter) at the very top. Fenced code is never read for labels or rules |
 
 There is no tutorial, guide or tour machinery, and no title card. A guide is whatever someone writes in their pages (Josh: "That's what the multiple pages are for which are really just different .mds"). The **greeting** is only a position: page 0, shown when the project opens if it has text and its switch is on (`pages.shouldGreet()`).

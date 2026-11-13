@@ -9,7 +9,7 @@ Josh's rulings, 2026-10-01: *"the lambdawaves save feature should be how notes c
 
 ## What a page is
 
-A page is a plain markdown file: a **title** (its file name, as Obsidian has it) and its **text** (`md`), with `$inline$` and `$$display$$` maths. Exported, it opens in Obsidian unchanged. The kit has no tutorial or slide system: a tutorial is whatever someone writes in pages.
+A page is a plain markdown file: a **title** (its file name, as Obsidian has it) and its **text** (`md`), with `$inline$` and `$$display$$` maths. Exported, it opens in Obsidian unchanged. A picture in a page (`![](…)`) is shown only when this app's own origin serves it or when it is written into the text as `data:image/…`; any other picture is replaced by its alt words, so opening someone else's note asks no other host for anything (1.6.0-alpha.5, `notebookImage`). The kit has no tutorial or slide system: a tutorial is whatever someone writes in pages.
 
 | | Project pages | Your shelf |
 |---|---|---|

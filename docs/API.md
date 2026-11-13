@@ -281,7 +281,8 @@ BASINS' input capability layer (`app/overlay.js` WAVE-KBM), the kit's: touch or 
 | `safeHref(u)` | Whether a link's scheme is safe |
 | `createAccent({ accentStops, wheelStops, paletteOn, a, b, vivid, hueShift, stageGround, gamut, model, onAccent })` | Accents A and B as angles on a palette (`model: 'hsl'`, alpha.14: BASINS' HSL engine), plus the mark. Returns `{ apply, set(patch), wheelColor, accentColor, markInk, paintMarks, paintInk, turn, busy(on), hueSat, a, b, vivid, hueShift, paletteOn, model }` |
 | `STAGE_GROUND`, `CARD_GROUND`, `MARK_SELECTOR` | The two stage grounds, the two card grounds, and the marks that `paintMarks()` paints (`paintInk()`, alpha.20: the header λ alone, over the stage ground) |
-| `renderNotebook(markdown, { marked, katex })` | Sanitised markdown with maths (λWAVES' renderer) |
+| `renderNotebook(markdown, { marked, katex })` | Sanitised markdown with maths (λWAVES' renderer). A picture loads only from this origin or from `data:image/…` in the note itself, with `referrerpolicy="no-referrer"` and `loading="lazy"`; any other IMG is replaced by its alt words (1.6.0-alpha.5) |
+| `notebookImage(src, base, origin)` | That rule, pure: may a note's IMG load `src`? |
 | `renderNotebookMath(tex, display, katex)` | One formula, with an escaped fallback |
 
 Notes on the shell:

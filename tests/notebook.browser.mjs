@@ -97,6 +97,13 @@ try {
   await p.eval(`__NB.project.restore({ title: 'HAS TEXT', subtitle: 'sub', text: '# Hello\\n\\nthe notes' }, 'x')`); await sleep(300);
   check('a project with text lands on its notebook, in the preview', (await open()) === true && (await p.eval(`__NB.face`)) === 'notes' && (await p.eval(`__NB.mode`)) === 'view');
   check('the preview shows the complete notes', /Hello/.test(await p.eval(`__NB.html`)));
+  /* 1.6.0-alpha.5 · A NOTE'S PICTURE IS THIS ORIGIN'S OR ITS OWN BYTES: the sanitizer in a real page */
+  await p.eval(`__NB.project.restore({ title: 'PICTURES', subtitle: '', text: 'x ![OUTSIDE](https://tracker.invalid/p.gif) ![rel](//tracker.invalid/q.gif) ![own](data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=) ![here](/tests/fixtures/notebook.html?pic) ![page](data:text/html,x) <img src="blob:' + location.origin + '/1" alt="BLOB">' }, 'x')`); await sleep(400);
+  const pics = JSON.parse(await p.eval(`(() => { const v = document.querySelector('#notebook .nb-view') || document.getElementById('notebook'); const im = [...v.querySelectorAll('img')];
+    return JSON.stringify({ n: im.length, src: im.map((i) => i.getAttribute('src').slice(0, 14)), ref: im.every((i) => i.getAttribute('referrerpolicy') === 'no-referrer' && i.getAttribute('loading') === 'lazy'), text: v.textContent }); })()`));
+  check('a note keeps only the picture this origin serves and the one written into it; the others leave their alt words', pics.n === 2 && pics.src.join() === 'data:image/gif,/tests/fixture' && /OUTSIDE/.test(pics.text) && /BLOB/.test(pics.text), JSON.stringify(pics));
+  check('a kept picture asks with no referrer and only when seen', pics.ref === true, JSON.stringify(pics));
+  await p.eval(`__NB.project.restore({ title: 'HAS TEXT', subtitle: 'sub', text: '# Hello\\n\\nthe notes' }, 'x')`); await sleep(300);
   const cap = JSON.parse(await p.eval(`JSON.stringify(__NB.project.capture('NAME'))`));
   check('capture gives { title, subtitle, text }', cap.title === 'HAS TEXT' && cap.subtitle === 'sub' && /Hello/.test(cap.text), JSON.stringify(cap));
   /* BASINS parity, round seven: a face that runs an action (BASINS' ▤ opens its SAVE window), and BASINS' ABOUT through the kit's data */
