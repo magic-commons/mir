@@ -1317,7 +1317,7 @@ html body .crail.crail-float[data-mir-rail="modulation"] .crail-chip:is(:active,
   pointer-events: none;
   color: var(--m2-ink-w50); }
 /* ── THE ROUTING DRAG, and the min-max ring it leaves behind ─────────────── */
-.m2ghost { position: fixed; left: 0; top: 0; z-index: 9000; pointer-events: none;
+.m2ghost { position: fixed; left: 0; top: 0; z-index: calc(var(--z-top, 10000) - 1000); pointer-events: none;
   min-width: 30px; height: 30px; padding: 0 10px; border-radius: var(--m2-r-15); background: var(--acc);
   color: var(--acc-ink); font: var(--m2-win-font);
   display: flex; align-items: center; justify-content: center;

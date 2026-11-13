@@ -93,7 +93,7 @@ body[data-theme="light"] .mir-toast { --toast-fill: hsl(0 0% 100% / .86); --toas
   --toast-w: 560px;
   --toast-max: calc(90vw / var(--in-zoom, 1));
   --toast-pad: 8px 14px;
-  --toast-z: calc(var(--z-veil) + 10);          /* BASINS' 50: above the veil (40), under the banner (60) and the menus */
+  --toast-z: var(--z-toast, calc(var(--z-veil) + 10));          /* BASINS' 50: above the veil (40), under the banner (60) and the menus */
   position: fixed; inset-inline: 0; bottom: var(--toast-bottom); margin-inline: auto; z-index: var(--toast-z);
   width: fit-content; max-width: min(var(--toast-w), var(--toast-max)); display: flex; align-items: center; gap: var(--sp-3);
   padding: var(--toast-pad); border-radius: var(--toast-radius);
