@@ -944,7 +944,7 @@
   "{what} {i} name — type your own": "{what} {i} का नाम — अपना लिखें",
   "{why} — what was open before is back": "{why} — जो पहले खुला था वह लौट आया है",
   "{why}, and putting back what was open before failed too ({back})": "{why}, और जो पहले खुला था उसे लौटाना भी विफल रहा ({back})",
-  "© 2026 Joshua Hosain · Magic Commons. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": "© 2026 Joshua Hosain · Magic Commons. AI कोडिंग एजेंटों द्वारा निर्मित — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI)।",
+  "© 2026 MAGIC COMMONS. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": "© 2026 MAGIC COMMONS. AI कोडिंग एजेंटों द्वारा निर्मित — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI)।",
   "Capture image": "चित्र कैप्चर करें",
   "Download image — capture first": "चित्र डाउनलोड करें — पहले कैप्चर करें",
   "Download image — {name}, {size}": "चित्र डाउनलोड करें — {name}, {size}",

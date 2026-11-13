@@ -944,7 +944,7 @@
   "{what} {i} name — type your own": "nome de {what} {i} — digite o seu",
   "{why} — what was open before is back": "{why} — o que estava aberto voltou",
   "{why}, and putting back what was open before failed too ({back})": "{why}, e também não foi possível restaurar o que estava aberto ({back})",
-  "© 2026 Joshua Hosain · Magic Commons. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": "© 2026 Joshua Hosain · Magic Commons. Construído por agentes de programação com IA — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).",
+  "© 2026 MAGIC COMMONS. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": "© 2026 MAGIC COMMONS. Construído por agentes de programação com IA — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).",
   "Capture image": "Capturar imagem",
   "Download image — capture first": "Baixar imagem — capture primeiro",
   "Download image — {name}, {size}": "Baixar imagem — {name}, {size}",

@@ -46,7 +46,7 @@ const LW_MENUS = {
 const LW_ABOUT = {
   version: 'PRE-ALPHA · waves 5–107 · 2026-09-07',
   tagline: 'A playable hydrogen shadow where 91 nlm states become heuristics for classical waves. Tune amplitudes, phases, and viewpoints like an instrument, then watch eigenmodes interfere and the wave field bloom into motion.',
-  copyright: '© 2026 Joshua Hosain • Magic Commons',
+  copyright: '© 2026 MAGIC COMMONS',
   thanks: [
     ['Team @ Chronus Quantum for the Molecular Orbital Model — ', ['ChronusQ', 'https://github.com/xsligroup/chronusq_public']],
     [['‘Electron Orbitals’', 'https://play.google.com/store/apps/details?id=com.gputreats.orbitalexplorer'], ' Google Play Store App by Brian Johnson'],
@@ -70,7 +70,7 @@ const MIR_MENUS = {
 const MIR_ABOUT = {
   version: '1.3.0 · the shell · 2026-09-16',
   tagline: 'Magic Commons’ interface kit: one set of tokens, materials, widgets, gestures and window chrome — and this shell, the wordmark, the menus and the notebook every app on it begins with.',
-  copyright: '© 2026 Joshua Hosain • Magic Commons',
+  copyright: '© 2026 MAGIC COMMONS',
   licence: gplLicence('MIR', { license: '../LICENSE', notice: null }),   // the gallery sits one folder down from the kit's LICENSE
   made: 'Built by AI coding agents\nClaude (Anthropic) · Gemini (Google) · GPT (OpenAI)',
   type: kitType([], '../fonts/'),

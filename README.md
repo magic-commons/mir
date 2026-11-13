@@ -164,5 +164,5 @@ apply here. Contributions made the same way are welcome under λWAVES' `AI_POLIC
 
 ## Licence
 
-GNU GPL v3.0 only — © 2026 Joshua Hosain, Magic Commons. Third-party notices ride with the fonts and the
+GNU GPL v3.0 only — © 2026 MAGIC COMMONS. Third-party notices ride with the fonts and the
 modulation window's provenance notes.

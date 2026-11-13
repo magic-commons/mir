@@ -943,7 +943,7 @@
   "{what} {i} name — type your own": "{what} {i}-এর নাম — নিজের লিখুন",
   "{why} — what was open before is back": "{why} — আগে যা খোলা ছিল তা ফিরে এসেছে",
   "{why}, and putting back what was open before failed too ({back})": "{why}, এবং আগে যা খোলা ছিল তা ফিরিয়ে আনাও ব্যর্থ হয়েছে ({back})",
-  "© 2026 Joshua Hosain · Magic Commons. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": "© 2026 Joshua Hosain · Magic Commons. AI কোডিং এজেন্টদের তৈরি — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI)।",
+  "© 2026 MAGIC COMMONS. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": "© 2026 MAGIC COMMONS. AI কোডিং এজেন্টদের তৈরি — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI)।",
   "type a name first — the field beside {:SAVE}": "আগে একটি নাম লিখুন — {:SAVE}-এর পাশের ঘর",
   "Capture image": "ছবি ক্যাপচার করুন",
   "Download image — capture first": "ছবি ডাউনলোড করুন — আগে ক্যাপচার করুন",

@@ -1671,7 +1671,7 @@
   "{why} — what was open before is back": "{why} — what was open before is back",
   "{why}, and putting back what was open before failed too ({back})": "{why}, and putting back what was open before failed too ({back})",
   "{word} — the {menus} menus": "{word} — the {menus} menus",
-  "© 2026 Joshua Hosain · Magic Commons. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": "© 2026 Joshua Hosain · Magic Commons. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).",
+  "© 2026 MAGIC COMMONS. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": "© 2026 MAGIC COMMONS. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).",
   "λWAVES": "λWAVES",
   "“{action}” already has {chord}": "“{action}” already has {chord}",
   "“{action}” is now bound to {chord}": "“{action}” is now bound to {chord}",
@@ -6827,7 +6827,7 @@
   "{word} — the {menus} menus": [
    "mir/shell/menubar.js"
   ],
-  "© 2026 Joshua Hosain · Magic Commons. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": [
+  "© 2026 MAGIC COMMONS. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": [
    "mir/shell/gui.js"
   ],
   "λWAVES": [

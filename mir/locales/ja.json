@@ -952,7 +952,7 @@
   "{what} {i} name — type your own": "{what} {i} の名前：自分で入力してください",
   "{why} — what was open before is back": "{why}：以前開いていたものは元に戻りました",
   "{why}, and putting back what was open before failed too ({back})": "{why}。さらに、以前開いていたものを戻すこともできませんでした（{back}）",
-  "© 2026 Joshua Hosain · Magic Commons. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": "© 2026 Joshua Hosain · Magic Commons。AI コーディングエージェントによって構築：Claude（Anthropic）· Gemini（Google）· GPT（OpenAI）。",
+  "© 2026 MAGIC COMMONS. Built by AI coding agents — Claude (Anthropic) · Gemini (Google) · GPT (OpenAI).": "© 2026 MAGIC COMMONS。AI コーディングエージェントによって構築：Claude（Anthropic）· Gemini（Google）· GPT（OpenAI）。",
   "Capture image": "画像をキャプチャ",
   "Download image — capture first": "画像をダウンロード：先にキャプチャしてください",
   "Download image — {name}, {size}": "画像をダウンロード：{name}、{size}",
