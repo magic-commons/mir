@@ -67,6 +67,29 @@ function counter(reg, name = 'colour') {
   pass('a failed resume: <key>.failed kept, autosave unarmed until arm()');
 }
 {
+  /* 1.6.0-alpha.7 · a record the kit cannot read is a failed resume, never an armed one */
+  const lift = (raw) => (raw.legacy ? { parts: {} } : null);
+  for (const rec of ['{"v":2,"parts":{"colour":{"v":5}}}', '{"garbage', '[1,2]', '"words"', '{"v":1}', '{"old":true}']) {
+    const S = memory({ 'app.session': rec }), reg = createProjectParts(), c = counter(reg); let restored = 0;
+    reg.register('seen', { capture: () => 1, restore: () => { restored++; }, signature: () => '1' });
+    const s = createSession({ key: 'app.session', storage: S, parts: reg, win: null, doc: null, delay: 5, lift });
+    assert.equal(s.hasResume(), true, rec);
+    assert.deepEqual(s.resume(), { ok: false, failed: ['record'], seeded: false }, rec);
+    assert.equal(s.armed(), false, 'an unreadable record leaves autosave unarmed: ' + rec); assert.equal(restored, 0, 'no part is restored from nothing');
+    assert.equal(S.m.get('app.session.failed'), rec, 'the record is kept as <key>.failed');
+    c.set(3); assert.equal(s.save(), false); await sleep(15); assert.equal(S.m.get('app.session'), rec, 'no edit writes over it: ' + rec);
+    s.discard(); assert.equal(s.armed(), true, 'NEW arms'); assert.equal(S.m.has('app.session'), false); assert.equal(S.m.get('app.session.failed'), rec, 'NEW leaves the copy');
+    s.destroy();
+  }
+  /* what is still not a failure: no record at all, an empty text, an older form `lift` reads, a record with no part in it */
+  for (const [init, ok] of [[{}, false], [{ 'app.session': '' }, false], [{ 'app.session': '{"legacy":true}' }, true], [{ 'app.session': '{"v":1,"parts":{}}' }, true]]) {
+    const S = memory(init), s = createSession({ key: 'app.session', storage: S, parts: createProjectParts(), win: null, doc: null, lift });
+    assert.deepEqual(s.resume(), { ok, failed: [], seeded: false }, JSON.stringify(init)); assert.equal(s.armed(), true); assert.equal(S.m.has('app.session.failed'), false);
+    s.destroy();
+  }
+  pass('an unreadable record (unparsable, a newer v, not an object, no parts, a form lift does not know): failed [record], <key>.failed kept, unarmed until NEW; nothing, an empty text and a lifted record still arm');
+}
+{
   const S = memory({ 'mandel.view': '{}' }), s = createSession({ key: 'app.session', storage: S, parts: createProjectParts(), also: ['mandel.view'], win: null, doc: null });
   assert.equal(s.hasResume(), true, 'the app\'s own view key also offers RESUME');
   assert.deepEqual(s.resume(), { ok: false, failed: [], seeded: false });

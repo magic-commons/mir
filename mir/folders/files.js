@@ -117,7 +117,7 @@ export function recentRows(files, n = 5, open = () => {}) {
 }
 
 /** thumbOf(t) → the picture as the kit keeps it: a `data:image/…` URL (what folders.js toThumb writes) or ''.
- *  1.6.0-alpha.6 · A STORED PICTURE IS A PICTURE OR NOTHING: the gallery paints a thumb as `url(…)`, so a stored `https://…` would be
+ *  1.6.0-alpha.6 · A STORED PICTURE IS A PICTURE OR NOTHING: the gallery paints a thumb as `url(…)`, so a stored web address would be
  *  fetched from whoever wrote it into the library (an imported or tampered store) on every look at the gallery. */
 export const thumbOf = (t) => (typeof t === 'string' && /^data:image\//.test(t) ? t : '');
 

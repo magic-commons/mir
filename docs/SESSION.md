@@ -19,7 +19,7 @@ if (session.hasResume()) offerResume();           // RESUME → session.resume()
 else session.discard();                           // nothing to offer: start new, autosave on
 ```
 
-From then on the session saves by itself. An app with no opener calls `session.resume()` at boot (it restores what is there and arms autosave).
+From then on the session saves by itself. An app with no opener calls `session.resume()` at boot (it restores what is there and arms autosave). A resume that failed does not arm (the law below): read its result, tell the person, and offer NEW.
 
 ## The laws
 
@@ -29,6 +29,7 @@ From then on the session saves by itself. An app with no opener calls `session.r
 | Unchanged writes nothing | A save whose parts' signature equals the last one written is skipped. |
 | Leaving saves now | `pagehide` and a page going hidden (`visibilitychange`) write at once. |
 | Nothing before the choice | Autosave is armed by `resume()`, `discard()` or `arm()`, so the boot can never overwrite the work RESUME is about to offer. |
+| A failed resume never arms | Saved parts that threw or came back failed (1.5.6), or a record the kit cannot read at all — text that does not parse, a `v` from a newer kit, an older form `lift` does not know (1.6.0-alpha.7, `failed: ['record']`): the text is copied to `<key>.failed`, `resume()` returns `ok: false` or a non-empty `failed`, and autosave stays off until a later resume takes, `discard()` (NEW) or `arm()`. No record, or an empty one, is not a failure. |
 | `hold()` | While it returns true nothing is written (BASINS: a film is rendering, the view is the film's). |
 | A part that never saved | `resume()` restores every registered part; one the record lacks gets `null` and decides for itself. ctx is `{ session: true, … }`. |
 | Nothing thrown | A storage that throws keeps nothing; a part that throws is isolated (`core/project.js`). |
@@ -66,5 +67,5 @@ const prefs = createPrefs({ key: 'myapp.settings', schema, version: 2,
 
 ## Proof
 
-- `tests/session.node.mjs` — autosave armed by the choice, coalesced, skipped when unchanged, flushed on hide and pagehide; resume and discard; `also` and `hold`; the seed and `lift`; the migration (once, project first, failure retried, refused after, `migrate`); the settings file and FORGET; the opener switches.
+- `tests/session.node.mjs` — autosave armed by the choice, coalesced, skipped when unchanged, flushed on hide and pagehide; resume and discard; a failed resume (a part that threw; an unreadable record) kept as `<key>.failed` and unarmed; `also` and `hold`; the seed and `lift`; the migration (once, project first, failure retried, refused after, `migrate`); the settings file and FORGET; the opener switches.
 - `tests/session.browser.mjs` on `tests/fixtures/session.html` — real clicks save the work, a reload offers RESUME (hit-tested with `elementFromPoint`), RESUME restores it, NEW starts empty and forgets it.
