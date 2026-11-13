@@ -10,9 +10,9 @@ Source tags: **J** is Josh's own rule · **B** BASINS draws it so · **R** a rea
 
 | Kind of value | The control | Source |
 |---|---|---|
-| A hue, or any cyclic value drawn in its own colour (a colour's phase) | **ARC KNOB**: no body, an SVG ring with round caps in the colour it names | J, B |
+| A hue, or a value drawn on a gradient track (a colour's phase on the wheel) | **ARC KNOB**: no body, an SVG ring with round caps in the colour it names. **Arcs are colour** (Josh, 2026-10-02: "arcs = colour, knobs = parameters") | J, B |
 | A colour amount inside a coloured lane (that colour's opacity) | arc in the lane's ink | B |
-| An angle, bounded or wrapped (rotation, a light's angle) | arc in the accent | INTENT rule 2, B |
+| A phase or an angle that is a parameter, bounded or wrapped | **KNOB**, free-turning when it wraps (`knob({ wrap })`). Since 1.6.0-alpha.24 `control()` no longer makes every cyclic value an arc (λWAVES 044, LEDGER L56). The kit's CAMERA panel still draws its own angles as arcs in the accent (INTENT rule 2; built directly in `panels/camera.js`): whether those follow is Josh's to say | J; B for the camera's |
 | A colour the user picks | **HUE SWATCH**: tap = the platform's chooser, drag 8 px = turn the hue | B |
 | A colour amount in a global grade (exposure, saturation, brightness) | solid **KNOB** | J ("the ol' regular knobs") |
 | Any ordinary continuous parameter | **KNOB**: one drag law | J |
@@ -26,7 +26,8 @@ Source tags: **J** is Josh's own rule · **B** BASINS draws it so · **R** a rea
 | No lamp when: the glyph itself is the state (power, eye, play/pause, invert: `sw({ glyph })`); a lane's dot is itself the lamp, in the lane's ink; an opener whose open window is the evidence (`latch()`); a chosen segment (its frost face says it) | no lamp | R |
 | A momentary action | **TRIGGER**, never a lamp | INTENT O5 |
 | One of 2–4 modes, all visible | **SEGMENT** | R |
-| One of 5 or more modes, in order (blend modes, looks) | **STEPPER / PAGE TURNER** `‹ NAME ›`; a tap on the name opens the full list | J (the control), R (the threshold) |
+| One of 5 or 6 modes with short names, all visible | **SEGMENT in two rows** of three (`.seg-2`; 1.6.0-alpha.24, λWAVES' VIEW: Josh's call of iteration 007) | J |
+| One of 7 or more modes, in order (blend modes, looks) | **STEPPER / PAGE TURNER** `‹ NAME ›`; a tap on the name opens the full list | J (the control), R (the threshold) |
 | A long list of data (bands, ports, files) | **SELECT** (the kit's own, never a native one) | R |
 | A typed number | **NUMBER FIELD**: drag + type + keys (the tempo field's law) | B |
 | A transfer curve | **CURVES** (the CURVES panel, `docs/PANEL-CURVES.md`) | J |
@@ -48,9 +49,11 @@ An app describes a parameter once and gets the right control and a modulation ta
 | `pair: [axisX, axisY]` | `xyPad` |
 | `type: 'range'`, or `value: [lo, hi]` | `rangeSlider` |
 | `options`, 1–4, every label under 26 characters | `seg` |
-| `options`, 5 or more, in order | `stepper` |
+| `options`, 5 or 6, every label under 26 characters | `seg` in two rows (`.seg-2`, three columns; 1.6.0-alpha.24) |
+| `options`, 7 or more, in order | `stepper` |
 | `options` with `list: true` or `ordered: false`, over 16, or a long label | `select` |
-| finite `min`/`max` with `wrap`, `cyclic`, `hue` or `angle` | `arcKnob` |
+| finite `min`/`max` with `hue`, or with `stops` (a gradient track) | `arcKnob` (arcs are colour; before 1.6.0-alpha.24 `wrap`, `cyclic` and `angle` made one too) |
+| finite `min`/`max` with `wrap`, `cyclic` or `angle` | `knob({ wrap: true })`, a free-turning knob |
 | finite `min`/`max` with `principal: true` | `laneSlider` |
 | finite `min`/`max` | `knob` |
 | anything else | `number` |

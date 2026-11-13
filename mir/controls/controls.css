@@ -89,6 +89,10 @@ button.mir-step-name:disabled { cursor: default; }
 .mir-sel-b:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
 .mir-select.disabled { opacity: var(--state-disabled, .38); pointer-events: none; }
 .mir-step.disabled { opacity: var(--state-disabled, .38); pointer-events: none; }   /* stepper.setDisabled (1.6.0-alpha.23), as the select's */
+/* A SEGMENT IN TWO ROWS (factory.js: five or six short options; 1.6.0-alpha.24, λWAVES' VIEW): three equal columns, the track as wide as its seat */
+.segw.seg-2 { flex: 1 1 100%; align-items: stretch; }
+.segw.seg-2 .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; box-sizing: border-box; }
+.segw.seg-2 .seg-b { min-width: 0; padding: 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* THE TRIGGER'S GLYPH FORM (kit.js trig({ glyph, word: false }), 1.6.0-alpha.23): the glyph alone on a square touch seat; the label is its name */
 .trig.trig-glyph { min-width: var(--touch); padding: 0; }
 

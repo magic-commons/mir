@@ -293,9 +293,9 @@ try {
 
   /* ── control(): ten descriptors, the right kind, in the document, hit-tested ── */
   const kinds = await J(`return Object.entries(W.factory).map(([id, c]) => [id, c.kind, c.root.isConnected, c.root.dataset.control, c.targets.length]);`);
-  const want = { enable: 'switch', mode: 'segment', blend: 'stepper', band: 'select', gain: 'knob', hue: 'arc', freq: 'lane', pan: 'xy', win: 'range', count: 'number' };
-  check('control(): ten descriptors give switch · segment · stepper · select · knob · arc · lane · xy · range · number', kinds.every(([id, k, conn, ds]) => k === want[id] && conn && ds === k), JSON.stringify(kinds.map((k) => k.slice(0, 2))));
-  check('control(): the targets are what a macro may route onto (knob, arc, lane: 1; xy and range: 2; the rest: none)', kinds.every(([id, , , , n]) => n === ({ gain: 1, hue: 1, freq: 1, pan: 2, win: 2 }[id] || 0)), JSON.stringify(kinds.map((k) => [k[0], k[4]])));
+  const want = { enable: 'switch', mode: 'segment', blend: 'stepper', view: 'segment', phase: 'knob', band: 'select', gain: 'knob', hue: 'arc', freq: 'lane', pan: 'xy', win: 'range', count: 'number' };
+  check('control(): twelve descriptors give switch · segment · stepper · segment (six, in two rows) · knob (a phase) · select · knob · arc · lane · xy · range · number', kinds.every(([id, k, conn, ds]) => k === want[id] && conn && ds === k), JSON.stringify(kinds.map((k) => k.slice(0, 2))));
+  check('control(): the targets are what a macro may route onto (knob, arc, lane: 1; xy and range: 2; the rest: none)', kinds.every(([id, , , , n]) => n === ({ gain: 1, phase: 1, hue: 1, freq: 1, pan: 2, win: 2 }[id] || 0)), JSON.stringify(kinds.map((k) => [k[0], k[4]])));
   { const hits = []; for (const id of Object.keys(want)) { const s = await spot(`W.factory.${id}.root`); hits.push(!!s && s.hit && s.w > 20); } check('control(): every control is hit-testable where it is drawn', hits.every(Boolean), JSON.stringify(hits)); }
   { const pr = await J(`const ps = W.factory.pan.params(), rs = W.factory.win.params(), ks = W.factory.gain.params(); return { pan: ps.map((q) => q.id), win: rs.map((q) => q.id), gain: ks.map((q) => [q.id, q.map, typeof q.get, typeof q.set, !!q.widget]), hue: W.factory.hue.params()[0].map, freq: W.factory.freq.params()[0].map, sw: W.factory.enable.params().length };`);
     check('control().params(): installModulation records, one per target (pan.x pan.y · win.lo win.hi · gain linear · hue wrap · freq log · a switch none)', pr.pan.join() === 'pan.x,pan.y' && pr.win.join() === 'win.lo,win.hi' && pr.gain[0][0] === 'gain' && pr.gain[0][1] === 'linear' && pr.hue === 'wrap' && pr.freq === 'log' && pr.sw === 0, JSON.stringify(pr)); }
@@ -358,6 +358,12 @@ try {
       r.off.sw === false && r.off.seg === 'a' && r.off.trig && r.off.segAll && r.off.step && r.off.stepArrows && r.off.stepCls && r.on.sw === true && r.on.seg === 'b' && !r.on.trig && r.on.segC && r.on.step, JSON.stringify({ off: r.off, on: r.on }));
     check('trig({ glyph, word: false }): the glyph alone on a square touch seat, the label its accessible name (setLabel renames it); `options` fills a select',
       r.glyph.cls && r.glyph.name === 'Add one' && !r.glyph.word && r.glyph.svg && r.glyph.w >= 44 && r.glyph.w <= 48 && r.glyph.h >= 44 && r.glyph.renamed === 'Add two' && r.pick === 24, JSON.stringify(r.glyph) + ' ' + r.pick); }
+
+  /* 1.6.0-alpha.24: six short options are a segment in TWO ROWS of three (all six seen, none wider than its column); a phase is a free knob, not an arc */
+  { const r = await J(`const v = W.factory.view.root, bs = [...v.querySelectorAll('.seg-b')].map((b) => b.getBoundingClientRect()), ph = W.factory.phase.root;
+      return { cls: v.classList.contains('seg-2'), n: bs.length, rows: [...new Set(bs.map((b) => Math.round(b.top)))].length, cols: [...new Set(bs.map((b) => Math.round(b.left)))].length,
+        same: Math.max(...bs.map((b) => b.width)) - Math.min(...bs.map((b) => b.width)) < 1, arc: ph.classList.contains('k-arcknob'), knob: ph.classList.contains('k') };`);
+    check('six short options are a segment in two rows of three equal columns; a wrapped phase is a knob, not an arc', r.cls && r.n === 6 && r.rows === 2 && r.cols === 3 && r.same && !r.arc && r.knob, JSON.stringify(r)); }
 
   /* ── light: the same page, the other theme, still drawn ── */
   await J(`document.body.dataset.theme = 'light'; return 1;`); await sleep(200);

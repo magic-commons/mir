@@ -234,6 +234,8 @@ bar.append(seg({ value: document.body.dataset.theme, options: [{ id: 'dark', lab
     { id: 'enable', label: 'ENABLE', value: true },
     { id: 'mode', label: 'MODE', options: [{ id: 'a', label: 'ADD' }, { id: 'm', label: 'MUL' }, { id: 's', label: 'SUB' }], value: 'a' },
     { id: 'blend', label: 'BLEND', options: blendOptions(), value: 'overlay' },
+    { id: 'view', label: 'VIEW', options: ['DENSITY', 'ORBITAL', 'ESP', 'SPIN', 'ELF', 'NODES'].map((l) => ({ id: l.toLowerCase(), label: l })), value: 'esp' },
+    { id: 'phase', label: 'PHASE', min: 0, max: 360, wrap: true, value: 90, fmt: deg },
     { id: 'band', label: 'BAND', list: true, options: blendOptions(), value: 'overlay' },
     { id: 'gain', label: 'GAIN', min: 0, max: 1, value: 0.5 },
     { id: 'hue', label: 'HUE', min: 0, max: 360, wrap: true, hue: true, value: 120, fmt: deg },
@@ -242,7 +244,7 @@ bar.append(seg({ value: document.body.dataset.theme, options: [{ id: 'dark', lab
     { id: 'win', label: 'WINDOW', type: 'range', min: 0, max: 1, step: 0.01, value: [0.2, 0.8] },
     { id: 'count', label: 'COUNT', value: 12, step: 1 }
   ];
-  function blendOptions() { return ['NORMAL', 'MULTIPLY', 'SCREEN', 'OVERLAY', 'SOFT LIGHT', 'HARD LIGHT'].map((l) => ({ id: l.toLowerCase(), label: l })); }
+  function blendOptions() { return ['NORMAL', 'MULTIPLY', 'SCREEN', 'OVERLAY', 'SOFT LIGHT', 'HARD LIGHT', 'DIFFERENCE', 'EXCLUSION'].map((l) => ({ id: l.toLowerCase(), label: l })); }
   W.factory = {};
   for (const d of D) {
     const k = el('div', 'g-kind', grid2);
