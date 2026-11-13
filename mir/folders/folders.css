@@ -40,7 +40,6 @@
   --folders-part-size: var(--fs-micro);
   --folders-part-track: .04em;
   --folders-box-pad: 10px;
-  --folders-menu-rim: color-mix(in srgb, var(--acc) 40%, transparent);        /* the menu: a well with a .40 accent rim */
   --folders-ask-rim: color-mix(in srgb, var(--acc) 55%, transparent);         /* the ask: a solid tinted pane with a .55 rim … */
   --folders-ask-fill: color-mix(in srgb, hsl(var(--glass-hue) 18% 22% / .98) 88%, var(--acc) 12%);
   --folders-ask-ink: hsl(204 23% 96%);                                         /* … its own light ink (#f2f5f7), in either theme */
