@@ -47,6 +47,30 @@ try {
   check('ONE SCROLLBAR: the FINDER\'s list, a menu, a select\'s list, the saved-layouts list, KEYBOARD\'s list and a dialog wear the rack\'s: thin, the thumb in accent A, no groove',
     ['finder', 'menu', 'pick', 'fav', 'keys', 'dialog', 'rack'].every((k) => r[k] === bar1), JSON.stringify(r));
   await closeAll();
+
+  /* ── alpha.45 · THE WASH ────────────────────────────────────────────────────────────────────────────────────── */
+  const wash = () => run(`F.open(); T.bar.openGroup('FILE'); T.sel.open(); T.kb.open(); await wait(450);
+    const pr = D.body.appendChild(D.createElement('i')); pr.style.background = 'color-mix(in srgb, var(--acc) 16%, transparent)'; const want = getComputedStyle(pr).backgroundColor; pr.remove();
+    const row = $('.km-action-row'); row.click(); await wait(400);
+    const bg = (s) => cs(s).backgroundColor;
+    return { want, finder: bg('.wp-row.on'), option: bg('.mir-pick-i.on'), rim: cs('.mir-pick-i.on').boxShadow, checked: bg('#menubar .mb-item[aria-checked="true"]'), unchecked: bg('#menubar .mb-item[aria-checked="false"]'),
+      keys: bg('.km-action-row-selected'), seg: bg('.seg-b.on') };`);
+  r = await wash();
+  check('THE WASH: the FINDER\'s cursor row, a select\'s chosen option, a checked menu row and KEYBOARD\'s chosen row wear one face, accent A at 16 % — and a chosen option has no rim',
+    r.want !== 'rgba(0, 0, 0, 0)' && [r.finder, r.option, r.checked, r.keys].every((c) => c === r.want) && r.rim === 'none' && r.unchecked !== r.want, JSON.stringify(r));
+  check('THE WASH is a list\'s: a segment\'s chosen option keeps the frost face (Josh\'s exception)', r.seg !== r.want, r.seg);
+  await closeAll();
+  await run(`D.body.dataset.theme = 'light'; await wait(60); return 0;`);
+  r = await wash();
+  check('THE WASH follows the theme\'s accent (light)', r.want !== 'rgba(0, 0, 0, 0)' && [r.finder, r.option, r.checked, r.keys].every((c) => c === r.want), JSON.stringify(r));
+  await closeAll();
+  await run(`D.body.dataset.theme = 'dark'; await wait(60); return 0;`);
+  await p.mouse(640, 780);
+  r = await run(`T.bar.openGroup('FILE'); await wait(120); const it = $('#menubar .mb-list:not([hidden]) .mb-item'); const b = it.getBoundingClientRect(); return { x: b.left + 30, y: b.top + b.height / 2 };`);
+  await p.mouse(r.x, r.y); await sleep(120);
+  r = await run(`const pr = D.body.appendChild(D.createElement('i')); pr.style.background = 'var(--state-wash)'; const want = getComputedStyle(pr).backgroundColor; pr.remove(); return { want, hover: cs('#menubar .mb-list:not([hidden]) .mb-item').backgroundColor };`);
+  check('THE WASH is a menu\'s cursor: the row under the pointer wears it', r.hover === r.want && r.want !== 'rgba(0, 0, 0, 0)', JSON.stringify(r));
+  await p.mouse(640, 780); await closeAll();
 } finally {
   await p.close();
 }

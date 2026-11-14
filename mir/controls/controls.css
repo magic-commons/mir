@@ -105,8 +105,8 @@ button.mir-step-name:disabled { cursor: default; }
   max-width: calc(calc(100vw / var(--in-zoom, 1)) - 16px); border-radius: var(--surface-radius, var(--card-r, var(--r-lg))); }
 .mir-pick-i { display: flex; align-items: center; min-height: var(--touch); padding: 0 var(--sp-4); border: 0; border-radius: var(--r-sm); background: transparent; color: var(--fg-soft);
   font: inherit; font-size: var(--fs-small); letter-spacing: var(--label-tracking, var(--tr-wide)); text-align: start; white-space: nowrap; cursor: pointer; }
-.mir-pick-i:hover { background: var(--state-hover, var(--glass-raise)); color: var(--fg); }
-.mir-pick-i.on { background: var(--state-on, var(--glass-raise)); box-shadow: var(--state-on-rim, var(--neu-flat)); color: var(--acc); }   /* chosen: the frost face, a thin rim, the label in accent A */
+.mir-pick-i:hover { background: var(--state-wash, var(--state-hover, var(--glass-raise))); color: var(--fg); }   /* the cursor row: THE WASH (1.6.0-alpha.45) */
+.mir-pick-i.on { background: var(--state-wash, var(--state-hover, var(--glass-raise))); color: var(--acc); }   /* chosen: THE WASH, the label in accent A (1.6.0-alpha.45; it was the ON face and a rim) */
 .mir-pick-i.coming { opacity: var(--state-disabled, .38); cursor: default; }
 .mir-pick-i.coming:hover { background: transparent; color: var(--fg-soft); }
 .mir-pick-pic { flex: 0 0 auto; width: 32px; height: 32px; margin-inline-end: var(--sp-3); object-fit: contain; border-radius: var(--r-sm); }   /* 1.5.6-alpha.4: a row's picture */

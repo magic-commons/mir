@@ -129,7 +129,7 @@
 :where(:root:not(.kbm-touch)) .km-action-row:hover { background-image: linear-gradient(var(--state-hover, var(--glass-raise)), var(--state-hover, var(--glass-raise))); }
 .km-action-row:active { background-color: var(--state-press, var(--glass-press)); scale: var(--state-press-scale, .96); }
 .km-action-row:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
-.km-action-row.km-action-row-selected { background-color: var(--state-on, var(--glass-raise)); box-shadow: var(--state-on-rim, var(--neu-flat)); }
+.km-action-row.km-action-row-selected { background-color: var(--state-wash, var(--state-hover, var(--glass-raise))); }   /* the chosen row of a list: THE WASH (1.6.0-alpha.45; it was the ON face and a rim) */
 .km-action-row.km-action-row-selected .km-action-label { color: var(--acc); }
 .km-action-row.km-action-row-recording { box-shadow: var(--state-on-rim, var(--neu-flat)), var(--km-live); }
 .km-action-text { min-width: 0; display: flex; flex-direction: column; gap: 1px; text-align: start; }
