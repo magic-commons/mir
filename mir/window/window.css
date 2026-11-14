@@ -207,6 +207,6 @@ body.touch-tablet .mir-win { --head-h: var(--touch); --head-btn: var(--touch); }
 .mir-workspace-switch:hover > .ws-glyph { color: var(--fg, currentColor); }
 .mir-workspace-switch { transition: scale var(--motion-micro) var(--ease-out); }
 .mir-workspace-switch:is(:active, .press) { scale: var(--state-press-scale-round, .92); }   /* a round glyph button (1.6.0-alpha.40) */
-.mir-workspace-switch:focus-visible { outline: 1px solid var(--acc2); outline-offset: -2px; }
+.mir-workspace-switch:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }   /* the house ring (1.6.0-alpha.41; it was 1 px in accent B, inset) */
 
 }   /* end @layer mir.kit.house */

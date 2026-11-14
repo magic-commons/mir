@@ -474,9 +474,13 @@ body:is([data-faces="glass"], [data-faces="blend"]):is([data-card="refractive"],
    the kit builds (S2: the trigger, switch, segment, knob, fader and select had the browser's ring).  An outline, not a
    shadow, so it never has to be composed with each control's own relief.  The knob is focused as a whole (.k) and
    rings its puck. */
-:is(.trig, .sw, .seg-b, .fd, select.sel, .dev-util > button, .dev-fold, .native-info-button, .plane-model, .corner-axis-hit):focus-visible,
+:is(.trig, .sw, .seg-b, .fd, select.sel, .dev-util > button, .dev-fold, .native-info-button, .plane-model, .corner-axis-hit, .badge, .mir-bank-page, .mir-bank-plus, .mir-bank-grip):focus-visible,
 .k:focus-visible .k-dial { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
 .k:focus-visible { outline: none; }
+/* 1.6.0-alpha.41 · THE RING REACHES THE FINDER (λWAVES 044, L62): its rows showed the browser's own ring and its search none.  Both wear the
+   house ring, drawn inside the box (the list clips its rows, the field is the pane's edge).  `:focus:focus-visible` weighs one more than the
+   picker's own `.wp-search:focus { outline: 0 }`, which loads later. */
+.mir-window-picker :is(.wp-row, .wp-search):focus:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: -2px; }
 @media (prefers-reduced-motion: reduce) { .k:hover .k-dial, .trig:hover { translate: none; } }   /* the hover keeps its lighter face; the lift is travel */
 
 /* ── 7. fader: a well with a thin fill; the value appears on touch ─────── */

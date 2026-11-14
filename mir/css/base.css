@@ -549,7 +549,6 @@ select.sel { min-height: var(--touch); padding: 0 8px; border-radius: var(--r-md
 .k-val { white-space:nowrap; font-variant-numeric:tabular-nums; }
 
 .corner-axis-hit { position:fixed; width:88px; height:88px; background:transparent; border:0; z-index:5; cursor:ew-resize; }
-.corner-axis-hit:focus-visible { outline:1px solid var(--acc); }
 
 .sw[data-mode] { min-width:112px; }
 .sw[data-mode]::after { content:attr(data-mode); font-size:var(--fs-micro); margin-inline-start:auto; opacity:var(--sw-mode-fade); }
