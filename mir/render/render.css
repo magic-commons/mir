@@ -26,7 +26,6 @@
   --render-label-w: 72px;
   --render-time-w: 96px;                             /* the number fields: length, start at */
   --render-primary-rim: color-mix(in srgb, var(--acc) 55%, var(--glass-hairline));
-  --render-disabled: .55;                            /* BASINS' disabled primary and download in the rack card (the window: --state-disabled) */
   --render-lines-h: 160px;                           /* the self-test's printout */
   --render-video-h: 220px;                           /* the preview player */
   --render-status-pad: 7px 9px;
@@ -55,8 +54,7 @@
 .mir-render :is(.sv-danger, .armed).trig .trig-l { color: var(--bad); }
 .mir-render .sr-film > .sv-primary.trig { min-height: var(--render-touch-h); border-color: var(--render-primary-rim); }
 .mir-render .sr-film > .sv-primary.trig:disabled { background: var(--glass-well); border-color: var(--glass-hairline); }
-.mir-render :is(.sr-film > .sv-primary.trig, .sr-picture .sr-download):disabled { opacity: var(--state-disabled); }
-.mir-render[data-seat="card"] :is(.sr-film > .sv-primary.trig, .sr-picture .sr-download):disabled { opacity: var(--render-disabled); }
+.mir-render :is(.sr-film > .sv-primary.trig, .sr-picture .sr-download):disabled { opacity: var(--state-disabled, .38); }
 
 /* ── the subject: THIS VIEW, or the project the gallery's i pointed at ── */
 .mir-render .sr-subject { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--render-section-gap) var(--render-gap); }
@@ -164,7 +162,7 @@
 .mir-render .sr-even-range > .sr-cell:last-child .seg { grid-auto-flow: row; grid-template-columns: minmax(0, 1fr); }               /* FORMAT one over the other, as tall */
 .mir-render .sr-even-acts > .trig { grid-column: span 4; width: auto; min-width: 0; padding: 0 4px; }
 .mir-render .sr-even-acts > .sv-primary.trig { min-height: var(--render-touch-h); border-color: var(--render-primary-rim); }
-.mir-render .sr-even-acts > .sv-primary.trig:disabled { background: var(--glass-well); border-color: var(--glass-hairline); opacity: var(--render-disabled); }
+.mir-render .sr-even-acts > .sv-primary.trig:disabled { background: var(--glass-well); border-color: var(--glass-hairline); opacity: var(--state-disabled, .38); }
 .mir-render .sr-even ~ .sr-prog { min-height: 0; }
 .mir-render .sr-even ~ .sr-prog:has(.sr-value:empty) { display: none; }   /* even: the progress line shows only while it has words (CANCEL is on the buttons' row) */
 

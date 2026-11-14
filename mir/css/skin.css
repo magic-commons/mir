@@ -458,7 +458,7 @@ body:is([data-faces="glass"], [data-faces="blend"]):is([data-card="refractive"],
 /* DISABLED (INTENT): one fade, and no relief — a control that stands down neither stands proud nor sinks.  The one
    rule for every control (the knob and the fader were faded twice, .38 in base.css and .3 here: L55–L58).  It sits
    after .on so a disabled ON control loses its rim too. */
-.k.disabled, .fd.disabled, .sw.disabled, .sw:disabled, .seg-b:disabled, .trig:disabled { opacity: var(--state-disabled, .38); pointer-events: none; box-shadow: 0 0 0 0 transparent; }
+.k.disabled, .fd.disabled, :is(.sw, .seg-b, .trig):is(.disabled, :disabled, [aria-disabled="true"]) { opacity: var(--state-disabled, .38); pointer-events: none; box-shadow: 0 0 0 0 transparent; }   /* 1.6.0-alpha.39: a button stands down by the class, the attribute or aria alike */
 /* 1.5.0-alpha.28 (λWAVES 017, call 11): a DISABLED SEG BUTTON KEEPS ITS HINT — it takes the pointer again so the hover reaches the hint
    (control-help.js' pointerover), and the browser itself refuses a disabled button's click; no hover or press face answers it */
 .seg-b:disabled { pointer-events: auto; cursor: not-allowed; }
@@ -797,7 +797,7 @@ body[data-card] :is(.native-info .native-info-content, .control-help):not([hidde
 @media (pointer: coarse) { .native-info-button { min-width: var(--touch, 44px); min-height: var(--touch, 44px); } }
 .native-info .native-info-content { position:fixed !important; inset:auto; margin:0; }   /* the border is the pane's, above */
 .native-info .native-info-content:popover-open { display:block !important; }
-.plane-model[aria-disabled="true"] { opacity:var(--state-disabled, .38);cursor:default; }
+.plane-model[aria-disabled="true"] { opacity:var(--state-disabled, .38);cursor:not-allowed; }
 .plane-model { object-fit:contain; background:var(--glass-well);box-shadow:var(--relief-well, var(--neu-inset));border-radius:var(--r-md); }
 body.window-info-off .native-info, body.window-info-off .native-info-content { display:none !important; }
 body.window-info-off .row:has(> .native-info):not(:has(> :not(.native-info))) { display:none; }

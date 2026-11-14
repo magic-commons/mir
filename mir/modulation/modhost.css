@@ -2346,7 +2346,7 @@ body.mod-arming :is(.sw, .seg, .trig, .k:not([data-param]), .fd:not([data-param]
 #modwin.mir-modwindow .m2workbar .tbtn:hover { color: var(--fg); background: var(--state-hover, var(--glass-raise)); }
 #modwin.mir-modwindow .m2workbar .tbtn:active { background: var(--state-press, var(--glass-press)); }
 #modwin.mir-modwindow .m2workbar .tbtn:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
-#modwin.mir-modwindow .m2workbar .tbtn:disabled { opacity: var(--state-disabled, .34); cursor: default; }
+#modwin.mir-modwindow .m2workbar .tbtn:disabled { opacity: var(--state-disabled, .38); cursor: not-allowed; }
 #modwin.mir-modwindow .m2workbar .tbtn[hidden], #modwin.mir-modwindow .m2workbar .tbtn.m2predead.off { display: none; }
 #modwin.mir-modwindow .m2workbar .tbtn.m2presave.m2arm { color: var(--acc); }
 /* the keys */
