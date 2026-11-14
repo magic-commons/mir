@@ -56,8 +56,9 @@ const rows = () => [
   ['MORE', () => [['INNER', say('inner')], ['INNER TWO', say('inner2')]], null, '', { sub: true }],
   ['GREYED', say('grey'), true],
 ];
-const bar = menus.createMenubar({ opener: title, host: document.getElementById('lab'), menus: { FILE: rows, EDIT: () => [['UNDO\tCtrl+Z', say('undo')], ['REDO', say('redo')]], WINDOW: () => rack.windowMenu() } });
+const bar = menus.createMenubar({ opener: title, host: document.getElementById('lab'), menus: { FINDER: { run: say('finder-entry'), hint: 'open the finder', id: 'windowPicker' }, FILE: rows, EDIT: () => [['UNDO\tCtrl+Z', say('undo')], ['REDO', say('redo')]], WINDOW: () => rack.windowMenu() } });
 const bench = document.getElementById('bench');
+import('../../mir/controls/number.js').then((m) => { const n = m.number({ label: 'N', min: 0, max: 10, value: 5 }); bench.appendChild(n.root); window.__T.num = n; });
 const many = Array.from({ length: 24 }, (_, i) => ({ id: 'o' + i, label: i === 3 ? 'AN OPTION WHOSE NAME IS FAR TOO LONG FOR ANY LIST THE KIT WILL EVER OPEN ON A SCREEN OF THIS WIDTH, EVEN A WIDE ONE, BY A GOOD MARGIN' : 'OPTION ' + i }));
 const sel = select({ label: 'PRESET', options: many, value: 'o1' }); bench.appendChild(sel.root);
 const few = select({ label: 'FEW', options: [{ id: 'a', label: 'ALPHA' }, { id: 'b', label: 'BETA' }, { id: 'c', label: 'GAMMA' }], value: 'a' }); bench.appendChild(few.root);

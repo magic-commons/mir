@@ -10,7 +10,7 @@
  *     the desktop, whatever the device class; a finger — or a person who pinned POINTER · TOUCH — never hovers.
  *   · It is a DISCLOSURE, not an ARIA menubar: the wordmark is a role=button with aria-expanded, a keyboard open
  *     moves focus to the first group, and Tab walks the rest (λWAVES wave 62 says why the full menubar contract
- *     earns nothing for a duplicate surface).
+ *     earns nothing for a duplicate surface).  Since 1.6.0-alpha.52 the arrows walk it too (THE MENUS BY KEYBOARD, below in the code).
  *   · The bar is placed from geometry the wordmark's transform cannot move: its left edge + untransformed width + 8,
  *     centred on its vertical middle.
  *   · Each list is FILLED WHEN IT OPENS, so every label says the live state (a recent file, a disabled UNDO).
@@ -21,7 +21,8 @@
  *     "Phone" is the kit's sentinel — skin.css raises `--phone` to 1 at its breakpoint — or `body.phone` where an
  *     app sets that class itself.
  *
- * MENUS ARE DATA.  `menus` maps a group name to a function returning entries, each either `null` (a separator) or
+ * MENUS ARE DATA.  `menus` maps a group name to a function returning entries (or to `{ run, hint?, id? }`: AN ACTING ENTRY, a group with no list that
+ * runs on a press; 1.6.0-alpha.52), each entry either `null` (a separator) or
  *   [label, run, disabled?, hint?, opts?]   label may carry a key after a TAB: 'SAVE project\tCtrl+S';
  *                                    disabled is a boolean or a function asked each time the list opens;
  *                                    opts.raw: the label is a NAME and is never translated (a language, a file);
@@ -119,6 +120,12 @@ function rowsOn({ layer, phone, done, surface = false }) {
     if (e.code === 'ArrowRight' && it.mbEntries) { e.preventDefault(); const s = openSub(list, it, it.mbEntries()); const f = s.querySelector('.mb-item:not(:disabled)'); if (f) f.focus(); }
     else if ((e.code === 'ArrowLeft' || e.code === 'Escape') && list.mbParent) { e.preventDefault(); e.stopPropagation(); const row = list.mbRow; closeSub(list.mbParent); row.focus(); }
     else if (e.code === 'ArrowDown' || e.code === 'ArrowUp') { e.preventDefault(); const all = [...list.querySelectorAll(':scope > .mb-item:not(:disabled)')], i = all.indexOf(it); if (all.length) all[(i + (e.code === 'ArrowDown' ? 1 : -1) + all.length) % all.length].focus(); }
+    /* 1.6.0-alpha.52 · THE LIST'S WALK IS WHOLE: Home and End, and a typed letter jumps to the next row that begins with it (as a select's list) */
+    else if (e.code === 'Home' || e.code === 'End') { e.preventDefault(); const all = [...list.querySelectorAll(':scope > .mb-item:not(:disabled)')]; if (all.length) all[e.code === 'Home' ? 0 : all.length - 1].focus(); }
+    else if (e.key.length === 1 && e.key !== ' ' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      const all = [...list.querySelectorAll(':scope > .mb-item:not(:disabled)')], i = all.indexOf(it), c = e.key.toLowerCase();
+      for (let k = 1; k <= all.length; k++) { const b = all[(i + k) % all.length], l = b.querySelector('.mb-lbl'); if (l && l.textContent.trim().toLowerCase().startsWith(c)) { e.preventDefault(); b.focus(); break; } }
+    }
   };
   /** render(list, entries) — the rows of one list (a group's or a submenu's); a row that throws still closes the bar */
   function render(list, entries) {
@@ -208,7 +215,9 @@ export const CONTROL_MENU = ['reset', 'copy', 'paste', 'fine', 'routes', 'clip',
 const knobParts = new Map();
 let knobCopied = null;
 export function knobMenuPart(name, fn) { if (typeof fn === 'function') knobParts.set(name, fn); else knobParts.delete(name); }
-const knobOf = (k) => (k && k.root && k.home ? k : (k && k.closest && (k.closest('.k, .fd') || {}).mirKnob) || null);
+/* the value door of a control: its api, or the nearest element that carries one (root.mirKnob) — a knob, a fader, an arc, a range thumb, a number
+   (1.6.0-alpha.52: it knew the knob's and the fader's classes only) */
+const knobOf = (k) => { if (k && k.root && k.home) return k; for (let n = k && k.nodeType === 1 ? k : null; n; n = n.parentElement) if (n.mirKnob && n.mirKnob.home) return n.mirKnob; return null; };
 const partAt = (name, root) => { const f = knobParts.get(name), id = root && root.dataset ? root.dataset.param : ''; try { return f && id ? f(id, root) : null; } catch (_) { return null; } };
 const partOf = (name, k) => partAt(name, k.root);
 /** knobAct(knob, 'reset' | 'copy' | 'paste' | 'fine') — the menu's four acts on a value door (its root or its api), for an app's keys too */
@@ -287,9 +296,17 @@ export function createMenubar({ opener, host, menus, label, phone, keep } = {}) 
   for (const name of names) {
     const grp = el('div', 'mb-group', bar);
     const btn = writeLabel(el('button', 'mb-btn', grp), name); btn.type = 'button'; btn.dataset.menu = name;
+    /* 1.6.0-alpha.52 · AN ACTING ENTRY: `menus.NAME = { run, hint?, id? }` — a group with no list; a press runs it and closes the bar, a cursor
+       arriving on it closes the list its hover left open (λWAVES' FINDER entry, which it seated by hand) */
+    if (menus[name] && typeof menus[name] !== 'function') {
+      const act = menus[name]; grp.classList.add('mb-act'); if (act.hint) btn.title = act.hint; if (act.id) btn.dataset.id = act.id;
+      btn.addEventListener('click', (e) => { e.stopPropagation(); closeLists(); barShown(false); try { if (act.run) act.run(); } catch (err) { console.warn('menu: ' + name, err); } });
+      btn.addEventListener('pointerenter', (e) => { if (hoverable(e)) closeLists(); });
+      continue;
+    }
     btn.setAttribute('aria-haspopup', 'true'); btn.setAttribute('aria-expanded', 'false');
     const list = el('div', 'mb-list', grp); list.hidden = true;
-    const fill = () => { closeSub(list); render(list, menus[name]()); };
+    const fill = () => { closeSub(list); render(list, menus[name]()); };   // (an acting entry never reaches here)
     fills.set(list, fill);
     const open = () => { closeLists(); fill(); list.hidden = false; fitList(list); btn.setAttribute('aria-expanded', 'true'); openList = list; };
     btn.addEventListener('click', (e) => { e.stopPropagation(); const was = openList === list;
@@ -297,6 +314,31 @@ export function createMenubar({ opener, host, menus, label, phone, keep } = {}) 
       if (was) closeLists(); else open(); });
     btn.addEventListener('pointerenter', (e) => { if (!hoverable(e) || openList === list) return; open(); });
   }
+  /* 1.6.0-alpha.52 · THE MENUS BY KEYBOARD (λWAVES 039 W2, moved here whole): on a group Enter or ↓ opens it at its first row (↑ at its last), ← → walk
+     the groups, round, an open list following the focus, Home and End the first and last group; a group with no list (an acting entry, or one an app
+     seated) is pressed by Enter ↓ ↑; in a list ← → step to the next group's list where no submenu takes the key; Escape closes a list back to its
+     group, then (the window's listener below) the bar.  A key already taken (defaultPrevented) is left alone. */
+  { const groups = () => [...bar.querySelectorAll('.mb-btn')], isOpen = (b) => b.getAttribute('aria-expanded') === 'true';
+    const openAt = (b, last) => { if (!b.nextElementSibling) { closeLists(); b.focus({ preventScroll: true }); return; }
+      if (!isOpen(b)) b.click(); const its = [...b.nextElementSibling.querySelectorAll(':scope > .mb-item:not(:disabled)')];
+      (its[last ? its.length - 1 : 0] || b).focus({ preventScroll: true }); };
+    bar.addEventListener('keydown', (e) => { if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+      const k = e.code, g = groups(), btn = e.target.closest('.mb-btn'), item = e.target.closest('.mb-item');
+      const step = (b, d) => g[(g.indexOf(b) + d + g.length) % g.length];
+      if (btn) {
+        if (!btn.nextElementSibling && (k === 'ArrowDown' || k === 'ArrowUp' || k === 'Enter' || k === 'NumpadEnter')) { e.preventDefault(); btn.click(); return; }
+        if (k === 'ArrowDown' || k === 'ArrowUp' || k === 'Enter' || k === 'NumpadEnter') { e.preventDefault(); openAt(btn, k === 'ArrowUp'); }
+        else if (k === 'ArrowRight' || k === 'ArrowLeft') { e.preventDefault(); const to = step(btn, k === 'ArrowRight' ? 1 : -1); if (isOpen(btn)) openAt(to); else to.focus({ preventScroll: true }); }
+        else if (k === 'Home' || k === 'End') { e.preventDefault(); g[k === 'Home' ? 0 : g.length - 1].focus({ preventScroll: true }); }
+        else if (k === 'Escape' && isOpen(btn)) { e.preventDefault(); closeLists(); }
+        return;
+      }
+      if (!item) return;
+      let list = item.parentElement; while (list && list.mbParent) list = list.mbParent;   // a submenu's row belongs to its root list's group
+      const grp = list && list.previousElementSibling; if (!grp || !grp.classList.contains('mb-btn')) return;
+      if (k === 'ArrowLeft' || (k === 'ArrowRight' && !item.mbEntries)) { e.preventDefault(); openAt(step(grp, k === 'ArrowRight' ? 1 : -1)); }
+      else if (k === 'Escape' && item.parentElement === list) { e.preventDefault(); closeLists(); grp.focus({ preventScroll: true }); }
+    }, on); }
   let barTimer = 0;
   /* ON A PHONE the bar may not run off the screen: it gets the width from the wordmark to the edge and wraps onto a
      second row there (shell.css), its first row level with the wordmark.  The desktop bar is one row, as it was. */

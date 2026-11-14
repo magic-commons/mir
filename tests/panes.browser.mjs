@@ -152,6 +152,25 @@ try {
   r = await run(`return { open: R.isOpen('timeline'), shown: T.finder2.shown };`);
   check('Enter opens the best match (TIMELINE) and closes the FINDER', r.open && !r.shown, JSON.stringify(r));
   await closeAll();
+
+  /* ── alpha.52 · THE MENUS BY KEYBOARD, AND THE VALUE DOOR OF EVERY CONTROL ──────────────────────────────────── */
+  const at = () => run(`const a = D.activeElement; return { grp: a.classList.contains('mb-btn') ? a.dataset.menu : null, row: a.classList.contains('mb-item') ? a.querySelector('.mb-lbl').textContent : null, open: ($('#menubar .mb-btn[aria-expanded="true"]') || { dataset: {} }).dataset.menu || null, bar: T.bar.isOpen };`);
+  await run(`T.bar.open(true); await wait(120); return 0;`);
+  const w = []; const press = async (k) => { await p.key(k); w.push(await at()); };
+  await press('ArrowRight'); await press('ArrowDown'); await press('End'); await press('Home'); await press('l'); await press('ArrowRight'); await press('Escape'); await press('End'); await press('Home');
+  check('THE MENUS BY KEYBOARD: → walks the groups, ↓ opens a list at its first row, End / Home its last and first, a letter jumps (l → LOCK), → steps to the next group\'s list, Escape closes it back to its group, End / Home the last and first group',
+    w[0].grp === 'FILE' && w[1].row === 'NEW' && w[1].open === 'FILE' && w[2].row === 'MORE' && w[3].row === 'NEW' && w[4].row === 'LOCK' && w[5].row === 'UNDO' && w[5].open === 'EDIT' && w[6].grp === 'EDIT' && !w[6].open && w[6].bar && w[7].grp === 'WINDOW' && w[8].grp === 'FINDER', JSON.stringify(w));
+  await p.key('Enter'); await sleep(150);
+  r = await run(`return { ran: T.ran.includes('finder-entry'), bar: T.bar.isOpen, list: !!$('#menubar .mb-act .mb-list'), hint: $('#menubar .mb-act .mb-btn').title };`);
+  check('AN ACTING ENTRY (menus.FINDER = { run }): a group with no list; Enter on it runs it and closes the bar', r.ran && !r.bar && !r.list && r.hint === 'open the finder', JSON.stringify(r));
+  r = await run(`const n = T.num, face = n.root.querySelector('.mir-num-face'); n.set(7);
+    const m = T.menus.controlMenu(face, { x: 600, y: 500 }); const ids = m ? $$('.mir-ctx-pane .mb-item').map((b) => b.dataset.id) : null; if (m) { $('.mir-ctx-pane [data-id="reset"]').click(); }
+    return { ids, after: n.get(), act: T.menus.knobAct(face, 'copy') };`);
+  check('THE VALUE DOOR OF EVERY CONTROL: the control menu on a number (from an element inside it) has RESET · COPY VALUE · PASTE, and RESET sends it home', r.ids && r.ids.slice(0, 3).join() === 'reset,copy,paste' && r.after === 5 && r.act === true, JSON.stringify(r));
+  await run(`F.open(); await wait(450); return 0;`);
+  await p.key('End'); const fe = await run(`return $('.wp-row.on .wp-name').textContent;`); await p.key('Home'); const fh = await run(`return $('.wp-row.on .wp-name').textContent;`);
+  check('THE FINDER: End and Home mark the last and the first row (nothing typed)', fe === 'EXTRA' && fh.startsWith('A WINDOW'), JSON.stringify([fe, fh]));
+  await closeAll();
 } finally {
   await p.close();
 }

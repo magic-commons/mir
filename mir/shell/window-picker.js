@@ -170,6 +170,9 @@ export function createWindowPicker({ rack, open = (id) => rack.reveal(id), can =
   root.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); if (input.value) { input.value = ''; filter(); } else close(); return; }   // CLEAR, THEN CLOSE (1.6.0-alpha.51): a typed query goes first
     if (e.key === 'Enter') { e.preventDefault(); if (e.shiftKey) pick(cur); else go(cur); return; }
+    /* Page Up / Page Down, and Home / End while nothing is typed (with a query they are the caret's): the first and the last row (1.6.0-alpha.52) */
+    if (e.key === 'PageUp' || e.key === 'PageDown' || ((e.key === 'Home' || e.key === 'End') && !input.value)) {
+      e.preventDefault(); const l = live().map((r) => r.b); if (l.length) mark(l[e.key === 'PageUp' || e.key === 'Home' ? 0 : l.length - 1]); return; }
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault(); const l = live().map((r) => r.b); if (!l.length) return;
       const i = l.indexOf(cur), n = e.key === 'ArrowDown' ? (i + 1) % l.length : (i - 1 + l.length) % l.length; mark(l[n]);
