@@ -112,6 +112,15 @@ try {
   check('one keycap: a menu\'s cap and the keyboard window\'s chip wear the same well, shadow and corner', r.well && r.cap === r.chip, JSON.stringify([r.cap, r.chip]));
   check('capsOf: a chord by its +, a Mac chord by its symbols, the + key itself, a lone word, nothing', JSON.stringify(r.pure) === JSON.stringify([['Ctrl', 'Shift', 'S'], ['⌘', '⇧', 'S'], ['Ctrl', '+'], ['Space'], ['?'], []]), JSON.stringify(r.pure));
   await closeAll();
+
+  /* ── alpha.49 · THE TWO FIELDS ──────────────────────────────────────────────────────────────────────────────── */
+  r = await run(`F.open(); T.kb.open(); await wait(450); const nm = D.body.appendChild(D.createElement('input')); nm.className = 'mir-name'; nm.value = 'my preset';
+    const f = (s) => { const n = typeof s === 'string' ? $(s) : s, c = cs(n); return [Math.round(box(n).h), c.borderTopLeftRadius, c.fontSize, c.backgroundColor, c.borderTopWidth].join(' | '); };
+    const out = { finder: f('.wp-search'), keys: f('.km-search'), cls: [$('.wp-search').className, $('.km-search').className], name: [Math.round(box(nm).h), cs(nm).borderTopLeftRadius, cs(nm).textTransform].join(' | '),
+      made: T.picker.searchField(D.body).className }; nm.remove(); $('body > .mir-search').remove(); return out;`);
+  check('ONE SEARCH FIELD: the FINDER\'s and KEYBOARD\'s are the same pill (34 px, 14 px type, one well and hairline), made by searchField()', r.finder === r.keys && r.finder.startsWith('34 | ') && r.finder.includes('| 14px |') && r.cls.every((c) => c.includes('mir-search')) && r.made === 'mir-search', JSON.stringify(r));
+  check('THE NAME FIELD (.mir-name): 30 px, radius 8, upper case', r.name === '30 | 8px | uppercase', r.name);
+  await closeAll();
 } finally {
   await p.close();
 }

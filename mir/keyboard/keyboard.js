@@ -38,6 +38,7 @@
 import { el, label, ariaLabel, hint, seg, trig } from '../kit.js';
 import { t, onLanguage } from '../core/i18n.js';
 import { createWindow } from '../window/window.js';
+import { searchField } from '../shell/window-picker.js';
 import { parseChord, displayChord, keyText, modText } from '../shell/keys.js';
 
 /* ── the board: λWAVES' ANSI rows, each key [code, cap, shifted legend, width class] ─────────────────────────── */
@@ -128,7 +129,7 @@ export function createKeyboardWindow({ keys, host, persist = null, platform, onM
   const rst = trig({ label: 'RESET TO DEFAULT', cls: 'km-btn km-btn-reset', onFire: () => resetAll() });
   rec.on = false; tools.append(rec.root, rst.root);
   const statusEl = el('div', 'km-status', colR); statusEl.setAttribute('role', 'status');   // THE HAND: its seat is kept when it says nothing (keyboard.css), so a key pressed on the board moves no row of the list
-  const search = el('input', 'km-search', colR); search.type = 'search'; ariaLabel(search, 'Find a keyboard action');
+  const search = searchField(colR, { cls: 'km-search' }); ariaLabel(search, 'Find a keyboard action');
   const placeholder = () => { search.placeholder = t('Find an action or key…'); };
   placeholder();
   const list = el('div', 'km-list', colR); list.setAttribute('role', 'listbox'); ariaLabel(list, 'Keyboard actions');

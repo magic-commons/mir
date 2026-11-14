@@ -37,13 +37,20 @@ import { glyphEl, hasGlyph } from '../glyph.js';
 import { t } from '../core/i18n.js';
 import { queueToggle, openOrder } from './rack.js';
 
+/** searchField(parent, { cls }) → an <input type="search" class="mir-search"> — THE KIT'S ONE SEARCH FIELD (1.6.0-alpha.49): THE FINDER's pill (34 px, a well and
+ *  a hairline, 14 px), for every surface that searches (the keyboard window's; an app's).  The caller names it and writes its placeholder. */
+export function searchField(parent, { cls = '' } = {}) {
+  const input = el('input', ('mir-search ' + cls).trim(), parent); input.type = 'search'; input.spellcheck = false; input.autocomplete = 'off';
+  return input;
+}
+
 /** the motion's numbers: the stagger between rows and the row past which they all enter together */
 export const WINDOW_PICKER = Object.freeze({ stagger: 30, cap: 12, close: 120 });
 
 export function createWindowPicker({ rack, open = (id) => rack.reveal(id), can = () => true, icon = () => null, cls = '', host = document.body, sections = null, words = null } = {}) {
   const root = el('div', ('mir-window-picker glass ' + cls).trim(), host); root.hidden = true;
   root.setAttribute('role', 'dialog'); ariaLabel(root, 'FINDER');   // tr[FINDER]: the finder: a search field over every window of the app; picking one opens it or scrolls the rack to it
-  const input = el('input', 'wp-search', root); input.type = 'search'; input.spellcheck = false; input.autocomplete = 'off';
+  const input = searchField(root, { cls: 'wp-search' });
   input.placeholder = t('search windows'); ariaLabel(input, 'search windows');   // tr[search windows]: the finder's search field: type part of a window's name
   const list = el('div', 'wp-list', root); list.setAttribute('role', 'listbox'); ariaLabel(list, 'FINDER');
   const life = new AbortController(), on = { signal: life.signal };
