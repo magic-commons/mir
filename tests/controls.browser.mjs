@@ -33,10 +33,11 @@ async function drag(node, label, steps, { mod = 0, at } = {}) {
   const s = await need(node, label, at); if (!s) return null;
   mods = 0; await mouse('mouseMoved', s.x, s.y); mods = mod; await mouse('mousePressed', s.x, s.y);
   for (const [dx, dy, m] of steps) { if (m !== undefined) mods = m; await mouse('mouseMoved', s.x + dx, s.y + dy); await sleep(20); }
-  const last = steps[steps.length - 1]; await mouse('mouseReleased', s.x + last[0], s.y + last[1]); mods = 0; await sleep(120);
+  const last = steps[steps.length - 1]; await mouse('mouseReleased', s.x + last[0], s.y + last[1]); mods = 0; await sleep(320);   // past TAP.ms: the next press here is a new gesture, not a double-tap (home, and no drag: 1.6.0-alpha.19)
   return s;
 }
 const val = (node) => J(`return ${node}.get();`);
+const RT0 = (w) => `W.range.${w}.root`;
 
 try {
   await p.goto(URL_, 1200);
@@ -84,6 +85,37 @@ try {
     await mouse('mousePressed', s.x - 10, s.y); await mouse('mouseReleased', s.x - 10, s.y); await sleep(40); await mouse('mousePressed', s.x + 10, s.y); await mouse('mouseReleased', s.x + 10, s.y); await sleep(350);
     const apart = await val('W.knob');
     check('knob: two taps 330 ms apart, or 20 px apart, are not home (300 ms within 14 px)', near(slow, 0.9, 1e-6) && near(apart, 0.9, 1e-6), JSON.stringify({ slow, apart })); }
+  /* 1.6.0-alpha.19 ONE DOUBLE PRESS, ONE HOME: a real mouse double-click (the second press carries clickCount 2, so the browser fires `dblclick`
+     after it) goes home ONCE on a knob, a fader and a range thumb, and the second press begins no drag: a pixel of travel leaves the value home */
+  { const dbl = async (node, label, at) => { const s = await need(node, label, at); mods = 0; await mouse('mouseMoved', s.x, s.y);
+      await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(60);
+      const two = (type, x) => p.send('Input.dispatchMouseEvent', { type, x, y: s.y, button: 'left', buttons: type === 'mousePressed' ? 1 : 0, clickCount: 2 });
+      await two('mousePressed', s.x); await mouse('mouseMoved', s.x + 2, s.y); held = false; await two('mouseReleased', s.x + 2); await sleep(120); };
+    await sleep(350); await J(`W.knob.set(0.9); W.knob.setDefault(0.4); W.fader.set(0.2); W.fader.setDefault(0.5); W.range.set(0.25, 0.75); W.range.lo.setDefault(0.1); W.n.knob = W.n.fader = W.n.range = 0; window.__dbl = 0; document.addEventListener('dblclick', () => { __dbl++; }, true); return 1;`);
+    await dbl(K, 'knob (double-click)'); await sleep(350);
+    await dbl('W.fader.root', 'fader (double-click)', [0.8, 0.5]); await sleep(350);
+    await dbl(RT0('lo'), 'range lo (double-click)');
+    const r = await J(`return { knob: W.knob.get(), fader: W.fader.get(), lo: W.range.get()[0], n: W.n, dbl: __dbl };`);
+    check('a mouse double-click is home ONCE on a knob, a fader and a range thumb (the browser fired dblclick three times and none of them answered; the second press starts no drag)',
+      near(r.knob, 0.4, 1e-9) && near(r.fader, 0.5, 1e-9) && near(r.lo, 0.1, 1e-9) && r.dbl === 3 && r.n.knob === 2 && r.n.fader === 2 && r.n.range === 2, JSON.stringify(r));
+    await J(`W.knob.set(0.4); W.range.set(0.25, 0.75); W.range.lo.setDefault(0.25); if (document.activeElement) document.activeElement.blur(); return 1;`); await sleep(350); }
+  /* 1.6.0-alpha.20 A GESTURE ENDS ONE OF TWO WAYS: Escape mid-drag (a real key) puts a knob, a fader and a range thumb back where the hand found
+     them and lands nothing; so does a cancelled pointer (it committed); the lift after it is nobody's */
+  { const held2 = async (node, label, dx, dy, how, at) => { const s = await need(node, label, at); mods = 0; await mouse('mouseMoved', s.x, s.y); await mouse('mousePressed', s.x, s.y);
+      await mouse('mouseMoved', s.x + dx / 2, s.y + dy / 2); await mouse('mouseMoved', s.x + dx, s.y + dy); await sleep(40);
+      const mid = await J(`return [W.knob.get(), W.fader.get(), W.range.get()[0]];`);
+      if (how === 'esc') { await p.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 }); await p.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 }); }
+      else await J(`const n = ${node}; n.dispatchEvent(new PointerEvent('pointercancel', { pointerId: 1, bubbles: true })); return 1;`);
+      await mouse('mouseMoved', s.x + dx * 2, s.y + dy * 2); await mouse('mouseReleased', s.x + dx * 2, s.y + dy * 2); await sleep(330); return mid; };
+    await J(`W.knob.set(0.4); W.fader.set(0.2); W.range.set(0.25, 0.75); W.n.knob = W.n.fader = W.n.range = 0; return 1;`);
+    const m1 = await held2(K, 'knob (Escape)', 0, -44, 'esc'), m2 = await held2('W.fader.root', 'fader (Escape)', 30, 0, 'esc', [0.6, 0.5]), m3 = await held2(RT0('lo'), 'range lo (Escape)', 40, 0, 'esc');
+    const a = await J(`return { v: [W.knob.get(), W.fader.get(), W.range.get()[0]], n: W.n, drag: [W.knob.dragging(), W.fader.dragging()] };`);
+    check('Escape mid-drag puts a knob, a fader and a range thumb back where the hand found them and lands nothing (each had moved under the hand)',
+      near(m1[0], 0.6, 0.01) && m2[1] > 0.5 && m3[2] > 0.3 && near(a.v[0], 0.4, 1e-9) && near(a.v[1], 0.2, 1e-9) && near(a.v[2], 0.25, 1e-9) && a.n.knob + a.n.fader + a.n.range === 0 && !a.drag[0] && !a.drag[1], JSON.stringify({ m1, m2, m3, a }));
+    const c1 = await held2(K, 'knob (cancel)', 0, -44, 'cancel'), c2 = await held2('W.fader.root', 'fader (cancel)', 30, 0, 'cancel', [0.6, 0.5]);
+    const b = await J(`return { v: [W.knob.get(), W.fader.get()], n: W.n };`);
+    check('a cancelled pointer puts a knob and a fader back too (it committed) and lands nothing', near(c1[0], 0.6, 0.01) && c2[1] > 0.5 && near(b.v[0], 0.4, 1e-9) && near(b.v[1], 0.2, 1e-9) && b.n.knob + b.n.fader === 0, JSON.stringify({ c1, c2, b }));
+    await J(`if (document.activeElement) document.activeElement.blur(); return 1;`); }
 
   /* a second finger is the gear: real touch events */
   await p.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
@@ -190,7 +222,7 @@ try {
   await p.key('Digit9'); await p.key('Escape'); await sleep(80);
   check('number: Escape does not take it', near(await val('W.number'), 42, 1e-9));
   await J(`W.number.face.focus(); return 1;`); await p.key('ArrowUp'); await p.key('Shift+ArrowUp'); await sleep(40);
-  v = await val('W.number'); check('number: ↑ steps by one step, Shift ↑ an eighth of it (42 → 42.5 → 42.5625 → 42.5)', near(v, 42.5, 0.1), String(v));
+  v = await val('W.number'); check('number: ↑ steps by one step, and Shift ↑ is one step too on a stepped number (42 → 42.5 → 43; 1.6.0-alpha.21)', near(v, 43, 1e-9), String(v));
 
   /* ── THE RANGE SLIDER ── */
   await J(`W.range.set(0.25, 0.75); return 1;`);
@@ -261,12 +293,88 @@ try {
 
   /* ── control(): ten descriptors, the right kind, in the document, hit-tested ── */
   const kinds = await J(`return Object.entries(W.factory).map(([id, c]) => [id, c.kind, c.root.isConnected, c.root.dataset.control, c.targets.length]);`);
-  const want = { enable: 'switch', mode: 'segment', blend: 'stepper', band: 'select', gain: 'knob', hue: 'arc', freq: 'lane', pan: 'xy', win: 'range', count: 'number' };
-  check('control(): ten descriptors give switch · segment · stepper · select · knob · arc · lane · xy · range · number', kinds.every(([id, k, conn, ds]) => k === want[id] && conn && ds === k), JSON.stringify(kinds.map((k) => k.slice(0, 2))));
-  check('control(): the targets are what a macro may route onto (knob, arc, lane: 1; xy and range: 2; the rest: none)', kinds.every(([id, , , , n]) => n === ({ gain: 1, hue: 1, freq: 1, pan: 2, win: 2 }[id] || 0)), JSON.stringify(kinds.map((k) => [k[0], k[4]])));
+  const want = { enable: 'switch', mode: 'segment', blend: 'stepper', view: 'segment', phase: 'knob', band: 'select', gain: 'knob', hue: 'arc', freq: 'lane', pan: 'xy', win: 'range', count: 'number' };
+  check('control(): twelve descriptors give switch · segment · stepper · segment (six, in two rows) · knob (a phase) · select · knob · arc · lane · xy · range · number', kinds.every(([id, k, conn, ds]) => k === want[id] && conn && ds === k), JSON.stringify(kinds.map((k) => k.slice(0, 2))));
+  check('control(): the targets are what a macro may route onto (knob, arc, lane: 1; xy and range: 2; the rest: none)', kinds.every(([id, , , , n]) => n === ({ gain: 1, phase: 1, hue: 1, freq: 1, pan: 2, win: 2 }[id] || 0)), JSON.stringify(kinds.map((k) => [k[0], k[4]])));
   { const hits = []; for (const id of Object.keys(want)) { const s = await spot(`W.factory.${id}.root`); hits.push(!!s && s.hit && s.w > 20); } check('control(): every control is hit-testable where it is drawn', hits.every(Boolean), JSON.stringify(hits)); }
   { const pr = await J(`const ps = W.factory.pan.params(), rs = W.factory.win.params(), ks = W.factory.gain.params(); return { pan: ps.map((q) => q.id), win: rs.map((q) => q.id), gain: ks.map((q) => [q.id, q.map, typeof q.get, typeof q.set, !!q.widget]), hue: W.factory.hue.params()[0].map, freq: W.factory.freq.params()[0].map, sw: W.factory.enable.params().length };`);
     check('control().params(): installModulation records, one per target (pan.x pan.y · win.lo win.hi · gain linear · hue wrap · freq log · a switch none)', pr.pan.join() === 'pan.x,pan.y' && pr.win.join() === 'win.lo,win.hi' && pr.gain[0][0] === 'gain' && pr.gain[0][1] === 'linear' && pr.hue === 'wrap' && pr.freq === 'log' && pr.sw === 0, JSON.stringify(pr)); }
+
+  /* ── 1.6.0-alpha.21 THE KEYS AGREE (real keys on the focused control) ── */
+  { const VK = { ArrowUp: 38, ArrowDown: 40, Home: 36, End: 35, PageUp: 33, PageDown: 34 };
+    const key = async (k, m = 0) => { for (const type of ['keyDown', 'keyUp']) await p.send('Input.dispatchKeyEvent', { type, key: k, code: k, windowsVirtualKeyCode: VK[k], modifiers: m }); await sleep(40); };
+    await J(`W.number.set(12.5); W.number.face.focus(); return 1;`); await key('ArrowUp', 8); const shifted = await val('W.number'); await key('ArrowUp'); const plain = await val('W.number');
+    check('number: on a stepped number Shift + ↑ is one step, as ↑ is (an eighth of a step rounded straight back: a dead key)', near(shifted, 13, 1e-9) && near(plain, 13.5, 1e-9), JSON.stringify({ shifted, plain }));
+    await J(`W.select.set('p23'); W.select.button.focus(); return 1;`); await key('ArrowDown'); const wrapped = await val('W.select'); await key('ArrowUp'); const back = await val('W.select');
+    await J(`W.select.open(); return 1;`); await sleep(80); await key('ArrowDown'); const paneAt = await J(`return document.activeElement.dataset.id;`); await key('ArrowUp'); const paneBack = await J(`return document.activeElement.dataset.id;`);
+    await J(`W.select.close(false); return 1;`);
+    check('select: the walk wraps at both ends, closed (↓ on the last is the first, ↑ back) and in the open pane', wrapped === 'p0' && back === 'p23' && paneAt === 'p0' && paneBack === 'p23', JSON.stringify({ wrapped, back, paneAt, paneBack }));
+    await J(`W.stepper.set('c'); W.stepper.name.focus(); return 1;`); await key('End'); const last = await val('W.stepper'); await key('Home'); const first = await val('W.stepper');
+    check('stepper: End is the last live item and Home the first', last === 'e' && first === 'a', JSON.stringify({ last, first }));
+    /* 1.6.0-alpha.22 NO CONTROL KEEPS THE LAW AS A NUMBER: with the arrow's gear retuned (keyFine ½, the drag's divisor left at 8), Shift + ↑ on an
+       unstepped range thumb and on an unstepped number is HALF a plain arrow (the range kept a literal ⅛, the number read the drag's divisor) */
+    { await J(`C.kit.setKnobLaw({ keyFine: 0.5 }); W.law = { r: C.control({ id: 'law.r', label: 'LAW', type: 'range', min: 0, max: 1, value: [0.2, 0.8] }), n: C.control({ id: 'law.n', label: 'LAWN', value: 5 }) };
+        document.body.append(W.law.r.root, W.law.n.root); W.law.r.widget.hi.root.focus(); return 1;`);
+      await key('ArrowUp', 8); const hi = (await J(`return W.law.r.get();`))[1];
+      await J(`W.law.n.widget.face.focus(); return 1;`); await key('ArrowUp', 8); const num = await J(`return W.law.n.get();`);
+      const law = await J(`const l = C.kit.setKnobLaw({ fine: 8 }); W.law.r.root.remove(); W.law.n.root.remove(); return l;`);
+      check('setKnobLaw({ keyFine }) reaches the range thumb\'s and the number\'s Shift + arrow (0.8 → 0.805, 5 → 5.5), and { fine: 8 } puts the law back', near(hi, 0.805, 1e-9) && near(num, 5.5, 1e-9) && law.keyFine === 0.125 && law.fine === 8, JSON.stringify({ hi, num, law })); }
+    await J(`W.knob.set(0.4); if (document.activeElement) document.activeElement.blur(); return 1;`);
+    const s = await need(K, 'knob (press takes the focus)'); await mouse('mouseMoved', s.x, s.y); await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(60);
+    const kf = await J(`return document.activeElement === W.knob.root;`);
+    const f = await need('W.fader.root', 'fader (press takes the focus)', [0.5, 0.5]); await mouse('mouseMoved', f.x, f.y); await mouse('mousePressed', f.x, f.y); await mouse('mouseReleased', f.x, f.y); await sleep(60);
+    const ff = await J(`return document.activeElement === W.fader.root;`);
+    check('a pressed knob and a pressed fader hold the focus (the arrows after a click are the control\'s)', kf && ff, JSON.stringify({ kf, ff }));
+    await J(`if (document.activeElement) document.activeElement.blur(); return 1;`); await sleep(330); }
+
+  /* ── 1.6.0-alpha.23 ONE SPELLING ON EVERY BUILDER: home · options · title · setDisabled · root · the trigger's glyph form ── */
+  { const r = await J(`const k = C.kit, hintOf = (n) => n.getAttribute('title') || '';
+      const kn = k.knob({ label: 'H', min: 0, max: 1, value: 0.7, home: 0.2 }), fd = k.fader({ label: 'F', min: 0, max: 1, value: 0.7, home: 0.2, title: 'a fader hint' });
+      kn.home(); fd.root.mirKnob.home();
+      const rg = C.control({ id: 'o.r', type: 'range', min: 0, max: 1, value: [0.3, 0.6], home: [0.1, 0.9] }); document.body.append(rg.root);
+      for (const t of rg.targets) { t.root.focus(); t.root.dispatchEvent(new KeyboardEvent('keydown', { code: 'Delete', key: 'Delete', bubbles: true, cancelable: true })); }
+      const nm = C.control({ id: 'o.n', label: 'N', hint: 'a number hint', value: 4, home: 9 }); document.body.append(nm.root);
+      nm.widget.face.dispatchEvent(new KeyboardEvent('keydown', { code: 'Delete', key: 'Delete', bubbles: true, cancelable: true }));
+      const xy = C.control({ id: 'o.xy', label: 'P', hint: 'a pad hint', pair: [{ id: 'o.x', label: 'X', min: 0, max: 1, value: 0.5 }, { id: 'o.y', label: 'Y', min: 0, max: 1, value: 0.5 }] });
+      const sw = k.sw({ label: 'S', value: false }), sg = k.seg({ label: 'G', value: 'a', options: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }, { id: 'c', label: 'C' }] }), tg = k.trig({ label: 'T' });
+      document.body.append(sw.root, sg.root, tg.root); sg.button('c').disabled = true;
+      let fired = 0; sw.setDisabled(true); sg.setDisabled(true); tg.setDisabled(true); W.stepper.setDisabled(true);
+      sw.root.click(); sg.button('b').click(); const before = W.stepper.get(); W.stepper.step(1);
+      const off = { sw: sw.get(), seg: sg.get(), trig: tg.root.disabled, segAll: ['a', 'b', 'c'].every((id) => sg.button(id).disabled), step: W.stepper.get() === before, stepArrows: W.stepper.prev.disabled && W.stepper.next.disabled, stepCls: W.stepper.root.classList.contains('disabled') };
+      sw.setDisabled(false); sg.setDisabled(false); tg.setDisabled(false); W.stepper.setDisabled(false);
+      sw.root.click(); sg.button('b').click(); W.stepper.step(1);
+      const on = { sw: sw.get(), seg: sg.get(), trig: tg.root.disabled, segC: sg.button('c').disabled, step: W.stepper.get() !== before };
+      const g = W.trigGlyph.root, out = { knob: kn.get(), fader: fd.get(), range: rg.get(), number: nm.get(),
+        hints: [hintOf(fd.root), hintOf(nm.root), hintOf(xy.root), hintOf(W.select.root)], off, on,
+        glyph: { cls: g.classList.contains('trig-glyph'), name: g.getAttribute('aria-label'), word: !!g.querySelector('.trig-l'), svg: !!g.querySelector('.trig-g svg'), w: g.getBoundingClientRect().width, h: g.getBoundingClientRect().height },
+        sel: W.select.get(), pick: (W.select.open(), document.querySelectorAll('.mir-pick-i').length) };
+      W.select.close(false); W.trigGlyph.setLabel('Add two'); out.glyph.renamed = g.getAttribute('aria-label');
+      for (const n of [rg.root, nm.root, sw.root, sg.root, tg.root]) n.remove();
+      return out;`);
+    check('home: knob({ home }), fader({ home }), a range\'s home: [lo, hi] and a number\'s home are where home goes (0.2 · 0.2 · [0.1, 0.9] · 9)',
+      near(r.knob, 0.2, 1e-9) && near(r.fader, 0.2, 1e-9) && near(r.range[0], 0.1, 1e-9) && near(r.range[1], 0.9, 1e-9) && r.number === 9, JSON.stringify([r.knob, r.fader, r.range, r.number]));
+    check('title: a fader, a number, an XY pad and a select wear their hint on the root', r.hints.join('|') === 'a fader hint|a number hint|a pad hint|Which port to listen to', JSON.stringify(r.hints));
+    check('setDisabled: a switch, a seg, a trigger and a stepper stand down and come back; an option the app disabled itself stays disabled',
+      r.off.sw === false && r.off.seg === 'a' && r.off.trig && r.off.segAll && r.off.step && r.off.stepArrows && r.off.stepCls && r.on.sw === true && r.on.seg === 'b' && !r.on.trig && r.on.segC && r.on.step, JSON.stringify({ off: r.off, on: r.on }));
+    check('trig({ glyph, word: false }): the glyph alone on a square touch seat, the label its accessible name (setLabel renames it); `options` fills a select',
+      r.glyph.cls && r.glyph.name === 'Add one' && !r.glyph.word && r.glyph.svg && r.glyph.w >= 44 && r.glyph.w <= 48 && r.glyph.h >= 44 && r.glyph.renamed === 'Add two' && r.pick === 24, JSON.stringify(r.glyph) + ' ' + r.pick); }
+
+  /* 1.6.0-alpha.24: six short options are a segment in TWO ROWS of three (all six seen, none wider than its column); a phase is a free knob, not an arc */
+  { const r = await J(`const v = W.factory.view.root, bs = [...v.querySelectorAll('.seg-b')].map((b) => b.getBoundingClientRect()), ph = W.factory.phase.root;
+      return { cls: v.classList.contains('seg-2'), n: bs.length, rows: [...new Set(bs.map((b) => Math.round(b.top)))].length, cols: [...new Set(bs.map((b) => Math.round(b.left)))].length,
+        same: Math.max(...bs.map((b) => b.width)) - Math.min(...bs.map((b) => b.width)) < 1, arc: ph.classList.contains('k-arcknob'), knob: ph.classList.contains('k') };`);
+    check('six short options are a segment in two rows of three equal columns; a wrapped phase is a knob, not an arc', r.cls && r.n === 6 && r.rows === 2 && r.cols === 3 && r.same && !r.arc && r.knob, JSON.stringify(r)); }
+
+  /* 1.6.0-alpha.26 THE VALUE DOOR ON EVERY VALUE CONTROL (root.mirKnob: get · home · input): a fader's widget, an arc (its `home` is a number: the
+     door is its own), a range thumb and a number, so the one control menu can RESET and PASTE on each */
+  { const r = await J(`const door = (n) => n.mirKnob, out = {};
+      W.fader.setDefault(0.5); W.fader.set(0.2); W.fader.input(0.8); out.faderIn = W.fader.get(); W.fader.home(); out.faderHome = W.fader.get();
+      const a = door(W.opacity.root); a.input(0.25); out.arcIn = W.opacity.get(); a.home(); out.arcHome = W.opacity.get(); out.arcNumber = typeof W.opacity.home;
+      W.range.set(0.25, 0.75); const t = door(W.range.lo.root); t.input(0.4); out.thumbIn = W.range.get()[0]; t.input(0.9); out.thumbHeld = W.range.get()[0]; t.home(); out.thumbHome = W.range.get()[0];
+      const n = door(W.number.root); n.input(33.3); out.numIn = W.number.get(); W.number.setDefault(12.5); n.home(); out.numHome = W.number.get();
+      W.range.set(0.25, 0.75); return out;`);
+    check('the value door (root.mirKnob: home · input) on a fader, an arc knob, a range thumb (held against the other) and a number',
+      near(r.faderIn, 0.8, 1e-9) && near(r.faderHome, 0.5, 1e-9) && near(r.arcIn, 0.25, 1e-9) && near(r.arcHome, 1, 1e-9) && r.arcNumber === 'number' && near(r.thumbIn, 0.4, 1e-9) && r.thumbHeld <= 0.75 && r.thumbHeld > 0.7 && near(r.thumbHome, 0.25, 1e-9) && near(r.numIn, 33.5, 1e-9) && near(r.numHome, 12.5, 1e-9), JSON.stringify(r)); }
 
   /* ── light: the same page, the other theme, still drawn ── */
   await J(`document.body.dataset.theme = 'light'; return 1;`); await sleep(200);

@@ -58,7 +58,7 @@
 <div class="g-grid" id="grid"></div>
 <div id="floats"></div>
 <script type="module">
-import { el, knob, sw, seg, trig, fader, row as kitRow, section as kitSection, knobBank, meter as kitMeter, lamp as kitLamp } from '../mir/kit.js';
+import { el, knob, sw, seg, trig, fader, setKnobLaw, row as kitRow, section as kitSection, knobBank, meter as kitMeter, lamp as kitLamp } from '../mir/kit.js';
 import { stepper } from '../mir/controls/stepper.js';
 import { select } from '../mir/controls/select.js';
 import { number } from '../mir/controls/number.js';
@@ -106,7 +106,10 @@ bar.append(seg({ value: document.body.dataset.theme, options: [{ id: 'dark', lab
   W.knob = knob({ label: 'RATE', min: 0, max: 1, value: 0.4, fmt: (v) => v.toFixed(3), title: 'Drag up or down. Shift (or any modifier, or a second finger) is the eighth gear. Double-tap is home.' });
   W.exposure = knob({ label: 'EXPOSURE', min: -4, max: 4, value: 0, fmt: (v) => v.toFixed(2) + ' EV' });
   W.jog = knob({ label: 'JOG', min: 0, max: 1, value: 0, onDelta: () => {}, title: 'An unbounded turn: a wheel that holds no value' });
-  r.append(W.knob.root, W.exposure.root, W.jog.root);
+  W.n = { knob: 0, fader: 0, range: 0 };                                    // how many times a control LANDED (onChange), for the test
+  W.knob.spec.onChange = () => { W.n.knob++; };
+  W.fader = fader({ label: 'LEVEL', min: 0, max: 1, value: 0.5, onChange: () => { W.n.fader++; } }); W.fader.root.style.flex = '1 1 140px';
+  r.append(W.knob.root, W.exposure.root, W.jog.root, W.fader.root);
   rules(c, [['an ordinary continuous parameter', 'KNOB', 'J', 'one drag law: vertical; any modifier or a second finger = ⅛ fine; double-tap = home'],
     ['a colour amount in a global grade', 'solid KNOB', 'J', '"the ol\' regular knobs" (EXPOSURE)'],
     ['an unbounded turn', 'JOG WHEEL', 'kit', 'knob({ onDelta })']]);
@@ -162,7 +165,7 @@ bar.append(seg({ value: document.body.dataset.theme, options: [{ id: 'dark', lab
 {
   const c = card('s-pairs', 'XY PAD · RANGE SLIDER (pairs)');
   W.xy = xyPad({ label: 'PAN', x: { label: 'X', min: -1, max: 1, value: 0.2, fmt: (v) => v.toFixed(3) }, y: { label: 'Y', min: -1, max: 1, value: -0.3, fmt: (v) => v.toFixed(3) }, home: [0, 0], tags: { bl: 'A', br: 'B', tl: 'C', tr: 'D' } });
-  W.range = rangeSlider({ label: 'RANGE', min: 0, max: 1, lo: 0.25, hi: 0.75, step: 0.01, fmt: (v) => v.toFixed(2) });
+  W.range = rangeSlider({ label: 'RANGE', min: 0, max: 1, lo: 0.25, hi: 0.75, step: 0.01, fmt: (v) => v.toFixed(2), onChange: () => { W.n.range++; } });
   c.append(W.xy.root, W.range.root);
   rules(c, [['a coupled pair (pan x/y, a point in a plane, az/el)', 'XY PAD + its two knobs', 'J', 'the pad is for the hand; the two knobs stay the modulation targets (AUTOMATA\'s contract); Home or a double-tap centres'],
     ['where the point is', 'the LATTICE', 'J', '"a dot matrix that grows in size the closer the XY is": the dots swell and take the accent toward the point (it replaced the dot\'s glow); a gentler swell under a hovering cursor'],
@@ -177,8 +180,9 @@ bar.append(seg({ value: document.body.dataset.theme, options: [{ id: 'dark', lab
   W.swOff = sw({ label: 'SYNC', value: false });
   W.swNoLamp = sw({ label: 'ALL', value: true, lamp: false, title: 'a switch without a lamp: its label is the light' });
   W.trig = trig({ label: 'FIRE', onFire: () => {} });
+  W.trigGlyph = trig({ label: 'Add one', glyph: 'plus', word: false, title: 'the glyph form: no word, the label is its name', onFire: () => {} });
   W.seg = seg({ label: 'MODE', value: 'b', options: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }, { id: 'c', label: 'C' }] });
-  r.append(W.swLamp.root, W.swOff.root, W.swNoLamp.root, W.trig.root, W.seg.root);
+  r.append(W.swLamp.root, W.swOff.root, W.swNoLamp.root, W.trig.root, W.trigGlyph.root, W.seg.root);
   rules(c, [['a state that stays on', 'SWITCH with a lamp', 'J', '"I like the little light switches when things are on"'],
     ['no lamp: the glyph itself is the state', 'a chrome button (power, an eye, play/pause, invert)', 'R'],
     ['no lamp: a lane\'s dot is itself the lamp', 'the dot, in the lane\'s ink', 'R'],
@@ -192,10 +196,10 @@ bar.append(seg({ value: document.body.dataset.theme, options: [{ id: 'dark', lab
 {
   const c = card('s-modes', 'STEPPER · SELECT · NUMBER');
   const blends = ['NORMAL', 'MULTIPLY', 'SCREEN', 'OVERLAY', 'SOFT LIGHT', 'HARD LIGHT', 'DIFFERENCE', 'EXCLUSION', 'COLOUR DODGE', 'COLOUR BURN', 'LIGHTEN', 'DARKEN'].map((l) => ({ id: l.toLowerCase(), label: l }));
-  W.stepper = stepper({ label: 'BLEND', items: blends, value: 'overlay' });
-  W.pager = stepper({ pager: true, count: true, aria: 'page', items: [{ id: 'one', label: 'PAGE ONE' }, { id: 'two', label: 'PAGE TWO' }, { id: 'three', label: 'PAGE THREE' }], value: 'one' });
+  W.stepper = stepper({ label: 'BLEND', options: blends, value: 'overlay' });
+  W.pager = stepper({ pager: true, count: true, aria: 'page', options: [{ id: 'one', label: 'PAGE ONE' }, { id: 'two', label: 'PAGE TWO' }, { id: 'three', label: 'PAGE THREE' }], value: 'one' });
   const ports = Array.from({ length: 24 }, (_, i) => ({ id: 'p' + i, label: 'MIDI PORT ' + (i + 1) }));
-  W.select = select({ label: 'MIDI IN', items: ports, value: 'p3' });
+  W.select = select({ label: 'MIDI IN', options: ports, value: 'p3', title: 'Which port to listen to' });
   W.number = number({ label: 'AMOUNT', min: 0, max: 100, step: 0.5, value: 12.5, unit: '' });
   c.append(W.stepper.root, W.pager.root, W.select.root, W.number.root);
   rules(c, [['one of 5 or more modes, in order', 'STEPPER ‹ NAME ›', 'J·R', 'a tap on the name opens the full list; it is the page turner too'],
@@ -230,6 +234,8 @@ bar.append(seg({ value: document.body.dataset.theme, options: [{ id: 'dark', lab
     { id: 'enable', label: 'ENABLE', value: true },
     { id: 'mode', label: 'MODE', options: [{ id: 'a', label: 'ADD' }, { id: 'm', label: 'MUL' }, { id: 's', label: 'SUB' }], value: 'a' },
     { id: 'blend', label: 'BLEND', options: blendOptions(), value: 'overlay' },
+    { id: 'view', label: 'VIEW', options: ['DENSITY', 'ORBITAL', 'ESP', 'SPIN', 'ELF', 'NODES'].map((l) => ({ id: l.toLowerCase(), label: l })), value: 'esp' },
+    { id: 'phase', label: 'PHASE', min: 0, max: 360, wrap: true, value: 90, fmt: deg },
     { id: 'band', label: 'BAND', list: true, options: blendOptions(), value: 'overlay' },
     { id: 'gain', label: 'GAIN', min: 0, max: 1, value: 0.5 },
     { id: 'hue', label: 'HUE', min: 0, max: 360, wrap: true, hue: true, value: 120, fmt: deg },
@@ -238,7 +244,7 @@ bar.append(seg({ value: document.body.dataset.theme, options: [{ id: 'dark', lab
     { id: 'win', label: 'WINDOW', type: 'range', min: 0, max: 1, step: 0.01, value: [0.2, 0.8] },
     { id: 'count', label: 'COUNT', value: 12, step: 1 }
   ];
-  function blendOptions() { return ['NORMAL', 'MULTIPLY', 'SCREEN', 'OVERLAY', 'SOFT LIGHT', 'HARD LIGHT'].map((l) => ({ id: l.toLowerCase(), label: l })); }
+  function blendOptions() { return ['NORMAL', 'MULTIPLY', 'SCREEN', 'OVERLAY', 'SOFT LIGHT', 'HARD LIGHT', 'DIFFERENCE', 'EXCLUSION'].map((l) => ({ id: l.toLowerCase(), label: l })); }
   W.factory = {};
   for (const d of D) {
     const k = el('div', 'g-kind', grid2);
@@ -276,7 +282,7 @@ let mod = null;
     ['a routed range', 'each thumb a target', 'R']]);
 }
 
-window.__C = { W, mod, kit: { knob, sw, seg, trig, fader }, control, controlKind };
+window.__C = { W, mod, kit: { knob, sw, seg, trig, fader, setKnobLaw }, control, controlKind };
 window.__ready = true;
 }
 </script>
