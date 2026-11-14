@@ -727,7 +727,7 @@ Corners.
 | `--r-lg` | primitive | length | `12px` |  | kit | ✓ | stable |  | radius step |
 | `--r-md` | primitive | length | `8px` |  | kit | ✓ | stable |  | radius step |
 | `--r-pill` | primitive | length | `999px` |  | kit | ✓ | stable |  | radius step |
-| `--r-sm` | primitive | length | `5px` |  | kit | ✓ | stable |  | radius step |
+| `--r-sm` | primitive | length | `6px` |  | kit | ✓ | stable |  | radius step |
 | `--r-xs` | primitive | length | `3px` |  | kit | ✓ | stable |  | radius step; unread in the kit, read by apps *[unread-in-kit]* |
 | `--k-needle-r` | component | length | `1px` |  | kit | ✓ | stable |  | the knob needle's corner |
 | `--k-tick-r` | component | length | `1px` |  | kit | ✓ | stable |  | a modulated knob's base tick: its corner |

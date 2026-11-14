@@ -448,7 +448,7 @@ body.frost .glass:where(.mir-modwindow, .mir-modwindow *, .kwin-chiprail, .kwin-
         to the house ladder.  A SKIN THAT CHANGES A SIZE IS A SKIN THAT GOT SOMETHING WRONG. ── */
   --touch:    calc(44px * var(--ui-scale));   /* THE 44 px LAW's unit */
   --grip-hit: var(--touch);
-  --r-sm: calc(5px  * var(--ui-scale));
+  --r-sm: calc(6px  * var(--ui-scale));
   --r-md: calc(8px  * var(--ui-scale));
   --r-lg: calc(12px * var(--ui-scale));
   --sp-1: calc(3px  * var(--ui-scale));
