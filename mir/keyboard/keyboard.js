@@ -391,8 +391,8 @@ export function createKeyboardWindow({ keys, host, persist = null, platform, onM
 /* ── THE HELP VIEW: the table's helpRows(), by group — every hand-written help dialog's replacement ─────────── */
 export function createKeysHelp({ keys, host, persist = null, onMoved } = {}) {
   const root = el('div', 'km-help');
-  const win = createWindow({ id: 'keys-help', title: 'KEYS', host, persist, onMoved, emptyDrag: true,
-    size: { w: 380, h: 460 }, min: { w: 260, h: 220 }, body: root, onOpen: () => refresh() });
+  const win = createWindow({ id: 'keys-help', title: 'KEYS', host, persist, onMoved, emptyDrag: true, chrome: 'close',   // 1.6.0-alpha.56: a list to read has a title bar and its ×, no rail (as ABOUT and MIR OPTIONS)
+    size: { w: 380, h: 460 }, body: root, onOpen: () => refresh() });
   win.root.classList.add('km-help-win');
   function refresh() {
     root.textContent = '';

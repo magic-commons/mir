@@ -208,6 +208,14 @@ try {
     const out = { ctx: e('.mir-ctx-pane'), finder: e('.mir-window-picker'), pick: e('.mir-pick'), fav: e('.mir-rack-list'), sh: [sh('.mir-ctx-pane'), sh('.mir-window-picker'), sh('.mir-rack-list')] }; m.close(); return out;`);
   check('ONE EDGE: the FINDER and the saved-layouts list carry the menu mark and wear a context menu\'s and a select\'s list\'s edge, floor and shadow', r.ctx.startsWith('menu | ') && r.finder === r.ctx && r.pick === r.ctx && r.fav === r.ctx && r.sh[1] === r.sh[0] && r.sh[2] === r.sh[0], JSON.stringify(r).slice(0, 420));
   await closeAll();
+
+  /* ── alpha.56 · KEYS HAS A TITLE BAR, THE NOTICE OWNS ITS TIME, THE DIALOG'S BUTTON ─────────────────────────── */
+  r = await run(`T.help.open(); await wait(400); const w = T.help.win.root, d = T.dialog.openDialog({ title: 'T', body: 'b' }); await wait(120); const b = $('.mir-dialog .trig');
+    const out = { head: !!w.querySelector('.mir-win-head'), x: !!w.querySelector('.mir-win-head button, .mir-win-close'), ms: T.notices.NOTICE_MS, btn: [Math.round(box(b).h), cs(b).borderTopLeftRadius, cs(b).fontFamily === cs('.mb-btn').fontFamily] };
+    d.close(); T.help.close(); return out;`);
+  check('KEYS (the help view) has a title bar with its ×; a dialog\'s button is the 44 px trigger with the middle corner in the kit\'s face; NOTICE_MS names a notice\'s time by kind',
+    r.head && r.x && r.btn[0] >= 44 && r.btn[1] === '8px' && r.btn[2] && r.ms.info === 3000 && r.ms.warn === 5000 && r.ms.error === 9000, JSON.stringify(r));
+  await closeAll();
 } finally {
   await p.close();
 }

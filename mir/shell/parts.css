@@ -59,7 +59,7 @@ body[data-theme="light"] .mir-toast { --toast-fill: hsl(0 0% 100% / .86); --toas
 .mir-dialog-title { margin: 0; font-size: var(--fs-lead); font-weight: var(--w-bold); letter-spacing: var(--tr-wide); color: var(--fg); }
 .mir-dialog-body { margin: 0; font-size: var(--fs-base); line-height: var(--lh); color: var(--fg-soft); }
 .mir-dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--sp-3); }
-.mir-dialog-actions .trig { min-width: 6em; }
+.mir-dialog-actions .trig { min-width: 6em; min-height: var(--touch); border-radius: var(--r-md); }   /* 1.6.0-alpha.56: a dialog's button is the house's 44 px trigger, the middle corner */
 .mir-dialog-actions .trig[data-kind="primary"] .trig-l { color: var(--acc); }
 .mir-dialog-actions .trig[data-kind="danger"] .trig-l { color: var(--bad); }
 /* THE NOTICE IS BASINS' COLD-START WARNING (Josh, 2026-10-07: "return the design of the warning to the original design (font,
