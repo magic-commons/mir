@@ -50,6 +50,7 @@ import { observeSpan } from '../window/dock.js';
 import { registerWindow } from '../window/window.js';
 import { glyphEl, hasGlyph } from '../glyph.js';
 import { createRackScrollbars, createRackPills } from './rack-scrollbar.js';
+import { escapeLayer } from './menubar.js';
 import { jsonStore } from '../core/prefs.js';
 import { cssZoom } from '../core/zoom.js';
 
@@ -1005,7 +1006,9 @@ export function createRack({ host = globalThis.document && document.body, sides 
   }
 
   /* ── the ☆ menu (favourite layouts); windows open through the FINDER (window-picker.js) since 1.5.0-alpha.31 ── */
-  const favShown = (v) => { if (!favList) return; favList.hidden = !v; favBtn.setAttribute('aria-expanded', String(!!v)); };
+  let favEsc = null;   // the list is a layer of the app's Escape stack while it is open (1.6.0-alpha.53)
+  const favShown = (v) => { if (!favList) return; favList.hidden = !v; favBtn.setAttribute('aria-expanded', String(!!v));
+    if (favEsc) { favEsc(); favEsc = null; } if (v) favEsc = escapeLayer(() => { favEsc = null; favShown(false); favBtn.focus(); }); };
   /** lastFavourite() — the ids open in the most recently saved ☆ layout (the FINDER's star), or null */
   function lastFavIds() {
     const m = favs(); let best = null;

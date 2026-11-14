@@ -42,6 +42,7 @@ import { el, label, hint, ariaLabel } from '../kit.js';
 import { glyphEl, hasGlyph } from '../glyph.js';
 import { t } from '../core/i18n.js';
 import { queueToggle, openOrder } from './rack.js';
+import { escapeLayer } from './menubar.js';
 
 /** searchField(parent, { cls }) → an <input type="search" class="mir-search"> — THE KIT'S ONE SEARCH FIELD (1.6.0-alpha.49): THE FINDER's pill (34 px, a well and
  *  a hairline, 14 px), for every surface that searches (the keyboard window's; an app's).  The caller names it and writes its placeholder. */
@@ -66,7 +67,7 @@ export function createWindowPicker({ rack, open = (id) => rack.reveal(id), can =
   /* 1.6.0-alpha.50 · THE WALK SPEAKS: the focus stays in the field and the mark is said — the field names the marked row (aria-activedescendant), the row is
      aria-selected, and no row is a Tab stop */
   const uid = 'wp' + Math.random().toString(36).slice(2, 7); list.id = uid; input.setAttribute('role', 'combobox'); input.setAttribute('aria-expanded', 'true'); input.setAttribute('aria-controls', uid); input.setAttribute('aria-autocomplete', 'list');
-  let none = null;
+  let none = null, offEsc = null;
   const life = new AbortController(), on = { signal: life.signal };
   let rows = [], cur = null, shut = 0, queue = [], heads = [];
 
@@ -157,12 +158,14 @@ export function createWindowPicker({ rack, open = (id) => rack.reveal(id), can =
   function show() {
     if (!root.hidden && !root.classList.contains('wp-out')) return;
     clearTimeout(shut); root.classList.remove('wp-out');
+    if (offEsc) offEsc(); offEsc = escapeLayer(() => { offEsc = null; close(); });   // a layer of the app's Escape stack while it is open (1.6.0-alpha.53)
     input.value = ''; build(); filter();
     root.hidden = false; root.classList.remove('wp-in'); void root.offsetWidth; root.classList.add('wp-in');
     input.focus({ preventScroll: true });
   }
   function close() {
     if (root.hidden || root.classList.contains('wp-out')) return;
+    if (offEsc) { offEsc(); offEsc = null; }
     queue = []; root.classList.remove('wp-in'); root.classList.add('wp-out');
     shut = setTimeout(() => { root.hidden = true; root.classList.remove('wp-out'); list.textContent = ''; rows = []; cur = null; }, WINDOW_PICKER.close);
   }

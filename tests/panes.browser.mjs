@@ -171,6 +171,20 @@ try {
   await p.key('End'); const fe = await run(`return $('.wp-row.on .wp-name').textContent;`); await p.key('Home'); const fh = await run(`return $('.wp-row.on .wp-name').textContent;`);
   check('THE FINDER: End and Home mark the last and the first row (nothing typed)', fe === 'EXTRA' && fh.startsWith('A WINDOW'), JSON.stringify([fe, fh]));
   await closeAll();
+
+  /* ── alpha.53 · EVERY KIT LAYER IS ON THE ONE STACK ─────────────────────────────────────────────────────────── */
+  r = await run(`const S = []; T.menus.setMenuEscape((close) => { const L = { close }; S.push(L); return () => { const i = S.indexOf(L); if (i >= 0) S.splice(i, 1); }; });
+    const seen = {}; F.open(); seen.finder = S.length; F.close(); await wait(250); seen.finderOff = S.length;
+    T.sel.open(); seen.select = S.length; T.sel.close(); seen.selectOff = S.length;
+    R.favMenu.open(); seen.fav = S.length; R.favMenu.close(); seen.favOff = S.length;
+    const d = T.dialog.openDialog({ title: 'T', body: 'b' }); await wait(100); seen.dialog = S.length; d.close(); await wait(100); seen.dialogOff = S.length;
+    const m = T.menus.contextMenu({ x: 600, y: 400, entries: [['ONE', () => {}]] }); seen.ctx = S.length; m.close(); seen.ctxOff = S.length;
+    /* the stack's own pop closes the layer, as an app's Escape would */
+    F.open(); await wait(450); S.pop().close(); await wait(250); seen.popped = !F.shown; T.sel.open(); S.pop().close(); seen.poppedSel = !T.sel.isOpen;
+    T.menus.setMenuEscape(null); return seen;`);
+  check('EVERY KIT LAYER IS ON THE ONE STACK: the FINDER, a select\'s list, the saved-layouts list, a dialog and a context menu push a layer while open and take it off when they close; the stack\'s pop closes them',
+    [r.finder, r.select, r.fav, r.dialog, r.ctx].every((n) => n === 1) && [r.finderOff, r.selectOff, r.favOff, r.dialogOff, r.ctxOff].every((n) => n === 0) && r.popped && r.poppedSel, JSON.stringify(r));
+  await closeAll();
 } finally {
   await p.close();
 }

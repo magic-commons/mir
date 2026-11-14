@@ -13,6 +13,7 @@
  * No pollers, no timers: the pane is placed once from one rect read, and idle costs nothing. */
 import { el, label, ariaLabel, hint } from '../kit.js';
 import { setGlyph } from '../glyph.js';
+import { escapeLayer } from '../shell/menubar.js';
 
 /** the live (choosable) items of a list */
 export const liveItems = (items) => items.filter((i) => !i.coming);
@@ -88,9 +89,11 @@ export function listPane({ anchor, items, value, onPick, onClose, label: name, c
   win.addEventListener('resize', closeNow); win.addEventListener('blur', closeNow);
   if (signal) signal.addEventListener('abort', closeNow, { once: true });
   function closeNow() { close(false); }
+  let offEsc = escapeLayer(() => { offEsc = null; close(true); });   // a layer of the app's Escape stack while it is open (1.6.0-alpha.53)
   function close(refocus) {
     if (closed) return; closed = true;
     doc.removeEventListener('pointerdown', outside, true); win.removeEventListener('resize', closeNow); win.removeEventListener('blur', closeNow);
+    if (offEsc) { offEsc(); offEsc = null; }
     root.remove(); if (open === api) open = null;
     if (refocus) try { anchor.focus({ preventScroll: true }); } catch (_) {}
     if (onClose) onClose();

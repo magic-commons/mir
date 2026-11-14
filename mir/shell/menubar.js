@@ -174,6 +174,10 @@ const phoneNow = () => document.body.classList.contains('phone') || (parseFloat(
 let escapeHook = null, ctxOpen = null;
 /** setMenuEscape(push) — the app's Escape stack: push(close) → the function that takes that layer off again (λWAVES: actions.escape.push) */
 export function setMenuEscape(push) { escapeHook = typeof push === 'function' ? push : null; }
+/** escapeLayer(close) → off | null — 1.6.0-alpha.53 · EVERY KIT LAYER IS ON THE ONE STACK: a layer that Escape dismisses (a context menu, THE FINDER, a select's
+ *  list, the saved-layouts list, a dismissable dialog) pushes itself on the app's Escape stack while it is open, through the hook setMenuEscape() was
+ *  given, and takes itself off (off()) however it closes.  null when the app handed no stack in: the layer's own Escape listener is then the only one. */
+export function escapeLayer(close) { if (!escapeHook) return null; try { const off = escapeHook(close); return typeof off === 'function' ? off : null; } catch (_) { return null; } }
 export function contextMenu({ x = 0, y = 0, entries, anchor = null, onClose = null, label: name = '' } = {}) {
   if (ctxOpen) ctxOpen.close();
   const rows = typeof entries === 'function' ? entries() : entries;
@@ -193,7 +197,7 @@ export function contextMenu({ x = 0, y = 0, entries, anchor = null, onClose = nu
   window.addEventListener('scroll', (e) => { if (!host.contains(e.target)) api.close(); }, cap);
   for (const t of ['resize', 'blur']) window.addEventListener(t, api.close, { signal: life.signal });
   host.addEventListener('focusout', (e) => { if (!host.contains(e.relatedTarget)) api.close(); }, { signal: life.signal });
-  off = escapeHook ? escapeHook(api.close) : null;
+  off = escapeLayer(api.close);
   if (!off) window.addEventListener('keydown', (e) => { if (e.code === 'Escape' && !e.defaultPrevented) { e.preventDefault(); api.close(); } }, { signal: life.signal });
   ctxOpen = api;
   const first = pane.querySelector('.mb-item:not(:disabled)'); if (first) first.focus({ preventScroll: true });
