@@ -688,7 +688,7 @@ The modulation window `installModulation` mounts joins the kit's one window stac
 | **Presets** | `presetList, presetFolders, presetGet, presetApply, presetSave, presetDelete, presetStoreReload, presetStoreState, FACTORY_PRESETS, PRESET_LS, PRESET_FORMAT_V, PRESET_NAME_MAX, PRESET_FOLDER_DEFAULT, PRESET_FOLDER_FACTORY, PRESET_FOLDER_MAX` |
 
 About the preset store:
-- **The key and folders** are λWAVES' (`lambdawaves.q0.modpresets`; `Josh's Collection`, factory `MANDELBROT`), and every reader shares them (each app has its own origin).
+- **The key and folders**: the default key is the kit's, `mir.modpresets` (1.6.0-alpha.58; it was `lambdawaves.q0.modpresets`: an app whose users saved under it passes that string as `presetKey`). The user's folder is `Josh's Collection` (shown as MY PRESETS); the reserved factory folder is `FACTORY` (it was `MANDELBROT`).
 - **Not injectable yet.** Making them options is a `mod.js` edit. The kit's `mod.js` is no longer byte-identical to λWAVES' copy (it had drifted before 1.5.0-alpha.18, which also removed six exports nothing read).
 
 ### `host.js`: the host a window talks to

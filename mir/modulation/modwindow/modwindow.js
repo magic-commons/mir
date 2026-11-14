@@ -155,9 +155,8 @@ export const sizeLaw = {
 };
 
 /** Every literal string the tree carries.  Overridable through host.copy.
- *  `{factory}` is the one host word: BASINS ships the factory preset folder
- *  named MANDELBROT, and the extraction's §5 calls it "a word, not a
- *  mechanism". */
+ *  `{factory}` is the one host word (the factory preset folder's name: "a word,
+ *  not a mechanism"). */
 export const COPY = {
   railHead: phrase('MACROS'),
   tab: phrase('MOD'),

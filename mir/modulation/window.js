@@ -182,7 +182,7 @@ export function moveMacro(macroId, to) { if (!liveApi) return false; liveApi.mov
  *   moved(rect | null)     where the window now is (null when it closes), for a transport dodge
  *   opened(), closed()     presentation demand
  *   presetKey              this app's preset storage key (mod.js setPresetKey); absent keeps the model's
- *   copy                   words of the window (modwindow.js COPY), e.g. { factory: 'MANDELBROT' }
+ *   copy                   words of the window (modwindow.js COPY), e.g. { factory: 'FACTORY' }
  *   dock                   { span: observeSpan(…), guide: () => bool } · false: never docks · absent: the viewport
  *   targets                the selector of routable controls (default ROUTABLE)
  */

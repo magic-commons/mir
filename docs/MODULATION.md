@@ -60,10 +60,10 @@ That is the whole seam. `installModulation` registers every parameter as a targe
 | `moved(rect)` | where the window now is (`null` when it closes; the rect has `left, top, right, bottom, width, height`) — hand it to `rack.dodge()` so the transport gives way | none |
 | `store` | `{ read() → record, write(patch) }`, the app's settings | `localStore(storageKey)` |
 | `storageKey` | the localStorage key of the default store | `'mir.modulation'` |
-| `presetKey` | the preset store's key | `mod.js PRESET_LS` (`'lambdawaves.q0.modpresets'`) |
+| `presetKey` | the preset store's key | `mod.js PRESET_LS` (`'mir.modpresets'`) |
 | `audio` | the capture factory, `createAudioCapture({ onState })` | **absent: the kit's own** (`modulation/audio-capture.js`, [AUDIO.md](AUDIO.md)); `false`: no AUDIO device |
 | `dock` | `{ span, guide }` for the window (see window.js below); `false`: it never docks | the viewport is the span |
-| `copy` | words of the window (`modwindow.js COPY`), e.g. `{ factory: 'MANDELBROT' }` | `COPY` |
+| `copy` | words of the window (`modwindow.js COPY`), e.g. `{ factory: 'FACTORY' }` | `COPY` |
 | `targets` | the selector of routable controls | `'.k[data-param], .fd[data-param]'` |
 | `routeGlow()` | the Display switch for the routing glow (the snap still works when off) | on |
 | `enabled` | the MOD arm at first boot | `true` |
