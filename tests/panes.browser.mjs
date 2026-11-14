@@ -87,6 +87,21 @@ try {
     const out = $$('.mir-ctx-pane > .mb-item').map((it) => Math.round(box(it).h * 10) / 10); m.close(); return out;`);
   check('a context menu\'s rows are the same 28 px', r.length === 3 && r.every((h) => h === 28), JSON.stringify(r));
   await closeAll();
+
+  /* ── alpha.47 · THE POPUP ROW ───────────────────────────────────────────────────────────────────────────────── */
+  r = await run(`F.open(); T.sel.open(); T.kb.open(); await wait(450);
+    const row = (s) => { const n = $(s), c = cs(n); return { h: Math.round(box(n).h * 10) / 10, r: c.borderTopLeftRadius }; };
+    const long = $$('.mir-pick-i')[3], word = long.querySelector('.mir-pick-t'), kl = $$('.km-action-row').find((n) => n.textContent.startsWith('AN ACTION')), kw = kl.querySelector('.km-action-label');
+    const head = (s) => { const c = cs(s); return c.fontWeight + ' ' + c.fontSize; };
+    return { finder: row('.wp-row'), pick: row('.mir-pick-i'), keys: row('.km-action-row'), paneW: box('.mir-pick').w,
+      long: { h: Math.round(box(long).h * 10) / 10, cut: word.scrollWidth > word.clientWidth, lines: Math.round(box(word).h), hint: long.title === word.textContent, fits: box(long).w <= box('.mir-pick').w },
+      klong: { h: Math.round(box(kl).h * 10) / 10, cut: kw.scrollWidth > kw.clientWidth },
+      heads: { finder: head('.wp-head'), keys: head('.km-action-group'), ink: [cs('.wp-head').color, cs('.km-action-group').color] } };`);
+  check('THE POPUP ROW: a select\'s row and KEYBOARD\'s row are the FINDER\'s: 34 px, a 9 px corner', [r.finder, r.pick, r.keys].every((x) => x.h === 34 && x.r === '9px'), JSON.stringify([r.finder, r.pick, r.keys]));
+  check('a word too long for the list ends in an ellipsis on one line (the row stays 34 px, the pane at most 420 px wide) and is the row\'s hint',
+    r.long.h === 34 && r.long.cut && r.long.lines < 20 && r.long.hint && r.long.fits && r.paneW <= 420 && r.klong.h === 34 && r.klong.cut, JSON.stringify({ long: r.long, klong: r.klong, paneW: r.paneW }));
+  check('A HEAD IS LIGHT: the FINDER\'s section head and KEYBOARD\'s group head are 8 px, weight 400, one faint ink', r.heads.finder === '400 8px' && r.heads.keys === '400 8px' && r.heads.ink[0] === r.heads.ink[1], JSON.stringify(r.heads));
+  await closeAll();
 } finally {
   await p.close();
 }

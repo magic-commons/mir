@@ -144,7 +144,7 @@ What that deletes, from the survey (vault `MIR 1.5 SURVEY 2026-10-01`):
 
 ## 6. What differs from λWAVES' window, and why
 
-The geometry is λWAVES' (lab.css §KEYBOARD as of waves 113–115): the 2.1 : 1 wells, the ANSI board with its key widths, 52 px keys with a 44 px finger, the legend and switch on one row, the 38 px rows and 118 px chip column, the single list under 860 px. The behaviour is λWAVES': click a key to see its action, RECORD INPUT, RESET TO DEFAULT, the second press that confirms a steal, Escape to cancel, then to clear the search, then to close.
+The geometry is λWAVES' (lab.css §KEYBOARD as of waves 113–115): the 2.1 : 1 wells, the ANSI board with its key widths, 52 px keys with a 44 px finger, the legend and switch on one row, the rows (THE FINDER's 34 px popup row since 1.6.0-alpha.47; they were 38) and 118 px chip column, the single list under 860 px. The behaviour is λWAVES': click a key to see its action, RECORD INPUT, RESET TO DEFAULT, the second press that confirms a steal, Escape to cancel, then to clear the search, then to close.
 
 | Changed | Why |
 |---|---|

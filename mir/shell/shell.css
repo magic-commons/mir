@@ -58,7 +58,9 @@
   --ab-made-w: 440px;        /* the makers block's measure (BASINS about.css:46) */
   --ab-makers-gap: 8px;      /* between the three makers */
   --ab-rule-ink: hsl(0 0% 50% / .25);
-  --mb-btn-r: 7px; --mb-list-r: var(--card-r, var(--r-lg)); --mb-item-r: 6px; --mb-row: 28px;   /* 1.6.0-alpha.43: a menu's corner is the house's pane corner where CORNERS is at home (it was a fixed 10) */
+  --mb-btn-r: 7px; --mb-list-r: var(--card-r, var(--r-lg)); --mb-item-r: 6px; --mb-row: 28px;
+  --pop-row: 34px; --pop-row-r: 9px; --pop-row-gap: 10px;   /* 1.6.0-alpha.47 · THE POPUP ROW: a row you pick in a floating list is THE FINDER's (its height, its corner, the gap between its parts): THE FINDER, a select's list, the keyboard window's lists */
+    /* 1.6.0-alpha.43: a menu's corner is the house's pane corner where CORNERS is at home (it was a fixed 10) */
 }
 #notebook { --nb-line: hsl(0 0% 100% / .45); --nb-btn: hsl(0 0% 100% / .18); --nb-btn-line: hsl(0 0% 100% / .35); --nb-edge: hsl(0 0% 100% / .45);
   --nb-phone-fill: hsl(var(--glass-tint) / 1); }                  /* the phone's opaque notebook */

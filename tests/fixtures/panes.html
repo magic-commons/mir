@@ -39,7 +39,7 @@ for (const [id, title, side, open] of [['tone', 'TONE', 'right', true], ['displa
   ['camera', 'CAMERA', 'left', false], ['notes', 'NOTES', 'left', false], ['a-window-with-a-very-long-name', 'A WINDOW WITH A VERY LONG NAME THAT CANNOT POSSIBLY FIT IN ONE ROW OF THE FINDER', 'left', false]])
   rack.register({ id, title, side, open, build(b) { b.appendChild(knob({ label: 'K', min: 0, max: 1, value: .5 }).root); } });
 rack.start();
-const finder = picker.createWindowPicker({ rack });
+const finder = picker.createWindowPicker({ rack, sections: [{ id: 'more', title: 'MORE', rows: [{ id: 'extra', title: 'EXTRA', glyph: 'plus', words: 'bonus', run: say('extra') }] }] });
 const title = wordmark(document.getElementById('stage'), { word: 'PANES' });
 const rows = () => [
   ['NEW\tCtrl+Alt+N', say('new'), null, 'a new project', { icon: 'plus' }],
