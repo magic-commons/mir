@@ -4,7 +4,8 @@
  * replaces the rack's old + list, and takes its SHIFT queue and its ☆.
  *
  *   createWindowPicker({ rack, open, can, icon, cls, host }) → { root, open(), close(), toggle(), shown (isOpen), queued, destroy() }
- *     rack   the kit's rack (createRack): its windows() are the rows, its spec(id).glyph their glyph (a kit name or an app's own through
+ *     rack   (optional since 1.6.0-alpha.54: A PICKER WITHOUT A RACK lists its `sections` alone — a second picker of the FINDER's kind, as an app's "add a
+ *            node" list; no SHIFT queue, no ☆)  the kit's rack (createRack): its windows() are the rows, its spec(id).glyph their glyph (a kit name or an app's own through
  *            registerGlyphs, 1.5.6-alpha.3), its lastFavourite() the ☆
  *     open   (id) → void, a press or Enter on an openable row (default rack.reveal: an open window is scrolled to, never moved; a closed one
  *            opens at the top of its rack)
@@ -58,7 +59,7 @@ export function emptyLine(parent) { const n = label(el('div', 'mir-empty', paren
 /** the motion's numbers: the stagger between rows and the row past which they all enter together */
 export const WINDOW_PICKER = Object.freeze({ stagger: 30, cap: 12, close: 120 });
 
-export function createWindowPicker({ rack, open = (id) => rack.reveal(id), can = () => true, icon = () => null, cls = '', host = document.body, sections = null, words = null, match = null } = {}) {
+export function createWindowPicker({ rack = null, open = (id) => { if (rack) rack.reveal(id); }, can = () => true, icon = () => null, cls = '', host = document.body, sections = null, words = null, match = null } = {}) {
   const root = el('div', ('mir-window-picker glass ' + cls).trim(), host); root.hidden = true;
   root.setAttribute('role', 'dialog'); ariaLabel(root, 'FINDER');   // tr[FINDER]: the finder: a search field over every window of the app; picking one opens it or scrolls the rack to it
   const input = searchField(root, { cls: 'wp-search' });
@@ -73,13 +74,13 @@ export function createWindowPicker({ rack, open = (id) => rack.reveal(id), can =
 
   function build() {
     list.textContent = ''; rows = []; queue = []; heads = []; none = null;
-    const fav = typeof rack.lastFavourite === 'function' ? rack.lastFavourite() : null;
-    const wins = rack.windows().filter((w) => !w.card && can(w.id) !== null).sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
+    const fav = rack && typeof rack.lastFavourite === 'function' ? rack.lastFavourite() : null;
+    const wins = (rack ? rack.windows() : []).filter((w) => !w.card && can(w.id) !== null).sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
     wins.forEach((w, i) => {
       const ok = can(w.id), why = ok === true ? '' : String(ok || '');
       const b = el('button', 'wp-row', list); b.type = 'button'; b.dataset.win = w.id; b.setAttribute('role', 'option'); b.tabIndex = -1; b.id = uid + '-w-' + i; b.setAttribute('aria-selected', 'false');
       b.style.setProperty('--i', String(Math.min(i, WINDOW_PICKER.cap)));
-      const g = (rack.spec && rack.spec(w.id) || {}).glyph, k = icon(w.id);
+      const g = (rack && rack.spec && rack.spec(w.id) || {}).glyph, k = icon(w.id);
       if (k) { b.dataset.icon = k; el('span', 'wp-glyph wp-icon', b); }   // the app paints its icon on this seat
       else if (g && hasGlyph(g)) b.appendChild(glyphEl(g, 'wp-glyph', 16)); else el('span', 'wp-glyph wp-none', b);
       el('span', 'wp-name', b, w.title);

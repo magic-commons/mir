@@ -1018,14 +1018,18 @@ export function createRack({ host = globalThis.document && document.body, sides 
   function drawFav() {
     favList.innerHTML = '';
     const saved = layouts();
-    const s = el('button', 'mb-item', favList, '☆  SAVE LAYOUT' + (saved.length >= favourites ? '  ·  replaces the oldest' : '')); s.type = 'button'; s.setAttribute('role', 'menuitem');
-    s.title = 'Save the current window arrangement';
+    /* 1.6.0-alpha.54 · THE LAYOUTS LIST WEARS THE MENU'S ROW: a drawn glyph in the row's seat (the star to save, the filled star on a saved layout), the word
+       alone in .mb-lbl, a drawn × — it typed ☆, ⊙ and × into its labels */
+    const row = (glyph, hint) => { const it = el('button', 'mb-item', favList); it.type = 'button'; it.setAttribute('role', 'menuitem'); it.title = hint;
+      const g = glyphEl(glyph, 'mb-icon', 16) || el('span', 'mb-icon mb-none'); g.setAttribute('aria-hidden', 'true'); it.appendChild(g); return it; };
+    const s = row('star', 'Save the current window arrangement'); el('span', 'mb-lbl', s, 'SAVE LAYOUT');
+    if (saved.length >= favourites) el('span', 'mb-key', s, 'replaces the oldest');
     s.addEventListener('click', (ev) => { ev.stopPropagation(); saveLayout(); drawFav(); });
-    el('div', 'rack-fav-head', favList, saved.length ? 'LOAD LAYOUT' : 'nothing saved yet');
+    if (saved.length) el('div', 'rack-fav-head', favList, 'LOAD LAYOUT'); else el('div', 'mir-empty', favList, 'No layout saved yet');
     for (const L of saved) {
-      const it = el('button', 'mb-item', favList, '⊙  ' + L.label); it.type = 'button'; it.setAttribute('role', 'menuitem'); it.title = 'Restore this window layout';
-      const x = el('span', 'fav-x', it, '×'); x.title = 'forget this layout';
-      it.addEventListener('click', (ev) => { ev.stopPropagation(); if (ev.target === x) { forgetLayout(L.slot); drawFav(); return; } loadLayout(L.slot); favShown(false); });
+      const it = row('starFill', 'Restore this window layout'); el('span', 'mb-lbl', it, L.label).translate = false;
+      const x = el('span', 'fav-x', it); x.title = 'forget this layout'; const xg = glyphEl('close', 'gly gly-close', 12); if (xg) x.appendChild(xg); else x.textContent = '×';
+      it.addEventListener('click', (ev) => { ev.stopPropagation(); if (x.contains(ev.target)) { forgetLayout(L.slot); drawFav(); return; } loadLayout(L.slot); favShown(false); });
     }
   }
   if (toggleBtn) toggleBtn.addEventListener('click', () => setHidden(!isHidden()), on);

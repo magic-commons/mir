@@ -44,6 +44,9 @@ const finder = picker.createWindowPicker({ rack, sections: [{ id: 'more', title:
 const sub = (q, t) => { let i = 0; for (const c of t.toLowerCase()) if (c === q[i]) i++; return i === q.length; };
 const finder2 = picker.createWindowPicker({ rack, sections: [{ id: 'more', title: 'MORE', rows: [{ id: 'extra', title: 'EXTRA TIMELINE ROW', run: say('extra2') }] }],
   match: (q, rows) => rows.filter((r) => sub(q.toLowerCase(), r.title)).sort((a, b) => a.title.length - b.title.length) });
+/* a picker with no rack: its sections alone (1.6.0-alpha.54) */
+const adder = picker.createWindowPicker({ sections: [{ id: 'gen', title: 'GENERATORS', rows: [{ id: 'noise', title: 'NOISE', glyph: 'plus', run: say('add-noise') }, { id: 'sine', title: 'SINE', run: say('add-sine') }] },
+  { id: 'fx', title: 'EFFECTS', rows: [{ id: 'blur', title: 'BLUR', run: say('add-blur') }] }] });
 const title = wordmark(document.getElementById('stage'), { word: 'PANES' });
 const rows = () => [
   ['NEW\tCtrl+Alt+N', say('new'), null, 'a new project', { icon: 'plus' }],
@@ -71,7 +74,7 @@ const keys = createKeys({ storage: localKeyStorage('mir.test.panes.keys'), actio
 const host = document.getElementById('floats');
 const kb = createKeyboardWindow({ keys, host });
 const help = createKeysHelp({ keys, host });
-window.__T = { finder2, kit, rack, finder, picker, menus, bar, sel, few, keys, kb, help, dialog, notices, ran, el };
+window.__T = { adder, finder2, kit, rack, finder, picker, menus, bar, sel, few, keys, kb, help, dialog, notices, ran, el };
 window.__ready = true;
 </script>
 </body>

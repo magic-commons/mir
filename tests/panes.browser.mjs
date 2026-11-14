@@ -19,7 +19,7 @@ try {
     const cs = (n) => getComputedStyle(typeof n === 'string' ? $(n) : n);
     const box = (n) => { const r = (typeof n === 'string' ? $(n) : n).getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; };
     ${body} })().then((v) => JSON.stringify(v === undefined ? null : v))`));
-  const closeAll = () => run(`F.close(); T.finder2.close(); T.bar.close(); T.sel.close(); T.few.close(); R.favMenu.close(); if (T.kb.isOpen()) T.kb.close(); D.activeElement && D.activeElement.blur && D.activeElement.blur(); await wait(200); return 0;`);
+  const closeAll = () => run(`F.close(); T.finder2.close(); T.adder.close(); T.bar.close(); T.sel.close(); T.few.close(); R.favMenu.close(); if (T.kb.isOpen()) T.kb.close(); D.activeElement && D.activeElement.blur && D.activeElement.blur(); await wait(200); return 0;`);
   let r;
 
   /* ── alpha.43 · EVERY FLOATING PANE READS THE CORNERS DIAL ─────────────────────────────────────────────────── */
@@ -184,6 +184,22 @@ try {
     T.menus.setMenuEscape(null); return seen;`);
   check('EVERY KIT LAYER IS ON THE ONE STACK: the FINDER, a select\'s list, the saved-layouts list, a dialog and a context menu push a layer while open and take it off when they close; the stack\'s pop closes them',
     [r.finder, r.select, r.fav, r.dialog, r.ctx].every((n) => n === 1) && [r.finderOff, r.selectOff, r.favOff, r.dialogOff, r.ctxOff].every((n) => n === 0) && r.popped && r.poppedSel, JSON.stringify(r));
+  await closeAll();
+
+  /* ── alpha.54 · THE LAYOUTS LIST WEARS THE MENU'S ROW, AND A PICKER WITHOUT A RACK ──────────────────────────── */
+  r = await run(`R.favMenu.open(); await wait(120); const L = $('.mir-rack-list'); const empty = (L.querySelector('.mir-empty') || {}).textContent; L.querySelector('.mb-item').click(); await wait(150);
+    const its = [...L.querySelectorAll('.mb-item')]; return { empty, n: its.length, typed: /[☆⊙×★]/.test(L.textContent), seats: its.every((it) => it.firstElementChild.classList.contains('mb-icon') && it.firstElementChild.tagName.toLowerCase() === 'svg'),
+      words: its.map((it) => it.querySelector('.mb-lbl').textContent)[0], h: its.map((it) => Math.round(box(it).h)), x: !!L.querySelector('.fav-x svg'), head: (L.querySelector('.rack-fav-head') || {}).textContent };`);
+  check('THE LAYOUTS LIST WEARS THE MENU\'S ROW: a drawn glyph in every row\'s seat, the word alone, a drawn ×, 28 px rows, nothing typed; empty, it says so in the one dim line',
+    r.empty === 'No layout saved yet' && r.n === 2 && !r.typed && r.seats && r.words === 'SAVE LAYOUT' && r.h.every((h) => h === 28) && r.x && r.head === 'LOAD LAYOUT', JSON.stringify(r));
+  await run(`$('.mir-rack-list .fav-x').click(); await wait(100); return 0;`);
+  await closeAll();
+  await run(`T.adder.open(); await wait(450); return 0;`);
+  for (const c of 'bl') await p.key(c);
+  r = await run(`const P = T.adder.root; return { rows: [...P.querySelectorAll('.wp-row')].filter((x) => !x.hidden).map((x) => x.textContent), heads: [...P.querySelectorAll('.wp-head')].filter((x) => !x.hidden).map((x) => x.textContent) };`);
+  await p.key('Enter'); await sleep(250);
+  const ran = await run(`return { ran: T.ran.includes('add-blur'), shown: T.adder.shown };`);
+  check('A PICKER WITHOUT A RACK lists its sections alone: "bl" leaves BLUR under EFFECTS, Enter runs it and closes', r.rows.join() === 'BLUR' && r.heads.join() === 'EFFECTS' && ran.ran && !ran.shown, JSON.stringify({ r, ran }));
   await closeAll();
 } finally {
   await p.close();
