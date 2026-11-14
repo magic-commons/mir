@@ -137,13 +137,12 @@
 .km-action-desc { color: var(--dim); font-size: var(--fs-tiny); line-height: 1.15; font-weight: var(--w-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .km-empty { padding: 12px 5px; font-size: var(--fs-small); color: var(--dim); }
 
-/* the chord chips: a key cap's legend in a hairline, no relief (a chip is read, not pressed) */
+/* the chord chips: the kit's keycap (shell.css), the board's mono legend */
 .km-chips { display: flex; justify-content: center; align-items: center; flex-wrap: nowrap; gap: 2px; min-width: 0; overflow: hidden; direction: ltr; }
-.km-chip { box-sizing: border-box; padding: 3px 5px; border: var(--glass-border) solid var(--glass-hairline); border-radius: var(--r-xs);
-  font: var(--w-bold) var(--fs-small) / 1 var(--font-mono); color: var(--fg-soft); white-space: nowrap; }
+.km-chip { padding: 3px 5px; font: var(--w-bold) var(--fs-small) / 1 var(--font-mono); color: var(--fg-soft); }   /* 1.6.0-alpha.48: the cap's face is the kit's one keycap (shell.css kbd.mir-cap: a well; it was a hairline) */
 .km-chip-key { color: var(--fg); }
 .km-chip-unbound, .km-chip-more { color: var(--ink-faint); }
-.km-chip-recording { border-color: transparent; color: var(--acc); font-family: var(--font-ui); }
+.km-chip-recording { background: transparent; box-shadow: none; color: var(--acc); font-family: var(--font-ui); }
 
 /* ── the help view: the same rows, read-only ──────────────────────────────────────────────────────────────── */
 .km-help { display: flex; flex-direction: column; gap: 3px; }

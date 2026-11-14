@@ -102,6 +102,16 @@ try {
     r.long.h === 34 && r.long.cut && r.long.lines < 20 && r.long.hint && r.long.fits && r.paneW <= 420 && r.klong.h === 34 && r.klong.cut, JSON.stringify({ long: r.long, klong: r.klong, paneW: r.paneW }));
   check('A HEAD IS LIGHT: the FINDER\'s section head and KEYBOARD\'s group head are 8 px, weight 400, one faint ink', r.heads.finder === '400 8px' && r.heads.keys === '400 8px' && r.heads.ink[0] === r.heads.ink[1], JSON.stringify(r.heads));
   await closeAll();
+
+  /* ── alpha.48 · KEYCAPS ─────────────────────────────────────────────────────────────────────────────────────── */
+  r = await run(`T.bar.openGroup('FILE'); T.kb.open(); await wait(300); const k = $('#menubar .mb-list:not([hidden]) .mb-key'), cap = k.querySelector('kbd'), chip = $('.km-chip-key');
+    const face = (n) => { const c = cs(n); return c.backgroundColor + ' | ' + c.boxShadow + ' | ' + c.borderTopLeftRadius; };
+    return { text: k.textContent, caps: [...k.querySelectorAll('kbd')].map((n) => n.textContent), plus: cs(k.querySelector('.mb-plus')).display, cap: face(cap), chip: face(chip), well: cs(cap).backgroundColor !== 'rgba(0, 0, 0, 0)',
+      pure: [T.menus.capsOf('Ctrl+Shift+S'), T.menus.capsOf('⌘⇧S'), T.menus.capsOf('Ctrl++'), T.menus.capsOf('Space'), T.menus.capsOf('?'), T.menus.capsOf('')] };`);
+  check('KEYCAPS: a menu row\'s key is drawn as caps (Ctrl · Alt · N), its text still the chord as written', r.text === 'Ctrl+Alt+N' && r.caps.join() === 'Ctrl,Alt,N' && r.plus === 'none', JSON.stringify(r));
+  check('one keycap: a menu\'s cap and the keyboard window\'s chip wear the same well, shadow and corner', r.well && r.cap === r.chip, JSON.stringify([r.cap, r.chip]));
+  check('capsOf: a chord by its +, a Mac chord by its symbols, the + key itself, a lone word, nothing', JSON.stringify(r.pure) === JSON.stringify([['Ctrl', 'Shift', 'S'], ['⌘', '⇧', 'S'], ['Ctrl', '+'], ['Space'], ['?'], []]), JSON.stringify(r.pure));
+  await closeAll();
 } finally {
   await p.close();
 }

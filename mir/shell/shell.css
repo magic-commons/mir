@@ -147,7 +147,10 @@ body[data-theme="dark"] #notebook::before { content: ''; position: absolute; ins
 .mb-item:hover { background: var(--state-wash, var(--state-hover, var(--glass-raise))); color: var(--fg); }   /* 1.6.0-alpha.45: the cursor row wears THE WASH */
 .mb-item:is(.on, [aria-checked="true"]) { background: var(--state-wash, var(--state-hover, var(--glass-raise))); }   /* … and so does a chosen row (current, ✓, •) */
 .mb-lbl { margin-inline-end: auto; }
-.mb-key { margin-inline-start: 8px; color: var(--dim); font-size: var(--fs-micro); letter-spacing: var(--label-tracking, var(--tr-wide)); }
+.mb-key { display: inline-flex; align-items: center; gap: 2px; flex: none; margin-inline-start: 8px; color: var(--dim); font-size: var(--fs-micro); letter-spacing: var(--label-tracking, var(--tr-wide)); }
+/* 1.6.0-alpha.48 · KEYCAPS: a key beside a row is a cap — a small well, the row's own type; one drawing for a menu's key, the keyboard window's chips and an app's rows */
+kbd.mir-cap, .km-chip { box-sizing: border-box; min-width: 16px; padding: 1px 4px; border: 0; border-radius: var(--r-xs); background: var(--glass-well); box-shadow: var(--relief-well, var(--neu-inset)); font: inherit; text-align: center; white-space: nowrap; }
+.mb-plus { display: none; }
 .mb-sep { height: 1px; margin: 4px 8px; background: var(--glass-hairline); pointer-events: none; }
 /* 1.5.6-alpha.2 · a submenu beside its row (fixed, on the bar's layer), or inline under it on a phone; a check / radio mark; a row glyph */
 .mb-sub-list { position: absolute; inset-inline-start: auto; top: auto; z-index: 1; }

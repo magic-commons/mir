@@ -36,6 +36,7 @@
  * 1.6.0-alpha.46 · EVERY ROW HAS A PICTURE'S SEAT (λWAVES 044 KV2, Josh's tick 4): a row is one height (--mb-row, 28) and begins with a 16 px seat
  *   (.mb-icon): its glyph; while a check or radio row is ON, its mark instead (a drawn ✓ / •, .mb-icon.mb-mark); else empty (.mb-none), so the
  *   labels stand in one column.  A submenu's arrow is drawn (chevronRight).
+ * 1.6.0-alpha.48 · KEYCAPS: the key after the TAB is drawn as caps (<kbd class="mir-cap"> in .mb-key; keycaps(node, text) and capsOf(text) are exported).
  *
  * 1.5.4 · LANGUAGES.  The group names and every item label go through t() (core/i18n.js); the key after the TAB
  *   never does.  A group is found by `data-menu` (its English name), never by the text it shows.  On a language
@@ -79,6 +80,23 @@ export const copyDumpRow = (dump, hint = 'the debug dump, to the clipboard') => 
   else { notice('Copy failed — the dump is in the browser console.', { kind: 'warn' }); try { console.log(text); } catch (_) { /* no console */ } }
 }, null, hint, { icon: 'duplicate' }];
 
+/* 1.6.0-alpha.48 · KEYCAPS: a key beside a row is drawn as caps.  capsOf('Ctrl+Shift+S') → ['Ctrl', 'Shift', 'S']; '⌘⇧S' → ['⌘', '⇧', 'S'];
+   'Ctrl++' → ['Ctrl', '+']; a lone word ('Space', 'F1', '?') is one cap (pure, for tests).  keycaps(node, text) writes them as <kbd>, the joining
+   '+' kept as hidden text between them, so the node's text is still the chord as it was written. */
+const MAC_MODS = '⌘⌥⇧⌃';
+export function capsOf(text) {
+  const s = String(text || '').trim(); if (!s) return [];
+  if (s.length > 1 && s.includes('+')) { const p = s.split('+'); if (p[p.length - 1] === '' && p.length > 1) { p.pop(); p[p.length - 1] = '+'; } return p.map((x) => x.trim()).filter(Boolean); }
+  const caps = []; let i = 0; while (i < s.length - 1 && MAC_MODS.includes(s[i])) caps.push(s[i++]);
+  caps.push(s.slice(i)); return caps;
+}
+export function keycaps(node, text) {
+  const caps = capsOf(text), plus = String(text).includes('+') && caps.length > 1;
+  node.textContent = ''; node.translate = false;
+  caps.forEach((c, i) => { if (i && plus) el('i', 'mb-plus', node, '+'); el('kbd', 'mir-cap', node, c); });
+  return node;
+}
+
 /* 1.5.6-alpha.4 · ONE RENDERER: the bar's lists and contextMenu's pane are drawn by these rows.  rowsOn({ layer, phone, done }) →
    { render, openSub, closeSub }: `layer` holds a submenu beside its row (written in its frame), `done()` closes after a row runs; `surface`
    draws a submenu as its own menu pane (contextMenu's; the bar's lists are drawn by #menubar's rules). */
@@ -119,7 +137,7 @@ function rowsOn({ layer, phone, done, surface = false }) {
       if (o.raw) el('span', 'mb-lbl', it, kk[0]).translate = false; else writeLabel(el('span', 'mb-lbl', it), kk[0]);
       if (o.current) { it.classList.add('on'); it.setAttribute('aria-current', 'true'); }
       if (o.checked !== undefined) { it.setAttribute('role', o.radio ? 'menuitemradio' : 'menuitemcheckbox'); it.setAttribute('aria-checked', String(!!o.checked)); it.classList.add(o.radio ? 'mb-radio' : 'mb-check'); if (o.radio) it.dataset.radio = o.radio; }
-      if (kk[1]) el('span', 'mb-key', it, kk[1]);
+      if (kk[1]) keycaps(el('span', 'mb-key', it), kk[1]);
       if (hint) it.title = hint;
       if (o.id) it.dataset.id = o.id;
       if (typeof dis === 'function' ? dis() : dis === true) it.disabled = true;
