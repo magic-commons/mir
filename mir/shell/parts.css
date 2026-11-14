@@ -53,7 +53,7 @@ body[data-theme="light"] .mir-toast { --toast-fill: hsl(0 0% 100% / .86); --toas
   position: fixed; inset: 0; margin: auto; z-index: var(--dialog-z);
   width: min(var(--dialog-w), calc(calc(100vw / var(--in-zoom, 1)) - var(--dialog-gutter))); height: fit-content; max-height: var(--dialog-max-h); overflow: auto;
   display: flex; flex-direction: column; gap: var(--dialog-gap); padding: var(--dialog-pad);
-  border-radius: var(--card-r); color: var(--fg); font-family: var(--font-ui); user-select: text; -webkit-user-select: text;
+  border-radius: var(--surface-radius, var(--card-r)); color: var(--fg); font-family: var(--font-ui); user-select: text; -webkit-user-select: text;
 }
 .mir-dialog.glass { box-shadow: var(--surface-shadow-menu, var(--glass-shadow)); }
 .mir-dialog-title { margin: 0; font-size: var(--fs-lead); font-weight: var(--w-bold); letter-spacing: var(--tr-wide); color: var(--fg); }

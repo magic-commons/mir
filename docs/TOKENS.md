@@ -738,7 +738,7 @@ Corners.
 | `--nb-btn-r` | component | length | `8px` |  | kit | ✓ | stable |  | the notebook's foot buttons, DUMP and HOME: corner |
 | `--nb-grip-r` | component | length | `3px` |  | kit | ✓ | stable |  | the notebook's resize grip: the corner of its two strokes |
 | `--mb-btn-r` | component | length | `7px` |  | kit | ✓ | stable |  | a menubar title's corner |
-| `--mb-list-r` | component | length | `10px` |  | kit | ✓ | stable |  | an open menu's corner |
+| `--mb-list-r` | component | length | `var(--card-r, var(--r-lg))` |  | kit | ✓ | stable |  | an open menu's corner where CORNERS is at home: the house's pane corner (--surface-radius reaches it first); it was a fixed 10px until 1.6.0-alpha.43 |
 | `--mb-item-r` | component | length | `6px` |  | kit | ✓ | stable |  | a menu item's corner |
 | `--prox-r` | component | length | `16px` |  | kit | ✓ | stable |  | the proximity guide's corner |
 | `--rack-flush-radius` | component | length | `0px` |  | kit | ✓ | stable |  | SPACING at 0 (html[data-flush]): a rack window's corner in the flush slab |
@@ -748,7 +748,7 @@ Corners.
 | `--opener-light-r` | component | length | `105px` |  | kit | ✓ | stable |  | the cover light's radius (the opener glow, 105 px) |
 | `--opener-btn-r` | component | length | `24px` |  | kit | ✓ | stable |  | NEW / RESUME corner (24 px) |
 | `--rack-pill-r` | component | length |  |  | kit | ✓ | stable |  | THE SCROLL PILL's corner (1.5.5, from λWAVES 014 A6) |
-| `--wp-r` | component | length |  |  | kit | ✓ | stable |  | THE FINDER's corner |
+| `--wp-r` | component | length |  |  | kit | ✓ | stable |  | THE FINDER's corner where CORNERS is at home: the house's pane corner (--surface-radius reaches it first, 1.6.0-alpha.43; it was a fixed 14px) |
 
 ## motion
 

@@ -58,7 +58,7 @@
   --ab-made-w: 440px;        /* the makers block's measure (BASINS about.css:46) */
   --ab-makers-gap: 8px;      /* between the three makers */
   --ab-rule-ink: hsl(0 0% 50% / .25);
-  --mb-btn-r: 7px; --mb-list-r: 10px; --mb-item-r: 6px;
+  --mb-btn-r: 7px; --mb-list-r: var(--card-r, var(--r-lg)); --mb-item-r: 6px;   /* 1.6.0-alpha.43: a menu's corner is the house's pane corner where CORNERS is at home (it was a fixed 10) */
 }
 #notebook { --nb-line: hsl(0 0% 100% / .45); --nb-btn: hsl(0 0% 100% / .18); --nb-btn-line: hsl(0 0% 100% / .35); --nb-edge: hsl(0 0% 100% / .45);
   --nb-phone-fill: hsl(var(--glass-tint) / 1); }                  /* the phone's opaque notebook */

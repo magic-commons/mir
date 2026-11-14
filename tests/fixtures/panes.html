@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MIR · panes and lists fixture</title>
+<!-- the kit's floating panes and the lists in them, on one page, for tests/panes.browser.mjs (1.6.0-alpha.43+): THE FINDER, the menubar and a
+     context menu, a select's list, the saved-layouts list, the keyboard window, a dialog and a notice.  The whole kit sheet, as an app loads it. -->
+<link rel="stylesheet" href="../../mir/mir.css">
+<style>
+  #ground { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #bench { position: fixed; left: 380px; top: 300px; z-index: 31; display: flex; gap: 12px; align-items: flex-start; }
+  #floats { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+</style>
+</head>
+<body data-theme="dark" data-card="tinted">
+<div id="lab">
+  <div id="stage"><canvas id="ground"></canvas></div>
+</div>
+<div id="floats"></div>
+<div id="bench"></div>
+<script type="module">
+import { el, knob } from '../../mir/kit.js';
+import * as kit from '../../mir/kit.js';
+import { createRack } from '../../mir/shell/rack.js';
+import * as picker from '../../mir/shell/window-picker.js';
+import * as menus from '../../mir/shell/menubar.js';
+import { wordmark } from '../../mir/shell/wordmark.js';
+import { select } from '../../mir/controls/select.js';
+import { createKeys, localKeyStorage } from '../../mir/shell/keys.js';
+import { createKeyboardWindow, createKeysHelp } from '../../mir/keyboard/keyboard.js';
+import * as dialog from '../../mir/shell/dialog.js';
+import * as notices from '../../mir/shell/notice.js';
+
+localStorage.removeItem('mir.test.panes'); localStorage.removeItem('mir.test.panes.keys');
+const ran = [];
+const say = (id) => () => { ran.push(id); };
+const rack = createRack({ host: document.getElementById('lab'), key: 'mir.test.panes', favourites: 3 });
+for (const [id, title, side, open] of [['tone', 'TONE', 'right', true], ['display', 'DISPLAY', 'left', true], ['mix', 'MIX', 'right', false], ['timeline', 'TIMELINE', 'right', false],
+  ['camera', 'CAMERA', 'left', false], ['notes', 'NOTES', 'left', false], ['a-window-with-a-very-long-name', 'A WINDOW WITH A VERY LONG NAME THAT CANNOT POSSIBLY FIT IN ONE ROW OF THE FINDER', 'left', false]])
+  rack.register({ id, title, side, open, build(b) { b.appendChild(knob({ label: 'K', min: 0, max: 1, value: .5 }).root); } });
+rack.start();
+const finder = picker.createWindowPicker({ rack });
+const title = wordmark(document.getElementById('stage'), { word: 'PANES' });
+const rows = () => [
+  ['NEW\tCtrl+Alt+N', say('new'), null, 'a new project', { icon: 'plus' }],
+  ['OPEN…\tCtrl+O', say('open'), null, '', { icon: 'folder' }],
+  ['A ROW WITH NO PICTURE', say('bare')],
+  null,
+  ['LOCK', say('lock'), null, '', { checked: true }],
+  ['LOOSE', say('loose'), null, '', { checked: false }],
+  ['FIRST', say('first'), null, '', { radio: 'g', checked: true }],
+  ['MORE', () => [['INNER', say('inner')], ['INNER TWO', say('inner2')]], null, '', { sub: true }],
+  ['GREYED', say('grey'), true],
+];
+const bar = menus.createMenubar({ opener: title, host: document.getElementById('lab'), menus: { FILE: rows, EDIT: () => [['UNDO\tCtrl+Z', say('undo')], ['REDO', say('redo')]], WINDOW: () => rack.windowMenu() } });
+const bench = document.getElementById('bench');
+const many = Array.from({ length: 24 }, (_, i) => ({ id: 'o' + i, label: i === 3 ? 'AN OPTION WHOSE NAME IS FAR TOO LONG FOR ANY LIST THE KIT WILL EVER OPEN ON A SCREEN OF THIS WIDTH, EVEN A WIDE ONE, BY A GOOD MARGIN' : 'OPTION ' + i }));
+const sel = select({ label: 'PRESET', options: many, value: 'o1' }); bench.appendChild(sel.root);
+const few = select({ label: 'FEW', options: [{ id: 'a', label: 'ALPHA' }, { id: 'b', label: 'BETA' }, { id: 'c', label: 'GAMMA' }], value: 'a' }); bench.appendChild(few.root);
+const A = (id, label, group, keys, more = {}) => ({ id, label, group, keys, run: say(id), ...more });
+const keys = createKeys({ storage: localKeyStorage('mir.test.panes.keys'), actions: [
+  A('play', 'PLAY', 'TRANSPORT', ['Space'], { hint: 'start and stop time' }), A('back', 'STEP BACK', 'TRANSPORT', [',']), A('zoomIn', 'ZOOM IN', 'VIEW', ['=']),
+  A('full', 'FULL SCREEN', 'VIEW', ['F']), A('save', 'SAVE', 'FILE', ['Mod+S']), A('open', 'OPEN', 'FILE', ['Mod+O']), A('undo', 'UNDO', 'FILE', ['Mod+Z']), A('redo', 'REDO', 'FILE', ['Mod+Shift+Z', 'Mod+Y']),
+  A('long', 'AN ACTION WHOSE NAME IS MUCH TOO LONG TO FIT THE LIST OF THE KEYBOARD WINDOW IN ONE LINE', 'FILE', []),
+] });
+const host = document.getElementById('floats');
+const kb = createKeyboardWindow({ keys, host });
+const help = createKeysHelp({ keys, host });
+window.__T = { kit, rack, finder, picker, menus, bar, sel, few, keys, kb, help, dialog, notices, ran, el };
+window.__ready = true;
+</script>
+</body>
+</html>
