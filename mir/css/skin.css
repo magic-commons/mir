@@ -122,6 +122,7 @@ body[data-theme="light"] {
   --glass-hue: 214; --glass-sat-tint: 22%; --glass-lum: 93%; --glass-tint: 214 22% 93%; --glass-opacity: .86;
   --card-opacity: var(--glass-opacity);                            /* .86, as the note on :root says it should be (it resolved at :root, .84); BASINS' tinted pane */
   --fg: hsl(214 30% 10%); --fg-soft: hsl(214 20% 18%); --dim: hsl(214 12% 36%); --ink-key: hsl(214 12% 30%); --ink-faint: hsl(214 10% 42%);
+  --ok: hsl(142 50% 28%); --warn: hsl(32 80% 32%); --bad: hsl(4 62% 40%);   /* 1.6.0-alpha.42: the status inks on a light pane (the dark theme's 70 % pastels read 1.6 : 1 on it); each ≥ 4.5 : 1 on the light card (236 239 243) */
   --glass-border-color: hsl(214 30% 40% / .22); --glass-hairline: hsl(214 30% 30% / .16);
   --glass-sheen: linear-gradient(hsl(0 0% 100% / .55), hsl(0 0% 100% / .55));   /* the same flat white wash it always was — but as an IMAGE, so it is a legal background LAYER (§14c) */
   --glass-well: hsl(214 30% 40% / .10); --glass-raise: hsl(0 0% 100% / .55); --glass-press: hsl(214 30% 40% / .16);

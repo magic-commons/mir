@@ -241,9 +241,9 @@ Status inks.
 
 | token | tier | type | dark | light | owner | skin | status | intent | note |
 |---|---|---|---|---|---|---|---|---|---|
-| `--bad` | semantic | color | `hsl(4 62% 74%)` |  | kit | ✓ | stable |  | status ink; the plugin seat derives it from --hue-bad |
-| `--ok` | semantic | color | `hsl(142 42% 70%)` |  | kit | ✓ | stable |  | status ink |
-| `--warn` | semantic | color | `hsl(38 70% 70%)` |  | kit | ✓ | stable |  | status ink |
+| `--bad` | semantic | color | `hsl(4 62% 74%)` | `hsl(4 62% 40%)` | kit | ✓ | stable |  | status ink; the plugin seat derives it from --hue-bad |
+| `--ok` | semantic | color | `hsl(142 42% 70%)` | `hsl(142 50% 28%)` | kit | ✓ | stable |  | status ink |
+| `--warn` | semantic | color | `hsl(38 70% 70%)` | `hsl(32 80% 32%)` | kit | ✓ | stable |  | status ink |
 | `--badge-led-glow` | component | shadow | `0 0 6px var(--bad)` |  | kit | ✓ | stable | live | a badge LED's glow in its status ink; declared on each `.badge.<status> i`, where the ink resolves [declared on: base.css .badge.exact i; base.css .badge.numerical i; base.css .badge.warn i; base.css .badge.bad i] |
 
 ## data
