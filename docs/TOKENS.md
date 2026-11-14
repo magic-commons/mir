@@ -510,6 +510,7 @@ The 1.5 state tokens: one drawing per meaning.
 | `--state-on-light` | semantic | shadow | `var(--acc-glow)` |  | kit | ✓ | stable | on | the light of an ON control, accent A with its glow: undeclared (it reads the accent), read as var(--state-on-light, var(--acc-glow)) on the switch LED and as a trigger’s label glow (text-shadow, INTENT O5) |
 | `--state-press` | semantic | color |  |  | kit | ✓ | stable | pressed | PRESSED: unset by default, read as var(--state-press, var(--glass-press)) on :active rules (.dev-fold, .sw, .seg-b, .trig, .nb-dump/.ab-home), and over --glass-well where skin.css draws the press as a well (.sw:active, .trig:active) (1.4 fallback name: --glass-press) |
 | `--state-press-scale` | semantic | number | `.96` |  | kit | ✓ | stable | pressed | pressed: the one small scale (the `scale` property, so it composes with the hover lift), on .sw, .seg-b, .trig, .dev-fold, .nb-dump, .ab-home while :active; none under reduced motion (INTENT O6 default) |
+| `--state-press-scale-round` | semantic | number | `.92` |  | kit | ✓ | stable | pressed | PRESSED, a round glyph button (1.6.0-alpha.40): a head's buttons (card and window), a rail's chips, the info button, a bank's page turner; a pressable with a word reads --state-press-scale |
 | `--state-focus` | semantic | outline |  |  | kit | ✓ | stable | focus | keyboard focus: an OUTLINE shorthand (2px solid accent A), drawn outside with outline-offset 2px on :focus-visible; undeclared (it reads the accent), read as var(--state-focus, 2px solid var(--acc)). An outline, not the plugin’s box-shadow ring, so it never composes with a control’s relief |
 | `--state-carried` | semantic | shadow |  |  | kit | ✓ | stable | carried | carried (mid-drag): one height up plus an accent ring — read as var(--state-carried, var(--surface-shadow-float, var(--glass-shadow)), 0 0 0 1px accent 35%) on .dev.dragging and its two islands |
 | `--state-disabled` | semantic | number | `.38` |  | kit | ✓ | stable | disabled | the one disabled fade, relief removed (INTENT O6 default): declared .38 in skin.css, read on the one disabled rule (knob, fader, switch, segment, trigger), .mb-item:disabled and the plane model |
@@ -537,7 +538,7 @@ The 1.5 state tokens: one drawing per meaning.
 | `--prox-host-ring` | component | color | `color-mix(in srgb, var(--acc) calc(12% + var(--prox, 0) * 50%), transparent)` |  | kit |  | stable | drop-here | a target ringed in place: accent A brightening with --prox; declared on .mir-prox-host, where --prox is written [declared on: core.css .mir-prox-host] |
 | `--pointer-light` | component | color | `color-mix(in srgb, var(--acc) 24%, transparent)` |  | kit | ✓ | stable | live | the pointer-field light: accent A at 24 %; declared on .mir-glow [declared on: core.css .mir-glow] |
 | `--chip-hover-scale` | component | number | `1.06` |  | kit | ✓ | stable | hover | the window rail chip's disc on hover (1.06) |
-| `--chip-press-scale` | component | number | `.92` |  | kit | ✓ | stable | pressed | the window rail chip's disc pressed (.92) |
+| `--chip-press-scale` | component | number | `.92` |  | kit | ✓ | stable | pressed | the rail chip's press scale: the fallback of --state-press-scale-round on the chip since 1.6.0-alpha.40; still read by the timeline's tools and the plugin's rail |
 | `--m2-add-edge` | component | border | `2px solid var(--acc)` |  | plugin | ✓ | stable |  | FROST value (MIR 1.5.0-alpha.4), edge |
 | `--m2-audio-audminleds-focus-ring` | component | outline | `1px solid var(--acc)` |  | plugin | ✓ | stable |  | FROST value (MIR 1.5.0-alpha.4), ring |
 | `--m2-audsrc-edge` | component | border | `1px solid hsl(0 0% 100% / .14)` |  | plugin | ✓ | stable |  | FROST value (MIR 1.5.0-alpha.4), edge |
@@ -858,7 +859,6 @@ Geometry the layout reads. A skin that changes a size got something wrong.
 | `--m2-power-seat` | component | length | `44px` |  | plugin | ✓ | stable |  | the work bar's power button seat, 44 × 44 as BASINS draws it |
 | `--win-corner` | component | length | `18px` |  | kit | ✓ | stable |  | the window material's resize corner (BASINS kwin) |
 | `--win-corner-inset` | component | length | `2px` |  | kit | ✓ | stable |  | the resize corner's distance in from the window's corner |
-| `--win-head-press` | component | number | `.92` |  | kit |  | stable |  | how far a title-bar button shrinks while pressed (scale) |
 | `--win-corner-angle` | component | angle | `135deg` |  | kit |  | stable |  | which way the resize corner's hairlines point (135deg = bottom-right on a floating window, 45deg = top-right on one docked at the bottom); the handle itself is never transformed, so a window that turns its own corner cannot compose it the wrong way |
 | `--ws-w` | component | length | `44px` |  | kit | ✓ | stable |  | the MIR workspace switch: its seat's width (BASINS skin.css:652) |
 | `--ws-h` | component | length | `34px` |  | kit | ✓ | stable |  | … its height |

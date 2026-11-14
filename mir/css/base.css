@@ -208,7 +208,6 @@ m { font-family: var(--font-math); font-style: normal; font-size: var(--math-sca
 .dev-title { font-size: var(--fs-small); letter-spacing: var(--label-tracking, var(--tr-wide)); color: var(--acc); }
 .dev-util { display: flex; align-items: center; }
 .dev-fold { border: 0; background: transparent; color: var(--dim); font-size: var(--dev-fold-glyph); border-radius: 50%; }
-.dev-fold:active { background: var(--state-press, var(--glass-press)); }
 /* 1.6.0-alpha.36 · THE CLEAN BODY (λWAVES 044, the picture sheet's tick 2: "clean, all 30 windows", inset 12).  A card's body had two
    looks: the kit's (7 · 7 · 10 from the edge, a hairline box round every group, rows on the baseline spread edge to edge) and the one
    an app's newer cards wore over it (`native-clean`: 10 · 12 in, no boxes, rows centred).  The clean one is the kit's now, here and in
@@ -377,7 +376,15 @@ button:is([data-gly="north"], [data-gly="popOut"], [data-gly="dock"]) > svg { wi
 .trig:active { background: var(--state-press, var(--glass-press)); color: var(--fg); }
 /* PRESSED (INTENT): the wash above and one small scale, for every control the kit presses (S1).  `scale`, not
    `transform`, so it composes with the hover lift and never fights a transform an app sets. */
-:is(.sw, .seg-b, .trig, .dev-fold):active { scale: var(--state-press-scale, .96); }
+:is(.sw, .seg-b, .trig, .badge):active { scale: var(--state-press-scale, .96); }
+/* 1.6.0-alpha.40 · A PRESS SHRINKS, ONE WAY (λWAVES 044, the picture sheet's tick 17): a pressable with a word to --state-press-scale
+   (.96, above), a round glyph button to --state-press-scale-round (.92): a card head's buttons, the info button, a bank's page turner
+   and its empty slot, as a window's head buttons and a rail's chips (window.css).  `scale` only, so no neighbour moves; the fill each
+   has stays under it (a bare disc takes the press wash, a puck keeps its face, the ⏻ paints nothing).  No pressable answers in 0 s. */
+:is(.dev-util > button, .native-info-button, .mir-bank-page, .mir-bank-plus):active { scale: var(--state-press-scale-round, .92); }
+.dev-util > :is(.dev-fold, .dev-close, .dev-tool):active { background: var(--state-press, var(--glass-press)); color: var(--fg); }   /* one class heavier than the hover faces, which load later */
+:is(.dev-util > button, .native-info-button, .mir-bank-page, .mir-bank-plus, .badge) { transition: background-color var(--t-fast), color var(--t-fast), scale var(--t-fast); }
+.dev-power:hover { background: var(--state-hover, var(--glass-raise)); }   /* the ⏻ answers the pointer as its two neighbours do; at rest it is still the mark alone */
 .trig.acc2 { color: var(--acc2); }
 .trig-g { font-size: var(--trig-glyph); }
 .trig-g > svg { display: block; }                                             /* 1.5.6-alpha.3: a glyph name draws (kit.js trig) */
@@ -461,7 +468,7 @@ select.sel { min-height: var(--touch); padding: 0 8px; border-radius: var(--r-md
 .dev.dev-enter { animation: lw-dev-enter var(--dev-enter-time) var(--dev-enter-ease); }
 
 @media (prefers-reduced-motion: reduce) {
-  :is(.sw, .seg-b, .trig, .dev-fold):active { scale: none; }   /* the press keeps its wash */
+  :is(.sw, .seg-b, .trig, .badge, .dev-util > button, .native-info-button, .mir-bank-page, .mir-bank-plus):active { scale: none; }   /* the press keeps its wash */
   .k .k-val, .fd .fd-val { transition-property: opacity; }
   .dev.dev-enter { animation-name: lw-dev-enter-quiet; }         /* the slide goes, the fade stays */
   .dev-fold > svg { transition: none; }                           /* 1.4.0: the fold chevron (λWAVES lab.css carried this; the kit did not) */

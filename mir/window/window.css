@@ -21,7 +21,6 @@
 :root { --chip-hover-scale: 1.06; --chip-press-scale: .92; }     /* HOVER grows the disc 6 %, PRESS sinks it to 92 % */
 /* the title bar of a rail-less window (chrome: 'close') reads THE HEAD SCALE (base.css --head-h, --head-btn, --head-glyph: the
    one a rack card's head reads, 1.6.0-alpha.35); a finger's 44 on a touch tablet (below) */
-.mir-win { --win-head-press: .92; }
 /* the resize corner's two hairlines, drawn toward the corner the window grows from: bottom right (135°), or top right
    (45°) docked at the bottom.  The angle is the only thing that turns: no transform on the handle, so a sheet that
    draws its own glyph on the handle (the timeline's ::after) is not turned twice */
@@ -126,7 +125,7 @@ body.frost.frost-hold[data-card="refractive"] .mir-rail { --chip-fill: var(--sur
 /* hover follows the LIVE pointer (core/kbm.js, 1.5.0 wave 21), not `(hover: hover)`: a trackpad on an iPad hovers, a
    finger never leaves a sticky hover; :where() adds no weight, and a page without the layer keeps its hover */
 :where(:root:not(.kbm-touch)) .mir-win-btn:hover { background: var(--state-hover, var(--glass-raise)); color: var(--fg); }
-.mir-win-btn:is(:active, .press) { background: var(--state-press, var(--glass-press)); color: var(--fg); transform: scale(var(--win-head-press)); }
+.mir-win-btn:is(:active, .press) { background: var(--state-press, var(--glass-press)); color: var(--fg); transform: scale(var(--state-press-scale-round, .92)); }
 .mir-win-btn:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
 /* a finger: the bar and its buttons a touch target tall */
 body.touch-tablet .mir-win { --head-h: var(--touch); --head-btn: var(--touch); }
@@ -195,7 +194,7 @@ body.touch-tablet .mir-win { --head-h: var(--touch); --head-btn: var(--touch); }
 .mir-chip:is(:active, .press) { color: var(--fg); }
 .mir-chip:is(:active, .press)::before {
   background-image: linear-gradient(var(--glass-press), var(--glass-press)); box-shadow: var(--chip-sink);
-  transform: translate(-50%, -50%) scale(var(--chip-press-scale));
+  transform: translate(-50%, -50%) scale(var(--state-press-scale-round, var(--chip-press-scale)));
 }
 
 /* ── THE MIR SWITCH between two workspaces (window/workspaces.js workspaceSwitch; BASINS skin.css:652–654): the palette
@@ -206,6 +205,8 @@ body.touch-tablet .mir-win { --head-h: var(--touch); --head-btn: var(--touch); }
 .mir-workspace-switch > .mod-palette-mark { display: block; width: var(--ws-diamond); height: var(--ws-diamond); overflow: visible; stroke: none; }
 .mir-workspace-switch > .ws-glyph { display: block; width: 20px; height: 20px; color: var(--ink-key, currentColor); }   /* a kit glyph in the ink (014 A11) */
 .mir-workspace-switch:hover > .ws-glyph { color: var(--fg, currentColor); }
+.mir-workspace-switch { transition: scale var(--motion-micro) var(--ease-out); }
+.mir-workspace-switch:is(:active, .press) { scale: var(--state-press-scale-round, .92); }   /* a round glyph button (1.6.0-alpha.40) */
 .mir-workspace-switch:focus-visible { outline: 1px solid var(--acc2); outline-offset: -2px; }
 
 }   /* end @layer mir.kit.house */

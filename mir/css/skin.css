@@ -46,7 +46,8 @@
      chip (mir/window/window.css), so the rail and the widgets draw ON one way. */
   --state-on: hsl(0 0% 100% / .086);
   --state-on-rim: inset 0 0 0 1px hsl(0 0% 100% / calc(.30 * var(--ctl-stroke))), inset 0 1px 0 hsl(0 0% 100% / .12);   /* 1.5.7-alpha.1: the ring × STROKE; the top light stays */
-  --state-press-scale: .96;                                       /* pressed: the wash and this small scale (INTENT O6) */
+  --state-press-scale: .96;                                       /* pressed: the wash and this small scale, on a pressable with a word (INTENT O6) */
+  --state-press-scale-round: .92;                                 /* … and on a round glyph button: a head's buttons, a rail's chips (1.6.0-alpha.40) */
   --state-disabled: .38;                                          /* the one fade, relief removed (INTENT O6) */
   --glass-well: hsl(0 0% 0% / .28); --glass-raise: hsl(0 0% 100% / .045); --glass-press: hsl(0 0% 100% / .12);
   --glass-groove: hsl(0 0% 100% / .08); --glass-groove-hot: hsl(0 0% 100% / .14);
