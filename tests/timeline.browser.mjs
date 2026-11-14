@@ -172,7 +172,11 @@ const RUN = await (async () => {
     const F5 = await E(([a]) => { const m = window.__TL.model; const [c1, c2] = [m.duplicateClips([a], { delta: 12 }), m.duplicateClips([a], { delta: 20 })].map((x) => x[0]); m.updateClip(c2, { duration: 3 }); window.__TL.tl.editor.paint(); return { c1, c2 }; }, [E4.a]);
     await page.waitForTimeout(80);
     const tabF = await page.locator(`.tl-clip-title[data-clip="${E4.a}"]`).boundingBox();
+    // 1.6.0-alpha.65 THE CLIP'S DOUBLE PRESS IS TAP: two presses 340 ms apart are two clicks (the clip's own law was 400 ms / 16 px); inside TAP.ms they open TITLE / COLOR
+    await page.mouse.click(tabF.x + 30, tabF.y + 9); await page.waitForTimeout(340); await page.mouse.click(tabF.x + 30, tabF.y + 9); await page.waitForTimeout(80);
+    const slow = await E(() => !!document.querySelector('.tl-pop[data-pop="identity"]')); await page.waitForTimeout(340);
     await page.mouse.click(tabF.x + 30, tabF.y + 9); await page.waitForTimeout(60); await page.mouse.click(tabF.x + 30, tabF.y + 9); await page.waitForTimeout(80);
+    L.ck(!slow && await E(() => !!document.querySelector('.tl-pop[data-pop="identity"]')), 'a clip\'s double press is the kit\'s TAP (300 ms): 340 ms apart is two clicks, 60 ms apart opens TITLE / COLOR (alpha.65)', { slow });
     await page.locator('.tl-swatch[data-tint="#6cc1cc"]').click(); await page.locator('[data-tl-action="apply"]').click(); await page.waitForTimeout(60);
     const tint = (ids) => E((ids) => { const d = window.__TL.model.state(); return ids.map((id) => d.curves.find((c) => c.id === d.clips.find((x) => x.id === id).curveId).color); }, ids);
     const fam = await tint([E4.a, F5.c1, F5.c2]); await E(() => window.__TL.model.undo()); const famUndo = await tint([E4.a, F5.c1, F5.c2]);
