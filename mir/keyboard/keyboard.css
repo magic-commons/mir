@@ -28,7 +28,7 @@
 
 /* ── the body: the window's pane holds two wells and nothing else ─────────────────────────────────────────── */
 .km-win > .mir-win-body, .km-help-win > .mir-win-body { padding: var(--sp-4); overflow: hidden; }
-.km-help-win > .mir-win-body { overflow: hidden auto; }
+.km-help-win > .mir-win-body { overflow: hidden auto; scrollbar-width: thin; scrollbar-color: var(--acc) transparent; }
 .km-win .mir-win-panel { height: 100%; min-height: 0; }   /* 1.5.6-alpha.2: with `panels`, each face fills the pane as the one body did */
 .km-win .mir-win-panel[hidden] { display: none; }
 .km { display: flex; gap: var(--sp-4); height: 100%; min-height: 0; min-width: 0; }
@@ -120,7 +120,7 @@
 .km-search:focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
 .km-search::placeholder { color: var(--ink-faint); }
 .km-list { flex: 1; min-height: 0; overflow: hidden auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 3px;
-  scrollbar-width: thin; scrollbar-color: var(--glass-groove-hot) transparent; touch-action: pan-y; }
+  scrollbar-width: thin; scrollbar-color: var(--acc) transparent; touch-action: pan-y; }
 .km-action-group { padding: 9px 5px 2px; color: var(--acc); font: var(--w-bold) var(--fs-micro) var(--font-ui); letter-spacing: var(--label-tracking, var(--tr-wide)); }
 .km-action-row { box-sizing: border-box; flex: 0 0 auto; width: 100%; min-height: 38px; padding: 3px 7px; margin: 0; border: 0; border-radius: var(--r-sm);
   display: grid; grid-template-columns: minmax(0, 1fr) 118px; align-items: center; gap: 5px;

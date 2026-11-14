@@ -246,6 +246,9 @@ body[data-card][data-card] #menubar .mb-list:not([hidden]) { background-color: h
    the notebook's two title fields (whose focus was the ink turning accent: L44 / L45). */
 :is(.mb-btn, .mb-item, .nb-tools button, .nb-foot button, .nb-dump, .ab-home, .nb-title, .nb-subtitle):focus-visible { outline: var(--state-focus, 2px solid var(--acc)); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .nb-dump:active, .ab-home:active { scale: none; } }
+/* 1.6.0-alpha.44 · ONE SCROLLBAR (Josh's tick 5): thin, the thumb in accent A, no groove — the racks' (rack.css) — on a menu's list and the notebook's scrollers;
+   THE FINDER, a select's list, the saved-layouts list, the keyboard window's lists and a dialog say the same in their own sheets */
+:is(.mb-list, .nb-view, .nb-view pre, .nb-face) { scrollbar-width: thin; scrollbar-color: var(--acc) transparent; }
 /* a face an app adds wears what λWAVES' PROJECTS face wears: the notebook's own title stands aside for it */
 #notebook:not([data-face="notes"]) .nb-titles, #notebook:not([data-face="notes"]) .nb-title, #notebook:not([data-face="notes"]) .nb-subtitle { visibility: hidden; }
 }

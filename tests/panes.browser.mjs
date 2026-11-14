@@ -36,6 +36,17 @@ try {
   r = await corners();
   check('CORNERS at home: the six panes share the house\'s pane corner (--card-r, 14 px); none keeps a 10 or a 12 of its own', Object.values(r).every((v) => v === '14px'), JSON.stringify(r));
   await closeAll();
+
+  /* ── alpha.44 · ONE SCROLLBAR ───────────────────────────────────────────────────────────────────────────────── */
+  r = await run(`F.open(); T.bar.openGroup('FILE'); T.sel.open(); R.favMenu.open(); T.kb.open(); const dlg = T.dialog.openDialog({ title: 'T', body: 'b' }); await wait(450);
+    const acc = (() => { const s = el0(); s.style.color = 'var(--acc)'; const c = getComputedStyle(s).color; s.remove(); return c; function el0() { return D.body.appendChild(D.createElement('i')); } })();
+    const of = (s) => { const c = cs(s); return c.scrollbarWidth + ' | ' + c.scrollbarColor; };
+    const out = { acc, finder: of('.wp-list'), menu: of('#menubar .mb-list:not([hidden])'), pick: of('.mir-pick'), fav: of('.mir-rack-list'), keys: of('.km-list'), dialog: of('.mir-dialog'), rack: of('.mir-rack') };
+    dlg.close(); return out;`);
+  const bar1 = 'thin | ' + r.acc + ' rgba(0, 0, 0, 0)';
+  check('ONE SCROLLBAR: the FINDER\'s list, a menu, a select\'s list, the saved-layouts list, KEYBOARD\'s list and a dialog wear the rack\'s: thin, the thumb in accent A, no groove',
+    ['finder', 'menu', 'pick', 'fav', 'keys', 'dialog', 'rack'].every((k) => r[k] === bar1), JSON.stringify(r));
+  await closeAll();
 } finally {
   await p.close();
 }
