@@ -37,7 +37,7 @@ All are options of the GUI window's look store (`docs/GUI.md` has every option a
 | **RELIEF ANGLE** · LINK | 0–360° (an arc) · on/off | Where the controls' light is: their raise and wells turn with it. LINK makes it LIGHT ANGLE (one light for everything) | BASINS (two lights: panes from above, controls from the upper left); Josh ("let it be more parameters I can mess with") |
 | DISTANCE · SOFTNESS | 0–24 px · 0–48 px | How far the shadow falls and how soft it is (the shine uses the same distance) | invention |
 | **SHINE** · SHINE SOFT | 0–100 % · 0–48 px | The shadow's opposite: a light 180° across, blended additively | Josh ("set blend mode to 'add' which is shine") |
-| **SPACING** | a knob, 0 … 24 px (1.5.7-alpha.57; it was 0 · TIGHT · DEFAULT · AIRY, which open as 0 · 3 · 6 · 16 px) | The rack's air: the gap between its windows, its inset from the screen's edge, the padding inside a pane and the gap in a docked chip rail (`--rack-gap`, `--rack-inset`, `--pane-pad`, `--rail-gap`). 0 is flush | Josh ("an option for 0 padding/margins …"); the levels are BASINS' (`skin.js SPACING`); AIRY is an invention |
+| **SPACING** | a knob, 0 … 24 px (1.5.7-alpha.57; it was 0 · TIGHT · DEFAULT · AIRY, which open as 0 · 3 · 6 · 16 px) | The rack's air: the gap between its windows, its inset from the screen's edge, the padding inside a pane and the gap in a docked chip rail (`--rack-gap`, `--rack-inset`, `--pad-k`, `--rail-gap`). 0 is flush | Josh ("an option for 0 padding/margins …"); the levels are BASINS' (`skin.js SPACING`); AIRY is an invention |
 
 ### Two lights
 

@@ -32,7 +32,8 @@
 :root {
   color-scheme: dark;
   --ui-scale: 1; --touch: 44px;
-  --head-h: 38px; --head-btn: 32px; --head-glyph: 18px;           /* 1.6.0-alpha.35 · THE HEAD SCALE: a head's height, its buttons' seat, their glyph; read by a rack card's .dev-head and a window's .mir-win-head */
+  --body-pad-x: 12px; --row-air: 8px; --row-lead: 6px; --grp-air: 12px;   /* 1.6.0-alpha.36 · THE CLEAN BODY: a card body's side inset, a row's gap and its air above and below, the air under a group */
+  --head-h: 38px; --head-btn: 32px; --head-glyph: 18px;          /* 1.6.0-alpha.35 · THE HEAD SCALE: a head's height, its buttons' seat, their glyph; read by a rack card's .dev-head and a window's .mir-win-head */
   --ctl-stroke: 1;
   --relief-lit: 1;                                                 /* 1.5.7-alpha.62 · HIGHLIGHT: the white light of a control's relief, 0 … 1 (MIR OPTIONS › LIGHT writes it on <html>) */
   --ui-zoom: 1;                                                    /* 1.5.7-alpha.2 · UI SCALE: the UI roots' CSS zoom (MIR OPTIONS writes it on <html>) */                                                 /* 1.5.7-alpha.1 · STROKE: every control ring's alpha times it (MIR OPTIONS writes it on <html>) */
@@ -148,10 +149,9 @@ h1, h2 { margin: 0; font-weight: var(--w-bold); }
 
 .dev-title { display: none; }
 .dev-eyebrow { font-weight: var(--w-bold); }
-/* the compaction pass: rows fill their width and centre their contents */
-.row { justify-content: space-between; }
-.row.tight { justify-content: flex-start; }
-.row > .trig, .row > .sw, .row > .seg, .row > .ro, .row > select.sel { flex: 1 1 auto; }
+/* the compaction pass: rows fill their width; a trigger shares its row evenly (THE CLEAN BODY, below) */
+.row > .sw, .row > .seg, .row > .ro, .row > select.sel { flex: 1 1 auto; }
+.row > .trig { flex: 1 1 76px; min-width: 0; }
 .seg-b { flex: 1 1 auto; text-align: center; }
 .trig { text-align: center; }
 .ro { flex: 1 1 auto; }
@@ -209,7 +209,11 @@ m { font-family: var(--font-math); font-style: normal; font-size: var(--math-sca
 .dev-util { display: flex; align-items: center; }
 .dev-fold { border: 0; background: transparent; color: var(--dim); font-size: var(--dev-fold-glyph); border-radius: 50%; }
 .dev-fold:active { background: var(--state-press, var(--glass-press)); }
-.dev-body { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-3) var(--sp-3) var(--sp-4); }
+/* 1.6.0-alpha.36 · THE CLEAN BODY (λWAVES 044, the picture sheet's tick 2: "clean, all 30 windows", inset 12).  A card's body had two
+   looks: the kit's (7 · 7 · 10 from the edge, a hairline box round every group, rows on the baseline spread edge to edge) and the one
+   an app's newer cards wore over it (`native-clean`: 10 · 12 in, no boxes, rows centred).  The clean one is the kit's now, here and in
+   `.grp` / `.row` below: the inset is --sp-4 by --body-pad-x, times SPACING (--pad-k, as a floating window's body). */
+.dev-body { display: flex; flex-direction: column; gap: var(--row-gap, 4px); padding: calc(var(--sp-4) * var(--pad-k, 1)) calc(var(--body-pad-x) * var(--pad-k, 1)); }
 .folded .dev-body { display: none; }
 /* WAVE 80 · a floating window floats one height above a card on the rack. */
 .dev.floating { box-shadow: var(--surface-shadow-float, var(--glass-shadow)); }   /* 1.5.0-alpha.3: height 3, falling down (INTENT L05) */
@@ -253,10 +257,12 @@ m { font-family: var(--font-math); font-style: normal; font-size: var(--math-sca
    glyph.js is maintained by diff — we size it, we do not redraw it), so its box is two pixels smaller
    and the optical mass matches the rest of the row. */
 button:is([data-gly="north"], [data-gly="popOut"], [data-gly="dock"]) > svg { width: calc(var(--head-glyph) - 2px); height: calc(var(--head-glyph) - 2px); }
-.row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--sp-2); }
-.row.tight { gap: var(--sp-1); }
-.grp { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-2) var(--sp-2) var(--sp-3); border: var(--glass-border) solid var(--glass-hairline); border-radius: var(--r-md); background: transparent; }
-.grp-lbl { font-size: var(--fs-micro); letter-spacing: var(--label-tracking, var(--tr-wider)); color: var(--ink-faint); }
+/* THE CLEAN BODY's row and group (alpha.36): a row centres its controls on one line, 8 px apart, with 6 px of air above and below; a
+   group is its label and its rows, no box, 12 px before the next.  `.row.tight` is a plain row now (it packed to the left, 3 px apart). */
+.row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--row-air); margin: var(--row-lead) 0; }
+.row:empty { display: none; }
+.grp { display: flex; flex-direction: column; gap: var(--sp-2); padding: 0; margin: 0 0 var(--grp-air); border: 0; background: transparent; }
+.grp-lbl { margin: 4px 0 var(--row-air); font-size: var(--fs-micro); letter-spacing: var(--label-tracking, var(--tr-wider)); color: var(--ink-faint); }
 .spacer { flex: 1 1 auto; }
 .note { font-family: var(--font-sans); font-size: var(--fs-small); color: var(--dim); line-height: 1.35; }
 .note b { color: var(--fg-soft); font-weight: var(--w-med); }
@@ -361,9 +367,9 @@ button:is([data-gly="north"], [data-gly="popOut"], [data-gly="dock"]) > svg { wi
 .sw-led { width: 7px; height: 7px; border-radius: 50%; background: var(--sw-led-fill); }
 .sw.on .sw-led { background: var(--acc); box-shadow: var(--state-on-light, var(--acc-glow)); }   /* the LED is ON's light; the face is skin.css's frost */
 .sw:active { background: var(--state-press, var(--glass-press)); }
-.segw { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; min-width: 0; max-width: 100%; }
+.segw { display: flex; flex-direction: column; gap: 2px; align-items: stretch; min-width: 0; max-width: 100%; }   /* alpha.36: the track is as wide as its label's column (the clean body) */
 .segw > .k-lbl { white-space: normal; }                                      /* a row label longer than the card wraps rather than running off it */
-.seg { display: inline-flex; flex-wrap: wrap; max-width: 100%; gap: 2px; padding: 2px; border-radius: var(--r-md); border: var(--glass-border) solid var(--ctl-hairline); background: var(--seg-ground); }
+.seg { display: inline-flex; flex-wrap: wrap; max-width: 100%; box-sizing: border-box; gap: 2px; padding: 2px; border-radius: var(--r-md); border: var(--glass-border) solid var(--ctl-hairline); background: var(--seg-ground); }
 .seg-b { min-width: 40px; min-height: 38px; padding: 0 9px; border: 0; border-radius: var(--seg-b-r); background: transparent; color: var(--dim); font-size: var(--fs-tiny); letter-spacing: var(--label-tracking, var(--tr-wide)); }
 .seg-b:active { background: var(--state-press, var(--glass-press)); }
 .trig { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 48px; min-height: var(--touch); padding: 0 10px; border-radius: var(--r-md);

@@ -87,7 +87,7 @@ try {
   const g1 = await J(`return { spacing: P.get('spacing'), flush: document.documentElement.hasAttribute('data-flush'), pad: cs('.mir-rack .dev > .dev-body', 'padding-top'), ...${rackGeo} };`);
   await J(`P.set('spacing', 'airy'); await settle(); return 0;`);
   const g2 = await J(`return ${rackGeo};`);
-  check('SPACING: the knob is there (hit-tested) and the old level 0 opens as 0 px, which takes the rack flush: no gap, no inset, square panes, and 6 px inside', s.hit && g1.spacing === 0 && g1.flush && g1.gap === 0 && g1.inset === 0 && g1.radius === '0px' && g1.pad === '6px', JSON.stringify({ hit: s.hit, g1 }));
+  check('SPACING: the knob is there (hit-tested) and the old level 0 opens as 0 px, which takes the rack flush: no gap, no inset, square panes, and three quarters of the padding inside (7.5 px of 10)', s.hit && g1.spacing === 0 && g1.flush && g1.gap === 0 && g1.inset === 0 && g1.radius === '0px' && g1.pad === '7.5px', JSON.stringify({ hit: s.hit, g1 }));
   check('SPACING: DEFAULT (BASINS: gap 6, inset 6) and AIRY (16, 16) move the gap between two rack windows and the rack\'s inset', g0.gap === 6 && g0.inset === 6 && g2.gap === 16 && g2.inset === 16, JSON.stringify({ g0, g2 }));
   report.push(`SPACING rack: DEFAULT ${JSON.stringify(g0)} · 0 ${JSON.stringify(g1)} · AIRY ${JSON.stringify(g2)}`);
   await J(`G.close(); P.set('spacing', 'default'); return 0;`);

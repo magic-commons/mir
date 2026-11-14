@@ -373,7 +373,6 @@ body.icon-grip .dev-head .dev-glyph { width: 15px; height: 15px; }
 .dev-fold { color: var(--ink-faint); }
 .dev-fold:hover { color: var(--fg-soft); background: var(--state-hover, var(--glass-raise)); }
 .dev.tab-hot { outline-color: var(--dev-tab-ring); }
-.dev-body { padding: var(--pane-pad, var(--sp-3) var(--sp-3) var(--sp-4)); }   /* SPACING reaches inside the window (rack.css) */
 /* ── 3b. THE SHINE on a rack card: its own layer, blended additively (Josh: "set blend mode to 'add'").  A box-shadow
    cannot blend, so the card's free ::before draws the shine (--shine-term) and blends it with plus-lighter, and the
    card's own shadow drops the shine layer.  The card's paint containment is lifted while it shines (a contained card

@@ -108,7 +108,7 @@ The GUI window's look store writes these; a vanilla theme is a set of their valu
 | `body[data-faces="glass" \| "blend"]`, `--faces-solid-pct`, `--faces-transition-alpha` | `<body>` | the faces' own tokens (`--knob-face`, `--trig-face`, `--sw-fill`, `--glass-well`, `--k-dial-sheen`, `--glass-groove`), the hairline, the blend layer; the modulation dial's `--m2-dialink-b-wash`; the transport pill's `--xport-face` |
 | `body[data-text="light" \| "dark"]` | `<body>` | the ink ladder (`--fg` … `--ink-faint`), `--ink-shadow`, and the plugin's `--m2-ink-*` |
 | `--pane-edge` | `<body>` | the window panes' rim (`.dev`, `.glass`, the islands, the notebook, the modulation panes), before `--surface-edge` |
-| `--rack-gap`, `--rack-inset`, `--pane-pad`; `html[data-flush]` | `<html>` | `rack.css` (the column's gap and padding), `.dev-body`'s padding; flush: a square, shadowless slab |
+| `--rack-gap`, `--rack-inset`, `--pad-k`; `html[data-flush]` | `<html>` | `rack.css` (the column's gap and padding), `.dev-body`'s padding (10 · 12 px times `--pad-k`, 1.6.0-alpha.36); flush: a square, shadowless slab |
 
 ## Themed names
 
