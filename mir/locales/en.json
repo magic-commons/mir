@@ -3792,7 +3792,7 @@
    "mir/folders/gallery.js"
   ],
   "Nothing matches": [
-   "mir/keyboard/keyboard.js"
+   "mir/shell/window-picker.js"
   ],
   "Nothing sliced: the cut must fall inside a clip.": [
    "mir/timeline/editor.js"

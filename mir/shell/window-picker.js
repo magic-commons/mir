@@ -44,6 +44,10 @@ export function searchField(parent, { cls = '' } = {}) {
   return input;
 }
 
+/** emptyLine(parent) → the one dim line a list shows when a search finds nothing: "Nothing matches" (.mir-empty; 1.6.0-alpha.50).  One string, one
+ *  wording, for THE FINDER, the keyboard window and an app's own lists. */
+export function emptyLine(parent) { const n = label(el('div', 'mir-empty', parent), 'Nothing matches'); n.setAttribute('role', 'status'); return n; }
+
 /** the motion's numbers: the stagger between rows and the row past which they all enter together */
 export const WINDOW_PICKER = Object.freeze({ stagger: 30, cap: 12, close: 120 });
 
@@ -53,16 +57,20 @@ export function createWindowPicker({ rack, open = (id) => rack.reveal(id), can =
   const input = searchField(root, { cls: 'wp-search' });
   input.placeholder = t('search windows'); ariaLabel(input, 'search windows');   // tr[search windows]: the finder's search field: type part of a window's name
   const list = el('div', 'wp-list', root); list.setAttribute('role', 'listbox'); ariaLabel(list, 'FINDER');
+  /* 1.6.0-alpha.50 · THE WALK SPEAKS: the focus stays in the field and the mark is said — the field names the marked row (aria-activedescendant), the row is
+     aria-selected, and no row is a Tab stop */
+  const uid = 'wp' + Math.random().toString(36).slice(2, 7); list.id = uid; input.setAttribute('role', 'combobox'); input.setAttribute('aria-expanded', 'true'); input.setAttribute('aria-controls', uid); input.setAttribute('aria-autocomplete', 'list');
+  let none = null;
   const life = new AbortController(), on = { signal: life.signal };
   let rows = [], cur = null, shut = 0, queue = [], heads = [];
 
   function build() {
-    list.textContent = ''; rows = []; queue = []; heads = [];
+    list.textContent = ''; rows = []; queue = []; heads = []; none = null;
     const fav = typeof rack.lastFavourite === 'function' ? rack.lastFavourite() : null;
     const wins = rack.windows().filter((w) => !w.card && can(w.id) !== null).sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
     wins.forEach((w, i) => {
       const ok = can(w.id), why = ok === true ? '' : String(ok || '');
-      const b = el('button', 'wp-row', list); b.type = 'button'; b.dataset.win = w.id; b.setAttribute('role', 'option');
+      const b = el('button', 'wp-row', list); b.type = 'button'; b.dataset.win = w.id; b.setAttribute('role', 'option'); b.tabIndex = -1; b.id = uid + '-w-' + i; b.setAttribute('aria-selected', 'false');
       b.style.setProperty('--i', String(Math.min(i, WINDOW_PICKER.cap)));
       const g = (rack.spec && rack.spec(w.id) || {}).glyph, k = icon(w.id);
       if (k) { b.dataset.icon = k; el('span', 'wp-glyph wp-icon', b); }   // the app paints its icon on this seat
@@ -84,7 +92,7 @@ export function createWindowPicker({ rack, open = (id) => rack.reveal(id), can =
         const ok = typeof r.can === 'function' ? r.can() : true; if (ok === null || !r.id) continue;
         const why = ok === true || ok === undefined ? '' : String(ok || '');
         if (!made.length) list.appendChild(head);
-        const b = el('button', 'wp-row', list); b.type = 'button'; b.dataset.row = r.id; b.dataset.section = sec.id || ''; b.setAttribute('role', 'option');
+        const b = el('button', 'wp-row', list); b.type = 'button'; b.dataset.row = r.id; b.dataset.section = sec.id || ''; b.setAttribute('role', 'option'); b.tabIndex = -1; b.id = uid + '-s-' + i; b.setAttribute('aria-selected', 'false');
         b.style.setProperty('--i', String(Math.min(i++, WINDOW_PICKER.cap)));
         if (r.glyph && hasGlyph(r.glyph)) b.appendChild(glyphEl(r.glyph, 'wp-glyph', 16)); else el('span', 'wp-glyph wp-none', b);
         label(el('span', 'wp-name', b), r.title || r.id); if (r.hint) hint(b, r.hint);
@@ -97,14 +105,21 @@ export function createWindowPicker({ rack, open = (id) => rack.reveal(id), can =
       }
       if (made.length) heads.push({ head, rows: made });
     }
+    none = emptyLine(list); none.hidden = true;
   }
   const wordsOf = (id) => (typeof words === 'function' ? String(words(id) || '').toLowerCase() : '');
   const live = () => rows.filter((r) => !r.b.hidden && !r.off);
-  function mark(b) { if (cur) cur.classList.remove('on'); cur = b || null; if (cur) { cur.classList.add('on'); cur.scrollIntoView({ block: 'nearest' }); } }
+  function mark(b) {
+    if (cur) { cur.classList.remove('on'); cur.setAttribute('aria-selected', 'false'); }
+    cur = b || null;
+    if (cur) { cur.classList.add('on'); cur.setAttribute('aria-selected', 'true'); input.setAttribute('aria-activedescendant', cur.id); cur.scrollIntoView({ block: 'nearest' }); }
+    else input.removeAttribute('aria-activedescendant');
+  }
   function filter() {
     const q = input.value.trim().toLowerCase();
     for (const r of rows) r.b.hidden = !!q && !r.name.includes(q) && !(r.words && r.words.split(/\s+/).some((w) => w && w.startsWith(q)));
     for (const h of heads) h.head.hidden = h.rows.every((r) => r.b.hidden);
+    if (none) none.hidden = rows.some((r) => !r.b.hidden);   // nothing matches: the one dim line
     const l = live(); mark(l.length ? l[0].b : null);
   }
   function go(b) { if (!b || b.classList.contains('off')) return; const r = rows.find((x) => x.b === b), id = b.dataset.win; close(); if (r && r.run) r.run(); else if (id) open(id); }

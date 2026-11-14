@@ -121,6 +121,18 @@ try {
   check('ONE SEARCH FIELD: the FINDER\'s and KEYBOARD\'s are the same pill (34 px, 14 px type, one well and hairline), made by searchField()', r.finder === r.keys && r.finder.startsWith('34 | ') && r.finder.includes('| 14px |') && r.cls.every((c) => c.includes('mir-search')) && r.made === 'mir-search', JSON.stringify(r));
   check('THE NAME FIELD (.mir-name): 30 px, radius 8, upper case', r.name === '30 | 8px | uppercase', r.name);
   await closeAll();
+
+  /* ── alpha.50 · THE WALK SPEAKS, AND NOTHING MATCHES ────────────────────────────────────────────────────────── */
+  await run(`F.open(); await wait(450); return 0;`);
+  await p.key('ArrowDown');
+  r = await run(`const i = $('.wp-search'), on = $('.wp-row.on'); return { focus: D.activeElement === i, ad: i.getAttribute('aria-activedescendant'), id: on.id, sel: $$('.wp-row[aria-selected="true"]').length, tab: $$('.wp-row').every((b) => b.tabIndex === -1), ctl: i.getAttribute('aria-controls') === $('.wp-list').id,
+    fade: cs('.wp-glyph').opacity };`);
+  check('THE WALK SPEAKS: ↓ keeps the focus in the field, which names the marked row (aria-activedescendant); that row alone is aria-selected; no row is a Tab stop', r.focus && r.ad && r.ad === r.id && r.sel === 1 && r.tab && r.ctl, JSON.stringify(r));
+  for (const c of 'zzqx') await p.key(c);
+  r = await run(`T.kb.open(); await wait(300); const s = $('.km-search'); s.focus(); s.value = 'zzqx'; s.dispatchEvent(new Event('input', { bubbles: true })); await wait(150);
+    const a = $('.mir-window-picker .mir-empty'), b = $('.km-list .mir-empty'); return { finder: a && !a.hidden ? a.textContent : null, keys: b ? b.textContent : null, rows: $$('.wp-row').filter((x) => !x.hidden).length, same: a && b && cs(a).color === cs(b).color && cs(a).fontSize === cs(b).fontSize, ad: $('.wp-search').hasAttribute('aria-activedescendant') };`);
+  check('NOTHING MATCHES: a search that finds nothing shows one dim line, one wording, in the FINDER and in KEYBOARD', r.finder === 'Nothing matches' && r.keys === 'Nothing matches' && r.rows === 0 && r.same && !r.ad, JSON.stringify(r));
+  await closeAll();
 } finally {
   await p.close();
 }

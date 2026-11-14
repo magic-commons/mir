@@ -38,7 +38,7 @@
 import { el, label, ariaLabel, hint, seg, trig } from '../kit.js';
 import { t, onLanguage } from '../core/i18n.js';
 import { createWindow } from '../window/window.js';
-import { searchField } from '../shell/window-picker.js';
+import { searchField, emptyLine } from '../shell/window-picker.js';
 import { parseChord, displayChord, keyText, modText } from '../shell/keys.js';
 
 /* ── the board: λWAVES' ANSI rows, each key [code, cap, shifted legend, width class] ─────────────────────────── */
@@ -292,7 +292,7 @@ export function createKeyboardWindow({ keys, host, persist = null, platform, onM
       if (desc) label(el('span', 'km-action-desc', text), desc);
       chipsFor(row, a);
     }
-    if (!list.children.length) label(el('div', 'km-empty', list), 'Nothing matches');
+    if (!list.children.length) emptyLine(list);
   }
   list.addEventListener('click', (e) => { const r = e.target.closest('.km-action-row'); if (r) { if (recording) cancelRecording(); select(r.dataset.id); status(''); } }, on);
   list.addEventListener('pointerover', (e) => { const r = e.target.closest('.km-action-row'); if (r) hoverAction(r.dataset.id); }, on);

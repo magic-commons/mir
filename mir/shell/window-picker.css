@@ -24,7 +24,7 @@
 .mir-window-picker .wp-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mir-window-picker .wp-why { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: var(--fs-base)/1 var(--font-ui); letter-spacing: 0; color: var(--ink-faint, var(--dim)); }
 .mir-window-picker .wp-row.off { cursor: default; color: var(--ink-faint, var(--dim)); }
-.mir-window-picker .wp-row.off .wp-glyph { opacity: .45; }
+.mir-window-picker .wp-row.off .wp-glyph { opacity: var(--state-disabled, .38); }   /* the one fade (1.6.0-alpha.50; it was .45) */
 .mir-window-picker .wp-fav { flex: 0 0 auto; display: inline-flex; color: var(--acc); }
 .mir-window-picker .wp-fav > svg { width: 10px; height: 10px; }
 .mir-window-picker .wp-row.queued { background: color-mix(in srgb, var(--acc) 10%, transparent); }
