@@ -19,7 +19,7 @@ try {
     const cs = (n) => getComputedStyle(typeof n === 'string' ? $(n) : n);
     const box = (n) => { const r = (typeof n === 'string' ? $(n) : n).getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; };
     ${body} })().then((v) => JSON.stringify(v === undefined ? null : v))`));
-  const closeAll = () => run(`F.close(); T.bar.close(); T.sel.close(); T.few.close(); R.favMenu.close(); if (T.kb.isOpen()) T.kb.close(); D.activeElement && D.activeElement.blur && D.activeElement.blur(); await wait(200); return 0;`);
+  const closeAll = () => run(`F.close(); T.finder2.close(); T.bar.close(); T.sel.close(); T.few.close(); R.favMenu.close(); if (T.kb.isOpen()) T.kb.close(); D.activeElement && D.activeElement.blur && D.activeElement.blur(); await wait(200); return 0;`);
   let r;
 
   /* ── alpha.43 · EVERY FLOATING PANE READS THE CORNERS DIAL ─────────────────────────────────────────────────── */
@@ -132,6 +132,25 @@ try {
   r = await run(`T.kb.open(); await wait(300); const s = $('.km-search'); s.focus(); s.value = 'zzqx'; s.dispatchEvent(new Event('input', { bubbles: true })); await wait(150);
     const a = $('.mir-window-picker .mir-empty'), b = $('.km-list .mir-empty'); return { finder: a && !a.hidden ? a.textContent : null, keys: b ? b.textContent : null, rows: $$('.wp-row').filter((x) => !x.hidden).length, same: a && b && cs(a).color === cs(b).color && cs(a).fontSize === cs(b).fontSize, ad: $('.wp-search').hasAttribute('aria-activedescendant') };`);
   check('NOTHING MATCHES: a search that finds nothing shows one dim line, one wording, in the FINDER and in KEYBOARD', r.finder === 'Nothing matches' && r.keys === 'Nothing matches' && r.rows === 0 && r.same && !r.ad, JSON.stringify(r));
+  await closeAll();
+
+  /* ── alpha.51 · THE MATCHER IS A DECLARED OPTION, AND ESCAPE CLEARS THEN CLOSES ─────────────────────────────── */
+  const shown = `$$('.mir-window-picker:not([hidden]) .wp-row').filter((x) => !x.hidden).sort((a, b) => box(a).y - box(b).y).map((x) => x.querySelector('.wp-name').textContent)`;
+  await run(`F.open(); await wait(450); return 0;`);
+  for (const c of 'tmln') await p.key(c);
+  r = await run(`return { rows: ${shown}, empty: !$('.mir-window-picker:not([hidden]) .mir-empty').hidden };`);
+  const own = r;
+  await p.key('Escape'); const e1 = await run(`return { open: F.shown, q: $('.mir-window-picker:not([hidden]) .wp-search').value, rows: ${shown}.length };`);
+  await p.key('Escape'); await sleep(250); const e2 = await run(`return { open: F.shown };`);
+  check('ESCAPE CLEARS, THEN CLOSES: with a query typed the first Escape empties the field and brings every row back, the second closes the FINDER', e1.open && e1.q === '' && e1.rows === 8 && !e2.open, JSON.stringify({ e1, e2 }));
+  await run(`T.finder2.open(); await wait(450); return 0;`);
+  for (const c of 'tmln') await p.key(c);
+  r = await run(`const on = $('.mir-window-picker:not([hidden]) .wp-row.on'); return { rows: ${shown}, on: on && on.querySelector('.wp-name').textContent, head: !$('.mir-window-picker:not([hidden]) .wp-head').hidden };`);
+  check('THE MATCHER IS THE APP\'S: the FINDER\'s own finds nothing for "tmln" (the one dim line); with match it finds TIMELINE, best first and the default, the section\'s row under its head',
+    own.rows.length === 0 && own.empty && r.rows.length === 3 && r.rows[0] === 'TIMELINE' && r.rows[2] === 'EXTRA TIMELINE ROW' && r.on === 'TIMELINE' && r.head, JSON.stringify({ own, r }));
+  await p.key('Enter'); await sleep(300);
+  r = await run(`return { open: R.isOpen('timeline'), shown: T.finder2.shown };`);
+  check('Enter opens the best match (TIMELINE) and closes the FINDER', r.open && !r.shown, JSON.stringify(r));
   await closeAll();
 } finally {
   await p.close();

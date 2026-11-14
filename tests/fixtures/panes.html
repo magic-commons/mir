@@ -40,6 +40,10 @@ for (const [id, title, side, open] of [['tone', 'TONE', 'right', true], ['displa
   rack.register({ id, title, side, open, build(b) { b.appendChild(knob({ label: 'K', min: 0, max: 1, value: .5 }).root); } });
 rack.start();
 const finder = picker.createWindowPicker({ rack, sections: [{ id: 'more', title: 'MORE', rows: [{ id: 'extra', title: 'EXTRA', glyph: 'plus', words: 'bonus', run: say('extra') }] }] });
+/* a second FINDER with an app's matcher (createWindowPicker({ match })): letters in order, the shortest name first */
+const sub = (q, t) => { let i = 0; for (const c of t.toLowerCase()) if (c === q[i]) i++; return i === q.length; };
+const finder2 = picker.createWindowPicker({ rack, sections: [{ id: 'more', title: 'MORE', rows: [{ id: 'extra', title: 'EXTRA TIMELINE ROW', run: say('extra2') }] }],
+  match: (q, rows) => rows.filter((r) => sub(q.toLowerCase(), r.title)).sort((a, b) => a.title.length - b.title.length) });
 const title = wordmark(document.getElementById('stage'), { word: 'PANES' });
 const rows = () => [
   ['NEW\tCtrl+Alt+N', say('new'), null, 'a new project', { icon: 'plus' }],
@@ -66,7 +70,7 @@ const keys = createKeys({ storage: localKeyStorage('mir.test.panes.keys'), actio
 const host = document.getElementById('floats');
 const kb = createKeyboardWindow({ keys, host });
 const help = createKeysHelp({ keys, host });
-window.__T = { kit, rack, finder, picker, menus, bar, sel, few, keys, kb, help, dialog, notices, ran, el };
+window.__T = { finder2, kit, rack, finder, picker, menus, bar, sel, few, keys, kb, help, dialog, notices, ran, el };
 window.__ready = true;
 </script>
 </body>

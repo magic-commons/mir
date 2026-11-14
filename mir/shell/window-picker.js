@@ -14,6 +14,11 @@
  *     cls    extra classes for the surface (λWAVES: its Picker's `lw-menu`)
  *     words  (id) → a string of extra search words for a row ('grain film noise'): a row is found by a part of its name or by the START of
  *            one of its words (1.5.7-alpha.67); it answers for a section's row too when the row has no `words` of its own
+ *     match  (query, rows) → the rows that match, BEST FIRST (1.6.0-alpha.51) — THE APP'S MATCHER, a declared option: the FINDER still lists windows (and the
+ *            app's sections) only; what "matches" and in what order is the app's one search brain (λWAVES: its search index, so "tmln" finds TIMELINE).
+ *            `rows` are plain { id, title, words, off, section } (section '' for a window); return those objects, or their ids.  A typed query then
+ *            shows the matches in the matcher's order (the windows first, then each section under its head), the best the default.  Left out, the
+ *            FINDER's own: a part of the name, or the start of one of the row's words, in the list's order.
  *     sections  [{ id, title, rows }] (1.5.7-alpha.67, λWAVES 041 K4) — THE APP'S ROWS IN NAMED SECTIONS: after the windows, each section a
  *            head (its title, through label()) and its rows, INSIDE the list: the same filter, the same ↑ ↓ Enter walk, the same pointer
  *            mark, the same scroll.  `rows` is an array or () → array, read at each open; a row is
@@ -28,7 +33,8 @@
  *   2. SHIFT-click queues a row (a number badge in pick order; again takes it out); letting SHIFT go opens the queue in that order, each new
  *      window at its rack's top, so the rack reads in pick order (rack.js openOrder).  A plain pick opens one.
  *   3. A row in the most recently saved ☆ layout wears the solid star.
- *   4. Escape, a press outside, or opening a window closes it.  The rows are read at each open, never kept.
+ *   4. Escape (with a query typed: the first clears it, the next closes; 1.6.0-alpha.51), a press outside, or opening a window closes it.  The rows are
+ *      read at each open, never kept.
  *   5. THE MOTION (GOL-NOTE.md §4): a spring open (the surface from 0.94 × 0.6, an overshoot), the rows entering 30 ms apart (capped
  *      at the twelfth), each with a faux motion blur — a stretched copy of itself at low alpha collapsing into it — and a fast 120 ms
  *      close.  Reduced motion (<html data-motion> or the system's) shows the end state at once.  All of it is CSS (window-picker.css). */
@@ -51,7 +57,7 @@ export function emptyLine(parent) { const n = label(el('div', 'mir-empty', paren
 /** the motion's numbers: the stagger between rows and the row past which they all enter together */
 export const WINDOW_PICKER = Object.freeze({ stagger: 30, cap: 12, close: 120 });
 
-export function createWindowPicker({ rack, open = (id) => rack.reveal(id), can = () => true, icon = () => null, cls = '', host = document.body, sections = null, words = null } = {}) {
+export function createWindowPicker({ rack, open = (id) => rack.reveal(id), can = () => true, icon = () => null, cls = '', host = document.body, sections = null, words = null, match = null } = {}) {
   const root = el('div', ('mir-window-picker glass ' + cls).trim(), host); root.hidden = true;
   root.setAttribute('role', 'dialog'); ariaLabel(root, 'FINDER');   // tr[FINDER]: the finder: a search field over every window of the app; picking one opens it or scrolls the rack to it
   const input = searchField(root, { cls: 'wp-search' });
@@ -106,9 +112,10 @@ export function createWindowPicker({ rack, open = (id) => rack.reveal(id), can =
       if (made.length) heads.push({ head, rows: made });
     }
     none = emptyLine(list); none.hidden = true;
+    for (const r of rows) r.pub = { id: r.b.dataset.win || r.b.dataset.row, title: r.b.querySelector('.wp-name').textContent, words: r.words, off: r.off, section: r.b.dataset.section || '' };
   }
   const wordsOf = (id) => (typeof words === 'function' ? String(words(id) || '').toLowerCase() : '');
-  const live = () => rows.filter((r) => !r.b.hidden && !r.off);
+  const live = () => rows.filter((r) => !r.b.hidden && !r.off).sort((a, b) => (a.ord ?? 0) - (b.ord ?? 0));   // in the order shown (a matcher may have ranked them)
   function mark(b) {
     if (cur) { cur.classList.remove('on'); cur.setAttribute('aria-selected', 'false'); }
     cur = b || null;
@@ -117,8 +124,19 @@ export function createWindowPicker({ rack, open = (id) => rack.reveal(id), can =
   }
   function filter() {
     const q = input.value.trim().toLowerCase();
-    for (const r of rows) r.b.hidden = !!q && !r.name.includes(q) && !(r.words && r.words.split(/\s+/).some((w) => w && w.startsWith(q)));
+    /* THE MATCHER (1.6.0-alpha.51): the app's (`match`), ranked, or the FINDER's own in the list's order */
+    let rank = null;
+    if (q && typeof match === 'function') {
+      rank = new Map(); let got = []; try { got = match(input.value.trim(), rows.map((r) => r.pub)) || []; } catch (err) { console.warn('finder: match', err); }
+      got.forEach((x, i) => { const r = rows.find((y) => y.pub === x || (typeof x !== 'object' ? y.pub.id === x : x && y.pub.id === x.id && y.pub.section === (x.section || ''))); if (r && !rank.has(r)) rank.set(r, i); });
+    }
+    for (const r of rows) r.b.hidden = rank ? !rank.has(r) : !!q && !r.name.includes(q) && !(r.words && r.words.split(/\s+/).some((w) => w && w.startsWith(q)));
     for (const h of heads) h.head.hidden = h.rows.every((r) => r.b.hidden);
+    /* the order shown: as built, or — ranked — the windows best first, then each section's head and its rows best first (CSS `order` in the flex list) */
+    let n = 0; const by = (a, b) => rank.get(a) - rank.get(b), seat = (r) => { r.ord = n; r.b.style.order = rank ? String(n) : ''; n++; };
+    const groups = [rows.filter((r) => !r.head), ...heads.map((h) => h.rows)];
+    groups.forEach((g, i) => { if (i) heads[i - 1].head.style.order = rank ? String(n++) : ''; for (const r of rank ? g.filter((x) => rank.has(x)).sort(by).concat(g.filter((x) => !rank.has(x))) : g) seat(r); });
+    if (none) none.style.order = rank ? String(n) : '';
     if (none) none.hidden = rows.some((r) => !r.b.hidden);   // nothing matches: the one dim line
     const l = live(); mark(l.length ? l[0].b : null);
   }
@@ -150,7 +168,7 @@ export function createWindowPicker({ rack, open = (id) => rack.reveal(id), can =
   }
   input.addEventListener('input', filter, on);
   root.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); return; }
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); if (input.value) { input.value = ''; filter(); } else close(); return; }   // CLEAR, THEN CLOSE (1.6.0-alpha.51): a typed query goes first
     if (e.key === 'Enter') { e.preventDefault(); if (e.shiftKey) pick(cur); else go(cur); return; }
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault(); const l = live().map((r) => r.b); if (!l.length) return;
