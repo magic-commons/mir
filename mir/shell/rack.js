@@ -409,7 +409,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
   const floats = take('floats', 'div', 'mir-rack-floats');
   const grip = el('div', 'mir-rack-grip', host); grip.setAttribute('aria-hidden', 'true'); made.push(grip);
   const btn = (id, kind, text, label) => { const b = take(id, 'button', 'glass mir-rack-btn'); b.type = 'button'; b.dataset.rackBtn = kind; if (text) b.textContent = text; b.setAttribute('aria-label', label); b.title = label; return b; };
-  const list = (id, kind) => { const l = take(id, 'div', 'glass mir-rack-list'); l.dataset.rackList = kind; l.hidden = true; l.setAttribute('role', 'menu'); return l; };
+  const list = (id, kind) => { const l = take(id, 'div', 'glass mir-rack-list'); l.dataset.rackList = kind; l.dataset.mirSurface = 'menu'; l.hidden = true; l.setAttribute('role', 'menu'); return l; };
   let toggleBtn = null, favBtn = null, favList = null;
   if (chrome) {
     toggleBtn = btn('rackToggle', 'toggle', '◧', 'Hide or show the rack');

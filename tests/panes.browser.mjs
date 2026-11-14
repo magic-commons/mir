@@ -201,6 +201,13 @@ try {
   const ran = await run(`return { ran: T.ran.includes('add-blur'), shown: T.adder.shown };`);
   check('A PICKER WITHOUT A RACK lists its sections alone: "bl" leaves BLUR under EFFECTS, Enter runs it and closes', r.rows.join() === 'BLUR' && r.heads.join() === 'EFFECTS' && ran.ran && !ran.shown, JSON.stringify({ r, ran }));
   await closeAll();
+
+  /* ── alpha.55 · ONE EDGE ────────────────────────────────────────────────────────────────────────────────────── */
+  r = await run(`F.open(); T.sel.open(); R.favMenu.open(); await wait(450); const m = T.menus.contextMenu({ x: 700, y: 500, entries: [['ONE', () => {}]] });
+    const e = (s) => { const c = cs(s); return [$(s).dataset.mirSurface, c.borderTopColor, c.borderTopWidth, c.backgroundColor].join(' | '); }, sh = (s) => cs(s).boxShadow;
+    const out = { ctx: e('.mir-ctx-pane'), finder: e('.mir-window-picker'), pick: e('.mir-pick'), fav: e('.mir-rack-list'), sh: [sh('.mir-ctx-pane'), sh('.mir-window-picker'), sh('.mir-rack-list')] }; m.close(); return out;`);
+  check('ONE EDGE: the FINDER and the saved-layouts list carry the menu mark and wear a context menu\'s and a select\'s list\'s edge, floor and shadow', r.ctx.startsWith('menu | ') && r.finder === r.ctx && r.pick === r.ctx && r.fav === r.ctx && r.sh[1] === r.sh[0] && r.sh[2] === r.sh[0], JSON.stringify(r).slice(0, 420));
+  await closeAll();
 } finally {
   await p.close();
 }

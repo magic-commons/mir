@@ -61,6 +61,7 @@ export const WINDOW_PICKER = Object.freeze({ stagger: 30, cap: 12, close: 120 })
 
 export function createWindowPicker({ rack = null, open = (id) => { if (rack) rack.reveal(id); }, can = () => true, icon = () => null, cls = '', host = document.body, sections = null, words = null, match = null } = {}) {
   const root = el('div', ('mir-window-picker glass ' + cls).trim(), host); root.hidden = true;
+  root.dataset.mirSurface = 'menu';   // 1.6.0-alpha.55: a pop-up pane says so — the menu height, floor and edge (css/skin.css)
   root.setAttribute('role', 'dialog'); ariaLabel(root, 'FINDER');   // tr[FINDER]: the finder: a search field over every window of the app; picking one opens it or scrolls the rack to it
   const input = searchField(root, { cls: 'wp-search' });
   input.placeholder = t('search windows'); ariaLabel(input, 'search windows');   // tr[search windows]: the finder's search field: type part of a window's name

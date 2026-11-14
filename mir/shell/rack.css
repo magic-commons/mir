@@ -165,6 +165,7 @@ body.rack-hidden:not(.rack-peek-right) :is(.mir-rack-btn[data-rack-btn="fav"], .
   position: absolute; right: calc(var(--rack-w) + 14px); top: 116px; z-index: calc(var(--z-chrome) + 3);
   display: flex; flex-direction: column; min-width: 260px; max-height: calc(100% - 132px); overflow: auto; scrollbar-width: thin; scrollbar-color: var(--acc) transparent; padding: 4px; border-radius: var(--surface-radius, var(--card-r, var(--r-lg)));
 }
+.mir-rack-list.glass { box-shadow: var(--surface-shadow-menu, var(--glass-shadow)); }   /* the menu height (1.6.0-alpha.55) */
 .mir-rack-list .mb-item { position: relative; justify-content: flex-start; }
 .mir-rack-list .mb-glyph { flex: 0 0 auto; color: var(--dim); }
 .mir-rack-list .mb-item.queued { color: var(--fg); }
