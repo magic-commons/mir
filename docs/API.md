@@ -711,11 +711,7 @@ owners. `clock.isRealtimeSuspended()` reports this gate. Clients must release on
 pointer end/cancel, blur, close, project replacement and disposal; recording clients
 must reject interactive ownership before taking over the clock.
 
-The remaining exports are **λWAVES content that still lives in the kit**:
-- `labParameters`, `LAB_PRESET_FOLDER`, `LAB_PRESETS`, `presetRouteTargets`, `foreignPresets`, `labPresetList`, `labPresetGet`, `labPresetApply`;
-- `barTempo`.
-
-They go home to λWAVES when the kit drops its λWAVES leftovers (2.0.0).
+`barTempo({ T, rate } | { seconds }, …)` → the tempo at which one bar is one period (it says when it had to clamp). The kit holds no app's catalogue: λWAVES' `labParameters`, `LAB_PRESETS`, `LAB_PRESET_FOLDER`, `labPresetList`, `labPresetGet`, `labPresetApply`, `foreignPresets` and `presetRouteTargets` left in 1.6.0-alpha.57 (an app's targets and presets come through its port; `bundledPresets` is the door for an app's own starters).
 
 ### `modwindow/modwindow.js`: the window's builders
 
