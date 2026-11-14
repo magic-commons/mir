@@ -32,6 +32,7 @@
 :root {
   color-scheme: dark;
   --ui-scale: 1; --touch: 44px;
+  --head-h: 38px; --head-btn: 32px; --head-glyph: 18px;           /* 1.6.0-alpha.35 · THE HEAD SCALE: a head's height, its buttons' seat, their glyph; read by a rack card's .dev-head and a window's .mir-win-head */
   --ctl-stroke: 1;
   --relief-lit: 1;                                                 /* 1.5.7-alpha.62 · HIGHLIGHT: the white light of a control's relief, 0 … 1 (MIR OPTIONS › LIGHT writes it on <html>) */
   --ui-zoom: 1;                                                    /* 1.5.7-alpha.2 · UI SCALE: the UI roots' CSS zoom (MIR OPTIONS writes it on <html>) */                                                 /* 1.5.7-alpha.1 · STROKE: every control ring's alpha times it (MIR OPTIONS writes it on <html>) */
@@ -115,7 +116,7 @@ button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
 [hidden] { display: none !important; }
 h1, h2 { margin: 0; font-weight: var(--w-bold); }
-.dev-swap { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--ctl-hairline); background: var(--glass-raise); color: var(--dim); font-size: var(--dev-swap-glyph); cursor: pointer; margin-right: 4px; }
+.dev-swap { border-radius: 50%; border: 1px solid var(--ctl-hairline); background: var(--glass-raise); color: var(--dim); font-size: var(--dev-swap-glyph); cursor: pointer; margin-right: 4px; }
 .dev-head { cursor: grab; user-select: none; touch-action: none; }
 .dev { touch-action: pan-y; }
 .dev.closed { display: none !important; }
@@ -127,17 +128,20 @@ h1, h2 { margin: 0; font-weight: var(--w-bold); }
 }
 /* THE POWER CONTROL: ONLY the ⏻ icon — no button face, no outline, no shading, no fill (Josh 2026-10-07: "make it ONLY the
    icon and no button background … ONLY the icon changing colors, greying, beveling when off… glowing when on"); on = the
-   accent with its glow, off = the dim ink; the 22 px box is the hit target and paints nothing */
-.dev-power { width: 22px; height: 22px; border-radius: 50%; border: 0; background: transparent; box-shadow: none; cursor: pointer; position: relative; margin-inline-end: 4px;
+   accent with its glow, off = the dim ink; its box is the head's seat (--head-btn), the hit target, and paints nothing.
+   1.6.0-alpha.35: the ⏻ is drawn as a share of the head's glyph (its ring .72 of it, as 10 px was of the 14-px glyphs), centred in the
+   seat, so it stands the size of its neighbours at every head scale (the desk's, a tablet's 38, a finger's 44) from one rule */
+.dev-power { border-radius: 50%; border: 0; background: transparent; box-shadow: none; cursor: pointer; position: relative; margin-inline-end: 4px;
+  --power-ring: calc(var(--head-glyph) * .72); --power-ink: calc(var(--head-glyph) / 9); --power-in: calc((var(--head-btn) - var(--power-ring)) / 2);
   --power-glow: drop-shadow(0 0 3px color-mix(in srgb, var(--acc) 70%, transparent)); filter: var(--power-glow); }
-.dev-power::before { content: ''; position: absolute; inset: 6px; border-radius: 50%; border: 1.5px solid var(--acc); border-top-color: transparent; }
-.dev-power::after { content: ''; position: absolute; left: 50%; top: 4px; width: 1.5px; height: 6px; background: var(--acc); transform: translateX(-50%); }
+.dev-power::before { content: ''; position: absolute; inset: var(--power-in); border-radius: 50%; border: var(--power-ink) solid var(--acc); border-top-color: transparent; }
+.dev-power::after { content: ''; position: absolute; left: 50%; top: calc(var(--power-in) - var(--power-ring) * .2); width: var(--power-ink); height: calc(var(--power-ring) * .6); background: var(--acc); transform: translateX(-50%); }
 .dev-power[aria-pressed="false"] { filter: none; }
 .dev-power[aria-pressed="false"]::before { border-color: var(--dim); border-top-color: transparent; }
 .dev-power[aria-pressed="false"]::after { background: var(--dim); }
-.dev-close { width: 22px; height: 22px; border-radius: 50%; border: 0; background: transparent; color: var(--dim); font-size: var(--dev-close-glyph); line-height: 1; cursor: pointer; margin-inline-start: 2px; }
+.dev-close { border-radius: 50%; border: 0; background: transparent; color: var(--dim); font-size: var(--dev-close-glyph); line-height: 1; cursor: pointer; margin-inline-start: 2px; }
 .dev-close:hover { color: var(--fg); background: var(--state-hover, var(--glass-raise)); }
-.dev-copy { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--ctl-hairline); background: var(--glass-raise); color: var(--dim); font-size: var(--dev-copy-glyph); cursor: copy; margin-right: 4px; }
+.dev-copy { border-radius: 50%; border: 1px solid var(--ctl-hairline); background: var(--glass-raise); color: var(--dim); font-size: var(--dev-copy-glyph); cursor: copy; margin-right: 4px; }
 .dev-copy:hover { color: var(--fg); background: linear-gradient(var(--state-hover, var(--glass-raise)) 0 0), var(--glass-raise); }   /* HOVER is a lighter face, not ink alone (L37) */
 .dev[data-kind="info"] .ro-sub { max-height: 3em; opacity: 1; }
 .rack-fav-head { padding: 5px 10px 3px; font-size: var(--fs-tiny); letter-spacing: var(--label-tracking, var(--tr-wide)); color: var(--dim); }
@@ -193,7 +197,7 @@ m { font-family: var(--font-math); font-style: normal; font-size: var(--math-sca
 /* ── device chassis ─────────────────────────────────────────────────────── */
 .dev { flex: 0 0 auto; display: flex; flex-direction: column; border-radius: var(--surface-radius, var(--r-lg)); border: var(--surface-edge-width, var(--glass-border)) solid var(--pane-edge, var(--surface-edge, var(--glass-border-color)));
   background: var(--surface-fill, hsl(var(--glass-tint) / var(--glass-opacity))); box-shadow: var(--surface-shadow, var(--glass-shadow)); contain: layout paint; }
-.dev-head { flex: 0 0 auto; display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto; align-items: center; column-gap: 0; height: 38px; padding: 0 var(--sp-1) 0 var(--sp-4);
+.dev-head { flex: 0 0 auto; display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto; align-items: center; column-gap: 0; height: var(--head-h); padding: 0 var(--sp-1) 0 var(--sp-4);
   border-bottom: var(--glass-border) solid var(--glass-hairline); background: var(--glass-raise); border-radius: var(--surface-radius, var(--r-lg)) var(--surface-radius, var(--r-lg)) 0 0; }
 .folded .dev-head { border-bottom: 0; border-radius: var(--surface-radius, var(--r-lg)); }
 .dev-id { display: flex; flex-direction: column; justify-content: center; line-height: 1.1; min-width: 0; overflow: hidden; }
@@ -203,7 +207,7 @@ m { font-family: var(--font-math); font-style: normal; font-size: var(--math-sca
 .dev-eyebrow { font-size: var(--fs-micro); letter-spacing: var(--label-tracking, var(--tr-wider)); color: var(--ink-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dev-title { font-size: var(--fs-small); letter-spacing: var(--label-tracking, var(--tr-wide)); color: var(--acc); }
 .dev-util { display: flex; align-items: center; }
-.dev-fold { width: var(--touch); height: 36px; border: 0; background: transparent; color: var(--dim); font-size: var(--dev-fold-glyph); border-radius: var(--r-md); }
+.dev-fold { border: 0; background: transparent; color: var(--dim); font-size: var(--dev-fold-glyph); border-radius: 50%; }
 .dev-fold:active { background: var(--state-press, var(--glass-press)); }
 .dev-body { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-3) var(--sp-3) var(--sp-4); }
 .folded .dev-body { display: none; }
@@ -219,10 +223,10 @@ m { font-family: var(--font-math); font-style: normal; font-size: var(--math-sca
 .dev.floating.compact .dev-util > .dev-rail,
 .dev.floating.compact .dev-util > .dev-close { display: inline-flex; }
 
-/* THE TWO NEW CHIPS wear the puck the other round header buttons wear — same 22 px, same rim, same ink.
+/* THE TWO NEW CHIPS wear the puck the other round header buttons wear — same seat, same rim, same ink.
    The RAIL chip is in every header and shown only while the window floats, so a header's box does not
    change shape when a window comes off the rack. */
-.dev-pop, .dev-rail { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--ctl-hairline);
+.dev-pop, .dev-rail { border-radius: 50%; border: 1px solid var(--ctl-hairline);
   background: var(--glass-raise); color: var(--dim); cursor: pointer; margin-inline-end: 4px; }
 .dev-pop:hover, .dev-rail:hover { color: var(--fg); background: linear-gradient(var(--state-hover, var(--glass-raise)) 0 0), var(--glass-raise); }   /* a lighter face (L38) */
 /* the child combinator is not decoration: `.dev-util > button` below sets `display: inline-flex` at
@@ -237,17 +241,18 @@ m { font-family: var(--font-math); font-style: normal; font-size: var(--math-sca
 .dev.floating .dev-pop { color: var(--acc); }        /* the window is off the rack, and its own chip says so */
 
 
-.dev-util > button { display: inline-flex; align-items: center; justify-content: center; }
-.dev-util > button > svg { width: 14px; height: 14px; display: block; }
-.dev-fold > svg { width: 13px; height: 13px; transition: transform var(--t-fast) var(--ease-std); }
+/* 1.6.0-alpha.35 · THE HEAD SCALE: every button of a card's head is one seat (--head-btn) round one glyph (--head-glyph), the
+   window head's own (window.css .mir-win-btn): power, fold, close, the pucks and a card's own tools (.dev-tool) alike */
+.dev-util > button { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: var(--head-btn); height: var(--head-btn); padding: 0; }
+.dev-util > button > svg { width: var(--head-glyph); height: var(--head-glyph); display: block; }
+.dev-fold > svg { transition: transform var(--t-fast) var(--ease-std); }
 /* ONE drawing for the caret, turned a quarter turn when the window is folded — the chevron's own idiom
    ("the caret each folder header turns", glyph.js), not one glyph rotated into another's meaning. */
 .dev.folded .dev-fold > svg { transform: rotate(-90deg); }
-.dev-close > svg { width: 13px; height: 13px; }
 /* `popOut` (and `dock`, its mate; `north` is the old name) is the one SOLID mark in a header of hairline outlines (it is drawn that way at source, and
    glyph.js is maintained by diff — we size it, we do not redraw it), so its box is two pixels smaller
    and the optical mass matches the rest of the row. */
-button:is([data-gly="north"], [data-gly="popOut"], [data-gly="dock"]) > svg { width: 12px; height: 12px; }
+button:is([data-gly="north"], [data-gly="popOut"], [data-gly="dock"]) > svg { width: calc(var(--head-glyph) - 2px); height: calc(var(--head-glyph) - 2px); }
 .row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--sp-2); }
 .row.tight { gap: var(--sp-1); }
 .grp { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-2) var(--sp-2) var(--sp-3); border: var(--glass-border) solid var(--glass-hairline); border-radius: var(--r-md); background: transparent; }
@@ -560,9 +565,8 @@ select.sel { min-height: var(--touch); padding: 0 8px; border-radius: var(--r-md
   body.touch-tablet .dev-head { min-height: var(--touch, 44px); }
   body.touch-tablet .dev-util > :is(.dev-swap, .dev-copy) { display: none; }
   body.touch-tablet .dev-head > .dev-util { gap: 2px; }
-  body.touch-tablet .dev-head .dev-util > button:not(.dev-rail), body.touch-tablet .dev.floating .dev-head .dev-util > .dev-rail { width: 38px; min-width: 38px; height: 38px; margin: 0; }
-  body.touch-tablet .dev-head .dev-power::before { inset: 14px; }
-  body.touch-tablet .dev-head .dev-power::after { top: 12px; }
+  body.touch-tablet .dev-head { --head-btn: 38px; }               /* a finger's 38; the ⏻ centres itself in it (alpha.35) */
+  body.touch-tablet .dev-head .dev-util > button { margin: 0; }
 }
 
 }   /* end @layer mir.kit.house */
