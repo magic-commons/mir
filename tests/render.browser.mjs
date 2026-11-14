@@ -332,7 +332,7 @@ try {
   if (rb) await page.mouse.click(rb.x, rb.y);                                  // a disabled trigger lets the press through: nothing is there to take it
   await page.waitForTimeout(150);
   const ran = await page.evaluate(() => window.__R.rec.running());
-  L.ck(refused.disabled && refused.est === 'This sweep cannot be flown on this device' && refused.plan === null && rb && !rb.hit && !ran, 'a motionUi.paint that throws leaves RENDER off with the thrown sentence on the estimate row; a press at its centre starts nothing', { refused, rb, ran });
+  L.ck(refused.disabled && refused.est === 'This sweep cannot be flown on this device' && refused.plan === null && rb && !ran, 'a motionUi.paint that throws leaves RENDER off with the thrown sentence on the estimate row; a press at its centre starts nothing (the disabled trigger takes the pointer to keep its hint, 1.5.6-alpha.8, and refuses the press)', { refused, rb, ran });
   const wellW = await page.evaluate(() => { const b = document.querySelector('.mir-folders .mir-render .sr-picture .sr-download'); return { disabled: b.disabled, opacity: getComputedStyle(b).opacity }; });
   L.ck(refused.opacity === '0.38' && wellW.disabled && wellW.opacity === '0.38', 'a disabled RENDER fades to the kit\'s one fade (.38) in the card as a disabled DOWNLOAD IMAGE does in the window (1.6.0-alpha.39; the card was .55)', { card: refused.opacity, window: wellW });
   await page.evaluate(() => { window.__breakPaint = false; });

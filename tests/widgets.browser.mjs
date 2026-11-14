@@ -86,7 +86,7 @@ try {
   await drag(fx0 + fw * 0.9, fy, fx0 + fw * 0.9, fy); await key('.fd', 'ArrowRight', 'ArrowRight');
   check('fader: disabled ignores the pointer and the keys', await ev(`__T.f.get() === 0.5 && document.querySelector('.fd').getAttribute('aria-disabled') === 'true'`));
   await ev(`__T.f.setDefault(0.9); document.querySelector('.fd').dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))`);
-  check('fader: disabled does not reset on a double-click, and looks disabled', await ev(`__T.f.get() === 0.5 && getComputedStyle(document.querySelector('.fd')).opacity < 1 && getComputedStyle(document.querySelector('.fd')).pointerEvents === 'none'`));
+  check('fader: disabled does not reset on a double-click, and looks disabled', await ev(`__T.f.get() === 0.5 && getComputedStyle(document.querySelector('.fd')).opacity === '0.38' && getComputedStyle(document.querySelector('.fd')).cursor === 'not-allowed'`));   // the one fade; it keeps the pointer for its hint (1.5.6-alpha.8) and refuses the hand
   await ev(`__T.f.setDefault(0.5)`);
   await ev('__T.f.setDisabled(false)');
   check('fader: log with min ≤ 0 warns and stays linear', await ev(`__T.warns.some((w) => /log needs 0 < min < max/.test(w))`));
