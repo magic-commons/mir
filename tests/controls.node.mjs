@@ -73,6 +73,11 @@ const near = (a, b, e = 1e-9) => Math.abs(a - b) < e;
   assert.ok(at.left + 200 <= 1000 - 8 + 1e-9, 'clamped to the right edge');
   at = placePane({ top: 100, bottom: 140, left: 50, width: 120 }, { w: 200, h: 5000 }, view);
   assert.ok(at.maxHeight <= 800, 'a long list scrolls inside the viewport');
+  assert.equal(at.top + at.maxHeight, 800 - 8, 'and ends at the margin');
+  at = placePane({ top: 100, bottom: 140, left: 50, width: 120 }, { w: 200, h: 144 }, view);
+  assert.equal(at.maxHeight, 144, 'a list that fits keeps its whole height: nothing to scroll (1.6.0-alpha.64)');
+  at = placePane({ top: 700, bottom: 740, left: 50, width: 120 }, { w: 200, h: 300 }, view);
+  assert.equal(at.maxHeight, 300); assert.equal(at.top + 300, 700 - 4, 'above: its foot is the gap over the anchor');
   pass('the list pane: typeahead skips coming items and wraps; placement is below, else above, clamped to the viewport');
 }
 {
