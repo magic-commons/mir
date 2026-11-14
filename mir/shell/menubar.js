@@ -33,6 +33,9 @@
  *   opts.checked: true | false       a CHECK row (role menuitemcheckbox, aria-checked, a ✓ while true)
  *   opts.radio: 'group'              with opts.checked, a RADIO row of that group (role menuitemradio, a • on the chosen one)
  *   opts.icon: 'name'                a glyph (glyph.js) before the label: a kit name or an app's own (registerGlyphs, 1.5.6-alpha.3)
+ * 1.6.0-alpha.46 · EVERY ROW HAS A PICTURE'S SEAT (λWAVES 044 KV2, Josh's tick 4): a row is one height (--mb-row, 28) and begins with a 16 px seat
+ *   (.mb-icon): its glyph; while a check or radio row is ON, its mark instead (a drawn ✓ / •, .mb-icon.mb-mark); else empty (.mb-none), so the
+ *   labels stand in one column.  A submenu's arrow is drawn (chevronRight).
  *
  * 1.5.4 · LANGUAGES.  The group names and every item label go through t() (core/i18n.js); the key after the TAB
  *   never does.  A group is found by `data-menu` (its English name), never by the text it shows.  On a language
@@ -68,13 +71,13 @@ import { cssZoom } from '../core/zoom.js';
 export const comingRow = (name, hint = '') => ['○  ' + name + '  (coming)', () => {}, () => true, hint];
 /** purgeRow({ name }) — EDIT › Purge Cache/RAM (BASINS' words; the app's name in the hint) */
 export const purgeRow = ({ name = 'the app' } = {}) => ['Purge Cache/RAM', () => location.reload(), null,
-  t('Reload {name} to release the current session’s memory. Saved projects and settings are kept; unsaved renders are discarded.', { name })];
+  t('Reload {name} to release the current session’s memory. Saved projects and settings are kept; unsaved renders are discarded.', { name }), { icon: 'clear' }];
 /** copyDumpRow(dump) — ABOUT › COPY DUMP; dump() → text */
 export const copyDumpRow = (dump, hint = 'the debug dump, to the clipboard') => ['COPY DUMP', async () => {
   const text = String((typeof dump === 'function' ? dump() : dump) || '');
   if (await copyText(text)) notice('Debug info copied to clipboard.', { kind: 'ok' });
   else { notice('Copy failed — the dump is in the browser console.', { kind: 'warn' }); try { console.log(text); } catch (_) { /* no console */ } }
-}, null, hint];
+}, null, hint, { icon: 'duplicate' }];
 
 /* 1.5.6-alpha.4 · ONE RENDERER: the bar's lists and contextMenu's pane are drawn by these rows.  rowsOn({ layer, phone, done }) →
    { render, openSub, closeSub }: `layer` holds a submenu beside its row (written in its frame), `done()` closes after a row runs; `surface`
@@ -108,17 +111,20 @@ function rowsOn({ layer, phone, done, surface = false }) {
       const [text, run, dis, hint, opts] = entry, o = opts || {};
       const it = el('button', 'mb-item', list); it.type = 'button';
       const kk = String(text).split('\t');
-      if (o.icon) { const g = glyphEl(o.icon, 'mb-icon', 16); if (g) it.appendChild(g); }
+      /* 1.6.0-alpha.46 · EVERY ROW HAS A PICTURE'S SEAT: the row's glyph, or — while a check or radio row is on — its mark (a drawn ✓ / •), or an
+         empty seat, so every label starts in one column and every row is one height */
+      const on = o.checked !== undefined && !!o.checked;
+      const pic = (on ? glyphEl(o.radio ? 'dot' : 'check', 'mb-icon mb-mark', 16) : o.icon ? glyphEl(o.icon, 'mb-icon', 16) : null) || el('span', 'mb-icon mb-none');
+      pic.setAttribute('aria-hidden', 'true'); it.appendChild(pic);
       if (o.raw) el('span', 'mb-lbl', it, kk[0]).translate = false; else writeLabel(el('span', 'mb-lbl', it), kk[0]);
       if (o.current) { it.classList.add('on'); it.setAttribute('aria-current', 'true'); }
-      if (o.checked !== undefined) { it.setAttribute('role', o.radio ? 'menuitemradio' : 'menuitemcheckbox'); it.setAttribute('aria-checked', String(!!o.checked)); it.classList.add(o.radio ? 'mb-radio' : 'mb-check'); if (o.radio) it.dataset.radio = o.radio;
-        el('span', 'mb-mark', it, o.checked ? (o.radio ? '•' : '✓') : '').setAttribute('aria-hidden', 'true'); }
+      if (o.checked !== undefined) { it.setAttribute('role', o.radio ? 'menuitemradio' : 'menuitemcheckbox'); it.setAttribute('aria-checked', String(!!o.checked)); it.classList.add(o.radio ? 'mb-radio' : 'mb-check'); if (o.radio) it.dataset.radio = o.radio; }
       if (kk[1]) el('span', 'mb-key', it, kk[1]);
       if (hint) it.title = hint;
       if (o.id) it.dataset.id = o.id;
       if (typeof dis === 'function' ? dis() : dis === true) it.disabled = true;
       if (o.sub) {
-        it.classList.add('mb-sub'); it.setAttribute('aria-haspopup', 'true'); it.setAttribute('aria-expanded', 'false'); it.mbEntries = run; el('span', 'mb-arrow', it, '▸').setAttribute('aria-hidden', 'true');
+        it.classList.add('mb-sub'); it.setAttribute('aria-haspopup', 'true'); it.setAttribute('aria-expanded', 'false'); it.mbEntries = run; const ar = el('span', 'mb-arrow', it); ar.setAttribute('aria-hidden', 'true'); const ch = glyphEl('chevronRight', 'mb-chev', 12); if (ch) ar.appendChild(ch); else ar.textContent = '▸';
         it.addEventListener('click', (e) => { e.stopPropagation(); if (list.mbChild && list.mbChild.mbRow === it) { if (!(e.detail > 0 && hoverable(e) && !phone())) closeSub(list); } else openSub(list, it, run()); });   // a cursor's click keeps what its hover opened (1.5.6-alpha.4)
         it.addEventListener('pointerenter', (e) => { if (hoverable(e) && !phone()) openSub(list, it, run()); });
         continue;

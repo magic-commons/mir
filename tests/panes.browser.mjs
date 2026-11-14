@@ -71,6 +71,22 @@ try {
   r = await run(`const pr = D.body.appendChild(D.createElement('i')); pr.style.background = 'var(--state-wash)'; const want = getComputedStyle(pr).backgroundColor; pr.remove(); return { want, hover: cs('#menubar .mb-list:not([hidden]) .mb-item').backgroundColor };`);
   check('THE WASH is a menu\'s cursor: the row under the pointer wears it', r.hover === r.want && r.want !== 'rgba(0, 0, 0, 0)', JSON.stringify(r));
   await p.mouse(640, 780); await closeAll();
+
+  /* ── alpha.46 · EVERY MENU ROW HAS A PICTURE'S SEAT ─────────────────────────────────────────────────────────── */
+  r = await run(`T.bar.openGroup('FILE'); await wait(120); const its = $$('#menubar .mb-list:not([hidden]) > .mb-item');
+    const row = (it) => { const s = it.firstElementChild, l = it.querySelector('.mb-lbl'); return { t: l.textContent, h: Math.round(box(it).h * 10) / 10, seat: s.classList.contains('mb-icon'), sw: box(s).w, tag: s.tagName.toLowerCase(), mark: s.classList.contains('mb-mark'), none: s.classList.contains('mb-none'), lx: Math.round(box(l).x * 10) / 10 }; };
+    const rows = its.map(row), arrow = $('#menubar .mb-sub .mb-arrow');
+    return { rows, arrow: !!arrow.querySelector('svg') && arrow.textContent === '', typed: its.some((it) => /[✓•▸]/.test(it.textContent)) };`);
+  const by = (t) => r.rows.find((x) => x.t.startsWith(t));
+  check('A MENU ROW IS ONE HEIGHT: 28 px with a glyph and without one', r.rows.length === 8 && r.rows.every((x) => x.h === 28), JSON.stringify(r.rows.map((x) => x.h)));
+  check('EVERY ROW BEGINS WITH A 16 px SEAT, so every label starts in one column: a glyph (NEW), nothing (A ROW WITH NO PICTURE)',
+    r.rows.every((x) => x.seat && x.sw === 16 && x.lx === r.rows[0].lx) && by('NEW').tag === 'svg' && by('A ROW').none, JSON.stringify(r.rows));
+  check('a check or radio row that is on wears a drawn mark in the seat, one that is off an empty seat; a submenu\'s arrow is drawn; no ✓ • ▸ is typed',
+    by('LOCK').mark && by('LOCK').tag === 'svg' && by('FIRST').mark && !by('LOOSE').mark && by('LOOSE').none && r.arrow && !r.typed, JSON.stringify({ arrow: r.arrow, typed: r.typed }));
+  r = await run(`const m = T.menus.contextMenu({ x: 700, y: 400, entries: [['ONE', () => {}], ['TWO', () => {}, null, '', { icon: 'plus' }], ['THREE', () => [['IN', () => {}]], null, '', { sub: true }]] });
+    const out = $$('.mir-ctx-pane > .mb-item').map((it) => Math.round(box(it).h * 10) / 10); m.close(); return out;`);
+  check('a context menu\'s rows are the same 28 px', r.length === 3 && r.every((h) => h === 28), JSON.stringify(r));
+  await closeAll();
 } finally {
   await p.close();
 }

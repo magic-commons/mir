@@ -1162,7 +1162,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
     const keyText = (spec) => (spec.action && keyOf ? keyOf(spec.action) || '' : '');
     const rows = [...reg.values()].filter((w) => !w.spec.card).map((w) => [(isOpen(w.spec.id) ? '↑  ' : '⊕  ') + w.spec.title + (keyText(w.spec) ? '\t' + keyText(w.spec) : ''),
       () => raise(w.spec.id), false, w.spec.hint || (isOpen(w.spec.id) ? 'bring it to the top of its rack' : 'open it'), w.spec.glyph ? { icon: w.spec.glyph } : undefined]);
-    if (rackRow) rows.push(null, ['HIDE / SHOW the rack' + (rackKey ? '\t' + rackKey : ''), () => setHidden(!isHidden())]);
+    if (rackRow) rows.push(null, ['HIDE / SHOW the rack' + (rackKey ? '\t' + rackKey : ''), () => setHidden(!isHidden()), false, '', { icon: 'eye' }]);
     return rows;
   }
 
