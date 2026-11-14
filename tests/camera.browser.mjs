@@ -117,6 +117,7 @@ try {
   const TIP = D('camera3d') + '.querySelector(".cs-tip")';
   const tipAt = () => J(`const b = ${TIP}.getBoundingClientRect(); return [b.left + b.width / 2, b.top + b.height / 2];`);
   await J(`K.p3.port.set('yaw', 20); K.p3.port.set('pitch', 15); await wait(200); return 1;`);
+  await spot(TIP);                                                                 // the drag scrolls the tip to the centre: both readings are taken there (the page is taller than the view since the clean body, 1.6.0-alpha.36)
   const t0 = await tipAt(), y0 = await get('p3', 'yaw'), pi0 = await get('p3', 'pitch');
   await drag(TIP, 'sphere (the tip)', fine(12, -5.6));                            // 1.5.7-alpha.46 THE ARCBALL: the tip grabbed inside the disc stays under the finger
   const t1 = await tipAt(), y1 = await get('p3', 'yaw'), pi1 = await get('p3', 'pitch');

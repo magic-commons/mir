@@ -86,7 +86,7 @@ try {
   await drag(fx0 + fw * 0.9, fy, fx0 + fw * 0.9, fy); await key('.fd', 'ArrowRight', 'ArrowRight');
   check('fader: disabled ignores the pointer and the keys', await ev(`__T.f.get() === 0.5 && document.querySelector('.fd').getAttribute('aria-disabled') === 'true'`));
   await ev(`__T.f.setDefault(0.9); document.querySelector('.fd').dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))`);
-  check('fader: disabled does not reset on a double-click, and looks disabled', await ev(`__T.f.get() === 0.5 && getComputedStyle(document.querySelector('.fd')).opacity < 1 && getComputedStyle(document.querySelector('.fd')).pointerEvents === 'none'`));
+  check('fader: disabled does not reset on a double-click, and looks disabled', await ev(`__T.f.get() === 0.5 && getComputedStyle(document.querySelector('.fd')).opacity === '0.38' && getComputedStyle(document.querySelector('.fd')).cursor === 'not-allowed'`));   // the one fade; it keeps the pointer for its hint (1.5.6-alpha.8) and refuses the hand
   await ev(`__T.f.setDefault(0.5)`);
   await ev('__T.f.setDisabled(false)');
   check('fader: log with min ≤ 0 warns and stays linear', await ev(`__T.warns.some((w) => /log needs 0 < min < max/.test(w))`));
@@ -175,7 +175,7 @@ try {
       const out = { kids, n: __tool.n, svg: !!b.querySelector('svg') && !b.textContent.trim(), name: b.getAttribute('aria-label'), hint: b.getAttribute('title') || b.dataset.tTitle, tool: b.dataset.tool, folded: d.root.classList.contains('folded'), off: d.off, late: __tool.late.getAttribute('aria-pressed'), disc: getComputedStyle(b).borderRadius };
       d.root.remove(); return JSON.stringify(out); })()`));
     check('device({ tools }) and devTool(): drawn-glyph discs together at the left end before power, in the order added; a real press runs the tool and neither folds nor powers the card',
-      t.kids.join() === 'dev-tool,dev-tool,dev-power,dev-fold,dev-pop,dev-rail,dev-close' && t.n === 1 && t.svg && t.name === 'copy this panel' && t.hint === 'Copy this panel as text' && t.tool === 'copy' && !t.folded && !t.off && t.late === 'true' && at.w === 22 && at.h === 22 && t.disc === '50%', JSON.stringify({ t, at })); }
+      t.kids.join() === 'dev-tool,dev-tool,dev-power,dev-fold,dev-pop,dev-rail,dev-close' && t.n === 1 && t.svg && t.name === 'copy this panel' && t.hint === 'Copy this panel as text' && t.tool === 'copy' && !t.folded && !t.off && t.late === 'true' && at.w === 32 && at.h === 32 && t.disc === '50%', JSON.stringify({ t, at })); }
   check('no page errors', !p.logs.some((l) => /EXCEPTION/.test(l)), p.logs.join(' | '));
 } finally { await p.close(); }
 

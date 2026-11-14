@@ -143,6 +143,8 @@ So a hook that must follow the hand only (λWAVES' ATOMS: "a project restoring t
 - `#rackToggle`, `#rackFav` (`.glass.mir-rack-btn[data-rack-btn]`) and `#rackFavList` (`.mir-rack-list`) — `#rackAdd` and `#rackAddList` are gone in 1.5.5 (the FINDER is the window list);
 - `.mir-rack-handle[data-side]`;
 - each window is a kit `device()` (`.dev`, `.dev-head`, `.dev-body`). A floating one is `.dev.floating` with `--float-w`.
+- THE HEAD SCALE (1.6.0-alpha.35): a card's head is the window's: `--head-h` 38 px, every button one `--head-btn` 32 px seat round one `--head-glyph` 18 px glyph, the ⏻ the size of its neighbours.
+- THE CLEAN BODY (1.6.0-alpha.36): a card's body is 10 px in at the top and bottom and 12 px (`--body-pad-x`) at the sides, times SPACING (`--pad-k`); a group (`.grp`) is its label and its rows with no box, 12 px (`--grp-air`) before the next; a row (`.row`) centres its controls on a line, 8 px apart (`--row-air`), with 6 px of air above and below (`--row-lead`); a trigger shares its row evenly. There is one body: an app's "clean" class over the kit's boxed groups is not needed. MIR OPTIONS' groups (`.gui-grp`) keep their boxes.
 
 It creates these ids only when they are absent, so an app's existing elements are adopted as they are.
 
