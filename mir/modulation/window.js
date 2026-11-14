@@ -33,7 +33,7 @@
  * Kept as they were: every law in modwindow/ACCEPTANCE.md and host-contract.md, the FL curve gestures
  * (curve-gesture.js), Sol's automation / exact resume / runtime capture in host.js and mod.js.
  */
-import { el, svgEl, seg, trig, knob, tapWatcher, gripDots, label, ariaLabel, hint as hintTo, gearOf, watchTouches, wheelTurn, TAP } from '../kit.js';
+import { el, svgEl, seg, trig, knob, tapWatcher, gripDots, label, ariaLabel, hint as hintTo, gearOf, verticalDrag, setKnobLaw, watchTouches, wheelTurn, TAP } from '../kit.js';
 import { bindSliderKeys } from '../slider-keys.js';
 import { contextMenu, knobMenu, knobMenuPart, knobAct } from '../shell/menubar.js';
 import { createModWindow, setDeviceMode, setWorkLane, sizeLaw, GEOM,
@@ -62,10 +62,9 @@ import { createLayoutMotion, wireReorder as reorderEngine } from './layout-motio
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const pct = (u) => (100 * clamp01(u)).toFixed(2) + '%';
 const SVGNS = 'http://www.w3.org/2000/svg';
-/* the house drag ladder, from kit.js's own knob: 220 px is a full scale, 900 with Shift, 320
-   under a finger.  Reused rather than re-chosen so the artifact's dials feel like the lab's.  Shift is 1/8 (1760), as BASINS
-   has it (Josh 09-12: "currently holding shift gives a 1/4 fine tuning, can we make this 1/8?"). */
-const TRAVEL = (e, touch) => (e.shiftKey ? 1760 : touch ? 320 : 220);
+/* 1.6.0-alpha.59 · THE WINDOW'S DIALS READ THE ONE KNOB LAW: the private TRAVEL ladder (220 · 320 · 1760, Shift only) is gone.
+   The ring's depth and every wireSlider surface read kit.js's law (setKnobLaw: the travel, the finger's travel, the fine gear
+   on ANY modifier or a second finger, as the knob), so setKnobLaw({ travel, fine }) reaches them too. */
 const TENSION_PX = 114, GRAB = 20;
 
 /** the controls a macro may route onto: a knob, a fader and a range slider's thumb, each carrying the registry id in data-param */
@@ -665,7 +664,7 @@ export function createModulation(host, port) {
 
   /* THE TEMPO FIELD — the house's one inline BPM editor (shell/transport.js bindTempoField; BASINS tempo-editor.js, shared
      by the modulation and timeline work bars): a click types it (8 characters, decimals; Enter or blur commits, Escape
-     cancels and gives the focus back), a vertical drag turns it (220 px for the whole range, a finger 320, Shift 1760);
+     cancels and gives the focus back), a vertical drag turns it (the knob law's travel and fine gear);
      a drag is not a click. */
   hintTo(transport.tempo, 'Set the modulation clock in beats per minute');
   const tempoField = bindTempoField({ button: transport.tempo, input: transport.tempoIn, drag: true, paint: () => paint(true),
@@ -1323,7 +1322,7 @@ export function createModulation(host, port) {
       const r = editRouteOf(id);
       if (!r) { openPop(id, e.clientX, e.clientY); return; }
       try { hit.setPointerCapture(e.pointerId); } catch (_) {}
-      drag = { r, y0: e.clientY, x0: e.clientX, d0: r.max - r.min, touch: e.pointerType === 'touch' };
+      drag = { r, y0: e.clientY, x0: e.clientX, d0: r.max - r.min, touch: e.pointerType === 'touch', v: verticalDrag(e) };   // the law's accumulator: engaging the gear mid-drag moves nothing
       moved = false;
       rec.host.classList.add('ring-drag');
       hold = setTimeout(() => { hold = 0; if (drag && !moved) { const p = [drag.x0, drag.y0]; endDrag(); openPop(id, p[0], p[1]); } }, TAP.hold);
@@ -1334,7 +1333,7 @@ export function createModulation(host, port) {
       if (!moved && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) <= TAP.slop) return;   // the hold's stillness is the drag's start: TAP.slop
       if (!moved) { moved = true; cancelHold(); }
       /* a rise grows the arc clockwise, as a rise turns the dial — on a reversed dial (`k-rev`, 1.5.7-alpha.12) that is toward the lower values */
-      let d = drag.d0 + (rec.host.classList.contains('k-rev') ? -1 : 1) * (drag.y0 - e.clientY) / TRAVEL(e, drag.touch);
+      let d = drag.d0 + (rec.host.classList.contains('k-rev') ? -1 : 1) * drag.v.move(e);
       d = d < -1 ? -1 : d > 1 ? 1 : d;
       M.setRouteRange(drag.r.id, { min: Math.max(0, -d), max: Math.max(0, d) });
       apply(); paintRings();
@@ -1589,8 +1588,8 @@ export function createModulation(host, port) {
     elm.addEventListener('pointermove', (e) => {
       if (!d || e.pointerId !== d.id) return;
       /* THE ONE KNOB LAW (kit.js): the gear (⅛ on any modifier or a second finger) multiplies the step since the last move, so engaging it
-         moves nothing; the travel is the plain 220 px (320 under a finger) */
-      const span = d.touch ? 320 : 220, g = gearOf(e, d.id);
+         moves nothing; the travel is the law's (220 px, 320 under a finger, unless setKnobLaw retuned it) */
+      const law = setKnobLaw(), span = d.touch ? law.touchTravel : law.travel, g = gearOf(e, d.id);
       d.p += g * (o.axis === 'x' ? e.clientX - d.lx : o.axis === 'y' ? d.ly - e.clientY : (d.ly - e.clientY) + (e.clientX - d.lx)) / span;
       d.lx = e.clientX; d.ly = e.clientY;
       if (!d.moved && Math.abs(e.clientX - d.x) < 3 && Math.abs(e.clientY - d.y) < 3) return;

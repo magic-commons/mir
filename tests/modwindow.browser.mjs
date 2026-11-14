@@ -162,6 +162,22 @@ try {
       await p.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: pt.x, y: pt.y, button: 'left', buttons: 0, clickCount: n }); await sleep(60); }
     const home = await route();
     check('ring: a double press on the arc sends the KNOB home; the route and its depth stay', !!pt && !!before && before.max - before.min !== 0 && !!home && home.min === before.min && home.max === before.max && before.base !== v0 && home.base === v0, JSON.stringify({ pt, v0, before, home }));
+    /* 1.6.0-alpha.59 THE WINDOW'S DIALS READ THE ONE KNOB LAW: the depth by a real drag on the arc — 44 px plain is 44/220 of the scale; with Ctrl
+       held (any modifier, as the knob; Shift alone before) it is an eighth of that; retuned by setKnobLaw, the same drag follows the law */
+    const depthBy = async (mods) => { await run(`const r = M.routeList().find((x) => x.targetId === 'scene.spin'); M.setRouteRange(r.id, { min: 0, max: 0.2 }); mod.apply(); await frames(2); return 1;`);
+      await sleep(TAPGAP); await mouse('mouseMoved', pt.x, pt.y, mods); await mouse('mousePressed', pt.x, pt.y, mods);
+      for (let i = 1; i <= 11; i++) { await mouse('mouseMoved', pt.x, pt.y - 4 * i, mods); await sleep(8); }
+      await mouse('mouseReleased', pt.x, pt.y - 44, mods); await sleep(60);
+      const q = await route(); return q.max - q.min - 0.2; };
+    const TAPGAP = 700;
+    const plain = await depthBy(0), ctrl = await depthBy(2), shift = await depthBy(8);
+    await p.eval(`import('/mir/kit.js').then((k) => { window.__law0 = k.setKnobLaw(); k.setKnobLaw({ travel: 440 }); })`); await sleep(120);
+    const retuned = await depthBy(0);
+    await p.eval(`import('/mir/kit.js').then((k) => k.setKnobLaw({ travel: window.__law0.travel }))`); await sleep(120);
+    const near = (a, b) => Math.abs(a - b) < 0.012;
+    check('ring: the depth drags by the one knob law — 44 px is 0.2 plain, an eighth of it on Ctrl and on Shift, and setKnobLaw({ travel }) reaches it',
+      near(plain, 0.2) && near(ctrl, 0.025) && near(shift, 0.025) && near(retuned, 0.1), JSON.stringify({ plain, ctrl, shift, retuned }));
+    await sleep(TAPGAP);
     await p.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: pt.x, y: pt.y, button: 'right', buttons: 2, clickCount: 1 }); await sleep(30);
     await p.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: pt.x, y: pt.y, button: 'right', buttons: 0, clickCount: 1 }); await sleep(120);
     const gone = await run(`return { route: M.routeList().some((x) => x.targetId === 'scene.spin'), ring: api.rings().includes('scene.spin'), pop: !!document.querySelector('.mir-menu-pane:not([hidden]), .m2pop:not([hidden])') };`);
