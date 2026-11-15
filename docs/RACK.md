@@ -103,7 +103,7 @@ So a hook that must follow the hand only (λWAVES' ATOMS: "a project restoring t
 
 **Menus.**
 - `windowMenu({ rack, rackKey, keyOf })` returns the WINDOW menu's rows in the data shape `createMenubar({ menus })` takes: `[label, run, disabled, hint]`. There is one row per registered window: `↑ NAME` raises an open window and `⊕ NAME` opens a closed one. `rack: true` adds a separator and HIDE / SHOW the rack. `keyOf(action) → text` (1.5.0-alpha.19; `createApp` passes `keys.menuKey`) shows each window's chord from the key table beside its row; a window with no `action`, or no `keyOf`, shows none.
-- `favMenu` is `{ open(), close(), shown }`. The + list is gone (1.5.5): THE FINDER (1.5.7-alpha.67: with the app's own `sections` and search `words`, docs/API.md) (`shell/window-picker.js` `createWindowPicker({ rack })`, [API.md](API.md)) lists every window under a search field and takes the old list's SHIFT queue and ☆. `rack.addMenu` answers as the FINDER once one is made (deprecated; it leaves at the next line).
+- `favMenu` is `{ open(), close(), shown }`. The + list is gone (1.5.5): THE FINDER (1.5.7-alpha.67: with the app's own `sections` and search `words`, docs/API.md) (`shell/window-picker.js` `createWindowPicker({ rack })`, [API.md](API.md)) lists every window under a search field and takes the old list's SHIFT queue and ☆. `rack.addMenu` is gone (the 1.5.5 shim left in 1.6.0-alpha.80).
 - `reveal(id)` (1.5.5) opens a closed window at its rack's top and scrolls the rack up, or scrolls the rack to an open one WITHOUT reordering it (unfolds it, shows the rack, a floating one to the front), and rings the card 900 ms (`.mir-reveal`, `RACK.reveal`). `lastFavourite()` → the ids open in the latest ☆ layout.
 
 **The layout.**
@@ -133,7 +133,7 @@ So a hook that must follow the hand only (λWAVES' ATOMS: "a project restoring t
 - `reorderIndex(boxes, at, center, hyst)`, `insertionIndex(boxes, y)`, `slotRect(col, boxes, index)`, `moveId`;
 - `clampFloat`, `detached`, `peekSide`, `dodgeSeat`;
 - `queueToggle`, `openOrder`, `favSlot`;
-- `readLayout(raw, knownIds, retired)` (keeps `nb`), `closedLayout(windows, { phoneShown })` (the `persist: 'closed'` record), `layoutLabel`, `localStore`, `clampFloatTablet`;
+- `readLayout(raw, knownIds, retired)` (keeps `nb`), `closedLayout(windows, { phoneShown })` (the `persist: 'closed'` record), `layoutLabel`, `clampFloatTablet`;
 - in `rack-scrollbar.js`: `scrollbarSeat`, `thumbOf`, `SCROLLBAR` (node-tested in `tests/rack-leftovers.node.mjs`);
 - `RACK` (the numbers) and `SIDES`.
 

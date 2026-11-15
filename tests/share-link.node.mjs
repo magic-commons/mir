@@ -2,7 +2,8 @@
 /* tests/share-link.node.mjs — shell/share-link.js (pure): the round trip, only-what-differs, typed by the defaults,
  *   and a damaged link is null, never a throw. */
 import assert from 'node:assert/strict';
-import { encodeState, decodeState, inspectLink, measureState, crc32, LINK_CEILING } from '../mir/shell/share-link.js';
+import { encodeState, decodeState, inspectLink, measureState, LINK_CEILING } from '../mir/shell/share-link.js';
+import { crc32 } from '../mir/core/png.js';
 
 let n = 0; const ok = (name, fn) => { fn(); n++; console.log('ok   ' + name); };
 const defaults = { zoom: 1, cx: 0.5, cy: 0.5, mode: 'WAVE', play: true, law: { a: 0.1, b: 2 }, lanes: [1, 2, 3], look: { gamma: 1 } };
@@ -66,5 +67,8 @@ ok('length report: the text, its length against the 2000-character ceiling', () 
   const big = measureState({ words: 'x'.repeat(2100) });
   assert.equal(big.fits, false);
 });
-ok('crc32 is the PNG one', () => { assert.equal(parseInt(crc32('123456789'), 36), 0xcbf43926); });
+ok('the link\'s c= is the kit\'s one CRC-32 (core/png.js) of everything after it, in base 36', () => {
+  const link = encodeState({ a: 1, name: 'ψ' }, { version: 1 }), m = /[?#&]?v=[^&]*&c=([0-9a-z]+)&(.*)$/.exec(link);
+  assert.ok(m, link); assert.equal(m[1], crc32(new TextEncoder().encode(m[2])).toString(36));
+});
 console.log(`share-link: ${n} passed`);

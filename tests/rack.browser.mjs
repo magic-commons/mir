@@ -52,8 +52,8 @@ try {
   const row = (id) => `document.querySelector('.mir-window-picker .wp-row[data-win="${id}"]')`;
   const F = `__T.finder`;
   await run(`${F}.open(); await wait(450); return 0;`);
-  r = await run(`return { shown: ${F}.shown, rows: [...document.querySelectorAll('.mir-window-picker .wp-row')].map((b) => b.dataset.win + (b.hasAttribute('data-open') ? '*' : '')), shim: R.addMenu === ${F} };`);
-  check('FINDER: every window A→Z, the open ones marked, and rack.addMenu answers as the FINDER (the 1.5.5 shim)', r.shown && r.rows.join() === 'camera,display*,mix,notes,scope,tone*' && r.shim, JSON.stringify(r));
+  r = await run(`return { shown: ${F}.shown, rows: [...document.querySelectorAll('.mir-window-picker .wp-row')].map((b) => b.dataset.win + (b.hasAttribute('data-open') ? '*' : '')), shim: 'addMenu' in R };`);
+  check('FINDER: every window A→Z, the open ones marked, and the rack has no addMenu (the 1.5.5 shim left at line 1.6)', r.shown && r.rows.join() === 'camera,display*,mix,notes,scope,tone*' && !r.shim, JSON.stringify(r));
   let h = await click(row('mix'));
   await run(`await settle(); return 0;`);
   r = await run(`return { built: R.built, open: R.isOpen('mix'), order: R.order('right'), shown: ${F}.shown };`);
