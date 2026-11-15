@@ -1467,6 +1467,7 @@ body.frost.frost-hold #modwin.mir-modwindow .m2workbar {
 
 
 #modwin.mir-modwindow .m2pt { fill: var(--acc); stroke: none; }
+#modwin.mir-modwindow .m2pt.ksel, #modwin.mir-modwindow .m2dev.env .m2pt.ksel { stroke: var(--fg); stroke-width: 1.6; }   /* the point the keys hold (1.6.0-alpha.61) */
 #modwin.mir-modwindow .m2dev.env .m2pt { fill: var(--m2-env-ink); stroke: none; }
 /* RETIRED wave 105 — 84's two .m2playdot arms: entry 95 (wave 108's playhead recipe) sets --m2-rule on all three, later. */
 #modwin.mir-modwindow .m2dev.env .m2pt.sel { fill: var(--acc); }                        /* 84 */

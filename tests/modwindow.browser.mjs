@@ -135,6 +135,25 @@ try {
       r.b.fv && r.b.ring === r.acc && r.b.off === '2px' && !r.b.halo && r.chip.fv && r.chip.ring === r.acc && r.chip.off === '2px' && /^2px solid/.test(r.acc), JSON.stringify(r));
   }
 
+  /* ── 3c · 1.6.0-alpha.61 THE CURVE TAKES THE KEYS: the LFO's editor is a Tab stop; + picks a point, an arrow moves it, Shift is fine, Escape lets go ── */
+  {
+    r = await run(`const lfo = M.sourceList().find((s) => s.kind === 'lfo'); M.setSource(lfo.id, { preset: 'tri' }); mod.apply(); await frames(3);
+      const svg = [...win.querySelectorAll('.m2dev.lfo .m2edit svg')].find((n) => n.tabIndex === 0); if (svg) svg.focus();
+      return { stop: !!svg, focused: !!svg && document.activeElement === svg, n: M.sourceOf(lfo.id).points.length };`);
+    const pt = (i) => run(`const s = M.sourceList().find((x) => x.kind === 'lfo'), p = M.sourceOf(s.id).points[${i}]; const c = win.querySelectorAll('.m2dev.lfo .m2pt'); return { t: p.t, v: p.v, sel: [...c].findIndex((n) => n.classList.contains('ksel')) };`);
+    await key('=', 'Equal', 187); await key('=', 'Equal', 187);
+    const a = await pt(1);
+    await key('ArrowDown', 'ArrowDown', 40); const b = await pt(1);
+    await key('ArrowDown', 'ArrowDown', 40, 8); const c = await pt(1);
+    await key('ArrowLeft', 'ArrowLeft', 37); const d = await pt(1);
+    await key('Escape', 'Escape', 27); const e2 = await pt(1);
+    const near = (x, y) => Math.abs(x - y) < 1e-6;
+    check('curve keys: the editor is a Tab stop; + picks point 2, ↓ moves it a hundredth, Shift+↓ an eighth of that, ← moves it in time, Escape lets go',
+      r.stop && r.focused && r.n >= 3 && a.sel === 1 && near(b.v, a.v - 0.01) && near(c.v, b.v - 0.00125) && near(d.t, c.t - 0.01) && d.sel === 1 && e2.sel === -1,
+      JSON.stringify({ r, a, b, c, d, e2 }));
+    await p.eval(`document.activeElement && document.activeElement.blur()`);
+  }
+
   /* ── 4 · a route dragged toward a knob: the nearest routable control glows by distance, captures, and the drop routes ── */
   {
     const grip = await at(`document.querySelectorAll('#modwin .m2grip')[1]`);       // MACRO 2's ✥

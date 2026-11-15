@@ -2475,7 +2475,7 @@ export function createModulation(host, port) {
     ed.gPts.replaceChildren(); ed.gTens.replaceChildren();
     if (pts) {
       for (let i = 0; i < pts.length; i++) {
-        const c = svgEl('circle', 'm2pt', ed.gPts);
+        const c = svgEl('circle', 'm2pt' + (rec.ksel === i ? ' ksel' : ''), ed.gPts);   // ksel: the point the keys hold (1.6.0-alpha.61)
         c.setAttribute('cx', X(pts[i].t).toFixed(2)); c.setAttribute('cy', Y(pts[i].v).toFixed(2)); c.setAttribute('r', '3.4');
       }
       const tens = s.kind === 'env' ? envMapOf(s).tens : null;
@@ -2709,6 +2709,52 @@ export function createModulation(host, port) {
       say(rec, t('tension reset'));
     });
     svg.addEventListener('contextmenu', (e) => e.preventDefault());
+    /* 1.6.0-alpha.61 · THE CURVE TAKES THE KEYS: the CURVES panel's map (panels/curves.js) on this editor, which had no Tab stop.
+       + and − pick a point (round the curve), the arrows move it by a hundredth (Page by a tenth; Shift is the law's fine key),
+       Delete removes it, Escape lets go.  An envelope's point is a stage: ← → write its seconds, ↑ ↓ the sustain on DECAY's. */
+    if (s.kind !== 'audio') {
+      svg.tabIndex = 0; svg.setAttribute('role', 'application'); svg.setAttribute('aria-roledescription', 'curve');
+      svg.setAttribute('aria-keyshortcuts', '+ - ArrowLeft ArrowRight ArrowUp ArrowDown PageUp PageDown Delete Escape');
+      const mark = () => { const c = rec.dev.ed.gPts.children; for (let i = 0; i < c.length; i++) c[i].classList.toggle('ksel', i === rec.ksel); };
+      svg.addEventListener('keydown', (e) => {
+        if (e.ctrlKey || e.metaKey || e.altKey || pid !== null) return;
+        const pts = g.pts, k = e.key;
+        if (!pts || !pts.length) return;
+        const take = () => { e.preventDefault(); e.stopPropagation(); };
+        const sel = Number.isInteger(rec.ksel) && rec.ksel >= 0 && rec.ksel < pts.length ? rec.ksel : -1;
+        if (k === 'Escape') { if (sel < 0) return; rec.ksel = -1; mark(); take(); return; }
+        if (k === '+' || k === '=' || k === '-' || k === '_') {
+          const back = k === '-' || k === '_';
+          rec.ksel = sel < 0 ? (back ? pts.length - 1 : 0) : (sel + (back ? pts.length - 1 : 1)) % pts.length;
+          mark(); take(); return;
+        }
+        if (sel < 0) return;
+        const step = (e.code.startsWith('Page') ? 0.1 : 0.01) * (e.shiftKey ? setKnobLaw().keyFine : 1);
+        const mv = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, step], ArrowDown: [0, -step], PageUp: [0, step], PageDown: [0, -step] }[e.code];
+        if (mv) {
+          take();
+          const p = pts[sel];
+          if (s.kind === 'env') {
+            const ek = envMapOf(s).keys[sel];
+            if (!ek) return;
+            down = { key: ek, t: p.t, v: s[ek] };
+            if (envMove(p.t + mv[0], clamp01(p.v + mv[1]))) syncKnobs(rec);
+          } else {
+            if (!ensureCurve()) return;
+            M.curveEdit(s.id, 'move', { index: sel, t: clamp01(p.t + mv[0]), v: clamp01(p.v + mv[1]) });
+          }
+          apply(); paint(true);
+        } else if (k === 'Delete' || k === 'Backspace') {
+          take();
+          if (s.kind === 'env') { say(rec, t('an envelope has fixed stages — drag a stage to zero instead')); return; }
+          const n0 = s.points.length;
+          M.curveEdit(s.id, 'remove', { index: sel });
+          say(rec, s.points.length < n0 ? t('point removed') : t('a curve keeps at least two points'));
+          if (s.points.length < n0) rec.ksel = Math.min(sel, s.points.length - 1);
+          apply(); paint(true);
+        }
+      });
+    }
     ariaLabel(svg, 'Curve editor: right-drag empty space to add a point; Shift-right-click adds at the current curve value; left-drag a point to move it (Shift is fine, Ctrl locks its time); left-drag a tension handle to bend it (Shift is fine); right-click or double-click a tension handle resets it; Alt-click a point deletes it.');
   }
 
