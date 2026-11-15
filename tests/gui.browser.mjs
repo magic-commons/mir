@@ -253,7 +253,7 @@ try {
   await J(`T.perf.reset(); return 0;`); await sleep(600);
   const still = await J(`return T.perf.snapshot();`);
   check('the glow is THE LIFT: one disc at the pointer, anywhere on the page, that brightens and saturates its backdrop and lays no colour (alpha.60)',
-    !!a.d && a.d.lit && !a.surface && a.d.at === `${L.x - 20}px ${L.y - 20}px` && b.d.at === `${L.x + 25}px ${L.y + 15}px` && c2.d.at === '640px 12px' && c2.d.lit && /brightness\(1\.28\) saturate\(1\.6\)/.test(b.d.bf) && b.d.pe === 'none' && /^none(rgba\(0, 0, 0, 0\))$/.test(b.d.bg) && !/mir-pointer-lift/.test(String(c2.under)), JSON.stringify({ a, b, c2 }));
+    !!a.d && a.d.lit && !a.surface && a.d.at === `${L.x - 20}px ${L.y - 20}px` && b.d.at === `${L.x + 25}px ${L.y + 15}px` && c2.d.at === '640px 12px' && c2.d.lit && /brightness\(1\.6\) saturate\(2\.2\)/.test(b.d.bf) && b.d.pe === 'none' && /^none(rgba\(0, 0, 0, 0\))$/.test(b.d.bg) && !/mir-pointer-lift/.test(String(c2.under)), JSON.stringify({ a, b, c2 }));
   check('a still pointer costs nothing: no write, no read, no frame', still.writes === 0 && still.reads === 0 && still.frames === 0, JSON.stringify(still));
 
   /* ── off rules: reduced motion, the flat tier ── */

@@ -166,10 +166,10 @@ const RUN = await (async () => {
     // the ⋯ button still opens the clip menu
     const more = page.locator(`.tl-clip-title[data-clip="${ids.a}"] .tl-clip-more`);
     await more.click();
-    L.ck(await page.locator('.tl-pop').count() === 1, 'the ⋯ button still opens the clip menu', await page.locator('.tl-pop').count());
+    L.ck(await page.locator('.mir-ctx-pane[data-pop="clip"]').count() === 1, 'the ⋯ button still opens the clip menu', await page.locator('.mir-ctx-pane').count());
     // OUTPUT RANGE is the kit's number fields, never a native type=number (Josh, 2026-10-07, call 19): ↑ on MIN, APPLY → +0.01
     const minBefore = await page.evaluate(id => { const m = window.__TL.tl.editor.model, c = m.state().clips.find(x => x.id === id); return m.state().curves.find(cc => cc.id === c.curveId).min; }, ids.a);
-    await page.locator('.tl-pop [data-row="output-range"]').click(); await page.waitForTimeout(40);
+    await page.locator('.mir-ctx [data-id="output-range"]').click(); await page.waitForTimeout(40);
     const range = await page.evaluate(() => { const p = document.querySelector('.tl-pop[data-pop="range"]'); return p && { nums: p.querySelectorAll('.mir-num [role="spinbutton"]').length,
       natives: document.querySelectorAll('.mir-timeline select, .mir-timeline input[type="number"], .tl-pop select, .tl-pop input[type="number"]').length, faces: [...p.querySelectorAll('.mir-num-face')].map((f) => f.textContent) }; });
     L.ck(range && range.nums === 2 && range.natives === 0, 'OUTPUT RANGE: two kit number fields; no native select or number input in the timeline or its popups', range);
@@ -227,6 +227,24 @@ const RUN = await (async () => {
     await page.waitForTimeout(80);
     const microClass = await page.evaluate(id => document.querySelector(`.tl-clip-title[data-clip="${id}"]`).className, microBox);
     L.ck(/\bmicro\b/.test(microClass), 'a very short clip keeps the micro cap shoulders', microClass);
+
+    const bars = await page.evaluate(() => { const i = document.body.appendChild(document.createElement('i')); i.style.color = 'var(--acc)'; const acc = getComputedStyle(i).color; i.remove(); const s = getComputedStyle(document.querySelector('.mir-timeline .tl-viewport')); return { acc, bar: s.scrollbarWidth + ' | ' + s.scrollbarColor }; });
+    L.ck(bars.bar === 'thin | ' + bars.acc + ' rgba(0, 0, 0, 0)', 'the lanes\' scroller wears the one scrollbar: thin, the thumb in accent A, no groove (alpha.68)', bars);
+    /* 1.6.0-alpha.67 ESCAPE IS THE ONE STACK'S: with an app's stack handed in (setMenuEscape) and a layer of the app's own under the timeline, Escape
+       during a clip's drag ends the drag and nothing else; with THE MODE MENU open it closes the menu and nothing else; the next Escape reaches the app's layer */
+    await page.evaluate(async () => { const M = await import('/mir/shell/menubar.js'); const S = window.__ESC = { layers: [], under: 0 };
+      M.setMenuEscape((close) => { S.layers.push(close); return () => { const i = S.layers.indexOf(close); if (i >= 0) S.layers.splice(i, 1); }; });
+      window.addEventListener('keydown', (e) => { if (e.code !== 'Escape' || e.defaultPrevented || !S.layers.length) return; e.preventDefault(); S.layers.pop()(); });
+      S.layers.push(() => { S.under++; }); return 0; });
+    const escWas = (await page.evaluate((id) => JSON.stringify(window.__TL.model.state().clips.find((c) => c.id === id)), microBox)); const escTab = await page.locator(`.tl-clip-title[data-clip="${microBox}"]`).boundingBox();
+    const escAt = () => page.evaluate((id) => ({ start: JSON.stringify(window.__TL.model.state().clips.find((c) => c.id === id)), gesture: window.__TL.tl.editor.gesture()?.kind || null, under: window.__ESC.under, layers: window.__ESC.layers.length, pane: document.querySelectorAll('.tl-pop').length }), microBox);
+    await page.mouse.move(escTab.x + 4, escTab.y + 9); await page.mouse.down(); await page.mouse.move(escTab.x + 64, escTab.y + 9, { steps: 4 }); await page.waitForTimeout(60);
+    const escMid = await escAt(); await page.keyboard.press('Escape'); await page.waitForTimeout(60); const escDrag = await escAt(); await page.mouse.up(); await page.waitForTimeout(40);
+    L.ck(escMid.gesture && escMid.start !== escWas && escMid.layers === 2 && escDrag.gesture === null && escDrag.start === escWas && escDrag.under === 0 && escDrag.layers === 1, 'Escape during a drag ends the drag (the clip is back) and closes nothing under it (alpha.67)', { escMid, escDrag });
+    await page.evaluate(() => { window.__TL.tl.editor.openModes(400, 300); return 0; }); await page.waitForTimeout(60);
+    const escOpen = await escAt(); await page.keyboard.press('Escape'); await page.waitForTimeout(60); const escMenu = await escAt(); await page.keyboard.press('Escape'); await page.waitForTimeout(60); const escLast = await escAt();
+    L.ck(escOpen.pane === 1 && escOpen.layers === 2 && escMenu.pane === 0 && escMenu.under === 0 && escLast.under === 1, 'Escape with THE MODE MENU open closes the menu alone; the next Escape is the app\'s layer\'s (alpha.67)', { escOpen, escMenu, escLast });
+    await page.evaluate(async () => { (await import('/mir/shell/menubar.js')).setMenuEscape(null); return 0; });
 
     await page.screenshot({ path: `${SHOT}/timeline-fixes-${name}.png` });
     L.ck(errors().length === 0, 'no page errors', errors());

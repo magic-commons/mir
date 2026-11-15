@@ -414,6 +414,11 @@ try {
   r = await run(`T.perf.reset(); const raf0 = window.__rafCalls; await wait(500); return { snap: T.perf.snapshot(), rafs: window.__rafCalls - raf0, state: T.frame.state() };`);
   check('idle: two open windows, a docked one and a span observer book no rAF and no timer over 500 ms', r.rafs === 0 && !r.state.scheduled && r.state.pending === 0, JSON.stringify({ rafs: r.rafs, state: r.state }));
   check('idle: __MIR.perf counts zero writes, reads and frames over 500 ms', r.snap.writes === 0 && r.snap.reads === 0 && r.snap.frames === 0, JSON.stringify(r.snap));
+  /* 1.6.0-alpha.63 THE RAIL CHIP'S SIZE IS WRITTEN ONCE: --rail-chip is 62 by default and one write moves a kit rail's chip */
+  r = await run(`const c = A.rail.chip('bars'), w = () => Math.round(c.getBoundingClientRect().width * 10) / 10, root = document.documentElement;
+    const d = w(); root.style.setProperty('--rail-chip', '52px'); await wait(30); const small = w(); root.style.removeProperty('--rail-chip'); await wait(30);
+    return { d, small, back: w(), token: getComputedStyle(root).getPropertyValue('--rail-chip').trim() };`);
+  check('rail chip: its square is --rail-chip (62 by default); written once on the root, a kit rail\'s chip follows (52) and comes back', r.d === 62 && r.small === 52 && r.back === 62 && r.token === '62px', JSON.stringify(r));
   check('the page raised no exception', p.logs.filter((l) => l.startsWith('EXCEPTION')).length === 0, p.logs.join(' | '));
 } finally {
   await p.close();

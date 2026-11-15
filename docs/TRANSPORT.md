@@ -15,14 +15,14 @@ Load `mir/shell/transport.css` after the kit's sheets, `mir/core/core.css` and `
 ## Using it
 
 ```js
-import { createTransport, firstRun, rackOpeners, transportActions, BASINS_LAYOUT, LAMBDAWAVES_LAYOUT } from './mir/shell/transport.js';
+import { createTransport, firstRun, rackOpeners, transportActions, BASIC_LAYOUT, CONTROL_SURFACE_LAYOUT } from './mir/shell/transport.js';
 
 const first = firstRun('myapp.transport', 'myapp.rack');          // a first run: leave every window closed
 let tr = null, rack = null;
 const keys = createKeys({ actions: [...transportActions(() => tr), /* … */] });   // Space: the one play
 
 tr = createTransport({
-  layout: BASINS_LAYOUT,                    // or the app's own list (below)
+  layout: BASIC_LAYOUT,                     // or the app's own list (below)
   clock: timeline.clock,                    // THE ONE PLAY's clock: the timeline's, or the app's main clock
   mod,                                      // installModulation's result: the power button, the door, the panel's clock tiles
   keys, rack: () => rack, key: 'myapp.transport',
@@ -49,18 +49,24 @@ createFolders({ …, onMoved: (r) => tr.moved(r) });               // every floa
 | — | the way back under H (always the bar's last child) | `wayBack({ run })` |
 
 ```js
-BASINS_LAYOUT      = [{ group: 'native-play-row', items: ['play', 'power', 'tempo', 'rewind'] }, 'panel', 'openers', 'seat', 'dock', 'door'];   // name 'basins'
-LAMBDAWAVES_LAYOUT = [{ group: 'native-play-row', items: ['play', 'power', 'rewind', 'app:back', 'app:forward', 'app:scrub', 'app:jump',
-                       'app:time', 'app:period', 'app:rate', 'tempo'] }, 'panel', 'openers', 'seat', 'dock', 'door'];   // name 'lambdawaves'
+BASIC_LAYOUT           = [{ group: 'native-play-row', items: ['play', 'power', 'tempo', 'rewind'] }, 'panel', 'openers', 'seat', 'dock', 'door'];   // name 'basic'
+CONTROL_SURFACE_LAYOUT = [{ group: 'csb-play', items: ['play'] },                                                                              // name 'csb'
+  { group: 'csb-side csb-left', items: [{ group: 'csb-col csb-tempo', items: ['app:rate', 'tempo'] }, { group: 'csb-col csb-mod', items: ['power', 'expand'] },
+    { group: 'csb-ico', items: ['app:begin', 'app:home', 'openers', 'door'] }] },
+  { group: 'csb-mid', items: ['app:chooser', { group: 'csb-row csb-lib', items: ['app:modes', 'app:folders'] }] },
+  { group: 'csb-side csb-right csb-ico', items: ['app:search', 'app:finder', 'app:fav', 'app:rack', 'app:gear', 'app:nodes', 'app:info', 'app:theme', 'app:folds', 'dock'] },
+  'panel'];
 ```
 
-**Each layout keeps its own drawing.** A layout's `name` is written on the bar as `data-layout`. BASINS' drawing is the default, so an app's own list (BASINS passes one with its depth readout after the pill) is drawn as BASINS' is: the bar is as wide as its row (BASINS measured 359 px), the pill sits where the list puts it (after the power button), and the docked card is TWO ROWS on one five-column grid (W20, Josh 2026-10-06: *"make that transport 2 rows in the rack window. Move the dock and MIR logo button to the right of the back button, then have the BPM to the bottom left, and depth reader the right"*): row 1 play, power, to-start (the back button), the dock chip, the MIR door; row 2 the BPM pill at the left (columns 1–3) and the app's readout seat at the right (columns 4–5); the tempo panel opens under row 2, then the latches and the seat button when the layout has them. The readout seat is the layout's `app:` node: the bar marks each one `data-tr-app="<name>"` (BASINS' `app:depth`, its 10ⁿ reader); with none, the pill takes the whole row. Every part keeps a fixed cell, so a part a layout leaves out leaves its cell empty and nothing moves (the round seats 34 px with the `--r-md` corner; to-start's ring the hairline). `data-layout="lambdawaves"` keeps λWAVES' drawing: the 640 px bar (`--xport-w`), the pill last in its row (`order: 8`), the docked row wrapping, 13 px dock and door glyphs and its pill ink.
+**Each layout keeps its own drawing.** A layout's `name` is written on the bar as `data-layout`. The basic drawing is the default, so an app's own list is drawn as the basic bar is: the bar is as wide as its row (BASINS measured 359 px), the pill sits where the list puts it (after the power button), and the docked card is TWO ROWS on one five-column grid (W20, Josh 2026-10-06: *"make that transport 2 rows in the rack window. Move the dock and MIR logo button to the right of the back button, then have the BPM to the bottom left, and depth reader the right"*): row 1 play, power, to-start (the back button), the dock chip, the MIR door; row 2 the BPM pill at the left (columns 1–3) and the app's readout seat at the right (columns 4–5); the tempo panel opens under row 2, then the latches and the seat button when the layout has them. The readout seat is the layout's `app:` node: the bar marks each one `data-tr-app="<name>"` (BASINS' `app:depth`, its 10ⁿ reader); with none, the pill takes the whole row. Every part keeps a fixed cell, so a part a layout leaves out leaves its cell empty and nothing moves (the round seats 36 px with the `--r-md` corner; to-start's ring the hairline).
+
+**THE CONTROL SURFACE** (`data-layout="csb"`, 1.6.0-alpha.69) is the bar λWAVES grew from 018 to 041, now the kit's: PLAY floats outside the bar's left edge; the two side tracks are equal (`--csb-side`), so the middle is dead centre, with a thin stroke in each gap; in a rack card it is one seven-column grid. Its seat is the house's bar seat — `--csb-seat` 36 px, `--csb-glyph` 20 px, `--csb-gap` 4 px apart, flat until hovered, lit = the accent as ink, never a fill. An app's own node wears the seat by being a button in a `.csb-ico` group; a name the app does not hand in is left out. (The 014 three-column list this name held, and `LAMBDAWAVES_LAYOUT` with its `data-layout="lambdawaves"` drawing, are gone: no app read them. `BASINS_LAYOUT` is `BASIC_LAYOUT`.)
 
 λWAVES passes its own step buttons, scrub fader, ⟳ jump, readouts and RATE knob as `nodes` (they are the app's instruments). The gallery builds them from kit widgets on its own clock.
 
 ## The API, as built
 
-**`createTransport(options)`** — `layout` (default `BASINS_LAYOUT`), `nodes`, `clock`, `mod`, `model` (`mir/modulation/mod.js`), `setBpm`, `persist`, `openers` (array or function), `rack` (or `() => rack`), `keys`, `store` / `key` (the seat), `opener` (default `true`), `onRefused`, `onInterface`, `host`, `root` (an element to adopt, e.g. BASINS' `#transport`), `id`, `bar` (`'float'` | `'work'`), `door` (`'palette'`, the default, BASINS' palette diamond; or `'mark'`, λWAVES' nine squares the accent paints), `onSwitch` (in a work bar the door switches workspace), `macros` (`false` leaves the macro rail out of the tempo panel).
+**`createTransport(options)`** — `layout` (default `BASIC_LAYOUT`), `nodes`, `clock`, `mod`, `model` (`mir/modulation/mod.js`), `setBpm`, `persist`, `openers` (array or function), `rack` (or `() => rack`), `keys`, `store` / `key` (the seat), `opener` (default `true`), `onRefused`, `onInterface`, `host`, `root` (an element to adopt, e.g. BASINS' `#transport`), `id`, `bar` (`'float'` | `'work'`), `door` (`'palette'`, the default, BASINS' palette diamond; or `'mark'`, λWAVES' nine squares the accent paints), `onSwitch` (in a work bar the door switches workspace), `macros` (`false` leaves the macro rail out of the tempo panel).
 
 It returns `{ root, layout, parts, el: { play, power, door, pill, field, panel, seat, dock, back, menu, openers }, toggle(), play(), pause(), setBpm(v), bpm, edit(), moved(rect | null), setSeat(seat), seat, dock(on), docked, mountIn(host | null), placement, closed, tempoPanel(show), seatMenu(show), sync(), refresh(), start(), destroy() }`. `destroy()` leaves an adopted root empty, so the app can build another layout on it (the gallery's switch does).
 
@@ -110,11 +116,11 @@ The door to the modulation window is MIR's official diamond (`wordmark.js create
 |---|---|
 | The bar on the stage: `#transport.mini`, 46 px tall, 60 px up from the bottom, centred, as wide as its row (λWAVES' layout: at least 640 px), 2 px gaps | BASINS' (1.5.0-alpha.15: BASINS basins.css; the 640 px is λWAVES') |
 | **Docked** in the rack's TRANSPORT window: clear (no fill in any CARD STYLE: the card is the pane), two rows on a five-column grid (play, power, to-start, dock, door · the pill left, the app's readout right), play 34 px high, to-start's ring the hairline | BASINS' grid (skin.css 477–500, basins.css); the two rows are Josh's (W20, 2026-10-06) |
-| The round seats: 34 px, flat, `--ink-key`; hover is a lighter face and `--fg` | BASINS' |
+| The round seats: 36 px (the house's bar seat, 1.6.0-alpha.69; they were 34), flat, `--ink-key`; hover is a lighter face and `--fg` | BASINS' |
 | **Play**: no face and no ring; its glyph is 32 px (`--xport-play-size`, was 20) in a 40 × 40 seat (the glyph + 8); its ink lights in accent A while playing; the glyph swaps ▶ / ❚❚ and scales 1.08 on hover, .94 when pressed; `aria-label` "Play or pause" | BASINS' (ui-fixes 10, Josh 2026-10-01: "way bigger and still have no background") |
 | **Play is the only thing that starts or stops time** | ruled by Josh 2026-10-01 |
 | **Modulation's power**: the ring-and-stem glyph in a 44 px seat; off, the ring opens and dims; on, it closes and lights in accent B with its halo; a press is `mod.arm(!mod.armed())`, BASINS' `toggleModulation` | BASINS' (and ruled by Josh 2026-10-01: a power button, not a play) |
-| **The door** to the modulation window: the MIR mark in a 34 px round seat with a hairline (`.mod-exp.mod-logo`) | BASINS' / λWAVES' |
+| **The door** to the modulation window: the MIR mark in a 36 px round seat with a hairline (`.mod-exp.mod-logo`) | BASINS' / λWAVES' |
 | **The BPM pill**: sized to its number, at least 72 px (about 92 px at 30.0), after the power button, in `--ink-key` (.86 under white text), no row gap between BPM and Hz; the number in accent B at 18 px (`--xport-num-size`, was 12), BPM and the Hz reading 8 px (was 7), the chevron, a hairline that warms to accent B on hover and when the panel is open. The digit under the pointer is read from the number's own glyph boxes, so the drag and the wheel follow the size | BASINS' (ui-fixes 9, Josh 2026-10-01: "increase the size of the BPM thingy") |
 | The pill's drag (the digit under the pointer is the step; 9 px a step, a finger 14 px in ones), its wheel (1 BPM a notch, Shift a tenth; since 1.6.0-alpha.3 THE WHEEL WAITS FOR A CLICK only once the pill was pressed and while it holds the focus, otherwise the wheel is the page's; where a click types the tempo, the open focused field takes the wheel and shows the stepped number), its keys (↑ → up, ↓ ← down, Shift a tenth, PageUp/PageDown ten) | BASINS' |
 | A click on the pill opens the **tempo panel**: TAP, WALL / FREE, the cadence, ÷2 ×2 ×4 (hold to bend, tap to latch), HOLD ¼, HOLD 1 | BASINS' (λWAVES has the same panel) |
@@ -122,9 +128,9 @@ The door to the modulation window is MIR's official diamond (`wordmark.js create
 | **The resting pill stands proud** (its own face and the raised relief), not a well | ruled by Josh 2026-10-01 (INTENT: BASINS' rested in a well and read as already pressed) |
 | A double click on the pill types the tempo, in a well in the pill's seat (Enter or leaving takes it, Escape does not) | the kit's (BASINS types the tempo only in its timeline form) |
 | **The dock chip** (`.dock-btn`, the dock glyph, 12 px as is the door's: `--xport-glyph`; λWAVES' 13): the bar goes into a rack window named TRANSPORT and back | BASINS' / λWAVES' |
-| **To-start** (`.transport-home`) is one of the round seats: 34 px with the dock chip's and the door's hairline ring | BASINS' (ui-fixes 11, Josh 2026-10-01) |
+| **To-start** (`.transport-home`) is one of the round seats: 36 px with the dock chip's and the door's hairline ring | BASINS' (ui-fixes 11, Josh 2026-10-01) |
 | The dock chip, the door and to-start wear no pane shadow | ruled (INTENT: a button never wears a pane's float; BASINS gave them `--glass-shadow`) |
-| **In a work bar** (`bar: 'work'`): to-start, send-to-rack and the logo take the bar's button face (`.trig`) in a 34 × 34, radius-8 box; the pill is 34 px tall; the transport is 52 px tall with 3 px padding | BASINS' (ui-fixes 8 and 11, Josh 2026-10-01: "match the button style and size of the right work bar") |
+| **In a work bar** (`bar: 'work'`): to-start, send-to-rack and the logo take the bar's button face (`.trig`) in a 36 × 36, radius-8 box; the pill is 36 px tall and its tempo wears THE CONTROL SURFACE's type (12 px over a 7 px unit, 1.6.0-alpha.69); the transport is 52 px tall with 3 px padding | BASINS' (ui-fixes 8 and 11, Josh 2026-10-01: "match the button style and size of the right work bar") |
 | The dodge: the bottom seat unless a floating window covers it, then the top | BASINS' / λWAVES' (the rack's `dodge`). The rect a window reports carries `left, top, right, bottom, width, height` (a DOMRect's fields: `window.js` `onMoved` and the modulation window's `moved` since W20; BASINS' shell kept a report only when it had `right`, so the bar never dodged MODULATION there). The rack keeps the bar's size only when it read it on the stage at rest (not docked, not in a work bar, its panel shut) |
 | **λWAVES' bar**: play, power, rewind, ‹ ›, the scrub as a thin line, ⟳, the stacked readouts, the small RATE knob, the pill, then dock and door | λWAVES' (lab/rack.js §25, skin.css §12), with its MOD word replaced by the power button (ruled) |
 | **The window latches** (a glyph and a word; lit with the frost face and the label in accent A; a press toggles the window) | ruled by Josh 2026-10-01 (the kit's) |

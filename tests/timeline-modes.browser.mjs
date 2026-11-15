@@ -34,7 +34,7 @@ const RUN = await (async () => {
     L.ck(pop && pop.menu.join() === 'menu-edit,menu-select,menu-zoom,menu-snap,menu-scope,step,slide,active,add-audio,shortcuts' && pop.spare > 24, 'MENU holds the window\'s menus and switches, and empty space below them', pop && { menu: pop.menu, spare: pop.spare });
     L.ck(pop && pop.help.join() === 'PENCIL,PAINT,PAINT ADD,DELETE,MUTE,SLICE,SELECT,ZOOM,PREVIEW', 'every mode row is hinted by its word', pop && pop.help);
     await page.locator('.tl-pop[data-pop="modes"] [data-row="menu-snap"]').click(); await wait();
-    const snapList = await E(() => [...document.querySelectorAll('.tl-pop[data-pop="menu-snap"] [data-row]')].map((b) => b.dataset.row + (b.classList.contains('on') ? '*' : '')));
+    const snapList = await E(() => [...document.querySelectorAll('.mir-ctx-pane[data-pop="menu-snap"] [data-id]')].map((b) => b.dataset.id + (b.getAttribute('aria-checked') === 'true' ? '*' : '')));
     L.ck(snapList.join() === 'snap-4,snap-1*,snap-0.5,snap-0.25,snap-0', 'a MENU row opens its list in the menu\'s place (SNAP: the five grids, the one in force lit)', snapList);
     await page.keyboard.press('Escape'); await wait();
     await page.locator('.tl-toolbar [data-mode="modes"]').click(); await wait();

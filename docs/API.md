@@ -390,14 +390,14 @@ A vanilla theme is a named set of the built-in settings and nothing else; its to
 
 The kit gives the parts and the look; the layout is the app's (BASINS' design, λWAVES' arrangement from the same parts).
 
-- `createTransport({ layout = BASINS_LAYOUT, bar = 'float' | 'work', nodes, clock, mod, model, setBpm, persist, openers, rack, keys, store, key = 'mir.transport', opener = true, onRefused, onInterface, host, root, id = 'transport' })`
+- `createTransport({ layout = BASIC_LAYOUT, bar = 'float' | 'work', nodes, clock, mod, model, setBpm, persist, openers, rack, keys, store, key = 'mir.transport', opener = true, onRefused, onInterface, host, root, id = 'transport' })`
   → `{ root, layout, parts, el: { play, power, door, pill, field, panel, seat, dock, back, menu, openers }, toggle(), play(), pause(), setBpm(v), bpm, edit(), moved(rect | null), setSeat(seat), seat, dock(on), docked, seatMenu(show), sync(), refresh(), start(), destroy() }`
   - `layout`: an array of part names (`play`, `power`, `door`, `tempo`, `panel`, `tap`, `rewind`, `openers`, `seat`, `dock`), `app:<name>` (from `nodes`), DOM nodes and `{ group, items }`.
   - `clock`: the ONE play's clock `{ play(), pause(), isPlaying(), toggle?(), onChange?(fn), seek?(beat) }`; `mod`: `installModulation`'s result (modulation is a power button, never a second play). `model` is `mir/modulation/mod.js` (`BPM_DEFAULT` 30).
   - `openers`: `[{ id, label, glyph?, key?, action?, hint?, open(), close?(), toggle?(), isOpen }]` or a function returning it. Seats BOTTOM / TOP / COMPACT; TOP uses the rack's `setHome(seat)`.
 - Parts (each `→ { root, sync(), destroy() }`, with a `signal`): `playButton({ clock, onRefused })`, `modPower({ mod })`, `modDoor({ mod })`, `tempoPill({ tempo, panel })`, `tempoPanel({ tempo, mod })`, `tapButton({ tempo })`, `barButton({ cls, glyph, svg, text, label, title, run })`, `latch(opener)`, `wayBack({ run })`; `createTempo({ model, setBpm, mod, persist })` → `{ get, set, commit, min, max, onChange }`.
-- `BASINS_LAYOUT`, `LAMBDAWAVES_LAYOUT`, `layoutNames(layout)`, `SVG_REWIND`, `DOCK_ID`. `bar: 'work'` is the transport inside a work bar (BASINS' timeline-mounted form: 52 px tall, its seats the bar's button face); `BARS`, `BAR_SEATS`.
-- **Each layout keeps its own drawing (1.5.0-alpha.15).** `BASINS_LAYOUT` = `[{ group: 'native-play-row', items: ['play', 'power', 'tempo', 'rewind'] }, 'panel', 'openers', 'seat', 'dock', 'door']`, `name: 'basins'`; `LAMBDAWAVES_LAYOUT`: unchanged items, `name: 'lambdawaves'`. `createTransport({ layout })` writes `data-layout="<layout.name>"` on the bar when the layout has a name. λWAVES' has its own drawing (the 640 px bar, the pill last, the wrapping docked row, 13 px glyphs); any other layout, an app's own list included, is drawn as BASINS' is (the bar as wide as its row, the five-column docked grid, 12 px glyphs: `--xport-glyph`).
+- `BASIC_LAYOUT`, `CONTROL_SURFACE_LAYOUT`, `layoutNames(layout)`, `SVG_REWIND`, `DOCK_ID`. `bar: 'work'` is the transport inside a work bar (BASINS' timeline-mounted form: 52 px tall, its seats the bar's button face); `BARS`, `BAR_SEATS`.
+- **Each layout keeps its own drawing (1.5.0-alpha.15; 1.6.0-alpha.69).** `BASIC_LAYOUT` = `[{ group: 'native-play-row', items: ['play', 'power', 'tempo', 'rewind'] }, 'panel', 'openers', 'seat', 'dock', 'door']`, `name: 'basic'` (it was `BASINS_LAYOUT`, `'basins'`); `CONTROL_SURFACE_LAYOUT`, `name: 'csb'`, `title: 'CONTROL SURFACE'`, is the bar λWAVES uses (play alone; rate over the pill, power over EXPAND, a 2 × 2 of seats; the chooser over a row; a five-wide grid of seats; the panel — docs/TRANSPORT.md has the list), drawn by `transport.css` with the house's bar seat (36 px, a 20 px glyph, 4 px apart, lit = accent ink). `LAMBDAWAVES_LAYOUT` and its drawing are gone. The bar writes `data-layout=<name>`; an app's own list is drawn as the basic bar is.
 - **The docked card is two rows (1.5.0-alpha.21).** Docked in the rack's TRANSPORT window, BASINS' drawing is one five-column grid: row 1 play, power, to-start, the dock chip, the MIR door; row 2 the BPM pill at the left (columns 1–3) and the app's readout seat at the right (columns 4–5); the tempo panel opens under row 2. The bar marks each `app:<name>` node it builds `data-tr-app="<name>"`; that node is the readout seat (BASINS' `app:depth`); with none, the pill takes the whole row. Every part keeps a fixed cell. An app's own docked rules must not set a `grid-area` on its readout: the kit seats it ([TRANSPORT.md](TRANSPORT.md), [ADOPTING-1.5.md](ADOPTING-1.5.md) §12).
 - `firstRun(...stores)`, `rackOpeners(rack, { only, glyphs })`, `transportActions(get)` (Space: the one play; the row has `overControls: true`, so Space plays over a focused button, latch or knob), `PLAY_ACTION` (`'transport.play'`).
 - Pure: `formatBpm`, `clampBpm`, `digitStep`, `charAt`, `dragBpm`, `keyStep`, `parseBpm`, `seatOf`, `homeOf`, `seatRect`, `menuSide`, `localSeatStore`, `menuRow`, `openerRows`, `isOpenOf`, `toggleOf`; `TRANSPORT`, `SEATS`.
@@ -688,7 +688,7 @@ The modulation window `installModulation` mounts joins the kit's one window stac
 | **Presets** | `presetList, presetFolders, presetGet, presetApply, presetSave, presetDelete, presetStoreReload, presetStoreState, FACTORY_PRESETS, PRESET_LS, PRESET_FORMAT_V, PRESET_NAME_MAX, PRESET_FOLDER_DEFAULT, PRESET_FOLDER_FACTORY, PRESET_FOLDER_MAX` |
 
 About the preset store:
-- **The key and folders** are λWAVES' (`lambdawaves.q0.modpresets`; `Josh's Collection`, factory `MANDELBROT`), and every reader shares them (each app has its own origin).
+- **The key and folders**: the default key is the kit's, `mir.modpresets` (1.6.0-alpha.58; it was `lambdawaves.q0.modpresets`: an app whose users saved under it passes that string as `presetKey`). The user's folder is `Josh's Collection` (shown as MY PRESETS); the reserved factory folder is `FACTORY` (it was `MANDELBROT`).
 - **Not injectable yet.** Making them options is a `mod.js` edit. The kit's `mod.js` is no longer byte-identical to λWAVES' copy (it had drifted before 1.5.0-alpha.18, which also removed six exports nothing read).
 
 ### `host.js`: the host a window talks to
@@ -711,11 +711,7 @@ owners. `clock.isRealtimeSuspended()` reports this gate. Clients must release on
 pointer end/cancel, blur, close, project replacement and disposal; recording clients
 must reject interactive ownership before taking over the clock.
 
-The remaining exports are **λWAVES content that still lives in the kit**:
-- `labParameters`, `LAB_PRESET_FOLDER`, `LAB_PRESETS`, `presetRouteTargets`, `foreignPresets`, `labPresetList`, `labPresetGet`, `labPresetApply`;
-- `barTempo`.
-
-They go home to λWAVES when the kit drops its λWAVES leftovers (2.0.0).
+`barTempo({ T, rate } | { seconds }, …)` → the tempo at which one bar is one period (it says when it had to clamp). The kit holds no app's catalogue: λWAVES' `labParameters`, `LAB_PRESETS`, `LAB_PRESET_FOLDER`, `labPresetList`, `labPresetGet`, `labPresetApply`, `foreignPresets` and `presetRouteTargets` left in 1.6.0-alpha.57 (an app's targets and presets come through its port; `bundledPresets` is the door for an app's own starters).
 
 ### `modwindow/modwindow.js`: the window's builders
 
@@ -725,7 +721,7 @@ Since 1.5.0-alpha.13 the window draws through the house's one icon library (`gly
 
 | Export | What it is |
 |---|---|
-| `createModWindow(host)` | The whole window, built and not wired: `root.modwindow` holds `rack, foot, transport, addMacro, addDevice, buildRing, buildSpan, buildClear, buildGhost, buildDevicePick, buildMacroPick, buildPresetSheet, buildDeadInspector` |
+| `createModWindow(host)` | The whole window, built and not wired: `root.modwindow` holds `rack, foot, transport, addMacro, addDevice, buildRing, buildSpan, buildClear, buildGhost, buildPresetSheet, buildDeadInspector` |
 | `buildChipRail`, `buildMacroSlot`, `buildDevice`, `setDeviceMode`, `buildAudioSheet`, `buildRing`, `buildSpan`, `buildClear` | The sub-builders |
 | `setViewHeight`, `setWorkLane` | Sizing the rack view and the work lane |
 | `ringGeom`, `knobArc` | Ring and arc geometry |
@@ -831,7 +827,7 @@ mir/pattern/sequencer.js
   slice(ids, beat), tool(), setTool(name), gesture(), paintHead(), selected(), selection() → { clips, points }, workLane(),
   setWorkLane(lane), snap(), setSnap(beats), scope(), folded(), keysLive(), locate(targetId), addLane(), removeLane(), close(),
   dispose() }`. `act` is the key table's verbs. `SNAPS`, `TOOLS`, `SWATCHES`.
-  - **One line, always** (1.5.0-alpha.19). The work bar never wraps: the tools that do not fit fold from its END (ACTIVE, SLIDE, STEP, SNAP, scope, SLICE, SCRUB, SELECT, EDIT, last first) behind ⋯ (the `more` glyph, a trigger with no lamp, always on the bar so it never moves); one `ResizeObserver`, no timer; a tool comes back only with 6 px to spare. A folded tool is a row of the editor's `tl-pop` list (its icon and word, its pressed state; SNAP and scope open their choices) and keeps its key. `folded()` → how many tools are behind ⋯ (for gates).
+  - **One line, always** (1.5.0-alpha.19). The work bar never wraps: the tools that do not fit fold from its END (ACTIVE, SLIDE, STEP, SNAP, scope, SLICE, SCRUB, SELECT, EDIT, last first) behind ⋯ (the `more` glyph, a trigger with no lamp, always on the bar so it never moves); one `ResizeObserver`, no timer; a tool comes back only with 6 px to spare. A folded tool is a row of ⋯'s list — the kit's `contextMenu` since 1.6.0-alpha.66 (its icon and word, its state as the row's mark; SNAP and scope open their choices as submenus) — and keeps its key. `folded()` → how many tools are behind ⋯ (for gates).
   - `keys` (1.5.0-alpha.19): the app's key table, or `() → it`. A ⋯ row and a tool show the table's chord for their action (`menuKey`, `data-key-action`); no key text is typed in the editor. `createTimeline` passes the timeline's table.
   - The timeline no longer handles H itself (1.5.0-alpha.19): hiding the interface, on whatever key the table gives `hide`, blurs what it hides, and that ends a gesture or closes a menu (`TIMELINE_FIXED` lost its H row; the CLIP menu closes when the focus leaves it).
 
@@ -1007,7 +1003,7 @@ renderPanel(o) / createRenderView(parent, o) / createRenderCard(o)   (mir/render
 
 ## History window, opener, notebook project seam ([HISTORY.md](HISTORY.md), [OPENER.md](OPENER.md), [NOTEBOOK.md](NOTEBOOK.md), 1.5.0-alpha.13)
 
-- `createHistoryWindow({ history, host, id = 'history', title = 'HISTORY', mod, present, canAct, stage, windows, keys = true, gestures = true, storageKey = 'mir.history.window', persist, dock, chips, size = { w: 320, h: 440 }, min = { w: 240, h: 200 }, say, onOpen, onClose })` → `{ win, root, history, list, open(), close(), toggle(), isOpen, rows(), paint(), destroy() }` (`mir/history/window.js`). `createApp({ history, historyWindow })` seats it behind WINDOW › HISTORY.
+- `createHistoryWindow({ history, host, id = 'history', title = 'HISTORY', mod, present, canAct, stage, windows, keys = true, gestures = true, storageKey = 'mir.history.window', persist, size = { w: 320, h: 440 }, min = { w: 240, h: 200 }, say, onOpen, onClose })` → `{ win, root, history, list, open(), close(), toggle(), isOpen, rows(), paint(), destroy() }` (`mir/history/window.js`). `createApp({ history, historyWindow })` seats it behind WINDOW › HISTORY.
 - `installHistoryGestures(history, { target = document, stage, windows = '[data-mir-window]', press = [0, 2] })` → remove · `gestureName(node, { windows })` → `'CONTROL · WINDOW'` (`mir/history/gestures.js`).
 - `registerModulation(history, mod, { present, name })` → unregister · `modulationDomain(mod, { present })` → `{ read, write, key }` · `rackKey(rack)` (`mir/history/domains.js`).
 - `createOpener({ covers, mainCount, session | resume, logo, label, notice, warn = 'once' | 'every' | false, search, webdriver, direct, columns, onPick, host, light, doc })` → `{ start() → Promise<id>, root, destroy() }` · `arrowTarget(count, at, key, columns)` · `nearestSlot(slots, x, y)` · `pointerPose(box, x, y)` · `footParts(foot)` · `applyChoice(session, id)` (`mir/shell/opener.js`). A cover is `{ id, name, art, video?, accent?, foot?, label? }`.

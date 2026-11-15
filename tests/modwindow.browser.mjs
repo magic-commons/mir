@@ -124,6 +124,64 @@ try {
     check('relocate by the keyboard: an arrow previews, Escape puts it back, Enter keeps (left), and it is persisted', preview === 'bottom' && undone === 'right' && r.side === 'left' && r.stored === 'left' && r.railRight <= r.winLeft + 1, JSON.stringify({ preview, undone, ...r }));
   }
 
+  /* ── 3b · 1.6.0-alpha.60 ONE RING IN THE PLUGIN: after a key, a focused plugin button and a rail chip wear the house's ring and no halo ── */
+  {
+    await key('Shift', 'ShiftLeft', 16);
+    r = await run(`const acc = (() => { const p = document.createElement('i'); p.style.cssText = 'outline: var(--state-focus, 2px solid var(--acc))'; document.body.appendChild(p); const c = getComputedStyle(p); const o = [c.outlineWidth, c.outlineStyle, c.outlineColor].join(' '); p.remove(); return o; })();
+      const ring = (n) => { n.focus(); const c = getComputedStyle(n); const o = { fv: n.matches(':focus-visible'), ring: [c.outlineWidth, c.outlineStyle, c.outlineColor].join(' '), off: c.outlineOffset, halo: /0px 0px 0px 3px/.test(c.boxShadow) }; n.blur(); return o; };
+      const b = [...win.querySelectorAll('button:not(:disabled)')].find((n) => n.offsetParent && !n.classList.contains('m2numseat')), chip = rail.querySelector('.crail-chip, [data-mir-chip]');
+      return { acc, b: ring(b), bc: b.className, chip: ring(chip) };`);
+    check('one ring: a focused plugin button and a rail chip wear --state-focus (2 px, the accent) two pixels outside, and no halo',
+      r.b.fv && r.b.ring === r.acc && r.b.off === '2px' && !r.b.halo && r.chip.fv && r.chip.ring === r.acc && r.chip.off === '2px' && /^2px solid/.test(r.acc), JSON.stringify(r));
+  }
+
+  /* ── 3c · 1.6.0-alpha.61 THE CURVE TAKES THE KEYS: the LFO's editor is a Tab stop; + picks a point, an arrow moves it, Shift is fine, Escape lets go ── */
+  {
+    r = await run(`const lfo = M.sourceList().find((s) => s.kind === 'lfo'); M.setSource(lfo.id, { preset: 'tri' }); mod.apply(); await frames(3);
+      const svg = [...win.querySelectorAll('.m2dev.lfo .m2edit svg')].find((n) => n.tabIndex === 0); if (svg) svg.focus();
+      return { stop: !!svg, focused: !!svg && document.activeElement === svg, n: M.sourceOf(lfo.id).points.length };`);
+    const pt = (i) => run(`const s = M.sourceList().find((x) => x.kind === 'lfo'), p = M.sourceOf(s.id).points[${i}]; const c = win.querySelectorAll('.m2dev.lfo .m2pt'); return { t: p.t, v: p.v, sel: [...c].findIndex((n) => n.classList.contains('ksel')) };`);
+    await key('=', 'Equal', 187); await key('=', 'Equal', 187);
+    const a = await pt(1);
+    await key('ArrowDown', 'ArrowDown', 40); const b = await pt(1);
+    await key('ArrowDown', 'ArrowDown', 40, 8); const c = await pt(1);
+    await key('ArrowLeft', 'ArrowLeft', 37); const d = await pt(1);
+    await key('Escape', 'Escape', 27); const e2 = await pt(1);
+    const near = (x, y) => Math.abs(x - y) < 1e-6;
+    check('curve keys: the editor is a Tab stop; + picks point 2, ↓ moves it a hundredth, Shift+↓ an eighth of that, ← moves it in time, Escape lets go',
+      r.stop && r.focused && r.n >= 3 && a.sel === 1 && near(b.v, a.v - 0.01) && near(c.v, b.v - 0.00125) && near(d.t, c.t - 0.01) && d.sel === 1 && e2.sel === -1,
+      JSON.stringify({ r, a, b, c, d, e2 }));
+    await p.eval(`document.activeElement && document.activeElement.blur()`);
+  }
+
+  /* ── 3d · 1.6.0-alpha.62 THE CHOOSERS ARE THE KIT'S LIST: ADD DEVICE opens a listPane (three rows, the first focused); ↓ walks to ENV and a press on it adds one; ADD MACRO's closes on Escape ── */
+  {
+    const dev = await at(`document.querySelector('#modwin .m2devadd')`);
+    await click(dev.x, dev.y);
+    const open1 = await run(`const pn = document.querySelector('.mir-pick'); const rows = pn ? [...pn.querySelectorAll('.mir-pick-i')] : [];
+      return { pane: !!pn, rows: rows.map((b) => b.dataset.id), whole: rows.every((b) => { const w = b.querySelector('.mir-pick-t'); return w.scrollWidth <= w.clientWidth; }), first: !!pn && document.activeElement === rows[0], exp: win.querySelector('.m2devadd').getAttribute('aria-expanded'), old: !!document.querySelector('.m2pick'), n: M.sourceList().length };`);
+    await key('ArrowDown', 'ArrowDown', 40);
+    const row = await at(`document.activeElement`); const onRow = await run(`return document.activeElement.dataset.id;`);
+    await click(row.x, row.y); await sleep(120);
+    const added = await run(`await frames(2); const l = M.sourceList(); const last = l[l.length - 1]; const out = { n: l.length, kind: last.kind, pane: !!document.querySelector('.mir-pick'), exp: win.querySelector('.m2devadd').getAttribute('aria-expanded') };
+      M.removeSource(last.id); mod.apply(); view.restore(view.presentation()); await frames(2); return out;`);
+    const mac = await at(`document.querySelector('#modwin .m2macadd')`);
+    await click(mac.x, mac.y);
+    const open2 = await run(`const pn = document.querySelector('.mir-pick'); return { rows: pn ? [...pn.querySelectorAll('.mir-pick-i')].map((b) => b.dataset.id) : [], n: M.macroList().length };`);
+    await key('Escape', 'Escape', 27); await sleep(80);
+    const shut = await run(`return { pane: !!document.querySelector('.mir-pick'), n: M.macroList().length, back: document.activeElement === win.querySelector('.m2macadd') };`);
+    check('choosers: ADD DEVICE is the kit list (lfo · env · audio, every word whole, the first focused); ↓ walks to ENV, a press adds one and closes it; ADD MACRO lists knob · trigger and Escape closes it, adding nothing',
+      open1.pane && open1.rows.join() === 'lfo,env,audio' && open1.whole && open1.first && open1.exp === 'true' && !open1.old && onRow === 'env' && added.n === open1.n + 1 && added.kind === 'env' && !added.pane && added.exp === 'false'
+      && open2.rows.join() === 'knob,trigger' && !shut.pane && shut.n === open2.n && shut.back, JSON.stringify({ onRow, open1, added, open2, shut }));
+  }
+
+  /* ── 3e · 1.6.0-alpha.63 THE RAIL CHIP'S SIZE IS WRITTEN ONCE: the plugin's rail reads the same --rail-chip ── */
+  {
+    r = await run(`const c = rail.querySelector('.crail-chip'), w = () => Math.round(c.getBoundingClientRect().width * 10) / 10, root = document.documentElement;
+      const d = w(); root.style.setProperty('--rail-chip', '52px'); await frames(2); const small = w(); root.style.removeProperty('--rail-chip'); await frames(2); return { d, small, back: w() };`);
+    check('rail chip: the plugin\'s rail chip is --rail-chip too (62 by default, 52 when the root says so, and back)', r.d === 62 && r.small === 52 && r.back === 62, JSON.stringify(r));
+  }
+
   /* ── 4 · a route dragged toward a knob: the nearest routable control glows by distance, captures, and the drop routes ── */
   {
     const grip = await at(`document.querySelectorAll('#modwin .m2grip')[1]`);       // MACRO 2's ✥
@@ -162,6 +220,22 @@ try {
       await p.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: pt.x, y: pt.y, button: 'left', buttons: 0, clickCount: n }); await sleep(60); }
     const home = await route();
     check('ring: a double press on the arc sends the KNOB home; the route and its depth stay', !!pt && !!before && before.max - before.min !== 0 && !!home && home.min === before.min && home.max === before.max && before.base !== v0 && home.base === v0, JSON.stringify({ pt, v0, before, home }));
+    /* 1.6.0-alpha.59 THE WINDOW'S DIALS READ THE ONE KNOB LAW: the depth by a real drag on the arc — 44 px plain is 44/220 of the scale; with Ctrl
+       held (any modifier, as the knob; Shift alone before) it is an eighth of that; retuned by setKnobLaw, the same drag follows the law */
+    const depthBy = async (mods) => { await run(`const r = M.routeList().find((x) => x.targetId === 'scene.spin'); M.setRouteRange(r.id, { min: 0, max: 0.2 }); mod.apply(); await frames(2); return 1;`);
+      await sleep(TAPGAP); await mouse('mouseMoved', pt.x, pt.y, mods); await mouse('mousePressed', pt.x, pt.y, mods);
+      for (let i = 1; i <= 11; i++) { await mouse('mouseMoved', pt.x, pt.y - 4 * i, mods); await sleep(8); }
+      await mouse('mouseReleased', pt.x, pt.y - 44, mods); await sleep(60);
+      const q = await route(); return q.max - q.min - 0.2; };
+    const TAPGAP = 700;
+    const plain = await depthBy(0), ctrl = await depthBy(2), shift = await depthBy(8);
+    await p.eval(`import('/mir/kit.js').then((k) => { window.__law0 = k.setKnobLaw(); k.setKnobLaw({ travel: 440 }); })`); await sleep(120);
+    const retuned = await depthBy(0);
+    await p.eval(`import('/mir/kit.js').then((k) => k.setKnobLaw({ travel: window.__law0.travel }))`); await sleep(120);
+    const near = (a, b) => Math.abs(a - b) < 0.012;
+    check('ring: the depth drags by the one knob law — 44 px is 0.2 plain, an eighth of it on Ctrl and on Shift, and setKnobLaw({ travel }) reaches it',
+      near(plain, 0.2) && near(ctrl, 0.025) && near(shift, 0.025) && near(retuned, 0.1), JSON.stringify({ plain, ctrl, shift, retuned }));
+    await sleep(TAPGAP);
     await p.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: pt.x, y: pt.y, button: 'right', buttons: 2, clickCount: 1 }); await sleep(30);
     await p.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: pt.x, y: pt.y, button: 'right', buttons: 0, clickCount: 1 }); await sleep(120);
     const gone = await run(`return { route: M.routeList().some((x) => x.targetId === 'scene.spin'), ring: api.rings().includes('scene.spin'), pop: !!document.querySelector('.mir-menu-pane:not([hidden]), .m2pop:not([hidden])') };`);

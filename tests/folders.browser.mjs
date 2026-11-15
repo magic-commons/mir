@@ -64,8 +64,10 @@ try {
     const id = root.id; root.removeAttribute('id');
     const c0 = C(root.querySelector('.sv-projects-heading')), still = document.elementFromPoint(c0.x, c0.y), pe = getComputedStyle(root).pointerEvents;
     root.id = id;
-    return { missed: out, low: !!low && root.contains(low), id, still: !!still && root.contains(still), pe, title: root.getAttribute('aria-label'), rail: F.win.rail.el.getAttribute('aria-label') };`);
+    const sb = getComputedStyle(root.querySelector('.sv-explorer-scroll')), ai = document.body.appendChild(document.createElement('i')); ai.style.color = 'var(--acc)'; const acc = getComputedStyle(ai).color; ai.remove();
+    return { bar: sb.scrollbarWidth + ' | ' + sb.scrollbarColor, acc, missed: out, low: !!low && root.contains(low), id, still: !!still && root.contains(still), pe, title: root.getAttribute('aria-label'), rail: F.win.rail.el.getAttribute('aria-label') };`);
   check('hit-test: every verb, the field, the glass, each folder, each chip and the empty bottom of the pane are the window\'s (elementFromPoint)', !r.missed.length && r.low, JSON.stringify(r.missed));
+  check('the gallery\'s scroller wears the one scrollbar: thin, the thumb in accent A, no groove (1.6.0-alpha.68)', r.bar === 'thin | ' + r.acc + ' rgba(0, 0, 0, 0)', r.bar);
   check('the window takes the pointer by its class: with its id taken away the glass still answers (nothing for a retitle to break)', r.id === 'folders' && r.still && r.pe === 'auto' && r.title === 'FOLDERS' && /^FOLDERS window controls$/.test(r.rail), JSON.stringify(r));
 
   /* ── open a starter by real clicks: folder, tile (select), tile (open) ── */
@@ -147,10 +149,23 @@ try {
   await sleep(450);                                              // the click a carry's release makes is swallowed for 400 ms
   await click(`tile('SPARE').querySelector('.sv-shot')`, 'SPARE select');
   await click(`tile('SPARE').querySelector('.sv-move-btn')`, 'SPARE move button');
-  r = await ev(`const f = document.activeElement; return { focus: f && f.dataset.folder, list: [...F.win.root.querySelectorAll('.sv-moveto .trig')].map((b) => b.dataset.folder) };`);
+  r = await ev(`const f = document.activeElement, m = document.querySelector('.mir-ctx-pane'); return { focus: f && f.dataset.id && f.dataset.id.slice(3), kit: !!m && m.getAttribute('role') === 'menu' && !F.win.root.contains(m), list: [...document.querySelectorAll('.mir-ctx-pane > .mb-item[data-id^="to:"]')].map((b) => b.dataset.id.slice(3)) };`);   // 1.6.0-alpha.70: the kit's menu, on the page's top layer
   await key('Enter', 'Enter', 13); await sleep(150);
   const moved = await ev(`return entry('SPARE').folder;`);
-  check('MOVE TO: the menu lists every folder, the keyboard lands on the first, Enter moves the project there', r.list.length >= 2 && r.focus === r.list[0] && moved === r.list[0], JSON.stringify({ ...r, moved }));
+  check('MOVE TO: the kit\'s menu lists every folder, the keyboard lands on the first, Enter moves the project there', r.kit && r.list.length >= 2 && r.focus === r.list[0] && moved === r.list[0], JSON.stringify({ ...r, moved }));
+  /* 1.6.0-alpha.70 · the tile's right-click menu is the kit's, at the pointer; ↓ walks it; Escape closes it alone (the tile stays selected); Delete presses the tile's own × */
+  { const s = await ev(`G.go(entry('SPARE').folder); await new Promise((r) => setTimeout(r, 250)); const c = F.win.root.querySelector('.sv-card'); c.scrollIntoView({ block: 'center' }); const b = c.querySelector('.sv-shot').getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2, name: c.querySelector('.sv-name').textContent, id: c.dataset.entry };`);
+    await p.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: s.x, y: s.y }); await p.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: s.x, y: s.y, button: 'right', buttons: 2, clickCount: 1 }); await p.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: s.x, y: s.y, button: 'right', buttons: 0, clickCount: 1 }); await sleep(250);
+    const m = await ev(`const pane = document.querySelector('.mir-ctx-pane'), r = pane && pane.getBoundingClientRect(); return pane ? { at: Math.abs(r.left - ${s.x}) < 3 && Math.abs(r.top - ${s.y}) < 3, rows: [...pane.querySelectorAll(':scope > .mb-item')].map((b) => b.dataset.id), box: !F.win.root.querySelector('.sv-context').hidden, first: document.activeElement.dataset.id } : null;`);
+    await key('ArrowDown', 'ArrowDown', 40); await sleep(60); const second = await ev(`return document.activeElement.dataset.id;`);
+    await key('Escape', 'Escape', 27); await sleep(150);
+    const e1 = await ev(`return { open: !!document.querySelector('.mir-ctx'), sel: F.gallery.selected() && F.gallery.selected().name };`);
+    check('a right-click on a project opens the kit\'s menu at the pointer (MOVE TO ›, MOVE TO A NEW FOLDER…), not the in-window box; ↓ walks it; Escape closes the menu and leaves the tile selected',
+      !!m && m.at && m.rows.includes('move-to') && m.rows.includes('move-new') && !m.box && second && second !== m.first && !e1.open && e1.sel === s.name, JSON.stringify({ m, second, e1 }));
+    await ev(`F.win.root.querySelector('.sv-card.selected .sv-shot').focus(); return 0;`);
+    await key('Delete', 'Delete', 46); await sleep(120); const armed = await ev(`return { armed: F.win.root.querySelector('.sv-card.selected .sv-del').classList.contains('armed'), there: !!F.files.entry(${JSON.stringify(s.id)}) };`);
+    await key('Delete', 'Delete', 46); await sleep(200); const gone = await ev(`return !F.files.entry(${JSON.stringify(s.id)});`);
+    check('Delete on a selected project presses its own ×: the first asks "sure?", the second deletes', armed.armed && armed.there && gone, JSON.stringify({ armed, gone })); }
 
   /* ── a chip relocates (Shift-drag on the grip); empty glass moves the window; the transport dodges ── */
   const grip = await at(`F.win.rail.grip`), box0 = await ev(`return F.win.rect();`);

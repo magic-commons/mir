@@ -107,7 +107,7 @@ The kit writes `localStorage` only here:
 | Key | Owner | Default |
 |---|---|---|
 | `<storageKey>`, `.title`, `.subtitle`, `.size` | `createNotebook({ storageKey })` | `mir.notebook` |
-| `PRESET_LS` | `mod.js` | `lambdawaves.q0.modpresets` (λWAVES', inherited by BASINS and NEBULA; each app has its own origin, so they never meet). Not injectable yet (a `mod.js` edit; the kit's `mod.js` is no longer byte-identical to λWAVES' copy) |
+| `PRESET_LS` | `mod.js` | `mir.modpresets`, the default only (1.6.0-alpha.58; it was λWAVES' `lambdawaves.q0.modpresets`). An app names its own store with `presetKey` / `setPresetKey`; one whose users saved under the old default passes that string |
 
 ## 8. Laws the kit keeps for an app
 

@@ -14,7 +14,7 @@
      DRIFT a floating window: drag it over the bar and the bar gives way.  The MIR mark opens the modulation window; the
      dock chip moves the bar into the rack.  ⠿ (or a right click, or a long press) chooses BOTTOM, TOP or COMPACT.
      Space plays, B hides the rack, H hides the interface.
-     ?fresh (a first run) · ?layout=lambdawaves · ?theme=light · ?lang=qps -->
+     ?fresh (a first run) · ?layout=csb · ?theme=light · ?lang=qps -->
 <link rel="stylesheet" href="../mir/css/base.css">
 <link rel="stylesheet" href="../mir/css/skin.css">
 <link rel="stylesheet" href="../mir/css/tokens.css">
@@ -53,7 +53,7 @@
 </div>
 <script type="module">
 import { el, knob, fader, readout, seg } from '../mir/kit.js';
-import { createTransport, firstRun, rackOpeners, transportActions, barButton, BASINS_LAYOUT, LAMBDAWAVES_LAYOUT } from '../mir/shell/transport.js';
+import { createTransport, firstRun, rackOpeners, transportActions, barButton, BASIC_LAYOUT, CONTROL_SURFACE_LAYOUT } from '../mir/shell/transport.js';
 import { createRack } from '../mir/shell/rack.js';
 import { createWindow } from '../mir/window/window.js';
 import { createFolders } from '../mir/folders/folders.js';
@@ -135,13 +135,13 @@ const lw = (() => {
   const rateK = knob({ label: 'RATE', min: 0.25, max: 4, value: 1, log: true, fmt: (v) => v.toFixed(2) + '×', onInput: (v) => { rate = v; } });
   const time = readout({ label: 'beat', value: '0.00', cls: 'time' }), period = readout({ label: 'BAR', value: '1 · 8', cls: 'period' });
   clock.onChange(() => { time.set(beats.toFixed(2)); period.set((Math.floor(beats / 8) + 1) + ' · 8'); if (!scrub.dragging || !scrub.dragging()) scrub.set((beats % 8) / 8); });
-  return { back: back.root, forward: forward.root, jump: jump.root, scrub: scrub.root, rate: rateK.root, time: time.root, period: period.root };
+  return { begin: back.root, home: jump.root, finder: forward.root, rate: rateK.root, time: time.root, period: period.root, scrub: scrub.root };   // THE CONTROL SURFACE names begin · home · finder · rate; a name it does not use is left out
 })();
 
 /* ── THE BAR, the main opener, in the chosen layout.  The rack is made right after it (it needs the bar's element). ── */
 const opens = [];
-const LAYOUTS = { basins: BASINS_LAYOUT, lambdawaves: LAMBDAWAVES_LAYOUT };
-let layoutName = q.get('layout') === 'lambdawaves' ? 'lambdawaves' : 'basins';
+const LAYOUTS = { basic: BASIC_LAYOUT, csb: CONTROL_SURFACE_LAYOUT };
+let layoutName = q.get('layout') === 'csb' ? 'csb' : 'basic';
 const makeBar = () => createTransport({ root: $('transport'), layout: LAYOUTS[layoutName], nodes: lw, clock, mod, keys, rack: () => rack,
   key: 'mir.gallery.transport', opener: true, openers: () => [...(rack ? rackOpeners(rack, { glyphs: { tone: 'tune', mix: 'sliders' } })() : []), ...opens] });
 tr = makeBar();
@@ -171,14 +171,14 @@ opens.push(
 installPress({ selector: '.sw, .seg-b, .trig, .tbtn, .mir-rack-btn' });
 tr.sync();
 
-/* ── the switch: the same parts, BASINS' layout or λWAVES' ── */
+/* ── the switch: the same parts, the basic bar or THE CONTROL SURFACE ── */
 const flip = (name) => {
   if (name === layoutName) return; layoutName = name;
   tr.destroy(); tr = makeBar(); tr.start();
-  const u = new URL(location.href); if (name === 'basins') u.searchParams.delete('layout'); else u.searchParams.set('layout', name); history.replaceState(null, '', u);
+  const u = new URL(location.href); if (name === 'basic') u.searchParams.delete('layout'); else u.searchParams.set('layout', name); history.replaceState(null, '', u);
   window.__T.tr = tr;
 };
-$('layoutSwitch').appendChild(seg({ label: 'LAYOUT', value: layoutName, options: [{ id: 'basins', label: 'BASINS' }, { id: 'lambdawaves', label: 'λWAVES' }], onChange: flip }).root);
+$('layoutSwitch').appendChild(seg({ label: 'LAYOUT', value: layoutName, options: [{ id: 'basic', label: 'BASIC' }, { id: 'csb', label: 'CONTROL SURFACE' }], onChange: flip }).root);
 frame.coalesce('gallery:draw', draw);   // after the GUI's preferences have painted the theme
 
 if (q.get('lang')) { addLocales(new URL('../mir/locales/', location.href).href); await setLanguage(q.get('lang')); }

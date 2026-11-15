@@ -63,6 +63,8 @@ The plugin's values were not mapped onto the house primitives (`--r-xs`, `--w-me
 | @own | `#modwin.mir-modwindow .m2dev.m2cmp.lfo .m2lfocmptoggle.on::before` | 1 |
 | @own | `#modwin.mir-modwindow .m2slot.m2reorder` | 1 |
 
+**1.6.0-alpha.60.** The plugin draws the house's ring and press: `--m2-focus-ring`, `--m2-focus-shadow`, `--m2-button-focus-ring`, `--m2-button-focus-shadow`, `--m2-numseat-focus-ring`, `--m2-kctl-focus-ring`, `--m2-audio-audminleds-focus-ring`, `--m2-chip-ring`, `--m2-aud-mix-focus-shadow` and `--m2-button-press-shadow` are gone (the lists below still name them where they stood); a skin sets `--state-focus`, `--state-press` and `--state-press-scale` instead.
+
 **1.5.0-alpha.5.** The modhost block adds `--m2-focus-ring` (the focus ring, an `outline` read after `--state-focus`) and `--m2-power-seat` (the work bar's power seat, 44 px as BASINS draws it); `--m2-focus-shadow` is now the soft halo alone. After the light seat, modhost.css has the alpha.5 seat rules that answer the GUI window's TEXT, CONTROL FACES and SOLID settings (they re-declare the plugin's ink ladder, `--m2-dialink-b-wash` and `--m2-mat-chassis`). The docked rail's gap reads `var(--rail-gap, var(--rail-gap-derived))`: SPACING's written value wins.
 
 **@default** (the plugin roots):

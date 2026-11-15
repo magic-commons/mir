@@ -3,7 +3,7 @@
  *   · THE LAYOUT is BASINS' as Josh left it: the verb row is the first row, no heading, no divider; 2-D has PAN HOME and NORTH, 3-D has HOME.
  *   · THE PAD moves pan, and both of its knobs (the modulation targets) show it; a knob drag moves the pad's dot; the picture's CSS transform follows.
  *   · NORTH goes north and, pressed again, back to where it left; routed, it moves the BASE and comes back.
- *   · A ROUTED macro turns ROTATION and the arc follows (accent B), the hand's base staying put.
+ *   · A ROUTED macro turns ROTATION and the knob follows, the hand's base staying put.
  *   · THE SPHERE: a drag turns yaw and pitch and the arrow's tip, grabbed, stays under the finger (1.5.7-alpha.46 THE ARCBALL); Shift is the ⅛ gear;
  *     the picture's perspective follows.
  *   · A PORT BY HAND (radians, port.turn, HAND, a verb of its own): the sphere turns the engine through port.turn, DRAG is a knob on the engine, HOME and
@@ -50,7 +50,7 @@ try {
   /* ── THE LAYOUT ── */
   const lay = await J(`const rows = (id) => [...document.querySelector('.dev[data-id="' + id + '"] .mir-camera').children].map((c) => c.className.replace('cam-row ', '')); const q = (id, s) => document.querySelectorAll('.dev[data-id="' + id + '"] ' + s).length;
     return { r2: rows('camera2d'), r3: rows('camera3d'), re: rows('cameraeng'), verbs2: [...document.querySelectorAll('.dev[data-id="camera2d"] .cam-verbs .trig')].map((b) => b.textContent.trim()), verbs3: [...document.querySelectorAll('.dev[data-id="camera3d"] .cam-verbs .trig')].map((b) => b.textContent.trim()),
-      verbsE: [...document.querySelectorAll('.dev[data-id="cameraeng"] .cam-verbs .trig')].map((b) => b.textContent.trim()), title2: q('camera2d', '.cam-title, hr, .grp-lbl'), hand3: q('camera3d', '.cam-hand'), handE: q('cameraeng', '.cam-hand'), rotSeat: [...document.querySelectorAll('.dev[data-id="camera2d"] .cam-pan .mir-xy-side > *')].indexOf(document.querySelector('.dev[data-id="camera2d"] .cam-pan .mir-xy-side .k-arcknob')) + 1 };`);
+      verbsE: [...document.querySelectorAll('.dev[data-id="cameraeng"] .cam-verbs .trig')].map((b) => b.textContent.trim()), title2: q('camera2d', '.cam-title, hr, .grp-lbl'), hand3: q('camera3d', '.cam-hand'), handE: q('cameraeng', '.cam-hand'), rotSeat: [...document.querySelectorAll('.dev[data-id="camera2d"] .cam-pan .mir-xy-side > *')].indexOf(document.querySelector('.dev[data-id="camera2d"] .cam-pan .mir-xy-side [data-control="knob"]')) + 1 };`);
   check('2-D: the verb row is the very top row (PAN HOME, NORTH), then the pad (X, Y and ROTATION in its column), the dials, the scales; no heading and no divider', lay.r2[0] === 'cam-verbs' && lay.verbs2.join() === 'PAN HOME,NORTH' && lay.r2.join() === 'cam-verbs,cam-pan,cam-view,cam-scales' && lay.rotSeat === 3 && lay.title2 === 0, JSON.stringify(lay));
   check('3-D: HOME on the verb row, then CONTROL, the sphere, the view dials; no HAND (the CSS camera has none)', lay.r3[0] === 'cam-verbs' && lay.verbs3.join() === 'HOME' && lay.r3.includes('cam-sphere') && lay.hand3 === 0, JSON.stringify(lay.r3));
   check('the engine port: its own verb first, then HOME; a HAND section because the port has the hand\'s ids', lay.verbsE.join() === 'RESET ZOOM,HOME' && lay.handE === 1, JSON.stringify(lay.verbsE));
@@ -78,10 +78,10 @@ try {
   check('PAN HOME (a real press) brings pan home', (await click(D('camera2d') + '.querySelector(".cam-home")', 'PAN HOME'), near(await get('p2', 'panX'), 0, 1e-6) && near(await get('p2', 'panY'), 0, 1e-6)));
 
   /* ── NORTH, and back ── */
-  const ROT = D('camera2d') + '.querySelector(".cam-pan .mir-xy-side .k-arcknob .k-dial")';
-  await drag(ROT, 'rotation arc', [[0, -20], [0, -40], [0, -55]]);
+  const ROT = D('camera2d') + '.querySelector(".cam-pan .mir-xy-side [data-control=knob] .k-dial")';
+  await drag(ROT, 'rotation knob', [[0, -20], [0, -40], [0, -55]]);
   const r90 = await get('p2', 'rotation');
-  check('ROTATION is an arc: 55 px up is a quarter of 360° (90°)', near(r90, 90, 4), String(r90));
+  check('ROTATION is a knob that turns freely (1.6.0-alpha.73: it was an arc): 55 px up is a quarter of 360° (90°)', near(r90, 90, 4), String(r90));
   const NORTH = D('camera2d') + '.querySelector(".cam-north")';
   await click(NORTH, 'NORTH');
   const r0 = await get('p2', 'rotation');
@@ -92,19 +92,19 @@ try {
   check('NORTH pressed again goes back to where it left (the memory)', near(rb, r90, 0.2), JSON.stringify({ rb, r90 }));
   const tip = await J(`return ${NORTH}.title;`);
   check('and its hint names where it will go back to', /go back to/i.test(tip) || /back to/.test(tip), tip);
-  { const s = await need(ROT, 'rotation arc (double-tap)'); mods = 0; if (s) { await mouse('mouseMoved', s.x, s.y); await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(60); await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(200); } }
+  { const s = await need(ROT, 'rotation knob (double-tap)'); mods = 0; if (s) { await mouse('mouseMoved', s.x, s.y); await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(60); await mouse('mousePressed', s.x, s.y); await mouse('mouseReleased', s.x, s.y); await sleep(200); } }
   const rh = await get('p2', 'rotation');
   await click(NORTH, 'NORTH after the double-tap');
   const rh2 = await get('p2', 'rotation');
   check('a double-tap on ROTATION is a trip north and remembers where it left (BASINS): NORTH then goes back', near(rh, 0, 0.2) && near(rh2, r90, 0.3), JSON.stringify({ rh, rh2 }));
 
-  /* ── a ROUTED macro turns ROTATION; the arc follows; the hand's base stays ── */
+  /* ── a ROUTED macro turns ROTATION; the knob follows; the hand's base stays ── */
   const ROUTE = `document.querySelector('#bar .trig')`;
   await click(ROUTE, 'ROUTE');
-  const seen = []; for (let i = 0; i < 12; i++) { await sleep(150); seen.push(await J(`const k = ${D('camera2d')}.querySelector('.cam-pan .mir-xy-side .k-arcknob'); return { v: K.p2.port.get('rotation'), base: K.mod.baseOf('cam2d.rotation'), live: k.style.getPropertyValue('--live-turn'), modc: k.classList.contains('k-mod'), tf: K.pic2.style.transform };`)); }
+  const seen = []; for (let i = 0; i < 12; i++) { await sleep(150); seen.push(await J(`const k = ${D('camera2d')}.querySelector('.cam-pan .mir-xy-side [data-control="knob"]'); return { arc: k.classList.contains('k-arcknob'), v: K.p2.port.get('rotation'), base: K.mod.baseOf('cam2d.rotation'), live: getComputedStyle(k.querySelector('.k-needle')).transform, modc: k.classList.contains('k-mod'), tf: K.pic2.style.transform };`)); }
   const vs = seen.map((s) => s.v), span = Math.max(...vs) - Math.min(...vs);
   check('routed: the LFO turns ROTATION (the port\'s number swings) and the picture turns with it', span > 8 && new Set(seen.map((s) => s.tf)).size > 4, JSON.stringify({ span, n: new Set(seen.map((s) => s.tf)).size }));
-  check('routed: the arc follows (its live ring moves, accent B) and the hand\'s base stays where it was', new Set(seen.map((s) => s.live)).size > 4 && seen.some((s) => s.modc) && seen.every((s) => near(s.base, rb, 0.01)), JSON.stringify({ lives: new Set(seen.map((s) => s.live)).size, base: seen[0].base }));
+  check('routed: the knob follows (its needle moves) and the hand\'s base stays where it was; no arc is drawn', !seen[0].arc && new Set(seen.map((s) => s.live)).size > 4 && seen.some((s) => s.modc) && seen.every((s) => near(s.base, rb, 0.01)), JSON.stringify({ lives: new Set(seen.map((s) => s.live)).size, base: seen[0].base }));
   await click(NORTH, 'NORTH (routed)');
   const bn = await J(`return K.mod.baseOf('cam2d.rotation');`);
   await click(NORTH, 'NORTH (routed) again');
@@ -125,7 +125,7 @@ try {
   check('the sphere: a real drag turns yaw and pitch', Math.abs(y1 - y0) > 3 && Math.abs(pi1 - pi0) > 0.5, JSON.stringify({ y0, y1, pi0, pi1 }));
   check('the arrow\'s tip stays under the finger (a 12 px × 5.6 px drag of the tip moves it 12 × 5.6 px, within 2 px)', Math.abs(dtx - 12) < 2 && Math.abs(dty + 5.6) < 2, JSON.stringify({ dtx, dty }));
   const knobsNow = await J(`const ks = [...${D('camera3d')}.querySelectorAll('.mir-camsphere-side .k')]; return ks.map((k) => Number(k.getAttribute('aria-valuenow')));`);
-  check('the sphere\'s two arcs (yaw, pitch: the targets) show it', near(knobsNow[0], y1, 0.5) && near(knobsNow[1], pi1, 0.5), JSON.stringify({ knobsNow, y1, pi1 }));
+  check('the sphere\'s two knobs (yaw, pitch: the targets) show it', near(knobsNow[0], y1, 0.5) && near(knobsNow[1], pi1, 0.5), JSON.stringify({ knobsNow, y1, pi1 }));
   const tf3 = await J(`return document.getElementById('pic3').style.transform;`);
   check('the picture turned in perspective (rotateY follows yaw)', new RegExp('rotateY\\(' + y1.toFixed(1).replace('.', '\\.') + '|rotateY\\(' + y1.toFixed(0)).test(tf3) || /rotateY\(-?[1-9]/.test(tf3), tf3);
   await J(`K.p3.port.set('yaw', 20); K.p3.port.set('pitch', 15); await wait(200); return 1;`);

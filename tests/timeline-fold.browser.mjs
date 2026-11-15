@@ -27,7 +27,7 @@ const RUN = await (async () => {
           edit: rel('edit'), select: rel('select'), column: getComputedStyle(document.querySelector('.tl-worklane')).flexDirection === 'column' };
       }, [ORDER]);
     };
-    const moreRows = () => page.evaluate(() => [...document.querySelectorAll('.tl-pop[data-pop="more"] [data-fold]')].map((n) => n.dataset.fold));
+    const moreRows = () => page.evaluate(() => [...document.querySelectorAll('.mir-ctx-pane[data-pop="more"] [data-id^="fold-"]')].map((n) => n.dataset.id.slice(5)));
     await page.evaluate(() => { const T = window.__TL; T.mod.play(false); T.tl.open(); });
 
     // ---- wide: every tool on the bar, nothing behind MORE ---------------------------------------------------------------
@@ -35,7 +35,7 @@ const RUN = await (async () => {
     L.ck(wide.shown.length === ORDER.length && wide.folded === 0, 'a wide timeline has every tool on its bar', wide);
     L.ck(wide.oneLine && wide.fits && wide.moreLast, 'one line, inside the window, MORE last', wide);
     await page.locator('.tl-toolbar [data-mode="more"]').click(); await page.waitForTimeout(60);
-    L.ck((await moreRows()).length === 0 && await page.locator('.tl-pop[data-pop="more"] [data-row="select-all"]').count() === 1, 'wide: MORE lists the selection actions and no folded tool', await moreRows());
+    L.ck((await moreRows()).length === 0 && await page.locator('.mir-ctx-pane[data-pop="more"] [data-id="select-all"]').count() === 1, 'wide: MORE lists the selection actions and no folded tool', await moreRows());
     await page.keyboard.press('Escape'); await page.waitForTimeout(40);
     const glyph = await page.evaluate(() => { const b = document.querySelector('.tl-toolbar [data-mode="more"]'); return { svg: !!b.querySelector('svg.gly-more'), text: b.textContent.trim(), lamp: b.classList.contains('on') || b.hasAttribute('aria-pressed') }; });
     L.ck(glyph.svg && glyph.text === '' && !glyph.lamp, 'MORE is drawn from glyph.js (no typed character) and is a trigger: no lamp, no pressed state', glyph);
@@ -67,16 +67,16 @@ const RUN = await (async () => {
     let rows = await moreRows();
     L.ck(rows.join() === ORDER.slice(narrow.shown.length).join(), 'MORE lists exactly the folded tools, in bar order', { rows, shown: narrow.shown });
     const stepWas = await page.evaluate(() => document.querySelector('.tl-toolbar [data-mode="step"]').getAttribute('aria-pressed'));
-    await page.locator('.tl-pop [data-fold="step"]').click(); await page.waitForTimeout(60);
-    const stepNow = await page.evaluate(() => ({ bar: document.querySelector('.tl-toolbar [data-mode="step"]').getAttribute('aria-pressed'), pop: document.querySelectorAll('.tl-pop').length }));
+    await page.locator('.mir-ctx [data-id="fold-step"]').click(); await page.waitForTimeout(60);
+    const stepNow = await page.evaluate(() => ({ bar: document.querySelector('.tl-toolbar [data-mode="step"]').getAttribute('aria-pressed'), pop: document.querySelectorAll('.tl-pop, .mir-ctx').length }));
     L.ck(stepWas === 'false' && stepNow.bar === 'true' && stepNow.pop === 0, 'pressing the folded STEP row turns STEP on (the bar\'s own control) and closes the list', { stepWas, stepNow });
     await page.locator('.tl-toolbar [data-mode="more"]').click(); await page.waitForTimeout(60);
-    const stepRow = await page.evaluate(() => { const r = document.querySelector('.tl-pop [data-fold="step"]'); return { pressed: r.getAttribute('aria-pressed'), on: r.classList.contains('on') }; });
+    const stepRow = await page.evaluate(() => { const r = document.querySelector('.mir-ctx [data-id="fold-step"]'); return { pressed: r.getAttribute('aria-checked'), on: !!r.querySelector('.mb-mark') }; });   // 1.6.0-alpha.66: a check row of the kit's menu
     L.ck(stepRow.pressed === 'true' && stepRow.on, 'the folded STEP row shows its pressed state', stepRow);
-    await page.locator('.tl-pop [data-fold="snap"]').click(); await page.waitForTimeout(60);
-    const snapList = await page.evaluate(() => [...document.querySelectorAll('.tl-pop[data-pop="snap"] [data-row]')].map((n) => n.dataset.row + ':' + n.getAttribute('aria-pressed')));
+    await page.locator('.mir-ctx [data-id="fold-snap"]').click(); await page.waitForTimeout(60);
+    const snapList = await page.evaluate(() => [...document.querySelectorAll('.mir-ctx .mb-sub-list [data-id]')].map((n) => n.dataset.id + ':' + n.getAttribute('aria-checked')));
     L.ck(snapList.includes('snap-1:true') && snapList.filter((x) => x.endsWith(':true')).length === 1, 'the folded SNAP row opens its choices, the one in force pressed', snapList);
-    await page.locator('.tl-pop [data-row="snap-0.5"]').click(); await page.waitForTimeout(60);
+    await page.locator('.mir-ctx [data-id="snap-0.5"]').click(); await page.waitForTimeout(60);
     L.ck(await page.evaluate(() => window.__TL.tl.editor.snap()) === .5 && await page.evaluate(() => document.querySelector('.tl-toolbar .tl-setting .mir-step-text').textContent) === '1/8', 'choosing 1/8 there sets the snap and the bar\'s own stepper (SNAP\'s fractions, 1.5.6-alpha.24)', await page.evaluate(() => window.__TL.tl.editor.snap()));
     await page.locator('.tl-toolbar [data-mode="step"]').evaluate((b) => { b.click(); return 0; });   // STEP off again (folded: no seat to press)
 
@@ -98,11 +98,11 @@ const RUN = await (async () => {
     L.ck(await page.evaluate(() => window.__TL.tl.editor.tool()) === 'slice', 'a folded tool\'s key still works (C: SLICE)', await page.evaluate(() => window.__TL.tl.editor.tool()));
     await page.locator('.tl-toolbar [data-mode="more"]').click(); await page.waitForTimeout(60);
     rows = await moreRows();
-    const sliceRow = await page.evaluate(() => { const r = document.querySelector('.tl-pop [data-fold="slice"]'); return r && { pressed: r.getAttribute('aria-pressed'), on: r.classList.contains('on') }; });
+    const sliceRow = await page.evaluate(() => { const r = document.querySelector('.mir-ctx [data-id="fold-slice"]'); return r && { pressed: String(r.getAttribute('aria-current') === 'true'), on: r.classList.contains('on') }; });
     L.ck(rows.join() === ORDER.slice(crowded.shown.length).join() && sliceRow?.pressed === 'true' && sliceRow.on, 'the folded SLICE row shows the tool the key chose', { rows, sliceRow });
-    const selectRow = await page.evaluate(() => { const r = document.querySelector('.tl-pop [data-fold="select"]'); return r && { icon: !!r.querySelector('svg.gly-select'), word: (r.querySelector('.tl-row-word') || r).textContent.trim(), key: (r.querySelector('.tl-key') || {}).textContent || '', pressed: r.getAttribute('aria-pressed') }; });
+    const selectRow = await page.evaluate(() => { const r = document.querySelector('.mir-ctx [data-id="fold-select"]'); return r && { icon: !!r.querySelector('svg.mb-icon'), word: r.querySelector('.mb-lbl').textContent.trim(), key: (r.querySelector('.mb-key') || {}).textContent || '', pressed: String(r.getAttribute('aria-current') === 'true') }; });
     L.ck(selectRow?.icon && selectRow.word === 'SELECT' && selectRow.pressed === 'false', 'a folded tool\'s row is its icon and its word, unpressed while another tool is chosen', selectRow);
-    await page.locator('.tl-pop [data-fold="select"]').click(); await page.waitForTimeout(60);
+    await page.locator('.mir-ctx [data-id="fold-select"]').click(); await page.waitForTimeout(60);
     L.ck(await page.evaluate(() => window.__TL.tl.editor.tool()) === 'select', 'pressing the folded SELECT row chooses SELECT', await page.evaluate(() => window.__TL.tl.editor.tool()));
     await page.evaluate(() => { document.querySelector('.tl-transport-host').style.minWidth = ''; });
     const freed = await at(1500);

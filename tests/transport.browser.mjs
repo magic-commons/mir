@@ -5,7 +5,7 @@
  * click opens the tempo panel and TAP there sets the tempo, a double click types it; the resting pill is not a well and
  * the typed field is; a latch opens its window and closing the window from the window unlatches it; the MIR mark opens
  * the modulation window; the bar dodges a floating window and comes back; the dock chip docks it into the rack and
- * back; the λWAVES layout from the same parts; the GUI's look settings restyle the bar in both layouts (card, frost,
+ * back; THE CONTROL SURFACE from the same parts; the GUI's look settings restyle the bar in both layouts (card, frost,
  * BLUR, CORNERS, RELIEF, the flat tier); H; idle is zero frames; the seat survives a reload; under qps the words
  * translate.  Standalone: MIR_BASE=http://127.0.0.1:8814 node tests/transport.browser.mjs   (MIR_PLATES=1: the plates) */
 import { launch, sleep } from '../tools/cdp.mjs';
@@ -76,7 +76,7 @@ try {
     const b = bar.getBoundingClientRect(), f = document.elementFromPoint(b.left + 20, b.top + b.height / 2);
     return { first: T.first, layout: T.layout, open, shown: bar.getClientRects().length > 0, hit: !!f && bar.contains(f), bpm: pill.querySelector('.tempo-number').textContent,
       w: Math.round(pill.getBoundingClientRect().width), plays: bar.querySelectorAll('.tbtn.play').length };`);
-  check('first run: BASINS\' bar is on screen and hit-testable, and nothing else is open', r.first && r.layout === 'basins' && r.shown && r.hit && r.open.racks === 0 && !r.open.folders && !r.open.gui && !r.open.drift && !r.open.mod, JSON.stringify(r));
+  check('first run: BASINS\' bar is on screen and hit-testable, and nothing else is open', r.first && r.layout === 'basic' && r.shown && r.hit && r.open.racks === 0 && !r.open.folders && !r.open.gui && !r.open.drift && !r.open.mod, JSON.stringify(r));
   check('with nothing saved the pill reads 30.0; the bar has one play', r.bpm === '30.0' && r.plays === 1, JSON.stringify(r));
   r = await run(`const px = (e, k) => parseFloat(getComputedStyle(e)[k]), box = (e) => { const b = e.getBoundingClientRect(); return [Math.round(b.width), Math.round(b.height)]; }; const home = bar.querySelector('.transport-home');
     return { num: px(pill.querySelector('.tempo-number'), 'fontSize'), unit: px(pill.querySelector('.tempo-unit'), 'fontSize'), hz: px(pill.querySelector('.tempo-hz'), 'fontSize'), pill: box(pill),
@@ -84,13 +84,13 @@ try {
       home: box(home), homeRing: getComputedStyle(home).borderTopWidth, homeR: getComputedStyle(home).borderRadius, dockRing: getComputedStyle(tr.el.dock).borderTopWidth, dockR: getComputedStyle(tr.el.dock).borderRadius };`);
   check('BASINS\' new sizes: the tempo 18 px (was 12), BPM / Hz 8 px (was 7), the pill sized to it (≥ 72, about 90); play\'s glyph 32 px (was 20) in a 40 px seat with no face and no ring; to-start wears the dock chip\'s and the logo\'s hairline ring',
     r.num === 18 && r.unit === 8 && r.hz === 8 && r.pill[0] >= 84 && r.pill[0] <= 100 && r.glyph[0] === 32 && r.play[0] === 40 && r.play[1] === 40 && r.playBg === 'rgba(0, 0, 0, 0)' && r.playRing === 0
-    && r.home[0] === 34 && r.homeRing === r.dockRing && r.homeRing !== '0px' && r.homeR === r.dockR, JSON.stringify(r));
+    && r.home[0] === 36   /* 1.6.0-alpha.69: the house's bar seat (it was 34) */ && r.homeRing === r.dockRing && r.homeRing !== '0px' && r.homeR === r.dockR, JSON.stringify(r));
   r = await run(`const px = (e, k) => parseFloat(getComputedStyle(e)[k]), box = (e) => { const b = e.getBoundingClientRect(); return [Math.round(b.width), Math.round(b.height)]; }; const W = T.work, wb = document.querySelector('#workbar .g-wb'), sh = (e) => getComputedStyle(e).boxShadow, rad = (e) => getComputedStyle(e).borderRadius;
     const seats = [...W.root.querySelectorAll('.transport-home, .dock-btn, .mod-exp')];
     return { bar: W.root.dataset.bar, pad: getComputedStyle(W.root).paddingTop, h: box(W.root)[1], wb: [box(wb)[1], rad(wb), sh(wb), getComputedStyle(wb).backgroundColor],
       seats: seats.map((e) => [box(e), rad(e), sh(e) === sh(wb), getComputedStyle(e).backgroundColor === getComputedStyle(wb).backgroundColor, e.classList.contains('trig')]), pill: box(W.el.pill) };`);
-  check('in a work bar (bar: \'work\'): to-start, send-to-rack and the logo are the bar\'s buttons — 34 × 34, radius 8, the same face and relief as EDIT and SNAP beside them; the bar\'s padding is 3 px',
-    r.bar === 'work' && r.pad === '3px' && r.seats.length === 3 && r.seats.every((x) => x[0][0] === 34 && x[0][1] === 34 && x[1] === '8px' && x[1] === r.wb[1] && x[2] && x[3] && x[4]) && r.pill[1] === 34, JSON.stringify(r));
+  check('in a work bar (bar: \'work\'): to-start, send-to-rack and the logo are the bar\'s buttons — 36 × 36 (the house\'s bar seat, 1.6.0-alpha.69), radius 8, the same face and relief as EDIT and SNAP beside them; the bar\'s padding is 3 px',
+    r.bar === 'work' && r.pad === '3px' && r.seats.length === 3 && r.seats.every((x) => x[0][0] === 36 && x[0][1] === 36 && x[1] === '8px' && x[1] === r.wb[1] && x[2] && x[3] && x[4]) && r.pill[1] === 36, JSON.stringify(r));
   if (PLATES) await p.shot(plate('transport-first-run.png'));
   r = await run(`const terms = ${shadowTerms}; const cs = getComputedStyle(pill), B = document.body;
     return { pill: terms(cs.boxShadow), pillBg: cs.backgroundColor, glass: B.dataset.faces === 'glass' && (B.dataset.card === 'refractive' || B.classList.contains('frost')) && B.dataset.card !== 'solid' };`);
@@ -264,19 +264,23 @@ try {
   const looksB = await looks();
   check('settings (BASINS layout): TINTED + FROST blurs (INTENT O12), REFRACTIVE blurs by BLUR (4 px, 16 px), FROST off none, CORNERS leaves the bar its own 16 px (BASINS), RELIEF flat flattens the pill, the flat tier: no shadow, no blur', lookOk(looksB), JSON.stringify(looksB));
 
-  /* ── λWAVES' layout from the same parts: the switch flips it ─────────────────────────────────────────────── */
-  h = await click(`[...document.querySelectorAll('#layoutSwitch .seg-b')].find((b) => b.dataset.id === 'lambdawaves' || /WAVES/.test(b.textContent))`);
-  r = await run(`await wait(300); const t = __T.tr, b = t.root; return { layout: __T.layout, seats: [...b.querySelectorAll('.native-play-row > *')].map((n) => n.classList[0] + (n.classList[1] ? '.' + n.classList[1] : '')).join(' '),
-    plays: b.querySelectorAll('.tbtn.play').length, power: !!b.querySelector('.mir-mod-power'), door: !!b.querySelector('.mod-exp'), latches: b.querySelectorAll('.tr-open').length };`);
-  check('the switch flips to λWAVES\' layout: play, power, rewind, ‹ ›, the scrub, ⟳, two readouts, RATE, the pill — one play, the power, the door, the latches', h.ok && r.layout === 'lambdawaves' && r.plays === 1 && r.power && r.door && r.latches >= 4
-    && /tbtn\.play tbtn\.modb tbtn\.transport-home tbtn\.transport-step-back tbtn\.transport-step-forward fd .*tbtn\.jump ro\.time ro\.period k .*tempo-seat/.test(r.seats), JSON.stringify({ h, r }));
+  /* ── THE CONTROL SURFACE from the same parts: the switch flips it (1.6.0-alpha.69: the kit's CSB, the house's bar seat) ───────────────── */
+  h = await click(`[...document.querySelectorAll('#layoutSwitch .seg-b')].find((b) => b.dataset.id === 'csb' || /CONTROL SURFACE/.test(b.textContent))`);
+  r = await run(`await wait(300); const t = __T.tr, b = t.root, px = (n, k) => Math.round(parseFloat(getComputedStyle(n)[k]));
+    const seats = [...b.querySelectorAll('.csb-ico > *')].filter((n) => n.offsetWidth), ico = b.querySelector('.csb-ico'), g = b.querySelector('.csb-ico svg'), acc = (() => { const i = document.body.appendChild(document.createElement('i')); i.style.color = 'var(--acc)'; const c = getComputedStyle(i).color; i.remove(); return c; })();
+    const lit = b.querySelector('.csb-ico .tr-open.on'), play = b.querySelector('.csb-play .tbtn.play'), pr = play.getBoundingClientRect(), br = b.getBoundingClientRect();
+    return { layout: b.dataset.layout, plays: b.querySelectorAll('.tbtn.play').length, power: !!b.querySelector('.csb-mod .mir-mod-power'), door: !!b.querySelector('.csb-ico .mod-exp'), latches: b.querySelectorAll('.csb-ico .tr-open').length,
+      seat: [...new Set(seats.map((n) => px(n, 'width') + 'x' + px(n, 'height')))].join(), n: seats.length, gap: getComputedStyle(ico).columnGap, glyph: g ? px(g, 'width') : 0, lit: lit ? getComputedStyle(lit).color === acc && getComputedStyle(lit).backgroundColor : 'none lit', acc,
+      playOut: pr.right < br.left, play: Math.round(pr.width), rate: !!b.querySelector('.csb-tempo > .k'), pill: !!b.querySelector('.csb-tempo .tempo-expand'), left: !!b.querySelector('.csb-left'), right: !!b.querySelector('.csb-right .dock-btn') };`);
+  check('the switch flips to THE CONTROL SURFACE: one play, floating outside the bar\'s left edge (56 px); the rate over the pill, the power, the latches and the door; every seat 36 × 36 px, 4 px apart, a 20 px glyph, lit = the accent as ink with no fill (Rule 1)',
+    h.ok && r.layout === 'csb' && r.plays === 1 && r.power && r.door && r.latches >= 4 && r.seat === '36x36' && r.n >= 5 && r.gap === '4px' && r.glyph === 20 && (r.lit === 'rgba(0, 0, 0, 0)' || r.lit === 'none lit') && r.playOut && r.play === 56 && r.rate && r.pill && r.left && r.right, JSON.stringify({ h, r }));
   h = await click(`__T.tr.el.play`);
-  r = await run(`await wait(300); const on = T.clock.isPlaying(), armed = T.mod.armed(); T.tr.toggle(); await wait(60); return { on, armed, after: T.clock.isPlaying(), time: document.querySelector('#transport .ro.time .ro-val').textContent };`);
-  check('λWAVES\' layout: its one play runs the clock and its readout moves; the power stays as it was', h.ok && r.on && r.armed && !r.after && r.time !== '0.00', JSON.stringify({ h, r }));
-  await seatCheck('λWAVES\' layout');
-  if (PLATES) { await run(`R.open('tone'); await wait(400); return 0;`); await p.shot(plate('transport-lambdawaves-dark.png')); }
+  r = await run(`await wait(300); const on = T.clock.isPlaying(), armed = T.mod.armed(); T.tr.toggle(); await wait(60); return { on, armed, after: T.clock.isPlaying() };`);
+  check('THE CONTROL SURFACE: its one play runs the clock; the power stays as it was', h.ok && r.on && r.armed && !r.after, JSON.stringify({ h, r }));
+  if (PLATES) { await run(`R.open('tone'); await wait(400); return 0;`); await p.shot(plate('transport-csb-dark.png')); }
   const looksL = await run(`return 0;`).then(() => looks());
-  check('settings (λWAVES layout): the same restyling, with no transport code', lookOk(looksL), JSON.stringify(looksL));
+  check('settings (THE CONTROL SURFACE): the same restyling, with no transport code', lookOk(looksL), JSON.stringify(looksL));
+  await click(`[...document.querySelectorAll('#layoutSwitch .seg-b')].find((b) => b.dataset.id === 'basic' || /BASIC/.test(b.textContent))`); await run(`await wait(300); return 0;`);   // the rest runs on the basic bar
 
   /* ── H: out of paint, and back ───────────────────────────────────────────────────────────────────────────── */
   await run(`document.activeElement && document.activeElement.blur && document.activeElement.blur(); return 0;`);
@@ -305,9 +309,9 @@ try {
 
   /* ── the light plates ────────────────────────────────────────────────────────────────────────────────────── */
   if (PLATES) {
-    await load('?theme=light&layout=lambdawaves');
+    await load('?theme=light&layout=csb');
     await run(`R.open('tone'); T.drift.open(); T.drift.place({ x: 60, y: 170 }); await wait(500); return 0;`);
-    await p.shot(plate('transport-lambdawaves-light.png'));
+    await p.shot(plate('transport-csb-light.png'));
     await load('?theme=light');
     await run(`R.open('tone'); T.drift.open(); T.drift.place({ x: 60, y: 170 }); await wait(500); return 0;`);
     await p.shot(plate('transport-basins-light.png'));

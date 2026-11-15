@@ -282,6 +282,13 @@ function runWindow(r, n, dt) {
   check("§6 the only storage in the closure is mod.js's globalThis.localStorage; registry.js and host.js touch none; the key is a non-empty string",
     !ours && modAll > 0 && modAll === modGlobal && typeof M.PRESET_LS === 'string' && M.PRESET_LS.length > 0,
     { ours, modAll, modGlobal });
+  /* 1.6.0-alpha.57 · THE KIT HOLDS NO APP'S CATALOGUE: host.js exports no app's parameters or presets and its code names no app's target */
+  {
+    const H = await import('../mir/modulation/host.js');
+    const gone = ['labParameters', 'LAB_PRESETS', 'LAB_PRESET_FOLDER', 'labPresetList', 'labPresetGet', 'labPresetApply', 'foreignPresets', 'presetRouteTargets'].filter((n) => n in H);
+    const named = code(readFileSync(resolve(ROOT, 'mir/modulation/host.js'), 'utf8')).match(/observer\.|material\.|λWAVES|lambdawaves/g);
+    check('§6 host.js holds no app\'s catalogue: no lab* export, no app target id or name in its code; barTempo stays', gone.length === 0 && !named && typeof H.barTempo === 'function', { gone, named });
+  }
   check('§6 node has no DOM: importing the whole host defined neither document nor window',
     typeof document === 'undefined' && typeof window === 'undefined');
 }
