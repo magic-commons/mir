@@ -187,6 +187,16 @@ try {
     await p.mouse(5, 795); }
   await closeAll();
 
+  /* ── alpha.86 · ONE TAB TRAP: FOCUSABLE and trapTab are the kit's, and the dialog cycles by them ─────────────── */
+  await run(`const body = D.createElement('div'), f = D.createElement('input'); f.className = 'trap-field'; body.appendChild(f), body.appendChild(D.createTextNode('words'));
+    T.trapDlg = T.dialog.openDialog({ title: 'T', body, actions: [{ label: 'NO', value: false }, { label: 'YES', kind: 'primary', value: true }] }); await wait(350); return 0;`);
+  { const who = () => run(`const a = D.activeElement; return a.classList.contains('trap-field') ? 'FIELD' : a.closest('.mir-dialog') ? (a.textContent || a.className) : 'OUT:' + a.tagName;`);
+    const walk = [await who()]; for (const k of ['Tab', 'Tab', 'Tab', 'Shift+Tab', 'Shift+Tab']) { await p.key(k); walk.push(await who()); }
+    r = await run(`const k = T.kit, stops = k.tabStops ? k.tabStops(D.querySelector('.mir-dialog')).length : -1; T.trapDlg.close(); await wait(200); return { api: typeof k.trapTab === 'function' && typeof k.FOCUSABLE === 'string', stops };`);
+    check('ONE TAB TRAP (alpha.86): the kit exports FOCUSABLE, tabStops and trapTab; in a dialog Tab steps field → NO → YES → field, round, and Shift+Tab back, never out',
+      r.api && r.stops === 3 && walk.join() === 'YES,FIELD,NO,YES,NO,FIELD', JSON.stringify({ r, walk })); }
+  await closeAll();
+
   /* ── alpha.53 · EVERY KIT LAYER IS ON THE ONE STACK ─────────────────────────────────────────────────────────── */
   r = await run(`const S = []; T.menus.setMenuEscape((close) => { const L = { close }; S.push(L); return () => { const i = S.indexOf(L); if (i >= 0) S.splice(i, 1); }; });
     const seen = {}; F.open(); seen.finder = S.length; F.close(); await wait(250); seen.finderOff = S.length;
