@@ -93,7 +93,7 @@ An app has **one** transport. `tr.mountIn(host)` moves that same node (its liste
 | Rule | How |
 |---|---|
 | The rack's dock wins | docked in the rack's TRANSPORT window, `mountIn` keeps the wish and the bar stays docked; undocked, it goes to the lane if one shows, else the stage (`placementOf({ docked, host })`) |
-| A bar the user switched off stays off | `body.no-transport-bar` (Settings › TRANSPORT BAR; the GUI row sets it) hides the bar on the stage, in a work lane and in the rack's window; `tr.closed` reads it |
+| A bar the user switched off stays off | `body.no-transport-bar` (MIR OPTIONS › CONTROL SURFACE, TRANSPORT BAR before 1.6.0-alpha.91; the GUI row sets it) hides the bar on the stage, in a work lane and in the rack's window; `tr.closed` reads it |
 | Moving closes what was open | the tempo panel and the tempo field close, a drag in flight ends (BASINS `placementChanged`) |
 | It says where it is | `tr.placement` is `'stage' \| 'work' \| 'rack'`; a `transport-placement` event (`detail.placement`) fires on the bar when it changes |
 | On the stage only, it dodges | `moved(rect)` reaches the rack's dodge only while the bar is on the stage; in a lane a hidden rack does not slide it away |

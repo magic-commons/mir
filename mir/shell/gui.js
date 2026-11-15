@@ -1,8 +1,8 @@
-/* MIR · shell/gui.js — the GUI windows: MIR OPTIONS (every group on one packed grid, no tabs) and MIR ABOUT (its own window,
+/* MIR · shell/gui.js — the GUI windows: MIR OPTIONS (every group on one packed grid, no tabs) and ABOUT MIR (its own window,
  * opened by the circled (i) in MIR OPTIONS' head).
  *
  * WHAT IT IS.  The menubar's GUI entry opens a floating kit window (mir/window/window.js).  MIR OPTIONS holds every LOOK
- * option an app on the kit has, on one page; MIR ABOUT says what MIR is.  The look is a browser preference
+ * option an app on the kit has, on one page; ABOUT MIR says what MIR is.  The look is a browser preference
  * (core/prefs.js, one key, never in a project), so an app's own Settings keeps only its engine's options (ruling 7 of
  * the 1.5 plan).  A VANILLA THEME (shell/themes.js) is a named set of these options and nothing else: the SKIN stepper
  * steps through them and TONE, under it, through the theme's colours.
@@ -534,8 +534,8 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   g = groupEl('windows', phrase('WINDOWS'));
   line(g, 'gui-sws').append(swOf('dropShadow', phrase('DROP SHADOW'), phrase('Pane shadows ({:SHADOW} sets their strength)')).root, swOf('edge', phrase('EDGE'), phrase('The pane’s hairline rim')).root);
   line(g, 'gui-sws').append(swOf('disconnected', phrase('DISCONNECTED'), phrase('Separate window headers from their bodies')).root,
-    /* TRANSPORT BAR (BASINS Settings › DISPLAY): the main transport bar in every seat; the transport's sheet reads the class */
-    swOf('transportBar', phrase('TRANSPORT BAR'), phrase('Show the main transport bar, floating or docked')).root);
+    /* CONTROL SURFACE (BASINS Settings › DISPLAY; it said TRANSPORT BAR before 1.6.0-alpha.91): the bar in every seat; the bar's sheet reads the class */
+    swOf('transportBar', phrase('CONTROL SURFACE'), phrase('Show the CONTROL SURFACE, floated or docked')).root);
   const kScale = knobOf('scale', phrase('UI SCALE'), { min: 50, max: 200, step: 5, fmt: pct, toUi: (v) => v * 100, fromUi: (v) => v / 100, title: 'The size of every window, menu and bar; the picture keeps its resolution' });   // tr[UI SCALE]: the size of the interface (windows, menus, bars), not of the picture
   /* 1.5.7-alpha.57: SPACING is a knob with a px reading (it was BASINS' 0 · TIGHT · DEFAULT · AIRY row) */
   const kSpacing = knobOf('spacing', phrase('SPACING'), { min: 0, max: SPACING_MAX, step: 1, fmt: px, title: 'The air between rack windows and from the screen’s edge, and the padding inside windows, bars and menus; 0 is flush' });
@@ -607,7 +607,7 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   }, on);
   logo.addEventListener('pointerleave', () => { for (const a of turning) a.cancel(); turning = []; }, on);
 
-  /* ── THE TWO WINDOWS (1.5.0 wave 19): MIR OPTIONS, a circled (i) in its head; MIR ABOUT, a window of its own.  Both carry
+  /* ── THE TWO WINDOWS (1.5.0 wave 19): MIR OPTIONS, a circled (i) in its head; ABOUT MIR, a window of its own.  Both carry
      a title bar and a plain × (createWindow chrome: 'close'), no chip rail: the whole bar drags, Escape closes.  THE HAND
      LAW: after its first placement a re-fit keeps the window's top-left where the hand left it; a screen too small for it
      scrolls the body. ── */
@@ -616,12 +616,12 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   W.root.classList.add('mir-gui');
   const aboutBtn = el('button', 'mir-win-btn gui-about-btn'); aboutBtn.type = 'button'; aboutBtn.dataset.glyph = 'info';
   const ig = glyphEl('info', 'gly gly-info'); if (ig) aboutBtn.append(ig);
-  ariaLabel(aboutBtn, 'MIR ABOUT'); hint(aboutBtn, 'MIR ABOUT');
+  ariaLabel(aboutBtn, 'About MIR'); hint(aboutBtn, 'ABOUT MIR');
   W.tools.prepend(aboutBtn);                                        // the circled (i), beside the ×
 
-  const A = createWindow({ id: 'gui-about', title: 'MIR ABOUT', host, chrome: 'close', size: { w: 480, h: 560 }, min: { w: 280, h: 200 }, emptyDrag: true, body: ab });
+  const A = createWindow({ id: 'gui-about', title: 'ABOUT MIR', host, chrome: 'close', size: { w: 480, h: 560 }, min: { w: 280, h: 200 }, emptyDrag: true, body: ab });
   A.root.classList.add('mir-gui', 'mir-gui-about');
-  const abHome = ab.parentElement;                                   // the MIR ABOUT window's body: aboutPage() lends the page out, openAbout takes it back
+  const abHome = ab.parentElement;                                   // the ABOUT MIR window's body: aboutPage() lends the page out, openAbout takes it back
   const openAbout = () => { if (abHome && ab.parentElement !== abHome) abHome.appendChild(ab); if (!A.isOpen()) A.open(); A.raise(); showLogo(); fitTo(A, ab); };
   aboutBtn.addEventListener('click', openAbout, on);
 
@@ -706,19 +706,19 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
 
   return {
     root: W.root, window: W, about: A, prefs: P,
-    /** open(p) — 'about' is the MIR ABOUT window; anything else (the old tab and page names too) MIR OPTIONS */
+    /** open(p) — 'about' is the ABOUT MIR window; anything else (the old tab and page names too) MIR OPTIONS */
     open(p) {
       if (p === 'about') { openAbout(); return; }
       if (!W.isOpen()) { W.open(); fitTo(W, opts); }
       W.raise(); shown();
     },
-    /** aboutPage(host) — MIR ABOUT's page as a page of the app's own ABOUT (λWAVES iteration 014 A1: "MIR about should be a second
-     *  page to the About page"): the one node moves into `host` with its logo; MIR ABOUT's window takes it back when it opens */
+    /** aboutPage(host) — ABOUT MIR's page as a page of the app's own ABOUT (λWAVES iteration 014 A1: "MIR about should be a second
+     *  page to the About page"): the one node moves into `host` with its logo; ABOUT MIR's window takes it back when it opens */
     aboutPage(host) { if (A.isOpen()) A.close(); host.appendChild(ab); showLogo(); return ab; },
     /** close() — both windows */
     close() { W.close(); A.close(); },
     toggle(p) { const w = p === 'about' ? A : W; if (w.isOpen()) w.close(); else this.open(p); },
-    /** page — 'about' while only MIR ABOUT is open, else 'options' */
+    /** page — 'about' while only ABOUT MIR is open, else 'options' */
     get page() { return A.isOpen() && !W.isOpen() ? 'about' : 'options'; },
     /** moving(b) — the app's picture is moving (FROST · STILL holds the frost while it does) */
     moving(b) { ctx.moving = !!b; P.apply(); },

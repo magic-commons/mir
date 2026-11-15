@@ -559,8 +559,8 @@ export function createRack({ host = globalThis.document && document.body, sides 
     const b = d.querySelector('.dev-pop'); if (!b) return;
     const out = d.classList.contains('floating'), w = reg.get(d.dataset.id);
     if (w && w.spec.window && !out) { chip(b, 'popOut', 'open this as a window'); b.title = 'Open this as a window'; return; }   // 1.6.0-alpha.31: the twin's door
-    chip(b, out ? 'dock' : 'popOut', out ? 'dock this window back into the rack' : 'take this window off the rack');
-    b.title = out ? 'Return this window to its rack' : 'Move this window onto the stage';
+    chip(b, out ? 'dock' : 'popOut', out ? 'Dock this window' : 'Float this window');
+    b.title = out ? 'Dock this window in its rack' : 'Float this window off the rack';
   }
   function railFace(d) {
     const b = d.querySelector('.dev-rail'); if (!b) return;

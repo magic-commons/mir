@@ -180,7 +180,7 @@ The timeline's keys are rows of the app's one key table (`docs/KEYS.md`), rebind
 | — | Zoom mode: drag a range to zoom to it, click to zoom out | FL — Zoom tool (Z); unbound in MIR |
 | Ins | Slice every selected clip at the playhead (one undo) | MIR — FL slices with the tool; Insert cuts the selection at the playhead |
 | Shift+T | Fit each selected audio clip’s remaining audio into its length (varispeed) | MIR — Shift+T |
-| Space | Play / pause, exact resume | MIR — the transport’s one play (transportActions); FL’s Space stops to the start position instead |
+| Space | Play / pause, exact resume | MIR — the one play (transportActions); FL’s Space stops to the start position instead |
 | Escape | Cancel the gesture in flight, close menus, rewind a cancelled scrub | MIR — active wherever the timeline is open |
 
 ### Pointer and touch

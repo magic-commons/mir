@@ -965,12 +965,12 @@ The GUI window (docs/GUI.md).
 |---|---|---|---|---|---|---|---|---|---|
 | `--gui-col` | component | length |  |  | kit | ✓ | stable |  | the GUI window's narrowest group column |
 | `--gui-col-narrow` | component | length |  |  | kit | ✓ | stable |  | the one column of a phone sheet in the GUI window |
-| `--gui-about-w` | component | length |  |  | kit | ✓ | stable |  | the width of the MIR ABOUT page |
-| `--gui-about-w-narrow` | component | length |  |  | kit | ✓ | stable |  | the width of the MIR ABOUT page at phone width |
+| `--gui-about-w` | component | length |  |  | kit | ✓ | stable |  | the width of the ABOUT MIR page |
+| `--gui-about-w-narrow` | component | length |  |  | kit | ✓ | stable |  | the width of the ABOUT MIR page at phone width |
 | `--gui-gap` | component | length |  |  | kit | ✓ | stable |  | the gutter between the GUI window's groups |
 | `--gui-grp-r` | component | length |  |  | kit | ✓ | stable |  | a GUI group's corner and the logo's |
 | `--gui-grp-pad` | component | length |  |  | kit |  | stable |  | a GUI group's padding (a padding shorthand: geometry, not a skin’s) |
-| `--gui-logo-h` | component | length |  |  | kit | ✓ | stable |  | the MIR logo's height on MIR ABOUT |
+| `--gui-logo-h` | component | length |  |  | kit | ✓ | stable |  | the MIR logo's height on ABOUT MIR |
 | `--gui-cols` | component | number |  |  | kit |  | stable |  | MIR OPTIONS' most columns (1.5.5, the one pack): fewer on a smaller screen, one on a phone |
 
 ## fx

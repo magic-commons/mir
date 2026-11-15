@@ -77,10 +77,10 @@ const did = (id) => (e) => { const a = keys.get(id); label(lastEl, a.label); las
 const A = (id, label, group, k, more = {}) => ({ id, label, group, keys: k, run: did(id), ...more });
 let zoom = 1;
 const keys = createKeys({ storage: localKeyStorage('mir.gallery.keys'), actions: [
-  A('play', 'PLAY', 'TRANSPORT', ['Space'], { hint: 'start and stop time' }),
-  A('back', 'STEP BACK', 'TRANSPORT', [','], { hint: 'one frame back' }),
-  A('fwd', 'STEP FORWARD', 'TRANSPORT', ['.'], { hint: 'one frame on' }),
-  A('home', 'ZERO', 'TRANSPORT', ['0'], { hint: 'back to the start' }),
+  A('play', 'PLAY', 'PLAY', ['Space'], { hint: 'start and stop time' }),
+  A('back', 'STEP BACK', 'PLAY', [','], { hint: 'one frame back' }),
+  A('fwd', 'STEP FORWARD', 'PLAY', ['.'], { hint: 'one frame on' }),
+  A('home', 'ZERO', 'PLAY', ['0'], { hint: 'back to the start' }),
   A('zoomIn', 'ZOOM IN', 'VIEW', ['='], { repeat: true, run: (e) => { zoom *= 1.1; did('zoomIn')(e); } }),
   A('zoomOut', 'ZOOM OUT', 'VIEW', ['-'], { repeat: true, run: (e) => { zoom /= 1.1; did('zoomOut')(e); } }),
   A('theme', 'LIGHT OR DARK', 'VIEW', ['T'], { short: 'THEME', hint: 'swap the theme', run: (e) => { document.body.dataset.theme = document.body.dataset.theme === 'light' ? 'dark' : 'light'; accent.apply(); paint(); did('theme')(e); } }),

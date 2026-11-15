@@ -88,7 +88,7 @@ const PLACE_GLYPH = { rack: 'dock', stage: 'barsBottom', free: 'popOut' };
 /** … and with `own` ({ rack, stage, free }: glyph names, any subset) the app's glyph for a place it names wins (1.5.7-alpha.65, `placeGlyphs`) */
 export const placeGlyph = (list, place, own = null) => (own && typeof own[place] === 'string' && own[place] ? own[place]
   : place === 'stage' && Array.isArray(list) && !list.includes('free') ? 'popOut' : PLACE_GLYPH[place]);
-const PLACE_WORD = { rack: phrase('Dock the bar into the rack'), stage: phrase('Put the bar on the stage'), free: phrase('Float the bar in its own window') };
+const PLACE_WORD = { rack: phrase('Dock the CONTROL SURFACE'), stage: phrase('Put the CONTROL SURFACE on the stage'), free: phrase('Float the CONTROL SURFACE') };
 /** tempoDirection(bar, panelHeight, viewHeight) — BASINS positionTempo: below while the room under the bar holds the
  *  panel and a 16 px margin, or while there is at least as much room below as above; else above */
 export function tempoDirection(r, height, vh) {
@@ -112,9 +112,9 @@ export function reorderTo(key, at, count) {
 /** the seats a user may choose on the stage (Josh 2026-10-01); docking into the rack is BASINS' dock chip */
 export const SEATS = Object.freeze(['bottom', 'top', 'compact']);
 const SEAT_WORD = { bottom: phrase('BOTTOM'), top: phrase('TOP'), compact: phrase('COMPACT') };
-const SEAT_HINT = { bottom: phrase('the bar at the bottom centre'), top: phrase('the bar at the top centre'), compact: phrase('a small bar at the bottom: glyphs only, no Hz reading') };
+const SEAT_HINT = { bottom: phrase('The CONTROL SURFACE at the bottom centre'), top: phrase('The CONTROL SURFACE at the top centre'), compact: phrase('Small at the bottom: glyphs only, no Hz reading') };
 export const PLAY_ACTION = 'transport.play';
-/** the rack window the bar docks into (BASINS / λWAVES `device({ id: 'transport', eyebrow: 'TRANSPORT' })`) */
+/** the rack window the bar docks into (`device({ id: 'transport', eyebrow: 'CONTROL SURFACE' })`; the id is saved and never changes) */
 export const DOCK_ID = 'transport';
 /** the seats that wear a work bar's button face when the bar sits in one (BASINS transport-placement.js BAR_SEATS:
  *  to-start, send-to-rack and the logo take `.trig` — the kit's button face — with the bar's 34 px, radius-8 box) */
@@ -226,7 +226,7 @@ export function rackOpeners(rack, { only = null, glyphs = {} } = {}) {
  *  PLAY_ACTION ('transport.play'): `app.keys.menuItem('transport.play')` is the menu row */
 export function transportActions(get) {
   /* overControls: Space plays even with a button, a latch or a knob focused (BASINS); a text field still types it */
-  return [{ id: PLAY_ACTION, label: 'PLAY / PAUSE', group: 'TRANSPORT', keys: ['Space'], hint: 'play or pause', overControls: true,
+  return [{ id: PLAY_ACTION, label: 'PLAY / PAUSE', group: 'PLAY', keys: ['Space'], hint: 'play or pause', overControls: true,
     run: () => { const tr = get(); if (tr) tr.toggle(); } }];
 }
 
@@ -381,7 +381,7 @@ export function tempoPill({ tempo, panel = null, work = () => false, typed = fal
   const wrap = el('span', 'tempo-seat');
   const root = tbtn('tempo-expand'); wrap.appendChild(root);
   root.setAttribute('role', 'spinbutton'); root.setAttribute('aria-valuemin', String(tempo.min)); root.setAttribute('aria-valuemax', String(tempo.max));
-  root.setAttribute('aria-expanded', 'false'); root.title = 'Set transport tempo';
+  root.setAttribute('aria-expanded', 'false'); root.title = 'Set the tempo';
   const num = el('b', 'tempo-number', root), unit = el('span', 'tempo-unit', root), hz = el('i', 'tempo-hz', root);
   num.dataset.w = '00.0';                                             // THE HAND: the widest reading (tabular digits: under 100 has the point), kept unseen under it (transport.css), so ×4 → 120 moves nothing after the pill
   el('span', 'tempo-chevron', root).setAttribute('aria-hidden', 'true');
@@ -641,7 +641,7 @@ export function wayBack({ run, signal } = {}) {
 
 /* ── the layouts ───────────────────────────────────────────────────────────────────────────────────────────── */
 /** named(name, list, { title }) — a layout that carries its own drawing: the bar writes `data-layout="<name>"` and transport.css
- *  keys that layout's values on it; `title` names the rack window it docks into (default TRANSPORT).  A layout with no name
+ *  keys that layout's values on it; `title` names the rack window it docks into (default CONTROL SURFACE: MIR's word for the bar, 1.6.0-alpha.91).  A layout with no name
  *  (an app's own list) is drawn as the basic bar is. */
 const named = (name, list, extra = {}) => Object.freeze(Object.assign(list, { name }, extra));
 /** THE BASIC BAR (BASINS' app/transport.js; `data-layout="basic"`, the default): the play row — play, modulation's power, the BPM pill, to-start
@@ -673,15 +673,15 @@ export function layoutNames(list) {
   return out;
 }
 
-/* the docked seat: the bar in a rack window named TRANSPORT (BASINS transport-placement.js `docked`).  One window per
+/* the docked seat: the bar in a rack window named CONTROL SURFACE (BASINS transport-placement.js `docked`; it said TRANSPORT before 1.6.0-alpha.91).  One window per
    rack, registered once; its hooks are forwarded to whichever bar is alive. */
 const docks = new WeakMap();
 let bars = 0;                                                       // bars made on this page (each paints under its own key)
-function dockOf(R, title = 'TRANSPORT') {
+function dockOf(R, title = 'CONTROL SURFACE') {
   let d = docks.get(R);
   if (!d) {
     d = { open: null, close: null }; docks.set(R, d);
-    if (!(R.registered || []).includes(DOCK_ID)) R.register({ id: DOCK_ID, title, side: 'left', hint: 'the transport, docked',
+    if (!(R.registered || []).includes(DOCK_ID)) R.register({ id: DOCK_ID, title, side: 'left', hint: 'The CONTROL SURFACE, docked',
       build() {}, onOpen: (api) => d.open && d.open(api), onClose: () => d.close && d.close() });
   }
   return d;
@@ -731,7 +731,7 @@ export function createTransport({ layout = BASIC_LAYOUT, nodes = {}, host = glob
   if (opener) bar.dataset.opener = ''; else delete bar.dataset.opener;
   setAttr(bar, 'data-layout', layout && typeof layout.name === 'string' && layout.name ? layout.name : null);   // the layout's own drawing (transport.css)
   setAttr(bar, 'data-seats', seats || null);   // 'thin': the app's nodes drawn small off the dock (transport.css THIN SEATS, 1.5.5)
-  bar.setAttribute('role', 'toolbar'); ariaLabel(bar, 'Transport');
+  bar.setAttribute('role', 'toolbar'); ariaLabel(bar, 'Control surface');
 
   /* ── the parts the layout names, built once each ── */
   let panel = null, openBox = null, seatB = null, dockB = null;
@@ -750,11 +750,11 @@ export function createTransport({ layout = BASIC_LAYOUT, nodes = {}, host = glob
       case 'rewind': return clock && typeof clock.seek === 'function'
         ? one(barButton({ cls: 'transport-home', svg: SVG_REWIND, label: 'Seek to the beginning', title: 'Seek to the beginning', run: () => { clock.seek(0); soon(); }, signal })) : null;
       case 'openers': openBox = el('div', 'tr-openers'); return openBox;
-      case 'seat': seatB = tbtn('tr-seat'); setGlyph(seatB, 'grip', { label: 'Choose where the transport sits', size: 16 });
-        seatB.title = 'Where the transport sits'; seatB.setAttribute('aria-haspopup', 'menu'); seatB.setAttribute('aria-expanded', 'false'); return seatB;
+      case 'seat': seatB = tbtn('tr-seat'); setGlyph(seatB, 'grip', { label: 'Choose where the control surface sits', size: 16 });
+        seatB.title = 'Where the CONTROL SURFACE sits'; seatB.setAttribute('aria-haspopup', 'menu'); seatB.setAttribute('aria-expanded', 'false'); return seatB;
       case 'dock':
-        dockB = el('button', 'dock-btn'); dockB.type = 'button'; setGlyph(dockB, 'dock', { label: 'Dock the transport into the rack' });
-        dockB.title = 'Move the transport between the stage and the rack'; dockB.dataset.keyAction = 'dock'; dockB.setAttribute('aria-pressed', 'false'); return dockB;
+        dockB = el('button', 'dock-btn'); dockB.type = 'button'; setGlyph(dockB, 'dock', { label: 'Dock the control surface' });
+        dockB.title = 'Dock or float the CONTROL SURFACE'; dockB.dataset.keyAction = 'dock'; dockB.setAttribute('aria-pressed', 'false'); return dockB;
       case 'back': return null;                                     // the way back is always the bar's last child
       default: return null;
     }
@@ -792,7 +792,7 @@ export function createTransport({ layout = BASIC_LAYOUT, nodes = {}, host = glob
   const freeStore = jsonStore(key + '.free');
   function freeWindow() {
     if (freeWin) return freeWin;
-    freeWin = createWindow({ id: id + '-free', title: (layout && layout.title) || 'TRANSPORT', host: (typeof freeHost === 'function' ? freeHost() : freeHost) || body,   // freeHost: the app's float layer (its windows' stack)
+    freeWin = createWindow({ id: id + '-free', title: (layout && layout.title) || 'CONTROL SURFACE', host: (typeof freeHost === 'function' ? freeHost() : freeHost) || body,   // freeHost: the app's float layer (its windows' stack)
       chrome: 'close', resizable: false, emptyDrag: true,
       size: { w: 560, h: 120 }, min: { w: 40, h: 40 }, persist: { read: freeStore.get, write: freeStore.set },
       onClose: () => { if (free) { free = false; seatBar(); saveSeat(); } } });
@@ -906,7 +906,7 @@ export function createTransport({ layout = BASIC_LAYOUT, nodes = {}, host = glob
     const rows = SEATS.map((s) => [SEAT_WORD[s], () => { applySeat(s, { save: true }); if (seatB) seatB.focus({ preventScroll: true }); },
       s === 'top' && !!R && typeof R.setHome !== 'function', SEAT_HINT[s], { id: 'seat-' + s, checked: s === seat, radio: 'seat' }]);   // a rack without setHome cannot keep a top seat
     let back = false;
-    const m = contextMenu({ x: 0, y: 0, entries: rows, label: 'Where the transport sits', onClose: () => {
+    const m = contextMenu({ x: 0, y: 0, entries: rows, label: 'Where the control surface sits', onClose: () => {
       if (seatPop === m) seatPop = null; if (seatB) seatB.setAttribute('aria-expanded', 'false');
       if (back && seatB) seatB.focus({ preventScroll: true }); } });   // Escape gives the keys back to ⠿ (a row does, in its run)
     if (!m) return;
@@ -948,7 +948,7 @@ export function createTransport({ layout = BASIC_LAYOUT, nodes = {}, host = glob
   function setDocked(v) {
     docked = !!v; if (docked) free = false;
     bar.classList.toggle('docked', docked); bar.classList.toggle('mini', !docked);
-    if (dockB && !placeList()) { setAttr(dockB, 'aria-pressed', String(docked)); setGlyph(dockB, docked ? 'popOut' : 'dock', { label: docked ? 'Undock the transport' : 'Dock the transport into the rack' }); }
+    if (dockB && !placeList()) { setAttr(dockB, 'aria-pressed', String(docked)); setGlyph(dockB, docked ? 'popOut' : 'dock', { label: docked ? 'Float the control surface' : 'Dock the control surface' }); }
     else if (dockB) setAttr(dockB, 'aria-pressed', String(docked));
     seatBar();                                                      // undocked: back to the work lane if one shows, else the stage
     rove(null); soon();

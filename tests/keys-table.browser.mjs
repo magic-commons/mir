@@ -90,7 +90,7 @@ try {
   check('VIEW: HIDE, FULL SCREEN and HOLD THE WORDS STILL with their keys', view.length === 3 && /HOLD THE WORDS STILL\s*I$/.test(view[2]), JSON.stringify(view));
   check('EDIT: UNDO and REDO first, with the table\'s chords', /^UNDO\s*Ctrl\+Z$/.test(edit[0]) && /^REDO\s*Ctrl\+Shift\+Z$/.test(edit[1]), JSON.stringify(edit));
   check('WINDOW: HISTORY and KEYBOARD are table rows there', win.some((t) => /^HISTORY/.test(t)) && win.some((t) => /^KEYBOARD/.test(t)), JSON.stringify(win));
-  check('GUI: MIR OPTIONS and MIR ABOUT', gm.length === 2 && /^MIR OPTIONS/.test(gm[0]) && /^MIR ABOUT/.test(gm[1]), JSON.stringify(gm));
+  check('GUI: MIR OPTIONS and ABOUT MIR', gm.length === 2 && /^MIR OPTIONS/.test(gm[0]) && /^ABOUT MIR/.test(gm[1]), JSON.stringify(gm));
   const held = await ev(`const r = A.keys.menuItem('info-hold'); const seen = []; const h = A.info.hold; A.info.hold = (on) => { seen.push(on); return h(on); }; r[1](); r[1](); A.info.hold = h; return seen;`);
   check('the hold-still row latches: one press holds, the next lets go', JSON.stringify(held) === '[true,false]', JSON.stringify(held));
 

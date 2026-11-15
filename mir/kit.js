@@ -833,8 +833,8 @@ export function device(o) {
    * The rail chip is in the DOM for every window and shown by CSS only while the window floats, so the
    * header's box never changes shape when a window comes off the rack. */
   const pop = el('button', 'dev-pop', util); pop.type = 'button';
-  chip(pop, 'popOut', 'take this window off the rack');
-  pop.title = 'Move this window between the rack and stage';
+  chip(pop, 'popOut', 'Float this window');
+  pop.title = 'Float or dock this window';
   const rail = el('button', 'dev-rail', util); rail.type = 'button';
   chip(rail, 'compact', 'narrow this window to its rail');
   rail.title = 'Use the compact window layout';

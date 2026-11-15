@@ -31,7 +31,7 @@ import { createAudioPlayback } from './audio-playback.js';
 
 /* the popup's three answers (`label:` and `hint:` so tools/i18n-extract.mjs reaches them) */
 const CHOICES = [
-  { label: 'KEEP AUDIO', keep: true, hint: 'The envelope drives the target and the file plays with the transport' },
+  { label: 'KEEP AUDIO', keep: true, hint: 'The envelope drives the target; the file plays along' },
   { label: 'SIGNAL ONLY', keep: false, hint: 'The envelope drives the target; the file stays silent' },
   { label: 'CANCEL', keep: null, hint: '' },
 ];

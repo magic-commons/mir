@@ -97,7 +97,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   const transportBeat=()=>mod.host.model.transport.beats;
   const events=new AbortController(),listen=(target,type,fn,options={})=>target.addEventListener(type,fn,{...options,signal:events.signal});
   const surface=el('div','timeline-surface',win.body);surface.style.setProperty('--tl-tab-height',TIMELINE_TAB_HEIGHT+'px');surface.style.setProperty('--tl-row-gap',TIMELINE_ROW_GAP+'px');ariaLabel(surface,'Timeline workspace');surface.tabIndex=0;
-  const worklane=el('div','tl-worklane',surface),transportHost=el('div','tl-transport-host',worklane);ariaLabel(transportHost,'Timeline transport');
+  const worklane=el('div','tl-worklane',surface),transportHost=el('div','tl-transport-host',worklane);ariaLabel(transportHost,'Timeline control surface');
   const toolbar=el('div','tl-toolbar glass',worklane);toolbar.setAttribute('role','toolbar');ariaLabel(toolbar,'Timeline tools');
   const button=(parent,text,fn,cls='')=>{const b=el('button','trig tl-action '+cls,parent);b.type='button';word(b,text);b.addEventListener('click',()=>{finish(null,true);fn(b);});return b;};
   // The tools keep their word as the accessible name and the hint (data-help) when the icon takes the face.

@@ -36,6 +36,7 @@
   "A soft light follows the pointer over lit surfaces (never on touch)": "A soft light follows the pointer over lit surfaces (never on touch)",
   "AAC": "AAC",
   "ABOUT": "ABOUT",
+  "ABOUT MIR": "ABOUT MIR",
   "ACCENT": "ACCENT",
   "ACCENT BRIGHTNESS": "ACCENT BRIGHTNESS",
   "ACTIVE (toolbar)": "ACTIVE (toolbar)",
@@ -64,6 +65,7 @@
   "AUTO: not measured": "AUTO: not measured",
   "AUTO: tier {tier} → {quality}": "AUTO: tier {tier} → {quality}",
   "AUTOMATION": "AUTOMATION",
+  "About MIR": "About MIR",
   "Active": "Active",
   "Add": "Add",
   "Add a macro": "Add a macro",
@@ -161,7 +163,7 @@
   "Choose a key, with any modifiers.": "Choose a key, with any modifiers.",
   "Choose an action in the list first, then press {:RECORD INPUT}": "Choose an action in the list first, then press {:RECORD INPUT}",
   "Choose at least one project component before saving.": "Choose at least one project component before saving.",
-  "Choose where the transport sits": "Choose where the transport sits",
+  "Choose where the control surface sits": "Choose where the control surface sits",
   "Clear saved interface settings and reload": "Clear saved interface settings and reload",
   "Clear the time range (two presses within 300 ms at one spot); no single click clears it": "Clear the time range (two presses within 300 ms at one spot); no single click clears it",
   "Click the strip to add a stop; drag a stop to move it, off the strip to remove it": "Click the strip to add a stop; drag a stop to move it, off the strip to remove it",
@@ -181,6 +183,7 @@
   "Complete · {frames} frames · {time} render time": "Complete · {frames} frames · {time} render time",
   "Continue from the clock phase": "Continue from the clock phase",
   "Control": "Control",
+  "Control surface": "Control surface",
   "Copy the exact centre, zoom and rotation as text": "Copy the exact centre, zoom and rotation as text",
   "Copy the selection": "Copy the selection",
   "Corner radius across window panes.": "Corner radius across window panes.",
@@ -231,7 +234,7 @@
   "DISCARD STORED RENDER": "DISCARD STORED RENDER",
   "DISCONNECTED": "DISCONNECTED",
   "DISTANCE": "DISTANCE",
-  "DOCK / UNDOCK the transport": "DOCK / UNDOCK the transport",
+  "DOCK THE CONTROL SURFACE": "DOCK THE CONTROL SURFACE",
   "DOTTED": "DOTTED",
   "DOWNLOAD": "DOWNLOAD",
   "DOWNLOAD IMAGE": "DOWNLOAD IMAGE",
@@ -264,8 +267,11 @@
   "Devices: Minimized. Tap for Full": "Devices: Minimized. Tap for Full",
   "Disable backdrop filtering": "Disable backdrop filtering",
   "Disconnect the source from this macro": "Disconnect the source from this macro",
-  "Dock the bar into the rack": "Dock the bar into the rack",
-  "Dock the transport into the rack": "Dock the transport into the rack",
+  "Dock or float the CONTROL SURFACE": "Dock or float the CONTROL SURFACE",
+  "Dock the CONTROL SURFACE": "Dock the CONTROL SURFACE",
+  "Dock the control surface": "Dock the control surface",
+  "Dock this window": "Dock this window",
+  "Dock this window in its rack": "Dock this window in its rack",
   "Double-click the ruler": "Double-click the ruler",
   "Download image — capture first": "Download image — capture first",
   "Download image — {name}, {size}": "Download image — {name}, {size}",
@@ -405,7 +411,11 @@
   "Fit each selected audio clip’s remaining audio into its length (varispeed)": "Fit each selected audio clip’s remaining audio into its length (varispeed)",
   "Fit the full envelope in the graph": "Fit the full envelope in the graph",
   "Flat control faces: hairlines and accents only": "Flat control faces: hairlines and accents only",
-  "Float the bar in its own window": "Float the bar in its own window",
+  "Float or dock this window": "Float or dock this window",
+  "Float the CONTROL SURFACE": "Float the CONTROL SURFACE",
+  "Float the control surface": "Float the control surface",
+  "Float this window": "Float this window",
+  "Float this window off the rack": "Float this window off the rack",
   "Folder picture set from {name}": "Folder picture set from {name}",
   "Folder removed — {n} projects moved to {:ROOT}": {
    "one": "Folder removed — {n} project moved to {:ROOT}",
@@ -535,7 +545,6 @@
   "MID": "MID",
   "MIN": "MIN",
   "MIR": "MIR",
-  "MIR ABOUT": "MIR ABOUT",
   "MIR OPTIONS": "MIR OPTIONS",
   "MIR is free software under the GNU GPL v3.0 only (GPL-3.0-only) — no warranty.": "MIR is free software under the GNU GPL v3.0 only (GPL-3.0-only) — no warranty.",
   "MIR is the shared Magic Commons interface kit behind its controls, window system, gestures, and modulation. MIR is an open source platform and will continuously be updated, allowing for ‘LLM Mods’ support and customizable skins.": "MIR is the shared Magic Commons interface kit behind its controls, window system, gestures, and modulation. MIR is an open source platform and will continuously be updated, allowing for ‘LLM Mods’ support and customizable skins.",
@@ -553,8 +562,8 @@
   "MIR — active wherever the timeline is open": "MIR — active wherever the timeline is open",
   "MIR — length and speed change together": "MIR — length and speed change together",
   "MIR — the hand leads": "MIR — the hand leads",
+  "MIR — the one play (transportActions); FL’s Space stops to the start position instead": "MIR — the one play (transportActions); FL’s Space stops to the start position instead",
   "MIR — the range the record window renders": "MIR — the range the record window renders",
-  "MIR — the transport’s one play (transportActions); FL’s Space stops to the start position instead": "MIR — the transport’s one play (transportActions); FL’s Space stops to the start position instead",
   "MOD": "MOD",
   "MOD off": "MOD off",
   "MOD on": "MOD on",
@@ -595,9 +604,6 @@
   "Move the selection earlier by the snap (Alt: a sixteenth)": "Move the selection earlier by the snap (Alt: a sixteenth)",
   "Move the selection later by the snap (Alt: a sixteenth)": "Move the selection later by the snap (Alt: a sixteenth)",
   "Move the selection up a lane": "Move the selection up a lane",
-  "Move the transport between the stage and the rack": "Move the transport between the stage and the rack",
-  "Move this window between the rack and stage": "Move this window between the rack and stage",
-  "Move this window onto the stage": "Move this window onto the stage",
   "Move window": "Move window",
   "Move window · Shift-drag, or hold, to move these controls to another edge · arrows when focused": "Move window · Shift-drag, or hold, to move these controls to another edge · arrows when focused",
   "Move {name} to a folder": "Move {name} to a folder",
@@ -759,7 +765,7 @@
   "Projects": "Projects",
   "Pull curve start; keep right edge fixed": "Pull curve start; keep right edge fixed",
   "Pull the clip start": "Pull the clip start",
-  "Put the bar on the stage": "Put the bar on the stage",
+  "Put the CONTROL SURFACE on the stage": "Put the CONTROL SURFACE on the stage",
   "Put {name} on corner {c}": "Put {name} on corner {c}",
   "QUALITY": "QUALITY",
   "Quantise output to discrete levels": "Quantise output to discrete levels",
@@ -847,7 +853,6 @@
   "Restart phase on triggers and playback": "Restart phase on triggers and playback",
   "Restore the default window layout": "Restore the default window layout",
   "Restored {added} of {total}.": "Restored {added} of {total}.",
-  "Return this window to its rack": "Return this window to its rack",
   "Reveal or trim curve end": "Reveal or trim curve end",
   "Reverse the curve in time": "Reverse the curve in time",
   "Right-button drag on empty lane space (or between lanes)": "Right-button drag on empty lane space (or between lanes)",
@@ -976,8 +981,8 @@
   "Set the dials to this snapshot": "Set the dials to this snapshot",
   "Set the envelope stage time": "Set the envelope stage time",
   "Set the modulation clock in beats per minute": "Set the modulation clock in beats per minute",
+  "Set the tempo": "Set the tempo",
   "Set the time range to the selection’s span": "Set the time range to the selection’s span",
-  "Set transport tempo": "Set transport tempo",
   "Shift": "Shift",
   "Shift (held) while dragging a point or tension": "Shift (held) while dragging a point or tension",
   "Shift + click a clip": "Shift + click a clip",
@@ -989,11 +994,11 @@
   "Show Windows and Linux key names": "Show Windows and Linux key names",
   "Show or hide this lane’s arcs and blend (so a thumb zooming the picture cannot turn them)": "Show or hide this lane’s arcs and blend (so a thumb zooming the picture cannot turn them)",
   "Show status tags at the top": "Show status tags at the top",
+  "Show the CONTROL SURFACE, floated or docked": "Show the CONTROL SURFACE, floated or docked",
   "Show the app logo; hiding it keeps the menu bar visible": "Show the app logo; hiding it keeps the menu bar visible",
   "Show the controls of {lane}": "Show the controls of {lane}",
   "Show the data for {name}": "Show the data for {name}",
   "Show the interface": "Show the interface",
-  "Show the main transport bar, floating or docked": "Show the main transport bar, floating or docked",
   "Show the menu bar when the pointer is over the logo": "Show the menu bar when the pointer is over the logo",
   "Slice every selected clip at the playhead (one undo)": "Slice every selected clip at the playhead (one undo)",
   "Slice mode": "Slice mode",
@@ -1001,6 +1006,7 @@
   "Slice: click a clip · drag down the lanes": "Slice: click a clip · drag down the lanes",
   "Slide the time range back by its own width": "Slide the time range back by its own width",
   "Slide the time range forward by its own width": "Slide the time range forward by its own width",
+  "Small at the bottom: glyphs only, no Hz reading": "Small at the bottom: glyphs only, no Hz reading",
   "Smooth the LFO output": "Smooth the LFO output",
   "Solid to glass control faces": "Solid to glass control faces",
   "Solo · {lane}": "Solo · {lane}",
@@ -1046,8 +1052,6 @@
   "TO START": "TO START",
   "TONE": "TONE",
   "TOP": "TOP",
-  "TRANSPORT": "TRANSPORT",
-  "TRANSPORT BAR": "TRANSPORT BAR",
   "TRI": "TRI",
   "TRIG": "TRIG",
   "TRIG IN": "TRIG IN",
@@ -1065,6 +1069,9 @@
   "That is not a project zip — nothing changed": "That is not a project zip — nothing changed",
   "That is not a project zip: {why}": "That is not a project zip: {why}",
   "The 1-px rings around knobs, buttons, switches and fields": "The 1-px rings around knobs, buttons, switches and fields",
+  "The CONTROL SURFACE at the bottom centre": "The CONTROL SURFACE at the bottom centre",
+  "The CONTROL SURFACE at the top centre": "The CONTROL SURFACE at the top centre",
+  "The CONTROL SURFACE, docked": "The CONTROL SURFACE, docked",
   "The MIR logo is outlined from Butler Free Extra Bold by {who}.": "The MIR logo is outlined from Butler Free Extra Bold by {who}.",
   "The air between rack windows and from the screen’s edge, and the padding inside windows, bars and menus; 0 is flush": "The air between rack windows and from the screen’s edge, and the padding inside windows, bars and menus; 0 is flush",
   "The bank holds {n}: STORE over one, or × one.": "The bank holds {n}: STORE over one, or × one.",
@@ -1073,7 +1080,7 @@
   "The controls take the panes’ light: one {:ANGLE} for everything": "The controls take the panes’ light: one {:ANGLE} for everything",
   "The dot grip on window heads": "The dot grip on window heads",
   "The dotted guide where a dragged window will land": "The dotted guide where a dragged window will land",
-  "The envelope drives the target and the file plays with the transport": "The envelope drives the target and the file plays with the transport",
+  "The envelope drives the target; the file plays along": "The envelope drives the target; the file plays along",
   "The envelope drives the target; the file stays silent": "The envelope drives the target; the file stays silent",
   "The factory gallery is already complete.": "The factory gallery is already complete.",
   "The graphics device was lost: the GPU was reset, its driver changed, or it ran out of memory.": "The graphics device was lost: the GPU was reset, its driver changed, or it ran out of memory.",
@@ -1108,15 +1115,14 @@
   "This pair is not here yet: its window has not been built.": "This pair is not here yet: its window has not been built.",
   "This time is before the source begins.": "This time is before the source begins.",
   "This time range is occupied in every lane. Add a lane or choose another range.": "This time range is occupied in every lane. Add a lane or choose another range.",
+  "Timeline control surface": "Timeline control surface",
   "Timeline modes": "Timeline modes",
   "Timeline shortcuts": "Timeline shortcuts",
   "Timeline snap": "Timeline snap",
   "Timeline tools": "Timeline tools",
-  "Timeline transport": "Timeline transport",
   "Timeline workspace": "Timeline workspace",
   "Tint {tint}": "Tint {tint}",
   "Toggle it in the selection": "Toggle it in the selection",
-  "Transport": "Transport",
   "Trigger": "Trigger",
   "Trigger this envelope. Start modulation to advance it.": "Trigger this envelope. Start modulation to advance it.",
   "Trim it: the curve keeps its beats; every selected clip trims with it, each from its own start. The zone is centred on the edge; where two clips meet, the side you are on names the clip, and its edge lights first": "Trim it: the curve keeps its beats; every selected clip trims with it, each from its own start. The zone is centred on the edge; where two clips meet, the side you are on names the clip, and its edge lights first",
@@ -1133,7 +1139,6 @@
   "Unbound": "Unbound",
   "Under refractive or frost the knobs, buttons and fields are clear glass": "Under refractive or frost the knobs, buttons and fields are clear glass",
   "Undo": "Undo",
-  "Undock the transport": "Undock the transport",
   "Unrestricted rotation, with roll": "Unrestricted rotation, with roll",
   "Untitled": "Untitled",
   "Use the compact window layout": "Use the compact window layout",
@@ -1158,7 +1163,8 @@
   "What this app is, for a visiting model: windows, parameters, keys and shared pages": "What this app is, for a visiting model: windows, parameters, keys and shared pages",
   "What this theme cost when it was applied: surfaces that blur, shadows drawn, shine layers, the mean frame time": "What this theme cost when it was applied: surfaces that blur, shadows drawn, shine layers, the mean frame time",
   "Wheel over the timeline": "Wheel over the timeline",
-  "Where the transport sits": "Where the transport sits",
+  "Where the CONTROL SURFACE sits": "Where the CONTROL SURFACE sits",
+  "Where the control surface sits": "Where the control surface sits",
   "While a rack scrolls, each window’s name in a pill of {:ACCENT} A beside its title bar": "While a rack scrolls, each window’s name in a pill of {:ACCENT} A beside its title bar",
   "While a rack scrolls, each window’s name in a pill of {:ACCENT} B beside its title bar": "While a rack scrolls, each window’s name in a pill of {:ACCENT} B beside its title bar",
   "White text on every label": "White text on every label",
@@ -1201,7 +1207,6 @@
   "a curve keeps at least two points": "a curve keeps at least two points",
   "a draft translation: no native reader has checked it yet": "a draft translation: no native reader has checked it yet",
   "a new project": "a new project",
-  "a small bar at the bottom: glyphs only, no Hz reading": "a small bar at the bottom: glyphs only, no Hz reading",
   "about {name}": "about {name}",
   "about {name} (and back to the notes)": "about {name} (and back to the notes)",
   "adapted — FL fines tension with Ctrl; Shift is MIR’s fine gear": "adapted — FL fines tension with Ctrl; Shift is MIR’s fine gear",
@@ -1263,7 +1268,6 @@
   "device view::FULL": "FULL",
   "dismiss": "dismiss",
   "dismiss this message": "dismiss this message",
-  "dock this window back into the rack": "dock this window back into the rack",
   "edit or preview the notes": "edit or preview the notes",
   "eight macros is the model’s ceiling": "eight macros is the model’s ceiling",
   "ember": "ember",
@@ -1431,7 +1435,6 @@
   "subtitle": "subtitle",
   "supernova": "supernova",
   "sure?": "sure?",
-  "take this window off the rack": "take this window off the rack",
   "tapped {bpm} BPM from {n} intervals": "tapped {bpm} BPM from {n} intervals",
   "tension reset": "tension reset",
   "terra": "terra",
@@ -1448,8 +1451,6 @@
   "that preset could not be loaded": "that preset could not be loaded",
   "that preset was written by a model this build cannot honour": "that preset was written by a model this build cannot honour",
   "the audio graph could not be built": "the audio graph could not be built",
-  "the bar at the bottom centre": "the bar at the bottom centre",
-  "the bar at the top centre": "the bar at the top centre",
   "the browser refused the write: {why}": "the browser refused the write: {why}",
   "the conditioning sheet is not available in this build": "the conditioning sheet is not available in this build",
   "the debug dump, to the clipboard": "the debug dump, to the clipboard",
@@ -1485,7 +1486,6 @@
   "the shelf was damaged and has been mended — the old text is kept under {key}": "the shelf was damaged and has been mended — the old text is kept under {key}",
   "the stored library could not be read — it is left in place, and the first save moves it to {key} before starting a fresh one": "the stored library could not be read — it is left in place, and the first save moves it to {key} before starting a fresh one",
   "the sustain {:LEVEL} — the one ADSR control that is not a time": "the sustain {:LEVEL} — the one ADSR control that is not a time",
-  "the transport, docked": "the transport, docked",
   "the {:ENV} has fixed stages — drag a stage or its tension handle": "the {:ENV} has fixed stages — drag a stage or its tension handle",
   "theme mode::DARK": "DARK",
   "theme mode::LIGHT": "LIGHT",
@@ -1882,6 +1882,10 @@
   "ABOUT": [
    "mir/shell/about.js"
   ],
+  "ABOUT MIR": [
+   "mir/app.js",
+   "mir/shell/gui.js"
+  ],
   "ACCENT": [
    "mir/shell/gui.js"
   ],
@@ -1968,6 +1972,9 @@
    "mir/shell/gui.js"
   ],
   "AUTOMATION": [
+   "mir/shell/gui.js"
+  ],
+  "About MIR": [
    "mir/shell/gui.js"
   ],
   "Active": [
@@ -2188,6 +2195,7 @@
    "mir/shell/gui.js"
   ],
   "CONTROL SURFACE": [
+   "mir/shell/gui.js",
    "mir/shell/transport.js"
   ],
   "CONTROLS": [
@@ -2274,7 +2282,7 @@
   "Choose at least one project component before saving.": [
    "mir/folders/gallery.js"
   ],
-  "Choose where the transport sits": [
+  "Choose where the control surface sits": [
    "mir/shell/transport.js"
   ],
   "Clear saved interface settings and reload": [
@@ -2337,6 +2345,9 @@
   ],
   "Control": [
    "mir/shell/menubar.js"
+  ],
+  "Control surface": [
+   "mir/shell/transport.js"
   ],
   "Copy the exact centre, zoom and rotation as text": [
    "mir/render/panel.js"
@@ -2490,7 +2501,7 @@
   "DISTANCE": [
    "mir/shell/gui.js"
   ],
-  "DOCK / UNDOCK the transport": [
+  "DOCK THE CONTROL SURFACE": [
    "mir/app.js"
   ],
   "DOTTED": [
@@ -2590,11 +2601,20 @@
   "Disconnect the source from this macro": [
    "mir/modulation/window.js"
   ],
-  "Dock the bar into the rack": [
+  "Dock or float the CONTROL SURFACE": [
    "mir/shell/transport.js"
   ],
-  "Dock the transport into the rack": [
+  "Dock the CONTROL SURFACE": [
    "mir/shell/transport.js"
+  ],
+  "Dock the control surface": [
+   "mir/shell/transport.js"
+  ],
+  "Dock this window": [
+   "mir/shell/rack.js"
+  ],
+  "Dock this window in its rack": [
+   "mir/shell/rack.js"
   ],
   "Double-click the ruler": [
    "mir/timeline/shortcuts.js"
@@ -3016,8 +3036,21 @@
   "Flat control faces: hairlines and accents only": [
    "mir/shell/gui.js"
   ],
-  "Float the bar in its own window": [
+  "Float or dock this window": [
+   "mir/kit.js"
+  ],
+  "Float the CONTROL SURFACE": [
    "mir/shell/transport.js"
+  ],
+  "Float the control surface": [
+   "mir/shell/transport.js"
+  ],
+  "Float this window": [
+   "mir/kit.js",
+   "mir/shell/rack.js"
+  ],
+  "Float this window off the rack": [
+   "mir/shell/rack.js"
   ],
   "Folder picture set from {name}": [
    "mir/folders/gallery.js"
@@ -3400,10 +3433,6 @@
    "mir/palette.js",
    "mir/timeline/shortcuts.js"
   ],
-  "MIR ABOUT": [
-   "mir/app.js",
-   "mir/shell/gui.js"
-  ],
   "MIR OPTIONS": [
    "mir/app.js",
    "mir/shell/gui.js"
@@ -3456,10 +3485,10 @@
   "MIR — the hand leads": [
    "mir/timeline/shortcuts.js"
   ],
-  "MIR — the range the record window renders": [
+  "MIR — the one play (transportActions); FL’s Space stops to the start position instead": [
    "mir/timeline/shortcuts.js"
   ],
-  "MIR — the transport’s one play (transportActions); FL’s Space stops to the start position instead": [
+  "MIR — the range the record window renders": [
    "mir/timeline/shortcuts.js"
   ],
   "MOD": [
@@ -3585,15 +3614,6 @@
   ],
   "Move the selection up a lane": [
    "mir/timeline/shortcuts.js"
-  ],
-  "Move the transport between the stage and the rack": [
-   "mir/shell/transport.js"
-  ],
-  "Move this window between the rack and stage": [
-   "mir/kit.js"
-  ],
-  "Move this window onto the stage": [
-   "mir/shell/rack.js"
   ],
   "Move window": [
    "mir/window/rail.js"
@@ -4090,7 +4110,7 @@
   "Pull the clip start": [
    "mir/timeline/view.js"
   ],
-  "Put the bar on the stage": [
+  "Put the CONTROL SURFACE on the stage": [
    "mir/shell/transport.js"
   ],
   "Put {name} on corner {c}": [
@@ -4351,9 +4371,6 @@
   ],
   "Restored {added} of {total}.": [
    "mir/folders/gallery.js"
-  ],
-  "Return this window to its rack": [
-   "mir/shell/rack.js"
   ],
   "Reveal or trim curve end": [
    "mir/timeline/view.js"
@@ -4746,11 +4763,11 @@
   "Set the modulation clock in beats per minute": [
    "mir/modulation/window.js"
   ],
+  "Set the tempo": [
+   "mir/shell/transport.js"
+  ],
   "Set the time range to the selection’s span": [
    "mir/timeline/shortcuts.js"
-  ],
-  "Set transport tempo": [
-   "mir/shell/transport.js"
   ],
   "Shift": [
    "mir/keyboard/keyboard.js"
@@ -4785,6 +4802,9 @@
   "Show status tags at the top": [
    "mir/shell/gui.js"
   ],
+  "Show the CONTROL SURFACE, floated or docked": [
+   "mir/shell/gui.js"
+  ],
   "Show the app logo; hiding it keeps the menu bar visible": [
    "mir/shell/gui.js"
   ],
@@ -4797,9 +4817,6 @@
   "Show the interface": [
    "mir/shell/rack.js",
    "mir/shell/transport.js"
-  ],
-  "Show the main transport bar, floating or docked": [
-   "mir/shell/gui.js"
   ],
   "Show the menu bar when the pointer is over the logo": [
    "mir/shell/gui.js"
@@ -4821,6 +4838,9 @@
   ],
   "Slide the time range forward by its own width": [
    "mir/timeline/shortcuts.js"
+  ],
+  "Small at the bottom: glyphs only, no Hz reading": [
+   "mir/shell/transport.js"
   ],
   "Smooth the LFO output": [
    "mir/modulation/window.js"
@@ -4960,12 +4980,6 @@
   "TOP": [
    "mir/shell/transport.js"
   ],
-  "TRANSPORT": [
-   "mir/shell/transport.js"
-  ],
-  "TRANSPORT BAR": [
-   "mir/shell/gui.js"
-  ],
   "TRI": [
    "mir/modulation/modwindow/modwindow.js",
    "mir/modulation/window.js"
@@ -5019,6 +5033,15 @@
   "The 1-px rings around knobs, buttons, switches and fields": [
    "mir/shell/gui.js"
   ],
+  "The CONTROL SURFACE at the bottom centre": [
+   "mir/shell/transport.js"
+  ],
+  "The CONTROL SURFACE at the top centre": [
+   "mir/shell/transport.js"
+  ],
+  "The CONTROL SURFACE, docked": [
+   "mir/shell/transport.js"
+  ],
   "The MIR logo is outlined from Butler Free Extra Bold by {who}.": [
    "mir/shell/gui.js"
   ],
@@ -5043,7 +5066,7 @@
   "The dotted guide where a dragged window will land": [
    "mir/shell/gui.js"
   ],
-  "The envelope drives the target and the file plays with the transport": [
+  "The envelope drives the target; the file plays along": [
    "mir/timeline/audio-drop.js"
   ],
   "The envelope drives the target; the file stays silent": [
@@ -5148,6 +5171,9 @@
   "This time range is occupied in every lane. Add a lane or choose another range.": [
    "mir/timeline/editor.js"
   ],
+  "Timeline control surface": [
+   "mir/timeline/editor.js"
+  ],
   "Timeline modes": [
    "mir/timeline/editor.js"
   ],
@@ -5160,9 +5186,6 @@
   "Timeline tools": [
    "mir/timeline/editor.js"
   ],
-  "Timeline transport": [
-   "mir/timeline/editor.js"
-  ],
   "Timeline workspace": [
    "mir/timeline/editor.js"
   ],
@@ -5171,9 +5194,6 @@
   ],
   "Toggle it in the selection": [
    "mir/timeline/shortcuts.js"
-  ],
-  "Transport": [
-   "mir/shell/transport.js"
   ],
   "Trigger": [
    "mir/modulation/modwindow/modwindow.js"
@@ -5224,9 +5244,6 @@
   "Undo": [
    "mir/history/history-list.js",
    "mir/timeline/shortcuts.js"
-  ],
-  "Undock the transport": [
-   "mir/shell/transport.js"
   ],
   "Unrestricted rotation, with roll": [
    "mir/panels/camera-rig.js"
@@ -5302,7 +5319,10 @@
   "Wheel over the timeline": [
    "mir/timeline/shortcuts.js"
   ],
-  "Where the transport sits": [
+  "Where the CONTROL SURFACE sits": [
+   "mir/shell/transport.js"
+  ],
+  "Where the control surface sits": [
    "mir/shell/transport.js"
   ],
   "While a rack scrolls, each window’s name in a pill of {:ACCENT} A beside its title bar": [
@@ -5433,9 +5453,6 @@
   ],
   "a new project": [
    "mir/folders/folders.js"
-  ],
-  "a small bar at the bottom: glyphs only, no Hz reading": [
-   "mir/shell/transport.js"
   ],
   "about {name}": [
    "mir/shell/notebook.js"
@@ -5612,9 +5629,6 @@
   ],
   "dismiss this message": [
    "mir/shell/banner.js"
-  ],
-  "dock this window back into the rack": [
-   "mir/shell/rack.js"
   ],
   "edit or preview the notes": [
    "mir/shell/notebook.js"
@@ -6190,10 +6204,6 @@
    "mir/controls/list.js",
    "mir/folders/gallery.js"
   ],
-  "take this window off the rack": [
-   "mir/kit.js",
-   "mir/shell/rack.js"
-  ],
   "tapped {bpm} BPM from {n} intervals": [
    "mir/modulation/window.js"
   ],
@@ -6241,12 +6251,6 @@
   ],
   "the audio graph could not be built": [
    "mir/modulation/audio-capture.js"
-  ],
-  "the bar at the bottom centre": [
-   "mir/shell/transport.js"
-  ],
-  "the bar at the top centre": [
-   "mir/shell/transport.js"
   ],
   "the browser refused the write: {why}": [
    "mir/folders/files.js"
@@ -6343,9 +6347,6 @@
   ],
   "the sustain {:LEVEL} — the one ADSR control that is not a time": [
    "mir/modulation/window.js"
-  ],
-  "the transport, docked": [
-   "mir/shell/transport.js"
   ],
   "the {:ENV} has fixed stages — drag a stage or its tension handle": [
    "mir/modulation/window.js"

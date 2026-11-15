@@ -115,7 +115,7 @@ export const TIMELINE_POINTER = [   // tr: the timeline's pointer gestures: the 
   { label: 'Alt (held)', hint: 'Bypass Snap for the gesture in progress', t: 'FL — Alt temporarily sets snap to none' },
 ];
 export const TIMELINE_FIXED = [   // tr: keys the timeline keeps outside the key table: the key, what it does, a note
-  { label: 'Space', hint: 'Play / pause, exact resume', t: 'MIR — the transport’s one play (transportActions); FL’s Space stops to the start position instead' },
+  { label: 'Space', hint: 'Play / pause, exact resume', t: 'MIR — the one play (transportActions); FL’s Space stops to the start position instead' },
   { label: 'Escape', hint: 'Cancel the gesture in flight, close menus, rewind a cancelled scrub', t: 'MIR — active wherever the timeline is open' },
 ];   // H is no longer here: hiding the interface (the table's 'hide', on whatever key) releases any open menu or gesture
 
