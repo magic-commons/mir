@@ -101,14 +101,17 @@ export function installPattern(o) {
     const roof = mr && mr.height > 0 && mr.bottom <= g.content.top + 1 && mr.right > d.left && mr.left < d.right ? Math.min(g.content.top, mr.top) : g.content.top;
     /* 1.6.0-alpha.87 · PATTERN STOPS ABOVE THE BAR (λWAVES 044 L67, REVIEW-H H23: under its content it lay over the CSB's right-hand seats,
        its rail too): a rect the app keeps clear (`avoid`, else its windowAvoid answer) in the device's column, below the content's roof, is the
-       floor in place of the screen's foot, and the pane keeps its rail's height above it — THE BAR IS ON TOP AND THE RACKS STOP ABOVE IT.
-       With no such rect the floor is the screen's foot, as before */
+       floor, and the pane keeps its rail's height above it — THE BAR IS ON TOP AND THE RACKS STOP ABOVE IT.  The flip is law 1's (below when
+       the screen's top leaves no room for the pane and a rail) unless the pane and its rail fit whole on one side: over the content, else
+       under it above the bar.  When neither side has room it stays law 1's side, lifted off the bar over the modulation window's foot.
+       With no such rect the floor is the screen's foot and the seat is what it was */
     const bars = (avoid ? avoid() : []).map((b) => ({ left: b.left, top: b.top, right: b.right ?? b.left + b.width })).filter((b) => b.right > d.left && b.left < d.right && b.top >= roof);
-    const vh = Math.min(win0.innerHeight, ...bars.map((b) => b.top - railH)), above = roof - gap - H, below = g.content.bottom + gap;
-    const flip = above - railH < gap && (below + H <= vh - gap || above < gap);
+    const vh = win0.innerHeight, floor = Math.min(vh, ...bars.map((b) => b.top - railH)), above = roof - gap - H, below = g.content.bottom + gap;
+    const law1 = above - railH < gap && (below + H <= vh - gap || above < gap);
+    const flip = !bars.length ? law1 : above - railH >= gap ? false : below + H <= floor - gap ? true : law1;
     /* outer: the edge facing away from the modulation window; avoid: its glass — the rail seats in a clear lane only
        (window/rail.js seatClear, BASINS snap-window.js seat) */
-    return { left: Math.round(d.left), width: Math.round(d.width), top: Math.round(Math.max(gap, Math.min(flip ? below : above, vh - gap - H))), height: H,
+    return { left: Math.round(d.left), width: Math.round(d.width), top: Math.round(Math.max(gap, Math.min(flip ? below : above, floor - gap - H))), height: H,
       outer: flip ? 'bottom' : 'top', avoid: g.content };
   }
   /* docked, the window is cut where the device run cuts the device (the window set clips the pane; the rail is cut here) */
