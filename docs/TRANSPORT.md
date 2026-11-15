@@ -78,7 +78,7 @@ It returns `{ root, layout, parts, el: { play, power, door, pill, field, panel, 
 
 **`macroRail({ M, api })`** is the tempo panel's MACROS pane on its own (the panel builds it).
 
-**Pure helpers** (`tests/transport.node.mjs`, `tests/transport-placement.node.mjs`): `formatBpm`, `clampBpm`, `digitStep`, `charAt`, `dragBpm`, `keyStep`, `parseBpm`, `seatOf`, `homeOf`, `seatRect`, `menuSide`, `firstRun`, `localSeatStore`, `menuRow`, `openerRows`, `isOpenOf`, `toggleOf`, `rackOpeners`, `transportActions`, `layoutNames`, `placementOf`, `tempoDirection`, `travelBpm`, `reorderTo`; `TRANSPORT`, `SEATS`, `PLACEMENTS`, `DOCK_ID`, `SVG_REWIND`.
+**Pure helpers** (`tests/transport.node.mjs`, `tests/transport-placement.node.mjs`): `formatBpm`, `clampBpm`, `digitStep`, `charAt`, `dragBpm`, `keyStep`, `parseBpm`, `seatOf`, `homeOf`, `seatRect`, `menuSide`, `firstRun`, `menuRow`, `openerRows`, `isOpenOf`, `toggleOf`, `rackOpeners`, `transportActions`, `layoutNames`, `placementOf`, `tempoDirection`, `travelBpm`, `reorderTo`; `TRANSPORT`, `SEATS`, `PLACEMENTS`, `DOCK_ID`, `SVG_REWIND`.
 
 ## Two places, and every close road (1.5.6-alpha.28)
 

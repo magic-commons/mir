@@ -181,10 +181,6 @@ export function firstRun(...stores) {
   }
   return true;
 }
-export function localSeatStore(key = 'mir.transport') {
-  const s = jsonStore(key);
-  return { get: s.get, set: s.set };
-}
 /** menuRow(row) — a WINDOW-menu row ([label, run, disabled, hint]) read back as { label, key, hint } */
 export function menuRow(row) {
   if (!Array.isArray(row) || typeof row[0] !== 'string') return null;
@@ -724,7 +720,7 @@ export function createTransport({ layout = BASIC_LAYOUT, nodes = {}, host = glob
   onSwitch = null, macros = true, powerWord = '', seatMenu: seatMenuOn = true, places = null, placeGlyphs = null, onDock = null, freeWidth = null, freeHost = null, seats = '' } = {}) {
   const doc = host.ownerDocument, view = doc.defaultView, body = doc.body;
   const life = new AbortController(), on = { signal: life.signal }, signal = life.signal;
-  const S = store || localSeatStore(key);
+  const S = store || jsonStore(key);
   const rackOf = () => (typeof rack === 'function' ? rack() : rack) || null;
   const tempo = createTempo({ model, setBpm, mod, persist });
   const made = [], parts = [];
