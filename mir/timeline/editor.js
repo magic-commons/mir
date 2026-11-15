@@ -47,7 +47,7 @@
 import { svgPoint, curveHit, curveAction, pointDrag, pointAddValue, tensionDelta, fineGear } from '../modulation/curve-gesture.js';
 import { el, label, ariaLabel, seg, stepper, number, TAP } from '../kit.js';
 import { confirmDialog } from '../shell/dialog.js';
-import { contextMenu, keycaps } from '../shell/menubar.js';
+import { contextMenu, keycaps, escapeLayer } from '../shell/menubar.js';
 import { glyphSvg } from '../glyph.js';
 import { frame } from '../core/frame.js';
 import { isField } from '../core/pointer.js';
@@ -91,7 +91,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   const chordOf=id=>{const k=typeof keys==='function'?keys():keys;return k&&k.get&&k.get('timeline.'+id)?k.menuKey('timeline.'+id):'';};
   const withKey=(node,id)=>{const c=id&&chordOf(id);if(c)keycaps(el('span','tl-key mb-key',node),c);return node;};   // a row of THE MODE MENU: its key as keycaps (1.6.0-alpha.66; it was typed " · chord")
   let doc=model.state(),selectedLane=doc.lanes[0].id,selected=null,selection=new Set(),pointSelection=null;
-  let px=20,snap=1,range=null,menu=null,ctx=null,drag=null,lastTap=null,rulerTap=null,clipboard=null,lastClip=null;   // lastClip: THE PENCIL's memory, the clip last pressed; rulerTap: the ruler's last press (THE RANGE STAYS)
+  let px=20,snap=1,range=null,menu=null,ctx=null,escPane=null,escDrag=null,drag=null,lastTap=null,rulerTap=null,clipboard=null,lastClip=null;   // lastClip: THE PENCIL's memory, the clip last pressed; rulerTap: the ruler's last press (THE RANGE STAYS)
   let stepMode=false,slideMode=false,drawTension=0,tool='edit',scope='clips',workLane='top';
   const dropHandlers=new Set();
   const transportBeat=()=>mod.host.model.transport.beats;
@@ -160,7 +160,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   const view=createTimelineView(surface,{pixels:()=>px,stepsOf,onClipMenu(e,c,curve){finish(null,true);clipMenu(e.clientX,e.clientY,c,curve);}});
   const {viewport,status}=view;
   const headPaint=createTimelinePlayhead({head:view.head,tail:view.tail,controller,clock:{beats:transportBeat,playing:()=>mod.host.clock.isPlaying(),bpm:()=>mod.host.model.transport.bpm},visible:()=>win.isOpen()&&!document.hidden&&!document.body.classList.contains('ui-hidden'),pixels:()=>px,scroll:()=>viewport.scrollLeft});
-  const snapBeat=(beat,e)=>snapTimelineBeat(beat,snap,!!e?.altKey),closePane=()=>{const back=menu?.dataset.pop==='modes'&&menu.contains(document.activeElement);menu?.remove();menu=null;if(back)surface.focus({preventScroll:true});},closeMenu=()=>{ctx?.close();closePane();};   // THE MODE MENU closed from inside it hands the focus back to the surface: the timeline's keys stay live
+  const snapBeat=(beat,e)=>snapTimelineBeat(beat,snap,!!e?.altKey),closePane=()=>{const back=menu?.dataset.pop==='modes'&&menu.contains(document.activeElement);menu?.remove();menu=null;if(escPane){escPane();escPane=null;}if(back)surface.focus({preventScroll:true});},closeMenu=()=>{ctx?.close();closePane();};   // THE MODE MENU closed from inside it hands the focus back to the surface: the timeline's keys stay live
   function setTool(name){const mode=MODES.find(m=>m[0]===name)||MODES[0];tool=mode[0];surface.dataset.tool=tool;surface.dataset.cursor=mode[4];surface.style.setProperty('--tl-mode-cursor',modeCursor(mode[2],mode[3]));
     surface.classList.toggle('tl-step-mode',stepMode&&PEN.has(tool));for(const[id,b]of toolButtons){b.setAttribute('aria-pressed',String(id===tool));b.classList.toggle('on',id===tool);}
     modesButton.replaceChildren();modesButton.insertAdjacentHTML('beforeend',glyphSvg(mode[2],'gly gly-'+mode[2],16));modesButton.firstChild?.setAttribute('aria-hidden','true');modesButton.dataset.now=tool;paintSelection();}
@@ -194,6 +194,10 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   function deleteSelection(){if(scope==='points'){if(pointSelection?.indices.size){const result=model.removePoints(pointSelection.curveId,[...pointSelection.indices]);if(!result?.removed)say(t('Keep at least two curve points.'));else pointSelection=null;}}else{model.deleteClips([...selection]);selection.clear();selected=null;}paintSelection();}
   function selectAll(){if(scope==='points'){const c=view.getClip(selected),curve=view.getCurve(c?.curveId);if(curve)pointSelection={clipId:c.id,curveId:curve.id,indices:new Set(curve.points.flatMap((p,i)=>p.t*curve.length>=c.offset&&p.t*curve.length<=c.offset+c.duration*c.scale?[i]:[]))};}else{selection=new Set(doc.clips.map(c=>c.id));selected||=doc.clips[0]?.id||null;}paintSelection();}
   function deselect(){selection.clear();pointSelection=null;selected=null;paintSelection();}
+  /* ESCAPE IS THE ONE STACK'S (1.6.0-alpha.67): a pane of the timeline's own (THE MODE MENU, a form) is a layer of the app's Escape stack while it is
+     open, and so is a gesture in flight (escDrag: pushed in begin(), taken off in finish()) — the topmost layer closes, once.  With the focus in a
+     field the stack stands down (an app's rule), so the pane also answers Escape itself, after its field has (a number field takes its own first). */
+  function paneOpen(){escPane=escapeLayer(()=>{escPane=null;closePane();});menu.addEventListener('keydown',e=>{if(e.code!=='Escape'||e.defaultPrevented)return;e.preventDefault();e.stopPropagation();closePane();});}
   function placeMenu(x,y) {
     const r=menu.getBoundingClientRect(),z=cssZoom(menu);menu.style.left=Math.max(8,Math.min(innerWidth-r.width-8,x))/z+'px';menu.style.top=Math.max(8,Math.min(innerHeight-r.height-8,y))/z+'px';   // seen; written ÷ UI SCALE (a .tl-pop is a zoomed root)
   }
@@ -213,7 +217,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   /* A SMALL FORM (TITLE / COLOR, TIME / VALUE, OUTPUT RANGE): a pane of its own at the point, a title and the fields its caller adds — a dialog, not a menu */
   function form(x,y,title,id) {
     closeMenu();menu=el('div','tl-pop glass',document.body);menu.dataset.mirSurface='menu';menu.dataset.pop=id;menu.setAttribute('role','dialog');
-    label(el('div','tl-pop-title',menu),title);placeMenu(x,y);
+    label(el('div','tl-pop-title',menu),title);paneOpen();placeMenu(x,y);
   }
   /* THE MODE MENU (1.5.7-alpha.49, λWAVES 041 T1; Josh: "this super cool feature from FL Studio which is 'Middle-mouse click+Right Click' which shows
      cursor 'Mode' controls … To the right side, it could simply have the menus in it's own section called 'Menu' … Make it as large too"): FL's context
@@ -223,7 +227,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
      right in either order (the surface's pointermove, below); the bar's MODE chip opens it for a finger. */
   function modeMenu(x,y){finish(null,true);closeMenu();menu=el('div','tl-pop tl-modes glass',document.body);menu.dataset.mirSurface='menu';menu.dataset.pop='modes';menu.setAttribute('role','menu');ariaLabel(menu,'Timeline modes');
     menu.addEventListener('contextmenu',e=>e.preventDefault());   // the chord's right button comes up over it
-    // by keyboard: ↑ ↓ walk a column (round), ← → cross to the other at the same height; Enter and Space press, Escape closes (the document's)
+    // by keyboard: ↑ ↓ walk a column (round), ← → cross to the other at the same height; Enter and Space press, Escape closes (paneOpen)
     menu.addEventListener('keydown',e=>{const cols=[left,right],at=cols.findIndex(c=>c.contains(document.activeElement));if(at<0||!e.key.startsWith('Arrow'))return;e.preventDefault();e.stopPropagation();
       const rows=c=>[...c.querySelectorAll('button')],list=rows(cols[at]),i=list.indexOf(document.activeElement),other=rows(cols[1-at]);
       (e.key==='ArrowDown'||e.key==='ArrowUp'?list[(i+(e.key==='ArrowDown'?1:-1)+list.length)%list.length]:other[Math.min(i,other.length-1)])?.focus();});
@@ -240,7 +244,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
     el('div','tl-pop-sep',right).setAttribute('role','separator');
     for(const[text,fn,id]of[...(audio?.pick?[['ADD AUDIO…',()=>audio.pick({laneId:selectedLane,start:controller.state().beat}),'add-audio']]:[]),['SHORTCUTS',()=>api.onShortcuts?.(x,y),'shortcuts']]){const b=withKey(button(right,text,()=>{closeMenu();fn();},'tl-row'),id);b.dataset.row=id;}
     for(const a of appRows()){if(!a){el('div','tl-pop-sep',right).setAttribute('role','separator');continue;}const[text,fn,id,chosen]=a,b=button(right,text,()=>{closeMenu();fn();},'tl-row');if(id)b.dataset.row=id;if(typeof chosen==='boolean'){b.setAttribute('aria-pressed',String(chosen));b.classList.toggle('on',chosen);}}
-    placeMenu(x,y);(left.querySelector('.on')||left.querySelector('button'))?.focus();}
+    paneOpen();placeMenu(x,y);(left.querySelector('.on')||left.querySelector('button'))?.focus();}
   function editIdentity(x,y,curve,clip) {
     form(x,y,'CLIP TITLE / COLOR','identity');ariaLabel(menu,'Clip title and color');
     const titleLabel=el('label','tl-field',menu),input=el('input','tl-value-input',titleLabel);titleLabel.prepend(label(el('span','tl-field-word'),'TITLE'));input.value=curve.name;input.maxLength=80;ariaLabel(input,'Clip title');
@@ -413,7 +417,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
     if(drag.kind==='tension'){const a=curve.points[drag.index],b=curve.points[drag.index+1],sign=b.v<a.v?-1:1;drawTension=bounded(drag.tension+sign*tensionDelta(drag.y,e.y,e,drag.gear)/TIMELINE_TENSION_TRAVEL,-1,1);model.setTension(curve.id,drag.index,drawTension);}
   });
   function finish(e,cancel=false,rewind=false){
-    if(!drag||e&&e.pointerId!==drag.pointerId)return;pumpStop();updates.flush();if(!drag)return;const held=drag;drag=null;delete surface.dataset.gesture;delete surface.dataset.dragClip;view.marquee.style.display='none';
+    if(!drag||e&&e.pointerId!==drag.pointerId)return;pumpStop();updates.flush();if(!drag)return;const held=drag;drag=null;if(escDrag){escDrag();escDrag=null;}delete surface.dataset.gesture;delete surface.dataset.dragClip;view.marquee.style.display='none';
     try{if(surface.hasPointerCapture(held.pointerId))surface.releasePointerCapture(held.pointerId);}catch(_){}
     if(held.kind==='scrub'){controller.endScrub({cancel:rewind});
       // a scrub released past the loop's end while playing comes home on the next tick (alpha.8): the view goes home with it, so the head is never off-screen (1.5.7-alpha.14)
@@ -440,7 +444,7 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
     if(held.kind==='zoombox'){const a=Math.min(held.startWorld.x,end.x)/px,b=Math.max(held.startWorld.x,end.x)/px;if(held.moved&&b>a){px=bounded(viewport.clientWidth/(b-a),8,100);paint();viewport.scrollLeft=Math.max(0,a*px);paint();}else act.zoomAll();}
     if(held.kind==='pan'&&held.lanes&&!held.moved)modeMenu(e.clientX,e.clientY);
   }
-  function begin(e,value,author=false){drag={...value,x:e.clientX,y:e.clientY,pointerId:e.pointerId,startWorld:view.world(e),author,activeBefore:selected,selectionBefore:new Set(selection)};surface.dataset.gesture=value.kind;if(value.clip)surface.dataset.dragClip=value.clip.id;if(author)model.begin();e.preventDefault();surface.setPointerCapture(e.pointerId);}
+  function begin(e,value,author=false){if(escDrag)escDrag();escDrag=escapeLayer(()=>{escDrag=null;finish(null,true,true);});drag={...value,x:e.clientX,y:e.clientY,pointerId:e.pointerId,startWorld:view.world(e),author,activeBefore:selected,selectionBefore:new Set(selection)};surface.dataset.gesture=value.kind;if(value.clip)surface.dataset.dragClip=value.clip.id;if(author)model.begin();e.preventDefault();surface.setPointerCapture(e.pointerId);}
   /* THE EDGE IS THE EDGE (1.5.7-alpha.41): the clip edge under the pointer — on a title band the tabs', in a lane the bodies' — each zone as wide
      as that clip's own trim element (8 px, 12 px on a tab, 14 px on touch, half a narrow clip), centred on the edge (timelineEdgeAt) */
   function edgeUnder(e){const band=e.target.closest?.('.tl-titleband,.tl-pane');if(!band)return null;const body=band.classList.contains('tl-pane');
@@ -590,9 +594,9 @@ export function buildTimelineEditor(win,{model,mod,controller,present=()=>{},say
   listen(document,'pointermove',e=>{if(drag&&e.pointerId===drag.pointerId){e.preventDefault();updates.post(pointer(e));if(!drag.moved&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>6)drag.moved=true;   // the slop, as updates reads it
       if(drag.moved&&PUMPED.includes(drag.kind)){pumpX=e.clientX;if(!pumpId)pumpId=requestAnimationFrame(edgePump);}}},{passive:false});listen(document,'pointerup',e=>finish(e));listen(document,'pointercancel',e=>finish(e,true));
   listen(document,'pointerdown',e=>{if(menu&&!menu.contains(e.target)&&!surface.contains(e.target))closeMenu();});
-  /* ESCAPE is not a table action (the kit keeps it): it only ends what is in flight.  HIDE needs no key of its own here:
+  /* ESCAPE is not a table action (the kit keeps it): it only ends what is in flight, through the app's stack (paneOpen, begin) when there is one.  HIDE needs no key of its own here:
      whatever key the table gives it, the interface going out of paint (body.ui-hidden) ends it (hiddenObserver below) */
-  listen(document,'keydown',e=>{if(e.code==='Escape'){closePane();finish(null,true,true);}});   // the kit's menu (ctx) closes by its own Escape road
+  listen(document,'keydown',e=>{if(e.code!=='Escape'||e.defaultPrevented||escPane||escDrag||!(menu||drag))return;e.preventDefault();closePane();finish(null,true,true);});   // no stack handed in: the timeline's own listener, and it says it acted
   listen(document,'visibilitychange',()=>{if(document.hidden){closeMenu();finish(null,true);headPaint.reset();}});listen(globalThis,'blur',()=>{closeMenu();finish(null,true);});
   /* THE TIMELINE SCROLLS UNDER THE POINTER (1.5.7-alpha.9, λWAVES 038 T3; Josh: "Scroll on timeline doesn't seem to work"): Ctrl/Cmd +
      wheel zooms about the pointer, as before; a plain wheel scrolls TIME while the lanes fit the height (they fill it, so a vertical
