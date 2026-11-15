@@ -51,13 +51,13 @@ The mark's 360° spin is **gone**, and so are the busy spin and its hue cycle �
 identically at rest, mid-turn and busy. What moves is the live palette walked *through* the nine squares: rack.js
 generates nine `@keyframes` from the same `wheelColor()` the static fills come from and injects them as
 `<style id="lwTurn">`, so the animation **is** the palette and cannot drift from it. `--logo-turn: 1.2s`, `linear`,
-one iteration for BOOT (rare tier, the delight budget) and infinite for BUSY, plus `lw-busy-breathe` — 1.1 s,
+one iteration for BOOT (rare tier, the delight budget) and infinite for BUSY, plus `mir-breathe` — 1.1 s,
 linear, alternate, **opacity only**. It is CSS and not JS, and it is rebuilt only when a turn STARTS: a HUE drag
 would otherwise rewrite eight kilobytes of stylesheet sixty times a second and restart the animation with it.
 The price, accepted: a palette changed mid-turn keeps the old keyframes until the turn restarts.
 *(In the kit the same mechanism is `mir/shell/accent.js`: `turn()` and `busy()` inject `<style id="mirTurn">` with
 keyframes `mir-turn-0` … `mir-turn-8`, rebuilt only when a turn starts after the palette changed;
-`lw-busy-breathe` is in `mir/css/base.css`. `lwTurn` is λWAVES' own `rack.js`.)*
+`mir-breathe` is in `mir/css/base.css`. `lwTurn` is λWAVES' own `rack.js`.)*
 
 ## Numbers
 - Press / toggle: **100–160 ms** (`--t-fast .12s` is exactly this rung).
@@ -143,7 +143,7 @@ is dropped over one.
   (`mir/shell/shell.css`, `mir/modulation/modhost.css`); the window's fold chevron joined the kit's block in 1.4.0; the rack's slide, the modulation window's fold
   chevron and the `--m2-motion-*` line are still only in λWAVES' `lab.css` (λWAVES).)*
 - **The lab's ONE entrance (wave 69).** `layout.reopen()` (λWAVES) only: 220 ms, `cubic-bezier(.23, 1, .32, 1)`,
-  opacity + a 7-px slide, one iteration, `lw-dev-enter` (and `lw-dev-enter-quiet`, opacity alone, under the
+  opacity + a 7-px slide, one iteration, `mir-dev-enter` (and `mir-dev-enter-quiet`, opacity alone, under the
   preference). **`raise()` deliberately does not fire it**, because TAB reaches `raise()` and a
   keyboard-initiated action is never animated. A fold animation, a rack-reorder FLIP and a preset-load bridge
   were each considered and refused: the fold is the tens/day tier and its chevron already is the animation,
