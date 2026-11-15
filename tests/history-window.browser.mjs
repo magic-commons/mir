@@ -25,7 +25,7 @@ try {
 
   await p.eval(`__H.hw.open()`); await sleep(500);
   check('the window opens', await p.eval(`__H.hw.isOpen`) === true);
-  check('it carries the notebook frame: ↶ ↷ × in the head, CLEAR and the count in the foot', await p.eval(`!!document.querySelector('.hist-win .nb-head .hist-undo') && !!document.querySelector('.hist-win .nb-head .hist-redo') && !!document.querySelector('.hist-win .nb-head .hist-close') && !!document.querySelector('.hist-win .nb-foot .hist-clear') && !!document.querySelector('.hist-win .nb-foot .hist-count')`));
+  check('it has the kit\'s title bar (chrome: close, 1.6.0-alpha.71): HISTORY, ↶ ↷ as head buttons and the bar\'s ×, no chip rail; CLEAR and the count in the foot', await p.eval(`(() => { const w = __H.hw.root, h = w.querySelector('.mir-win-head'); return !!h && w.dataset.chrome === 'close' && h.querySelector('.mir-win-title').textContent === 'HISTORY' && !!h.querySelector('.mir-win-tools .mir-win-btn.hist-undo') && !!h.querySelector('.mir-win-tools .mir-win-btn.hist-redo') && !!h.querySelector('.mir-win-x') && !document.querySelector('.mir-rail[data-mir-rail="history"]') && !!w.querySelector('.hist-win .nb-foot .hist-clear') && !!w.querySelector('.hist-win .nb-foot .hist-count'); })()`));
   let r = await rows();
   check('it starts with the one row, where the project stands', r.length === 1 && r[0].state === 'current', JSON.stringify(r));
 
@@ -34,7 +34,7 @@ try {
     const c = await at(`document.querySelector('#card .k-dial') || document.querySelector('#card .k')`);
     await mouse('mouseMoved', c.x, c.y); await mouse('mousePressed', c.x, c.y);
     for (let i = 1; i <= 8; i++) await p.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: c.x, y: c.y + dy * i / 8, button: 'left', buttons: 1 });
-    await mouse('mouseReleased', c.x, c.y + dy); await sleep(150);
+    await mouse('mouseReleased', c.x, c.y + dy); await sleep(400);   // past TAP.ms: a second press inside 300 ms is the knob's double press (home), since 1.6.0-alpha.19 — this check pressed again after 150 ms and was red from then
   };
   const s0 = await size();
   await drag(-60); const s1 = await size();
@@ -75,7 +75,7 @@ try {
   r = await rows();
   check('CLEAR leaves one row and the picture as it is', r.length === 1 && Math.abs((await size()) - keep) < 1e-6, JSON.stringify(r));
 
-  await press(`document.querySelector('.hist-close')`, 'the x in the head');
+  await press(`__H.hw.root.querySelector('.mir-win-x')`, 'the x in the title bar');
   await sleep(500);
   check('the x closes the window', await p.eval(`__H.hw.isOpen`) === false);
   check('the page raised no exception', p.logs.filter((l) => l.startsWith('EXCEPTION')).length === 0, p.logs.join(' | '));

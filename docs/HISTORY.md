@@ -17,9 +17,9 @@ Tests: `tests/history.node.mjs`, `tests/project.node.mjs`, `tests/history-window
 
 ## `mir/history/window.js` — the window
 
-`createHistoryWindow({ history, host, id = 'history', title = 'HISTORY', mod, present, canAct, stage, windows, keys = true, gestures = true, storageKey = 'mir.history.window', persist, dock, chips, size = { w: 320, h: 440 }, min = { w: 240, h: 200 }, say, onOpen, onClose })` → `{ win, root, history, list, open(), close(), toggle(), isOpen, rows(), paint(), destroy() }`.
+`createHistoryWindow({ history, host, id = 'history', title = 'HISTORY', mod, present, canAct, stage, windows, keys = true, gestures = true, storageKey = 'mir.history.window', persist, size = { w: 320, h: 440 }, min = { w: 240, h: 200 }, say, onOpen, onClose })` → `{ win, root, history, list, open(), close(), toggle(), isOpen, rows(), paint(), destroy() }`.
 
-BASINS' window, on the kit's one window species (`createWindow`): the notebook's frame, HISTORY with ↶ ↷ × in the head, the rows newest first (the one you stand on lit, the future dimmed, a click returns to that row), the count and CLEAR in the foot. Empty glass drags it; the rail, the dock, the raise and the persistence are the window's. It remembers its shape under `storageKey` and first opens where BASINS' does: left of the right rack, 12 % down.
+BASINS' window, on the kit's one window species (`createWindow`) with a title bar (`chrome: 'close'`, 1.6.0-alpha.71: no chip rail, as KEYS, ABOUT and MIR OPTIONS — the `dock` and `chips` options went with the rail): HISTORY with ↶ ↷ as the bar's head buttons and the bar's ×, the rows newest first (the one you stand on lit, the future dimmed, a click returns to that row), the count and CLEAR in the foot. Empty glass drags it; the rail, the dock, the raise and the persistence are the window's. It remembers its shape under `storageKey` and first opens where BASINS' does: left of the right rack, 12 % down.
 
 | Option | Does |
 |---|---|
