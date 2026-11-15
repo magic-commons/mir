@@ -88,7 +88,7 @@ const PLACE_GLYPH = { rack: 'dock', stage: 'barsBottom', free: 'popOut' };
 /** … and with `own` ({ rack, stage, free }: glyph names, any subset) the app's glyph for a place it names wins (1.5.7-alpha.65, `placeGlyphs`) */
 export const placeGlyph = (list, place, own = null) => (own && typeof own[place] === 'string' && own[place] ? own[place]
   : place === 'stage' && Array.isArray(list) && !list.includes('free') ? 'popOut' : PLACE_GLYPH[place]);
-const PLACE_WORD = { rack: phrase('Dock the CONTROL SURFACE'), stage: phrase('Put the CONTROL SURFACE on the stage'), free: phrase('Float the CONTROL SURFACE') };
+const PLACE_WORD = { rack: phrase('Dock the CONTROL SURFACE in the rack'), stage: phrase('Put the CONTROL SURFACE on the stage'), free: phrase('Float the CONTROL SURFACE') };
 /** tempoDirection(bar, panelHeight, viewHeight) — BASINS positionTempo: below while the room under the bar holds the
  *  panel and a 16 px margin, or while there is at least as much room below as above; else above */
 export function tempoDirection(r, height, vh) {
@@ -507,7 +507,7 @@ export function tempoPanel({ tempo, mod = null, macros = true, signal } = {}) {
 export function macroRail({ M, api, signal, face = 'tile', onAdd = null, apply = () => {} } = {}) {
   if (face === 'knob') return macroBank({ M, api, signal, onAdd, apply });
   const life = lifeOf(signal), on = { signal: life.signal };
-  const root = el('div', 'tempo-pane tempo-macros'); ariaLabel(root, 'Macros');
+  const root = el('div', 'tempo-pane tempo-macros'); ariaLabel(root, 'MACROS');
   const rail = el('div', 'tempo-rail', root);
   const tiles = new Map(); let sig = '', cancelReorder = null;
   const sigOf = (list, A) => list.map((m) => m.id + ':' + m.kind).join('|') + (A ? '+' : '-');
@@ -528,7 +528,7 @@ export function macroRail({ M, api, signal, face = 'tile', onAdd = null, apply =
       rec.reorder.replaceChildren(gripDots()); rec.grip.title = 'Drag to route; tap to arm; double-tap to reset'; rec.reorder.title = 'Drag to reorder';
       tiles.set(m.id, rec);
     });
-    if (!list.length) label(el('div', 'tempo-empty', rail), 'No macros yet — add one in the modulation window.');
+    if (!list.length) label(el('div', 'tempo-empty', rail), 'No macros yet — add one in MODULATION');
     return true;
   }
   function paint() { const A = api(); if (!A) return; for (const [id, rec] of tiles) A.paintDepth(rec.numSeat, rec.depthArc, id); }
@@ -580,9 +580,9 @@ export function macroKnob({ M, m, index, api, apply = () => {} }) {
   return { id, root: k.root, knob: k, rec, paint };
 }
 function macroBank({ M, api, signal, onAdd, apply }) {
-  const life = lifeOf(signal), root = el('div', 'tempo-pane tempo-macros tempo-knobs'); ariaLabel(root, 'Macros');
+  const life = lifeOf(signal), root = el('div', 'tempo-pane tempo-macros tempo-knobs'); ariaLabel(root, 'MACROS');
   const tiles = new Map(); let sig = '';
-  const bank = knobBank({ slots: 8, parent: root, label: 'macros', onEmpty: onAdd ? () => { onAdd(); sync(); } : null });
+  const bank = knobBank({ slots: 8, parent: root, label: 'MACROS', onEmpty: onAdd ? () => { onAdd(); sync(); } : null });
   function build() {
     const A = api(), list = M.macroList(), s = list.map((m) => m.id + ':' + m.kind + ':' + m.name).join('|') + (A ? '+' : '-');
     if (s === sig) return false; sig = s; tiles.clear();
@@ -731,7 +731,7 @@ export function createTransport({ layout = BASIC_LAYOUT, nodes = {}, host = glob
   if (opener) bar.dataset.opener = ''; else delete bar.dataset.opener;
   setAttr(bar, 'data-layout', layout && typeof layout.name === 'string' && layout.name ? layout.name : null);   // the layout's own drawing (transport.css)
   setAttr(bar, 'data-seats', seats || null);   // 'thin': the app's nodes drawn small off the dock (transport.css THIN SEATS, 1.5.5)
-  bar.setAttribute('role', 'toolbar'); ariaLabel(bar, 'Control surface');
+  bar.setAttribute('role', 'toolbar'); ariaLabel(bar, 'CONTROL SURFACE');
 
   /* ── the parts the layout names, built once each ── */
   let panel = null, openBox = null, seatB = null, dockB = null;
@@ -750,10 +750,10 @@ export function createTransport({ layout = BASIC_LAYOUT, nodes = {}, host = glob
       case 'rewind': return clock && typeof clock.seek === 'function'
         ? one(barButton({ cls: 'transport-home', svg: SVG_REWIND, label: 'Seek to the beginning', title: 'Seek to the beginning', run: () => { clock.seek(0); soon(); }, signal })) : null;
       case 'openers': openBox = el('div', 'tr-openers'); return openBox;
-      case 'seat': seatB = tbtn('tr-seat'); setGlyph(seatB, 'grip', { label: 'Choose where the control surface sits', size: 16 });
+      case 'seat': seatB = tbtn('tr-seat'); setGlyph(seatB, 'grip', { label: 'Choose where the CONTROL SURFACE sits', size: 16 });
         seatB.title = 'Where the CONTROL SURFACE sits'; seatB.setAttribute('aria-haspopup', 'menu'); seatB.setAttribute('aria-expanded', 'false'); return seatB;
       case 'dock':
-        dockB = el('button', 'dock-btn'); dockB.type = 'button'; setGlyph(dockB, 'dock', { label: 'Dock the control surface' });
+        dockB = el('button', 'dock-btn'); dockB.type = 'button'; setGlyph(dockB, 'dock', { label: 'Dock the CONTROL SURFACE in the rack' });
         dockB.title = 'Dock or float the CONTROL SURFACE'; dockB.dataset.keyAction = 'dock'; dockB.setAttribute('aria-pressed', 'false'); return dockB;
       case 'back': return null;                                     // the way back is always the bar's last child
       default: return null;
@@ -906,7 +906,7 @@ export function createTransport({ layout = BASIC_LAYOUT, nodes = {}, host = glob
     const rows = SEATS.map((s) => [SEAT_WORD[s], () => { applySeat(s, { save: true }); if (seatB) seatB.focus({ preventScroll: true }); },
       s === 'top' && !!R && typeof R.setHome !== 'function', SEAT_HINT[s], { id: 'seat-' + s, checked: s === seat, radio: 'seat' }]);   // a rack without setHome cannot keep a top seat
     let back = false;
-    const m = contextMenu({ x: 0, y: 0, entries: rows, label: 'Where the control surface sits', onClose: () => {
+    const m = contextMenu({ x: 0, y: 0, entries: rows, label: 'Where the CONTROL SURFACE sits', onClose: () => {
       if (seatPop === m) seatPop = null; if (seatB) seatB.setAttribute('aria-expanded', 'false');
       if (back && seatB) seatB.focus({ preventScroll: true }); } });   // Escape gives the keys back to ⠿ (a row does, in its run)
     if (!m) return;
@@ -948,7 +948,7 @@ export function createTransport({ layout = BASIC_LAYOUT, nodes = {}, host = glob
   function setDocked(v) {
     docked = !!v; if (docked) free = false;
     bar.classList.toggle('docked', docked); bar.classList.toggle('mini', !docked);
-    if (dockB && !placeList()) { setAttr(dockB, 'aria-pressed', String(docked)); setGlyph(dockB, docked ? 'popOut' : 'dock', { label: docked ? 'Float the control surface' : 'Dock the control surface' }); }
+    if (dockB && !placeList()) { setAttr(dockB, 'aria-pressed', String(docked)); setGlyph(dockB, docked ? 'popOut' : 'dock', { label: docked ? 'Float the CONTROL SURFACE' : 'Dock the CONTROL SURFACE in the rack' }); }
     else if (dockB) setAttr(dockB, 'aria-pressed', String(docked));
     seatBar();                                                      // undocked: back to the work lane if one shows, else the stage
     rove(null); soon();

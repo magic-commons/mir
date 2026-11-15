@@ -141,7 +141,7 @@ export function createRenderView(parent, o = {}) {
       if (!held) return;
       if (o.picture.stale && o.picture.stale(held)) { held = null; paintPicture(); say(t('The view moved since the picture was made — tap CAPTURE IMAGE again.'), true); return; }
       const via = o.picture.save(held);   // nothing awaited before this line inside the tap
-      say(via === 'share' ? t('Handed to the share sheet — choose Save Image or Save to Files.') : t('Saved — {name}', { name: held.name }));
+      say(via === 'share' ? t('Handed to the share sheet — choose Save Image or Save to Files.') : t('Saved {name}', { name: held.name }));
     } });
     actions.appendChild(saveImg.root);
     picNote = el('div', 'sv-note sr-picture-note', pic);
@@ -402,7 +402,7 @@ export function createRenderView(parent, o = {}) {
       const res = await run; offerFiles(res, preview); say(preview ? t('Preview ready') : t('Render complete'));
     } catch (e) {
       const cancelled = rec.state().phase === 'cancelled';
-      renderStatus.textContent = cancelled ? t('Render cancelled. Completed checkpoints remain available below.') : t('Render failed: {why}', { why: String(e.message || e) });
+      renderStatus.textContent = cancelled ? t('Render cancelled. Completed checkpoints remain available below.') : t('Could not render: {why}', { why: String(e.message || e) });
       say(renderStatus.textContent, !cancelled);
     } finally { starting = false; cancel.root.disabled = true; prog.textContent = ''; paintEstimate(); void paintRecoveries(); }
   }

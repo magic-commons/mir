@@ -349,7 +349,7 @@ export function createXYPanel(o = {}) {
       g.addEventListener('pointerup', () => frame.coalesce(key + ':route', () => { dropSelf(); syncRoute(); }));
       V.grips[ax] = { root: g, n };
     }
-    if (!api) label(el('p', 'xy-quiet', box), 'The modulation window is not mounted here: X and Y cannot be routed.');
+    if (!api) label(el('p', 'xy-quiet', box), 'Could not route X and Y: no modulation window here');
     for (const ax of ['x', 'y']) if (M && M.macroOf(MAC[ax])) ensureMacro(ax);     // macros a saved rack kept are this panel's again
     AX.route.forEach((tid, i) => addTarget({ id: tid, label: title + ' ' + 'XY'[i], min: 0, max: 1, step: 0, map: 'linear', def: 0.5, hint: 'The XY controller\'s ' + 'XY'[i],
       get: () => R[2 + i], set: (v) => { R[2 + i] = v; driveMacro(i ? 'y' : 'x', v); }, widget: i ? pad.y : pad.x }));
@@ -428,7 +428,7 @@ export function createXYPanel(o = {}) {
         trig({ label: 'STORE', cls: 'xy-over', title: 'Store the dials as they stand over this snapshot', onFire: () => store(i) }).root,
         trig({ label: '×', cls: 'xy-del', title: 'Delete this snapshot', onFire: () => remove(i) }).root);
     });
-    if (!V.rows.children.length) label(el('p', 'xy-quiet', V.rows), 'No snapshots yet: STORE keeps the dials as they stand.');
+    if (!V.rows.children.length) label(el('p', 'xy-quiet', V.rows), 'No snapshots yet — STORE keeps the dials as they stand');
     for (let c = 0; c < 4; c++) {
       const b = V.corners[c], k = E ? E.bank.corners[c] : null;
       b.setLabel(CORNERS[c] + ' · ' + (k === null || !E.bank.slots[k] ? '—' : E.bank.slots[k].name));
@@ -459,7 +459,7 @@ export function createXYPanel(o = {}) {
       V.modeSeg = seg({ aria: 'what the pad does', options: ms.map((m) => ({ id: m, label: WORD[m], title: TIP[m] })), value: S.mode, onChange: (m) => setMode(m) });
       head.appendChild(V.modeSeg.root);
     }
-    if (!ms.length) label(el('p', 'xy-quiet', root), 'Nothing to drive: give the panel pairs, a modulation install, or a window to morph.');
+    if (!ms.length) label(el('p', 'xy-quiet', root), 'Nothing to drive — give the panel pairs, routes or a window');
     for (const m of ms) {
       const box = el('section', 'xy-body', root); box.dataset.mode = m; box.hidden = m !== S.mode; V.bodies[m] = box;
       (m === 'pair' ? buildPair : m === 'route' ? buildRoute : buildMorph)(box);

@@ -114,7 +114,7 @@ drift.place({ x: Math.round(innerWidth / 2 - 150), y: 120 }); drift.open();
 /* ── the menubar: its WINDOW menu IS the rack's ── */
 const title = wordmark($('stage'), { word: 'RACK', sub: 'MIR · THE RACK' });
 const bar = createMenubar({ opener: title, host: $('lab'), menus: {
-  WINDOW: () => [...rack.windowMenu(), null, ['HIDE / SHOW the rack\tB', () => rack.toggleHidden()], ['HIDE the interface\tH', () => rack.setInterface(false)], ['DRIFT', () => drift.toggle()]],
+  WINDOW: () => [...rack.windowMenu(), null, ['HIDE OR SHOW THE RACK\tB', () => rack.toggleHidden()], ['HIDE THE INTERFACE\tH', () => rack.setInterface(false)], ['DRIFT', () => drift.toggle()]],
   LAYOUT: () => [['SAVE LAYOUT', () => rack.saveLayout()], ...rack.layouts().map((L) => ['LOAD ' + L.label, () => rack.loadLayout(L.slot)]), null, ['FORGET the saved layout (reload)', () => { localStorage.removeItem('mir.gallery.rack'); location.reload(); }]],
 } });
 

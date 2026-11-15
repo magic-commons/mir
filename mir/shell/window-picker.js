@@ -64,7 +64,7 @@ export function createWindowPicker({ rack = null, open = (id) => { if (rack) rac
   root.dataset.mirSurface = 'menu';   // 1.6.0-alpha.55: a pop-up pane says so — the menu height, floor and edge (css/skin.css)
   root.setAttribute('role', 'dialog'); ariaLabel(root, 'FINDER');   // tr[FINDER]: the finder: a search field over every window of the app; picking one opens it or scrolls the rack to it
   const input = searchField(root, { cls: 'wp-search' });
-  input.placeholder = t('search windows'); ariaLabel(input, 'Search windows');   // tr[search windows]: the finder's search field: type part of a window's name
+  input.placeholder = t('search windows'); ariaLabel(input, 'Search windows by name');   // tr[search windows]: the finder's search field: type part of a window's name
   const list = el('div', 'wp-list', root); list.setAttribute('role', 'listbox'); ariaLabel(list, 'FINDER');
   /* 1.6.0-alpha.50 · THE WALK SPEAKS: the focus stays in the field and the mark is said — the field names the marked row (aria-activedescendant), the row is
      aria-selected, and no row is a Tab stop */

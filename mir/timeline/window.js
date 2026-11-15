@@ -48,7 +48,7 @@ export function createTimeline(host, port) {
   const size = port.size || TIMELINE_SIZE, min = port.min || TIMELINE_MIN;
   const saved = (() => { let r = null; try { r = store.read(); } catch (_) { /* storage refused */ } return r && Object.keys(r).length ? r : { ...(port.initial || {}) }; })();
   const controller = port.controller || createTransportController({ mod, scrubLevel: port.scrubLevel, busy: port.busy,
-    onRefusedPlay: () => say(t('Nothing to run.')) });
+    onRefusedPlay: () => say(t('Nothing to run')) });
   let editor = null, workLane = ['top', 'bottom', 'hidden'].includes(saved.workLane) ? saved.workLane : 'top', transport = null, readout = null, cursor = null;
   const writeShape = (shape) => { try { store.write({ ...shape, workLane }); } catch (_) { /* storage refused */ } };
   /* the shared transport's seat: the work lane while the window is open and the lane shows, else the stage */

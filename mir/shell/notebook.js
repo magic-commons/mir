@@ -147,7 +147,7 @@ export function createNotebook(options = {}) {
 
   /* ── the DOM, λWAVES' ── */
   const nb = el('section', 'nb', o.host || document.body); nb.id = 'notebook'; nb.hidden = true;
-  ariaLabel(nb, 'Notebook'); nb.dataset.face = 'notes';
+  ariaLabel(nb, 'NOTEBOOK'); nb.dataset.face = 'notes';
   const head = el('header', 'nb-head', nb);
   const titles = el('div', 'nb-titles', head);
   const titleIn = el('input', 'nb-title', titles); titleIn.value = tx(o.title); titleIn.spellcheck = false;
@@ -448,7 +448,7 @@ export function createNotebook(options = {}) {
     }
     /* delete, after an inline "delete? yes / no" on the tab itself */
     function ask(t) {
-      const no = askInline(t.w, { cls: 'nb-tab', label: 'delete?', then: () => removePage(t.key), back: () => t.b.focus() });
+      const no = askInline(t.w, { cls: 'nb-tab', label: 'DELETE?', then: () => removePage(t.key), back: () => t.b.focus() });
       if (no) { inView(t.w); no.focus(); }
     }
     function removePage(id) {
@@ -524,7 +524,7 @@ export function createNotebook(options = {}) {
     greetBtn.addEventListener('click', () => { P.showOnOpen = !P.showOnOpen; });
     mdBtn.addEventListener('click', () => {
       flushPage(); const f = pageFile(T.sel === 'yours' ? yoursPage() : P.copyOut(T.sel));
-      saveBlob(new Blob([f.text], { type: 'text/markdown' }), f.name); say(tx('saved {name}', { name: f.name }));
+      saveBlob(new Blob([f.text], { type: 'text/markdown' }), f.name); say(tx('Saved {name}', { name: f.name }));
     });
     const MD = /\.(md|markdown|txt)$/i;
     async function addFiles(files) {
@@ -539,10 +539,10 @@ export function createNotebook(options = {}) {
       f.addEventListener('change', () => { if (f.files) addFiles(f.files); }); f.click();
     });
     copyTo.addEventListener('click', () => {
-      if (T.sel === 'yours') { const y = yoursPage(); addPage({ title: y.title, md: y.md }); say(tx('copied into the project')); return; }
+      if (T.sel === 'yours') { const y = yoursPage(); addPage({ title: y.title, md: y.md }); say(tx('Page copied into the project')); return; }
       flushPage(); const page = P.copyOut(T.sel); if (!shelf || !page) return;
       const path = shelf.save(shelf.freePath(page.title || tx('Untitled')), page);
-      say(path ? tx('copied to the shelf as {path}', { path }) : shelf.error);
+      say(path ? tx('Page copied to the shelf as {path}', { path }) : shelf.error);
     });
     /* a .md dropped anywhere on the notebook becomes a page */
     const isFiles = (e) => !!e.dataTransfer && [...e.dataTransfer.types].includes('Files');

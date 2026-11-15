@@ -964,7 +964,7 @@ export function knobBank({ slots = 8, page = 0, onPage, items = [], onEmpty, onM
   function slot(it, i) {
     const s = el('div', 'mir-bank-slot' + (it ? ' filled' : ' empty'));
     if (!it) { const plus = el(onEmpty ? 'button' : 'span', 'mir-bank-plus', s); setGlyph(plus, 'plus', { size: 16 });
-      if (onEmpty) { plus.type = 'button'; ariaLabel(plus, 'Add'); plus.addEventListener('click', () => onEmpty(i)); } return s; }
+      if (onEmpty) { plus.type = 'button'; ariaLabel(plus, 'Add to this slot'); plus.addEventListener('click', () => onEmpty(i)); } return s; }
     s.dataset.slot = keyOf(it, i); s.append(faceOf(it, i)); if (it.span > 1) s.style.gridColumn = 'span ' + it.span;
     if (onMove) { const g = el('button', 'mir-bank-grip', s), id = it.id; g.type = 'button'; gripDots(g, 12); ariaLabel(g, 'Move');
       wireReorder(g, s, { host: grid, selector: ':scope > .mir-bank-slot.filled', axis: 'grid', motion, slop: TAP.slop, commit: (to) => onMove(id, pg * slots + to), settle: () => api.sync() });

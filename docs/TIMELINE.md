@@ -142,13 +142,13 @@ The timeline's keys are rows of the app's one key table (`docs/KEYS.md`), rebind
 | Key | Action | FL / MIR |
 |---|---|---|
 | Ctrl+A | Select all clips | FL — Select All |
-| Ctrl+D | Deselect | FL — Deselect selection |
+| Ctrl+D | Clear the selection | FL — Deselect selection |
 | Ctrl+B | Duplicate the selection, placed to its right | MIR — FL documents no Ctrl+B; every copy gets an independent source, never a linked one |
 | Ctrl+C | Copy the selection | FL — Copy selection |
 | Ctrl+X | Cut the selection | FL — Cut selection |
 | Ctrl+V | Paste at the playhead, into the active lane | FL — Paste selection |
-| Ctrl+Z | Undo | standard — not an FL Playlist binding |
-| Ctrl+Shift+Z · Ctrl+Y | Redo | standard — not an FL Playlist binding |
+| Ctrl+Z | Undo the last edit | standard — not an FL Playlist binding |
+| Ctrl+Shift+Z · Ctrl+Y | Redo the edit undone | standard — not an FL Playlist binding |
 | Ctrl+Enter | Set the time range to the selection’s span | MIR |
 | Ctrl+← | Slide the time range back by its own width | MIR |
 | Ctrl+→ | Slide the time range forward by its own width | MIR |
@@ -156,23 +156,23 @@ The timeline's keys are rows of the app's one key table (`docs/KEYS.md`), rebind
 | Home | Seek to the beginning | FL — Move playback marker to start |
 | Num Multiply | Seek to the next measure | FL — Next bar |
 | Num Divide | Seek to the previous measure | FL — Previous bar |
-| Shift+0 | Center the view on the playhead | MIR |
+| Shift+0 | Centre the view on the playhead | MIR |
 | Shift+1 | Zoom to 12px per beat | FL — Horizontal Zoom level 1 |
 | Shift+2 | Zoom to 20px per beat | FL — Horizontal Zoom level 2 |
 | Shift+3 | Zoom to 40px per beat | FL — Horizontal Zoom level 3 |
 | Shift+4 | Zoom to show the whole arrangement | FL — Horizontal Zoom, show all |
 | Shift+5 · Shift+Z | Zoom to the selection | FL — Zoom to selection (Shift+5); Shift+Z is MIR’s own, kept beside it |
 | Shift+I | Invert the clip selection | FL — Invert selection |
-| PgUp | Zoom in | FL — Zoom in |
-| PgDn | Zoom out | FL — Zoom out |
+| PgUp | Zoom the timeline in | FL — Zoom in |
+| PgDn | Zoom the timeline out | FL — Zoom out |
 | Shift+← · Alt+Shift+← | Move the selection earlier by the snap (Alt: a sixteenth) | FL — Shift+arrows move clips |
 | Shift+→ · Alt+Shift+→ | Move the selection later by the snap (Alt: a sixteenth) | FL — Shift+arrows move clips |
 | Shift+↑ | Move the selection up a lane | MIR — FL has no lane axis to move on |
 | Shift+↓ | Move the selection down a lane | MIR — FL has no lane axis to move on |
-| E | Select mode | FL — Select tool |
-| P | Pencil mode | FL — Draw tool (P) |
+| E | Select mode: the left button selects | FL — Select tool |
+| P | Pencil mode: the left button draws a clip | FL — Draw tool (P) |
 | Y | Preview mode: a press plays while held, a drag scrubs | FL — Playback tool (Y) |
-| C | Slice mode | FL — Slice tool |
+| C | Slice mode: the left button cuts a clip | FL — Slice tool |
 | — | Paint mode: drag to lay the last clip end to end | FL — Paint tool (B); unbound in MIR |
 | — | Paint Add mode: lay the last clip one snap step at a time | FL — Paint in drum-sequencer mode (N); unbound in MIR |
 | — | Delete mode: the left button deletes what it crosses | FL — Delete tool (D); unbound in MIR |

@@ -87,6 +87,6 @@ ok('a corrupt store is repaired, not thrown: the raw text is kept, sound records
 ok('a storage that throws gives null and words, never an exception', () => {
   const full = { getItem: () => null, setItem: () => { throw new Error('QuotaExceededError'); } };
   const S = createShelf({ storage: full, now });
-  assert.equal(S.save('a', { md: 'x' }), null); assert.match(S.error, /could not be saved/);
+  assert.equal(S.save('a', { md: 'x' }), null); assert.match(S.error, /Could not save the shelf/);
 });
 console.log(`\n${n} passed`);

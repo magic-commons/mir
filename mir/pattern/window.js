@@ -155,7 +155,7 @@ export function installPattern(o) {
 
   const surface = el('div', 'pt-surface', win.body);
   const list = el('div', 'pt-rows', surface);
-  const empty = label(el('div', 'pt-empty', surface), 'No envelopes on the rack — add one with +');
+  const empty = label(el('div', 'pt-empty', surface), 'No envelopes yet — add one with +');
   root.tabIndex = -1;
 
   const nameOf = (s, n) => s.label || t('ENV {n}', { n });

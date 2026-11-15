@@ -101,7 +101,7 @@ try {
   check('keys: B hides and shows the rack', b0 === false && b1 === true, `${b0} → ${b1}`);
   const menus = await ev(`const M = A.menubar; M.openGroup('VIEW'); const view = M.items.slice(); M.openGroup('ABOUT'); const about = M.items.slice(); M.openGroup('EDIT'); const edit = M.items.slice(); M.close(); return { view, about, edit };`);
   check('menus: VIEW has HIDE and FULL SCREEN with their keys, EDIT ends with Purge Cache/RAM, ABOUT ends with COPY DUMP',
-    menus.view.some((t) => /HIDE the interface/.test(t) && /H$/.test(t)) && menus.view.some((t) => /FULL SCREEN/.test(t) && /F$/.test(t)) && /Purge Cache\/RAM/.test(menus.edit[menus.edit.length - 1]) && /COPY DUMP/.test(menus.about[menus.about.length - 1]), JSON.stringify(menus));
+    menus.view.some((t) => /HIDE THE INTERFACE/.test(t) && /H$/.test(t)) && menus.view.some((t) => /FULL SCREEN/.test(t) && /F$/.test(t)) && /Purge Cache\/RAM/.test(menus.edit[menus.edit.length - 1]) && /COPY DUMP/.test(menus.about[menus.about.length - 1]), JSON.stringify(menus));
 
   /* ── 6. the banner, the boot veil, the dump ── */
   const bn = await ev(`const B = await import('../../mir/shell/banner.js'), V = await import('../../mir/shell/boot.js');

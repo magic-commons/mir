@@ -38,8 +38,8 @@ const LW_MENUS = {
     ['PLAY / PAUSE\tSpace'], ['NORMALIZE'], ['CLEAR the register'], ['RESET the view'], ['RESEED the particles\tCtrl+R'], null, ['RESET the key bindings'], ['SETTINGS…\tCtrl+,']],
   VIEW: () => [['INVERT the cloud — ink, not light', null, null, 'draw the cloud as ink rather than light; the transfer is inverted and ψ is not touched'], ['ρ = |ψ|²  density'], ['arg ψ  phase\tV cycles'], ['Re ψ'], ['Im ψ'], ['Δρ  difference'], ['Re + Im  superposed (heuristic)'],
     ['— style: CLOUD\tC cycles'], ['— style: SOLID'], ['— style: GRAIN'], ['— style: SIGNED'], ['— style: BANDS'],
-    ['STAGE CAPTIONS  on / off'], ['STATUS TAGS  on / off'], ['CONTROL HINTS  on / off'], ['HIDE the interface\tH'], ['FULL SCREEN / back\tF']],
-  WINDOW: () => [['MODULATION\tM'], ['NOTEBOOK\tJ', () => notebook.toggle()], ['HIDE / SHOW the rack\tB'], ['DOCK / UNDOCK the transport\tT'], ['HIDE the interface\tH'], ['SHOW / HIDE help\tN'], null,
+    ['STAGE CAPTIONS  on / off'], ['STATUS TAGS  on / off'], ['CONTROL HINTS  on / off'], ['HIDE THE INTERFACE\tH'], ['FULL SCREEN / back\tF']],
+  WINDOW: () => [['MODULATION\tM'], ['NOTEBOOK\tJ', () => notebook.toggle()], ['HIDE OR SHOW THE RACK\tB'], ['DOCK THE CONTROL SURFACE\tT'], ['HIDE THE INTERFACE\tH'], ['SHOW / HIDE help\tN'], null,
     ['THEME · LIGHT', () => setTheme('light')], ['THEME · DARK', () => setTheme('dark')], ['THEME · SYSTEM', () => setTheme(matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')]],
   ABOUT: () => [['ABOUT λWAVES', () => notebook.open('about')], ['KEYBOARD SHORTCUTS…\t?'], ['SETTINGS…\tCtrl+,'], null, ['UPDATE APP', null, null, 'check for a new build, rebuild the offline cache, and reload']],
 };

@@ -713,8 +713,8 @@ export function createModulation(host, port) {
     /* A NAME THAT IS ALREADY TAKEN IS A REPLACE, not a refusal — the model asks first and
        this window answers yes, because SAVE on a name you just loaded means "keep this". */
     if (r && r.error === 'exists') r = M.presetSave(name, M.serializeRack(), { replace: true });
-    if (r && r.ok) { activePresetId = r.id; foot.name.classList.remove('m2predirty'); status(t('saved “{name}”', { name: r.name }), ''); }
-    else status(r && r.error === 'factory-name' ? t('that name belongs to a factory preset — try “{name}”', { name: r.suggest }) : t('could not save that preset'), 'warn');
+    if (r && r.ok) { activePresetId = r.id; foot.name.classList.remove('m2predirty'); status(t('Saved {name}', { name: r.name }), ''); }
+    else status(r && r.error === 'factory-name' ? t('that name belongs to a factory preset — try “{name}”', { name: r.suggest }) : t('Could not save that preset'), 'warn');
     if (presetOpen) openPresets();
   });
 
@@ -727,7 +727,7 @@ export function createModulation(host, port) {
   const folderLabel = (name) => name === M.PRESET_FOLDER_DEFAULT ? t('MY PRESETS') : name;
   const stepPreset = (dir) => {
     const list = userPresets();
-    if (!list.length) { status(t('no presets yet — type a name and press {:SAVE}'), 'warn'); return; }
+    if (!list.length) { status(t('No presets yet — type a name and press {:SAVE}'), 'warn'); return; }
     let cur = list.findIndex((p) => p.id === activePresetId && p.name === foot.name.value);
     if (cur < 0) cur = list.findIndex((p) => p.name === foot.name.value);
     const next = list[((cur < 0 ? (dir > 0 ? -1 : 0) : cur) + dir + list.length) % list.length];
@@ -744,7 +744,7 @@ export function createModulation(host, port) {
   function loadPreset(id) {
     const bundled = bundledPresets().some((p) => p.id === id);
     const r = bundled && port.applyStarterPreset ? port.applyStarterPreset(id) : M.presetApply(id);
-    if (!r || r.ok === false) { status(r && r.error === 'foreign' ? t('that preset was written by a model this build cannot honour') : t('that preset could not be loaded'), 'warn'); return; }
+    if (!r || r.ok === false) { status(r && r.error === 'foreign' ? t('that preset was written by a model this build cannot honour') : t('Could not load that preset'), 'warn'); return; }
     activePresetId = id;
     foot.name.value = r.name || ''; foot.name.classList.remove('m2predirty');
     M.syncDormant((id2) => registry.has(id2));
@@ -776,7 +776,7 @@ export function createModulation(host, port) {
         }
         if (!p.bundled && row.del) row.del.addEventListener('click', (e) => {
           e.stopPropagation(); M.presetDelete(p.id); openPresets();
-          status(t('deleted “{name}”', { name: p.name }), '');
+          status(t('Deleted {name}', { name: p.name }), '');
         });
       }
     }
@@ -1462,7 +1462,7 @@ export function createModulation(host, port) {
       ariaLabel(rec.reorder, 'Reorder or rename {macro}', { macro: m.name });
       rec.reorder.replaceChildren(gripDots());                  // Josh: the dot grip for reorder; the cross stays the routing grip
       wireMacroReorder(rec, m.id, rename);
-      hintTo(rec.del, 'delete {macro} and its routes', { macro: m.name });
+      hintTo(rec.del, 'Delete {macro} and its routes', { macro: m.name });
       ariaLabel(rec.del, 'Delete {macro} and its routes', { macro: m.name });
       rec.del.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1877,10 +1877,10 @@ export function createModulation(host, port) {
       dev.bank.btn.title = 'Switch between two saved patches for this device';
     dev.bank.btn.addEventListener('click', () => { M.setSource(s.id, { bank: s.bank === 'A' ? 'B' : 'A' }); apply(); sync(); });
     dev.cpy.title = 'Copy this side\'s whole patch';
-    dev.cpy.addEventListener('click', () => { clip = M.copyBank(s.id); say(rec, t('patch copied — {:PASTE} onto any {kind}', { kind: KIND_WORD[s.kind] || s.kind })); });   // tr: a patch: all of one device’s settings together, as a synth patch; {kind} is the device kind (LFO, ENV, AUDIO)
+    dev.cpy.addEventListener('click', () => { clip = M.copyBank(s.id); say(rec, t('Patch copied — {:PASTE} onto any {kind}', { kind: KIND_WORD[s.kind] || s.kind })); });   // tr: a patch: all of one device’s settings together, as a synth patch; {kind} is the device kind (LFO, ENV, AUDIO)
       dev.pst.title = 'Paste a compatible device patch';
     dev.pst.addEventListener('click', () => {
-      if (!clip) { say(rec, t('nothing copied yet — press {:COPY} on a device first')); return; }
+      if (!clip) { say(rec, t('Nothing copied yet — press {:COPY} on a device first')); return; }
       const w = M.pasteBank(s.id, clip, s.bank);
       if (!w) { say(rec, t('{a} and {b} patches cannot be pasted across — they are different devices', { a: KIND_WORD[clip.kind] || String(clip.kind), b: KIND_WORD[s.kind] || s.kind })); return; }
       apply(); sync();

@@ -216,7 +216,7 @@ try {
     const its = [...L.querySelectorAll('.mb-item')]; return { empty, n: its.length, typed: /[☆⊙×★]/.test(L.textContent), seats: its.every((it) => it.firstElementChild.classList.contains('mb-icon') && it.firstElementChild.tagName.toLowerCase() === 'svg'),
       words: its.map((it) => it.querySelector('.mb-lbl').textContent)[0], h: its.map((it) => Math.round(box(it).h)), x: !!L.querySelector('.fav-x svg'), head: (L.querySelector('.rack-fav-head') || {}).textContent };`);
   check('THE LAYOUTS LIST WEARS THE MENU\'S ROW: a drawn glyph in every row\'s seat, the word alone, a drawn ×, 28 px rows, nothing typed; empty, it says so in the one dim line',
-    r.empty === 'No layout saved yet' && r.n === 2 && !r.typed && r.seats && r.words === 'SAVE LAYOUT' && r.h.every((h) => h === 28) && r.x && r.head === 'LOAD LAYOUT', JSON.stringify(r));
+    r.empty === 'No layouts yet — SAVE LAYOUT keeps this one' && r.n === 2 && !r.typed && r.seats && r.words === 'SAVE LAYOUT' && r.h.every((h) => h === 28) && r.x && r.head === 'LOAD LAYOUT', JSON.stringify(r));
   await run(`$('.mir-rack-list .fav-x').click(); await wait(100); return 0;`);
   await closeAll();
   await run(`T.adder.open(); await wait(450); return 0;`);

@@ -616,7 +616,7 @@ export function createGui({ host, prefs, app = {}, about = {}, accent, defaults 
   W.root.classList.add('mir-gui');
   const aboutBtn = el('button', 'mir-win-btn gui-about-btn'); aboutBtn.type = 'button'; aboutBtn.dataset.glyph = 'info';
   const ig = glyphEl('info', 'gly gly-info'); if (ig) aboutBtn.append(ig);
-  ariaLabel(aboutBtn, 'About MIR'); hint(aboutBtn, 'ABOUT MIR');
+  ariaLabel(aboutBtn, 'ABOUT MIR'); hint(aboutBtn, 'ABOUT MIR');
   W.tools.prepend(aboutBtn);                                        // the circled (i), beside the ×
 
   const A = createWindow({ id: 'gui-about', title: 'ABOUT MIR', host, chrome: 'close', size: { w: 480, h: 560 }, min: { w: 280, h: 200 }, emptyDrag: true, body: ab });

@@ -92,9 +92,9 @@ try {
   let r2 = await J(`await wait(120); return { off: document.body.classList.contains('no-badges'), shown: cs('#badges', 'display') };`);
   check('STATUS TAGS: off for a new user (body.no-badges hides #badges); a real click shows them', r.off && r.shown === 'none' && hitS && !r2.off && r2.shown !== 'none', JSON.stringify([r, r2]));
   await J(`G.open('windows'); await wait(300); return 1;`);   // WINDOWS and SAMPLING are the WINDOWS tab (1.5.0-alpha.19; 'options:2' is LIGHT now)
-  const hitT = await click(swB('windows', 3), 'TRANSPORT BAR');
+  const hitT = await click(swB('windows', 3), 'CONTROL SURFACE');
   r = await J(`await wait(120); return document.body.classList.contains('no-transport-bar');`);
-  check('TRANSPORT BAR off (a real click): body.no-transport-bar', hitT && r === true);
+  check('CONTROL SURFACE off (a real click): body.no-transport-bar', hitT && r === true);
   const hitSc = await click(segB('sampling', 0, 1), 'SCRUB LIGHT');
   r = await J(`await wait(120); return G.sampling();`);
   check('SAMPLING · SCRUB LIGHT (a real click): stored and handed out by gui.sampling()', hitSc && r.scrub === 'light' && r.grid === 0, JSON.stringify(r));

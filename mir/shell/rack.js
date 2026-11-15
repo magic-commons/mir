@@ -558,7 +558,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
   function popFace(d) {
     const b = d.querySelector('.dev-pop'); if (!b) return;
     const out = d.classList.contains('floating'), w = reg.get(d.dataset.id);
-    if (w && w.spec.window && !out) { chip(b, 'popOut', 'open this as a window'); b.title = 'Open this as a window'; return; }   // 1.6.0-alpha.31: the twin's door
+    if (w && w.spec.window && !out) { chip(b, 'popOut', 'Open this as a window'); b.title = 'Open this as a window'; return; }   // 1.6.0-alpha.31: the twin's door
     chip(b, out ? 'dock' : 'popOut', out ? 'Dock this window' : 'Float this window');
     b.title = out ? 'Dock this window in its rack' : 'Float this window off the rack';
   }
@@ -1020,10 +1020,10 @@ export function createRack({ host = globalThis.document && document.body, sides 
     const s = row('star', 'Save the current window arrangement'); el('span', 'mb-lbl', s, 'SAVE LAYOUT');
     if (saved.length >= favourites) el('span', 'mb-key', s, 'replaces the oldest');
     s.addEventListener('click', (ev) => { ev.stopPropagation(); saveLayout(); drawFav(); });
-    if (saved.length) el('div', 'rack-fav-head', favList, 'LOAD LAYOUT'); else el('div', 'mir-empty', favList, 'No layout saved yet');
+    if (saved.length) el('div', 'rack-fav-head', favList, 'LOAD LAYOUT'); else el('div', 'mir-empty', favList, 'No layouts yet — SAVE LAYOUT keeps this one');
     for (const L of saved) {
       const it = row('starFill', 'Restore this window layout'); el('span', 'mb-lbl', it, L.label).translate = false;
-      const x = el('span', 'fav-x', it); x.title = 'Forget this layout'; const xg = glyphEl('close', 'gly gly-close', 12); if (xg) x.appendChild(xg); else x.textContent = '×';
+      const x = el('span', 'fav-x', it); x.title = 'Delete this layout'; const xg = glyphEl('close', 'gly gly-close', 12); if (xg) x.appendChild(xg); else x.textContent = '×';
       it.addEventListener('click', (ev) => { ev.stopPropagation(); if (x.contains(ev.target)) { forgetLayout(L.slot); drawFav(); return; } loadLayout(L.slot); favShown(false); });
     }
   }
@@ -1164,7 +1164,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
     const keyText = (spec) => (spec.action && keyOf ? keyOf(spec.action) || '' : '');
     const rows = [...reg.values()].filter((w) => !w.spec.card).map((w) => [(isOpen(w.spec.id) ? '↑  ' : '⊕  ') + w.spec.title + (keyText(w.spec) ? '\t' + keyText(w.spec) : ''),
       () => raise(w.spec.id), false, w.spec.hint || (isOpen(w.spec.id) ? 'bring it to the top of its rack' : 'open it'), w.spec.glyph ? { icon: w.spec.glyph } : undefined]);
-    if (rackRow) rows.push(null, ['HIDE / SHOW the rack' + (rackKey ? '\t' + rackKey : ''), () => setHidden(!isHidden()), false, '', { icon: 'eye' }]);
+    if (rackRow) rows.push(null, ['HIDE OR SHOW THE RACK' + (rackKey ? '\t' + rackKey : ''), () => setHidden(!isHidden()), false, '', { icon: 'eye' }]);
     return rows;
   }
 

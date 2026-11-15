@@ -122,7 +122,7 @@ const mod = installModulation({ mount: $('winlayer'), storageKey: 'mir.gallery.t
 
 /* ── one key table: Space is the one play (the bar's row), B hides the rack, H the interface ── */
 const keys = createKeys({ actions: [...transportActions(() => tr),
-  { id: 'rack', label: 'HIDE / SHOW THE RACK', group: 'VIEW', keys: ['KeyB'], run: () => rack.toggleHidden() },
+  { id: 'rack', label: 'HIDE OR SHOW THE RACK', group: 'VIEW', keys: ['KeyB'], run: () => rack.toggleHidden() },
   { id: 'ui', label: 'HIDE THE INTERFACE', group: 'VIEW', keys: ['KeyH'], run: () => rack.setInterface(document.body.classList.contains('ui-hidden')) }] });
 
 /* ── λWAVES' own seats on its bar (lab/rack.js §25), here driving the page's clock: ‹ › step, the scrub, ⟳, two
