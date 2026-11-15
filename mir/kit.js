@@ -823,9 +823,9 @@ export function device(o) {
   const stat = el('div', 'dev-stat', head, o.status || ''); statCaps(stat);
   const util = el('div', 'dev-util', head);
   const power = el('button', 'dev-power', util, ''); power.type = 'button'; power.title = 'Turn this window on or off'; power.setAttribute('aria-pressed', 'true');
-  ariaLabel(power, 'power');                 // it has no content, so that 90-character `title` WAS its accessible name
-  const fold = el('button', 'dev-fold', util); fold.type = 'button'; fold.title = 'Collapse or expand this window';
-  chip(fold, 'chevronDown', 'fold or unfold this window');   // ONE drawing: `.folded` turns it a quarter turn, which is the caret's own idiom (glyph.js, chevronDown)
+  ariaLabel(power, 'Power');                 // it has no content, so that 90-character `title` WAS its accessible name
+  const fold = el('button', 'dev-fold', util); fold.type = 'button'; fold.title = 'Fold or unfold this window';
+  chip(fold, 'chevronDown', 'Fold or unfold this window');   // ONE drawing: `.folded` turns it a quarter turn, which is the caret's own idiom (glyph.js, chevronDown)
   /* ── WAVE 55 · THE POP-OUT, and the rail beside it ──────────────────────────────────────────────
    * Every window gains the control the transport has always had.  device() builds the two chips and
    * NOTHING ELSE: the act itself is the rack's (lab/rack.js `layout.float`), because taking a card off
@@ -838,8 +838,8 @@ export function device(o) {
   const rail = el('button', 'dev-rail', util); rail.type = 'button';
   chip(rail, 'compact', 'narrow this window to its rail');
   rail.title = 'Use the compact window layout';
-  const close = el('button', 'dev-close', util); close.type = 'button'; close.title = 'Close this window';
-  chip(close, 'close', 'close this window');
+  const close = el('button', 'dev-close', util); close.type = 'button'; close.title = 'Close window';
+  chip(close, 'close', 'Close window');
   let off = false;
   /* WAVE 62 · THE ONE `inert` IN THE LAB.  Every other hidden state is already out of the tab order and
      out of the accessibility tree — `.dev.closed` and `.folded .dev-body` and a railed body are

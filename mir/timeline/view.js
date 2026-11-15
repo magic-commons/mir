@@ -117,7 +117,7 @@ export function createTimelineView(surface,{pixels,onClipMenu,stepsOf=()=>null})
       const held=surface.dataset.dragClip===id;for(const node of [n.title,n.block])node.classList.toggle('held',held);
       for(const p of n.svg.querySelectorAll('.tl-point'))p.classList.toggle('selected',pointSelection?.curveId===curve.id&&pointSelection.indices.has(+p.dataset.point));
       if(n.warn){const want=stepsOf(curve.targetId),off=!!want&&want!==curve.steps;n.block.classList.toggle('steps-off',off);
-        if(off&&n.warn.dataset.want!==String(want)){n.warn.dataset.want=String(want);ariaLabel(n.warn,'Drawn for {m} choices; the target now has {n}. Edit a point to redraw it for {n}.',{m:curve.steps,n:want});n.warn.title=t('Drawn for {m} choices; the target now has {n}. Edit a point to redraw it for {n}.',{m:curve.steps,n:want});}}}
+        if(off&&n.warn.dataset.want!==String(want)){n.warn.dataset.want=String(want);ariaLabel(n.warn,'Drawn for {m} choices, the target has {n}: edit a point',{m:curve.steps,n:want});n.warn.title=t('Drawn for {m} choices; the target now has {n}. Edit a point to redraw it for {n}.',{m:curve.steps,n:want});}}}
   }
   return {shell,ruler,viewport,content,rows,head,tail,marquee,status,setDocument,paint,paintSelection,getClip,getCurve,
     height:()=>height,plot:id=>clipNodes.get(id)?.svg,

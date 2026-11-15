@@ -226,7 +226,7 @@ export function rackOpeners(rack, { only = null, glyphs = {} } = {}) {
  *  PLAY_ACTION ('transport.play'): `app.keys.menuItem('transport.play')` is the menu row */
 export function transportActions(get) {
   /* overControls: Space plays even with a button, a latch or a knob focused (BASINS); a text field still types it */
-  return [{ id: PLAY_ACTION, label: 'PLAY / PAUSE', group: 'PLAY', keys: ['Space'], hint: 'play or pause', overControls: true,
+  return [{ id: PLAY_ACTION, label: 'PLAY / PAUSE', group: 'PLAY', keys: ['Space'], hint: 'Play or pause', overControls: true,
     run: () => { const tr = get(); if (tr) tr.toggle(); } }];
 }
 
@@ -454,7 +454,7 @@ export function tempoPanel({ tempo, mod = null, macros = true, signal } = {}) {
   const apply = () => frame.coalesce('mir.transport.macro', () => { if (C && C.applyAll) C.applyAll(true); if (mod.view && mod.view.sync) mod.view.sync(); });
   const rail = macros && mod && typeof M.macroList === 'function' ? macroRail({ M, api: () => (mod.view && mod.view.api) || null, signal: life.signal, face: mo.face, onAdd: mo.onAdd, apply }) : null;
   if (rail) { root.appendChild(rail.root); root.classList.add('with-macros'); }
-  const pane = el('div', 'tempo-pane tempo-clock', root); ariaLabel(pane, 'clock');
+  const pane = el('div', 'tempo-pane tempo-clock', root); ariaLabel(pane, 'Clock');
   const grid = el('div', 'tempo-grid', pane);
   let taps = [];
   const tapT = trig({ label: 'TAP', title: 'Tap the tempo', onFire: () => { const r = (M.tapTempo || MOD.tapTempo)(taps, performance.now()); taps = r.taps; if (r.bpm) tempo.set(r.bpm); tempo.commit(); sync(); } });
@@ -465,7 +465,7 @@ export function tempoPanel({ tempo, mod = null, macros = true, signal } = {}) {
   if (mod && typeof mod.cadence === 'function' && typeof mod.setCadence === 'function') grid.appendChild(cad.root);
   const bend = { base: null, which: null, latched: false, downAt: 0 };
   const bends = [[0.5, '÷2'], [2, '×2'], [4, '×4']].map(([factor, word]) => {
-    const b = trig({ label: word, title: factor > 1 ? 'Hold to multiply the tempo, release to return · tap to latch, tap again to release' : 'Hold to halve the tempo, release to return · tap to latch, tap again to release', onFire: () => {} });
+    const b = trig({ label: word, title: factor > 1 ? 'Hold to multiply the tempo; tap to latch, tap again to free' : 'Hold to halve the tempo; tap to latch, tap again to free', onFire: () => {} });
     b.root.setAttribute('aria-pressed', 'false'); b.root.dataset.bend = String(factor);
     const go = () => { if (bend.base === null) bend.base = tempo.get(); bend.which = word; tempo.set(bend.base * factor); sync(); };
     const off = () => { if (bend.base !== null) tempo.set(bend.base); bend.base = null; bend.which = null; bend.latched = false; sync(); };
@@ -507,7 +507,7 @@ export function tempoPanel({ tempo, mod = null, macros = true, signal } = {}) {
 export function macroRail({ M, api, signal, face = 'tile', onAdd = null, apply = () => {} } = {}) {
   if (face === 'knob') return macroBank({ M, api, signal, onAdd, apply });
   const life = lifeOf(signal), on = { signal: life.signal };
-  const root = el('div', 'tempo-pane tempo-macros'); ariaLabel(root, 'macros');
+  const root = el('div', 'tempo-pane tempo-macros'); ariaLabel(root, 'Macros');
   const rail = el('div', 'tempo-rail', root);
   const tiles = new Map(); let sig = '', cancelReorder = null;
   const sigOf = (list, A) => list.map((m) => m.id + ':' + m.kind).join('|') + (A ? '+' : '-');
@@ -580,7 +580,7 @@ export function macroKnob({ M, m, index, api, apply = () => {} }) {
   return { id, root: k.root, knob: k, rec, paint };
 }
 function macroBank({ M, api, signal, onAdd, apply }) {
-  const life = lifeOf(signal), root = el('div', 'tempo-pane tempo-macros tempo-knobs'); ariaLabel(root, 'macros');
+  const life = lifeOf(signal), root = el('div', 'tempo-pane tempo-macros tempo-knobs'); ariaLabel(root, 'Macros');
   const tiles = new Map(); let sig = '';
   const bank = knobBank({ slots: 8, parent: root, label: 'macros', onEmpty: onAdd ? () => { onAdd(); sync(); } : null });
   function build() {
@@ -767,7 +767,7 @@ export function createTransport({ layout = BASIC_LAYOUT, nodes = {}, host = glob
   function pillPart() { if (!pillP) pillP = tempoPill({ tempo, panel: layoutNames(layout).includes('panel') ? panelPart() : null, work: () => placement === 'work', typed: layoutNames(layout).includes('expand'), signal }); return pillP; }
   /* 'expand' (1.5.0-alpha.31, λWAVES 018 E2 · E6): the expander's own button — it opens and shuts the tempo panel, so the pill only types; its
      chevron points down while shut and turns up while open (transport.css) */
-  function expandPart() { const p = barButton({ cls: 'tr-expand', glyph: 'chevronDown', label: 'the expander', title: 'the expander', run: () => panelPart().toggle(), signal });   // tr[the expander]: the transport bar's expander: the panel under the bar with the macros, the clock and the app's own rows
+  function expandPart() { const p = barButton({ cls: 'tr-expand', glyph: 'chevronDown', label: 'The expander', title: 'The expander', run: () => panelPart().toggle(), signal });   // tr[The expander]: the transport bar's expander: the panel under the bar with the macros, the clock and the app's own rows
     p.sync = () => { const o = !!panel && panel.isOpen(); setAttr(p.root, 'aria-expanded', String(o)); p.root.classList.toggle('on', o); }; p.sync(); return p; }
   const place = (list, parent) => {
     for (const item of list) {

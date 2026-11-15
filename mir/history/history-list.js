@@ -44,7 +44,7 @@ export function historyList(history, host, o = {}) {
     tools.append(undo.root, redo.root);
   }
   const list = el('div', 'hist-list', root);
-  list.setAttribute('role', 'listbox'); ariaLabel(list, 'history rows');
+  list.setAttribute('role', 'listbox'); ariaLabel(list, 'History rows');
   const count = o.count === false || o.limitLine === false ? null : el('div', 'hist-count', root);
   list.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('.hist-row'); if (b) history.goto(+b.dataset.i); });
 

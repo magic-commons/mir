@@ -28,11 +28,13 @@
   "+ MACRO": "+ MACRO",
   ".MD": ".MD",
   ".mir or picture": ".mir or picture",
-  "0% solid · 100% glass. The transition uses color burn in dark mode and color dodge in light mode.": "0% solid · 100% glass. The transition uses color burn in dark mode and color dodge in light mode.",
+  "0% solid · 100% glass; a burn in dark, a dodge in light": "0% solid · 100% glass; a burn in dark, a dodge in light",
   "60 Hz": "60 Hz",
   "A": "A",
+  "A draft translation: no native reader has checked it yet": "A draft translation: no native reader has checked it yet",
   "A file the app needs did not load.": "A file the app needs did not load.",
   "A film is rendering — wait for it, or CANCEL it in RENDER, before moving the picture.": "A film is rendering — wait for it, or CANCEL it in RENDER, before moving the picture.",
+  "A slow sine on the colour bands over a turning palette": "A slow sine on the colour bands over a turning palette",
   "A soft light follows the pointer over lit surfaces (never on touch)": "A soft light follows the pointer over lit surfaces (never on touch)",
   "AAC": "AAC",
   "ABOUT": "ABOUT",
@@ -48,7 +50,7 @@
   "ADD MACRO": "ADD MACRO",
   "ALWAYS": "ALWAYS",
   "AMOUNT": "AMOUNT",
-  "AMOUNT — how much of the curves apply: the diagonal at 0, the whole curve at 100 %": "AMOUNT — how much of the curves apply: the diagonal at 0, the whole curve at 100 %",
+  "AMOUNT — how much of the curves apply, 0 to 100%": "AMOUNT — how much of the curves apply, 0 to 100%",
   "ANCHOR": "ANCHOR",
   "ANGLE": "ANGLE",
   "ARMED: {macro} — tap a lit control to route it, tap the grip again to cancel": "ARMED: {macro} — tap a lit control to route it, tap the grip again to cancel",
@@ -69,6 +71,8 @@
   "Active": "Active",
   "Add": "Add",
   "Add a macro": "Add a macro",
+  "Add a page": "Add a page",
+  "Add a page to the project": "Add a page to the project",
   "Add a point that preserves its current value": "Add a point that preserves its current value",
   "Add a stop opposite the selected one": "Add a stop opposite the selected one",
   "Add a {noun} — {count} of {cap}": "Add a {noun} — {count} of {cap}",
@@ -104,7 +108,7 @@
   "BEAT": "BEAT",
   "BLACK": "BLACK",
   "BLACK · WHITE": "BLACK · WHITE",
-  "BLACK · WHITE — the input levels: below BLACK is black, above WHITE is white; double-tap a thumb to send it home": "BLACK · WHITE — the input levels: below BLACK is black, above WHITE is white; double-tap a thumb to send it home",
+  "BLACK · WHITE — the input levels; double-tap sends home": "BLACK · WHITE — the input levels; double-tap sends home",
   "BLACK — what is this dark or darker becomes black": "BLACK — what is this dark or darker becomes black",
   "BLEND": "BLEND",
   "BLEND — how the picture is laid over what is under it": "BLEND — how the picture is laid over what is under it",
@@ -113,9 +117,8 @@
   "BPM": "BPM",
   "BRIGHT": "BRIGHT",
   "BRIGHTNESS": "BRIGHTNESS",
-  "BRIGHTNESS — shifts both accents toward white. Saved with the project, like the accents.": "BRIGHTNESS — shifts both accents toward white. Saved with the project, like the accents.",
+  "BRIGHTNESS — both accents toward white; saved per project": "BRIGHTNESS — both accents toward white; saved per project",
   "Black text on every label": "Black text on every label",
-  "Bundled starter modulation · Save keeps an editable user preset": "Bundled starter modulation · Save keeps an editable user preset",
   "Bypass Snap for the gesture in progress": "Bypass Snap for the gesture in progress",
   "Bypass this device and keep its settings": "Bypass this device and keep its settings",
   "CALCULATING": "CALCULATING",
@@ -151,13 +154,13 @@
   "CUSTOM: no theme to cost": "CUSTOM: no theme to cost",
   "CUT": "CUT",
   "Cancel": "Cancel",
-  "Cancel the gesture in flight, close menus, rewind a cancelled scrub": "Cancel the gesture in flight, close menus, rewind a cancelled scrub",
+  "Cancel the gesture in flight and close menus": "Cancel the gesture in flight and close menus",
   "Cancelled: “{action}” keeps its keys": "Cancelled: “{action}” keeps its keys",
   "Capture an image first": "Capture an image first",
   "Capture an image to enable Download": "Capture an image to enable Download",
   "Capture image": "Capture image",
   "Capture this view as an image. Capture again to try another version.": "Capture this view as an image. Capture again to try another version.",
-  "Carry every stop round the ramp (a jog wheel: it holds no value)": "Carry every stop round the ramp (a jog wheel: it holds no value)",
+  "Carry every stop round the ramp (a jog wheel, no value)": "Carry every stop round the ramp (a jog wheel, no value)",
   "Center the view on the playhead": "Center the view on the playhead",
   "Check the connection and reload. If you serve the app yourself, check that every file was copied.": "Check the connection and reload. If you serve the app yourself, check that every file was copied.",
   "Choose a key, with any modifiers.": "Choose a key, with any modifiers.",
@@ -165,30 +168,30 @@
   "Choose at least one project component before saving.": "Choose at least one project component before saving.",
   "Choose where the control surface sits": "Choose where the control surface sits",
   "Clear saved interface settings and reload": "Clear saved interface settings and reload",
-  "Clear the time range (two presses within 300 ms at one spot); no single click clears it": "Clear the time range (two presses within 300 ms at one spot); no single click clears it",
-  "Click the strip to add a stop; drag a stop to move it, off the strip to remove it": "Click the strip to add a stop; drag a stop to move it, off the strip to remove it",
+  "Clear the time range (a double press at one spot)": "Clear the time range (a double press at one spot)",
   "Clip color": "Clip color",
   "Clip options": "Clip options",
   "Clip title": "Clip title",
   "Clip title and color": "Clip title and color",
+  "Clock": "Clock",
   "Close dead-send inspector": "Close dead-send inspector",
   "Close the conditioning sheet": "Close the conditioning sheet",
-  "Close this window": "Close this window",
   "Close window": "Close window",
   "Close {name}": "Close {name}",
-  "Collapse or expand the macro rail": "Collapse or expand the macro rail",
-  "Collapse or expand this device": "Collapse or expand this device",
-  "Collapse or expand this window": "Collapse or expand this window",
-  "Colour intensity across glass surfaces: 0% neutral · 100% original · 200% vivid.": "Colour intensity across glass surfaces: 0% neutral · 100% original · 200% vivid.",
   "Complete · {frames} frames · {time} render time": "Complete · {frames} frames · {time} render time",
   "Continue from the clock phase": "Continue from the clock phase",
   "Control": "Control",
   "Control surface": "Control surface",
   "Copy the exact centre, zoom and rotation as text": "Copy the exact centre, zoom and rotation as text",
+  "Copy the notes as text": "Copy the notes as text",
   "Copy the selection": "Copy the selection",
-  "Corner radius across window panes.": "Corner radius across window panes.",
+  "Copy this page onto your shelf (the two stay apart)": "Copy this page onto your shelf (the two stay apart)",
+  "Copy this side's whole patch": "Copy this side's whole patch",
+  "Copy your note into the project as a new page (a copy)": "Copy your note into the project as a new page (a copy)",
+  "Copy {name} into the project": "Copy {name} into the project",
+  "Corner radius across window panes": "Corner radius across window panes",
   "Corner {c}: tap a snapshot's number to put it there (tap {c} again to leave it).": "Corner {c}: tap a snapshot's number to put it there (tap {c} again to leave it).",
-  "Corner {c}: tap, then a snapshot's number, to put it here; hold or Shift-click to store the dials straight onto it": "Corner {c}: tap, then a snapshot's number, to put it here; hold or Shift-click to store the dials straight onto it",
+  "Corner {c}: tap, then a snapshot’s number; hold to store": "Corner {c}: tap, then a snapshot’s number; hold to store",
   "Could not add the project: {why}": "Could not add the project: {why}",
   "Could not delete: {why}": "Could not delete: {why}",
   "Could not duplicate: {why}": "Could not duplicate: {why}",
@@ -218,9 +221,9 @@
   "Ctrl/Cmd + drag a tension handle": "Ctrl/Cmd + drag a tension handle",
   "Ctrl/Cmd + vertical drag on the ruler": "Ctrl/Cmd + vertical drag on the ruler",
   "Current gallery folder": "Current gallery folder",
-  "Curve editor: right-drag empty space to add a point; Shift-right-click adds at the current curve value; left-drag a point to move it (Shift is fine, Ctrl locks its time); left-drag a tension handle to bend it (Shift is fine); right-click or double-click a tension handle resets it; Alt-click a point deletes it.": "Curve editor: right-drag empty space to add a point; Shift-right-click adds at the current curve value; left-drag a point to move it (Shift is fine, Ctrl locks its time); left-drag a tension handle to bend it (Shift is fine); right-click or double-click a tension handle resets it; Alt-click a point deletes it.",
+  "Curve editor: right-drag adds a point, left-drag moves it": "Curve editor: right-drag adds a point, left-drag moves it",
   "Curve point limit reached. Use a wider Snap grid or remove points.": "Curve point limit reached. Use a wider Snap grid or remove points.",
-  "Cut the clip at the pointer’s beat (Snap applies, Alt bypasses); a drag cuts every clip its line crosses there (one undo)": "Cut the clip at the pointer’s beat (Snap applies, Alt bypasses); a drag cuts every clip its line crosses there (one undo)",
+  "Cut the clip at the pointer’s beat; a drag cuts every clip": "Cut the clip at the pointer’s beat; a drag cuts every clip",
   "Cut the selection": "Cut the selection",
   "DEAD SENDS": "DEAD SENDS",
   "DECAY": "DECAY",
@@ -243,21 +246,23 @@
   "DRAFT": "DRAFT",
   "DRAG": "DRAG",
   "DRAG HANDLE": "DRAG HANDLE",
-  "DRAG — how far the view turns for a drag; Shift is finer; double-tap resets": "DRAG — how far the view turns for a drag; Shift is finer; double-tap resets",
+  "DRAG — how far a drag turns the view; double-tap resets": "DRAG — how far a drag turns the view; double-tap resets",
   "DRIFT": "DRIFT",
   "DRIVES": "DRIVES",
   "DROP GUIDES": "DROP GUIDES",
   "DROP SHADOW": "DROP SHADOW",
   "DUPLICATE": "DUPLICATE",
   "Dead-send inspector": "Dead-send inspector",
-  "Delete every clip the pointer crosses (one undo): the right button’s sweep on the left button": "Delete every clip the pointer crosses (one undo): the right button’s sweep on the left button",
-  "Delete every clip the pointer crosses, tab or body (one undo); down on a tab deletes it at once": "Delete every clip the pointer crosses, tab or body (one undo); down on a tab deletes it at once",
+  "Delete every clip the pointer crosses, on the left button": "Delete every clip the pointer crosses, on the left button",
+  "Delete every clip the pointer crosses, tab or body": "Delete every clip the pointer crosses, tab or body",
   "Delete it": "Delete it",
   "Delete macro {i}": "Delete macro {i}",
   "Delete mode: the left button deletes what it crosses": "Delete mode: the left button deletes what it crosses",
   "Delete the selection": "Delete the selection",
+  "Delete this page": "Delete this page",
   "Delete this snapshot": "Delete this snapshot",
   "Delete trigger {i}": "Delete trigger {i}",
+  "Delete {macro} and its routes": "Delete {macro} and its routes",
   "Delete {name}": "Delete {name}",
   "Delete: press or drag": "Delete: press or drag",
   "Deleted — {name}": "Deleted — {name}",
@@ -267,6 +272,8 @@
   "Devices: Minimized. Tap for Full": "Devices: Minimized. Tap for Full",
   "Disable backdrop filtering": "Disable backdrop filtering",
   "Disconnect the source from this macro": "Disconnect the source from this macro",
+  "Dismiss": "Dismiss",
+  "Dismiss this message": "Dismiss this message",
   "Dock or float the CONTROL SURFACE": "Dock or float the CONTROL SURFACE",
   "Dock the CONTROL SURFACE": "Dock the CONTROL SURFACE",
   "Dock the control surface": "Dock the control surface",
@@ -292,12 +299,13 @@
   "Drag to route; tap to arm; double-tap to reset": "Drag to route; tap to arm; double-tap to reset",
   "Drag window": "Drag window",
   "Drag window · Shift-drag, or hold, to move these controls to another edge · arrows when focused": "Drag window · Shift-drag, or hold, to move these controls to another edge · arrows when focused",
-  "Drag {axis} onto any knob to route it there; tap to arm, then tap a knob; double-tap resets it": "Drag {axis} onto any knob to route it there; tap to arm, then tap a knob; double-tap resets it",
+  "Drag {axis} onto a knob; tap to arm; double-tap resets": "Drag {axis} onto a knob; tap to arm; double-tap resets",
   "Drag ✥ onto a slider or knob to route it (a PAD’s ✥ makes that control get hit) · drop it there again to release · a macro bar: drag sideways to set, double-tap to reset, tap to rename or unassign · number ring: up/down = master depth, double-tap = 100% · route ring: up/down = depth, sideways = direction.": "Drag ✥ onto a slider or knob to route it (a PAD’s ✥ makes that control get hit) · drop it there again to release · a macro bar: drag sideways to set, double-tap to reset, tap to rename or unassign · number ring: up/down = master depth, double-tap = 100% · route ring: up/down = depth, sideways = direction.",
+  "Drawn for {m} choices, the target has {n}: edit a point": "Drawn for {m} choices, the target has {n}: edit a point",
   "Drawn for {m} choices; the target now has {n}. Edit a point to redraw it for {n}.": "Drawn for {m} choices; the target now has {n}. Edit a point to redraw it for {n}.",
   "Duplicate the selected saved project, including its thumbnail and settings.": "Duplicate the selected saved project, including its thumbnail and settings.",
-  "Duplicate the selection (the clip joins it) and move the copies (tab or body)": "Duplicate the selection (the clip joins it) and move the copies (tab or body)",
-  "Duplicate the selection while moving it (title or body): an alias of Shift + drag, kept": "Duplicate the selection while moving it (title or body): an alias of Shift + drag, kept",
+  "Duplicate the selection while moving it, as Shift-drag does": "Duplicate the selection while moving it, as Shift-drag does",
+  "Duplicate the selection with the clip and move the copies": "Duplicate the selection with the clip and move the copies",
   "Duplicate the selection, placed to its right": "Duplicate the selection, placed to its right",
   "Duplicated — {name}": "Duplicated — {name}",
   "Duplicated — {name} · made room by deleting {n} projects": {
@@ -317,7 +325,7 @@
   "EXPORT": "EXPORT",
   "EXPORT .MD": "EXPORT .MD",
   "EXPOSURE": "EXPOSURE",
-  "EXPOSURE — the picture multiplied, before the levels; double-tap for 1×": "EXPOSURE — the picture multiplied, before the levels; double-tap for 1×",
+  "EXPOSURE — the picture multiplied; double-tap for 1×": "EXPOSURE — the picture multiplied; double-tap for 1×",
   "Each label turns white or black from the picture beneath it": "Each label turns white or black from the picture beneath it",
   "Each label’s ink from the picture under it (this app’s sampler)": "Each label’s ink from the picture under it (this app’s sampler)",
   "Edit or preview the notebook": "Edit or preview the notebook",
@@ -400,7 +408,7 @@
   "FRAME": "FRAME",
   "FREE": "FREE",
   "FRICTION": "FRICTION",
-  "FRICTION — how fast a released view slows; at 0 it never stops": "FRICTION — how fast a released view slows; at 0 it never stops",
+  "FRICTION — how fast a released view slows; 0 never stops": "FRICTION — how fast a released view slows; 0 never stops",
   "FULL": "FULL",
   "FULL SCREEN": "FULL SCREEN",
   "Fades only: nothing travels": "Fades only: nothing travels",
@@ -408,7 +416,7 @@
   "Find an action or key…": "Find an action or key…",
   "Fine-tune it (⅛; a point’s time is free of Snap)": "Fine-tune it (⅛; a point’s time is free of Snap)",
   "Fire this trigger": "Fire this trigger",
-  "Fit each selected audio clip’s remaining audio into its length (varispeed)": "Fit each selected audio clip’s remaining audio into its length (varispeed)",
+  "Fit each selected audio clip’s audio to its length": "Fit each selected audio clip’s audio to its length",
   "Fit the full envelope in the graph": "Fit the full envelope in the graph",
   "Flat control faces: hairlines and accents only": "Flat control faces: hairlines and accents only",
   "Float or dock this window": "Float or dock this window",
@@ -416,6 +424,9 @@
   "Float the control surface": "Float the control surface",
   "Float this window": "Float this window",
   "Float this window off the rack": "Float this window off the rack",
+  "Fold or unfold the macro rail": "Fold or unfold the macro rail",
+  "Fold or unfold this device": "Fold or unfold this device",
+  "Fold or unfold this window": "Fold or unfold this window",
   "Folder picture set from {name}": "Folder picture set from {name}",
   "Folder removed — {n} projects moved to {:ROOT}": {
    "one": "Folder removed — {n} project moved to {:ROOT}",
@@ -431,10 +442,11 @@
   "Follow the system": "Follow the system",
   "Follow the theme (on a {:SOLID} pane, its lightness)": "Follow the theme (on a {:SOLID} pane, its lightness)",
   "Forget the rows; the picture stays as it is": "Forget the rows; the picture stays as it is",
+  "Forget this layout": "Forget this layout",
   "GAIN": "GAIN",
   "GALLERY": "GALLERY",
   "GAMMA": "GAMMA",
-  "GAMMA — above 1 lifts the middle tones, below 1 sinks them; double-tap for 1": "GAMMA — above 1 lifts the middle tones, below 1 sinks them; double-tap for 1",
+  "GAMMA — above 1 lifts the middle tones; double-tap for 1": "GAMMA — above 1 lifts the middle tones; double-tap for 1",
   "GATE": "GATE",
   "GATE HOLD": "GATE HOLD",
   "GATE dB": "GATE dB",
@@ -444,6 +456,7 @@
   "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license} and {notice}": "GNU GPL v3.0 only — no warranty. You may redistribute and modify {name} under its terms — {license} and {notice}",
   "GRIP": "GRIP",
   "Gallery — browse saved projects": "Gallery — browse saved projects",
+  "Glass colour: 0% neutral · 100% original · 200% vivid": "Glass colour: 0% neutral · 100% original · 200% vivid",
   "H": "H",
   "HAND": "HAND",
   "HELP": "HELP",
@@ -469,12 +482,16 @@
   "HUE — every colour turned together, all the way round": "HUE — every colour turned together, all the way round",
   "HYST": "HYST",
   "Handed to the share sheet — choose Save Image or Save to Files.": "Handed to the share sheet — choose Save Image or Save to Files.",
+  "Hidden from a visiting model — share it": "Hidden from a visiting model — share it",
+  "Hidden: a visiting model cannot read this page": "Hidden: a visiting model cannot read this page",
+  "History rows": "History rows",
   "Hold a knob": "Hold a knob",
   "Hold and repeat {note}; release to resume the original clock": "Hold and repeat {note}; release to resume the original clock",
-  "Hold to halve the tempo, release to return · tap to latch, tap again to release": "Hold to halve the tempo, release to return · tap to latch, tap again to release",
-  "Hold to multiply the tempo, release to return · tap to latch, tap again to release": "Hold to multiply the tempo, release to return · tap to latch, tap again to release",
+  "Hold to halve the tempo; tap to latch, tap again to free": "Hold to halve the tempo; tap to latch, tap again to free",
+  "Hold to multiply the tempo; tap to latch, tap again to free": "Hold to multiply the tempo; tap to latch, tap again to free",
+  "Hold: the words on the picture stay where they are": "Hold: the words on the picture stay where they are",
   "Hover hints on controls": "Hover hints on controls",
-  "How far the shadow falls from its pane (and the shine across from it)": "How far the shadow falls from its pane (and the shine across from it)",
+  "How far the shadow falls from its pane": "How far the shadow falls from its pane",
   "ICON": "ICON",
   "IDLE": "IDLE",
   "IMPORT .MD": "IMPORT .MD",
@@ -487,9 +504,12 @@
   "INVERT — the negative of the picture": "INVERT — the negative of the picture",
   "Image format": "Image format",
   "Imported — {name}": "Imported — {name}",
+  "In or out: the dot is lit while this is on": "In or out: the dot is lit while this is on",
+  "In the saved favourite layout": "In the saved favourite layout",
   "Include {what} in the next save": "Include {what} in the next save",
   "Information": "Information",
   "Input dB at 0% output; upper boundary reaches 100%.": "Input dB at 0% output; upper boundary reaches 100%.",
+  "Input gain, ±24 dB before the band response ranges": "Input gain, ±24 dB before the band response ranges",
   "Invert the clip selection": "Invert the clip selection",
   "Invert the curve output: 1 − v": "Invert the curve output: 1 − v",
   "JSON": "JSON",
@@ -520,9 +540,10 @@
   "LOW": "LOW",
   "LOWER": "LOWER",
   "LW Title": "LW Title",
-  "Lay the clip last pressed end to end, a copy in every slot the pointer passes (one undo); on a clip it is the pencil": "Lay the clip last pressed end to end, a copy in every slot the pointer passes (one undo); on a clip it is the pencil",
-  "Lay the clip last pressed one snap step long on the grid, its shape squeezed into the step; a press on a clip mutes or unmutes it": "Lay the clip last pressed one snap step long on the grid, its shape squeezed into the step; a press on a clip mutes or unmutes it",
+  "Lay the last clip end to end where the pointer passes": "Lay the last clip end to end where the pointer passes",
+  "Lay the last clip one snap step long; a clip press mutes it": "Lay the last clip one snap step long; a clip press mutes it",
   "Left empty, {:SAVE} names it after its folder": "Left empty, {:SAVE} names it after its folder",
+  "Left rack scroll": "Left rack scroll",
   "Left-drag a point or tension handle": "Left-drag a point or tension handle",
   "Limit modulation updates per second": "Limit modulation updates per second",
   "Listening for “{action}”. This looks like a touch screen with no keyboard and no board to tap: press the new keys on a hardware keyboard if one is connected, or press {:RECORD INPUT} again to cancel.": "Listening for “{action}”. This looks like a touch screen with no keyboard and no board to tap: press the new keys on a hardware keyboard if one is connected, or press {:RECORD INPUT} again to cancel.",
@@ -581,12 +602,13 @@
   "MY PRESETS": "MY PRESETS",
   "Mac and iPad": "Mac and iPad",
   "Macro": "Macro",
+  "Macros": "Macros",
   "Made with": "Made with",
   "Making image": "Making image",
-  "Mark the ruler’s range, or the whole arrangement, as the active range; again to clear": "Mark the ruler’s range, or the whole arrangement, as the active range; again to clear",
-  "Mark the selected time range (or the whole arrangement) as the active range": "Mark the selected time range (or the whole arrangement) as the active range",
+  "Mark the ruler’s range as the active range; again to clear": "Mark the ruler’s range as the active range; again to clear",
+  "Mark the selected time range as the active range": "Mark the selected time range as the active range",
   "Marked layers drift against the pointer (never on touch)": "Marked layers drift against the pointer (never on touch)",
-  "Master depth for this macro. Double-tap for 100%.": "Master depth for this macro. Double-tap for 100%.",
+  "Master depth for this macro; double-tap for 100%": "Master depth for this macro; double-tap for 100%",
   "Master depth for {macro}": "Master depth for {macro}",
   "Middle button, hold + drag": "Middle button, hold + drag",
   "Middle click on the lanes · middle + right together · the bar’s MODE chip": "Middle click on the lanes · middle + right together · the bar’s MODE chip",
@@ -597,7 +619,7 @@
   "More tools and actions": "More tools and actions",
   "Move": "Move",
   "Move it": "Move it",
-  "Move it (Shift or Ctrl copies, right-button deletes); it has no points": "Move it (Shift or Ctrl copies, right-button deletes); it has no points",
+  "Move it (Shift or Ctrl copies, right button deletes)": "Move it (Shift or Ctrl copies, right button deletes)",
   "Move macros to either side": "Move macros to either side",
   "Move macros to left or right end": "Move macros to left or right end",
   "Move the selection down a lane": "Move the selection down a lane",
@@ -610,7 +632,7 @@
   "Move {name} to folder": "Move {name} to folder",
   "Moved {name} to {to}": "Moved {name} to {to}",
   "Mute mode: a press mutes or unmutes a clip": "Mute mode: a press mutes or unmutes a clip",
-  "Mute or unmute a clip; a drag gives every clip it crosses the state the first took (one undo). A muted clip is hollow and plays nothing": "Mute or unmute a clip; a drag gives every clip it crosses the state the first took (one undo). A muted clip is hollow and plays nothing",
+  "Mute or unmute a clip; a drag sets every clip it crosses": "Mute or unmute a clip; a drag sets every clip it crosses",
   "Mute: press or drag": "Mute: press or drag",
   "NAME": "NAME",
   "NEW": "NEW",
@@ -619,14 +641,15 @@
   "NORMALIZED MIN / MAX": "NORMALIZED MIN / MAX",
   "NORTH": "NORTH",
   "NORTH — the view is at north": "NORTH — the view is at north",
+  "NORTH — turn the view north; again goes back to {deg}": "NORTH — turn the view north; again goes back to {deg}",
   "NORTH — turn the view to north; press again to go back": "NORTH — turn the view to north; press again to go back",
-  "NORTH — turn the view to north; press again to go back to {deg}": "NORTH — turn the view to north; press again to go back to {deg}",
   "NOTEBOOK": "NOTEBOOK",
   "Name": "Name",
   "New folder path — onto an existing folder it merges": "New folder path — onto an existing folder it merges",
   "New — back to the start.": "New — back to the start.",
   "New — the empty project": "New — the empty project",
   "New — the empty project: every part starts from nothing.": "New — the empty project: every part starts from nothing.",
+  "Next": "Next",
   "Next page": "Next page",
   "Next preset": "Next preset",
   "Next project page": "Next project page",
@@ -648,6 +671,9 @@
   "No room: {n} audio clips is the budget.": "No room: {n} audio clips is the budget.",
   "No snapshots yet: STORE keeps the dials as they stand.": "No snapshots yet: STORE keeps the dials as they stand.",
   "No such action.": "No such action.",
+  "Notebook": "Notebook",
+  "Notebook subtitle": "Notebook subtitle",
+  "Notebook title": "Notebook title",
   "Nothing animates": "Nothing animates",
   "Nothing is saved at {:ROOT} yet.  Open a folder, or save what is on screen here.": "Nothing is saved at {:ROOT} yet.  Open a folder, or save what is on screen here.",
   "Nothing matches": "Nothing matches",
@@ -661,35 +687,36 @@
   "OLDER MODEL": "OLDER MODEL",
   "ON": "ON",
   "OPACITY": "OPACITY",
-  "OPACITY — how much of the picture is laid over what is under it": "OPACITY — how much of the picture is laid over what is under it",
+  "OPACITY — how much of the picture lies over what is under": "OPACITY — how much of the picture lies over what is under",
   "OPEN": "OPEN",
   "OPEN FILE": "OPEN FILE",
   "OPEN ZIP…": "OPEN ZIP…",
   "ORBIT": "ORBIT",
   "ORBIT ANGLE": "ORBIT ANGLE",
-  "ORBIT ANGLE — 0° right, 90° up; route a full-turn ramp for a continuous orbit": "ORBIT ANGLE — 0° right, 90° up; route a full-turn ramp for a continuous orbit",
-  "ORBIT — radius in view widths; modulate ORBIT ANGLE to circle the camera anchor": "ORBIT — radius in view widths; modulate ORBIT ANGLE to circle the camera anchor",
+  "ORBIT ANGLE — 0° right, 90° up; a ramp keeps it orbiting": "ORBIT ANGLE — 0° right, 90° up; a ramp keeps it orbiting",
+  "ORBIT — radius in view widths; ORBIT ANGLE circles it": "ORBIT — radius in view widths; ORBIT ANGLE circles it",
   "OUT": "OUT",
   "OUTPUT": "OUTPUT",
   "On · {lane}": "On · {lane}",
-  "Open THE MODE MENU: the nine modes (the left button’s tool) and this window’s menus": "Open THE MODE MENU: the nine modes (the left button’s tool) and this window’s menus",
+  "Open THE MODE MENU: the nine modes and this window’s menus": "Open THE MODE MENU: the nine modes and this window’s menus",
   "Open a project file (.mir) or a picture that carries one — or drop it on this window.": "Open a project file (.mir) or a picture that carries one — or drop it on this window.",
-  "Open a project saved as one .zip (SAVE AS ZIP): its audio comes back with it and it becomes the current project.": "Open a project saved as one .zip (SAVE AS ZIP): its audio comes back with it and it becomes the current project.",
+  "Open a project saved as one .zip, its audio with it": "Open a project saved as one .zip, its audio with it",
   "Open folder {name}": "Open folder {name}",
   "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.": "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.",
-  "Open or close audio input. Audio is analysed locally and is not stored.": "Open or close audio input. Audio is analysed locally and is not stored.",
+  "Open or close audio input (analysed here, never stored)": "Open or close audio input (analysed here, never stored)",
   "Open the modulation window": "Open the modulation window",
   "Open the preset list — {factory} ships with the app, the rest are yours": "Open the preset list — {factory} ships with the app, the rest are yours",
   "Open this as a window": "Open this as a window",
   "Open {name}": "Open {name}",
   "Open {name} — tap again": "Open {name} — tap again",
+  "Open {path} in your notes tab": "Open {path} in your notes tab",
   "Opened {name}": "Opened {name}",
   "Opened — {name}": "Opened — {name}",
   "Opening \"{name}\" replaces what is on screen, which may be unsaved.": "Opening \"{name}\" replaces what is on screen, which may be unsaved.",
   "Opening \"{name}\" replaces what is on screen.": "Opening \"{name}\" replaces what is on screen.",
   "Opus": "Opus",
   "Orbit with a level horizon": "Orbit with a level horizon",
-  "Orient the plane. Shift or a second finger gives finer motion; a double-tap or Home resets.": "Orient the plane. Shift or a second finger gives finer motion; a double-tap or Home resets.",
+  "Orient the plane; Shift is finer, a double-tap resets": "Orient the plane; Shift is finer, a double-tap resets",
   "Output maximum": "Output maximum",
   "Output minimum": "Output minimum",
   "PAD": "PAD",
@@ -699,12 +726,12 @@
   "PAIR": "PAIR",
   "PAN": "PAN",
   "PAN HOME": "PAN HOME",
-  "PAN HOME — reset pan and orbit bases; routed modulation continues": "PAN HOME — reset pan and orbit bases; routed modulation continues",
+  "PAN HOME — pan and orbit back home; routes keep running": "PAN HOME — pan and orbit back home; routes keep running",
   "PAN SCALE": "PAN SCALE",
-  "PAN SCALE — multiply both pan axes; zero mutes pan; double-tap restores 1:1": "PAN SCALE — multiply both pan axes; zero mutes pan; double-tap restores 1:1",
-  "PAN X — the view moved sideways, as a share of its width; drag up or down; double-tap to come home": "PAN X — the view moved sideways, as a share of its width; drag up or down; double-tap to come home",
-  "PAN Y — the view moved up or down, as a share of its width; drag up or down; double-tap to come home": "PAN Y — the view moved up or down, as a share of its width; drag up or down; double-tap to come home",
-  "PAN — the view moved along the screen's axes, as a share of its width; drag the pad, or turn X and Y; double-tap to come home": "PAN — the view moved along the screen's axes, as a share of its width; drag the pad, or turn X and Y; double-tap to come home",
+  "PAN SCALE — both pan axes; 0 mutes pan; double-tap 1:1": "PAN SCALE — both pan axes; 0 mutes pan; double-tap 1:1",
+  "PAN X — the view moved sideways; double-tap goes home": "PAN X — the view moved sideways; double-tap goes home",
+  "PAN Y — the view moved up or down; double-tap goes home": "PAN Y — the view moved up or down; double-tap goes home",
+  "PAN — the view moved along the screen; double-tap goes home": "PAN — the view moved along the screen; double-tap goes home",
   "PANE": "PANE",
   "PARALLAX": "PARALLAX",
   "PASTE": "PASTE",
@@ -729,7 +756,9 @@
   "PROJECT": "PROJECT",
   "PROJECT COMPONENTS": "PROJECT COMPONENTS",
   "PROJECTS": "PROJECTS",
-  "Paint Add mode: lay the last clip a snap step long, step by step": "Paint Add mode: lay the last clip a snap step long, step by step",
+  "Page 0 — the greeting, shown when the project opens": "Page 0 — the greeting, shown when the project opens",
+  "Pages": "Pages",
+  "Paint Add mode: lay the last clip one snap step at a time": "Paint Add mode: lay the last clip one snap step at a time",
   "Paint Add: drag over empty lane space": "Paint Add: drag over empty lane space",
   "Paint mode: drag to lay the last clip end to end": "Paint mode: drag to lay the last clip end to end",
   "Paint: drag over empty lane space": "Paint: drag over empty lane space",
@@ -737,23 +766,25 @@
   "Pane shadows ({:SHADOW} sets their strength)": "Pane shadows ({:SHADOW} sets their strength)",
   "Paste a compatible device patch": "Paste a compatible device patch",
   "Paste at the playhead, into the active lane": "Paste at the playhead, into the active lane",
-  "Pattern: drive this envelope from its step row in the PATTERN window": "Pattern: drive this envelope from its step row in the PATTERN window",
+  "Pattern: drive this envelope from its row in PATTERN": "Pattern: drive this envelope from its row in PATTERN",
   "Pencil mode": "Pencil mode",
   "Pencil: click empty lane space": "Pencil: click empty lane space",
   "Picture made — {w}×{h}. Tap DOWNLOAD IMAGE to keep it.": "Picture made — {w}×{h}. Tap DOWNLOAD IMAGE to keep it.",
   "Picture made — {w}×{h}. Tap the download icon to keep it.": "Picture made — {w}×{h}. Tap the download icon to keep it.",
   "Place the clip last pressed there (the same curve, shared)": "Place the clip last pressed there (the same curve, shared)",
   "Play / pause, exact resume": "Play / pause, exact resume",
-  "Play from the press while it is held; a drag scrubs (the hand leads)": "Play from the press while it is held; a drag scrubs (the hand leads)",
+  "Play from the press while it is held; a drag scrubs": "Play from the press while it is held; a drag scrubs",
   "Play or pause": "Play or pause",
   "Point time and value": "Point time and value",
   "Point time in beats": "Point time in beats",
   "Point value": "Point value",
+  "Power": "Power",
   "Preset name — type one, then tap {:SAVE}": "Preset name — type one, then tap {:SAVE}",
-  "Preview mode: a press plays from there while held, a drag scrubs": "Preview mode: a press plays from there while held, a drag scrubs",
+  "Preview mode: a press plays while held, a drag scrubs": "Preview mode: a press plays while held, a drag scrubs",
   "Preview ready": "Preview ready",
   "Preview the first 3 seconds": "Preview the first 3 seconds",
   "Preview: press · drag": "Preview: press · drag",
+  "Previous": "Previous",
   "Previous page": "Previous page",
   "Previous preset": "Previous preset",
   "Previous project page": "Previous project page",
@@ -786,9 +817,10 @@
   "RELEASE": "RELEASE",
   "RELIEF": "RELIEF",
   "RELIEF ANGLE": "RELIEF ANGLE",
-  "RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})": "RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})",
+  "RELIEF ANGLE — where the controls’ light is": "RELIEF ANGLE — where the controls’ light is",
   "REMOVE": "REMOVE",
   "RENDER": "RENDER",
+  "RENDER — this project and the picture or film you make": "RENDER — this project and the picture or film you make",
   "RESET": "RESET",
   "RESET LAYOUT": "RESET LAYOUT",
   "RESET LOOK": "RESET LOOK",
@@ -803,16 +835,17 @@
   "ROLL — turn the picture about the look direction": "ROLL — turn the picture about the look direction",
   "ROOT": "ROOT",
   "ROT SCALE": "ROT SCALE",
-  "ROT SCALE — multiply rotation modulation from 1/16× to 16×; middle and double-tap are 1:1": "ROT SCALE — multiply rotation modulation from 1/16× to 16×; middle and double-tap are 1:1",
+  "ROT SCALE — rotation modulation 1/16× to 16×; double-tap 1:1": "ROT SCALE — rotation modulation 1/16× to 16×; double-tap 1:1",
   "ROTATE": "ROTATE",
   "ROTATION": "ROTATION",
-  "ROTATION — drag up or down to turn the view about its centre; double-tap for north": "ROTATION — drag up or down to turn the view about its centre; double-tap for north",
+  "ROTATION — the view about its centre; double-tap for north": "ROTATION — the view about its centre; double-tap for north",
   "ROUTE {name}: tap a lit control, Escape cancels": "ROUTE {name}: tap a lit control, Escape cancels",
   "RUN": "RUN",
   "RUN SELF-TEST": "RUN SELF-TEST",
   "Rack presets, in folders: {factory} ships with the app, the rest are yours": "Rack presets, in folders: {factory} ships with the app, the rest are yours",
   "Raise {name}": "Raise {name}",
   "Raised controls and wells, lit by {:LIGHT ANGLE}": "Raised controls and wells, lit by {:LIGHT ANGLE}",
+  "Ramp": "Ramp",
   "Ramp preset": "Ramp preset",
   "Ramp strip — click to add a stop": "Ramp strip — click to add a stop",
   "Recording cancelled": "Recording cancelled",
@@ -838,13 +871,15 @@
    "one": "Remove {n} clip in {lane}?",
    "other": "Remove {n} clips in {lane}?"
   },
+  "Rename this tab": "Rename this tab",
+  "Rename to folder/name": "Rename to folder/name",
   "Rename {name}": "Rename {name}",
   "Render cancelled. Completed checkpoints remain available below.": "Render cancelled. Completed checkpoints remain available below.",
   "Render complete": "Render complete",
   "Render failed: {why}": "Render failed: {why}",
-  "Render — this project, and the picture or film you make of it": "Render — this project, and the picture or film you make of it",
+  "Reorder or rename {macro}": "Reorder or rename {macro}",
   "Reorder {noun} {n} — drag, or the arrow keys": "Reorder {noun} {n} — drag, or the arrow keys",
-  "Repeat the segment between its two points: up adds copies of its shape (one per 24 px), down makes mirrored copies, or takes back copies made going up": "Repeat the segment between its two points: up adds copies of its shape (one per 24 px), down makes mirrored copies, or takes back copies made going up",
+  "Repeat the segment: up adds copies, down mirrors them": "Repeat the segment: up adds copies, down mirrors them",
   "Reset it": "Reset it",
   "Resize at the edges; shift inside; double-click to reset": "Resize at the edges; shift inside; double-click to reset",
   "Resize the clip from its left edge": "Resize the clip from its left edge",
@@ -855,11 +890,14 @@
   "Restored {added} of {total}.": "Restored {added} of {total}.",
   "Reveal or trim curve end": "Reveal or trim curve end",
   "Reverse the curve in time": "Reverse the curve in time",
+  "Right rack scroll": "Right rack scroll",
   "Right-button drag on empty lane space (or between lanes)": "Right-button drag on empty lane space (or between lanes)",
   "Right-click a tension handle": "Right-click a tension handle",
   "Right-click or tap: FILL · CLEAR · LENGTH · PATTERN ON/OFF": "Right-click or tap: FILL · CLEAR · LENGTH · PATTERN ON/OFF",
   "Right-drag empty clip space": "Right-drag empty clip space",
+  "Route {axis} — drag onto a control, or tap to arm": "Route {axis} — drag onto a control, or tap to arm",
   "Route {band} to a macro": "Route {band} to a macro",
+  "Route {macro} — drag onto a control, or tap to arm": "Route {macro} — drag onto a control, or tap to arm",
   "Route {name} to a control first — its clip needs a target": "Route {name} to a control first — its clip needs a target",
   "Run the ramp backwards": "Run the ramp backwards",
   "S": "S",
@@ -904,7 +942,7 @@
   "SNAP · {value}": "SNAP · {value}",
   "SOFTNESS": "SOFTNESS",
   "SOLID": "SOLID",
-  "SOLO: this one alone; again, the others come back. Hold to peek": "SOLO: this one alone; again, the others come back. Hold to peek",
+  "SOLO: this one alone; again, all back; hold to peek": "SOLO: this one alone; again, all back; hold to peek",
   "SOURCE": "SOURCE",
   "SPACING": "SPACING",
   "SPECIAL THANKS": "SPECIAL THANKS",
@@ -934,8 +972,11 @@
   "Sample on a 1/32-beat grid. Values step on the grid.": "Sample on a 1/32-beat grid. Values step on the grid.",
   "Sample on a 1/8-beat grid. Values step on the grid.": "Sample on a 1/8-beat grid. Values step on the grid.",
   "Sample the arrangement every rendered frame. The CLOCK tile sets how often modulation ticks at all.": "Sample the arrangement every rendered frame. The CLOCK tile sets how often modulation ticks at all.",
+  "Save as folder/name": "Save as folder/name",
   "Save as — store what is on screen as a new project, with the name and folder below.": "Save as — store what is on screen as a new project, with the name and folder below.",
-  "Save the current project, with the audio files it uses, as one .zip.": "Save the current project, with the audio files it uses, as one .zip.",
+  "Save into no folder": "Save into no folder",
+  "Save into {folder}": "Save into {folder}",
+  "Save the project and its audio files as one .zip": "Save the project and its audio files as one .zip",
   "Save this first?": "Save this first?",
   "Save this rack as a preset": "Save this rack as a preset",
   "Save to folder": "Save to folder",
@@ -947,10 +988,11 @@
    "one": "Saved — {name} · made room by deleting {n} project",
    "other": "Saved — {name} · made room by deleting {n} projects"
   },
-  "Scroll time (Shift + wheel too; with more lanes than fit, the wheel scrolls the lanes); Ctrl/Cmd + wheel zooms": "Scroll time (Shift + wheel too; with more lanes than fit, the wheel scrolls the lanes); Ctrl/Cmd + wheel zooms",
-  "Scroll time while you hold it there (the playhead, a range, a move, a trim, a stretch)": "Scroll time while you hold it there (the playhead, a range, a move, a trim, a stretch)",
+  "Scroll time (or the lanes); Ctrl/Cmd + wheel zooms": "Scroll time (or the lanes); Ctrl/Cmd + wheel zooms",
+  "Scroll time while a drag holds it at the edge": "Scroll time while a drag holds it at the edge",
   "Scrub the timeline playhead": "Scrub the timeline playhead",
-  "Scrub: the playhead follows the hand, free of Snap; the range stays": "Scrub: the playhead follows the hand, free of Snap; the range stays",
+  "Scrub: the playhead follows the hand; the range stays": "Scrub: the playhead follows the hand; the range stays",
+  "Search windows": "Search windows",
   "Seek about once every three moves. The hand always stays smooth.": "Seek about once every three moves. The hand always stays smooth.",
   "Seek the picture on every scrub move. Smoothest when a frame is fast; can lag at a deep place.": "Seek the picture on every scrub move. Smoothest when a frame is fast; can lag at a deep place.",
   "Seek to the beginning": "Seek to the beginning",
@@ -958,14 +1000,14 @@
   "Seek to the previous measure": "Seek to the previous measure",
   "Select a band for timing": "Select a band for timing",
   "Select a curve before reversing it": "Select a curve before reversing it",
-  "Select a time range (no key, so touch can); a tap seeks and keeps the range": "Select a time range (no key, so touch can); a tap seeks and keeps the range",
   "Select a time range; + Ctrl/Cmd extends it": "Select a time range; + Ctrl/Cmd extends it",
+  "Select a time range; a tap seeks and keeps the range": "Select a time range; a tap seeks and keeps the range",
   "Select all clips": "Select all clips",
   "Select clips to slice them at the playhead.": "Select clips to slice them at the playhead.",
   "Select mode": "Select mode",
   "Select the LFO waveform": "Select the LFO waveform",
-  "Select the envelope trigger; Shift-click selects the {:AUDIO} {:HIT} output": "Select the envelope trigger; Shift-click selects the {:AUDIO} {:HIT} output",
   "Select the macro driven by this device": "Select the macro driven by this device",
+  "Select the trigger; Shift-click takes {:AUDIO} {:HIT}": "Select the trigger; Shift-click takes {:AUDIO} {:HIT}",
   "Select {band} for {:ATTACK}, {:RELEASE} and {:peak hold::HOLD}": "Select {band} for {:ATTACK}, {:RELEASE} and {:peak hold::HOLD}",
   "Select {name} — tap again to open": "Select {name} — tap again to open",
   "Select: drag the ruler": "Select: drag the ruler",
@@ -974,7 +1016,7 @@
   "Selected audio band release time constant; choose {:LEVEL}, {:LOW}, {:MID} or {:HIGH} on its meter": "Selected audio band release time constant; choose {:LEVEL}, {:LOW}, {:MID} or {:HIGH} on its meter",
   "Selected macro range; the large dial sets the base": "Selected macro range; the large dial sets the base",
   "Selection scope": "Selection scope",
-  "Send to the timeline: the LFO's whole cycles (a bar at least), the ENV's stages, or its live pattern row": "Send to the timeline: the LFO's whole cycles (a bar at least), the ENV's stages, or its live pattern row",
+  "Send to the timeline: the LFO’s cycles or the ENV’s stages": "Send to the timeline: the LFO’s cycles or the ENV’s stages",
   "Sends that are dead until their controls come back": "Sends that are dead until their controls come back",
   "Separate window headers from their bodies": "Separate window headers from their bodies",
   "Set free rate or a loop-clock division": "Set free rate or a loop-clock division",
@@ -983,6 +1025,8 @@
   "Set the modulation clock in beats per minute": "Set the modulation clock in beats per minute",
   "Set the tempo": "Set the tempo",
   "Set the time range to the selection’s span": "Set the time range to the selection’s span",
+  "Shared with a visiting model — hide it": "Shared with a visiting model — hide it",
+  "Shared: a visiting model may read this page": "Shared: a visiting model may read this page",
   "Shift": "Shift",
   "Shift (held) while dragging a point or tension": "Shift (held) while dragging a point or tension",
   "Shift + click a clip": "Shift + click a clip",
@@ -992,7 +1036,7 @@
   "Shift + right-click a clip": "Shift + right-click a clip",
   "Show Mac and iPad key names": "Show Mac and iPad key names",
   "Show Windows and Linux key names": "Show Windows and Linux key names",
-  "Show or hide this lane’s arcs and blend (so a thumb zooming the picture cannot turn them)": "Show or hide this lane’s arcs and blend (so a thumb zooming the picture cannot turn them)",
+  "Show or hide this lane’s arcs and blend": "Show or hide this lane’s arcs and blend",
   "Show status tags at the top": "Show status tags at the top",
   "Show the CONTROL SURFACE, floated or docked": "Show the CONTROL SURFACE, floated or docked",
   "Show the app logo; hiding it keeps the menu bar visible": "Show the app logo; hiding it keeps the menu bar visible",
@@ -1008,6 +1052,7 @@
   "Slide the time range forward by its own width": "Slide the time range forward by its own width",
   "Small at the bottom: glyphs only, no Hz reading": "Small at the bottom: glyphs only, no Hz reading",
   "Smooth the LFO output": "Smooth the LFO output",
+  "Snapshot {n}'s name": "Snapshot {n}'s name",
   "Solid to glass control faces": "Solid to glass control faces",
   "Solo · {lane}": "Solo · {lane}",
   "Something went wrong while the app was starting.": "Something went wrong while the app was starting.",
@@ -1020,18 +1065,21 @@
   "Sort shallowest zoom first": "Sort shallowest zoom first",
   "Source: {link}": "Source: {link}",
   "Space": "Space",
+  "Staircase on colour, envelope on brightness, on the beat": "Staircase on colour, envelope on brightness, on the beat",
+  "Starter modulation · SAVE keeps an editable copy": "Starter modulation · SAVE keeps an editable copy",
   "Starter projects": "Starter projects",
+  "Step {n}": "Step {n}",
   "Stop colour — tap for the chooser, drag up or down to turn its hue": "Stop colour — tap for the chooser, drag up or down to turn its hue",
   "Stop inspecting {name} and describe the live view again": "Stop inspecting {name} and describe the live view again",
   "Stop place": "Stop place",
   "Stop {n} of {total}": "Stop {n} of {total}",
+  "Store the dials as they stand in the next empty slot": "Store the dials as they stand in the next empty slot",
   "Store the dials as they stand over this snapshot": "Store the dials as they stand over this snapshot",
-  "Store the window's dials as they stand (their bases) into the next empty slot": "Store the window's dials as they stand (their bases) into the next empty slot",
-  "Strength of the pane shadow. {:DROP SHADOW} can switch it off.": "Strength of the pane shadow. {:DROP SHADOW} can switch it off.",
+  "Strength of the pane shadow ({:DROP SHADOW} switches it)": "Strength of the pane shadow ({:DROP SHADOW} switches it)",
   "Stretch it finely (⅛, free of Snap)": "Stretch it finely (⅛, free of Snap)",
-  "Stretch it: the curve keeps its shape; several selected close their gaps, then stretch as one": "Stretch it: the curve keeps its shape; several selected close their gaps, then stretch as one",
+  "Stretch it: the curve keeps its shape; a selection as one": "Stretch it: the curve keeps its shape; a selection as one",
   "Stutter: hold the beat at this note value": "Stutter: hold the beat at this note value",
-  "Surfaces that blur what is behind them: one compositor pass each": "Surfaces that blur what is behind them: one compositor pass each",
+  "Surfaces that blur what is behind them, one pass each": "Surfaces that blur what is behind them, one pass each",
   "Surfaces that draw a shadow, and shine layers": "Surfaces that draw a shadow, and shine layers",
   "Switch between two saved patches for this device": "Switch between two saved patches for this device",
   "Switch to Timeline": "Switch to Timeline",
@@ -1060,9 +1108,10 @@
   "TURNTABLE": "TURNTABLE",
   "Tab is kept for moving the focus.": "Tab is kept for moving the focus.",
   "Tap a corner (A · B · C · D) first, then a snapshot's number.": "Tap a corner (A · B · C · D) first, then a snapshot's number.",
-  "Tap a corner first, then this number, to put this snapshot there": "Tap a corner first, then this number, to put this snapshot there",
+  "Tap a corner, then this number, to put this snapshot there": "Tap a corner, then this number, to put this snapshot there",
   "Tap a lit control to route {clip} to it; Escape cancels.": "Tap a lit control to route {clip} to it; Escape cancels.",
   "Tap repeatedly to set the modulation clock": "Tap repeatedly to set the modulation clock",
+  "Tap the strip to add a stop; drag one off it to remove it": "Tap the strip to add a stop; drag one off it to remove it",
   "Tap the tempo": "Tap the tempo",
   "Tap the tempo: four taps set it": "Tap the tempo: four taps set it",
   "Target the envelope drives": "Target the envelope drives",
@@ -1073,7 +1122,7 @@
   "The CONTROL SURFACE at the top centre": "The CONTROL SURFACE at the top centre",
   "The CONTROL SURFACE, docked": "The CONTROL SURFACE, docked",
   "The MIR logo is outlined from Butler Free Extra Bold by {who}.": "The MIR logo is outlined from Butler Free Extra Bold by {who}.",
-  "The air between rack windows and from the screen’s edge, and the padding inside windows, bars and menus; 0 is flush": "The air between rack windows and from the screen’s edge, and the padding inside windows, bars and menus; 0 is flush",
+  "The air between windows and inside windows, bars and menus": "The air between windows and inside windows, bars and menus",
   "The bank holds {n}: STORE over one, or × one.": "The bank holds {n}: STORE over one, or × one.",
   "The browser has WebGPU but found no graphics adapter to use.": "The browser has WebGPU but found no graphics adapter to use.",
   "The browser keeps this key for itself: the page never sees it.": "The browser keeps this key for itself: the page never sees it.",
@@ -1082,22 +1131,30 @@
   "The dotted guide where a dragged window will land": "The dotted guide where a dragged window will land",
   "The envelope drives the target; the file plays along": "The envelope drives the target; the file plays along",
   "The envelope drives the target; the file stays silent": "The envelope drives the target; the file stays silent",
+  "The expander": "The expander",
   "The factory gallery is already complete.": "The factory gallery is already complete.",
+  "The gate opens here and stays open until hysteresis below it": "The gate opens here and stays open until hysteresis below it",
   "The graphics device was lost: the GPU was reset, its driver changed, or it ran out of memory.": "The graphics device was lost: the GPU was reset, its driver changed, or it ran out of memory.",
   "The keyboard": "The keyboard",
   "The kit’s filled knobs, buttons and fields": "The kit’s filled knobs, buttons and fields",
+  "The left rack": "The left rack",
   "The library is full: {count} saved, {need} needed of {cap}.  This save was NOT stored.  Delete projects yourself, or make room — the oldest go first.": "The library is full: {count} saved, {need} needed of {cap}.  This save was NOT stored.  Delete projects yourself, or make room — the oldest go first.",
   "The mean frame time over 30 frames after the last change": "The mean frame time over 30 frames after the last change",
   "The modulation window is not mounted here: X and Y cannot be routed.": "The modulation window is not mounted here: X and Y cannot be routed.",
   "The morph pad: drag to blend the four corners; arrows nudge, Home centres": "The morph pad: drag to blend the four corners; arrows nudge, Home centres",
-  "The pad drives the dials; off, the pad and its routes do nothing and the dials are the hand's": "The pad drives the dials; off, the pad and its routes do nothing and the dials are the hand's",
+  "The notebook’s subtitle — type to rename": "The notebook’s subtitle — type to rename",
+  "The notebook’s title — type to rename": "The notebook’s title — type to rename",
+  "The pad drives the dials; off, the dials are the hand’s": "The pad drives the dials; off, the dials are the hand’s",
   "The pane’s hairline rim": "The pane’s hairline rim",
+  "The phase offset": "The phase offset",
   "The picture on screen, without controls": "The picture on screen, without controls",
   "The picture waits until you let go. The playhead and readers move at once.": "The picture waits until you let go. The playhead and readers move at once.",
+  "The rack": "The rack",
   "The renderer currently owns the clock.": "The renderer currently owns the clock.",
   "The shadow’s blur": "The shadow’s blur",
   "The shine’s blur": "The shine’s blur",
-  "The size of every window, menu and bar; the picture keeps its resolution": "The size of every window, menu and bar; the picture keeps its resolution",
+  "The size of every window, menu and bar, not the picture": "The size of every window, menu and bar, not the picture",
+  "The sustain {:LEVEL}, the one ADSR control not a time": "The sustain {:LEVEL}, the one ADSR control not a time",
   "The view moved since the picture was made — capture it again.": "The view moved since the picture was made — capture it again.",
   "The view moved since the picture was made — tap CAPTURE IMAGE again.": "The view moved since the picture was made — tap CAPTURE IMAGE again.",
   "The wheel zooms a notch at a time": "The wheel zooms a notch at a time",
@@ -1107,7 +1164,7 @@
   "The {noun} list is full — {count} of {cap}": "The {noun} list is full — {count} of {cap}",
   "The {panel} panel could not be built: {why}": "The {panel} panel could not be built: {why}",
   "The ⓘ panels on windows": "The ⓘ panels on windows",
-  "Theme-coloured glass fill. Zero is clear.": "Theme-coloured glass fill. Zero is clear.",
+  "Theme-coloured glass fill; zero is clear": "Theme-coloured glass fill; zero is clear",
   "This browser has no WebGPU, which this app draws with.": "This browser has no WebGPU, which this app draws with.",
   "This device has no shape to send": "This device has no shape to send",
   "This device’s tier, measured once: A and B are {:FULL}, C is {:BALANCED}": "This device’s tier, measured once: A and B are {:FULL}, C is {:BALANCED}",
@@ -1124,10 +1181,11 @@
   "Tint {tint}": "Tint {tint}",
   "Toggle it in the selection": "Toggle it in the selection",
   "Trigger": "Trigger",
-  "Trigger this envelope. Start modulation to advance it.": "Trigger this envelope. Start modulation to advance it.",
-  "Trim it: the curve keeps its beats; every selected clip trims with it, each from its own start. The zone is centred on the edge; where two clips meet, the side you are on names the clip, and its edge lights first": "Trim it: the curve keeps its beats; every selected clip trims with it, each from its own start. The zone is centred on the edge; where two clips meet, the side you are on names the clip, and its edge lights first",
+  "Trigger this envelope; start modulation to advance it": "Trigger this envelope; start modulation to advance it",
+  "Trim it: the curve keeps its beats; the selection trims too": "Trim it: the curve keeps its beats; the selection trims too",
   "Trim the clip end": "Trim the clip end",
   "Turn this window on or off": "Turn this window on or off",
+  "Two sample-and-holds wander the first two colour phases": "Two sample-and-holds wander the first two colour phases",
   "Type the tempo in BPM": "Type the tempo in BPM",
   "Type: {roboto} · {title} (a renamed subset of Spinwerad by gluk) · {stix} · the notebook’s {spectral}, {playfair} and {alegreya} — all SIL OFL 1.1.": "Type: {roboto} · {title} (a renamed subset of Spinwerad by gluk) · {stix} · the notebook’s {spectral}, {playfair} and {alegreya} — all SIL OFL 1.1.",
   "Type: {title}, a renamed subset of Spinwerad by gluk · {roboto} · {stix} — all SIL OFL 1.1, subset for this app.": "Type: {title}, a renamed subset of Spinwerad by gluk · {roboto} · {stix} — all SIL OFL 1.1, subset for this app.",
@@ -1161,7 +1219,7 @@
   "WORK BARS · TOP": "WORK BARS · TOP",
   "What the look costs, measured after the last change": "What the look costs, measured after the last change",
   "What this app is, for a visiting model: windows, parameters, keys and shared pages": "What this app is, for a visiting model: windows, parameters, keys and shared pages",
-  "What this theme cost when it was applied: surfaces that blur, shadows drawn, shine layers, the mean frame time": "What this theme cost when it was applied: surfaces that blur, shadows drawn, shine layers, the mean frame time",
+  "What this theme costs: blurs, shadows, shine, frame time": "What this theme costs: blurs, shadows, shine, frame time",
   "Wheel over the timeline": "Wheel over the timeline",
   "Where the CONTROL SURFACE sits": "Where the CONTROL SURFACE sits",
   "Where the control surface sits": "Where the control surface sits",
@@ -1180,7 +1238,9 @@
   "X and Y cannot drive themselves": "X and Y cannot drive themselves",
   "Y": "Y",
   "YAW": "YAW",
-  "YAW — the look direction about the vertical; drag the sphere or turn this": "YAW — the look direction about the vertical; drag the sphere or turn this",
+  "YAW — the look direction about the vertical": "YAW — the look direction about the vertical",
+  "Your notes: save, open, folders, recent": "Your notes: save, open, folders, recent",
+  "Yours — the note open from your shelf, kept in this browser": "Yours — the note open from your shelf, kept in this browser",
   "ZOOM": "ZOOM",
   "ZOOM 1": "ZOOM 1",
   "ZOOM 2": "ZOOM 2",
@@ -1201,11 +1261,10 @@
   "Zoom to 20px per beat": "Zoom to 20px per beat",
   "Zoom to 40px per beat": "Zoom to 40px per beat",
   "Zoom to show the whole arrangement": "Zoom to show the whole arrangement",
-  "Zoom to the range dragged; a click zooms out to the whole arrangement": "Zoom to the range dragged; a click zooms out to the whole arrangement",
+  "Zoom to the range dragged; a click zooms out to the whole": "Zoom to the range dragged; a click zooms out to the whole",
   "Zoom to the selection": "Zoom to the selection",
   "Zoom: drag a range · click": "Zoom: drag a range · click",
   "a curve keeps at least two points": "a curve keeps at least two points",
-  "a draft translation: no native reader has checked it yet": "a draft translation: no native reader has checked it yet",
   "a new project": "a new project",
   "about {name}": "about {name}",
   "about {name} (and back to the notes)": "about {name} (and back to the notes)",
@@ -1215,8 +1274,6 @@
   "adapted — FL’s Ctrl+drag; in MIR Shift selects": "adapted — FL’s Ctrl+drag; in MIR Shift selects",
   "adapted — FL’s Shift-drag clones; MIR’s Ctrl alias stays": "adapted — FL’s Shift-drag clones; MIR’s Ctrl alias stays",
   "adapted — FL’s manual names Right-Alt+click specifically": "adapted — FL’s manual names Right-Alt+click specifically",
-  "add a page": "add a page",
-  "add a page to the project": "add a page to the project",
   "add an envelope (ENV) to the rack first — the pattern rows are its": "add an envelope (ENV) to the rack first — the pattern rows are its",
   "add an {:AUDIO} device and its {:HIT} can fire this envelope": "add an {:AUDIO} device and its {:HIT} can fire this envelope",
   "add markdown files as pages of the project": "add markdown files as pages of the project",
@@ -1240,34 +1297,23 @@
   "bipolar (Re/Im legible)": "bipolar (Re/Im legible)",
   "captured before the picture finished resolving": "captured before the picture finished resolving",
   "carousel": "carousel",
-  "clock": "clock",
   "clock state::HOLD": "HOLD",
   "close": "close",
   "close ({key})": "close ({key})",
   "close the notebook": "close the notebook",
-  "close this window": "close this window",
   "cmyk": "cmyk",
   "copied into the project": "copied into the project",
   "copied to the shelf as {path}": "copied to the shelf as {path}",
   "copied {name} into the project": "copied {name} into the project",
-  "copy the notes as text": "copy the notes as text",
-  "copy this page onto your shelf (a copy: the two never change each other)": "copy this page onto your shelf (a copy: the two never change each other)",
-  "copy this side's whole patch": "copy this side's whole patch",
-  "copy your note into the project as a new page (a copy)": "copy your note into the project as a new page (a copy)",
-  "copy {name} into the project": "copy {name} into the project",
   "could not open it": "could not open it",
   "could not read it: {why}": "could not read it: {why}",
   "could not save that preset": "could not save that preset",
   "cym": "cym",
-  "delete this page": "delete this page",
   "delete {macro} and its routes": "delete {macro} and its routes",
-  "delete {name}": "delete {name}",
   "delete?": "delete?",
   "deleted {name}": "deleted {name}",
   "deleted “{name}”": "deleted “{name}”",
   "device view::FULL": "FULL",
-  "dismiss": "dismiss",
-  "dismiss this message": "dismiss this message",
   "edit or preview the notes": "edit or preview the notes",
   "eight macros is the model’s ceiling": "eight macros is the model’s ceiling",
   "ember": "ember",
@@ -1280,9 +1326,7 @@
   "every route into {target} removed": "every route into {target} removed",
   "fitted to {s} s": "fitted to {s} s",
   "flipped in time": "flipped in time",
-  "fold or unfold this window": "fold or unfold this window",
   "folder/name": "folder/name",
-  "forget this layout": "forget this layout",
   "frames": "frames",
   "frost setting::FROST": "FROST",
   "gas lamp": "gas lamp",
@@ -1290,9 +1334,6 @@
   "give it a name": "give it a name",
   "give it a name: folder/name": "give it a name: folder/name",
   "give this window its full width back": "give this window its full width back",
-  "hidden from a visiting model — share it": "hidden from a visiting model — share it",
-  "hidden: a visiting model cannot read this page": "hidden: a visiting model cannot read this page",
-  "history rows": "history rows",
   "history::ACTIVE RANGE": "ACTIVE RANGE",
   "history::ADD LANE": "ADD LANE",
   "history::ADD POINT": "ADD POINT",
@@ -1315,22 +1356,17 @@
   "history::REMOVE LANE": "REMOVE LANE",
   "history::SEGMENT": "SEGMENT",
   "history::TENSION": "TENSION",
-  "hold: the words on the picture stay where they are": "hold: the words on the picture stay where they are",
   "hot iron": "hot iron",
   "imported {name}": "imported {name}",
   "imported {n} notes": {
    "one": "imported {n} note",
    "other": "imported {n} notes"
   },
-  "in or out: the dot is lit while this is on": "in or out: the dot is lit while this is on",
-  "in the saved favourite layout": "in the saved favourite layout",
   "in this gallery": "in this gallery",
   "input changed": "input changed",
-  "input gain, ±24 dB before the band response ranges": "input gain, ±24 dB before the band response ranges",
   "keep tapping — two taps make an interval": "keep tapping — two taps make an interval",
   "lasers": "lasers",
   "left": "left",
-  "left rack scroll": "left rack scroll",
   "light source::LIGHT": "LIGHT",
   "listening": "listening",
   "listening at {k} kHz": "listening at {k} kHz",
@@ -1344,7 +1380,6 @@
   "motion::FULL": "FULL",
   "narrow this window to its rail": "narrow this window to its rail",
   "neon": "neon",
-  "next": "next",
   "no": "no",
   "no audio encoder here: choose PNG frames for a WAV": "no audio encoder here: choose PNG frames for a WAV",
   "no microphone was found on this device": "no microphone was found on this device",
@@ -1354,9 +1389,6 @@
   "no such note": "no such note",
   "not a MIR file (nothing here takes plain text)": "not a MIR file (nothing here takes plain text)",
   "not listening": "not listening",
-  "notebook": "notebook",
-  "notebook subtitle": "notebook subtitle",
-  "notebook title": "notebook title",
   "notes — markdown, {inline} and {display} maths; ctrl+enter previews — kept in this browser": "notes — markdown, {inline} and {display} maths; ctrl+enter previews — kept in this browser",
   "notes — markdown, {inline} and {display} maths; ctrl+enter previews — kept in this browser and in the project": "notes — markdown, {inline} and {display} maths; ctrl+enter previews — kept in this browser and in the project",
   "nothing copied yet — press {:COPY} on a device first": "nothing copied yet — press {:COPY} on a device first",
@@ -1366,10 +1398,7 @@
   "numbered lossless PNG frames": "numbered lossless PNG frames",
   "opal": "opal",
   "open this as a window": "open this as a window",
-  "open {path} in your notes tab": "open {path} in your notes tab",
   "opened {name}": "opened {name}",
-  "page 0 — the greeting, shown when the project opens": "page 0 — the greeting, shown when the project opens",
-  "pages": "pages",
   "patch copied — {:PASTE} onto any {kind}": "patch copied — {:PASTE} onto any {kind}",
   "patina": "patina",
   "pattern clips arrive with the timeline lane": "pattern clips arrive with the timeline lane",
@@ -1378,40 +1407,25 @@
   "peak hold::HOLD": "HOLD",
   "phosphor": "phosphor",
   "pinwheel": "pinwheel",
-  "play or pause": "play or pause",
   "point removed": "point removed",
   "pointer::PRECISION": "PRECISION",
   "pointer::TOUCH": "TOUCH",
-  "power": "power",
   "press a key…": "press a key…",
-  "previous": "previous",
   "prism": "prism",
   "puts back what this app shipped with — adds only what is missing, and never touches anything you saved": "puts back what this app shipped with — adds only what is missing, and never touches anything you saved",
   "quadrant": "quadrant",
   "quality tier::AUTO": "AUTO",
   "quality tier::FULL": "FULL",
   "quality tier::LIGHT": "LIGHT",
-  "ramp": "ramp",
-  "remove the macro from this control": "remove the macro from this control",
-  "rename this tab": "rename this tab",
-  "rename to folder/name": "rename to folder/name",
-  "rename {name}": "rename {name}",
   "renamed beside a project already there": "renamed beside a project already there",
   "renamed to {name}": "renamed to {name}",
-  "reorder or rename {macro}": "reorder or rename {macro}",
   "replace yours?": "replace yours?",
   "replaces the oldest": "replaces the oldest",
   "retrying without the processing constraints": "retrying without the processing constraints",
-  "right rack scroll": "right rack scroll",
   "rose window": "rose window",
   "route removed — {target} is the hand’s again": "route removed — {target} is the hand’s again",
-  "route {axis} — drag onto a control, or tap to arm": "route {axis} — drag onto a control, or tap to arm",
-  "route {macro} — drag onto a control, or tap to arm": "route {macro} — drag onto a control, or tap to arm",
   "running…": "running…",
-  "save as folder/name": "save as folder/name",
   "save image": "save image",
-  "save into no folder": "save into no folder",
-  "save into {folder}": "save into {folder}",
   "save this tab as a markdown file": "save this tab as a markdown file",
   "saved {name}": "saved {name}",
   "saved “{name}”": "saved “{name}”",
@@ -1421,16 +1435,12 @@
   "search windows": "search windows",
   "seek": "seek",
   "selected project": "selected project",
-  "shared with a visiting model — hide it": "shared with a visiting model — hide it",
-  "shared: a visiting model may read this page": "shared: a visiting model may read this page",
   "shelf": "shelf",
   "show this greeting when the project opens": "show this greeting when the project opens",
   "signal flag": "signal flag",
   "skip to the device rack": "skip to the device rack",
-  "snapshot {n}'s name": "snapshot {n}'s name",
   "standard — not an FL Playlist binding": "standard — not an FL Playlist binding",
   "start over": "start over",
-  "step {n}": "step {n}",
   "stored on disk": "stored on disk",
   "subtitle": "subtitle",
   "supernova": "supernova",
@@ -1456,11 +1466,8 @@
   "the debug dump, to the clipboard": "the debug dump, to the clipboard",
   "the empty project": "the empty project",
   "the envelope": "the envelope",
-  "the expander": "the expander",
   "the file is larger than 32 MB": "the file is larger than 32 MB",
-  "the gate opens here and stays open until hysteresis below it": "the gate opens here and stays open until hysteresis below it",
   "the last frame took {ms} ms — scrubbing will lag; LIGHT keeps the hand smooth": "the last frame took {ms} ms — scrubbing will lag; LIGHT keeps the hand smooth",
-  "the left rack": "the left rack",
   "the library is full: {need} k needed of {cap} k": "the library is full: {need} k needed of {cap} k",
   "the loop clock claims the resume: the beat jumped back {moved} of a beat to the {grid}-beat note boundary just passed": "the loop clock claims the resume: the beat jumped back {moved} of a beat to the {grid}-beat note boundary just passed",
   "the microphone could not be opened": "the microphone could not be opened",
@@ -1471,21 +1478,16 @@
   "the modulation rack is full: free a macro for {axis}": "the modulation rack is full: free a macro for {axis}",
   "the note ladder × 2/3 — three in the space of two": "the note ladder × 2/3 — three in the space of two",
   "the note ladder × 3/2 — a note and a half": "the note ladder × 3/2 — a note and a half",
-  "the notebook’s subtitle — type to rename": "the notebook’s subtitle — type to rename",
-  "the notebook’s title — type to rename": "the notebook’s title — type to rename",
   "the parts {names} could not take it": {
    "one": "the part {names} could not take it",
    "other": "the parts {names} could not take it"
   },
   "the pattern": "the pattern",
-  "the phase offset": "the phase offset",
-  "the rack": "the rack",
   "the self-test threw: {why}": "the self-test threw: {why}",
   "the shelf cannot be read — {why}": "the shelf cannot be read — {why}",
   "the shelf could not be saved — {why}": "the shelf could not be saved — {why}",
   "the shelf was damaged and has been mended — the old text is kept under {key}": "the shelf was damaged and has been mended — the old text is kept under {key}",
   "the stored library could not be read — it is left in place, and the first save moves it to {key} before starting a fresh one": "the stored library could not be read — it is left in place, and the first save moves it to {key} before starting a fresh one",
-  "the sustain {:LEVEL} — the one ADSR control that is not a time": "the sustain {:LEVEL} — the one ADSR control that is not a time",
   "the {:ENV} has fixed stages — drag a stage or its tension handle": "the {:ENV} has fixed stages — drag a stage or its tension handle",
   "theme mode::DARK": "DARK",
   "theme mode::LIGHT": "LIGHT",
@@ -1511,8 +1513,6 @@
   "window {s} s": "window {s} s",
   "written": "written",
   "yes": "yes",
-  "your notes: save, open, folders, recent": "your notes: save, open, folders, recent",
-  "yours — the note open from your shelf, kept in this browser": "yours — the note open from your shelf, kept in this browser",
   "{:ANCHOR} holds the beat: the {n} anchored sources — and every BPM source beside them — resume exactly where the pause caught them": {
    "one": "{:ANCHOR} holds the beat: the {n} anchored source — and every BPM source beside it — resumes exactly where the pause caught it",
    "other": "{:ANCHOR} holds the beat: the {n} anchored sources — and every BPM source beside them — resume exactly where the pause caught them"
@@ -1529,13 +1529,13 @@
   "{:HUE} — the colour {:TINT} gives the glass": "{:HUE} — the colour {:TINT} gives the glass",
   "{:LEVEL} master to {:LEVEL}": "{:LEVEL} master to {:LEVEL}",
   "{:LEVEL} {v}": "{:LEVEL} {v}",
-  "{:LIGHT ANGLE} — where the light is, clockwise from above: shadows fall away from it, the shine sits toward it, the controls’ relief turns with it": "{:LIGHT ANGLE} — where the light is, clockwise from above: shadows fall away from it, the shine sits toward it, the controls’ relief turns with it",
+  "{:LIGHT ANGLE} — where the light is, clockwise from above": "{:LIGHT ANGLE} — where the light is, clockwise from above",
   "{:NEW} starts the empty project.": "{:NEW} starts the empty project.",
   "{:NEW} starts the empty project. What is on screen may be unsaved.": "{:NEW} starts the empty project. What is on screen may be unsaved.",
   "{:ROOT} / folder": "{:ROOT} / folder",
   "{:ROOT} or folder path": "{:ROOT} or folder path",
   "{:ROOT} — or type a new folder path": "{:ROOT} — or type a new folder path",
-  "{:SHINE} — the shadow’s opposite: a light across the pane’s edge toward the light, added to what is behind": "{:SHINE} — the shadow’s opposite: a light across the pane’s edge toward the light, added to what is behind",
+  "{:SHINE} — a light across the pane’s edge, toward the light": "{:SHINE} — a light across the pane’s edge, toward the light",
   "{:TINT} — how much of {:HUE} the glass carries": "{:TINT} — how much of {:HUE} the glass carries",
   "{:TRIG}: the curve starts over": "{:TRIG}: the curve starts over",
   "{:WALL} follows elapsed time. {:FREE} accumulates frame time.": "{:WALL} follows elapsed time. {:FREE} accumulates frame time.",
@@ -1672,6 +1672,7 @@
   "Capture image": "the button that takes a still picture of the current view",
   "DEAD SENDS": "routes (sends) whose target control is missing from this build: they wait, keeping their range, until it comes back",
   "DRIFT": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
+  "Dismiss": "put the notice away (not close a window)",
   "Download image — capture first": "the download button before any picture exists: capture one first, then download it",
   "Download image — {name}, {size}": "saves the captured picture to the device: {name} its file name, {size} its file size (e.g. 2.4 MB)",
   "Download {name} · {w} × {h}": "the same button's hint: {w} × {h} the picture's width and height in pixels",
@@ -1699,20 +1700,23 @@
   "KNOB": "the two kinds of macro: KNOB (a value you turn) and TRIGGER (a button that fires)",
   "LINK": "a switch that joins the controls' light to the panes' light (link = tie together, not a web link)",
   "LIVE": "the microphone is open and being listened to right now",
+  "Left rack scroll": "the scrollbar beside the cards of the left / right RACK (the column of docked windows)",
   "MIR": "the kit's name: keep it exactly as written.  1.6.0-alpha.58: the label was an app's ('λWAVES'); the id stays (saved looks name it)",
   "MOD off": "MOD: modulation as a whole, switched on or off by its power button",
   "MOD on": "MOD: modulation as a whole, switched on or off by its power button",
   "MULTI-SAW": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
   "MULTI-TRI": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
   "Making image": "the capture button's spoken name while it makes a still picture of the view (in progress)",
+  "Open {path} in your notes tab": "your notes tab is the notebook’s first tab: the note you are writing, kept in this browser",
   "PATT": "PATT: pattern — the ENV's step row",
   "PRESET": "the head of a device's left column: the shape PRESETs, the envelope TIME, the audio SOURCE",
   "RECORD INPUT": "start listening for the new KEY (or chord) of the chosen shortcut: it records a keypress, not audio",
   "RELIEF": "the controls' relief (their raised and sunken look), here the angle of its light",
   "RELIEF ANGLE": "the direction the controls' light comes from, in degrees",
-  "RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})": "raise = a control standing out; wells = sunken tracks and fields; ANGLE is the panes' light angle",
+  "RELIEF ANGLE — where the controls’ light is": "raise = a control standing out; wells = sunken tracks and fields; ANGLE is the panes' light angle",
   "ROOT": "ROOT: the top of the folder tree, the projects in no folder (not a route)",
   "ROUTE {name}: tap a lit control, Escape cancels": "ROUTE: the clip waits for a tap on a control to drive it",
+  "Right rack scroll": "the scrollbar beside the cards of the left / right RACK (the column of docked windows)",
   "S&H": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
   "SAW↑": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
   "SAW↓": "waveform names (saw up, saw down, sine, triangle, square, sample-and-hold, a slow random drift); most languages keep these as written",
@@ -1739,6 +1743,10 @@
   "TRIG": "short for TRIGGER: restart the curve on a trigger",
   "TRIGGER": "the two kinds of macro: KNOB (a value you turn) and TRIGGER (a button that fires)",
   "The controls take the panes’ light: one {:ANGLE} for everything": "the relief follows the pane light's ANGLE: one light for the whole interface",
+  "The expander": "the transport bar's expander: the panel under the bar with the macros, the clock and the app's own rows",
+  "The gate opens here and stays open until hysteresis below it": "hysteresis: a small margin below the opening level, so the gate does not flicker open and shut",
+  "The left rack": "the RACK: the column of docked windows at the screen’s edge (not the SHELF, where notes are kept)",
+  "The rack": "the RACK: the column of docked windows at the screen’s edge (not the SHELF, where notes are kept)",
   "The {panel} panel could not be built: {why}": "an error notice: {panel} is a panel's name (RENDER …), {why} the program's reason, left as it is",
   "This device’s tier, measured once: A and B are {:FULL}, C is {:BALANCED}": "a short benchmark sorts this device into tier A, B or C",
   "UI SCALE": "the size of the interface (windows, menus, bars), not of the picture",
@@ -1746,7 +1754,6 @@
   "clock state::HOLD": "— the modulation clock is held (paused in place), as opposed to RUN",
   "close ({key})": "{key} is the notebook’s shortcut key, e.g. J",
   "device view::FULL": "a device's view: FULL shows every control, CMP (compact) only the performance bank",
-  "dismiss": "put the notice away (not close a window)",
   "history::ACTIVE RANGE": "a history row: a timeline edit's name",
   "history::ADD LANE": "a history row: a timeline edit's name",
   "history::ADD POINT": "a history row: a timeline edit's name",
@@ -1768,27 +1775,20 @@
   "history::REMOVE LANE": "a history row: a timeline edit's name",
   "history::SEGMENT": "a history row: a timeline edit's name",
   "history::TENSION": "a history row: a timeline edit's name",
-  "left rack scroll": "the scrollbar beside the cards of the left / right RACK (the column of docked windows)",
   "no microphone was found on this device": "the microphone's state: no input",
   "notes — markdown, {inline} and {display} maths; ctrl+enter previews — kept in this browser": "{inline} and {display} are the maths syntax, $inline$ and $$display$$, shown exactly as typed",
   "notes — markdown, {inline} and {display} maths; ctrl+enter previews — kept in this browser and in the project": "{inline} and {display} are the maths syntax, $inline$ and $$display$$, shown exactly as typed",
-  "open {path} in your notes tab": "your notes tab is the notebook’s first tab: the note you are writing, kept in this browser",
   "patch copied — {:PASTE} onto any {kind}": "a patch: all of one device’s settings together, as a synth patch; {kind} is the device kind (LFO, ENV, AUDIO)",
   "peak hold::HOLD": "the audio follower's PEAK HOLD: how long a band's peak is held before it falls (a time), not the envelope stage",
   "retrying without the processing constraints": "the microphone's state: a browser that cannot turn AGC off is still worth listening to",
-  "right rack scroll": "the scrollbar beside the cards of the left / right RACK (the column of docked windows)",
   "search windows": "the finder's search field: type part of a window's name",
   "text ink::SAMPLED": "TEXT (the label ink) set by the app itself, from the picture under each label: \"measured\", not \"a sample\"",
   "the audio graph could not be built": "the microphone's state: a fault",
   "the envelope": "what → TL sent of an LFO: its whole cycles (at least a bar's worth)",
-  "the expander": "the transport bar's expander: the panel under the bar with the macros, the clock and the app's own rows",
-  "the gate opens here and stays open until hysteresis below it": "hysteresis: a small margin below the opening level, so the gate does not flicker open and shut",
-  "the left rack": "the RACK: the column of docked windows at the screen’s edge (not the SHELF, where notes are kept)",
   "the microphone could not be opened": "the microphone's state: a fault",
   "the microphone needs a secure page — open this over HTTPS, or on localhost": "why the microphone cannot start",
   "the microphone was disconnected": "the microphone's state: unplugged",
   "the microphone was refused — allow it for this page in the browser’s site settings, then press MIC again": "the microphone's state: refused",
-  "the rack": "the RACK: the column of docked windows at the screen’s edge (not the SHELF, where notes are kept)",
   "this browser does not offer microphone capture": "why the microphone cannot start",
   "this browser has no Web Audio, so there is nothing to analyse with": "why the microphone cannot start",
   "this page — markdown, {inline} and {display} maths — saved in the project": "{inline} and {display} are the maths syntax, shown exactly as typed",
@@ -1858,7 +1858,7 @@
   ".mir or picture": [
    "mir/folders/folders.js"
   ],
-  "0% solid · 100% glass. The transition uses color burn in dark mode and color dodge in light mode.": [
+  "0% solid · 100% glass; a burn in dark, a dodge in light": [
    "mir/shell/gui.js"
   ],
   "60 Hz": [
@@ -1867,11 +1867,17 @@
   "A": [
    "mir/shell/gui.js"
   ],
+  "A draft translation: no native reader has checked it yet": [
+   "mir/shell/language.js"
+  ],
   "A file the app needs did not load.": [
    "mir/shell/boot.js"
   ],
   "A film is rendering — wait for it, or CANCEL it in RENDER, before moving the picture.": [
    "mir/render/panel.js"
+  ],
+  "A slow sine on the colour bands over a turning palette": [
+   "mir/modulation/mod.js"
   ],
   "A soft light follows the pointer over lit surfaces (never on touch)": [
    "mir/shell/gui.js"
@@ -1919,7 +1925,7 @@
   "AMOUNT": [
    "mir/panels/curves.js"
   ],
-  "AMOUNT — how much of the curves apply: the diagonal at 0, the whole curve at 100 %": [
+  "AMOUNT — how much of the curves apply, 0 to 100%": [
    "mir/panels/curves.js"
   ],
   "ANCHOR": [
@@ -1985,6 +1991,12 @@
   ],
   "Add a macro": [
    "mir/modulation/window.js"
+  ],
+  "Add a page": [
+   "mir/shell/notebook.js"
+  ],
+  "Add a page to the project": [
+   "mir/shell/notebook.js"
   ],
   "Add a point that preserves its current value": [
    "mir/timeline/shortcuts.js"
@@ -2091,7 +2103,7 @@
   "BLACK · WHITE": [
    "mir/panels/grade.js"
   ],
-  "BLACK · WHITE — the input levels: below BLACK is black, above WHITE is white; double-tap a thumb to send it home": [
+  "BLACK · WHITE — the input levels; double-tap sends home": [
    "mir/panels/grade.js"
   ],
   "BLACK — what is this dark or darker becomes black": [
@@ -2121,14 +2133,11 @@
   "BRIGHTNESS": [
    "mir/shell/gui.js"
   ],
-  "BRIGHTNESS — shifts both accents toward white. Saved with the project, like the accents.": [
+  "BRIGHTNESS — both accents toward white; saved per project": [
    "mir/shell/gui.js"
   ],
   "Black text on every label": [
    "mir/shell/gui.js"
-  ],
-  "Bundled starter modulation · Save keeps an editable user preset": [
-   "mir/modulation/window.js"
   ],
   "Bypass Snap for the gesture in progress": [
    "mir/timeline/shortcuts.js"
@@ -2246,7 +2255,7 @@
   "Cancel": [
    "mir/folders/gallery.js"
   ],
-  "Cancel the gesture in flight, close menus, rewind a cancelled scrub": [
+  "Cancel the gesture in flight and close menus": [
    "mir/timeline/shortcuts.js"
   ],
   "Cancelled: “{action}” keeps its keys": [
@@ -2264,7 +2273,7 @@
   "Capture this view as an image. Capture again to try another version.": [
    "mir/folders/gallery.js"
   ],
-  "Carry every stop round the ramp (a jog wheel: it holds no value)": [
+  "Carry every stop round the ramp (a jog wheel, no value)": [
    "mir/panels/ramp.js"
   ],
   "Center the view on the playhead": [
@@ -2288,11 +2297,8 @@
   "Clear saved interface settings and reload": [
    "mir/shell/gui.js"
   ],
-  "Clear the time range (two presses within 300 ms at one spot); no single click clears it": [
+  "Clear the time range (a double press at one spot)": [
    "mir/timeline/shortcuts.js"
-  ],
-  "Click the strip to add a stop; drag a stop to move it, off the strip to remove it": [
-   "mir/panels/ramp.js"
   ],
   "Clip color": [
    "mir/timeline/editor.js"
@@ -2307,16 +2313,17 @@
   "Clip title and color": [
    "mir/timeline/editor.js"
   ],
+  "Clock": [
+   "mir/shell/transport.js"
+  ],
   "Close dead-send inspector": [
    "mir/modulation/modwindow/modwindow.js"
   ],
   "Close the conditioning sheet": [
    "mir/modulation/modwindow/modwindow.js"
   ],
-  "Close this window": [
-   "mir/kit.js"
-  ],
   "Close window": [
+   "mir/kit.js",
    "mir/modulation/modwindow/modwindow.js",
    "mir/modulation/window.js",
    "mir/window/rail.js",
@@ -2324,18 +2331,6 @@
   ],
   "Close {name}": [
    "mir/modulation/modwindow/modwindow.js"
-  ],
-  "Collapse or expand the macro rail": [
-   "mir/modulation/window.js"
-  ],
-  "Collapse or expand this device": [
-   "mir/modulation/window.js"
-  ],
-  "Collapse or expand this window": [
-   "mir/kit.js"
-  ],
-  "Colour intensity across glass surfaces: 0% neutral · 100% original · 200% vivid.": [
-   "mir/shell/gui.js"
   ],
   "Complete · {frames} frames · {time} render time": [
    "mir/render/panel.js"
@@ -2352,16 +2347,31 @@
   "Copy the exact centre, zoom and rotation as text": [
    "mir/render/panel.js"
   ],
+  "Copy the notes as text": [
+   "mir/shell/notebook.js"
+  ],
   "Copy the selection": [
    "mir/timeline/shortcuts.js"
   ],
-  "Corner radius across window panes.": [
+  "Copy this page onto your shelf (the two stay apart)": [
+   "mir/shell/notebook.js"
+  ],
+  "Copy this side's whole patch": [
+   "mir/modulation/window.js"
+  ],
+  "Copy your note into the project as a new page (a copy)": [
+   "mir/shell/notebook.js"
+  ],
+  "Copy {name} into the project": [
+   "mir/notes/face.js"
+  ],
+  "Corner radius across window panes": [
    "mir/shell/gui.js"
   ],
   "Corner {c}: tap a snapshot's number to put it there (tap {c} again to leave it).": [
    "mir/panels/xy.js"
   ],
-  "Corner {c}: tap, then a snapshot's number, to put it here; hold or Shift-click to store the dials straight onto it": [
+  "Corner {c}: tap, then a snapshot’s number; hold to store": [
    "mir/panels/xy.js"
   ],
   "Could not add the project: {why}": [
@@ -2453,13 +2463,13 @@
   "Current gallery folder": [
    "mir/folders/gallery.js"
   ],
-  "Curve editor: right-drag empty space to add a point; Shift-right-click adds at the current curve value; left-drag a point to move it (Shift is fine, Ctrl locks its time); left-drag a tension handle to bend it (Shift is fine); right-click or double-click a tension handle resets it; Alt-click a point deletes it.": [
+  "Curve editor: right-drag adds a point, left-drag moves it": [
    "mir/modulation/window.js"
   ],
   "Curve point limit reached. Use a wider Snap grid or remove points.": [
    "mir/timeline/editor.js"
   ],
-  "Cut the clip at the pointer’s beat (Snap applies, Alt bypasses); a drag cuts every clip its line crosses there (one undo)": [
+  "Cut the clip at the pointer’s beat; a drag cuts every clip": [
    "mir/timeline/shortcuts.js"
   ],
   "Cut the selection": [
@@ -2528,7 +2538,7 @@
   "DRAG HANDLE": [
    "mir/shell/gui.js"
   ],
-  "DRAG — how far the view turns for a drag; Shift is finer; double-tap resets": [
+  "DRAG — how far a drag turns the view; double-tap resets": [
    "mir/panels/camera-rig.js"
   ],
   "DRIFT": [
@@ -2550,10 +2560,10 @@
   "Dead-send inspector": [
    "mir/modulation/modwindow/modwindow.js"
   ],
-  "Delete every clip the pointer crosses (one undo): the right button’s sweep on the left button": [
+  "Delete every clip the pointer crosses, on the left button": [
    "mir/timeline/shortcuts.js"
   ],
-  "Delete every clip the pointer crosses, tab or body (one undo); down on a tab deletes it at once": [
+  "Delete every clip the pointer crosses, tab or body": [
    "mir/timeline/shortcuts.js"
   ],
   "Delete it": [
@@ -2568,14 +2578,21 @@
   "Delete the selection": [
    "mir/timeline/shortcuts.js"
   ],
+  "Delete this page": [
+   "mir/shell/notebook.js"
+  ],
   "Delete this snapshot": [
    "mir/panels/xy.js"
   ],
   "Delete trigger {i}": [
    "mir/modulation/modwindow/modwindow.js"
   ],
+  "Delete {macro} and its routes": [
+   "mir/modulation/window.js"
+  ],
   "Delete {name}": [
-   "mir/folders/gallery.js"
+   "mir/folders/gallery.js",
+   "mir/notes/face.js"
   ],
   "Delete: press or drag": [
    "mir/timeline/shortcuts.js"
@@ -2600,6 +2617,13 @@
   ],
   "Disconnect the source from this macro": [
    "mir/modulation/window.js"
+  ],
+  "Dismiss": [
+   "mir/shell/banner.js",
+   "mir/shell/notice.js"
+  ],
+  "Dismiss this message": [
+   "mir/shell/banner.js"
   ],
   "Dock or float the CONTROL SURFACE": [
    "mir/shell/transport.js"
@@ -2679,11 +2703,14 @@
   "Drag window · Shift-drag, or hold, to move these controls to another edge · arrows when focused": [
    "mir/modulation/window.js"
   ],
-  "Drag {axis} onto any knob to route it there; tap to arm, then tap a knob; double-tap resets it": [
+  "Drag {axis} onto a knob; tap to arm; double-tap resets": [
    "mir/panels/xy.js"
   ],
   "Drag ✥ onto a slider or knob to route it (a PAD’s ✥ makes that control get hit) · drop it there again to release · a macro bar: drag sideways to set, double-tap to reset, tap to rename or unassign · number ring: up/down = master depth, double-tap = 100% · route ring: up/down = depth, sideways = direction.": [
    "mir/modulation/modwindow/modwindow.js"
+  ],
+  "Drawn for {m} choices, the target has {n}: edit a point": [
+   "mir/timeline/view.js"
   ],
   "Drawn for {m} choices; the target now has {n}. Edit a point to redraw it for {n}.": [
    "mir/timeline/view.js"
@@ -2691,10 +2718,10 @@
   "Duplicate the selected saved project, including its thumbnail and settings.": [
    "mir/folders/gallery.js"
   ],
-  "Duplicate the selection (the clip joins it) and move the copies (tab or body)": [
+  "Duplicate the selection while moving it, as Shift-drag does": [
    "mir/timeline/shortcuts.js"
   ],
-  "Duplicate the selection while moving it (title or body): an alias of Shift + drag, kept": [
+  "Duplicate the selection with the clip and move the copies": [
    "mir/timeline/shortcuts.js"
   ],
   "Duplicate the selection, placed to its right": [
@@ -2746,7 +2773,7 @@
   "EXPOSURE": [
    "mir/panels/grade.js"
   ],
-  "EXPOSURE — the picture multiplied, before the levels; double-tap for 1×": [
+  "EXPOSURE — the picture multiplied; double-tap for 1×": [
    "mir/panels/grade.js"
   ],
   "Each label turns white or black from the picture beneath it": [
@@ -3003,7 +3030,7 @@
   "FRICTION": [
    "mir/panels/camera-rig.js"
   ],
-  "FRICTION — how fast a released view slows; at 0 it never stops": [
+  "FRICTION — how fast a released view slows; 0 never stops": [
    "mir/panels/camera-rig.js"
   ],
   "FULL": [
@@ -3027,7 +3054,7 @@
   "Fire this trigger": [
    "mir/modulation/window.js"
   ],
-  "Fit each selected audio clip’s remaining audio into its length (varispeed)": [
+  "Fit each selected audio clip’s audio to its length": [
    "mir/timeline/shortcuts.js"
   ],
   "Fit the full envelope in the graph": [
@@ -3051,6 +3078,15 @@
   ],
   "Float this window off the rack": [
    "mir/shell/rack.js"
+  ],
+  "Fold or unfold the macro rail": [
+   "mir/modulation/window.js"
+  ],
+  "Fold or unfold this device": [
+   "mir/modulation/window.js"
+  ],
+  "Fold or unfold this window": [
+   "mir/kit.js"
   ],
   "Folder picture set from {name}": [
    "mir/folders/gallery.js"
@@ -3079,6 +3115,9 @@
   "Forget the rows; the picture stays as it is": [
    "mir/history/window.js"
   ],
+  "Forget this layout": [
+   "mir/shell/rack.js"
+  ],
   "GAIN": [
    "mir/modulation/modwindow/modwindow.js",
    "mir/modulation/window.js"
@@ -3089,7 +3128,7 @@
   "GAMMA": [
    "mir/panels/grade.js"
   ],
-  "GAMMA — above 1 lifts the middle tones, below 1 sinks them; double-tap for 1": [
+  "GAMMA — above 1 lifts the middle tones; double-tap for 1": [
    "mir/panels/grade.js"
   ],
   "GATE": [
@@ -3119,6 +3158,9 @@
   ],
   "Gallery — browse saved projects": [
    "mir/folders/folders.js"
+  ],
+  "Glass colour: 0% neutral · 100% original · 200% vivid": [
+   "mir/shell/gui.js"
   ],
   "H": [
    "mir/modulation/window.js"
@@ -3203,22 +3245,34 @@
    "mir/folders/gallery.js",
    "mir/render/panel.js"
   ],
+  "Hidden from a visiting model — share it": [
+   "mir/shell/notebook.js"
+  ],
+  "Hidden: a visiting model cannot read this page": [
+   "mir/shell/notebook.js"
+  ],
+  "History rows": [
+   "mir/history/history-list.js"
+  ],
   "Hold a knob": [
    "mir/timeline/shortcuts.js"
   ],
   "Hold and repeat {note}; release to resume the original clock": [
    "mir/modulation/window.js"
   ],
-  "Hold to halve the tempo, release to return · tap to latch, tap again to release": [
+  "Hold to halve the tempo; tap to latch, tap again to free": [
    "mir/shell/transport.js"
   ],
-  "Hold to multiply the tempo, release to return · tap to latch, tap again to release": [
+  "Hold to multiply the tempo; tap to latch, tap again to free": [
    "mir/shell/transport.js"
+  ],
+  "Hold: the words on the picture stay where they are": [
+   "mir/info/layer.js"
   ],
   "Hover hints on controls": [
    "mir/shell/gui.js"
   ],
-  "How far the shadow falls from its pane (and the shine across from it)": [
+  "How far the shadow falls from its pane": [
    "mir/shell/gui.js"
   ],
   "ICON": [
@@ -3260,6 +3314,12 @@
   "Imported — {name}": [
    "mir/folders/folders.js"
   ],
+  "In or out: the dot is lit while this is on": [
+   "mir/panels/lanes.js"
+  ],
+  "In the saved favourite layout": [
+   "mir/shell/window-picker.js"
+  ],
   "Include {what} in the next save": [
    "mir/folders/gallery.js"
   ],
@@ -3267,6 +3327,9 @@
    "mir/control-help.js"
   ],
   "Input dB at 0% output; upper boundary reaches 100%.": [
+   "mir/modulation/window.js"
+  ],
+  "Input gain, ±24 dB before the band response ranges": [
    "mir/modulation/window.js"
   ],
   "Invert the clip selection": [
@@ -3356,14 +3419,17 @@
   "LW Title": [
    "mir/shell/gui.js"
   ],
-  "Lay the clip last pressed end to end, a copy in every slot the pointer passes (one undo); on a clip it is the pencil": [
+  "Lay the last clip end to end where the pointer passes": [
    "mir/timeline/shortcuts.js"
   ],
-  "Lay the clip last pressed one snap step long on the grid, its shape squeezed into the step; a press on a clip mutes or unmutes it": [
+  "Lay the last clip one snap step long; a clip press mutes it": [
    "mir/timeline/shortcuts.js"
   ],
   "Left empty, {:SAVE} names it after its folder": [
    "mir/folders/gallery.js"
+  ],
+  "Left rack scroll": [
+   "mir/shell/rack-scrollbar.js"
   ],
   "Left-drag a point or tension handle": [
    "mir/timeline/shortcuts.js"
@@ -3545,22 +3611,25 @@
   "Macro": [
    "mir/modulation/modwindow/modwindow.js"
   ],
+  "Macros": [
+   "mir/shell/transport.js"
+  ],
   "Made with": [
    "mir/shell/about.js"
   ],
   "Making image": [
    "mir/folders/gallery.js"
   ],
-  "Mark the ruler’s range, or the whole arrangement, as the active range; again to clear": [
+  "Mark the ruler’s range as the active range; again to clear": [
    "mir/timeline/shortcuts.js"
   ],
-  "Mark the selected time range (or the whole arrangement) as the active range": [
+  "Mark the selected time range as the active range": [
    "mir/timeline/editor.js"
   ],
   "Marked layers drift against the pointer (never on touch)": [
    "mir/shell/gui.js"
   ],
-  "Master depth for this macro. Double-tap for 100%.": [
+  "Master depth for this macro; double-tap for 100%": [
    "mir/modulation/window.js"
   ],
   "Master depth for {macro}": [
@@ -3594,7 +3663,7 @@
   "Move it": [
    "mir/timeline/shortcuts.js"
   ],
-  "Move it (Shift or Ctrl copies, right-button deletes); it has no points": [
+  "Move it (Shift or Ctrl copies, right button deletes)": [
    "mir/timeline/shortcuts.js"
   ],
   "Move macros to either side": [
@@ -3633,7 +3702,7 @@
   "Mute mode: a press mutes or unmutes a clip": [
    "mir/timeline/shortcuts.js"
   ],
-  "Mute or unmute a clip; a drag gives every clip it crosses the state the first took (one undo). A muted clip is hollow and plays nothing": [
+  "Mute or unmute a clip; a drag sets every clip it crosses": [
    "mir/timeline/shortcuts.js"
   ],
   "Mute: press or drag": [
@@ -3661,10 +3730,10 @@
   "NORTH — the view is at north": [
    "mir/panels/camera.js"
   ],
-  "NORTH — turn the view to north; press again to go back": [
+  "NORTH — turn the view north; again goes back to {deg}": [
    "mir/panels/camera.js"
   ],
-  "NORTH — turn the view to north; press again to go back to {deg}": [
+  "NORTH — turn the view to north; press again to go back": [
    "mir/panels/camera.js"
   ],
   "NOTEBOOK": [
@@ -3686,6 +3755,9 @@
   ],
   "New — the empty project: every part starts from nothing.": [
    "mir/folders/folders.js"
+  ],
+  "Next": [
+   "mir/controls/stepper.js"
   ],
   "Next page": [
    "mir/kit.js"
@@ -3750,6 +3822,15 @@
   "No such action.": [
    "mir/shell/keys.js"
   ],
+  "Notebook": [
+   "mir/shell/notebook.js"
+  ],
+  "Notebook subtitle": [
+   "mir/shell/notebook.js"
+  ],
+  "Notebook title": [
+   "mir/shell/notebook.js"
+  ],
   "Nothing animates": [
    "mir/shell/gui.js"
   ],
@@ -3793,7 +3874,7 @@
   "OPACITY": [
    "mir/panels/grade.js"
   ],
-  "OPACITY — how much of the picture is laid over what is under it": [
+  "OPACITY — how much of the picture lies over what is under": [
    "mir/panels/grade.js"
   ],
   "OPEN": [
@@ -3811,10 +3892,10 @@
   "ORBIT ANGLE": [
    "mir/panels/camera-rig.js"
   ],
-  "ORBIT ANGLE — 0° right, 90° up; route a full-turn ramp for a continuous orbit": [
+  "ORBIT ANGLE — 0° right, 90° up; a ramp keeps it orbiting": [
    "mir/panels/camera-rig.js"
   ],
-  "ORBIT — radius in view widths; modulate ORBIT ANGLE to circle the camera anchor": [
+  "ORBIT — radius in view widths; ORBIT ANGLE circles it": [
    "mir/panels/camera-rig.js"
   ],
   "OUT": [
@@ -3826,13 +3907,13 @@
   "On · {lane}": [
    "mir/panels/lanes.js"
   ],
-  "Open THE MODE MENU: the nine modes (the left button’s tool) and this window’s menus": [
+  "Open THE MODE MENU: the nine modes and this window’s menus": [
    "mir/timeline/shortcuts.js"
   ],
   "Open a project file (.mir) or a picture that carries one — or drop it on this window.": [
    "mir/folders/folders.js"
   ],
-  "Open a project saved as one .zip (SAVE AS ZIP): its audio comes back with it and it becomes the current project.": [
+  "Open a project saved as one .zip, its audio with it": [
    "mir/render/panel.js"
   ],
   "Open folder {name}": [
@@ -3841,7 +3922,7 @@
   "Open it in a current Chrome, Edge or Safari, or turn WebGPU on in this browser's settings.": [
    "mir/shell/boot.js"
   ],
-  "Open or close audio input. Audio is analysed locally and is not stored.": [
+  "Open or close audio input (analysed here, never stored)": [
    "mir/modulation/window.js"
   ],
   "Open the modulation window": [
@@ -3858,6 +3939,9 @@
   ],
   "Open {name} — tap again": [
    "mir/folders/gallery.js"
+  ],
+  "Open {path} in your notes tab": [
+   "mir/notes/face.js"
   ],
   "Opened {name}": [
    "mir/folders/folders.js"
@@ -3877,7 +3961,7 @@
   "Orbit with a level horizon": [
    "mir/panels/camera-rig.js"
   ],
-  "Orient the plane. Shift or a second finger gives finer motion; a double-tap or Home resets.": [
+  "Orient the plane; Shift is finer, a double-tap resets": [
    "mir/plane-model.js"
   ],
   "Output maximum": [
@@ -3907,22 +3991,22 @@
   "PAN HOME": [
    "mir/panels/camera.js"
   ],
-  "PAN HOME — reset pan and orbit bases; routed modulation continues": [
+  "PAN HOME — pan and orbit back home; routes keep running": [
    "mir/panels/camera.js"
   ],
   "PAN SCALE": [
    "mir/panels/camera-rig.js"
   ],
-  "PAN SCALE — multiply both pan axes; zero mutes pan; double-tap restores 1:1": [
+  "PAN SCALE — both pan axes; 0 mutes pan; double-tap 1:1": [
    "mir/panels/camera-rig.js"
   ],
-  "PAN X — the view moved sideways, as a share of its width; drag up or down; double-tap to come home": [
+  "PAN X — the view moved sideways; double-tap goes home": [
    "mir/panels/camera-rig.js"
   ],
-  "PAN Y — the view moved up or down, as a share of its width; drag up or down; double-tap to come home": [
+  "PAN Y — the view moved up or down; double-tap goes home": [
    "mir/panels/camera-rig.js"
   ],
-  "PAN — the view moved along the screen's axes, as a share of its width; drag the pad, or turn X and Y; double-tap to come home": [
+  "PAN — the view moved along the screen; double-tap goes home": [
    "mir/panels/camera.js"
   ],
   "PANE": [
@@ -4002,7 +4086,13 @@
   "PROJECTS": [
    "mir/folders/gallery.js"
   ],
-  "Paint Add mode: lay the last clip a snap step long, step by step": [
+  "Page 0 — the greeting, shown when the project opens": [
+   "mir/shell/notebook.js"
+  ],
+  "Pages": [
+   "mir/shell/notebook.js"
+  ],
+  "Paint Add mode: lay the last clip one snap step at a time": [
    "mir/timeline/shortcuts.js"
   ],
   "Paint Add: drag over empty lane space": [
@@ -4026,7 +4116,7 @@
   "Paste at the playhead, into the active lane": [
    "mir/timeline/shortcuts.js"
   ],
-  "Pattern: drive this envelope from its step row in the PATTERN window": [
+  "Pattern: drive this envelope from its row in PATTERN": [
    "mir/modulation/window.js"
   ],
   "Pencil mode": [
@@ -4047,7 +4137,7 @@
   "Play / pause, exact resume": [
    "mir/timeline/shortcuts.js"
   ],
-  "Play from the press while it is held; a drag scrubs (the hand leads)": [
+  "Play from the press while it is held; a drag scrubs": [
    "mir/timeline/shortcuts.js"
   ],
   "Play or pause": [
@@ -4062,10 +4152,13 @@
   "Point value": [
    "mir/timeline/editor.js"
   ],
+  "Power": [
+   "mir/kit.js"
+  ],
   "Preset name — type one, then tap {:SAVE}": [
    "mir/modulation/modwindow/modwindow.js"
   ],
-  "Preview mode: a press plays from there while held, a drag scrubs": [
+  "Preview mode: a press plays while held, a drag scrubs": [
    "mir/timeline/shortcuts.js"
   ],
   "Preview ready": [
@@ -4076,6 +4169,9 @@
   ],
   "Preview: press · drag": [
    "mir/timeline/shortcuts.js"
+  ],
+  "Previous": [
+   "mir/controls/stepper.js"
   ],
   "Previous page": [
    "mir/kit.js"
@@ -4176,7 +4272,7 @@
   "RELIEF ANGLE": [
    "mir/shell/gui.js"
   ],
-  "RELIEF ANGLE — where the controls’ light is: their raise and wells turn with it (the panes follow {:ANGLE})": [
+  "RELIEF ANGLE — where the controls’ light is": [
    "mir/shell/gui.js"
   ],
   "REMOVE": [
@@ -4184,6 +4280,9 @@
   ],
   "RENDER": [
    "mir/app.js",
+   "mir/render/panel.js"
+  ],
+  "RENDER — this project and the picture or film you make": [
    "mir/render/panel.js"
   ],
   "RESET": [
@@ -4230,7 +4329,7 @@
   "ROT SCALE": [
    "mir/panels/camera-rig.js"
   ],
-  "ROT SCALE — multiply rotation modulation from 1/16× to 16×; middle and double-tap are 1:1": [
+  "ROT SCALE — rotation modulation 1/16× to 16×; double-tap 1:1": [
    "mir/panels/camera-rig.js"
   ],
   "ROTATE": [
@@ -4239,7 +4338,7 @@
   "ROTATION": [
    "mir/panels/camera-rig.js"
   ],
-  "ROTATION — drag up or down to turn the view about its centre; double-tap for north": [
+  "ROTATION — the view about its centre; double-tap for north": [
    "mir/panels/camera-rig.js"
   ],
   "ROUTE {name}: tap a lit control, Escape cancels": [
@@ -4259,6 +4358,9 @@
   ],
   "Raised controls and wells, lit by {:LIGHT ANGLE}": [
    "mir/shell/gui.js"
+  ],
+  "Ramp": [
+   "mir/panels/ramp.js"
   ],
   "Ramp preset": [
    "mir/panels/ramp.js"
@@ -4327,8 +4429,15 @@
   "Remove {n} clips in {lane}?": [
    "mir/timeline/editor.js"
   ],
+  "Rename this tab": [
+   "mir/shell/notebook.js"
+  ],
+  "Rename to folder/name": [
+   "mir/notes/face.js"
+  ],
   "Rename {name}": [
-   "mir/folders/gallery.js"
+   "mir/folders/gallery.js",
+   "mir/notes/face.js"
   ],
   "Render cancelled. Completed checkpoints remain available below.": [
    "mir/render/panel.js"
@@ -4339,13 +4448,13 @@
   "Render failed: {why}": [
    "mir/render/panel.js"
   ],
-  "Render — this project, and the picture or film you make of it": [
-   "mir/render/panel.js"
+  "Reorder or rename {macro}": [
+   "mir/modulation/window.js"
   ],
   "Reorder {noun} {n} — drag, or the arrow keys": [
    "mir/controls/list.js"
   ],
-  "Repeat the segment between its two points: up adds copies of its shape (one per 24 px), down makes mirrored copies, or takes back copies made going up": [
+  "Repeat the segment: up adds copies, down mirrors them": [
    "mir/timeline/shortcuts.js"
   ],
   "Reset it": [
@@ -4378,6 +4487,9 @@
   "Reverse the curve in time": [
    "mir/modulation/window.js"
   ],
+  "Right rack scroll": [
+   "mir/shell/rack-scrollbar.js"
+  ],
   "Right-button drag on empty lane space (or between lanes)": [
    "mir/timeline/shortcuts.js"
   ],
@@ -4390,7 +4502,13 @@
   "Right-drag empty clip space": [
    "mir/timeline/shortcuts.js"
   ],
+  "Route {axis} — drag onto a control, or tap to arm": [
+   "mir/panels/xy.js"
+  ],
   "Route {band} to a macro": [
+   "mir/modulation/window.js"
+  ],
+  "Route {macro} — drag onto a control, or tap to arm": [
    "mir/modulation/window.js"
   ],
   "Route {name} to a control first — its clip needs a target": [
@@ -4535,7 +4653,7 @@
   "SOLID": [
    "mir/shell/gui.js"
   ],
-  "SOLO: this one alone; again, the others come back. Hold to peek": [
+  "SOLO: this one alone; again, all back; hold to peek": [
    "mir/panels/lanes.js"
   ],
   "SOURCE": [
@@ -4628,10 +4746,19 @@
   "Sample the arrangement every rendered frame. The CLOCK tile sets how often modulation ticks at all.": [
    "mir/shell/gui.js"
   ],
+  "Save as folder/name": [
+   "mir/notes/face.js"
+  ],
   "Save as — store what is on screen as a new project, with the name and folder below.": [
    "mir/folders/folders.js"
   ],
-  "Save the current project, with the audio files it uses, as one .zip.": [
+  "Save into no folder": [
+   "mir/notes/face.js"
+  ],
+  "Save into {folder}": [
+   "mir/notes/face.js"
+  ],
+  "Save the project and its audio files as one .zip": [
    "mir/render/panel.js"
   ],
   "Save this first?": [
@@ -4660,17 +4787,20 @@
   "Saved — {name} · made room by deleting {n} projects": [
    "mir/folders/gallery.js"
   ],
-  "Scroll time (Shift + wheel too; with more lanes than fit, the wheel scrolls the lanes); Ctrl/Cmd + wheel zooms": [
+  "Scroll time (or the lanes); Ctrl/Cmd + wheel zooms": [
    "mir/timeline/shortcuts.js"
   ],
-  "Scroll time while you hold it there (the playhead, a range, a move, a trim, a stretch)": [
+  "Scroll time while a drag holds it at the edge": [
    "mir/timeline/shortcuts.js"
   ],
   "Scrub the timeline playhead": [
    "mir/timeline/view.js"
   ],
-  "Scrub: the playhead follows the hand, free of Snap; the range stays": [
+  "Scrub: the playhead follows the hand; the range stays": [
    "mir/timeline/shortcuts.js"
+  ],
+  "Search windows": [
+   "mir/shell/window-picker.js"
   ],
   "Seek about once every three moves. The hand always stays smooth.": [
    "mir/shell/gui.js"
@@ -4694,10 +4824,10 @@
   "Select a curve before reversing it": [
    "mir/modulation/window.js"
   ],
-  "Select a time range (no key, so touch can); a tap seeks and keeps the range": [
+  "Select a time range; + Ctrl/Cmd extends it": [
    "mir/timeline/shortcuts.js"
   ],
-  "Select a time range; + Ctrl/Cmd extends it": [
+  "Select a time range; a tap seeks and keeps the range": [
    "mir/timeline/shortcuts.js"
   ],
   "Select all clips": [
@@ -4712,10 +4842,10 @@
   "Select the LFO waveform": [
    "mir/modulation/window.js"
   ],
-  "Select the envelope trigger; Shift-click selects the {:AUDIO} {:HIT} output": [
+  "Select the macro driven by this device": [
    "mir/modulation/window.js"
   ],
-  "Select the macro driven by this device": [
+  "Select the trigger; Shift-click takes {:AUDIO} {:HIT}": [
    "mir/modulation/window.js"
   ],
   "Select {band} for {:ATTACK}, {:RELEASE} and {:peak hold::HOLD}": [
@@ -4742,7 +4872,7 @@
   "Selection scope": [
    "mir/timeline/editor.js"
   ],
-  "Send to the timeline: the LFO's whole cycles (a bar at least), the ENV's stages, or its live pattern row": [
+  "Send to the timeline: the LFO’s cycles or the ENV’s stages": [
    "mir/modulation/window.js"
   ],
   "Sends that are dead until their controls come back": [
@@ -4768,6 +4898,12 @@
   ],
   "Set the time range to the selection’s span": [
    "mir/timeline/shortcuts.js"
+  ],
+  "Shared with a visiting model — hide it": [
+   "mir/shell/notebook.js"
+  ],
+  "Shared: a visiting model may read this page": [
+   "mir/shell/notebook.js"
   ],
   "Shift": [
    "mir/keyboard/keyboard.js"
@@ -4796,7 +4932,7 @@
   "Show Windows and Linux key names": [
    "mir/keyboard/keyboard.js"
   ],
-  "Show or hide this lane’s arcs and blend (so a thumb zooming the picture cannot turn them)": [
+  "Show or hide this lane’s arcs and blend": [
    "mir/panels/lanes.js"
   ],
   "Show status tags at the top": [
@@ -4845,6 +4981,9 @@
   "Smooth the LFO output": [
    "mir/modulation/window.js"
   ],
+  "Snapshot {n}'s name": [
+   "mir/panels/xy.js"
+  ],
   "Solid to glass control faces": [
    "mir/shell/gui.js"
   ],
@@ -4881,8 +5020,17 @@
   "Space": [
    "mir/timeline/shortcuts.js"
   ],
+  "Staircase on colour, envelope on brightness, on the beat": [
+   "mir/modulation/mod.js"
+  ],
+  "Starter modulation · SAVE keeps an editable copy": [
+   "mir/modulation/window.js"
+  ],
   "Starter projects": [
    "mir/shell/opener.js"
+  ],
+  "Step {n}": [
+   "mir/pattern/window.js"
   ],
   "Stop colour — tap for the chooser, drag up or down to turn its hue": [
    "mir/panels/ramp.js"
@@ -4896,25 +5044,25 @@
   "Stop {n} of {total}": [
    "mir/panels/ramp.js"
   ],
+  "Store the dials as they stand in the next empty slot": [
+   "mir/panels/xy.js"
+  ],
   "Store the dials as they stand over this snapshot": [
    "mir/panels/xy.js"
   ],
-  "Store the window's dials as they stand (their bases) into the next empty slot": [
-   "mir/panels/xy.js"
-  ],
-  "Strength of the pane shadow. {:DROP SHADOW} can switch it off.": [
+  "Strength of the pane shadow ({:DROP SHADOW} switches it)": [
    "mir/shell/gui.js"
   ],
   "Stretch it finely (⅛, free of Snap)": [
    "mir/timeline/shortcuts.js"
   ],
-  "Stretch it: the curve keeps its shape; several selected close their gaps, then stretch as one": [
+  "Stretch it: the curve keeps its shape; a selection as one": [
    "mir/timeline/shortcuts.js"
   ],
   "Stutter: hold the beat at this note value": [
    "mir/shell/transport.js"
   ],
-  "Surfaces that blur what is behind them: one compositor pass each": [
+  "Surfaces that blur what is behind them, one pass each": [
    "mir/shell/gui.js"
   ],
   "Surfaces that draw a shadow, and shine layers": [
@@ -5006,7 +5154,7 @@
   "Tap a corner (A · B · C · D) first, then a snapshot's number.": [
    "mir/panels/xy.js"
   ],
-  "Tap a corner first, then this number, to put this snapshot there": [
+  "Tap a corner, then this number, to put this snapshot there": [
    "mir/panels/xy.js"
   ],
   "Tap a lit control to route {clip} to it; Escape cancels.": [
@@ -5014,6 +5162,9 @@
   ],
   "Tap repeatedly to set the modulation clock": [
    "mir/modulation/window.js"
+  ],
+  "Tap the strip to add a stop; drag one off it to remove it": [
+   "mir/panels/ramp.js"
   ],
   "Tap the tempo": [
    "mir/shell/transport.js"
@@ -5045,7 +5196,7 @@
   "The MIR logo is outlined from Butler Free Extra Bold by {who}.": [
    "mir/shell/gui.js"
   ],
-  "The air between rack windows and from the screen’s edge, and the padding inside windows, bars and menus; 0 is flush": [
+  "The air between windows and inside windows, bars and menus": [
    "mir/shell/gui.js"
   ],
   "The bank holds {n}: STORE over one, or × one.": [
@@ -5072,8 +5223,14 @@
   "The envelope drives the target; the file stays silent": [
    "mir/timeline/audio-drop.js"
   ],
+  "The expander": [
+   "mir/shell/transport.js"
+  ],
   "The factory gallery is already complete.": [
    "mir/folders/gallery.js"
+  ],
+  "The gate opens here and stays open until hysteresis below it": [
+   "mir/modulation/window.js"
   ],
   "The graphics device was lost: the GPU was reset, its driver changed, or it ran out of memory.": [
    "mir/shell/boot.js"
@@ -5083,6 +5240,9 @@
   ],
   "The kit’s filled knobs, buttons and fields": [
    "mir/shell/gui.js"
+  ],
+  "The left rack": [
+   "mir/shell/rack.js"
   ],
   "The library is full: {count} saved, {need} needed of {cap}.  This save was NOT stored.  Delete projects yourself, or make room — the oldest go first.": [
    "mir/folders/gallery.js"
@@ -5096,17 +5256,29 @@
   "The morph pad: drag to blend the four corners; arrows nudge, Home centres": [
    "mir/panels/xy.js"
   ],
-  "The pad drives the dials; off, the pad and its routes do nothing and the dials are the hand's": [
+  "The notebook’s subtitle — type to rename": [
+   "mir/shell/notebook.js"
+  ],
+  "The notebook’s title — type to rename": [
+   "mir/shell/notebook.js"
+  ],
+  "The pad drives the dials; off, the dials are the hand’s": [
    "mir/panels/xy.js"
   ],
   "The pane’s hairline rim": [
    "mir/shell/gui.js"
+  ],
+  "The phase offset": [
+   "mir/modulation/window.js"
   ],
   "The picture on screen, without controls": [
    "mir/render/panel.js"
   ],
   "The picture waits until you let go. The playhead and readers move at once.": [
    "mir/shell/gui.js"
+  ],
+  "The rack": [
+   "mir/shell/rack.js"
   ],
   "The renderer currently owns the clock.": [
    "mir/timeline/editor.js"
@@ -5117,8 +5289,11 @@
   "The shine’s blur": [
    "mir/shell/gui.js"
   ],
-  "The size of every window, menu and bar; the picture keeps its resolution": [
+  "The size of every window, menu and bar, not the picture": [
    "mir/shell/gui.js"
+  ],
+  "The sustain {:LEVEL}, the one ADSR control not a time": [
+   "mir/modulation/window.js"
   ],
   "The view moved since the picture was made — capture it again.": [
    "mir/folders/gallery.js"
@@ -5147,7 +5322,7 @@
   "The ⓘ panels on windows": [
    "mir/shell/gui.js"
   ],
-  "Theme-coloured glass fill. Zero is clear.": [
+  "Theme-coloured glass fill; zero is clear": [
    "mir/shell/gui.js"
   ],
   "This browser has no WebGPU, which this app draws with.": [
@@ -5198,10 +5373,10 @@
   "Trigger": [
    "mir/modulation/modwindow/modwindow.js"
   ],
-  "Trigger this envelope. Start modulation to advance it.": [
+  "Trigger this envelope; start modulation to advance it": [
    "mir/modulation/window.js"
   ],
-  "Trim it: the curve keeps its beats; every selected clip trims with it, each from its own start. The zone is centred on the edge; where two clips meet, the side you are on names the clip, and its edge lights first": [
+  "Trim it: the curve keeps its beats; the selection trims too": [
    "mir/timeline/shortcuts.js"
   ],
   "Trim the clip end": [
@@ -5209,6 +5384,9 @@
   ],
   "Turn this window on or off": [
    "mir/kit.js"
+  ],
+  "Two sample-and-holds wander the first two colour phases": [
+   "mir/modulation/mod.js"
   ],
   "Type the tempo in BPM": [
    "mir/shell/transport.js"
@@ -5313,7 +5491,7 @@
   "What this app is, for a visiting model: windows, parameters, keys and shared pages": [
    "mir/core/describe.js"
   ],
-  "What this theme cost when it was applied: surfaces that blur, shadows drawn, shine layers, the mean frame time": [
+  "What this theme costs: blurs, shadows, shine, frame time": [
    "mir/shell/gui.js"
   ],
   "Wheel over the timeline": [
@@ -5373,8 +5551,14 @@
   "YAW": [
    "mir/panels/camera-rig.js"
   ],
-  "YAW — the look direction about the vertical; drag the sphere or turn this": [
+  "YAW — the look direction about the vertical": [
    "mir/panels/camera-rig.js"
+  ],
+  "Your notes: save, open, folders, recent": [
+   "mir/notes/face.js"
+  ],
+  "Yours — the note open from your shelf, kept in this browser": [
+   "mir/shell/notebook.js"
   ],
   "ZOOM": [
    "mir/panels/camera-rig.js"
@@ -5436,7 +5620,7 @@
   "Zoom to show the whole arrangement": [
    "mir/timeline/shortcuts.js"
   ],
-  "Zoom to the range dragged; a click zooms out to the whole arrangement": [
+  "Zoom to the range dragged; a click zooms out to the whole": [
    "mir/timeline/shortcuts.js"
   ],
   "Zoom to the selection": [
@@ -5447,9 +5631,6 @@
   ],
   "a curve keeps at least two points": [
    "mir/modulation/window.js"
-  ],
-  "a draft translation: no native reader has checked it yet": [
-   "mir/shell/language.js"
   ],
   "a new project": [
    "mir/folders/folders.js"
@@ -5477,12 +5658,6 @@
   ],
   "adapted — FL’s manual names Right-Alt+click specifically": [
    "mir/timeline/shortcuts.js"
-  ],
-  "add a page": [
-   "mir/shell/notebook.js"
-  ],
-  "add a page to the project": [
-   "mir/shell/notebook.js"
   ],
   "add an envelope (ENV) to the rack first — the pattern rows are its": [
    "mir/pattern/window.js"
@@ -5544,9 +5719,6 @@
   "carousel": [
    "mir/palette.js"
   ],
-  "clock": [
-   "mir/shell/transport.js"
-  ],
   "clock state::HOLD": [
    "mir/modulation/window.js"
   ],
@@ -5559,9 +5731,6 @@
   "close the notebook": [
    "mir/shell/notebook.js"
   ],
-  "close this window": [
-   "mir/kit.js"
-  ],
   "cmyk": [
    "mir/palette.js"
   ],
@@ -5572,21 +5741,6 @@
    "mir/shell/notebook.js"
   ],
   "copied {name} into the project": [
-   "mir/notes/face.js"
-  ],
-  "copy the notes as text": [
-   "mir/shell/notebook.js"
-  ],
-  "copy this page onto your shelf (a copy: the two never change each other)": [
-   "mir/shell/notebook.js"
-  ],
-  "copy this side's whole patch": [
-   "mir/modulation/window.js"
-  ],
-  "copy your note into the project as a new page (a copy)": [
-   "mir/shell/notebook.js"
-  ],
-  "copy {name} into the project": [
    "mir/notes/face.js"
   ],
   "could not open it": [
@@ -5601,14 +5755,8 @@
   "cym": [
    "mir/palette.js"
   ],
-  "delete this page": [
-   "mir/shell/notebook.js"
-  ],
   "delete {macro} and its routes": [
    "mir/modulation/window.js"
-  ],
-  "delete {name}": [
-   "mir/notes/face.js"
   ],
   "delete?": [
    "mir/notes/face.js",
@@ -5622,13 +5770,6 @@
   ],
   "device view::FULL": [
    "mir/modulation/modwindow/modwindow.js"
-  ],
-  "dismiss": [
-   "mir/shell/banner.js",
-   "mir/shell/notice.js"
-  ],
-  "dismiss this message": [
-   "mir/shell/banner.js"
   ],
   "edit or preview the notes": [
    "mir/shell/notebook.js"
@@ -5666,14 +5807,8 @@
   "flipped in time": [
    "mir/modulation/window.js"
   ],
-  "fold or unfold this window": [
-   "mir/kit.js"
-  ],
   "folder/name": [
    "mir/notes/face.js"
-  ],
-  "forget this layout": [
-   "mir/shell/rack.js"
   ],
   "frames": [
    "mir/render/panel.js"
@@ -5695,15 +5830,6 @@
   ],
   "give this window its full width back": [
    "mir/shell/rack.js"
-  ],
-  "hidden from a visiting model — share it": [
-   "mir/shell/notebook.js"
-  ],
-  "hidden: a visiting model cannot read this page": [
-   "mir/shell/notebook.js"
-  ],
-  "history rows": [
-   "mir/history/history-list.js"
   ],
   "history::ACTIVE RANGE": [
    "mir/timeline/history.js"
@@ -5771,9 +5897,6 @@
   "history::TENSION": [
    "mir/timeline/history.js"
   ],
-  "hold: the words on the picture stay where they are": [
-   "mir/info/layer.js"
-  ],
   "hot iron": [
    "mir/palette.js"
   ],
@@ -5783,19 +5906,10 @@
   "imported {n} notes": [
    "mir/notes/face.js"
   ],
-  "in or out: the dot is lit while this is on": [
-   "mir/panels/lanes.js"
-  ],
-  "in the saved favourite layout": [
-   "mir/shell/window-picker.js"
-  ],
   "in this gallery": [
    "mir/folders/gallery.js"
   ],
   "input changed": [
-   "mir/modulation/window.js"
-  ],
-  "input gain, ±24 dB before the band response ranges": [
    "mir/modulation/window.js"
   ],
   "keep tapping — two taps make an interval": [
@@ -5806,9 +5920,6 @@
   ],
   "left": [
    "mir/render/panel.js"
-  ],
-  "left rack scroll": [
-   "mir/shell/rack-scrollbar.js"
   ],
   "light source::LIGHT": [
    "mir/shell/gui.js"
@@ -5928,9 +6039,6 @@
   "neon": [
    "mir/palette.js"
   ],
-  "next": [
-   "mir/controls/stepper.js"
-  ],
   "no": [
    "mir/shell/notebook.js"
   ],
@@ -5957,15 +6065,6 @@
   ],
   "not listening": [
    "mir/modulation/window.js"
-  ],
-  "notebook": [
-   "mir/shell/notebook.js"
-  ],
-  "notebook subtitle": [
-   "mir/shell/notebook.js"
-  ],
-  "notebook title": [
-   "mir/shell/notebook.js"
   ],
   "notes — markdown, {inline} and {display} maths; ctrl+enter previews — kept in this browser": [
    "mir/shell/notebook.js"
@@ -5994,17 +6093,8 @@
   "open this as a window": [
    "mir/shell/rack.js"
   ],
-  "open {path} in your notes tab": [
-   "mir/notes/face.js"
-  ],
   "opened {name}": [
    "mir/notes/face.js"
-  ],
-  "page 0 — the greeting, shown when the project opens": [
-   "mir/shell/notebook.js"
-  ],
-  "pages": [
-   "mir/shell/notebook.js"
   ],
   "patch copied — {:PASTE} onto any {kind}": [
    "mir/modulation/window.js"
@@ -6031,9 +6121,6 @@
   "pinwheel": [
    "mir/palette.js"
   ],
-  "play or pause": [
-   "mir/shell/transport.js"
-  ],
   "point removed": [
    "mir/modulation/window.js"
   ],
@@ -6043,14 +6130,8 @@
   "pointer::TOUCH": [
    "mir/shell/gui.js"
   ],
-  "power": [
-   "mir/kit.js"
-  ],
   "press a key…": [
    "mir/keyboard/keyboard.js"
-  ],
-  "previous": [
-   "mir/controls/stepper.js"
   ],
   "prism": [
    "mir/palette.js"
@@ -6070,29 +6151,11 @@
   "quality tier::LIGHT": [
    "mir/shell/gui.js"
   ],
-  "ramp": [
-   "mir/panels/ramp.js"
-  ],
-  "remove the macro from this control": [
-   "mir/modulation/window.js"
-  ],
-  "rename this tab": [
-   "mir/shell/notebook.js"
-  ],
-  "rename to folder/name": [
-   "mir/notes/face.js"
-  ],
-  "rename {name}": [
-   "mir/notes/face.js"
-  ],
   "renamed beside a project already there": [
    "mir/folders/folders.js"
   ],
   "renamed to {name}": [
    "mir/notes/face.js"
-  ],
-  "reorder or rename {macro}": [
-   "mir/modulation/window.js"
   ],
   "replace yours?": [
    "mir/notes/face.js"
@@ -6103,35 +6166,17 @@
   "retrying without the processing constraints": [
    "mir/modulation/audio-capture.js"
   ],
-  "right rack scroll": [
-   "mir/shell/rack-scrollbar.js"
-  ],
   "rose window": [
    "mir/palette.js"
   ],
   "route removed — {target} is the hand’s again": [
    "mir/modulation/window.js"
   ],
-  "route {axis} — drag onto a control, or tap to arm": [
-   "mir/panels/xy.js"
-  ],
-  "route {macro} — drag onto a control, or tap to arm": [
-   "mir/modulation/window.js"
-  ],
   "running…": [
    "mir/render/panel.js"
   ],
-  "save as folder/name": [
-   "mir/notes/face.js"
-  ],
   "save image": [
    "mir/folders/gallery.js"
-  ],
-  "save into no folder": [
-   "mir/notes/face.js"
-  ],
-  "save into {folder}": [
-   "mir/notes/face.js"
   ],
   "save this tab as a markdown file": [
    "mir/shell/notebook.js"
@@ -6161,12 +6206,6 @@
   "selected project": [
    "mir/folders/gallery.js"
   ],
-  "shared with a visiting model — hide it": [
-   "mir/shell/notebook.js"
-  ],
-  "shared: a visiting model may read this page": [
-   "mir/shell/notebook.js"
-  ],
   "shelf": [
    "mir/notes/face.js"
   ],
@@ -6179,17 +6218,11 @@
   "skip to the device rack": [
    "mir/app.js"
   ],
-  "snapshot {n}'s name": [
-   "mir/panels/xy.js"
-  ],
   "standard — not an FL Playlist binding": [
    "mir/timeline/shortcuts.js"
   ],
   "start over": [
    "mir/folders/gallery.js"
-  ],
-  "step {n}": [
-   "mir/pattern/window.js"
   ],
   "stored on disk": [
    "mir/render/panel.js"
@@ -6267,20 +6300,11 @@
   "the envelope": [
    "mir/modulation/window.js"
   ],
-  "the expander": [
-   "mir/shell/transport.js"
-  ],
   "the file is larger than 32 MB": [
    "mir/core/intake.js"
   ],
-  "the gate opens here and stays open until hysteresis below it": [
-   "mir/modulation/window.js"
-  ],
   "the last frame took {ms} ms — scrubbing will lag; LIGHT keeps the hand smooth": [
    "mir/shell/gui.js"
-  ],
-  "the left rack": [
-   "mir/shell/rack.js"
   ],
   "the library is full: {need} k needed of {cap} k": [
    "mir/folders/files.js"
@@ -6312,23 +6336,11 @@
   "the note ladder × 3/2 — a note and a half": [
    "mir/modulation/window.js"
   ],
-  "the notebook’s subtitle — type to rename": [
-   "mir/shell/notebook.js"
-  ],
-  "the notebook’s title — type to rename": [
-   "mir/shell/notebook.js"
-  ],
   "the parts {names} could not take it": [
    "mir/folders/project.js"
   ],
   "the pattern": [
    "mir/modulation/window.js"
-  ],
-  "the phase offset": [
-   "mir/modulation/window.js"
-  ],
-  "the rack": [
-   "mir/shell/rack.js"
   ],
   "the self-test threw: {why}": [
    "mir/render/panel.js"
@@ -6344,9 +6356,6 @@
   ],
   "the stored library could not be read — it is left in place, and the first save moves it to {key} before starting a fresh one": [
    "mir/folders/files.js"
-  ],
-  "the sustain {:LEVEL} — the one ADSR control that is not a time": [
-   "mir/modulation/window.js"
   ],
   "the {:ENV} has fixed stages — drag a stage or its tension handle": [
    "mir/modulation/window.js"
@@ -6423,12 +6432,6 @@
   "yes": [
    "mir/shell/notebook.js"
   ],
-  "your notes: save, open, folders, recent": [
-   "mir/notes/face.js"
-  ],
-  "yours — the note open from your shelf, kept in this browser": [
-   "mir/shell/notebook.js"
-  ],
   "{:ANCHOR} holds the beat: the {n} anchored sources — and every BPM source beside them — resume exactly where the pause caught them": [
    "mir/modulation/window.js"
   ],
@@ -6468,7 +6471,7 @@
   "{:LEVEL} {v}": [
    "mir/modulation/window.js"
   ],
-  "{:LIGHT ANGLE} — where the light is, clockwise from above: shadows fall away from it, the shine sits toward it, the controls’ relief turns with it": [
+  "{:LIGHT ANGLE} — where the light is, clockwise from above": [
    "mir/shell/gui.js"
   ],
   "{:NEW} starts the empty project.": [
@@ -6486,7 +6489,7 @@
   "{:ROOT} — or type a new folder path": [
    "mir/folders/gallery.js"
   ],
-  "{:SHINE} — the shadow’s opposite: a light across the pane’s edge toward the light, added to what is behind": [
+  "{:SHINE} — a light across the pane’s edge, toward the light": [
    "mir/shell/gui.js"
   ],
   "{:TINT} — how much of {:HUE} the glass carries": [

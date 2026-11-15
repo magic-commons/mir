@@ -198,7 +198,7 @@ export function installPattern(o) {
       const b = el('button', 'trig pt-step'); b.type = 'button'; b.tabIndex = -1;
       b.dataset.i = String(i); b.dataset.g = String(Math.floor(i / 4) % 2);
       b.style.setProperty('--i', String(i)); b.style.setProperty('--q', String(Math.floor(i / 4)));
-      ariaLabel(b, 'step {n}', { n: i + 1 });
+      ariaLabel(b, 'Step {n}', { n: i + 1 });
       const bar = el('i', 'pt-bar', b); el('i', 'pt-lamp', bar);
       rec.track.insertBefore(b, rec.play); rec.steps.push(b);
     }

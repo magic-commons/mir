@@ -395,7 +395,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
   const racks = {};
   for (const side of SIDES) if (sides.includes(side)) {
     const r = take(RACK_ID[side], 'div', 'mir-rack'); r.dataset.side = side; r.dataset.mirRack = ''; r.tabIndex = -1;
-    r.setAttribute('role', 'region'); ariaLabel(r, side === 'left' ? 'the left rack' : 'the rack');   // tr: the RACK: the column of docked windows at the screen’s edge (not the SHELF, where notes are kept)
+    r.setAttribute('role', 'region'); ariaLabel(r, side === 'left' ? 'The left rack' : 'The rack');   // tr: the RACK: the column of docked windows at the screen’s edge (not the SHELF, where notes are kept)
     racks[side] = r;
   }
   const rackOf = (side) => racks[side] || racks.right || racks.left;
@@ -1023,7 +1023,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
     if (saved.length) el('div', 'rack-fav-head', favList, 'LOAD LAYOUT'); else el('div', 'mir-empty', favList, 'No layout saved yet');
     for (const L of saved) {
       const it = row('starFill', 'Restore this window layout'); el('span', 'mb-lbl', it, L.label).translate = false;
-      const x = el('span', 'fav-x', it); x.title = 'forget this layout'; const xg = glyphEl('close', 'gly gly-close', 12); if (xg) x.appendChild(xg); else x.textContent = '×';
+      const x = el('span', 'fav-x', it); x.title = 'Forget this layout'; const xg = glyphEl('close', 'gly gly-close', 12); if (xg) x.appendChild(xg); else x.textContent = '×';
       it.addEventListener('click', (ev) => { ev.stopPropagation(); if (x.contains(ev.target)) { forgetLayout(L.slot); drawFav(); return; } loadLayout(L.slot); favShown(false); });
     }
   }

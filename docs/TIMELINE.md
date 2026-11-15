@@ -171,57 +171,57 @@ The timeline's keys are rows of the app's one key table (`docs/KEYS.md`), rebind
 | Shift+↓ | Move the selection down a lane | MIR — FL has no lane axis to move on |
 | E | Select mode | FL — Select tool |
 | P | Pencil mode | FL — Draw tool (P) |
-| Y | Preview mode: a press plays from there while held, a drag scrubs | FL — Playback tool (Y) |
+| Y | Preview mode: a press plays while held, a drag scrubs | FL — Playback tool (Y) |
 | C | Slice mode | FL — Slice tool |
 | — | Paint mode: drag to lay the last clip end to end | FL — Paint tool (B); unbound in MIR |
-| — | Paint Add mode: lay the last clip a snap step long, step by step | FL — Paint in drum-sequencer mode (N); unbound in MIR |
+| — | Paint Add mode: lay the last clip one snap step at a time | FL — Paint in drum-sequencer mode (N); unbound in MIR |
 | — | Delete mode: the left button deletes what it crosses | FL — Delete tool (D); unbound in MIR |
 | — | Mute mode: a press mutes or unmutes a clip | FL — Mute tool (T); unbound in MIR |
 | — | Zoom mode: drag a range to zoom to it, click to zoom out | FL — Zoom tool (Z); unbound in MIR |
 | Ins | Slice every selected clip at the playhead (one undo) | MIR — FL slices with the tool; Insert cuts the selection at the playhead |
-| Shift+T | Fit each selected audio clip’s remaining audio into its length (varispeed) | MIR — Shift+T |
+| Shift+T | Fit each selected audio clip’s audio to its length | MIR — Shift+T |
 | Space | Play / pause, exact resume | MIR — the one play (transportActions); FL’s Space stops to the start position instead |
-| Escape | Cancel the gesture in flight, close menus, rewind a cancelled scrub | MIR — active wherever the timeline is open |
+| Escape | Cancel the gesture in flight and close menus | MIR — active wherever the timeline is open |
 
 ### Pointer and touch
 
 | Key | Action | FL / MIR |
 |---|---|---|
 | Middle button, hold + drag | Pan time and tracks | FL — Middle-Mouse-Click pans |
-| Middle click on the lanes · middle + right together · the bar’s MODE chip | Open THE MODE MENU: the nine modes (the left button’s tool) and this window’s menus | FL — Middle-Mouse-Click + Right-Click opens the context tool-menu; the lone middle click and the chip are MIR’s |
-| Wheel over the timeline | Scroll time (Shift + wheel too; with more lanes than fit, the wheel scrolls the lanes); Ctrl/Cmd + wheel zooms | FL — the wheel scrolls the playlist, Ctrl + wheel zooms |
-| Drag past the left or right edge | Scroll time while you hold it there (the playhead, a range, a move, a trim, a stretch) | FL — the playlist scrolls under a drag held at its edge |
-| Right-button drag on empty lane space (or between lanes) | Delete every clip the pointer crosses, tab or body (one undo); down on a tab deletes it at once | FL — right-click deletes a clip; MIR sweeps while the button is held |
+| Middle click on the lanes · middle + right together · the bar’s MODE chip | Open THE MODE MENU: the nine modes and this window’s menus | FL — Middle-Mouse-Click + Right-Click opens the context tool-menu; the lone middle click and the chip are MIR’s |
+| Wheel over the timeline | Scroll time (or the lanes); Ctrl/Cmd + wheel zooms | FL — the wheel scrolls the playlist, Ctrl + wheel zooms |
+| Drag past the left or right edge | Scroll time while a drag holds it at the edge | FL — the playlist scrolls under a drag held at its edge |
+| Right-button drag on empty lane space (or between lanes) | Delete every clip the pointer crosses, tab or body | FL — right-click deletes a clip; MIR sweeps while the button is held |
 | Shift + drag (empty) | Rectangle-select clips or points | adapted — FL’s Ctrl+drag; in MIR Shift selects |
 | Ctrl/Cmd + Shift + drag | Add to the rectangle selection | FL — Ctrl+Shift+drag adds |
 | Shift + click a clip | Toggle it in the selection | adapted — FL’s Ctrl+click toggles |
-| Shift + drag a clip | Duplicate the selection (the clip joins it) and move the copies (tab or body) | FL — Shift-drag clones a clip |
-| Ctrl/Cmd + drag a clip | Duplicate the selection while moving it (title or body): an alias of Shift + drag, kept | adapted — FL’s Shift-drag clones; MIR’s Ctrl alias stays |
-| Drag a clip’s edge | Trim it: the curve keeps its beats; every selected clip trims with it, each from its own start. The zone is centred on the edge; where two clips meet, the side you are on names the clip, and its edge lights first | FL — drag a clip’s edge; a selection resizes together; the lit edge is the one that moves |
-| Ctrl/Cmd + drag a clip’s edge | Stretch it: the curve keeps its shape; several selected close their gaps, then stretch as one | MIR — length and speed change together |
+| Shift + drag a clip | Duplicate the selection with the clip and move the copies | FL — Shift-drag clones a clip |
+| Ctrl/Cmd + drag a clip | Duplicate the selection while moving it, as Shift-drag does | adapted — FL’s Shift-drag clones; MIR’s Ctrl alias stays |
+| Drag a clip’s edge | Trim it: the curve keeps its beats; the selection trims too | FL — drag a clip’s edge; a selection resizes together; the lit edge is the one that moves |
+| Ctrl/Cmd + drag a clip’s edge | Stretch it: the curve keeps its shape; a selection as one | MIR — length and speed change together |
 | Ctrl/Cmd + Shift + drag a clip’s edge | Stretch it finely (⅛, free of Snap) | MIR — Shift is the fine gear |
 | Pencil: click empty lane space | Place the clip last pressed there (the same curve, shared) | FL — the pencil places the last clip; MAKE UNIQUE detaches it |
-| Paint: drag over empty lane space | Lay the clip last pressed end to end, a copy in every slot the pointer passes (one undo); on a clip it is the pencil | FL — the Paint tool paints clips while dragging |
-| Paint Add: drag over empty lane space | Lay the clip last pressed one snap step long on the grid, its shape squeezed into the step; a press on a clip mutes or unmutes it | FL — Paint in drum-sequencer mode: one step a click, a click on a note mutes it |
-| Delete: press or drag | Delete every clip the pointer crosses (one undo): the right button’s sweep on the left button | FL — the Delete tool |
-| Mute: press or drag | Mute or unmute a clip; a drag gives every clip it crosses the state the first took (one undo). A muted clip is hollow and plays nothing | FL — the Mute tool |
-| Zoom: drag a range · click | Zoom to the range dragged; a click zooms out to the whole arrangement | FL — the Zoom tool: drag zooms to the selection, a click zooms out |
-| Preview: press · drag | Play from the press while it is held; a drag scrubs (the hand leads) | FL — the Playback tool: a click plays from there, a drag scrubs |
+| Paint: drag over empty lane space | Lay the last clip end to end where the pointer passes | FL — the Paint tool paints clips while dragging |
+| Paint Add: drag over empty lane space | Lay the last clip one snap step long; a clip press mutes it | FL — Paint in drum-sequencer mode: one step a click, a click on a note mutes it |
+| Delete: press or drag | Delete every clip the pointer crosses, on the left button | FL — the Delete tool |
+| Mute: press or drag | Mute or unmute a clip; a drag sets every clip it crosses | FL — the Mute tool |
+| Zoom: drag a range · click | Zoom to the range dragged; a click zooms out to the whole | FL — the Zoom tool: drag zooms to the selection, a click zooms out |
+| Preview: press · drag | Play from the press while it is held; a drag scrubs | FL — the Playback tool: a click plays from there, a drag scrubs |
 | Shift + drag the ruler | Select a time range; + Ctrl/Cmd extends it | adapted — FL selects by dragging the bar-ruler |
-| Select: drag the ruler | Select a time range (no key, so touch can); a tap seeks and keeps the range | FL — dragging the bar-ruler selects time |
-| Drag the ruler | Scrub: the playhead follows the hand, free of Snap; the range stays | MIR — the hand leads |
-| Double-click the ruler | Clear the time range (two presses within 300 ms at one spot); no single click clears it | MIR — Josh 2026-11-09; FL clears the selection on a click |
+| Select: drag the ruler | Select a time range; a tap seeks and keeps the range | FL — dragging the bar-ruler selects time |
+| Drag the ruler | Scrub: the playhead follows the hand; the range stays | MIR — the hand leads |
+| Double-click the ruler | Clear the time range (a double press at one spot) | MIR — Josh 2026-11-09; FL clears the selection on a click |
 | Ctrl/Cmd + vertical drag on the ruler | Zoom time around the pointer’s beat (up = in) | MIR — a touch-friendly zoom; a horizontal Ctrl-drag scrubs on Snap |
 | Hold a knob | Create a timeline clip from it, or locate its clips | MIR |
-| ACTIVE (toolbar) | Mark the ruler’s range, or the whole arrangement, as the active range; again to clear | MIR — the range the record window renders |
-| Slice: click a clip · drag down the lanes | Cut the clip at the pointer’s beat (Snap applies, Alt bypasses); a drag cuts every clip its line crosses there (one undo) | FL — the Slice tool: click and drag vertically to slice |
-| Drag a pattern / audio clip body | Move it (Shift or Ctrl copies, right-button deletes); it has no points | FL — pattern clips move from their body |
+| ACTIVE (toolbar) | Mark the ruler’s range as the active range; again to clear | MIR — the range the record window renders |
+| Slice: click a clip · drag down the lanes | Cut the clip at the pointer’s beat; a drag cuts every clip | FL — the Slice tool: click and drag vertically to slice |
+| Drag a pattern / audio clip body | Move it (Shift or Ctrl copies, right button deletes) | FL — pattern clips move from their body |
 | Right-drag empty clip space | Add and place a point | FL — Right-Click + drag adds a point |
 | Shift + right-click a clip | Add a point that preserves its current value | FL — Shift+Right-Click is non-destructive add |
 | Left-drag a point or tension handle | Move it | FL — drag a node or a tension handle |
 | Shift (held) while dragging a point or tension | Fine-tune it (⅛; a point’s time is free of Snap) | adapted — FL fines tension with Ctrl; Shift is MIR’s fine gear |
 | Ctrl/Cmd (held) while moving a point | Lock its time | FL — Ctrl locks horizontal |
-| Ctrl/Cmd + drag a tension handle | Repeat the segment between its two points: up adds copies of its shape (one per 24 px), down makes mirrored copies, or takes back copies made going up | MIR — Ctrl shapes (Josh, 040) |
+| Ctrl/Cmd + drag a tension handle | Repeat the segment: up adds copies, down mirrors them | MIR — Ctrl shapes (Josh, 040) |
 | Right-click a tension handle | Reset it | MIR — FL’s right-click opens a Delete menu instead |
 | Alt + left-click a point | Delete it | adapted — FL’s manual names Right-Alt+click specifically |
 | Alt (held) | Bypass Snap for the gesture in progress | FL — Alt temporarily sets snap to none |

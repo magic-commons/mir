@@ -46,7 +46,7 @@ function build(host) {
   pane = el('div', 'mir-banner', host); pane.id = 'mir-banner'; pane.setAttribute('role', 'alert'); pane.hidden = true;
   pane.dataset.kind = kind;
   const x = el('button', 'mir-banner-x', pane, '×'); x.type = 'button';
-  ariaLabel(x, 'dismiss this message'); x.title = 'dismiss';
+  ariaLabel(x, 'Dismiss this message'); x.title = 'Dismiss';
   x.addEventListener('click', () => { pane.hidden = true; });
   body = el('div', 'mir-banner-body', pane);
   acts = el('div', 'mir-banner-acts', pane); acts.hidden = true;
