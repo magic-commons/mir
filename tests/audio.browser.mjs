@@ -82,12 +82,12 @@ const RUN = await (async () => {
     const hitMore = await S(({ x, y }) => !!document.elementFromPoint(x, y)?.closest('.tl-clip-more'), { x: cb.x + cb.width / 2, y: cb.y + cb.height / 2 });
     L.ck(hitMore, 'the clip\'s ⋯ is what elementFromPoint finds at its centre', cb);
     await page.mouse.click(cb.x + cb.width / 2, cb.y + cb.height / 2); await page.waitForTimeout(200);
-    const rows = await S(() => [...document.querySelectorAll('.tl-pop[data-pop="clip"] [data-row]')].map((b) => [b.dataset.row, b.textContent]));
+    const rows = await S(() => [...document.querySelectorAll('.mir-ctx-pane[data-pop="clip"] [data-id]')].map((b) => [b.dataset.id, b.textContent + (b.getAttribute('aria-checked') === 'true' ? ' ✓' : '')]));
     const ids = rows.map((r) => r[0]);
     L.ck(['band-level', 'band-low', 'band-mid', 'band-high', 'keep', 'stretch-to-clip'].every((x) => ids.includes(x)), 'the clip menu holds the four envelopes, KEEP AUDIO ↔ SIGNAL ONLY and STRETCH', ids);
     L.ck(rows.find((r) => r[0] === 'band-level')[1].includes('✓') && !rows.find((r) => r[0] === 'band-low')[1].includes('✓') && /SIGNAL ONLY/.test(rows.find((r) => r[0] === 'keep')[1]), 'LEVEL is ticked; a KEEP clip offers SIGNAL ONLY', rows);
-    const lowBox = await page.locator('.tl-pop[data-pop="clip"] [data-row="band-low"]').boundingBox();
-    const hitLow = await S(({ x, y }) => !!document.elementFromPoint(x, y)?.closest('[data-row="band-low"]'), { x: lowBox.x + lowBox.width / 2, y: lowBox.y + lowBox.height / 2 });
+    const lowBox = await page.locator('.mir-ctx-pane[data-pop="clip"] [data-id="band-low"]').boundingBox();
+    const hitLow = await S(({ x, y }) => !!document.elementFromPoint(x, y)?.closest('[data-id="band-low"]'), { x: lowBox.x + lowBox.width / 2, y: lowBox.y + lowBox.height / 2 });
     L.ck(hitLow, 'ENVELOPE · LOW is what elementFromPoint finds at its centre', lowBox);
     await page.mouse.click(lowBox.x + lowBox.width / 2, lowBox.y + lowBox.height / 2); await page.waitForTimeout(400);
     doc = await state();

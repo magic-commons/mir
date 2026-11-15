@@ -244,7 +244,7 @@ Every look value of `timeline.css` is a token in its `/* FROST · values */` blo
 | A pointer row says "Hold a knob" for BASINS' "Hold a camera or colour knob" | the kit's targets are the app's parameters |
 | Every word goes through `t` / `label` / `ariaLabel`; popup rows and buttons carry `data-row`, `data-tool`, `data-mode` | languages; nothing is found by its words |
 | Reduced motion is the kit's policy (`<html data-motion>`), not a media query | the app's setting wins (`core/motion.js`) |
-| The popups are the house's menu pane | no cloned `.m2pick` |
+| A menu is the kit's `contextMenu` (1.6.0-alpha.66): the ⋯ list, a clip's and a point's menu, every list a MENU row opens; a row carries `data-id`, the pane `data-pop`; a key is keycaps, a choice a ✓ or • in the row's picture seat, SCOPE · SNAP · SEGMENT submenus; no title row (the title is the pane's accessible name). THE MODE MENU and the three forms (TITLE / COLOR, TIME / VALUE, OUTPUT RANGE) are `.tl-pop` panes of their own | one menu renderer, one walk (↑ ↓ → ← Home End, a typed letter), one Escape road |
 | The arrangement is a project part; the history domain is the kit's | one seam for "part of the project", one undo ring |
 | The transport's seats in the work bar keep the bar's hairline (`timeline.css`) | as BASINS draws them beside the tools; the kit's work-bar seat had none |
 

@@ -105,7 +105,7 @@ const RUN = await (async () => {
 
     // The ⋯ menu opens the sheet; it lists every keyboard key of the doc.
     await page.locator('.tl-toolbar [data-mode="more"]').click();
-    await page.locator('.tl-pop [data-row="shortcuts"]').click();
+    await page.locator('.mir-ctx [data-id="shortcuts"]').click();
     const sheet = page.locator('.tl-shortcuts');
     L.ck(await sheet.count() === 1, 'the ⋯ menu opens the sheet as a kit popup', true);
     const sheetText = await sheet.textContent();

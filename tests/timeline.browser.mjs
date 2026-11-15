@@ -135,7 +135,7 @@ const RUN = await (async () => {
     const sweepPane = await page.locator(`.tl-pane[data-lane="${H0.lanes[2]}"]`).boundingBox();
     await page.mouse.move(sweepPane.x + 4, sweepPane.y + sweepPane.height * .25); await page.mouse.down({ button: 'right' });
     await page.mouse.move(sweepPane.x + sweepPane.width - 8, sweepPane.y + sweepPane.height * .25, { steps: 8 }); await page.mouse.up({ button: 'right' }); await page.waitForTimeout(60);
-    const swept = await E((lane) => { const d = window.__TL.model.state(); return { n: d.clips.length, inLane: d.clips.filter((c) => c.laneId === lane).length, menu: !!document.querySelector('.tl-pop') }; }, H0.lanes[2]);
+    const swept = await E((lane) => { const d = window.__TL.model.state(); return { n: d.clips.length, inLane: d.clips.filter((c) => c.laneId === lane).length, menu: !!document.querySelector('.tl-pop, .mir-ctx') }; }, H0.lanes[2]);
     await E(() => window.__TL.model.undo()); await page.waitForTimeout(40);
     const unswept = await E(() => window.__TL.model.state().clips.length);
     L.ck(swept.inLane === 0 && swept.n === 2 && !swept.menu && unswept === 3, 'a right-button sweep from empty lane space deletes the clip it crosses, no lane menu; one undo restores it (alpha.38)', { ...swept, unswept });
@@ -217,7 +217,7 @@ const RUN = await (async () => {
     L.ck(ev.steps === 4 && ev.hold === 'hold' && ev.bands === 3 && !off0 && off1.off && off1.shown && !off2.off && off2.steps === 3,
       'an event clip on a banded target: a HOLD curve for 4 bands (3 hairlines), ⚠ when the target offers 3, cleared by a point edit (steps → 3)', { ev: { ...ev, keep: undefined }, off0, off1, off2 });
     const more = await center(`.tl-clip-title[data-clip="${ev.id}"] .tl-clip-more`); await page.mouse.click(more[0], more[1]); await page.waitForTimeout(60);
-    const muteWord = await E(() => document.querySelector('.tl-pop [data-row="mute"]')?.textContent || '');
+    const muteWord = await E(() => document.querySelector('.mir-ctx [data-id="mute"] .mb-lbl')?.textContent || '');
     await page.keyboard.press('Escape');
     L.ck(/^DISABLE CLIP/.test(muteWord), 'the clip menu\'s MUTE row reads DISABLE CLIP', muteWord);
     await E((keep) => { window.__TL.mod.remove('scene.mode'); window.__TL.model.restore(keep); }, ev.keep);
@@ -228,7 +228,7 @@ const RUN = await (async () => {
       const id = T.model.create({ targetId: 'scene.glow', name: 'GLOW', value: .5, start: 0, duration: 8, laneId: T.model.state().lanes[0].id }); T.tl.editor.paint(); return { id, keep }; });
     await page.waitForTimeout(80);
     const rmore = await center(`.tl-clip-title[data-clip="${rt.id}"] .tl-clip-more`); await page.mouse.click(rmore[0], rmore[1]); await page.waitForTimeout(60);
-    const rrow = await center('.tl-pop [data-row="route"]'); if (rrow) { await page.mouse.click(rrow[0], rrow[1]); await page.waitForTimeout(60); }
+    const rrow = await center('.mir-ctx [data-id="route"]'); if (rrow) { await page.mouse.click(rrow[0], rrow[1]); await page.waitForTimeout(60); }
     const arming = await E(() => ({ on: document.body.classList.contains('mod-arming'), lit: document.querySelectorAll('.mod-drop').length }));
     const spin = await center('.k[data-param="scene.spin"] .k-dial'); if (spin) { await page.mouse.click(spin[0], spin[1]); await page.waitForTimeout(60); }
     const routed = await E(() => ({ target: window.__TL.model.state().curves[0].targetId, name: window.__TL.model.state().curves[0].name, on: document.body.classList.contains('mod-arming') }));
@@ -255,7 +255,7 @@ const RUN = await (async () => {
     const none = await E(() => window.__TL.tl.editor.selection().clips.length);
     await page.keyboard.press('Control+Shift+A'); await page.waitForTimeout(40);
     const all = await E(() => window.__TL.tl.editor.selection().clips.length);
-    await page.locator('.tl-toolbar [data-mode="more"]').click(); await page.locator('.tl-pop [data-row="shortcuts"]').click(); await page.waitForTimeout(80);
+    await page.locator('.tl-toolbar [data-mode="more"]').click(); await page.locator('.mir-ctx [data-id="shortcuts"]').click(); await page.waitForTimeout(80);
     const row = await E(() => document.querySelector('.tl-shortcuts .tl-shortcut-row[data-id="timeline.select-all"] .tl-shortcut-col')?.textContent);
     await page.keyboard.press('Escape'); await E(() => { window.__TL.keys.reset('timeline.select-all'); return 0; });
     L.ck(none === 0 && all === 1 && row === 'Ctrl+Shift+A', 'a rebinding in the key table moves the key and the sheet', { none, all, row });

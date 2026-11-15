@@ -35,7 +35,7 @@ try {
   const more = await p.click('.mir-timeline .tl-toolbar [data-mode="more"]');
   check('hit-test: the timeline\'s ⋯', more.hit, more.got);
   check('⋯ opens its menu', (await pops()) === 1);
-  await p.eval(`document.querySelector('.tl-pop button').focus()`);
+  await p.eval(`document.querySelector('.mir-ctx .mb-item').focus()`);
   await p.key('H'); await sleep(150);
   check('with hide moved to G, H closes nothing and hides nothing (no hard-coded H)', (await pops()) === 1 && !(await hidden()));
   await p.key('G'); await sleep(150);
@@ -44,7 +44,7 @@ try {
   await ev(`A.keys.reset('hide'); return 1;`);
 
   /* 2. no key text typed by hand: the ⋯ rows, the timeline's tools, the notebook's × show the table's chord */
-  const row = async (id) => { await p.click('.mir-timeline .tl-toolbar [data-mode="more"]'); const t = await p.eval(`(document.querySelector('.tl-pop [data-row="${id}"]') || {}).textContent || ''`); await p.key('Escape'); return t; };
+  const row = async (id) => { await p.click('.mir-timeline .tl-toolbar [data-mode="more"]'); const t = await p.eval(`(() => { const r = document.querySelector('.mir-ctx [data-id="${id}"]'); return r ? r.querySelector('.mb-lbl').textContent + ' · ' + r.querySelector('.mb-key').textContent : ''; })()`); await p.key('Escape'); return t; };
   const z0 = await row('zoom-selection');
   check('⋯ ZOOM TO SELECTION shows the table\'s chord (Shift+5, its first), not a typed SHIFT+Z', /^ZOOM TO SELECTION · Shift\+5$/.test(z0), z0);
   check('⋯ DUPLICATE shows Ctrl+B', /· Ctrl\+B$/.test(await row('duplicate')));

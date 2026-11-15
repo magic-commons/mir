@@ -166,10 +166,10 @@ const RUN = await (async () => {
     // the ⋯ button still opens the clip menu
     const more = page.locator(`.tl-clip-title[data-clip="${ids.a}"] .tl-clip-more`);
     await more.click();
-    L.ck(await page.locator('.tl-pop').count() === 1, 'the ⋯ button still opens the clip menu', await page.locator('.tl-pop').count());
+    L.ck(await page.locator('.mir-ctx-pane[data-pop="clip"]').count() === 1, 'the ⋯ button still opens the clip menu', await page.locator('.mir-ctx-pane').count());
     // OUTPUT RANGE is the kit's number fields, never a native type=number (Josh, 2026-10-07, call 19): ↑ on MIN, APPLY → +0.01
     const minBefore = await page.evaluate(id => { const m = window.__TL.tl.editor.model, c = m.state().clips.find(x => x.id === id); return m.state().curves.find(cc => cc.id === c.curveId).min; }, ids.a);
-    await page.locator('.tl-pop [data-row="output-range"]').click(); await page.waitForTimeout(40);
+    await page.locator('.mir-ctx [data-id="output-range"]').click(); await page.waitForTimeout(40);
     const range = await page.evaluate(() => { const p = document.querySelector('.tl-pop[data-pop="range"]'); return p && { nums: p.querySelectorAll('.mir-num [role="spinbutton"]').length,
       natives: document.querySelectorAll('.mir-timeline select, .mir-timeline input[type="number"], .tl-pop select, .tl-pop input[type="number"]').length, faces: [...p.querySelectorAll('.mir-num-face')].map((f) => f.textContent) }; });
     L.ck(range && range.nums === 2 && range.natives === 0, 'OUTPUT RANGE: two kit number fields; no native select or number input in the timeline or its popups', range);
