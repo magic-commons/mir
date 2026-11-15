@@ -124,6 +124,17 @@ try {
     check('relocate by the keyboard: an arrow previews, Escape puts it back, Enter keeps (left), and it is persisted', preview === 'bottom' && undone === 'right' && r.side === 'left' && r.stored === 'left' && r.railRight <= r.winLeft + 1, JSON.stringify({ preview, undone, ...r }));
   }
 
+  /* ── 3b · 1.6.0-alpha.60 ONE RING IN THE PLUGIN: after a key, a focused plugin button and a rail chip wear the house's ring and no halo ── */
+  {
+    await key('Shift', 'ShiftLeft', 16);
+    r = await run(`const acc = (() => { const p = document.createElement('i'); p.style.cssText = 'outline: var(--state-focus, 2px solid var(--acc))'; document.body.appendChild(p); const c = getComputedStyle(p); const o = [c.outlineWidth, c.outlineStyle, c.outlineColor].join(' '); p.remove(); return o; })();
+      const ring = (n) => { n.focus(); const c = getComputedStyle(n); const o = { fv: n.matches(':focus-visible'), ring: [c.outlineWidth, c.outlineStyle, c.outlineColor].join(' '), off: c.outlineOffset, halo: /0px 0px 0px 3px/.test(c.boxShadow) }; n.blur(); return o; };
+      const b = [...win.querySelectorAll('button:not(:disabled)')].find((n) => n.offsetParent && !n.classList.contains('m2numseat')), chip = rail.querySelector('.crail-chip, [data-mir-chip]');
+      return { acc, b: ring(b), bc: b.className, chip: ring(chip) };`);
+    check('one ring: a focused plugin button and a rail chip wear --state-focus (2 px, the accent) two pixels outside, and no halo',
+      r.b.fv && r.b.ring === r.acc && r.b.off === '2px' && !r.b.halo && r.chip.fv && r.chip.ring === r.acc && r.chip.off === '2px' && /^2px solid/.test(r.acc), JSON.stringify(r));
+  }
+
   /* ── 4 · a route dragged toward a knob: the nearest routable control glows by distance, captures, and the drop routes ── */
   {
     const grip = await at(`document.querySelectorAll('#modwin .m2grip')[1]`);       // MACRO 2's ✥
