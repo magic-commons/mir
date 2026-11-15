@@ -174,6 +174,19 @@ try {
   check('THE FINDER: End and Home mark the last and the first row (nothing typed)', fe === 'EXTRA' && fh.startsWith('A WINDOW'), JSON.stringify([fe, fh]));
   await closeAll();
 
+  /* ── alpha.84 · THE BAR STAYS WHILE THE KEYS WALK IT: a list closed by Escape under a resting pointer is not the pointer leaving ── */
+  await run(`T.bar.open(false); await wait(120); return 0;`);
+  { const centre = (sel) => run(`const n = $(${JSON.stringify(sel)}), r = n.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 };`);
+    let at2 = await centre('#menubar .mb-btn[data-menu="FILE"]'); await p.mouse(at2.x, at2.y); await sleep(200);
+    at2 = await centre('#menubar .mb-list:not([hidden]) .mb-item:nth-child(3)'); await p.mouse(at2.x, at2.y); await sleep(150);
+    await run(`$('#menubar .mb-list:not([hidden]) .mb-item:nth-child(3)').focus(); return 0;`);
+    await p.key('Escape'); await sleep(700);
+    const mid = await at(); await p.key('End'); const end = await at();
+    check('THE BAR STAYS WHILE THE KEYS WALK IT: Escape closes the list under a resting pointer back to FILE, the bar is still there 700 ms later, and End finds the last group',
+      mid.grp === 'FILE' && !mid.open && mid.bar && end.grp === 'WINDOW' && end.bar, JSON.stringify({ mid, end }));
+    await p.mouse(5, 795); }
+  await closeAll();
+
   /* ── alpha.53 · EVERY KIT LAYER IS ON THE ONE STACK ─────────────────────────────────────────────────────────── */
   r = await run(`const S = []; T.menus.setMenuEscape((close) => { const L = { close }; S.push(L); return () => { const i = S.indexOf(L); if (i >= 0) S.splice(i, 1); }; });
     const seen = {}; F.open(); seen.finder = S.length; F.close(); await wait(250); seen.finderOff = S.length;
