@@ -9,6 +9,7 @@ Try it: `gallery/keyboard.html`. Press **K** for the keyboard window, **?** for 
 | `mir/shell/keys.js` | the table: chords, the one listener, rebinding, saving, and everything generated from it. No DOM of its own |
 | `mir/keyboard/keyboard.js` | the KEYBOARD window and the help view, both on the 1.5 window (`mir/window/window.js`) |
 | `mir/keyboard/keyboard.css` | their sheet, in `@layer mir.kit.house`. Load it after `mir/window/window.css` |
+| `mir/shell/midi.js` | the MIDI door: a controller's notes and CCs run the table's actions ([MIDI](#midi), below) |
 
 ## 1. Use it
 
@@ -52,7 +53,7 @@ With `createApp()` (`mir/app.js`) the table is made for you (`app.keys`): the ap
 | I (held) | `info-hold` | holds the words on the picture still (`infoActions`) |
 | Ctrl/⌘+Z | `undo` | undo: the history's row with a `history`, else the timeline's own (`EDIT_KEYS` in `mir/shell/keys.js`) |
 | Ctrl/⌘+Shift+Z, Ctrl/⌘+Y | `redo` | redo, the same two owners |
-| — | `history`, `render`, `gui`, `gui-about`, `keyboard`, `pattern`, `timeline` | the kit's windows (HISTORY, RENDER, MIR OPTIONS, MIR ABOUT, KEYBOARD, PATTERN, TIMELINE): rows with **no key** — their keys are Josh's to give — so the KEYBOARD window can bind them and a menu shows what they hold |
+| — | `history`, `render`, `gui`, `gui-about`, `keyboard`, `pattern`, `timeline` | the kit's windows (HISTORY, RENDER, MIR OPTIONS, ABOUT MIR, KEYBOARD, PATTERN, TIMELINE): rows with **no key** — their keys are Josh's to give — so the KEYBOARD window can bind them and a menu shows what they hold |
 
 Before 1.5.0-alpha.12 the kit had F on FOLDERS; a user who rebound nothing now finds FOLDERS on S. The table writes the hints again whenever a window is built, so a lazily built window's `[data-key-action]` shows its key too.
 
@@ -168,3 +169,50 @@ The geometry is λWAVES' (lab.css §KEYBOARD as of waves 113–115): the 2.1 : 1
 - Plates in `docs/plates/keyboard/`: `keyboard-dark.png`, `keyboard-light.png`, `keyboard-recording.png`, `keyboard-conflict.png`, `keys-help.png`. Retake them with `MIR_PLATES=1 node tests/keyboard.browser.mjs`; a plain test run never writes them.
 
 **Not proved:** a real Mac (⌘ is proved through the pure functions only); WebKit and a real iPad; recording by tapping the drawn board (built, not exercised by the test); a non-US layout on real hardware; a screen reader.
+
+## MIDI
+
+**`mir/shell/midi.js`** (1.5.6-alpha.2) is the MIDI door: a controller's notes and knobs run the same actions the key table runs, by id, and a knob (a CC) is also a value 0…1 the app may offer as a modulation source. It is the capture half only: what a press means is the app's action table, what a knob drives is the app's modulation. It has no window of its own; the app draws the LEARN rows (λWAVES: its MAPPING window, `lab/mapping.js`).
+
+```js
+import { createMidi, midiSupport } from './mir/shell/midi.js';
+import { jsonStore } from './mir/core/prefs.js';
+
+const midi = createMidi({
+  storage: jsonStore('myapp.midi'),            // the learned map, a preference
+  run: (id) => keys.run(id),                   // a note-on (or a CC rising across 64) runs the action
+  up: (id) => releaseHeld(id),                 // a 'hold' row's note-off (or a CC falling under 64)
+  source: (key, v) => {},                      // optional: every CC as it moves, 0…1
+  onState: (state) => paint(),                 // 'idle' · 'unavailable' · 'asking' · 'denied' · 'live'
+});
+connectButton.onclick = () => midi.start();    // only a hand's act asks the browser
+async function learnFor(id, mode = 'trigger') {
+  if (!(await midi.start())) return;
+  const m = await midi.learn();                // the next note-on or CC, or null (cancelLearn)
+  if (m) midi.set(m.key, { id, mode });        // one message per action: it replaces the action's old one
+}
+```
+
+| Member | What it does |
+|---|---|
+| `midiSupport()` (also `midi.support()`) → `{ ok, why }` | Web MIDI here or not, decided without asking: not on a browser without `navigator.requestMIDIAccess` (Safari and the iPad: a macro pad that sends keys is that browser's road), nor on a page that is not a secure context (HTTPS or localhost) |
+| `start()` → `Promise<boolean>` | the only caller of `navigator.requestMIDIAccess({ sysex: false })`; the browser may ask the user for MIDI permission. `true` when live; a refusal is `false` and the state `denied`. It listens to every input, and again when a device comes or goes (`onState('live')` then) |
+| `stop()`, `destroy()` | stop listening (`idle`); `destroy` also cancels a learn |
+| `state`, `devices()` → `[{ id, name, manufacturer, state }]` | where the door stands; the inputs while live |
+| `learn()` → `Promise<{ key, kind: 'note' \| 'cc', ch, n, value } \| null>`, `cancelLearn()` → bool, `learning()` | the next message, a note-on or any CC, is the answer (it runs nothing); a second `learn()` settles the first with `null` |
+| `set(key, { id, mode = 'trigger' })` → bool, `remove(key)` → bool, `keyOf(id)` → key or `null`, `map()` | the learned map; `set` refuses a malformed key or mode and saves at once |
+| `value(key)` → 0…1, `sources()` → `[{ id: 'midi:cc:<ch>:<n>', kind: 'midi', key, value() }]` | the last value of a CC; one source per CC the map holds or the hand has moved |
+| `reload()` | read the stored map again (an app's FORGET, another tab's save) |
+| `handle(bytes)` | one MIDI message fed by hand (a test, or an app's own transport) |
+
+**The map** is `{ v: 1, map: { [key]: { id, mode } } }` in `storage` (`{ get(), set(record), remove?() }`, the kit's `jsonStore` shape; an empty map removes the record). A key is `'note:<ch>:<n>'` or `'cc:<ch>:<n>'`, the channel 1–16 as a person reads it. A mode is:
+
+| Mode | A note | A CC |
+|---|---|---|
+| `trigger` | note-on runs `run(id)` | rising across 64 runs `run(id)` |
+| `toggle` | the same: the press runs `run(id)` and the app's own toggle flips | the same |
+| `hold` | note-on runs `run(id)`, its note-off `up(id)` | rising across 64 runs `run(id)`, falling under 64 `up(id)` |
+
+A note-on with velocity 0 is a note-off. A stored row with a bad key or mode is dropped on read; a full store costs the save, never a throw.
+
+**Wiring it.** `run` runs the action table's row and `up` its held release, so a MIDI press is a key press. Nothing asks for MIDI at load: `start()` belongs to a press (CONNECT, LEARN). An app that wants a saved controller live at launch may call `start()` once when the map is not empty and `navigator.permissions.query({ name: 'midi' })` is not `denied` (λWAVES' `resumeMidi`). A device unplugged mid-press sends no note-off, so on `onState` an app lets its held rows go.

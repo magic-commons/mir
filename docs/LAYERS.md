@@ -1,4 +1,4 @@
-# MIR · the cascade layers (1.5.0)
+# MIR · the cascade layers
 
 How the kit's CSS is ranked since 1.5.0, how that was proved neutral, and what an adopting app will see.
 Plan: `MIR CLAUDE 1.5 PLAN 2026-10-01.md` §5.1. Audit: `MIR 1.5 SURVEY 2026-10-01/F1 TOKENS AND PAINT.md` §3, §5.4.

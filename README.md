@@ -1,6 +1,6 @@
 # MIR
 
-**Magic Commons' interface kit.** One set of tokens, materials, widgets, gestures, window chrome and a
+**MAGIC COMMONS' interface kit.** One set of tokens, materials, widgets, gestures, window chrome and a
 modulation system, as vanilla ES modules and plain CSS. No framework, no build step. An app *adopts* MIR:
 it copies the bytes in, never edits them, and asks for changes here.
 
@@ -18,14 +18,14 @@ MIR is the source; the apps are readers.
 | **Gestures** | `mir/kit.js`, `mir/slider-keys.js`, `mir/control-help.js`, `mir/modulation/curve-gesture.js` | The drag law — 220 px for a full scale, Shift for fine, 320 under a finger — as defaults an app may retune (`setKnobLaw`, `dragTravel`); arrows, Page, Home/End and Delete on every slider; hints that step aside for a hand on a control and show for the keyboard; the dot grip means *drag me*, the four-way cross means *route me*. Curve editors use FL Studio's point/tension gesture law from `curve-gesture.js`; hosts do not reinterpret it. |
 | **Scheduling** | `mir/window-activity.js` | Idle is zero work: a window that is closed, folded, powered off or off-screen does not compute. |
 | **Controls** | `mir/controls/`, `mir/plane-model.js` | The control language: one control per kind of value (`docs/CONTROLS.md`), and the sphere-and-plane orientation control. |
-| **Palette** | `mir/palette.js` | OKLab, the WCAG contrast floor, the 256-entry palette LUT and the 23-palette catalogue the accents read. |
+| **Palette** | `mir/palette.js` | OKLab, the WCAG contrast floor, the 256-entry palette LUT and the palette catalogue (`PRESETS`) the accents read. |
 | **Shell** | `mir/shell/` | What every app begins with, taken node for node from λWAVES: the **wordmark** (`wordmark.js`), the **menubar** it opens — FILE · EDIT · VIEW · WINDOW · ABOUT as data (`menubar.js`), the **notebook** glass with NOTES and **ABOUT** faces (`notebook.js`, `about.js` — the GPL notice and the font licences by default), the **accent engine** that colours A, B and the mark from a palette (`accent.js`), their sheet (`shell.css`) and an optional ground (`stage.css`). NOTES previews markdown and maths with marked and KaTeX from `vendor/`, loaded on the first preview. See `gallery/shell.js` for the whole assembly. |
-| **Modulation** | `mir/modulation/` | The kit's first plugin: the modulation window's builders (`modwindow/`, BASINS' window, the source since 1.1.0), its host (`host.js`, `modhost.css`), model (`mod.js`), registry, curves and the shared FL-style curve gesture interpreter (`curve-gesture.js`). The rest of the controller that wires the window to a host is still λWAVES' (`lab/modwindow.js`). See `modulation/modwindow/host-contract.md` and `docs/PLUGIN-CONTRACT.md`. |
+| **Modulation** | `mir/modulation/` | The kit's first plugin: the modulation window's builders (`modwindow/`, BASINS' window, the source since 1.1.0), its host (`host.js`, `modhost.css`), model (`mod.js`), registry, curves and the shared FL-style curve gesture interpreter (`curve-gesture.js`). The controller that wires the window to a host is the kit's too: `window.js` (`createModulation`), installed by `bind.js` (`installModulation`) or `createApp()`. See `modulation/modwindow/host-contract.md` and `docs/PLUGIN-CONTRACT.md`. |
 | **Timeline** | `mir/timeline/` | The kit's second plugin: BASINS' timeline, harvested whole: lanes of clips over musical time, automation curves on any registered parameter, pattern and audio clips, the ruler, the playhead, slice and the curve editor; one call, `installTimeline({ mount, mod })`, wires it into the modulation clock as its automation, the project, the key table and the history (`docs/TIMELINE.md`). |
 | **Panels** | `mir/panels/` | The kit's rack windows, built once from the control language for every app: CAMERA, GRADE, CURVES, XY, LANES and RAMP. An app names its parameters through a small port; the kit owns the controls, the layout, the gestures, the modulation targets, the project part and the history. One import, `mir/panels/index.js` (`docs/PANELS.md`). |
 | **Pattern** | `mir/pattern/` | BASINS' step sequencer for the modulation window's envelopes, as a plugin part: one row per ENV, 16/32/64 steps, an LED bar per step; `installPattern({ mount, mod })` (`docs/PATTERN.md`). |
 | **Type** | `fonts/` | LW Title (a renamed Spinwerad subset), Roboto (UI), STIX Two Math (the maths), with their licences. |
-| **Laws** | `docs/` | [API](docs/API.md) (every export) · [CONTRACT](docs/CONTRACT.md) (load order, what the kit reads on `<body>`, the tokens an app may re-point, ids, storage) · [INTENT](docs/INTENT.md) (what every shadow, bevel and light means) · [TOKENS](docs/TOKENS.md) (every token, generated) · [TIERS](docs/TIERS.md) (lite and flat) · [LAYERS](docs/LAYERS.md) (the cascade layers) · [CORE](docs/CORE.md) (frame, motion, pointer, proximity, perf) · [WINDOWS](docs/WINDOWS.md) · [RACK](docs/RACK.md) · [KEYS](docs/KEYS.md) (the key table and the keyboard window) · [SHELL-PARTS](docs/SHELL-PARTS.md) (dialog, notice, busy, boot, flash guard, share link, settings rows, the banner, the boot veil, copy and the dump rows, the wake lock) · [FOLDERS](docs/FOLDERS.md) (the project window) · [SESSION](docs/SESSION.md) (the live project, RESUME, and preferences against project) · [MODULATION](docs/MODULATION.md) (the plugin's controller and app seam) · [TIMELINE](docs/TIMELINE.md) (the second plugin: lanes, clips, the one play) · [PATTERN](docs/PATTERN.md) (the step sequencer for the modulation window's envelopes) · [NOTEBOOK](docs/NOTEBOOK.md) (pages and the shelf) · [INFORMATIONAL](docs/INFORMATIONAL.md) (words on the picture) · [GUI](docs/GUI.md) (MIR OPTIONS and MIR ABOUT) · [LANGUAGES](docs/LANGUAGES.md) · [FORMAT](docs/FORMAT.md) (the portable file format, its checker, and pictures that carry a project) · [LLM-MODS](docs/LLM-MODS.md) (the mir-builder skill, the starter, LLM.md, describe() and dump()) · [THEMES](docs/THEMES.md) (the vanilla themes and their tones, and how a 'name'-spec differs) · [SKINS](docs/SKINS.md) (where the look lives: every FROST value block, the rules a skin follows, the near-duplicates) · [SKINS-MODULATION](docs/SKINS-MODULATION.md) (the modulation window's look values: its FROST blocks, how to set one, what stays a literal) · [TRANSPORT](docs/TRANSPORT.md) (the transport: its parts, BASINS' and λWAVES' layouts, the main opener) · [SCENE-GUARD](docs/SCENE-GUARD.md) (the UI's space never lets input reach the picture) · [INK](docs/INK.md) (adaptive ink: each label white or black from the picture beneath it) · [LANGUAGES-GLOSSARY](docs/LANGUAGES-GLOSSARY.md) (the translators' glossary) · [HISTORY](docs/HISTORY.md) (the stack, the keys, the HISTORY window) · [CONTROLS](docs/CONTROLS.md) (the control language: one control per kind of value, the one knob law, the lamp rules) · [CONTROLS-COLOUR](docs/CONTROLS-COLOUR.md) (the arc, the hue swatch, the lane slider, the static chip strip, the sortable list) · [AUDIO](docs/AUDIO.md) (a microphone, an audio clip, the asset store, the project ZIP) · [RENDER](docs/RENDER.md) (the recorder: frame-exact film from any canvas app) · [OPENER](docs/OPENER.md) (the title screen) · [ICONS](docs/ICONS.md) (the one icon library: every glyph, its meaning, the style numbers, how to add one) · [PANELS](docs/PANELS.md) (the kit's rack windows: what one is, the rules, how an app ports its own) · [PANEL-CAMERA](docs/PANEL-CAMERA.md) (where the view is, 2-D and 3-D) · [PANEL-GRADE](docs/PANEL-GRADE.md) (the master picture) · [PANEL-CURVES](docs/PANEL-CURVES.md) (Photoshop's curves) · [PANEL-XY](docs/PANEL-XY.md) (a pair, two routable sources, a morph of four snapshots) · [PANEL-LANES](docs/PANEL-LANES.md) (rows and strips of lanes) · [PANEL-RAMP](docs/PANEL-RAMP.md) (a palette ramp) · [PROBE](docs/PROBE.md) (the remote probe: a page on the iPad reports to this machine) · [ADOPTING-1.5](docs/ADOPTING-1.5.md) · [LINES](docs/LINES.md) · [PLUGIN-CONTRACT](docs/PLUGIN-CONTRACT.md) (the socket TIMELINE plugs into) · STYLE-LOCK, MOTION-LAW, ANTI-PATTERNS, REFERENCES — the reasoning, kept with the code. |
+| **Laws** | `docs/` | [API](docs/API.md) (every export) · [CONTRACT](docs/CONTRACT.md) (load order, what the kit reads on `<body>`, the tokens an app may re-point, ids, storage) · [INTENT](docs/INTENT.md) (what every shadow, bevel and light means) · [TOKENS](docs/TOKENS.md) (every token, generated) · [TIERS](docs/TIERS.md) (lite and flat) · [LAYERS](docs/LAYERS.md) (the cascade layers) · [CORE](docs/CORE.md) (frame, motion, pointer, proximity, perf) · [WINDOWS](docs/WINDOWS.md) · [RACK](docs/RACK.md) · [KEYS](docs/KEYS.md) (the key table, the keyboard window and MIDI) · [SHELL-PARTS](docs/SHELL-PARTS.md) (dialog, notice, busy, boot, flash guard, share link, settings rows, the banner, the boot veil, copy and the dump rows, the wake lock) · [FOLDERS](docs/FOLDERS.md) (the project window) · [SESSION](docs/SESSION.md) (the live project, RESUME, and preferences against project) · [MODULATION](docs/MODULATION.md) (the plugin's controller and app seam) · [TIMELINE](docs/TIMELINE.md) (the second plugin: lanes, clips, the one play) · [PATTERN](docs/PATTERN.md) (the step sequencer for the modulation window's envelopes) · [NOTEBOOK](docs/NOTEBOOK.md) (pages and the shelf) · [INFORMATIONAL](docs/INFORMATIONAL.md) (words on the picture) · [GUI](docs/GUI.md) (MIR OPTIONS and ABOUT MIR) · [LANGUAGES](docs/LANGUAGES.md) · [FORMAT](docs/FORMAT.md) (the portable file format, its checker, and pictures that carry a project) · [LLM-MODS](docs/LLM-MODS.md) (the mir-builder skill, the starter, LLM.md, describe() and dump()) · [THEMES](docs/THEMES.md) (the vanilla themes and their tones, and how a 'name'-spec differs) · [SKINS](docs/SKINS.md) (where the look lives: every FROST value block, the rules a skin follows, the near-duplicates) · [SKINS-MODULATION](docs/SKINS-MODULATION.md) (the modulation window's look values: its FROST blocks, how to set one, what stays a literal) · [TRANSPORT](docs/TRANSPORT.md) (the transport bar, which a hand reads as the CONTROL SURFACE: its parts, the BASIC and CONTROL SURFACE layouts, the main opener) · [SCENE-GUARD](docs/SCENE-GUARD.md) (the UI's space never lets input reach the picture) · [INK](docs/INK.md) (adaptive ink: each label white or black from the picture beneath it) · [LANGUAGES-GLOSSARY](docs/LANGUAGES-GLOSSARY.md) (the translators' glossary) · [HISTORY](docs/HISTORY.md) (the stack, the keys, the HISTORY window) · [CONTROLS](docs/CONTROLS.md) (the control language: one control per kind of value, the one knob law, the lamp rules) · [CONTROLS-COLOUR](docs/CONTROLS-COLOUR.md) (the arc, the hue swatch, the lane slider, the static chip strip, the sortable list) · [AUDIO](docs/AUDIO.md) (a microphone, an audio clip, the asset store, the project ZIP) · [RENDER](docs/RENDER.md) (the recorder: frame-exact film from any canvas app) · [OPENER](docs/OPENER.md) (the title screen) · [ICONS](docs/ICONS.md) (the one icon library: every glyph, its meaning, the style numbers, how to add one) · [PANELS](docs/PANELS.md) (the kit's rack windows: what one is, the rules, how an app ports its own) · [PANEL-CAMERA](docs/PANEL-CAMERA.md) (where the view is, 2-D and 3-D) · [PANEL-GRADE](docs/PANEL-GRADE.md) (the master picture) · [PANEL-CURVES](docs/PANEL-CURVES.md) (Photoshop's curves) · [PANEL-XY](docs/PANEL-XY.md) (a pair, two routable sources, a morph of four snapshots) · [PANEL-LANES](docs/PANEL-LANES.md) (rows and strips of lanes) · [PANEL-RAMP](docs/PANEL-RAMP.md) (a palette ramp) · [PROBE](docs/PROBE.md) (the remote probe: a page on the iPad reports to this machine) · [ADOPTING-1.5](docs/ADOPTING-1.5.md) · [ADOPTING-1.6](docs/ADOPTING-1.6.md) (what an app on 1.5 changes to adopt 1.6) · [LINES](docs/LINES.md) · [PLUGIN-CONTRACT](docs/PLUGIN-CONTRACT.md) (the socket TIMELINE plugs into) · STYLE-LOCK, MOTION-LAW, ANTI-PATTERNS, REFERENCES — the reasoning, kept with the code. |
 | **Proofs** | `tests/`, `tools/` | `npm test`: the token lint, node tests of the model and the adopt tool, browser tests of the controls and the shell. `tools/stylehash.mjs` proves a kit change neutral in an app; `tools/shell-parity.mjs` proves the shell is λWAVES'. `tools/hit-probe.mjs` and `tools/audit-material.mjs` are the app-facing hit test and look audit; `node tools/serve.mjs 8800 --https` serves an iPad, and `tools/probe.mjs` (the remote probe, `docs/PROBE.md`) lets a page on the iPad report to this machine. |
 
 ## Adopt it
@@ -37,17 +37,15 @@ node tools/adopt.mjs ../my-app --dry-run  # what an adopt would add, update and 
 # --prefix <dir> puts the kit somewhere other than lab/; --allow-dirty adopts from uncommitted kit changes (the manifest says so)
 ```
 
-In the app's `index.html`, in this order, before any sheet of the app's own:
+In the app's `index.html`, one line, before any sheet of the app's own:
 
 ```html
-<link rel="stylesheet" href="./mir/css/base.css">
-<link rel="stylesheet" href="./mir/css/skin.css">
-<link rel="stylesheet" href="./mir/shell/shell.css">                    <!-- if the app uses the shell (wordmark, menubar, notebook) -->
-<link rel="stylesheet" href="./mir/shell/stage.css">                    <!-- optional: λWAVES' ground, if the app has none of its own -->
+<link rel="stylesheet" href="./mir/mir.css">   <!-- every kit sheet, in the order the kit is tested in -->
 <!-- the app's own sheets here -->
-<link rel="stylesheet" href="./mir/modulation/modhost.css">              <!-- only if the app uses modulation -->
-<link rel="stylesheet" href="./mir/modulation/modwindow/modwindow.css">  <!-- and this one LAST: nothing may follow it -->
 ```
+
+`mir/mir.css` imports every kit sheet. Its header says which order still matters (base.css first) and why
+"modwindow.css last" is no longer a law (`docs/LAYERS.md`). The long form, one `<link>` per sheet in that file's order, keeps working.
 
 ```js
 import { knob, seg, trig, device, gripDots } from './mir/kit.js';
@@ -94,7 +92,7 @@ A/B system.
 `npm run gallery` serves http://127.0.0.1:8790/gallery/ — every token, control, window state, glyph and the
 modulation window on one page, built from the kit itself and restyled by nothing, with the theme, card style,
 frost, ground (plain or a busy coloured field) and accent seats live.
-`gallery/shell.html` is a fresh app on the kit: hover the wordmark for the menus, press J for the notebook (with a project's pages and the ▤ shelf), ⓘ for ABOUT.
+`gallery/shell.html` is a fresh app on the kit: hover the wordmark for the menus, press J for the notebook (with a project's pages and the shelf), the info button for ABOUT.
 `starter/` is the smallest whole app, to copy: `http://127.0.0.1:8790/starter/`.
 `mir/app.js` — `createApp()`: the standard wiring in one call; `mir/mir.css` — every kit sheet in one link.
 
@@ -102,11 +100,15 @@ The gallery's front page links every other page:
 
 | Page | What it shows |
 |---|---|
+| `gallery/index.html` | the front page: every token, control, window state and glyph, and the modulation window |
 | `gallery/intent.html` | INTENT: what every shadow, bevel and light means, drawn by the kit's own controls |
 | `gallery/core.html` | one frame, one motion, one drag, the drop-here glow and the cost meter |
 | `gallery/windows.html` | one floating window, its chip rail and the dock |
 | `gallery/rack.html` | two racks, lazy windows, + / SHIFT-queue / ☆, drag, float, dock, hide and peek |
 | `gallery/shell.html` | the wordmark, the menus, the notebook with pages and the shelf, ABOUT |
+| `gallery/controls.html` | the control language, one control per kind of value |
+| `gallery/colour-controls.html` | the arc, the hue swatch, the lane slider, the static chip strip, the sortable list |
+| `gallery/icons.html` | the one icon library: every glyph |
 | `gallery/folders.html` | FOLDERS, the project window: save, open, folders, drag to folder, export and import |
 | `gallery/modulation.html` | the modulation plugin mounted by one call, routing onto knobs and faders |
 | `tests/fixtures/pattern.html` | PATTERN on the modulation window's envelopes (a working page: the step rows, PATT, the stepped clock) |
@@ -114,11 +116,12 @@ The gallery's front page links every other page:
 | `gallery/keyboard.html` | one key table, the KEYBOARD window that rebinds it, the help view |
 | `gallery/parts.html` | dialog, notice, busy mark, boot card, flash guard, share link, settings rows |
 | `gallery/info.html` | INFORMATIONAL: words on the picture, read from `.md` pages |
-| `gallery/gui.html` | MIR OPTIONS (LOOK · LIGHT · WINDOWS) and MIR ABOUT, one light, SPACING, the pointer glow and the parallax |
+| `gallery/gui.html` | MIR OPTIONS (LOOK · LIGHT · WINDOWS) and ABOUT MIR, one light, SPACING, the pointer glow and the parallax |
 | `gallery/themes.html` | every vanilla theme × tone, live; click one to apply it |
 | `gallery/language.html` | the language mechanism: English, the pseudo-language and right to left |
-| `gallery/transport.html` | the transport's parts in BASINS' and λWAVES' layouts: one play, modulation's power, the BPM pill, the tempo panel |
+| `gallery/transport.html` | the transport bar (a hand reads CONTROL SURFACE) in its two layouts, BASIC and CONTROL SURFACE: one play, modulation's power, the BPM pill, the tempo panel |
 | `gallery/format.html` | the portable file: a skin, a spec, a picture that carries one |
+| `gallery/panel-camera.html` · `panel-grade.html` · `panel-curves.html` · `panel-xy.html` · `panel-lanes.html` · `panel-ramp.html` | the kit's rack windows, one page each: CAMERA, GRADE, CURVES, XY, LANES, RAMP |
 | `starter/index.html` | the smallest whole MIR app, to copy |
 
 ## Prove it
@@ -148,8 +151,8 @@ a half-booted page is a half proof.)
 ```bash
 node tools/shell-parity.mjs capture lambdawaves http://127.0.0.1:8779/index.html /tmp/parity
 node tools/shell-parity.mjs capture mir-as-lw   'http://127.0.0.1:8780/gallery/shell.html?as=lambdawaves' /tmp/parity
-node tools/shell-parity.mjs compare /tmp/parity lambdawaves mir-as-lw      # styles, text, boxes, pixels · 14 states · exit 1 on any difference
-node tools/shell-behaviour.mjs http://127.0.0.1:8780/gallery/shell.html    # 19 behaviour probes · exit 1 on any failure
+node tools/shell-parity.mjs compare /tmp/parity lambdawaves mir-as-lw      # styles, text, boxes, pixels · every state it lists · exit 1 on any difference
+node tools/shell-behaviour.mjs http://127.0.0.1:8780/gallery/shell.html    # its behaviour probes · exit 1 on any failure
 ```
 
 They need Chromium (`CHROMIUM=…`; otherwise the first on PATH, then the snap's) and nothing else.

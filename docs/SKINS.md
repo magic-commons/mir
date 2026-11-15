@@ -1,4 +1,4 @@
-# MIR · skins: where the look lives (1.5.0-alpha.4)
+# MIR · skins: where the look lives
 
 A **skin is a set of token values**. Nothing else in the kit's sheets carries a look: every colour, shadow, radius, blur, duration, easing, font size, weight, letter-spacing and look opacity the house draws with is a custom property, declared once, in one block at the top of its sheet. The rules below each block read names only, so a skin that sets the names changes the look and nothing else. FROST, the kit's own glass, is simply the values those blocks hold today.
 

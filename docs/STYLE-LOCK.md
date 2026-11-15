@@ -50,7 +50,7 @@ motion tokens; skin.css re-points what it re-dresses. Both are `:root` — see T
   λWAVES': A 30°, B 300°, VIVID 0.1. Josh's own law is *"From center, Accent 1 will be 60 degrees and Accent 2
   will be 300 degrees"* — `createAccent({ a: 60, b: 300 })`.
 - **THE ACCENT'S CONTRAST IS A RULING, NOT A DEFECT (Josh, 2026-09-05).** An audit measured every angle of all
-  23 palettes on both themes: the LIGHT theme cannot reach 4.5 : 1 anywhere, because `legible()` (λWAVES
+  the 23 palettes of that day on both themes: the LIGHT theme cannot reach 4.5 : 1 anywhere, because `legible()` (λWAVES
   `rack.js`; the kit's copy is in `mir/shell/accent.js`) uses one constant (OKLab L = 0.62) as both the dark
   floor and the light ceiling, and a neutral at that lightness on the light card is 3.22 : 1 by arithmetic.
   Josh has read it and ruled: *"the legibility is fine to me, you can
@@ -211,8 +211,8 @@ why turning a knob under a running LFO slides the arc with the needle and keeps 
 made visible, and it is the single best argument for the whole feature.
 
 *(The ring is the kit's in its CSS — `.k-ring-*` in `mir/css/base.css` and `mir/modulation/modhost.css`, read
-against `registry.isWrap()` and `baseNorm()` — but the code that draws and drags it is λWAVES' own host controller,
-`lab/modwindow.js` (λWAVES), which BASINS and NEBULA copied. The laws below bind any host that draws it.)*
+against `registry.isWrap()` and `baseNorm()` — and the code that draws and drags it is the kit's controller,
+`mir/modulation/window.js` (λWAVES' `lab/modwindow.js` until 1.5.1). The laws below bind any host that draws it.)*
 
 **The ring's own laws — settled against four references and two measurements, so do not re-decide them:**
 - **Every drop fills exactly the room the knob has left, in the direction it has room.** We know `baseNorm` at
@@ -318,7 +318,7 @@ rename. Not one outline moved. The rules that follow:
 
 ## Defaults that are rulings, not accidents (λWAVES ruling)
 - **PRISM is the default palette** (board #51, Josh's ruling): a fresh profile boots with `--acc` at prism's own
-  0°. λWAVES is one click away. 23 palettes, grouped in the menu by **stop count** from `PRESET_GROUPS`, which is
+  0°. λWAVES is one click away. The palettes (`PRESETS`), grouped in the menu by **stop count** from `PRESET_GROUPS`, which is
   the catalogue's own grouping — a palette added to `palette.js` arrives in the right group with no edit in the
   view. A default is for a first visit: naming a palette IS this browser saying which it wants. **Adding is the
   only edit `palette.js` still takes**: a shipped palette travels by name in a link, so moving a stop re-colours

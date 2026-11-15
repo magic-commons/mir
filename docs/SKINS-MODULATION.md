@@ -1,4 +1,4 @@
-# MIR · the modulation window's look values (1.5.0-alpha.4)
+# MIR · the modulation window's look values
 
 The modulation plugin's two sheets, `mir/modulation/modhost.css` and `mir/modulation/modwindow/modwindow.css`, hold no look literal below their first block. Every colour, gradient, shadow, filter, radius, border width, font, size, tracking, weight, line height, duration, easing, stroke width and look opacity is a token, declared once in a block at the top of its sheet headed `/* FROST · values */`, and the rules below the block read tokens only.
 

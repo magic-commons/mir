@@ -1,4 +1,4 @@
-# MIR · the opener (1.5.0-alpha.13)
+# MIR · the opener
 
 The opener is the title screen a cold start opens on: the app's starter covers, NEW, and RESUME when there is saved work. The app's engine is imported only after the pick. It is BASINS' title screen (`app/startup.js`, `startup.css`, `starter-covers.js`, 2026-10-02), moved into the kit: the mechanism is the kit's, and the covers, their art, the wordmark and the words of the notice are the app's.
 

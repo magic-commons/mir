@@ -1,4 +1,4 @@
-# MIR · the notebook: pages and the shelf (1.5.0)
+# MIR · the notebook: pages and the shelf
 
 The notebook is the free glass every app on MIR opens with J. Since 1.5 it holds two kinds of writing, kept apart:
 

@@ -1,8 +1,8 @@
 # MIR, for a model building with it
 
-This is **MIR**, Magic Commons' interface kit: glass, controls, windows, menus, pages and a modulation system, as plain ES modules and CSS with no build step. This page is the starter app's greeting and its manual. You are reading it on the picture; a model reads the same page through the app.
+This is **MIR**, MAGIC COMMONS' interface kit: glass, controls, windows, menus, pages and a modulation system, as plain ES modules and CSS with no build step. This page is the starter app's greeting and its manual. You are reading it on the picture; a model reads the same page through the app.
 
-The bar at the bottom opens everything: **Space** (or ▶) plays, the ring beside it is modulation's power, the latches open the windows, the MIR mark opens modulation. **S** FOLDERS, **M** modulation, **J** the notebook, **B** the rack, **T** dock the transport, **H** hide the interface, **F** full screen, **?** the keys (BASINS' table, the kit's default). Escape or a press on the picture puts these words away.
+The bar at the bottom opens everything: **Space** (or ▶) plays, the ring beside it is modulation's power, the latches open the windows, the MIR mark opens modulation. **S** FOLDERS, **M** modulation, **J** the notebook, **B** the rack, **T** dock the CONTROL SURFACE, **H** hide the interface, **F** full screen, **?** the keys (BASINS' table, the kit's default). Escape or a press on the picture puts these words away.
 
 ---
 
@@ -77,11 +77,11 @@ One line each. Paths are from `app/`.
 | `registerProjectPart(name, { capture, restore })` | `../mir/core/project.js` | a piece of the project FOLDERS saves |
 | `createDescribe` | `../mir/core/describe.js` | `describe()` and `dump()` |
 | `createRack` | `../mir/shell/rack.js` | the racks of windows at the edges; `rack.windows()` lists them |
-| `createTransport`, `firstRun`, `transportActions` | `../mir/shell/transport.js` | the transport bar: the one play, modulation's power, the tempo, the latches |
+| `createTransport`, `firstRun`, `transportActions` | `../mir/shell/transport.js` | the transport bar (its window and its words say CONTROL SURFACE): the one play, modulation's power, the tempo, the latches |
 | `createWindow({ id, title, host, body, size })` | `../mir/window/window.js` | one floating window |
 | `wordmark`, `createMenubar`, `createAccent` | `../mir/shell/wordmark.js`, `menubar.js`, `accent.js` | the name, its menus, the accent pair |
 | `createNotebook`, `createPages` | `../mir/shell/notebook.js`, `pages.js` | the notebook (J) and the project's pages |
-| `createGui` | `../mir/shell/gui.js` | MIR OPTIONS and MIR ABOUT |
+| `createGui` | `../mir/shell/gui.js` | MIR OPTIONS and ABOUT MIR |
 | `createKeys`, `createKeysHelp`, `createKeyboardWindow` | `../mir/shell/keys.js`, `../mir/keyboard/keyboard.js` | keys as data, the help view, the rebinding window |
 | `languageMenu`, `t` | `../mir/shell/language.js`, `../mir/core/i18n.js` | the LANGUAGE menu; translate your own sentences |
 | `notice`, `openDialog`, `confirmDialog`, `bootCard`, `busyMark` | `../mir/shell/notice.js`, `dialog.js`, `boot.js`, `busy.js` | a toast, a dialog, the boot card, the loading mark |
@@ -145,11 +145,11 @@ The full table is `docs/INTENT.md`.
 A skin is token values only, in one file:
 
 ```json
-{ "mir": 1, "kind": "skin", "kit": "1.5.0-alpha.5", "name": "ember",
+{ "mir": 1, "kind": "skin", "kit": "1.6.0", "name": "ember",
   "data": { "tokens": { "--hue-acc": "28", "--glass-blur": "14px" }, "light": { "--lum-acc": "30%" } } }
 ```
 
-Every key must be a token whose row in `mir/tokens.json` says `skin: true`. Check it with `node tools/check-envelope.mjs ember.json` before anyone loads it. The format is `docs/FORMAT.md`; the tokens are `docs/TOKENS.md`.
+`kit` is the version of the kit that wrote the file (`mir/version.js`; any string is read). Every key must be a token whose row in `mir/tokens.json` says `skin: true`. Check it with `node tools/check-envelope.mjs ember.json` before anyone loads it. The format is `docs/FORMAT.md`; the tokens are `docs/TOKENS.md`.
 
 ## 8. Check your work
 

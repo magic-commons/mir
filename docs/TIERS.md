@@ -1,4 +1,4 @@
-# MIR · the performance tier (1.5.0-alpha.2)
+# MIR · the performance tier
 
 One attribute on `<html>` trades the glass for frame time. The switches are token values in `mir/css/tokens.css`, in the `mir.tier` layer, behind `:where()` gates. With no attribute, nothing in that sheet applies, and the kit draws exactly what 1.4 drew (proof: `tests/tier.browser.mjs`, and stylehash on six pages).
 

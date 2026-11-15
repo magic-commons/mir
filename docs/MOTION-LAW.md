@@ -6,7 +6,7 @@ context. Method adapted from Emil Kowalski's `animate` skill (mechanism, not aes
 are the interactions it names (the field, the bow, the camera, the transport). Adopted as MIR's law on 2026-09-10
 and corrected for the kit on 2026-09-16: a path names the kit's file where the kit has one, a file only λWAVES has
 is marked "(λWAVES)", and so are its gates (`B71`, `B149`). The motion tokens (`--t-fast`, `--t-soft`,
-`--t-linger`, `--logo-turn`) are declared in `mir/css/base.css` since MIR 1.4.0.
+`--t-linger`, `--logo-turn`) are declared in `mir/css/base.css`.
 
 ## Gate 1 — frequency decides whether a thing may animate at all
 | How often the user does it | Our interactions | Rule |
@@ -32,7 +32,7 @@ the accent colours that mean signal (A) or routing (B). When in doubt the instru
 **The modulation window's picture and the knob rings are SIGNAL, and signal has a repaint law (waves 60–61).**
 `mod.js` is a module singleton and that window already paints the whole target list at **30 Hz** (a `33 ms`
 guard, not a rAF — 30 Hz is plenty for a number to be read at). (That painter, its `'modulated'` filter and its
-ResizeObserver are λWAVES' host controller, `lab/modwindow.js` (λWAVES), which BASINS and NEBULA copied; the kit's
+ResizeObserver are the kit's controller, `mir/modulation/window.js` (λWAVES' `lab/modwindow.js` until 1.5.1); the kit's
 `mod.js` and `registry.js` are what it reads. The law binds any host that paints the window.) So:
 - **Rebuild only on a SIGNATURE** — `width | shape hash | steps | which cycles`. The per-frame paint then moves
   **exactly four attributes**: the playhead's `x1`/`x2` and the dot's `cx`/`cy`. A card with no width (closed,
