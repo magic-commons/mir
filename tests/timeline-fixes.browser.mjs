@@ -228,6 +228,8 @@ const RUN = await (async () => {
     const microClass = await page.evaluate(id => document.querySelector(`.tl-clip-title[data-clip="${id}"]`).className, microBox);
     L.ck(/\bmicro\b/.test(microClass), 'a very short clip keeps the micro cap shoulders', microClass);
 
+    const bars = await page.evaluate(() => { const i = document.body.appendChild(document.createElement('i')); i.style.color = 'var(--acc)'; const acc = getComputedStyle(i).color; i.remove(); const s = getComputedStyle(document.querySelector('.mir-timeline .tl-viewport')); return { acc, bar: s.scrollbarWidth + ' | ' + s.scrollbarColor }; });
+    L.ck(bars.bar === 'thin | ' + bars.acc + ' rgba(0, 0, 0, 0)', 'the lanes\' scroller wears the one scrollbar: thin, the thumb in accent A, no groove (alpha.68)', bars);
     /* 1.6.0-alpha.67 ESCAPE IS THE ONE STACK'S: with an app's stack handed in (setMenuEscape) and a layer of the app's own under the timeline, Escape
        during a clip's drag ends the drag and nothing else; with THE MODE MENU open it closes the menu and nothing else; the next Escape reaches the app's layer */
     await page.evaluate(async () => { const M = await import('/mir/shell/menubar.js'); const S = window.__ESC = { layers: [], under: 0 };

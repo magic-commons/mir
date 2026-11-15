@@ -58,7 +58,7 @@ body[data-theme="light"] .mir-folders { --folders-ask-fill: color-mix(in srgb, h
    other panel scrolls itself */
 .mir-folders .mir-win-panel { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
 .mir-folders .mir-win-panel[hidden] { display: none; }
-.mir-folders .mir-win-panel:not([data-panel="gallery"]) { display: block; overflow: hidden auto; overscroll-behavior: contain; touch-action: pan-y; }
+.mir-folders .mir-win-panel:not([data-panel="gallery"]) { display: block; overflow: hidden auto; overscroll-behavior: contain; touch-action: pan-y; scrollbar-width: thin; scrollbar-color: var(--acc) transparent; }
 .mir-folders .mir-win-panel:not([data-panel="gallery"])[hidden] { display: none; }
 .mir-folders .fo-head { display: flex; align-items: baseline; gap: var(--sp-3); min-height: 18px; padding: 0 var(--sp-1); touch-action: none; }
 .mir-folders .fo-current { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -112,7 +112,7 @@ body[data-theme="light"] .mir-folders { --folders-ask-fill: color-mix(in srgb, h
 /* ── the explorer ─────────────────────────────────────────────────────────────────────────────────────────── */
 .mir-folders .sv-explorer { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; min-width: 0; padding: 9px 9px 0; border-radius: var(--r-lg); }   /* BASINS' geometry */
 .mir-folders .sv-explorer-scroll { flex: 1 1 auto; min-height: 0; overflow: hidden auto; overscroll-behavior: contain;
-  scrollbar-width: thin; scrollbar-color: var(--glass-hairline) transparent; touch-action: pan-y; }
+  scrollbar-width: thin; scrollbar-color: var(--acc) transparent; touch-action: pan-y; }   /* 1.6.0-alpha.68: the one scrollbar */
 .mir-folders .sv-grid { display: flex; flex-direction: column; gap: var(--folders-gap); }
 .mir-folders .sv-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }
 .mir-folders .sv-crumb { max-width: 100%; white-space: normal; overflow-wrap: anywhere; min-height: 30px; padding: 4px 6px; border: 0;

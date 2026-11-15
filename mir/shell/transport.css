@@ -63,7 +63,6 @@
   --xport-macro-num: 10px;           /* the macro's number (BASINS skin.css:371) */
   --xport-depth-w: 2.2;              /* the depth arc's stroke (BASINS skin.css:373) … */
   --xport-depth-w-drag: 3;           /* … while it is dragged */
-  --xport-rail-thumb: color-mix(in srgb, var(--fg) 22%, transparent);        /* the rail's thin scrollbar (BASINS skin.css:362) */
   --xport-seat-focus: color-mix(in srgb, var(--fg) 72%, transparent);        /* a depth seat's focus line (BASINS skin.css:370) */
   --xport-section: var(--glass-hairline);                                     /* 1.5.6-alpha.7 · a surface section's frame (λWAVES 022 C1) */
   --xport-grid: 44px;                /* … the surface's grid: a knob bank's least cell */
@@ -265,7 +264,7 @@ body.no-transport-bar .mir-transport, body.no-transport-bar .dev[data-id="transp
 .mir-transport .native-tempo.with-macros:not([hidden]) { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 12px; }
 .mir-transport .tempo-pane { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .mir-transport .tempo-rail { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 6px; max-height: var(--xport-rail-h); overflow-y: auto; overflow-x: hidden;
-  scrollbar-width: thin; scrollbar-color: var(--xport-rail-thumb) transparent; align-content: start; }
+  scrollbar-width: thin; scrollbar-color: var(--acc) transparent; align-content: start; }   /* 1.6.0-alpha.68: the one scrollbar (the thumb was a grey of its own) */
 .mir-transport .tempo-tile { position: relative; height: var(--xport-tile); border-radius: var(--xport-tile-r); }
 .mir-transport .tempo-tile.m2reorder { opacity: .55; }
 .mir-transport .tempo-tile .m2slotrow { display: grid; grid-template-columns: var(--xport-tile) var(--xport-tile) 18px; align-items: center; height: var(--xport-tile); }

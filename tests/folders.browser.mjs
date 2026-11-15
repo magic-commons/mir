@@ -64,8 +64,10 @@ try {
     const id = root.id; root.removeAttribute('id');
     const c0 = C(root.querySelector('.sv-projects-heading')), still = document.elementFromPoint(c0.x, c0.y), pe = getComputedStyle(root).pointerEvents;
     root.id = id;
-    return { missed: out, low: !!low && root.contains(low), id, still: !!still && root.contains(still), pe, title: root.getAttribute('aria-label'), rail: F.win.rail.el.getAttribute('aria-label') };`);
+    const sb = getComputedStyle(root.querySelector('.sv-explorer-scroll')), ai = document.body.appendChild(document.createElement('i')); ai.style.color = 'var(--acc)'; const acc = getComputedStyle(ai).color; ai.remove();
+    return { bar: sb.scrollbarWidth + ' | ' + sb.scrollbarColor, acc, missed: out, low: !!low && root.contains(low), id, still: !!still && root.contains(still), pe, title: root.getAttribute('aria-label'), rail: F.win.rail.el.getAttribute('aria-label') };`);
   check('hit-test: every verb, the field, the glass, each folder, each chip and the empty bottom of the pane are the window\'s (elementFromPoint)', !r.missed.length && r.low, JSON.stringify(r.missed));
+  check('the gallery\'s scroller wears the one scrollbar: thin, the thumb in accent A, no groove (1.6.0-alpha.68)', r.bar === 'thin | ' + r.acc + ' rgba(0, 0, 0, 0)', r.bar);
   check('the window takes the pointer by its class: with its id taken away the glass still answers (nothing for a retitle to break)', r.id === 'folders' && r.still && r.pe === 'auto' && r.title === 'FOLDERS' && /^FOLDERS window controls$/.test(r.rail), JSON.stringify(r));
 
   /* ── open a starter by real clicks: folder, tile (select), tile (open) ── */
