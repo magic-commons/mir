@@ -1,6 +1,8 @@
 # MIR · the CAMERA panel — where the view is
 
-A rack card an app gets by naming its camera. It is the window BASINS drew for its 2-D view (a ROTATION arc, a PAN pad, NORTH that goes back when pressed again, the two scales, the orbit) and λWAVES drew for its 3-D one (TURNTABLE · FREE, SPIN, FRICTION, DRAG GAIN, FLING, ZOOM, FOV), built once, from the control language, so every MIR app has the same one. The app keeps what the numbers mean; the panel owns the controls, the layout, the gestures, the modulation targets, the project part and the history.
+> 1.6.0-alpha.73 · THE CAMERA'S DIALS ARE KNOBS (Josh 2026-11-14: "The camera dials could be all knobs"): YAW, PITCH, ROTATION and ORBIT ANGLE are kit knobs — a wrapped one turns freely, PITCH stops at its ends. They were arcs; the arc is colour's alone (docs/CONTROLS.md). Their ids, ranges, homes, keys and modulation targets are unchanged.
+
+A rack card an app gets by naming its camera. It is the window BASINS drew for its 2-D view (a ROTATION knob, a PAN pad, NORTH that goes back when pressed again, the two scales, the orbit) and λWAVES drew for its 3-D one (TURNTABLE · FREE, SPIN, FRICTION, DRAG GAIN, FLING, ZOOM, FOV), built once, from the control language, so every MIR app has the same one. The app keeps what the numbers mean; the panel owns the controls, the layout, the gestures, the modulation targets, the project part and the history.
 
 Try it at `gallery/panel-camera.html`: three cards, two of them with **no engine at all** (the panel turns a CSS transform on the picture), one over a small engine written by hand in radians.
 
@@ -29,13 +31,13 @@ Each row exists only when the port has its ids.
 |---|---|---|
 | **verbs** | the app's own verbs, then **PAN HOME** and **NORTH** (2-D) or **HOME** (3-D). The very top row: no heading, no divider, no route hint (Josh's second message about BASINS' window) | triggers; NORTH lights while the view is at north |
 | **mode** | TURNTABLE · FREE | segment |
-| **sphere** | the direction sphere for `yaw` and `pitch`, and the two arcs beside it | the sphere is the hand's, the two arcs are the targets (the XY pad's contract) |
-| **pan** | PAN: a pad and its knob column X, Y and, under Y, **ROTATION** (1.5.0-alpha.20; Josh: "could the rotation knob sit underneath the Y knob? I think we can save a row that way") | XY pad; an arc for the angle |
-| **view** | ROLL · ZOOM · FOV · FLIP, and ROTATION when there is no pad. It follows the pad; a 2-D camera with no ZOOM or FLIP (BASINS) has no view row | an arc for an angle, a knob, a switch with a lamp |
-| **scales** | ROT SCALE · PAN SCALE · ORBIT · ORBIT ANGLE | knobs, an arc |
+| **sphere** | the direction sphere for `yaw` and `pitch`, and the two knobs beside it | the sphere is the hand's, the two knobs are the targets (the XY pad's contract) |
+| **pan** | PAN: a pad and its knob column X, Y and, under Y, **ROTATION** (1.5.0-alpha.20; Josh: "could the rotation knob sit underneath the Y knob? I think we can save a row that way") | XY pad; a knob for the angle |
+| **view** | ROLL · ZOOM · FOV · FLIP, and ROTATION when there is no pad. It follows the pad; a 2-D camera with no ZOOM or FLIP (BASINS) has no view row | a knob for an angle or a number, a switch with a lamp |
+| **scales** | ROT SCALE · PAN SCALE · ORBIT · ORBIT ANGLE | knobs |
 | **HAND** | DRAG · FRICTION · INERTIA · FLING · AUTO-ROTATE · SPIN · WHEEL (SMOOTH · STEP): the feel of the drag. Only when the port has them | knobs, a switch, a segment |
 
-BASINS' MAGNET, GLIDE / CRUISE and STEER are not here: they stay BASINS' (its CONTROLS window keeps them). A port that has `yaw` but not `pitch` gets two plain arcs in the view row; one that has only one of `panX`, `panY` gets plain knobs there too.
+BASINS' MAGNET, GLIDE / CRUISE and STEER are not here: they stay BASINS' (its CONTROLS window keeps them). A port that has `yaw` but not `pitch` gets two plain knobs in the view row; one that has only one of `panX`, `panY` gets plain knobs there too.
 
 ## The port
 
@@ -72,11 +74,11 @@ Every continuous control is a modulation target. The id is `camera.` + the id in
 
 - Give the panel the install: `createCameraPanel({ …, mod })`, `mod` being `installModulation()`'s result. When the card is built it `add()`s its targets (a route saved against them wakes up), and a hand on a routed dial writes the **base** (`mod.hand`), as the kit's law is. **The install's `roots` must name the prefix** (`installModulation({ roots: ['camera'], … })`: the registry refuses a target under an unknown root).
 - Or take the list: `view.params()` is `[{ id, label, min, max, step, map, hint, def, get, set, widget }]` to hand to `installModulation({ params })`. `get` and `set` go to `port.get` / `port.set`: the registry writes the app's number.
-- The pad is two knobs (`panX`, `panY`) and the sphere is two arcs (`yaw`, `pitch`); a macro routes onto those, never onto the pad or the sphere. A routed pair moves the pad's dot or the sphere's arrow in accent B and the hand's base stays.
+- The pad is two knobs (`panX`, `panY`) and the sphere is two knobs (`yaw`, `pitch`); a macro routes onto those, never onto the pad or the sphere. A routed pair moves the pad's dot or the sphere's arrow in accent B and the hand's base stays.
 
 ## The sphere
 
-`directionSphere(options)` is exported. It is the kit's `plane-model.js` drawing (the same sphere, three rings, isometric projection, 400 × 280) for a direction: the arrow is where the camera looks, the film plane stands across it and turns with ROLL. The hand **turns the ball and the arrow rides it** (1.5.7-alpha.46 THE SPHERE TURNS SMOOTHLY, λWAVES 040 C1; Josh: "controls VERY roughly … an unreliable rotation source"). THE ARCBALL: the finger's point on the drawing is a point of the ball — `ballPoint`, Holroyd's map: the sphere over the inner disc (ρ ≤ R/√2), the hyperbolic sheet z = R²/2ρ beyond, so every point of the plane has one and the map is continuous — and each move is the one rotation taking the last point onto the new one (`turnBetween`, Rodrigues), applied to the direction in 3-D. A tip grabbed inside the disc stays under the finger exactly; a finger past the rim keeps turning the ball (slower) and comes back the way it went — nothing jumps at the rim, nothing is mirrored on re-entry. The direction mode reads each move on the yaw / pitch chart in 2.5° steps (`sphereTurn`): THE POLAR CAP stops the tip a degree short of a pole (89°), and a step that would turn the yaw more than 45° is not taken, so at the pole the ball slips under the finger and the readout never flips. The plane mode (CLIP's normal) has no chart and no pole: `arcballTurn` turns the normal itself. The gear scales each move's angle, so engaging or leaving it moves nothing. `sphereDrag` and `planeDrag` (the damped least-squares tip step of 1.5.0 and alpha.7) stay exported and pure; the arrows still nudge a plane through `planeDrag`. With a `port.turn`, the panel sets the two arcs from the port after every move, so the next move starts from the live arrow. It stands on the one knob law: ⅛ gear on any modifier or a second finger, a double-tap is home, arrows nudge (Shift ⅛, Page ten). It paints from its two arcs (the base, or the modulated value a route shows).
+`directionSphere(options)` is exported. It is the kit's `plane-model.js` drawing (the same sphere, three rings, isometric projection, 400 × 280) for a direction: the arrow is where the camera looks, the film plane stands across it and turns with ROLL. The hand **turns the ball and the arrow rides it** (1.5.7-alpha.46 THE SPHERE TURNS SMOOTHLY, λWAVES 040 C1; Josh: "controls VERY roughly … an unreliable rotation source"). THE ARCBALL: the finger's point on the drawing is a point of the ball — `ballPoint`, Holroyd's map: the sphere over the inner disc (ρ ≤ R/√2), the hyperbolic sheet z = R²/2ρ beyond, so every point of the plane has one and the map is continuous — and each move is the one rotation taking the last point onto the new one (`turnBetween`, Rodrigues), applied to the direction in 3-D. A tip grabbed inside the disc stays under the finger exactly; a finger past the rim keeps turning the ball (slower) and comes back the way it went — nothing jumps at the rim, nothing is mirrored on re-entry. The direction mode reads each move on the yaw / pitch chart in 2.5° steps (`sphereTurn`): THE POLAR CAP stops the tip a degree short of a pole (89°), and a step that would turn the yaw more than 45° is not taken, so at the pole the ball slips under the finger and the readout never flips. The plane mode (CLIP's normal) has no chart and no pole: `arcballTurn` turns the normal itself. The gear scales each move's angle, so engaging or leaving it moves nothing. `sphereDrag` and `planeDrag` (the damped least-squares tip step of 1.5.0 and alpha.7) stay exported and pure; the arrows still nudge a plane through `planeDrag`. With a `port.turn`, the panel sets the two knobs from the port after every move, so the next move starts from the live arrow. It stands on the one knob law: ⅛ gear on any modifier or a second finger, a double-tap is home, arrows nudge (Shift ⅛, Page ten). It paints from its two knobs (the base, or the modulated value a route shows).
 
 ### The delta mode (1.5.7-alpha.54 THE SPHERE IS THE STAGE'S DRAG)
 
@@ -89,10 +91,10 @@ Josh, 2026-11-09: "clicking and dragging on the stage already does the behavior 
 | | `gain` | the sensitivity over the stage's hand, default `SPHERE_DELTA.gain` = 1.5 |
 | | `onStart(event)` | the press that begins a drag (both modes); `onChange()` is its end, as before |
 | `directionSphere({ plane: { … } })` | `plane.delta(dx, dy, info)` or `plane.delta: true` | the same for the plane sphere; `true` turns the normal about the drawing's up and right (no pole) and hands it to `set(n)`. After a `delta` call the sphere repaints from `normal()` |
-| `createCameraView` / `createCameraPanel` | `port.drag(dx, dy, info)` | a port with `drag` puts its sphere in the delta mode; the arcs are re-read from `port.get('yaw' / 'pitch')` after each call |
+| `createCameraView` / `createCameraPanel` | `port.drag(dx, dy, info)` | a port with `drag` puts its sphere in the delta mode; the knobs are re-read from `port.get('yaw' / 'pitch')` after each call |
 | | `sphereDelta: true`, `sphereGain`, `onSphereStart` | the kit's linear turn for a port without `drag`; the gain; the press |
 
-The double-tap (home), the arrow keys, Home / Delete and the two arcs are unchanged. The arcball stays the default.
+The double-tap (home), the arrow keys, Home / Delete and the two knobs are unchanged. The arcball stays the default.
 
 ## The zero-engine camera
 
