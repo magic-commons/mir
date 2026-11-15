@@ -257,7 +257,21 @@ const ROOTS = ['view', 'look', 'grid', 'clock', 'state'];
   Object.defineProperty(globalThis, 'localStorage', { value: fake, configurable: true, writable: true });
   try {
     const KEY = M.PRESET_LS;
-    check('the preset key is the one every reader ships with', KEY === 'lambdawaves.q0.modpresets', KEY);
+    check('the preset key is the kit\'s own namespace (1.6.0-alpha.58), and the factory folder carries no app\'s name', KEY === 'mir.modpresets' && M.PRESET_FOLDER_FACTORY === 'FACTORY', KEY);
+    /* 1.6.0-alpha.58 · AN OLD RECORD STILL LOADS: an app whose users saved under the old default passes that string */
+    {
+      const OLD = 'lambdawaves.q0.modpresets';
+      fake.setItem(OLD, JSON.stringify({ formatVersion: M.PRESET_FORMAT_V, modV: M.MOD_STATE_V, seq: 1, presets: [
+        { id: 'u.1', name: 'OLD ONE', at: 5, modV: M.MOD_STATE_V, rack: { macros: [], sources: [], routes: [] } }] }));
+      const before = M.presetList().filter((p) => !p.factory).length;
+      M.setPresetKey(OLD);
+      const seen = M.presetList().filter((p) => !p.factory).map((p) => p.name);
+      const applied = M.presetApply('u.1');
+      M.setPresetKey('');
+      fake.removeItem(OLD);
+      check('a record saved under the old default key is not read by default, and loads once the app passes that key',
+        before === 0 && seen.length === 1 && seen[0] === 'OLD ONE' && applied.ok === true && M.presetKeyOf() === KEY, { before, seen, applied });
+    }
     const st = M.presetStoreReload();
     check('presetStoreState() reports the key and both folders, and an empty store', st.key === KEY &&
       st.folderDefault === M.PRESET_FOLDER_DEFAULT && st.folderFactory === M.PRESET_FOLDER_FACTORY && st.users === 0 && st.error === null, st);

@@ -688,7 +688,7 @@ The modulation window `installModulation` mounts joins the kit's one window stac
 | **Presets** | `presetList, presetFolders, presetGet, presetApply, presetSave, presetDelete, presetStoreReload, presetStoreState, FACTORY_PRESETS, PRESET_LS, PRESET_FORMAT_V, PRESET_NAME_MAX, PRESET_FOLDER_DEFAULT, PRESET_FOLDER_FACTORY, PRESET_FOLDER_MAX` |
 
 About the preset store:
-- **The key and folders** are λWAVES' (`lambdawaves.q0.modpresets`; `Josh's Collection`, factory `MANDELBROT`), and every reader shares them (each app has its own origin).
+- **The key and folders**: the default key is the kit's, `mir.modpresets` (1.6.0-alpha.58; it was `lambdawaves.q0.modpresets`: an app whose users saved under it passes that string as `presetKey`). The user's folder is `Josh's Collection` (shown as MY PRESETS); the reserved factory folder is `FACTORY` (it was `MANDELBROT`).
 - **Not injectable yet.** Making them options is a `mod.js` edit. The kit's `mod.js` is no longer byte-identical to λWAVES' copy (it had drifted before 1.5.0-alpha.18, which also removed six exports nothing read).
 
 ### `host.js`: the host a window talks to
@@ -711,11 +711,7 @@ owners. `clock.isRealtimeSuspended()` reports this gate. Clients must release on
 pointer end/cancel, blur, close, project replacement and disposal; recording clients
 must reject interactive ownership before taking over the clock.
 
-The remaining exports are **λWAVES content that still lives in the kit**:
-- `labParameters`, `LAB_PRESET_FOLDER`, `LAB_PRESETS`, `presetRouteTargets`, `foreignPresets`, `labPresetList`, `labPresetGet`, `labPresetApply`;
-- `barTempo`.
-
-They go home to λWAVES when the kit drops its λWAVES leftovers (2.0.0).
+`barTempo({ T, rate } | { seconds }, …)` → the tempo at which one bar is one period (it says when it had to clamp). The kit holds no app's catalogue: λWAVES' `labParameters`, `LAB_PRESETS`, `LAB_PRESET_FOLDER`, `labPresetList`, `labPresetGet`, `labPresetApply`, `foreignPresets` and `presetRouteTargets` left in 1.6.0-alpha.57 (an app's targets and presets come through its port; `bundledPresets` is the door for an app's own starters).
 
 ### `modwindow/modwindow.js`: the window's builders
 
@@ -725,7 +721,7 @@ Since 1.5.0-alpha.13 the window draws through the house's one icon library (`gly
 
 | Export | What it is |
 |---|---|
-| `createModWindow(host)` | The whole window, built and not wired: `root.modwindow` holds `rack, foot, transport, addMacro, addDevice, buildRing, buildSpan, buildClear, buildGhost, buildDevicePick, buildMacroPick, buildPresetSheet, buildDeadInspector` |
+| `createModWindow(host)` | The whole window, built and not wired: `root.modwindow` holds `rack, foot, transport, addMacro, addDevice, buildRing, buildSpan, buildClear, buildGhost, buildPresetSheet, buildDeadInspector` |
 | `buildChipRail`, `buildMacroSlot`, `buildDevice`, `setDeviceMode`, `buildAudioSheet`, `buildRing`, `buildSpan`, `buildClear` | The sub-builders |
 | `setViewHeight`, `setWorkLane` | Sizing the rack view and the work lane |
 | `ringGeom`, `knobArc` | Ring and arc geometry |
