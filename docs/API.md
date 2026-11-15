@@ -721,7 +721,7 @@ Since 1.5.0-alpha.13 the window draws through the house's one icon library (`gly
 
 | Export | What it is |
 |---|---|
-| `createModWindow(host)` | The whole window, built and not wired: `root.modwindow` holds `rack, foot, transport, addMacro, addDevice, buildRing, buildSpan, buildClear, buildGhost, buildDevicePick, buildMacroPick, buildPresetSheet, buildDeadInspector` |
+| `createModWindow(host)` | The whole window, built and not wired: `root.modwindow` holds `rack, foot, transport, addMacro, addDevice, buildRing, buildSpan, buildClear, buildGhost, buildPresetSheet, buildDeadInspector` |
 | `buildChipRail`, `buildMacroSlot`, `buildDevice`, `setDeviceMode`, `buildAudioSheet`, `buildRing`, `buildSpan`, `buildClear` | The sub-builders |
 | `setViewHeight`, `setWorkLane` | Sizing the rack view and the work lane |
 | `ringGeom`, `knobArc` | Ring and arc geometry |

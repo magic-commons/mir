@@ -154,6 +154,27 @@ try {
     await p.eval(`document.activeElement && document.activeElement.blur()`);
   }
 
+  /* ── 3d · 1.6.0-alpha.62 THE CHOOSERS ARE THE KIT'S LIST: ADD DEVICE opens a listPane (three rows, the first focused); ↓ walks to ENV and a press on it adds one; ADD MACRO's closes on Escape ── */
+  {
+    const dev = await at(`document.querySelector('#modwin .m2devadd')`);
+    await click(dev.x, dev.y);
+    const open1 = await run(`const pn = document.querySelector('.mir-pick'); const rows = pn ? [...pn.querySelectorAll('.mir-pick-i')] : [];
+      return { pane: !!pn, rows: rows.map((b) => b.dataset.id), first: !!pn && document.activeElement === rows[0], exp: win.querySelector('.m2devadd').getAttribute('aria-expanded'), old: !!document.querySelector('.m2pick'), n: M.sourceList().length };`);
+    await key('ArrowDown', 'ArrowDown', 40);
+    const row = await at(`document.activeElement`); const onRow = await run(`return document.activeElement.dataset.id;`);
+    await click(row.x, row.y); await sleep(120);
+    const added = await run(`await frames(2); const l = M.sourceList(); const last = l[l.length - 1]; const out = { n: l.length, kind: last.kind, pane: !!document.querySelector('.mir-pick'), exp: win.querySelector('.m2devadd').getAttribute('aria-expanded') };
+      M.removeSource(last.id); mod.apply(); view.restore(view.presentation()); await frames(2); return out;`);
+    const mac = await at(`document.querySelector('#modwin .m2macadd')`);
+    await click(mac.x, mac.y);
+    const open2 = await run(`const pn = document.querySelector('.mir-pick'); return { rows: pn ? [...pn.querySelectorAll('.mir-pick-i')].map((b) => b.dataset.id) : [], n: M.macroList().length };`);
+    await key('Escape', 'Escape', 27); await sleep(80);
+    const shut = await run(`return { pane: !!document.querySelector('.mir-pick'), n: M.macroList().length, back: document.activeElement === win.querySelector('.m2macadd') };`);
+    check('choosers: ADD DEVICE is the kit list (lfo · env · audio, the first focused); ↓ walks to ENV, a press adds one and closes it; ADD MACRO lists knob · trigger and Escape closes it, adding nothing',
+      open1.pane && open1.rows.join() === 'lfo,env,audio' && open1.first && open1.exp === 'true' && !open1.old && onRow === 'env' && added.n === open1.n + 1 && added.kind === 'env' && !added.pane && added.exp === 'false'
+      && open2.rows.join() === 'knob,trigger' && !shut.pane && shut.n === open2.n && shut.back, JSON.stringify({ onRow, open1, added, open2, shut }));
+  }
+
   /* ── 4 · a route dragged toward a knob: the nearest routable control glows by distance, captures, and the drop routes ── */
   {
     const grip = await at(`document.querySelectorAll('#modwin .m2grip')[1]`);       // MACRO 2's ✥

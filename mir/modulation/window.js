@@ -36,6 +36,7 @@
 import { el, svgEl, seg, trig, knob, tapWatcher, gripDots, label, ariaLabel, hint as hintTo, gearOf, verticalDrag, setKnobLaw, watchTouches, wheelTurn, TAP } from '../kit.js';
 import { bindSliderKeys } from '../slider-keys.js';
 import { contextMenu, knobMenu, knobMenuPart, knobAct } from '../shell/menubar.js';
+import { listPane } from '../controls/select.js';
 import { createModWindow, setDeviceMode, setWorkLane, sizeLaw, GEOM,
          buildGhost, buildAudioSheet, COPY } from './modwindow/modwindow.js';
 import { evaluate as curveEval, curveHash, curveInfo, presetPoints, presetMirror,
@@ -297,20 +298,20 @@ export function createModulation(host, port) {
     return '';
   }
 
-  const pick = mw.buildDevicePick();
-  const mpick = mw.buildMacroPick();
   const psheet = mw.buildPresetSheet();
   const dead = mw.buildDeadInspector();
 
-  /* ADD AUDIO is offered when the host supplies an audio edge (port.audio) and refused out loud otherwise: a
-     control that changes nothing is not offered, and the button stays in the sheet so the sheet keeps its
-     geometry.  Adding the device does not touch the microphone; its own AUDIO IN button does, once, on a press. */
-  if (pick.btns.audio && !port.audio) {
-    pick.btns.audio.disabled = true;
-    pick.btns.audio.setAttribute('aria-disabled', 'true');
-    pick.btns.audio.title = 'Audio input is unavailable in this browser';
-  } else if (pick.btns.audio) {
-    pick.btns.audio.title = 'Add an audio follower; {:AUDIO IN} uses the microphone';
+  /* 1.6.0-alpha.62 · THE CHOOSERS ARE THE KIT'S LIST: ADD DEVICE and ADD MACRO open controls/select.js's listPane (the popup row, the
+     arrows, a typed letter, Home / End, Escape on the one stack, placed under its button and kept in the viewport) where the window
+     built two sheets of its own (.m2pick: 46 px buttons, no keys).  One is open at a time; the window closing closes it. */
+  let pickPane = null;
+  function openPick(anchor, name, items, onPick) {
+    if (pickPane) { const mine = pickPane.anchor === anchor; pickPane.pane.close(false); if (mine) return null; }
+    anchor.setAttribute('aria-expanded', 'true'); anchor.classList.add('on');
+    const pane = listPane({ anchor, label: name, items, onPick,
+      onClose: () => { anchor.setAttribute('aria-expanded', 'false'); anchor.classList.remove('on'); if (pickPane && pickPane.pane === pane) pickPane = null; } });
+    pickPane = { anchor, pane };
+    return pane;
   }
 
   /* ── PRESENTATION STATE.  The window's own, never the model's, never the project's. ────── */
@@ -1398,36 +1399,17 @@ export function createModulation(host, port) {
   }
 
 
-  const pickAway = (e) => {
-    const tg = e.target;
-    if (devPickOpen && !pick.root.contains(tg) && !rackEl.devadd.contains(tg)) setDevPick(false);
-    if (macroPickOpen && !mpick.root.contains(tg) && !(rackEl.macadd && rackEl.macadd.contains(tg))) {
-      macroPickOpen = false; mpick.root.hidden = true; rackEl.macadd.setAttribute('aria-expanded', 'false');
-    }
-  };
-  document.addEventListener('pointerdown', pickAway, true);
 
   /* ═══════════════════════════════════════════════════════════════════════════════════════
    *  THE MACRO RAIL — the artifact's slots, wired
    * ═══════════════════════════════════════════════════════════════════════════════════════ */
   const macRows = new Map();
-  let macroPickOpen = false;
   rackEl.macadd.title = 'Add a macro';
   rackEl.macadd.setAttribute('aria-expanded', 'false');
   rackEl.macadd.addEventListener('click', () => {
     if (M.macroList().length >= M.MACRO_MAX) { status(t('eight macros is the model’s ceiling'), 'warn'); return; }
-    macroPickOpen = !macroPickOpen; mpick.root.hidden = !macroPickOpen;
-    rackEl.macadd.setAttribute('aria-expanded', String(macroPickOpen));
+    openPick(rackEl.macadd, 'Add a macro', mw.copy.macroPick.map(([id, word]) => ({ id, label: word })), (kind) => { M.addMacro(null, { kind }); rebuild(); });
   });
-  for (const kind of ['knob', 'trigger']) {
-    if (!mpick.btns[kind]) continue;
-    mpick.btns[kind].addEventListener('click', () => {
-      mpick.root.hidden = true; macroPickOpen = false;
-      rackEl.macadd.setAttribute('aria-expanded', 'false');
-      M.addMacro(null, { kind });
-      rebuild();
-    });
-  }
 
   /* Reordering has a dedicated grip. The value face is therefore only a value
      control, and compact mode can hide that face without losing rearranging. */
@@ -1609,56 +1591,27 @@ export function createModulation(host, port) {
   /* WAVE 105 · per-SOURCE audio state that must outlive a card rebuild — the 96-frame level ring, the
      onset count the lamp compares against, and when it last flashed. */
   const audRings = new Map();
-  let devPickOpen = false;
   rackEl.devadd.title = 'Add an LFO, envelope, or audio follower';
   rackEl.devadd.setAttribute('aria-expanded', 'false');
-  /* The picker opens beside the explicit ADD DEVICE button and flips to its
-     other side when the viewport has no room. */
-  function placeDevicePicker() {
-    const r = rackEl.devadd.getBoundingClientRect();
-    pick.root.classList.add('m2pick-at-chip');
-    /* ⚠ `position: fixed` HERE IS NOT THE VIEWPORT'S, AND THAT IS THE ARTIFACT'S OWN DOING:
-       `#modwin.mir-modwindow.modwin` declares `contain: layout` (modwindow.css:499), and a layout
-       containment box is a containing block for FIXED descendants — so the window itself is the
-       origin.  Measured, not reasoned: the first cut of this wrote a correct viewport left of 207 px
-       and the sheet painted at 417, off by the window's own x.  Rather than special-case that one
-       cause, the ORIGIN IS MEASURED — park the sheet at (0,0), read where that lands, and offset by
-       the difference.  It is then right whatever creates the containing block, today or later (a
-       transform on an ancestor, a filter, FROST's backdrop-filter, another `contain`). */
-    pick.root.style.left = '0px'; pick.root.style.top = '0px';
-    const o = pick.root.getBoundingClientRect();
-    const w = o.width || 200, h = o.height || 120;
-    let x = r.right + 8;
-    if (x + w > window.innerWidth - 8) x = Math.max(8, r.left - 8 - w);   // no room to the right: the chip's other side
-    let y = r.top;
-    if (y + h > window.innerHeight - 8) y = Math.max(8, window.innerHeight - 8 - h);
-    const z = zoom();                                                // seen; written in the window's px
-    pick.root.style.left = Math.round((x - o.left) / z) + 'px';
-    pick.root.style.top = Math.round((y - o.top) / z) + 'px';
-  }
-  function setDevPick(on) {
-    devPickOpen = !!on;
-    pick.root.hidden = !devPickOpen;
-    rackEl.devadd.setAttribute('aria-expanded', String(devPickOpen));
-    rackEl.devadd.classList.toggle('on', devPickOpen);
-    if (devPickOpen) placeDevicePicker();
-    else { pick.root.classList.remove('m2pick-at-chip'); pick.root.style.left = ''; pick.root.style.top = ''; }
-  }
-  rackEl.devadd.addEventListener('click', () => setDevPick(!devPickOpen));
 
 
   const rackMode = () => compactMode();
-  for (const kind of ['lfo', 'env', 'audio']) {
-    if (!pick.btns[kind]) continue;
-    pick.btns[kind].addEventListener('click', () => {
-      setDevPick(false);
-      const src = M.addSource(kind);
-      const id = src && (src.id !== undefined ? src.id : src);
-      const mode = rackMode();
-      if (id !== undefined && id !== null && mode !== 'F') P.modes[String(id)] = mode;
-      rebuild();
-    });
-  }
+  /* ADD AUDIO is offered when the host supplies an audio edge (port.audio) and stands down, said, otherwise: the row stays in the
+     list so the list keeps its shape.  Adding the device does not touch the microphone; its own AUDIO IN button does, once, on a press. */
+  rackEl.devadd.addEventListener('click', () => {
+    const pane = openPick(rackEl.devadd, 'Add an LFO, envelope, or audio follower',
+      mw.copy.devicePick.map(([id, word]) => ({ id, label: word, coming: id === 'audio' && !port.audio })),
+      (kind) => {
+        const src = M.addSource(kind);
+        const id = src && (src.id !== undefined ? src.id : src);
+        const mode = rackMode();
+        if (id !== undefined && id !== null && mode !== 'F') P.modes[String(id)] = mode;
+        rebuild();
+      });
+    const aud = pane && pane.root.querySelector('[data-id="audio"]');
+    if (aud && !port.audio) aud.title = 'Audio input is unavailable in this browser';
+    else if (aud) aud.title = 'Add an audio follower; {:AUDIO IN} uses the microphone';
+  });
 
   /** F / C / M is the window's own PRESENTATION state and it rides in the settings key, exactly as
    *  host-contract.md §6 says.  But the MODEL has one boolean of its own — `minimized` — and it
@@ -3346,8 +3299,7 @@ export function createModulation(host, port) {
     if (was) { presence(root, false); presence(rail.el, false); } else { root.hidden = true; rail.el.hidden = true; }
     /* WAVE 105 · a closed window may not leave a sheet floating.  The two PICKERS were the pair
        `closePop/closePresets/closeDead` never covered. */
-    devPickOpen = false; if (pick && pick.root) pick.root.hidden = true;
-    macroPickOpen = false; if (mpick && mpick.root) mpick.root.hidden = true;
+    if (pickPane) pickPane.pane.close(false);
     closePop(); closePresets(); closeDead();
     if (was && port.moved) { try { port.moved(null); } catch (_) {} }
     if (cancelReorder) cancelReorder(); tempoField.close(false);
@@ -3543,7 +3495,7 @@ export function createModulation(host, port) {
       for (const rec of devRows.values()) if (rec.readout) rec.readout.dispose();
       off(); offLanguage(); if (ro) { ro.disconnect(); ro = null; } if (boxRO) boxRO.disconnect();
       document.removeEventListener('pointerdown', armTap, true);
-      document.removeEventListener('pointerdown', pickAway, true);
+      if (pickPane) pickPane.pane.close(false);
       document.removeEventListener('pointerdown', focusAway, true);
       window.removeEventListener('keydown', armKey, true);
       window.removeEventListener('resize', onResize);

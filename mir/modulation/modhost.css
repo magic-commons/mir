@@ -625,12 +625,6 @@ body[data-card="solid"] .mir-modwindow, body[data-card="solid"] #modwin.mir-modw
    house's round amount alone, as window.css's .mir-chip (--state-press-scale-round) */
 
 
-/* 16 · D1 · `.m2pick`, the ADD LFO / ADD ENV / ADD AUDIO sheet, and the macro sheet beside it.  Both
-   are appended to the WINDOW root — a sibling subtree of `.m2root`, where the alias is declared — so
-   `var(--m2-plate)` was invalid and the sheet painted transparent over the cards.  The fallback names
-   the ladder's own chassis, which IS declared in this file's seat block and IS themed, so the sheet
-   now wears exactly the plate it was written for.  A `.m2pick` inside `.m2root` would be unchanged. */
-/* SUPERSEDED BY 21 (wave 70): the sheet now wears the house glass, not the ladder's chassis. */
 /* 17 · D2 · `.m2clr`, the CLEAR button on a routed control.  `m2ensureClear()` appends it INTO the
    control, which for a host-registered control is outside `.m2root` AND outside `.mir-modwindow`, so
    no seat of ours can reach it by inheritance either.  The fallback is therefore the HOUSE recess —
@@ -710,19 +704,15 @@ body[data-card="solid"] .mir-modwindow, body[data-card="solid"] #modwin.mir-modw
   transform: rotate(45deg); transform-origin: 50% 50%; }                                              /* 20b */
 
 
-/* 21 · the three sheets are menu panes since 1.5.6-alpha.4 (`.glass[data-mir-surface="menu"]`): the skin draws them, the floor holds them */
-#modwin.mir-modwindow .m2pick,
+/* 21 · the two sheets (the preset list, the dead-send inspector; the two choosers are the kit's listPane since 1.6.0-alpha.62) are menu panes since 1.5.6-alpha.4 (`.glass[data-mir-surface="menu"]`): the skin draws them, the floor holds them */
 #modwin.mir-modwindow .m2ppick.glass,
 #modwin.mir-modwindow .m2deadpick.glass { color: var(--fg); }                                        /* 21 */
-#modwin.mir-modwindow .m2pick .m2pickb,
 #modwin.mir-modwindow .m2ppick .m2pickb,
 #modwin.mir-modwindow .m2deadpick .m2pickb {
   background-color: var(--glass-raise); color: var(--fg); }
-#modwin.mir-modwindow .m2pick .m2pickb:hover,
 #modwin.mir-modwindow .m2ppick .m2pickb:hover,
 #modwin.mir-modwindow .m2deadpick .m2pickb:hover {
   background-color: var(--state-hover, var(--glass-press)); }
-#modwin.mir-modwindow .m2pick .m2prowtag,
 #modwin.mir-modwindow .m2ppick .m2prowtag,
 #modwin.mir-modwindow .m2deadpick .m2prowtag { color: var(--fg-soft); }
 
@@ -988,15 +978,14 @@ body[data-theme="dark"] .mir-modwindow .m2audout { background-color: transparent
    float, and they are the only things a finger can land on. */
 /* 1.5.0-alpha.7 · the pickers under REFRACTIVE with FROST are BASINS' glass: the theme's .10 frost veil (or VEIL) and the
    blur; FROST · STILL holds them like a pane */
-body.frost[data-card="refractive"] #modwin.mir-modwindow :is(.m2pick, .m2ppick, .m2deadpick) {
+body.frost[data-card="refractive"] #modwin.mir-modwindow :is(.m2ppick, .m2deadpick) {
   background-color: var(--surface-veil, var(--frost-veil-light)); -webkit-backdrop-filter: var(--surface-filter, var(--frost-filter)); backdrop-filter: var(--surface-filter, var(--frost-filter)); }
-body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow :is(.m2pick, .m2ppick, .m2deadpick) { background-color: var(--surface-veil, var(--frost-veil-dark)); }
-body.frost.frost-hold[data-card="refractive"] #modwin.mir-modwindow :is(.m2pick, .m2ppick, .m2deadpick) {
+body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow :is(.m2ppick, .m2deadpick) { background-color: var(--surface-veil, var(--frost-veil-dark)); }
+body.frost.frost-hold[data-card="refractive"] #modwin.mir-modwindow :is(.m2ppick, .m2deadpick) {
   background-color: var(--surface-fill, var(--m2-face-tint-97)); -webkit-backdrop-filter: none; backdrop-filter: none; }
 #modwin.mir-modwindow .m2workbar,
 #modwin.mir-modwindow .m2rail,
 #modwin.mir-modwindow .m2dev,
-#modwin.mir-modwindow .m2pick,
 #modwin.mir-modwindow .m2ppick,
 #modwin.mir-modwindow .m2deadpick {
   visibility: visible; pointer-events: auto;
@@ -1042,15 +1031,6 @@ body.frost[data-card="refractive"][data-theme="dark"] #modwin.mir-modwindow { --
 /* and the window's own pane follows the same three, so a TINTED window is a tinted window */
 /* RETIRED wave 105 — the two FROST pane fills: --m2-pane has no reader. */
 
-/* 30 · THE PICKER, OPENED FROM THE RAIL.  The artifact anchors `.m2pick` to the WINDOW —
-   `position: absolute; left: 50%; transform: translateX(-50%)` — which is right for a button in the
-   device run and wrong for a chip on a rail that is a DOM SIBLING of the window: the sheet would
-   open half a window away from the press.  This class is what `lab/modwindow.js` switches on; the
-   two coordinates are inline because only the script can know where the chip is this frame.
-   Everything else about the sheet — its glass, its border, its shadow, its ink — is reach-list 21's
-   and is not repeated here. */
-#modwin.mir-modwindow .m2pick.m2pick-at-chip {
-  position: fixed; right: auto; bottom: auto; transform: none; z-index: calc(var(--z-banner) + 6); }   /* 30 */
 
 
 .kwin-chiprail[data-mir-rail] .crail-chip::before {

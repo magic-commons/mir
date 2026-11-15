@@ -133,25 +133,25 @@
  },
  {
   "file": "mir/modulation/modwindow/modwindow.js",
-  "line": 429,
+  "line": 427,
   "why": "fragment",
   "text": " window controls"
  },
  {
   "file": "mir/modulation/modwindow/modwindow.js",
-  "line": 599,
+  "line": 597,
   "why": "textContent",
   "text": "BPM"
  },
  {
   "file": "mir/modulation/modwindow/modwindow.js",
-  "line": 923,
+  "line": 921,
   "why": "textContent",
   "text": "A"
  },
  {
   "file": "mir/modulation/modwindow/modwindow.js",
-  "line": 925,
+  "line": 923,
   "why": "textContent",
   "text": "B"
  },
@@ -169,13 +169,13 @@
  },
  {
   "file": "mir/modulation/window.js",
-  "line": 1139,
+  "line": 1140,
   "why": "fragment",
   "text": "px,"
  },
  {
   "file": "mir/modulation/window.js",
-  "line": 1892,
+  "line": 1845,
   "why": "fragment",
   "text": " failed to build"
  },

@@ -276,7 +276,7 @@ below, the four edges and the model.)*
   control, wherever it lives**, and their CSS is deliberately unscoped for that reason.
   Rings stack at a 44 px pitch with the CLEAR button 46 px past the end, all by inline
   `translateY(calc(-50% + Npx))`.
-- **the sheets** — `mw.buildDevicePick()`, `mw.buildMacroPick()`, `mw.buildPresetSheet()`,
+- **the sheets** — `mw.buildPresetSheet()` (the two choosers are the kit's `listPane` since 1.6.0-alpha.62),
   `mw.buildDeadInspector()`, `buildAudioSheet(dev)`. All four live on the window root and
   are born `hidden` so the first tap shows rather than hides.
 
