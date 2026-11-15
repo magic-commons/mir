@@ -159,7 +159,7 @@ try {
     const dev = await at(`document.querySelector('#modwin .m2devadd')`);
     await click(dev.x, dev.y);
     const open1 = await run(`const pn = document.querySelector('.mir-pick'); const rows = pn ? [...pn.querySelectorAll('.mir-pick-i')] : [];
-      return { pane: !!pn, rows: rows.map((b) => b.dataset.id), first: !!pn && document.activeElement === rows[0], exp: win.querySelector('.m2devadd').getAttribute('aria-expanded'), old: !!document.querySelector('.m2pick'), n: M.sourceList().length };`);
+      return { pane: !!pn, rows: rows.map((b) => b.dataset.id), whole: rows.every((b) => { const w = b.querySelector('.mir-pick-t'); return w.scrollWidth <= w.clientWidth; }), first: !!pn && document.activeElement === rows[0], exp: win.querySelector('.m2devadd').getAttribute('aria-expanded'), old: !!document.querySelector('.m2pick'), n: M.sourceList().length };`);
     await key('ArrowDown', 'ArrowDown', 40);
     const row = await at(`document.activeElement`); const onRow = await run(`return document.activeElement.dataset.id;`);
     await click(row.x, row.y); await sleep(120);
@@ -170,8 +170,8 @@ try {
     const open2 = await run(`const pn = document.querySelector('.mir-pick'); return { rows: pn ? [...pn.querySelectorAll('.mir-pick-i')].map((b) => b.dataset.id) : [], n: M.macroList().length };`);
     await key('Escape', 'Escape', 27); await sleep(80);
     const shut = await run(`return { pane: !!document.querySelector('.mir-pick'), n: M.macroList().length, back: document.activeElement === win.querySelector('.m2macadd') };`);
-    check('choosers: ADD DEVICE is the kit list (lfo · env · audio, the first focused); ↓ walks to ENV, a press adds one and closes it; ADD MACRO lists knob · trigger and Escape closes it, adding nothing',
-      open1.pane && open1.rows.join() === 'lfo,env,audio' && open1.first && open1.exp === 'true' && !open1.old && onRow === 'env' && added.n === open1.n + 1 && added.kind === 'env' && !added.pane && added.exp === 'false'
+    check('choosers: ADD DEVICE is the kit list (lfo · env · audio, every word whole, the first focused); ↓ walks to ENV, a press adds one and closes it; ADD MACRO lists knob · trigger and Escape closes it, adding nothing',
+      open1.pane && open1.rows.join() === 'lfo,env,audio' && open1.whole && open1.first && open1.exp === 'true' && !open1.old && onRow === 'env' && added.n === open1.n + 1 && added.kind === 'env' && !added.pane && added.exp === 'false'
       && open2.rows.join() === 'knob,trigger' && !shut.pane && shut.n === open2.n && shut.back, JSON.stringify({ onRow, open1, added, open2, shut }));
   }
 

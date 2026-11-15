@@ -308,7 +308,7 @@ export function createModulation(host, port) {
   function openPick(anchor, name, items, onPick) {
     if (pickPane) { const mine = pickPane.anchor === anchor; pickPane.pane.close(false); if (mine) return null; }
     anchor.setAttribute('aria-expanded', 'true'); anchor.classList.add('on');
-    const pane = listPane({ anchor, label: name, items, onPick,
+    const pane = listPane({ anchor, label: name, items, onPick, cls: 'm2addlist',
       onClose: () => { anchor.setAttribute('aria-expanded', 'false'); anchor.classList.remove('on'); if (pickPane && pickPane.pane === pane) pickPane = null; } });
     pickPane = { anchor, pane };
     return pane;
