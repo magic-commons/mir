@@ -274,6 +274,13 @@ const RUN = await (async () => {
     await page.waitForTimeout(80);
     const made = await E(() => window.__TL.model.state().curves.filter((c) => c.targetId === 'scene.spin').length);
     L.ck(popped === 1 && made === 1, 'holding a knob offers the knob menu, whose CLIP › CREATE AUTOMATION CLIP makes a clip on its parameter', { popped, made });
+    // alpha.85 · THE MENU KEY IS THE BROWSER'S (L44): the ContextMenu key and Shift+F10 on a focused knob open the knob menu once, beside the knob
+    const keyMenu = async (spec) => { await E(() => { document.querySelector('#card .k[data-param="scene.spin"]').focus(); return 0; }); await page.keyboard.press(spec); await page.waitForTimeout(120);
+      const r = await E(() => { const panes = [...document.querySelectorAll('.mir-ctx-pane')], k = document.querySelector('#card .k[data-param="scene.spin"]').getBoundingClientRect(), b = panes[0] && panes[0].getBoundingClientRect();
+        return { panes: panes.length, clip: !!document.querySelector('.mir-ctx [data-id="clip"]'), near: !!b && b.left >= k.left - 4 && b.left <= k.right + 4 && b.top >= k.top - 4 && b.top <= k.bottom + 4 }; });
+      await page.keyboard.press('Escape'); await page.waitForTimeout(80); return r; };
+    const byMenuKey = await keyMenu('ContextMenu'), byShiftF10 = await keyMenu('Shift+F10');
+    L.ck([byMenuKey, byShiftF10].every((r) => r.panes === 1 && r.clip && r.near), 'the ContextMenu key and Shift+F10 on a focused knob open its knob menu once, at the knob (alpha.85)', { byMenuKey, byShiftF10 });
 
     /* ── THE TEMPO PILL in the work bar types the tempo (BASINS' timeline form) ─────────────────────────────── */
     await page.locator('.mir-timeline .mir-transport .tempo-expand').click(); await page.waitForTimeout(60);
