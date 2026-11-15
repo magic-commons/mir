@@ -178,10 +178,14 @@ const RUN = await (async () => {
     L.ck(bad.ok === false && /^! That is not a project zip: project\.json failed its CRC/.test(bad.says) && (await S(() => JSON.stringify(window.__AU.folders.files.entries().map((e) => e.id)))) === sigBefore, 'a damaged zip is refused by its CRC and changes nothing', bad);
 
     // ---- 6. THE MODULATION SEAM'S DEFAULT AUDIO CAPTURE -------------------------------------------------------------------------------
+    /* since 1.6.0-alpha.62 ADD DEVICE opens the kit's list (controls/select.js listPane): AUDIO is its row, offered or `coming` (refused) */
     const mic = await S(async () => { const M = window.__AU.mod; M.open(); await new Promise((r) => setTimeout(r, 300));
-      const all = [...document.querySelectorAll('button')], add = all.filter((b) => /^Add an audio follower/.test(b.title || b.dataset.tTitle || '')), off = all.filter((b) => /Audio input is unavailable/.test(b.title || ''));
-      return { offered: add.length, refused: off.length, disabled: add.map((b) => b.disabled) }; });
-    L.ck(mic.offered >= 1 && mic.refused === 0 && mic.disabled.every((d) => d === false), 'with no `audio` option ADD AUDIO is offered, not refused as unavailable (the kit\'s capture is the default)', mic);
+      const add = document.querySelector('.m2devadd'); if (add) add.click(); await new Promise((r) => setTimeout(r, 200));
+      const row = document.querySelector('.m2addlist [data-id="audio"]');
+      const out = { list: !!document.querySelector('.m2addlist'), offered: !!row, refused: !!row && (row.classList.contains('coming') || row.getAttribute('aria-disabled') === 'true' || /unavailable/.test(row.title || '')) };
+      if (add && document.querySelector('.m2addlist')) add.click();
+      return out; });
+    L.ck(mic.list && mic.offered && !mic.refused, 'with no `audio` option ADD DEVICE offers AUDIO, not refused as unavailable (the kit\'s capture is the default)', mic);
     L.ck(errors().length === 0, 'no page exceptions', errors());
   } catch (e) { L.ck(false, 'the run finished', String(e && e.stack || e)); }
   finally { await close(); }
