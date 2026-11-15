@@ -48,7 +48,7 @@ import { setVar, setAttr } from '../core/perf.js';
 import { createWindowActivity } from '../window-activity.js';
 import { observeSpan } from '../window/dock.js';
 import { registerWindow } from '../window/window.js';
-import { glyphEl, hasGlyph } from '../glyph.js';
+import { glyphEl, hasGlyph, setGlyph } from '../glyph.js';
 import { createRackScrollbars, createRackPills } from './rack-scrollbar.js';
 import { escapeLayer } from './menubar.js';
 import { jsonStore } from '../core/prefs.js';
@@ -408,7 +408,7 @@ export function createRack({ host = globalThis.document && document.body, sides 
   let toggleBtn = null, favBtn = null, favList = null;
   if (chrome) {
     toggleBtn = btn('rackToggle', 'toggle', '◧', 'Hide or show the rack');
-    if (favourites > 0) { favBtn = btn('rackFav', 'fav', '☆', 'Save or load a window layout'); favList = list('rackFavList', 'fav'); }
+    if (favourites > 0) { favBtn = btn('rackFav', 'fav', '', 'Save or load a window layout'); if (!favBtn.firstChild) setGlyph(favBtn, 'star'); favList = list('rackFavList', 'fav'); }
   }
   const handles = handle === 'never' ? [] : Object.keys(racks).map((side) => {
     const h = el('button', 'mir-rack-handle', host); made.push(h);

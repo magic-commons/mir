@@ -34,6 +34,7 @@
  * (curve-gesture.js), Sol's automation / exact resume / runtime capture in host.js and mod.js.
  */
 import { el, svgEl, seg, trig, knob, tapWatcher, gripDots, label, ariaLabel, hint as hintTo, gearOf, verticalDrag, setKnobLaw, watchTouches, wheelTurn, TAP } from '../kit.js';
+import { setGlyph } from '../glyph.js';
 import { bindSliderKeys } from '../slider-keys.js';
 import { contextMenu, knobMenu, knobMenuPart, knobAct } from '../shell/menubar.js';
 import { listPane } from '../controls/select.js';
@@ -995,7 +996,7 @@ export function createModulation(host, port) {
     /* THE ROUTED CONTROL'S OWN TWO BADGES, AND ONLY ON THE ONE THE HAND IS ON (2026-09-18): touching it gives THAT
        control its range dial at one corner and a × at the other.  × removes the selected macro's route, or opens the
        list when several macros hold the control.  A held press or a right-click opens the pop-over. */
-    const x = el('button', 'k-route-x', hostEl, '×'); x.type = 'button';
+    const x = setGlyph(el('button', 'k-route-x', hostEl), 'close', { size: 14 }); x.type = 'button';
     x.title = 'Remove the macro from this control'; ariaLabel(x, 'Remove the macro from this control');
     x.addEventListener('pointerdown', (e) => e.stopPropagation());
     x.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation();

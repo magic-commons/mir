@@ -77,7 +77,7 @@
  *     Every copy is a copy: the two never share an object, so editing one never changes the other.
  *   api adds: pages, shelf, selected, select(id|'yours'), yours → { title, md }, openNote({ title, md }), flush() */
 import { el, label, ariaLabel, hint } from '../kit.js';
-import { glyphSvg } from '../glyph.js';
+import { glyphSvg, setGlyph } from '../glyph.js';
 import { t as tx, tn, phrase, onLanguage } from '../core/i18n.js';
 /* the maths syntax the hint shows: typed exactly so in every language, so it is a var and never translated */
 const SYNTAX = Object.freeze({ inline: '$inline$', display: '$$display$$' });
@@ -159,7 +159,7 @@ export function createNotebook(options = {}) {
   const modeBtn = tool('nb-mode', '◐', phrase('edit or preview the notes'), phrase('Edit or preview the notebook'));
   const extra = (o.faces || []).map((f) => ({ ...f, btn: tool('nb-' + f.id + '-btn', f.glyph, f.label || f.id, f.title || f.id) }));
   const aboutBtn = o.about === false ? null : tool('nb-about', 'i', phrase('about {name}'), phrase('about {name} (and back to the notes)'), { name: o.name });
-  tool('nb-close', '×', phrase('close the notebook'), o.keyLabel ? phrase('close ({key})') : phrase('close'), { key: o.keyLabel });   // tr[close ({key})]: {key} is the notebook’s shortcut key, e.g. J
+  setGlyph(tool('nb-close', '', phrase('close the notebook'), o.keyLabel ? phrase('close ({key})') : phrase('close'), { key: o.keyLabel }), 'close', { size: 14 });   // tr[close ({key})]: {key} is the notebook’s shortcut key, e.g. J
 
   const notes = el('div', 'nb-face nb-notes', nb);
   const ta = el('textarea', 'nb-text', notes); ta.spellcheck = false;
@@ -352,7 +352,7 @@ export function createNotebook(options = {}) {
       const t = mkTab(id);
       t.eye = el('button', 'nb-tab-eye', t.w); t.eye.type = 'button'; t.eye.tabIndex = -1;
       t.eye.addEventListener('click', () => { const p = P.get(id); if (p) P.update(id, { shared: !p.shared }); });
-      t.x = el('button', 'nb-tab-x', t.w, '×'); t.x.type = 'button'; t.x.tabIndex = -1; ariaLabel(t.x, 'Delete this page'); t.x.title = 'Delete this page';
+      t.x = setGlyph(el('button', 'nb-tab-x', t.w), 'close', { size: 12 }); t.x.type = 'button'; t.x.tabIndex = -1; ariaLabel(t.x, 'Delete this page'); t.x.title = 'Delete this page';
       t.x.addEventListener('click', () => ask(t));
       t.drag = drag(t.b, { onStart: () => carryStart(t), onMove: (s) => carryMove(t, s), onEnd: (s) => carryEnd(t, s), onCancel: () => carryEnd(t, null) });
       return t;

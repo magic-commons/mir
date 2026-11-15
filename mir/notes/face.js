@@ -20,6 +20,7 @@
  *   · A repaired store says so in the status line, with where the damaged text was kept.
  *   Keys typed in the fields never reach the app, except Ctrl/⌘+S and Ctrl/⌘+, (the notebook's own law). */
 import { el, label as writeLabel, ariaLabel, hint } from '../kit.js';
+import { setGlyph } from '../glyph.js';
 import { t as tx, tn } from '../core/i18n.js';
 import { createShelf } from './shelf.js';
 import { APP_KEY, askInline } from '../shell/notebook.js';
@@ -122,13 +123,13 @@ export function notesFace({ store = createShelf(), glyph = '▤', label = 'SHELF
         const nm = btn('nt-name', row, it.name); hint(nm, 'Open {path} in your notes tab', { path: it.path });   // tr: your notes tab is the notebook’s first tab: the note you are writing, kept in this browser
         nm.addEventListener('click', () => open(it.path, row));
         el('span', 'nt-when', row, (it.saved || '').slice(0, 16).replace('T', ' '));
-        const rn = btn('nt-act nt-ren', row, '✎', 'rename'); ariaLabel(rn, 'Rename {name}', { name: it.path });
+        const rn = setGlyph(btn('nt-act nt-ren', row, '', 'Rename'), 'rename', { size: 16 }); ariaLabel(rn, 'Rename {name}', { name: it.path });
         rn.addEventListener('click', () => rename(row, it));
         if (toProject) {
-          const cp = btn('nt-act nt-toproject', row, '→', 'copy into the project as a page'); ariaLabel(cp, 'Copy {name} into the project', { name: it.path });
+          const cp = btn('nt-act nt-toproject', row, '→', 'Copy into the project as a page'); ariaLabel(cp, 'Copy {name} into the project', { name: it.path });
           cp.addEventListener('click', () => { const page = store.get(it.path); if (!page) return; const p = nbApi.pages.add(page); nbApi.select(p.id); say(tx('{name} copied into the project', { name: it.path })); });
         }
-        const x = btn('nt-act nt-del', row, '×', 'delete'); ariaLabel(x, 'Delete {name}', { name: it.path });
+        const x = setGlyph(btn('nt-act nt-del', row, '', 'Delete'), 'close', { size: 16 }); ariaLabel(x, 'Delete {name}', { name: it.path });
         x.addEventListener('click', () => askInline(row, { cls: 'nt', label: 'DELETE?', then: () => { if (store.remove(it.path)) { if (cur === it.path) cur = null; say(tx('Deleted {name}', { name: it.path })); } } })?.focus());
       }
     }

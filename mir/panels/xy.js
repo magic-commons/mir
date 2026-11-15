@@ -426,7 +426,7 @@ export function createXYPanel(o = {}) {
       const acts = el('div', 'xy-acts', row);
       acts.append(trig({ label: 'RECALL', cls: 'xy-recall', title: 'Set the dials to this snapshot', onFire: () => recall(i) }).root,
         trig({ label: 'STORE', cls: 'xy-over', title: 'Store the dials as they stand over this snapshot', onFire: () => store(i) }).root,
-        trig({ label: '×', cls: 'xy-del', title: 'Delete this snapshot', onFire: () => remove(i) }).root);
+        trig({ glyph: 'close', word: false, label: 'Delete this snapshot', cls: 'xy-del', onFire: () => remove(i) }).root);
     });
     if (!V.rows.children.length) label(el('p', 'xy-quiet', V.rows), 'No snapshots yet — STORE keeps the dials as they stand');
     for (let c = 0; c < 4; c++) {

@@ -132,7 +132,7 @@ try {
       todo: card.querySelector('.mir-boot-todo').textContent, buttons: btn.length, hit: !!hit && btn[0].contains(hit), noMark: !card.querySelector('.mir-busy') };
     card.remove(); return out;`);
   check('boot: the card walks its steps, then fails into a readable message (what happened, what to do, COPY DETAILS, RETRY)',
-    r.walking === 'Asking for an adapter' && r.role === 'alert' && r.code === 'noadapter' && r.title === 'NEBULA could not start' && /no graphics adapter/.test(r.what) && /Reload/.test(r.todo) && r.buttons === 2 && r.hit && r.noMark, JSON.stringify(r));
+    r.walking === 'Asking for an adapter' && r.role === 'alert' && r.code === 'noadapter' && r.title === 'Could not start NEBULA' && /no graphics adapter/.test(r.what) && /Reload/.test(r.todo) && r.buttons === 2 && r.hit && r.noMark, JSON.stringify(r));
 
   /* ── THE PHOTOSENSITIVITY NOTICE IS BASINS' ORIGINAL (Josh, 2026-10-07): measured on basins-ui-fixes at 1280 × 800
      (startup.css .mandel-warn-*): the picture 352 px square, then 32 px; the title 22.4 px / 700 / 4.032 px tracking,
