@@ -128,6 +128,8 @@ try {
   r = await run(`const i = $('.wp-search'), on = $('.wp-row.on'); return { focus: D.activeElement === i, ad: i.getAttribute('aria-activedescendant'), id: on.id, sel: $$('.wp-row[aria-selected="true"]').length, tab: $$('.wp-row').every((b) => b.tabIndex === -1), ctl: i.getAttribute('aria-controls') === $('.wp-list').id,
     fade: cs('.wp-glyph').opacity };`);
   check('THE WALK SPEAKS: ↓ keeps the focus in the field, which names the marked row (aria-activedescendant); that row alone is aria-selected; no row is a Tab stop', r.focus && r.ad && r.ad === r.id && r.sel === 1 && r.tab && r.ctl, JSON.stringify(r));
+  r = await run(`const i = $('.wp-search'); return { vis: i.matches(':focus-visible'), ring: [cs(i).outlineStyle, cs(i).outlineWidth, cs(i).outlineOffset].join(' ') };`);
+  check('THE FINDER\'S FIELD WEARS THE RING (alpha.83): focused for the keys, the search shows the house ring inside its box (2 px solid, -2 px), as every field does', r.vis && r.ring === 'solid 2px -2px', JSON.stringify(r));
   for (const c of 'zzqx') await p.key(c);
   r = await run(`T.kb.open(); await wait(300); const s = $('.km-search'); s.focus(); s.value = 'zzqx'; s.dispatchEvent(new Event('input', { bubbles: true })); await wait(150);
     const a = $('.mir-window-picker .mir-empty'), b = $('.km-list .mir-empty'); return { finder: a && !a.hidden ? a.textContent : null, keys: b ? b.textContent : null, rows: $$('.wp-row').filter((x) => !x.hidden).length, same: a && b && cs(a).color === cs(b).color && cs(a).fontSize === cs(b).fontSize, ad: $('.wp-search').hasAttribute('aria-activedescendant') };`);
