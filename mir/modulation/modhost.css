@@ -705,8 +705,10 @@ body[data-card="solid"] .mir-modwindow, body[data-card="solid"] #modwin.mir-modw
 
 
 /* 1.6.0-alpha.62 · the two choosers' list (controls/select.js listPane, on the page, not in the window): as wide as its longest word.  A
-   list pane is born as wide as its button; ADD DEVICE's is narrower than "ADD AUDIO", which then ended in an ellipsis. */
-.mir-pick.m2addlist { width: max-content; }
+   list pane is born as wide as its button; ADD DEVICE's is narrower than "ADD AUDIO", which then ended in an ellipsis.  The gutter is
+   kept for the scrollbar: a list pane's max-height is its own height less the 4 px gap (select.js placePane), so it always scrolls by
+   4 px, and Firefox seats its 8 px bar INSIDE the width, over the words (measured in λWAVES: scrollHeight 110, clientHeight 106). */
+.mir-pick.m2addlist { width: max-content; scrollbar-gutter: stable; }
 /* 21 · the two sheets (the preset list, the dead-send inspector; the two choosers are the kit's listPane since 1.6.0-alpha.62) are menu panes since 1.5.6-alpha.4 (`.glass[data-mir-surface="menu"]`): the skin draws them, the floor holds them */
 #modwin.mir-modwindow .m2ppick.glass,
 #modwin.mir-modwindow .m2deadpick.glass { color: var(--fg); }                                        /* 21 */
