@@ -3,7 +3,7 @@
  * the opener rows (from objects, from the rack's WINDOW menu), and the key table's row for Space. */
 import assert from 'node:assert/strict';
 import { TRANSPORT, SEATS, formatBpm, clampBpm, digitStep, charAt, dragBpm, keyStep, wheelNotches, parseBpm, seatOf, homeOf, seatRect, menuSide,
-  firstRun, menuRow, openerRows, isOpenOf, toggleOf, rackOpeners, transportActions, layoutNames, createTempo, BASINS_LAYOUT, LAMBDAWAVES_LAYOUT } from '../mir/shell/transport.js';
+  firstRun, menuRow, openerRows, isOpenOf, toggleOf, rackOpeners, transportActions, layoutNames, createTempo, BASIC_LAYOUT, CONTROL_SURFACE_LAYOUT } from '../mir/shell/transport.js';
 import { BPM_DEFAULT, BPM_MIN, BPM_MAX } from '../mir/modulation/mod.js';
 
 let n = 0;
@@ -44,16 +44,18 @@ const pass = (name) => { n++; console.log(`PASS ${name}`); };
   pass('a drag, a key and a typed value each give the tempo BASINS\' law says');
 }
 {
-  assert.deepEqual(layoutNames(BASINS_LAYOUT), ['play', 'power', 'tempo', 'rewind', 'panel', 'openers', 'seat', 'dock', 'door']);   // BASINS' row: the pill after the power button
-  assert.equal(BASINS_LAYOUT.name, 'basins'); assert.equal(LAMBDAWAVES_LAYOUT.name, 'lambdawaves');   // each layout keeps its own drawing (data-layout)
-  const lw = layoutNames(LAMBDAWAVES_LAYOUT);
-  assert.ok(lw.indexOf('play') < lw.indexOf('power') && lw.indexOf('power') < lw.indexOf('app:scrub') && lw.indexOf('app:rate') < lw.indexOf('tempo'), 'λWAVES order');
+  assert.deepEqual(layoutNames(BASIC_LAYOUT), ['play', 'power', 'tempo', 'rewind', 'panel', 'openers', 'seat', 'dock', 'door']);   // the basic row: the pill after the power button
+  assert.equal(BASIC_LAYOUT.name, 'basic'); assert.equal(CONTROL_SURFACE_LAYOUT.name, 'csb'); assert.equal(CONTROL_SURFACE_LAYOUT.title, 'CONTROL SURFACE');   // each layout keeps its own drawing (data-layout)
+  const lw = layoutNames(CONTROL_SURFACE_LAYOUT);
+  // 1.6.0-alpha.69 THE CSB IS THE KIT'S: the bar λWAVES uses, part for part and in its order (the 014 three-column list is gone)
+  assert.deepEqual(lw, ['play', 'app:rate', 'tempo', 'power', 'expand', 'app:begin', 'app:home', 'openers', 'door', 'app:chooser', 'app:modes', 'app:folders',
+    'app:search', 'app:finder', 'app:fav', 'app:rack', 'app:gear', 'app:nodes', 'app:info', 'app:theme', 'app:folds', 'dock', 'panel']);
   assert.equal(lw.filter((n) => n === 'play').length, 1, 'one play');
-  assert.ok(!lw.includes('app:modplay') && !layoutNames(BASINS_LAYOUT).includes('app:modplay'), 'no second play: modulation is a power button');
+  assert.ok(!lw.includes('app:modplay') && !layoutNames(BASIC_LAYOUT).includes('app:modplay'), 'no second play: modulation is a power button');
   assert.deepEqual(layoutNames([{ group: 'a', items: ['play', { group: 'b', items: ['tempo'] }] }, 'door']), ['play', 'tempo', 'door']);
   let bpm = 30; const tempo = createTempo({ model: { BPM_MIN: 20, BPM_MAX: 300, BPM_DEFAULT: 30, transport: { get bpm() { return bpm; } } }, setBpm: (b) => { bpm = b; } });
   assert.equal(tempo.get(), 30); assert.equal(tempo.set(31.04), 31); assert.equal(tempo.set(999), 300);
-  pass('layouts: BASINS\' bar and λWAVES\' bar name the same parts in their own orders, with one play; createTempo clamps and writes');
+  pass('layouts: the basic bar and THE CONTROL SURFACE name the same parts in their own orders, with one play; createTempo clamps and writes');
 }
 {
   assert.deepEqual(SEATS, ['bottom', 'top', 'compact']);
