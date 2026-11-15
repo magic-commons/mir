@@ -175,6 +175,13 @@ try {
       && open2.rows.join() === 'knob,trigger' && !shut.pane && shut.n === open2.n && shut.back, JSON.stringify({ onRow, open1, added, open2, shut }));
   }
 
+  /* ── 3e · 1.6.0-alpha.63 THE RAIL CHIP'S SIZE IS WRITTEN ONCE: the plugin's rail reads the same --rail-chip ── */
+  {
+    r = await run(`const c = rail.querySelector('.crail-chip'), w = () => Math.round(c.getBoundingClientRect().width * 10) / 10, root = document.documentElement;
+      const d = w(); root.style.setProperty('--rail-chip', '52px'); await frames(2); const small = w(); root.style.removeProperty('--rail-chip'); await frames(2); return { d, small, back: w() };`);
+    check('rail chip: the plugin\'s rail chip is --rail-chip too (62 by default, 52 when the root says so, and back)', r.d === 62 && r.small === 52 && r.back === 62, JSON.stringify(r));
+  }
+
   /* ── 4 · a route dragged toward a knob: the nearest routable control glows by distance, captures, and the drop routes ── */
   {
     const grip = await at(`document.querySelectorAll('#modwin .m2grip')[1]`);       // MACRO 2's ✥

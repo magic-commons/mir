@@ -451,7 +451,7 @@ body.frost .glass:where(.mir-modwindow, .mir-modwindow *, .kwin-chiprail, .kwin-
   --z-win: 12;
   --kwin-bar-h:          calc(26px * var(--ui-scale));
   --chrome-chip-disc:    calc(48px * var(--ui-scale));
-  --chrome-chip-target:  max(44px, calc(62px * var(--ui-scale)));
+  --chrome-chip-target:  max(44px, calc(var(--rail-chip, 62px) * var(--ui-scale)));   /* the one number, window/window.css (1.6.0-alpha.63) */
 }
 /* (1.5.0-alpha.8: --m2-mat-frost and the plugin's --glass-hairline are shared with the window material: mir/css/skin.css) */
 
