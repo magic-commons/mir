@@ -570,7 +570,6 @@
   "MOVE CONTENTS TO {:ROOT}?": "MOVE CONTENTS TO {:ROOT}?",
   "MOVE EARLIER": "MOVE EARLIER",
   "MOVE LATER": "MOVE LATER",
-  "MOVE TO": "MOVE TO",
   "MP4 unavailable at this size/FPS. Choose PNG frames or a smaller size.": "MP4 unavailable at this size/FPS. Choose PNG frames or a smaller size.",
   "MULTI-SAW": "MULTI-SAW",
   "MULTI-TRI": "MULTI-TRI",
@@ -3531,9 +3530,6 @@
   ],
   "MOVE LATER": [
    "mir/timeline/shortcuts.js"
-  ],
-  "MOVE TO": [
-   "mir/folders/gallery.js"
   ],
   "MP4 unavailable at this size/FPS. Choose PNG frames or a smaller size.": [
    "mir/render/panel.js"

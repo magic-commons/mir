@@ -90,10 +90,12 @@ const GATE = `(async () => {
   /* ═══ the project menu ═══ */
   G.go('SEAHORSE/TAILS'); await sleep(150);
   root().querySelector('.sv-card .sv-shot').dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true })); await sleep(200);
-  check('RAN', 'right-click (long-press on touch) opens the project menu', !q('.sv-context').hidden && /SET AS FOLDER PICTURE/.test(q('.sv-context').textContent) && /MOVE/.test(q('.sv-context').textContent));
-  fire(/SET AS FOLDER PICTURE/); await sleep(150);
+  const ctx = () => document.querySelector('.mir-ctx-pane');   // 1.6.0-alpha.70: the project's menu is the kit's contextMenu
+  check('RAN', 'right-click (long-press on touch) opens the project menu', !!ctx() && /SET AS FOLDER PICTURE/.test(ctx().textContent) && /MOVE/.test(ctx().textContent));
+  ctx().querySelector('[data-id="folder-picture"]').click(); await sleep(150);
   check('RAN', 'SET AS FOLDER PICTURE records the choice', F.folderPicture('SEAHORSE/TAILS') && F.folderPicture('SEAHORSE/TAILS').chosen === true);
   root().querySelector('.sv-card .sv-shot').dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true })); await sleep(200);
+  ctx().querySelector('[data-id="move-new"]').click(); await sleep(150);
   typeInto(q('.sv-context .sv-input'), 'SEAHORSE/SPIRALS');
   fire(/^MOVE$/, q('.sv-context')); await sleep(250);
   check('RAN', 'MOVE sends it to a new path', F.entry(saved.id).folder === 'SEAHORSE/SPIRALS', F.entry(saved.id).folder);
