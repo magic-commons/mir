@@ -130,6 +130,16 @@ const RUN = await (async () => {
     const envs2 = await page.evaluate(() => window.__P.mod.M.sourceList().filter((s) => s.kind === 'env').length);
     L.ck(under.below && under.side === 'bottom' && !under.meets && under.hit && envs2 === under.envs + 1,
       'seated below the modulation window, the rail sits on the outer (bottom) edge off the modulation glass, and a real click on its + adds an ENV (elementFromPoint: the chip)', { ...under, envs2 });
+    /* 8 · (1.6.0-alpha.87) PATTERN STOPS ABOVE THE BAR: seated under the modulation window, an app's bar laid across its column (the
+       fixture's `avoid`) is the floor — the pane and its rail end 8 px above the bar's top, never on it */
+    const barred = await page.evaluate(async () => {
+      const P = window.__P, wait = (ms) => new Promise((r) => setTimeout(r, ms)), r0 = P.pattern.root.getBoundingClientRect();
+      window.__bar = { left: 0, right: innerWidth, top: Math.round(r0.top + 10), bottom: Math.round(r0.top + 102) };
+      P.mod.view.restore({ ...P.mod.view.presentation(), dock: null, y: 9, open: true }); await wait(700);
+      const r = P.pattern.root.getBoundingClientRect(), q = P.pattern.rail.getBoundingClientRect(), bar = window.__bar; window.__bar = null;
+      return { bar: bar.top, pane: [Math.round(r.top), Math.round(r.bottom)], rail: [Math.round(q.top), Math.round(q.bottom)], side: P.pattern.rail.dataset.side };
+    });
+    L.ck(barred.pane[1] <= barred.bar - 8 && barred.rail[1] <= barred.bar - 8, 'an app\'s bar across its column is the floor: the pane and its rail stop 8 px above it (alpha.87)', barred);
     L.ck(errors().length === 0, 'no page errors', errors());
   } finally { await close(); }
   return L.finish();

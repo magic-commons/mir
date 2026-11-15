@@ -29,6 +29,7 @@ Load `mir/pattern/pattern.css` after the kit's sheets (`mir.css` imports it). On
 | `dock` | `{ span, guide }`: the app's dock span (`window/dock.js observeSpan`) and its DOCK GUIDE switch. The window always docks on its ENV device too |
 | `store` / `storageKey` | where the window's own shape is kept (default localStorage `mir.pattern`) |
 | `say(msg)` | where a refusal is said (default: the modulation window's status line) |
+| `avoid` | `() → rects` (seen), what the docked window and its rail stop above: an app's bar in the device's column is the seat's floor in place of the screen's foot (1.6.0-alpha.87). Default: the app's `windowAvoid` answer (`avoidOf(win)`, `window/window.js`); `false`: none |
 
 It returns `{ win, root, rail, model, sequencer, open, close, toggle, isOpen, show(envId), rows(), seat(), docked(), height(), menu(), sync(), paintMarkers(force), closeMenu(), destroy() }`.
 

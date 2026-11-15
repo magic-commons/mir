@@ -36,7 +36,7 @@ mod.view.rebuild();
    pattern window seats: this page puts it at the bottom */
 mod.view.restore({ ...mod.view.presentation(), chipSide: 'bottom' });
 const history = createHistory();
-const pattern = installPattern({ mount: document.getElementById('floats'), mod, history, model: createPatternModel(), storageKey: 'mir.test.pattern.win' });
+const pattern = installPattern({ mount: document.getElementById('floats'), mod, history, model: createPatternModel(), storageKey: 'mir.test.pattern.win', avoid: () => (window.__bar ? [window.__bar] : []) });
 window.__P = { mod, pattern, history, S };
 window.__ready = true;
 </script>
