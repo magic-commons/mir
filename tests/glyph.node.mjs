@@ -34,12 +34,13 @@ const names = glyphNames();
 
 ok('the library holds the glyphs the brief and the census ask for (and the 41 it had)', () => {
   const had = ['close', 'leave', 'reopen', 'info', 'gallery', 'camera', 'duplicate', 'sliders', 'bulletList', 'download', 'saveFolder', 'mandelbrotSmall',
-    'projectFile', 'render', 'folder', 'play', 'pause', 'dirNext', 'dirPrev', 'plus', 'grip', 'clear', 'tune', 'juliaRestore', 'lock', 'mandelbrot', 'morph',
+    'projectFile', 'render', 'folder', 'play', 'pause', 'dirNext', 'dirPrev', 'plus', 'grip', 'clear', 'tune', 'lock', 'morph',
     'dot', 'pending', 'warn', 'swap', 'rename', 'check', 'compact', 'save', 'invertColors', 'chevronDown', 'expand', 'barsTop', 'barsBottom'];
   const added = ['popOut', 'dock', 'compassNorth', 'power', 'minus', 'eye', 'eyeShut', 'rewind', 'stop', 'record', 'loop', 'undo', 'redo', 'search', 'settings',
     'home', 'link', 'upload', 'star', 'starFill', 'mute', 'solo', 'chevronUp', 'chevronLeft', 'chevronRight', 'move', 'gripDots', 'xy', 'curves', 'cameraOrbit',
     'grade', 'lanes', 'edit', 'select', 'scrub'];
   for (const k of [...had, ...added]) assert.ok(names.includes(k), 'missing glyph ' + k);
+  for (const k of ['mandelbrot', 'juliaRestore']) assert.ok(!names.includes(k), k + ' is an app\'s art: it left at 1.6.0-alpha.82 (an app registers its own)');
   assert.equal(new Set(names).size, names.length, 'a name appears twice');
 });
 

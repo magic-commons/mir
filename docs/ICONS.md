@@ -95,7 +95,7 @@ An unknown name draws nothing, warns once and never throws. An icon button has n
 | `render` | render: a diamond inside a diamond | |
 | `keys` | a board of key caps: KEYBOARD's KEYS face and its THE BOARD (1.5.6-alpha.9) | |
 | **the apps' own marks** | | |
-| `mandelbrot`, `mandelbrotSmall`, `juliaRestore` | the fractal's marks (solid) | the one place the library carries an app's art |
+| `mandelbrotSmall` | the fractal's small mark (solid): FOLDERS' default `folderGlyph` | the last of an app's art in the library. `mandelbrot` and `juliaRestore` left in 1.6.0-alpha.82 (nothing drew them): an app registers its own marks with `registerGlyphs` |
 
 ### Old names that still draw
 
