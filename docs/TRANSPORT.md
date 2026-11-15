@@ -44,7 +44,7 @@ createFolders({ …, onMoved: (r) => tr.moved(r) });               // every floa
 | `tap` | TAP as a seat of its own | `tapButton({ tempo })` |
 | `rewind` | seek to the beginning (needs `clock.seek`) | `barButton({ cls: 'transport-home', svg: SVG_REWIND, run })` |
 | `openers` | the window latches | `latch(opener)` each |
-| `seat` | ⠿, the seat menu | (createTransport) |
+| `seat` | ⠿, the seat menu (BOTTOM · TOP · COMPACT as radio rows of the kit's `contextMenu` since 1.6.0-alpha.88; `el.menu` is its pane while open, else `null`) | (createTransport) |
 | `dock` | the dock chip | (createTransport) |
 | — | the way back under H (always the bar's last child) | `wayBack({ run })` |
 

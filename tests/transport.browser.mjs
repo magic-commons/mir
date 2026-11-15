@@ -297,11 +297,18 @@ try {
 
   /* ── the seat (ruled: BOTTOM, TOP, COMPACT), kept across a reload ────────────────────────────────────────── */
   h = await click(`__T.tr.el.seat`);
-  r = await run(`await wait(40); return { shown: !T.tr.el.menu.hidden, topOk: T.tr.el.menu.querySelector('[data-seat-choice="top"]').disabled === (typeof R.setHome !== 'function') };`);
-  const hc = await click(`__T.tr.el.menu.querySelector('[data-seat-choice="compact"]')`);
-  r2 = await run(`await wait(60); const b = T.tr.root; return { seat: T.tr.seat, form: b.dataset.form, hz: getComputedStyle(T.tr.el.pill.querySelector('.tempo-hz')).display, menu: !T.tr.el.menu.hidden };`);
+  r = await run(`await wait(40); const m = T.tr.el.menu, rows = m ? [...m.querySelectorAll('.mb-item')] : [];
+    return { shown: !!m, kit: !!m && m.matches('.mir-ctx-pane.glass[data-mir-surface="menu"]'), radio: rows.map((b) => b.getAttribute('role') + ':' + b.getAttribute('aria-checked')).join(),
+      focus: !!m && m.contains(document.activeElement), topOk: !!m && m.querySelector('[data-id="seat-top"]').disabled === (typeof R.setHome !== 'function') };`);
+  await key('Escape', 'Escape', 27);
+  const esc = await run(`await wait(60); return { menu: !!T.tr.el.menu, back: document.activeElement === T.tr.el.seat };`);
+  await click(`__T.tr.el.seat`); await click(`__T.tr.el.seat`); const shut = await run(`await wait(40); return !T.tr.el.menu;`);   // ⠿ again closes it
+  h = await click(`__T.tr.el.seat`); await sleep(60);
+  const hc = await click(`__T.tr.el.menu.querySelector('[data-id="seat-compact"]')`);
+  r2 = await run(`await wait(60); const b = T.tr.root; return { seat: T.tr.seat, form: b.dataset.form, hz: getComputedStyle(T.tr.el.pill.querySelector('.tempo-hz')).display, menu: !!T.tr.el.menu };`);
   await seatCheck('COMPACT', { glyph: 22, num: 14, seat: 30 });
-  check('the seat menu opens from ⠿; COMPACT drops the Hz reading (TOP is offered when the rack has setHome)', h.ok && r.shown && r.topOk && hc.ok && r2.seat === 'compact' && r2.form === 'compact' && r2.hz === 'none' && !r2.menu, JSON.stringify({ h, r, hc, r2 }));
+  check('the seat menu opens from ⠿ as the kit\'s menu (alpha.88: contextMenu, three radio rows, the chosen one checked and focused; Escape gives the keys back to ⠿); COMPACT drops the Hz reading (TOP is offered when the rack has setHome)',
+    h.ok && r.shown && r.kit && r.radio === 'menuitemradio:true,menuitemradio:false,menuitemradio:false' && r.focus && r.topOk && !esc.menu && esc.back && shut && hc.ok && r2.seat === 'compact' && r2.form === 'compact' && r2.hz === 'none' && !r2.menu, JSON.stringify({ h, r, esc, shut, hc, r2 }));
   await load('');
   r = await run(`return { seat: tr.seat, form: bar.dataset.form, first: T.first, layout: T.layout };`);
   check('a reload keeps the seat (and it is no longer a first run)', r.seat === 'compact' && r.form === 'compact' && r.first === false, JSON.stringify(r));
