@@ -1,6 +1,8 @@
 # MIR — changelog
 
-## 1.6.0 (unreleased) · THE KIT REVIEWED WHOLE
+## 1.6.0 — 2026-11-16 · THE KIT REVIEWED WHOLE
+
+Cut 2026-11-16 (Josh: "Yes let's cut it to v1.6.0"): the bytes of 1.6.0-alpha.96 with the version written 1.6.0, tag `v1.6.0`. With the cut, `tests/parity5.browser.mjs` reads today's law: FROST's TEXT follows the theme (`text: 'theme'` since 1.5.6-alpha.8 FROST is TEXT AUTO — white ink in dark, dark ink in light); the check still asked for the older TEXT LIGHT and had been red since before 1.6.0-alpha.1. No kit byte moved for it.
 
 `main` takes the whole 1.5 line (through 1.5.7-alpha.71) and numbers its own alpha series from here (Josh, 2026-11-12). MIR Focus is not a line of this kit: it is its own world, numbered 0.X.X (Josh, 2026-11-13). What an app on 1.5 changes to adopt 1.6 is one page, docs/ADOPTING-1.6.md. The doors, newest first, one line each; **1.6.0-alpha.74…79 were never used** (K6 held 64–79 and built 64–73; K7's three doors were written 80–82 beside it).
 

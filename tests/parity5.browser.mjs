@@ -1,6 +1,6 @@
 /* parity5.browser.mjs — BASINS parity, round five (tests/fixtures/parity5.html: the kit's TIMELINE with the shared transport in
  * its work lane, under the look store).  Each check is one gap of the round, measured in a real browser:
- *   1. FROST is the recipe's White Text: the look store's fresh TEXT is LIGHT, and data-text stays light in both modes
+ *   1. FROST's TEXT follows the theme (1.5.6-alpha.8): the look store's fresh TEXT is THEME, data-text is light in dark and dark in light
  *   2. the rail's grip draws BASINS' dots (`.kwin-grip-dots > i`, nine 2 px dots) in the chip ink with its one-pixel lift, and the
  *      grip is what elementFromPoint finds at its centre
  *   3. createAccent({ model: 'hsl' }): at A = 180°, VIVID 1, the accent is hsl(180 100% 64%) (BASINS), where the palette model's
@@ -22,9 +22,9 @@ try {
   for (let i = 0; i < 40 && !(await p.eval('!!window.__ready')); i++) await sleep(100);
   const J = async (body) => JSON.parse(await p.eval(`(async () => { const T = __T, wait = (ms) => new Promise((r) => setTimeout(r, ms)); ${body} })().then(JSON.stringify)`));
 
-  /* ── 1. FROST's White Text ── */
+  /* ── 1. FROST's text follows the theme ── */
   let r = await J(`const a = { fresh: T.P.get('text'), dark: document.body.dataset.text }; T.P.set('theme', 'light'); T.P.apply({ now: true }); await wait(150); a.light = document.body.dataset.text; T.P.set('theme', 'dark'); T.P.apply({ now: true }); return a;`);
-  check('FROST: a fresh store is TEXT LIGHT (the recipe\'s White Text), and the ink stays white in the light theme too', r.fresh === 'light' && r.dark === 'light' && r.light === 'light', JSON.stringify(r));
+  check('FROST: a fresh store is TEXT THEME — white ink in the dark theme, dark ink in the light one', r.fresh === 'theme' && r.dark === 'light' && r.light === 'dark', JSON.stringify(r));
 
   /* ── 2. the grip's dots ── */
   await p.eval(`__T.tl.win.open(); 0`); await sleep(900);
